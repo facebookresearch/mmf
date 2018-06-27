@@ -5,7 +5,7 @@ Goal: building a software suite with VQA+VisDial models, datasets, data-loaders,
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for testing.
+These instructions will get you a copy of the project and start running the models.
 
 
 ### Installing
