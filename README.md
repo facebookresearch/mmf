@@ -1,6 +1,6 @@
 # Pythia
-This repository contains the code, models and other data required to reproduce the winning entry to the 2018 VQA Challenge. 
-Our eventual goal is to build a software suite with VQA and VisDialog models supporting many datasets and architectures to enable easy and fair comparisons and accelerate VQA research
+This repository contains the code, models and other data (features, annotations) required to reproduce the winning entry to the 2018 VQA Challenge.
+Our eventual goal is to build a software suite for VQA and Visual Dialog supporting many datasets and model architectures to enable easy, fair comparisons among them and accelerate research in this space.
 
 ## Getting Started
 
