@@ -1,11 +1,10 @@
 # Pythia
-A software suite for VQA+VisDial
-
-Goal: building a software suite with VQA+VisDial models, datasets, data-loaders, etc. for enabling easy and fair comparisons and accelerating VQA research
+This repository contains the code, models and other data (features, annotations) required to reproduce the winning entry to the 2018 VQA Challenge.
+Our eventual goal is to build a software suite for VQA and Visual Dialog supporting many datasets and model architectures to enable easy, fair comparisons among them and accelerate research in this space.
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for testing.
+These instructions will get you a copy of the project and start running the models.
 
 
 ### Installing
@@ -74,7 +73,7 @@ python train.py --config_overwrite '{data:{image_fast_reader:false}}'
 
 Run model with finetune
 ```bash
-python train.py --config config/keep/detectron23_finetune_minival.yaml
+python train.py --config config/keep/detectron23_finetune.yaml
 
 ```
 Check result
@@ -86,7 +85,7 @@ The results folder contains following info
 ```angular2html
 results
 |_ default
-|  |_ 1234
+|  |_ 1234 (default seed)
 |  |  |_config.yaml
 |  |  |_best_model.pth
 |  |  |_best_model_predict_test.pkl 
@@ -175,9 +174,9 @@ python train.py
 | --- | --- | --- |
 | baseline | 68.05 | https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/baseline_models.tar.gz |
 | baseline + VG | 68.44 |https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/baseline_VG_models.tar.gz  |
-| baseline +VG +VD+morrir | 68.98 |https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/most_data_models.tar.gz |
-| dectectron_finetune | 68.49 | https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/detectron23_finetune_models.tar.gz|
-| dectectron_finetune+VG |68.77 | https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/detectron23_ft_VG_models.tar.gz |
+| baseline +VG +VD +mirror | 68.98 |https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/most_data_models.tar.gz |
+| detectron_finetune | 68.49 | https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/detectron23_finetune_models.tar.gz|
+| detectron_finetune+VG |68.77 | https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/detectron23_ft_VG_models.tar.gz |
 
 
 #### Best Pretrained Model
@@ -210,4 +209,6 @@ python ensemble.py --res_dirs pretrained_models/ --out ensemble_5.json
 The result is in ensemble_5.json, check on evalAI, get the overall accuracy is 70.97
 
 
+### Customize config
+TO change models or adjust hyper-parameters, see [config_help.md](config_help.md)
 
