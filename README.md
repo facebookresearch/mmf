@@ -210,4 +210,6 @@ python ensemble.py --res_dirs pretrained_models/ --out ensemble_5.json
 The result is in ensemble_5.json, check on evalAI, get the overall accuracy is 70.97
 
 
+### Customize config
+TO change models or adjust hyper-parameters, see [config_help.md](config_help.md)
 
