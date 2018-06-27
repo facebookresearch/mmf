@@ -1,0 +1,25 @@
+loss: softmaxKL
+model:
+  classifier:
+    method: linear_classifier
+  image_embedding_models:
+  - modal_combine:
+      method: MFH
+      par:
+        order: 1
+        hidden_sizes:
+        - 5000
+        dropout: 0.1
+        pool_size: 5
+    normalization: softmax
+    transform:
+      method: conv_transform
+  modal_combine:
+    method: MFH
+    par:
+      order: 2
+      hidden_sizes:
+      - 5000
+      - 5000
+      dropout: 0.1
+      pool_size: 5

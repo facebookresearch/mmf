@@ -1,0 +1,42 @@
+data:
+  data_root_dir: data
+  image_feat_test:
+  - detectron_23/fc6/test2015
+  image_feat_train:
+  - detectron_23/fc6/train2014
+  - detectron_23/fc6/val2014
+  - detectron_23_genome
+  image_feat_val:
+  - detectron_23/fc6/val2014
+  image_max_loc: 100
+  imdb_file_test:
+  - imdb/imdb_test2015.npy
+  imdb_file_train:
+  - imdb/imdb_train2014.npy
+  - imdb/imdb_val2train2014.npy
+  - imdb/imdb_genome.npy
+  imdb_file_val:
+  - imdb/imdb_minival2014.npy
+  vocab_question_file : vivek_vocabulary_vqa.txt
+model:
+  image_feature_encoding:
+  - method: finetune_faster_rcnn_fpn_fc7
+    par:
+      weights_file: detectron_23/fc6/fc7_w.pkl
+      bias_file: detectron_23/fc6/fc7_b.pkl
+  question_embedding:
+  - method: att_que_embed
+    par:
+      embedding_init_file: vivek_vqa2.0_glove.6B.300d.txt.npy
+training_parameters:
+    report_interval : 100
+    clip_norm_mode: all
+    max_grad_l2_norm: 0.25
+    lr_steps:
+    - 10000
+    - 12000
+    - 14000
+    lr_ratio: 0.1
+    wu_factor: 0.2
+    wu_iters: 1000
+    max_iter: 15000
