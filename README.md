@@ -74,7 +74,7 @@ python train.py --config_overwrite '{data:{image_fast_reader:false}}'
 
 Run model with finetune
 ```bash
-python train.py --config config/keep/detectron23_finetune_minival.yaml
+python train.py --config config/keep/detectron23_finetune.yaml
 
 ```
 Check result
@@ -86,7 +86,7 @@ The results folder contains following info
 ```angular2html
 results
 |_ default
-|  |_ 1234
+|  |_ 1234 (default seed)
 |  |  |_config.yaml
 |  |  |_best_model.pth
 |  |  |_best_model_predict_test.pkl 
