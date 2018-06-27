@@ -1,7 +1,7 @@
 # Pythia
 A software suite for VQA+VisDial
 
-Goal: building a software suite with VQA+VisDial models, datasets, data-loaders, etc. for enabling easy and fair comparisons and accelerating VQA research
+Goal: building a software suite with VQA+VisDial models, datasets, data loaders, etc. for enabling easy and fair comparisons and accelerating VQA research
 
 ## Getting Started
 
@@ -175,7 +175,7 @@ python train.py
 | --- | --- | --- |
 | baseline | 68.05 | https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/baseline_models.tar.gz |
 | baseline + VG | 68.44 |https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/baseline_VG_models.tar.gz  |
-| baseline +VG +VD+morrir | 68.98 |https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/most_data_models.tar.gz |
+| baseline +VG +VD+mirror | 68.98 |https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/most_data_models.tar.gz |
 | dectectron_finetune | 68.49 | https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/detectron23_finetune_models.tar.gz|
 | dectectron_finetune+VG |68.77 | https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/detectron23_ft_VG_models.tar.gz |
 
