@@ -24,7 +24,7 @@ model: describe the configuration of models, the model structure is illustrated 
 For all available configs, they can be found in _config/config.py_ and _config/function_config_lib.py_
  In the config file, there are a lot of method/par pairs, this is because different methods can have different 
  parameters, for example, for modal_combine, there are MFH and non_linear_elmt_multiply, if only change the method, 
- the coresponding default parameters will be load automatically  
+ the corresponding default parameters will be load automatically  
 
 To change a config file, the user only need replace the correlated part, for example, to run model with image feature 
 fine-tune, the _config/keep/detectron23_finetune.yaml_ can be used, while the verbose configure file generated is

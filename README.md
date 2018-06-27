@@ -37,8 +37,8 @@ train2014 + val2train2014 are used as training dataset while minival2014 is used
 Download data, this step may take some time
 ```bash
 
-git clone git@github.com:fairinternal/VQA_suite.git
-cd VQA_suite
+git clone git@github.com:fairinternal/Pythia.git
+cd Pythia
 
 mkdir data
 cd data
