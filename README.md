@@ -220,15 +220,19 @@ Hat
 
 ![Alt text](info/COCO_test2015_000000264294.jpg?raw=true "image")
 
-What does the sign say? 
-Stop
+What animal is here? 
+Zebra
+Is it real?
+No
+Is it fake?
+Yes
 
 ![Alt text](info/COCO_test2015_000000125342.jpg?raw=true "image")
 
 What is the weather like? 
-Sunny
+Rainy
 
-![Alt text](info/COCO_test2015_000000262040.jpg?raw=true "image")
+![Alt text](info/COCO_test2015_000000501261.jpg?raw=true "image")
 
 What is the weather like?
 Sunny
@@ -242,11 +246,6 @@ Green
 
 What surface is this?
 Clay
-
-![Alt text](info/COCO_test2015_000000464411.jpg?raw=true "image")
-
-Is the food healthy?
-No
 
 ![Alt text](info/COCO_test2015_000000578342.jpg?raw=true "image")
 
