@@ -212,3 +212,43 @@ The result is in ensemble_5.json, check on evalAI, get the overall accuracy is 7
 ### Customize config
 TO change models or adjust hyper-parameters, see [config_help.md](config_help.md)
 
+### Examples
+![Alt text](info/COCO_test2015_000000127746.jpg?raw=true "image")
+
+What is the cat wearing?
+Hat
+
+![Alt text](info/COCO_test2015_000000185833.jpg?raw=true "image")
+
+What does the sign say? 
+Stop
+
+![Alt text](info/COCO_test2015_000000252662.jpg?raw=true "image")
+
+What is the weather like? 
+Rainy
+
+![Alt text](info/COCO_test2015_000000262040.jpg?raw=true "image")
+
+What is the weather like?
+Sunny
+
+![Alt text](info/COCO_test2015_000000362930.jpg?raw=true "image")
+
+What color is the cat's eyes?
+Green
+
+![Alt text](info/COCO_test2015_000000429665.jpg?raw=true "image")
+
+What surface is this?
+Clay
+
+![Alt text](info/COCO_test2015_000000464411.jpg?raw=true "image")
+
+Is the food healthy?
+No
+
+![Alt text](info/COCO_test2015_000000578342.jpg?raw=true "image")
+
+What toppings are on the pizza?
+Mushrooms
