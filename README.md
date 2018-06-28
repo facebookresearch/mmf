@@ -218,15 +218,15 @@ TO change models or adjust hyper-parameters, see [config_help.md](config_help.md
 What is the cat wearing?
 Hat
 
-![Alt text](info/COCO_test2015_000000185833.jpg?raw=true "image")
+![Alt text](info/COCO_test2015_000000264294.jpg?raw=true "image")
 
 What does the sign say? 
 Stop
 
-![Alt text](info/COCO_test2015_000000252662.jpg?raw=true "image")
+![Alt text](info/COCO_test2015_000000125342.jpg?raw=true "image")
 
 What is the weather like? 
-Rainy
+Sunny
 
 ![Alt text](info/COCO_test2015_000000262040.jpg?raw=true "image")
 
