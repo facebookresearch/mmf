@@ -59,8 +59,27 @@ rm -f rcnn_10_100.tar
 gunzip detectron_23.tar.gz
 tar -xf detectron_23.tar
 rm -f detectron_23.tar
-
 ```
+
+Get the help 
+```bash
+python train.py -h
+
+usage: train.py [-h] [--config CONFIG] [--out_dir OUT_DIR] [--seed SEED]
+                [--config_overwrite CONFIG_OVERWRITE] [--force_restart]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --config CONFIG       config yaml file
+  --out_dir OUT_DIR     output directory, default is current directory
+  --seed SEED           random seed, default 1234, set seed to -1 if need a
+                        random seed between 1 and 100000
+  --config_overwrite CONFIG_OVERWRITE
+                        a json string to update yaml config file
+  --force_restart       flag to force clean previous result and restart
+                        training
+```
+
 Run model without finetune
 ```bash
 cd ../
