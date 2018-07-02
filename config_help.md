@@ -23,7 +23,7 @@ model: describe the configuration of models, the model structure is illustrated 
 
 
 
-### available configs
+### Available configs
 
 All available configs can be found in _config/config.py_ and _config/function_config_lib.py_
 In the config file, there are many method/par pairs. This is because different methods can have different 
@@ -33,7 +33,7 @@ To change a config file, the user only needs to replace the correlated part, for
 fine-tune, the _config/keep/detectron23_finetune.yaml_ can be used, while the verbose config file generated is
  _config/verbose/dectectron_finetune.yaml_ 
  
-### config overwrite
+### Config overwrite
 To avoid creating a separate config file for each minor change, pythia also allows to overwrite config files from 
 command-line arguments by using _--config_overwrite_. The overwrite a string follow a semi-json format, 
 i.e. no quote for keys. The following are several examples

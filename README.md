@@ -59,8 +59,27 @@ rm -f rcnn_10_100.tar
 gunzip detectron_23.tar.gz
 tar -xf detectron_23.tar
 rm -f detectron_23.tar
-
 ```
+
+Get the help 
+```bash
+python train.py -h
+
+usage: train.py [-h] [--config CONFIG] [--out_dir OUT_DIR] [--seed SEED]
+                [--config_overwrite CONFIG_OVERWRITE] [--force_restart]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --config CONFIG       config yaml file
+  --out_dir OUT_DIR     output directory, default is current directory
+  --seed SEED           random seed, default 1234, set seed to -1 if need a
+                        random seed between 1 and 100000
+  --config_overwrite CONFIG_OVERWRITE
+                        a json string to update yaml config file
+  --force_restart       flag to force clean previous result and restart
+                        training
+```
+
 Run model without finetune
 ```bash
 cd ../
@@ -220,15 +239,19 @@ Hat
 
 ![Alt text](info/COCO_test2015_000000264294.jpg?raw=true "image")
 
-What does the sign say? 
-Stop
+What animal is here? 
+Zebra
+Is it real?
+No
+Is it fake?
+Yes
 
 ![Alt text](info/COCO_test2015_000000125342.jpg?raw=true "image")
 
 What is the weather like? 
-Sunny
+Rainy
 
-![Alt text](info/COCO_test2015_000000262040.jpg?raw=true "image")
+![Alt text](info/COCO_test2015_000000501261.jpg?raw=true "image")
 
 What is the weather like?
 Sunny
@@ -242,11 +265,6 @@ Green
 
 What surface is this?
 Clay
-
-![Alt text](info/COCO_test2015_000000464411.jpg?raw=true "image")
-
-Is the food healthy?
-No
 
 ![Alt text](info/COCO_test2015_000000578342.jpg?raw=true "image")
 
