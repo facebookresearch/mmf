@@ -44,6 +44,7 @@ def one_stage_train(myModel, data_reader_trn, myOptimizer,
     accuracy_decay = 0.99
     best_val_accuracy = 0
     writer = SummaryWriter(log_dir)
+    print(log_dir)
     best_iter = i_iter
     iepoch = start_epoch
     start = timeit.default_timer()
@@ -108,8 +109,8 @@ def one_stage_train(myModel, data_reader_trn, myOptimizer,
                 writer.add_scalar('val_score', val_score, i_iter)
                 writer.add_scalar('val_loss', val_loss, i_iter)
                 # write out parameters
-                #for name, param in myModel.named_parameters():
-                    #writer.add_histogram(name, param.clone().cpu().data.numpy(), i_iter)
+                for name, param in myModel.named_parameters():
+                    writer.add_histogram(name, param.clone().cpu().data.numpy(), i_iter)
 
             if i_iter % snapshot_interval == 0 or i_iter == max_iter:
                 ##evaluate the model when finishing one epoch
