@@ -1,5 +1,5 @@
 # Pythia
-This repository contains the code, models and other data (features, annotations) required to reproduce the winning entry to the 2018 VQA Challenge.
+This repository contains the code, models and other data (features, annotations) required to reproduce the winning entry to the 2018 VQA Challenge from the FAIR A-STAR team.
 Our eventual goal is to build a software suite for VQA and Visual Dialog supporting many datasets and model architectures to enable easy, fair comparisons among them and accelerate research in this space.
 
 ## Getting Started
