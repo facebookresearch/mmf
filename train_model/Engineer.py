@@ -32,7 +32,7 @@ def compute_score_with_logits(logits, labels):
 
 
 def one_stage_train(myModel, data_reader_trn, myOptimizer,
-                    loss_criterion, snapshot_dir, log_dir, i_iter, start_epoch, data_reader_eval=None, scheduler = None):
+                    loss_criterion, snapshot_dir, log_dir, i_iter, start_epoch, data_reader_eval=None, scheduler=None):
     clip_norm_mode = cfg.training_parameters.clip_norm_mode
     max_grad_l2_norm = cfg.training_parameters.max_grad_l2_norm
     report_interval = cfg.training_parameters.report_interval

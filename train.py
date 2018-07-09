@@ -39,7 +39,19 @@ def process_config(config_file, config_string):
 def get_output_folder_name(config_basename, cfg_overwrite_obj, seed):
     m_name, _ = os.path.splitext(config_basename)
 
-    if cfg_overwrite_obj is not None:
+    # remove configs which won't change model performance
+    if 'data' in cfg_overwrite_obj:
+        if 'image_fast_reader' in cfg_overwrite_obj['data']:
+            del cfg_overwrite_obj['data']['image_fast_reader']
+        if 'num_workers' in cfg_overwrite_obj['data']:
+            del cfg_overwrite_obj['data']['num_workers']
+    if 'training_parameters' in cfg_overwrite_obj:
+        if 'max_iter' in cfg_overwrite_obj['training_parameters']:
+            del cfg_overwrite_obj['training_parameters']['max_iter']
+        if 'report_interval' in cfg_overwrite_obj['training_parameters']:
+            del cfg_overwrite_obj['training_parameters']['report_interval']
+
+    if cfg_overwrite_obj is not None and len(cfg_overwrite_obj) > 0:
         f_name = yaml.safe_dump(cfg_overwrite_obj, default_flow_style=False)
         f_name = f_name.replace(':', '.').replace('\n', ' ').replace('/', '_')
         f_name = ' '.join(f_name.split())
