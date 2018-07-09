@@ -19,6 +19,7 @@ def prepare_data_set(imdb_file_label, image_dir_label,**data_config):
     image_depth_first = data_config['image_depth_first']
     image_fast_reader = data_config['image_fast_reader'] if 'image_fast_reader' in data_config else False
     verbose = data_config['verbose'] if 'verbose' in data_config else False
+    test_mode = data_config['test_mode'] if 'test_mode' in data_config else False
 
     imdb_files = data_config[imdb_file_label]
     image_feat_dirs = data_config[image_dir_label]
@@ -38,7 +39,10 @@ def prepare_data_set(imdb_file_label, image_dir_label,**data_config):
                                     vocab_answer_file=vocab_answer_file,
                                     prune_filter_module=prune_filter_module,
                                     image_depth_first=image_depth_first,
-                                    fastRead=image_fast_reader, verbose=verbose, image_max_loc=image_max_loc)
+                                    fastRead=image_fast_reader,
+                                    verbose=verbose,
+                                    test_mode=test_mode,
+                                    image_max_loc=image_max_loc)
         datasets.append(train_dataset)
 
     dataset = vqa_concate_dataset(datasets)
@@ -60,4 +64,3 @@ def prepare_eval_data_set(enforce_slow_reader=False,**data_config):
 def prepare_test_data_set(**data_config):
     data_config['image_fast_reader'] = False
     return prepare_data_set('imdb_file_test', 'image_feat_test', **data_config)
-

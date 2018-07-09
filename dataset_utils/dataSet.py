@@ -108,7 +108,7 @@ def read_in_image_feats(image_dirs, image_readers, image_file_name):
     return image_feats
 
 '''
-Note: here, the first element in this dataset is header, including dataset_name, 
+Note: here, the first element in this dataset is header, including dataset_name,
 imdb_version, create_time, has_answer,has_gt_layout
 '''
 class vqa_dataset(Dataset):
@@ -153,7 +153,7 @@ class vqa_dataset(Dataset):
                                         else False)
         else:
             print('imdb does not contain ground-truth layout')
-
+            print('Loading model and config ...')
 
         # load one feature map to peek its size
         self.image_feat_readers =[]
@@ -164,6 +164,9 @@ class vqa_dataset(Dataset):
             self.image_feat_readers.append(get_image_feat_reader(feats.ndim, self.image_depth_first,feats ,self.image_max_loc))
 
         self.fastRead=False
+        self.testMode = False
+        if data_params['test_mode']:
+            self.testMode = True
         if data_params['fastRead']:
             self.fastRead = True
             self.featDict = {}
@@ -179,7 +182,10 @@ class vqa_dataset(Dataset):
 
 
     def __len__(self):
-        return len(self.imdb)-1
+        if self.testMode:
+            return 1
+        else:
+            return len(self.imdb)-1
 
     def _get_image_features_(self, image_file_name):
         if self.fastRead:
