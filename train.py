@@ -17,6 +17,9 @@ import glob
 import torch
 from torch.optim.lr_scheduler import LambdaLR
 from bisect import bisect
+import gc
+import operator as op
+import functools
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -40,16 +43,6 @@ def get_output_folder_name(config_basename, cfg_overwrite_obj, seed):
     m_name, _ = os.path.splitext(config_basename)
 
     # remove configs which won't change model performance
-    if 'data' in cfg_overwrite_obj:
-        if 'image_fast_reader' in cfg_overwrite_obj['data']:
-            del cfg_overwrite_obj['data']['image_fast_reader']
-        if 'num_workers' in cfg_overwrite_obj['data']:
-            del cfg_overwrite_obj['data']['num_workers']
-    if 'training_parameters' in cfg_overwrite_obj:
-        if 'max_iter' in cfg_overwrite_obj['training_parameters']:
-            del cfg_overwrite_obj['training_parameters']['max_iter']
-        if 'report_interval' in cfg_overwrite_obj['training_parameters']:
-            del cfg_overwrite_obj['training_parameters']['report_interval']
 
     if cfg_overwrite_obj is not None and len(cfg_overwrite_obj) > 0:
         f_name = yaml.safe_dump(cfg_overwrite_obj, default_flow_style=False)
@@ -57,6 +50,16 @@ def get_output_folder_name(config_basename, cfg_overwrite_obj, seed):
         f_name = ' '.join(f_name.split())
         f_name = f_name.replace('. ', '.').replace(' ', '_')
         f_name += '_%d' % seed
+        if 'data' in cfg_overwrite_obj:
+            if 'image_fast_reader' in cfg_overwrite_obj['data']:
+                del cfg_overwrite_obj['data']['image_fast_reader']
+            if 'num_workers' in cfg_overwrite_obj['data']:
+                del cfg_overwrite_obj['data']['num_workers']
+        if 'training_parameters' in cfg_overwrite_obj:
+            if 'max_iter' in cfg_overwrite_obj['training_parameters']:
+                del cfg_overwrite_obj['training_parameters']['max_iter']
+            if 'report_interval' in cfg_overwrite_obj['training_parameters']:
+                del cfg_overwrite_obj['training_parameters']['report_interval']
     else:
         f_name = '%d' % seed
 
@@ -172,11 +175,34 @@ if __name__ == '__main__':
     data_reader_val = DataLoader(data_set_val, shuffle=True, batch_size=cfg.data.batch_size,
                                  num_workers=cfg.data.num_workers)
 
+    total = 0
+    print("Before training")
+    for obj in gc.get_objects():
+        try:
+            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                # print(functools.reduce(op.mul, obj.size()) if len(obj.size()) > 0 else 0, type(obj), obj.size())
+                total += functools.reduce(op.mul, obj.size())
+        except:
+            continue
+
+    print("Total memory in use " + str(total*4.0/(10**9)) + " GB")
+
     print("BEGIN TRAINING MODEL...")
 
     one_stage_train(my_model, data_reader_trn, my_optim, my_loss, data_reader_eval=data_reader_val,
                     snapshot_dir=snapshot_dir, log_dir=boards_dir, start_epoch=i_epoch, i_iter=i_iter,
                     scheduler=scheduler)
+
+    print("After training")
+    for obj in gc.get_objects():
+        try:
+            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                # print(functools.reduce(op.mul, obj.size()) if len(obj.size()) > 0 else 0, type(obj), obj.size())
+                total += functools.reduce(op.mul, obj.size())
+        except:
+            continue
+
+    print("Total memory in use " + str(total*4.0/(10**9)) + " GB")
 
     print("BEGIN PREDICTING ON TEST/VAL set...")
 
