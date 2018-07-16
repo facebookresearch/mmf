@@ -257,10 +257,12 @@ To get all 30 pretrained models and the corresponding image features, the models
 
 ```bash
 wget https://s3-us-west-1.amazonaws.com/pythia-vqa/ensembled.tar.gz
-
+```
 ### Customize config
 TO change models or adjust hyper-parameters, see [config_help.md](config_help.md)
 
 ### Examples
 ![Alt text](info/vqa_example.png?raw=true "image")
+
+
 
