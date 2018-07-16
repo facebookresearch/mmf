@@ -88,6 +88,7 @@ def print_eval(prepare_data_fun, out_label):
 
     model = build_model(cfg, data_set_test)
     model.load_state_dict(torch.load(model_file)['state_dict'])
+    model.eval()
 
     question_ids, soft_max_result = run_model(model, data_reader_test, ans_dic.UNK_idx)
     print_result(question_ids, soft_max_result, ans_dic, out_file, json_only=False, pkl_res_file=pkl_res_file)
@@ -173,6 +174,8 @@ if __name__ == '__main__':
                                  num_workers=cfg.data.num_workers)
 
     print("BEGIN TRAINING MODEL...")
+
+    my_model.train()
 
     one_stage_train(my_model, data_reader_trn, my_optim, my_loss, data_reader_eval=data_reader_val,
                     snapshot_dir=snapshot_dir, log_dir=boards_dir, start_epoch=i_epoch, i_iter=i_iter,

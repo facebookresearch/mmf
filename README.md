@@ -2,6 +2,7 @@
 This repository contains the code, models and other data (features, annotations) required to reproduce the winning entry to the 2018 VQA Challenge from the FAIR A-STAR team.
 Our eventual goal is to build a software suite for VQA and Visual Dialog supporting many datasets and model architectures to enable easy, fair comparisons among them and accelerate research in this space.
 
+
 ## Getting Started
 
 These instructions will get you a copy of the project and start running the models.
@@ -46,7 +47,7 @@ wget https://s3-us-west-1.amazonaws.com/vqa-suite/data/vocabulary_vqa.txt
 wget https://s3-us-west-1.amazonaws.com/vqa-suite/data/answers_vqa.txt
 wget https://s3-us-west-1.amazonaws.com/vqa-suite/data/imdb.tar.gz
 wget https://s3-us-west-1.amazonaws.com/vqa-suite/data/rcnn_10_100.tar.gz
-wget https://s3-us-west-1.amazonaws.com/vqa-suite/data/detectron_23.tar.gz
+wget https://s3-us-west-1.amazonaws.com/vqa-suite/data/detectron.tar.gz
 wget https://s3-us-west-1.amazonaws.com/vqa-suite/data/large_vocabulary_vqa.txt
 wget https://s3-us-west-1.amazonaws.com/vqa-suite/data/large_vqa2.0_glove.6B.300d.txt.npy
 gunzip imdb.tar.gz 
@@ -56,9 +57,9 @@ gunzip rcnn_10_100.tar.gz
 tar -xf rcnn_10_100.tar
 rm -f rcnn_10_100.tar
 
-gunzip detectron_23.tar.gz
-tar -xf detectron_23.tar
-rm -f detectron_23.tar
+gunzip detectron.tar.gz
+tar -xf detectron.tar
+rm -f detectron.tar
 ```
 
 Get the help 
@@ -90,12 +91,12 @@ if there is a out of memory error, try:
 python train.py --config_overwrite '{data:{image_fast_reader:false}}'
 ```
 
-Run model with finetune
+Run model with features from detectron with finetune
 ```bash
-python train.py --config config/keep/detectron23_finetune.yaml
+python train.py --config config/keep/detectron.yaml
 
 ```
-Check result
+Check result for default one
 ```bash
 cd results/default/1234
 
@@ -167,15 +168,15 @@ python data_prep/vqa_v2.0/build_vqa_2.0_imdb.py --data_dir ../orig_data/vqa_v2.0
 Dowload image features
 ```bash
 cd data/
-wget https://s3-us-west-1.amazonaws.com/vqa-suite/data/rcnn_10_100.tar.gz
-wget https://s3-us-west-1.amazonaws.com/vqa-suite/data/detectron_23.tar.gz
+wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/rcnn_10_100.tar.gz
+wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/detectron_23.tar.gz
 gunzip rcnn_10_100.tar.gz 
 tar -xvf rcnn_10_100.tar
 rm -f rcnn_10_100.tar
 
-gunzip detectron_23.tar.gz
-tar -xvf detectron_23.tar
-rm -f detectron_23.tar
+gunzip detectron.tar.gz
+tar -xvf detectron.tar
+rm -f detectron.tar
 
 
 ``` 
@@ -191,29 +192,53 @@ python train.py
 ### Test with pretrained models
 | Description | performance (test-dev) | Link |
 | --- | --- | --- |
-| baseline | 68.05 | https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/baseline_models.tar.gz |
-| baseline + VG | 68.44 |https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/baseline_VG_models.tar.gz  |
-| baseline +VG +VD +mirror | 68.98 |https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/most_data_models.tar.gz |
-| detectron_finetune | 68.49 | https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/detectron23_finetune_models.tar.gz|
-| detectron_finetune+VG |68.77 | https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/detectron23_ft_VG_models.tar.gz |
+|detectron_100_resnet_VG | 69.54 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_100_resnet_VG.tar.gz
+| baseline | 68.05 | https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/baseline.tar.gz |
+| baseline +VG +VD +mirror | 68.98 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/most_data.tar.gz |
+| detectron_finetune | 68.49 | https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron.tar.gz|
+| detectron_finetune+VG |68.77 | https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_VG.tar.gz |
 
 
 #### Best Pretrained Model
 The best pretrained Model can be download from:
+
 ```bash
 mkdir pretrained_models/
 cd pretrained_models
-wget https://s3-us-west-1.amazonaws.com/vqa-suite/pretrained_models/most_data_models.tar.gz
+wget https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/most_data_models.tar.gz
 gunzip most_data_models.tar.gz 
 tar -xf most_data_models.tar
 rm -f most_data_models.tar
 ```
 
+get the resnet152 features for the best model and detectron features with fixed 100 bounding boxes
+```bash
+cd data
+wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/detectron_fix_100.tar.gz
+gunzip detectron_fix_100.tar.gz
+tar -xf detectron_fix_100.tar
+rm -f detectron_fix_100.tar
+
+wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/resnet152.tar.gz
+gunzip resnet152.tar.gz
+tar -xf resnet152.tar
+rm -f resnet152.tar
+```
+
+```bash
+mkdir pretrained_models/
+cd pretrained_models
+wget https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_100_resnet_VG.tar.gz
+gunzip detectron_100_resnet_VG.tar.gz 
+tar -xf detectron_100_resnet_VG.tar
+rm -f detectron_100_resnet_VG.tar
+```
+
 test the best model with vqa test2015 datasset
 ```bash
 
-python run_test.py --config pretrained_models/most_data_models/config.yaml \
---model_path pretrained_models/most_data_models/best_model.pth \
+python run_test.py --config pretrained_models/detectron_100_resnet_VG/567/config.yaml \
+--model_path pretrained_models/detectron_100_resnet_VG/567/best_model.pth \
 --out_prefix test_best_model
 ```
 
@@ -227,46 +252,15 @@ python ensemble.py --res_dirs pretrained_models/ --out ensemble_5.json
 ```
 The result is in ensemble_5.json, check on evalAI, get the overall accuracy is 70.97
 
+### Ensemble 30 models
+To get all 30 pretrained models and the corresponding image features, the models can be download:
+
+```bash
+wget https://s3-us-west-1.amazonaws.com/pythia-vqa/ensembled.tar.gz
 
 ### Customize config
 TO change models or adjust hyper-parameters, see [config_help.md](config_help.md)
 
 ### Examples
-![Alt text](info/COCO_test2015_000000127746.jpg?raw=true "image")
+![Alt text](info/vqa_example.png?raw=true "image")
 
-What is the cat wearing?
-Hat
-
-![Alt text](info/COCO_test2015_000000264294.jpg?raw=true "image")
-
-What animal is here? 
-Zebra
-Is it real?
-No
-Is it fake?
-Yes
-
-![Alt text](info/COCO_test2015_000000125342.jpg?raw=true "image")
-
-What is the weather like? 
-Rainy
-
-![Alt text](info/COCO_test2015_000000501261.jpg?raw=true "image")
-
-What is the weather like?
-Sunny
-
-![Alt text](info/COCO_test2015_000000362930.jpg?raw=true "image")
-
-What color is the cat's eyes?
-Green
-
-![Alt text](info/COCO_test2015_000000429665.jpg?raw=true "image")
-
-What surface is this?
-Clay
-
-![Alt text](info/COCO_test2015_000000578342.jpg?raw=true "image")
-
-What toppings are on the pizza?
-Mushrooms
