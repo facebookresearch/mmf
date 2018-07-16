@@ -1,4 +1,9 @@
 # Pythia
+
+![Alt text](info/pythia.jpg?raw=true "pythia")
+
+The Pythia was the name of the high priestess of the Temple of Apollo at Delphi who also served as the oracle, commonly known as the Oracle of Delphi.
+
 This repository contains the code, models and other data (features, annotations) required to reproduce the winning entry to the 2018 VQA Challenge from the FAIR A-STAR team.
 Our eventual goal is to build a software suite for VQA and Visual Dialog supporting many datasets and model architectures to enable easy, fair comparisons among them and accelerate research in this space.
 
@@ -262,7 +267,7 @@ wget https://s3-us-west-1.amazonaws.com/pythia-vqa/ensembled.tar.gz
 TO change models or adjust hyper-parameters, see [config_help.md](config_help.md)
 
 ### Examples
-![Alt text](info/vqa_example.png?raw=true "image")
+![Alt text](info/vqa_example.png?raw=true "vqa examples")
 
 
 
