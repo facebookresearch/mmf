@@ -255,10 +255,10 @@ download all the models above
 ```bash
 python ensemble.py --res_dirs pretrained_models/ --out ensemble_5.json
 ```
-The result is in ensemble_5.json, check on evalAI, get the overall accuracy is 70.97
+The result is in ensemble_5.json, check on evalAI, get the overall accuracy is 71.3
 
 ### Ensemble 30 models
-To get all 30 pretrained models and the corresponding image features, the models can be download:
+To get all 30 pretrained models and the corresponding image features.The ensemble result for these 30 models is 72.18 on test-dev the models can be download:
 
 ```bash
 wget https://s3-us-west-1.amazonaws.com/pythia-vqa/ensembled.tar.gz
