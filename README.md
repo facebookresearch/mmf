@@ -4,7 +4,7 @@
 
 The Pythia was the name of the high priestess of the Temple of Apollo at Delphi who also served as the oracle, commonly known as the Oracle of Delphi.
 
-This repository contains the code, models and other data (features, annotations) required to reproduce the winning entry to the 2018 VQA Challenge from the FAIR A-STAR team.
+This repository contains the code, models and other data (features, annotations) required to reproduce the winning entry to the 2018 VQA Challenge (http://visualqa.org/roe.html) from the FAIR A-STAR team.
 Our eventual goal is to build a software suite for VQA and Visual Dialog supporting many datasets and model architectures to enable easy, fair comparisons among them and accelerate research in this space.
 
 
@@ -35,11 +35,9 @@ pip install tensorboardX
 
 
 ### Quick start
-We provide the files that are required to start our program directly. In this way, you can directly start our programs. 
-instead of using the original train2014 and val2014 set, we split the val2014 to val2train2014 and minival2014. In this way,
-train2014 + val2train2014 are used as training dataset while minival2014 is used as validation set.
+We provide preprocessed data files to directly start training and evaluating. Instead of using the original `train2014` and `val2014` splits, we split `val2014` into `val2train2014` and `minival2014`, and use `train2014` + `val2train2014` for training and `minival2014` for validation.
 
-Download data, this step may take some time
+Download data, this step may take some time. (check the size of files at the end of readme)
 ```bash
 
 git clone git@github.com:fairinternal/Pythia.git
@@ -86,22 +84,22 @@ optional arguments:
                         training
 ```
 
-Run model without finetune
+Run model without finetuning
 ```bash
 cd ../
 python train.py
 ```
-if there is a out of memory error, try:
+If there is a out of memory error, try:
 ```bash
 python train.py --config_overwrite '{data:{image_fast_reader:false}}'
 ```
 
-Run model with features from detectron with finetune
+Run model with features from detectron with finetuning
 ```bash
 python train.py --config config/keep/detectron.yaml
 
 ```
-Check result for default one
+Check result for the default run
 ```bash
 cd results/default/1234
 
@@ -265,6 +263,18 @@ wget https://s3-us-west-1.amazonaws.com/pythia-vqa/ensembled.tar.gz
 ```
 ### Customize config
 TO change models or adjust hyper-parameters, see [config_help.md](config_help.md)
+
+
+### AWS s3 dataset summary
+Here, we listed the size of some large files in our AWS S3 bucket.
+
+| Description | size  |
+| --- | --- | 
+|data/rcnn_10_100.tar.gz | 71.0GB |
+|data/detectron.tar.gz | 64.7GB|
+|data/detectron_fix_100.tar.gz|98.1GB|
+|data/resnet152.tar.gz | 399.6GB|
+|ensembled.tar.gz| 462.1GB|
 
 ### Examples
 ![Alt text](info/vqa_example.png?raw=true "vqa examples")
