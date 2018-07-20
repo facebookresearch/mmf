@@ -1,3 +1,10 @@
+# coding=utf-8
+
+__author__ = 'aagrawal'
+
+# This code is based on the code written by Tsung-Yi Lin for MSCOCO Python API available at the following link:
+# (https://github.com/tylin/coco-caption/blob/master/pycocoevalcap/eval.py).
+
 import sys
 import re
 
