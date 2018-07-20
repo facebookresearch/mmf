@@ -28,7 +28,8 @@ def update_config(orig, other):
     if isinstance(other, dict):
         if isinstance(orig, ModelParPair):
             if 'method' not in other and 'par' not in other:
-                exit("could not update a model_par_pair when neither type or par exist")
+                exit("could not update a model_par_pair when \
+                     neither type or par exist")
             else:
                 if 'method' in other:
                     orig.update_type(other['method'])
@@ -46,9 +47,6 @@ def update_config(orig, other):
     elif isinstance(other, list):
         if not isinstance(orig, list):
             raise TypeError("the updated value is not a list")
-
-        #if len(orig) > len(other):
-            #raise TypeError("the list try to update has less  element with orig ones")
 
         elm_to_remove = []
         for i, other_i in enumerate(other):
@@ -73,7 +71,8 @@ def update_config(orig, other):
         raise TypeError("unkown type of updated config")
 
 
-# -----------------Merge configuration from config file------------------------ #
+# -----------------Merge configuration from config file---------------------- #
+
 def __merge_config_from_file(cfg, file_path):
     with open(file_path, 'r') as f:
         updates = yaml.load(f)
@@ -95,7 +94,7 @@ def finalize_config(cfg, cfg_file_path, cfg_cmd_string):
     cfg.immutable(True)
 
 
-# ---------------------------------------extract config to simple dict---------------------------- #
+# ----------------extract config to simple dict------------------------------ #
 
 def convert_cfg_to_dict(cfg):
     if isinstance(cfg, AttrDict):
@@ -114,7 +113,11 @@ def convert_cfg_to_dict(cfg):
         return cfg
 
 
-# ---------------------------------------dump config ---------------------------- #
+# --------------------dump config ------------------------------------------- #
+
 def dump_config(cfg, config_file):
     with open(config_file, 'w') as outfile:
-        yaml.dump(convert_cfg_to_dict(cfg), outfile, default_flow_style=False, encoding=None)
+        yaml.dump(convert_cfg_to_dict(cfg),
+                  outfile,
+                  default_flow_style=False,
+                  encoding=None)
