@@ -1,9 +1,3 @@
-import matplotlib
-matplotlib.use('Agg')
-
-import matplotlib.pyplot as plt
-plt.switch_backend('agg')
-
 import numpy as np
 import argparse
 import cv2
@@ -11,21 +5,29 @@ import os
 import csv
 import base64
 import sys
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+plt.switch_backend('agg')
+
 csv.field_size_limit(sys.maxsize)
 
-FIELDNAMES = ['image_id', 'image_w', 'image_h', 'num_boxes', 'boxes', 'features','object']
+FIELDNAMES = ['image_id', 'image_w', 'image_h',
+              'num_boxes', 'boxes', 'features', 'object']
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--img_dir", type=str, required=True)
-    parser.add_argument("--image_name_file",type=str, required=True)
+    parser.add_argument("--image_name_file", type=str, required=True)
     parser.add_argument("--out_dir", type=str, required=True)
-    parser.add_argument("--csv_file",type=str,required=True)
+    parser.add_argument("--csv_file", type=str, required=True)
     args = parser.parse_args()
 
     return args
 
-def vis_detections(im, class_name, bboxes,dets, thresh=0.5):
+
+def vis_detections(im, class_name, bboxes, dets, thresh=0.5):
     """Draw detected bounding boxes."""
     inds = np.where(dets[:, -1] >= thresh)[0]
     if len(inds) == 0:
@@ -36,8 +38,6 @@ def vis_detections(im, class_name, bboxes,dets, thresh=0.5):
     ax.imshow(im, aspect='equal')
     for i in inds:
         bbox = dets[i, :4]
-        score = dets[i, -1]
-
         ax.add_patch(
             plt.Rectangle((bbox[0], bbox[1]),
                           bbox[2] - bbox[0],
@@ -58,14 +58,11 @@ def vis_detections(im, class_name, bboxes,dets, thresh=0.5):
     plt.draw()
 
 
-
-
-
-def plot_bboxes(im, im_file,bboxes, out_dir):
+def plot_bboxes(im, im_file, bboxes, out_dir):
     im = im[:, :, (2, 1, 0)]
     fig, ax = plt.subplots(figsize=(12, 12))
     ax.imshow(im, aspect='equal')
-    nboexes,_ = bboxes.shape
+    nboexes, _ = bboxes.shape
 
     for i in range(nboexes):
         bbox = bboxes[i, :4]
@@ -80,7 +77,7 @@ def plot_bboxes(im, im_file,bboxes, out_dir):
     plt.tight_layout()
     plt.draw()
 
-    out_file = os.path.join(out_dir,im_file.replace(".jpg", "_demo.jpg"))
+    out_file = os.path.join(out_dir, im_file.replace(".jpg", "_demo.jpg"))
     plt.savefig(out_file)
 
 
@@ -91,7 +88,8 @@ if __name__ == '__main__':
 
     image_bboxes = {}
     with open(csvFile, "r") as tsv_in_file:
-        reader = csv.DictReader(tsv_in_file, delimiter='\t', fieldnames=FIELDNAMES)
+        reader = csv.DictReader(tsv_in_file, delimiter='\t',
+                                fieldnames=FIELDNAMES)
         for item in reader:
             item['num_boxes'] = int(item['num_boxes'])
             image_id = item['image_id']
@@ -106,8 +104,6 @@ if __name__ == '__main__':
     out_dir = args.out_dir
     img_dir = args.img_dir
 
-
-
     with open(args.image_name_file, 'r') as f:
         content = f.readlines()
 
@@ -119,5 +115,3 @@ if __name__ == '__main__':
         image_id = str(int(image_name.split('_')[2]))
         bboxes = image_bboxes[image_id]
         plot_bboxes(im, image_name, bboxes, out_dir)
-
-

@@ -23,13 +23,13 @@ if __name__ == '__main__':
         license = file_info['license']
         data_subtype = file_info['info']
 
-    ##collect image_id
+    # collect image_id
     image_ids = []
     for q in questions:
         image_id = q['image_id']
         image_ids.append(image_id)
 
-    ## divide image_ids to two parts
+    # divide image_ids to two parts
     random.shuffle(image_ids)
     minival_images = image_ids[:10000]
     other_images = image_ids[10000:]
@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     total_minival = 0
     total_others = 0
-    ##seprate quesion_json_file
+    # seprate quesion_json_file
     for q in questions:
         image_id = q['image_id']
 
@@ -71,4 +71,5 @@ if __name__ == '__main__':
     with open(val_as_train_json_file, 'w') as w2:
         json.dump(other_json, w2)
 
-    print("minival_questions: %d" % total_minival + "other_questions: %d" % total_others)
+    print("minival_questions: %d" % total_minival + "other_questions: %d" %
+          total_others)

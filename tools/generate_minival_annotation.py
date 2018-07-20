@@ -1,8 +1,6 @@
 import json
 import pickle
 
-
-
 if __name__ == '__main__':
     val_annotation_file="/private/home/tinayujiang/data/VQA2.0/refined/v2_mscoco_val2014_annotations.json"
     minival_id_file = "data/vqa_v2.0/minival_ids.pkl"
@@ -20,7 +18,8 @@ if __name__ == '__main__':
         data_subtype = file_info['data_subtype']
         license_info = file_info['license']
 
-    minival_annotations = [a for a in annotations if a['question_id'] in minival_ids]
+    minival_annotations = [
+        a for a in annotations if a['question_id'] in minival_ids]
 
     minival_info = {
         'data_subtype': data_subtype,
@@ -31,5 +30,3 @@ if __name__ == '__main__':
 
     with open(minival_annotation_file, 'w') as w:
         json.dump(minival_info, w)
-
-

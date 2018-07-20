@@ -1,14 +1,6 @@
 import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument('--gpu_id', type=int, default=0)
-parser.add_argument("--data_dir",type=str, required=True)
-parser.add_argument("--out_dir",type=str, required=True)
-
-args = parser.parse_args()
-gpu_id = args.gpu_id  # set GPU id to use
-import os; os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
 import sys
-sys.path.append('../../')
+import os
 from glob import glob
 
 import skimage.io
@@ -21,29 +13,43 @@ import torch.nn as nn
 from torch.autograd import Variable
 from global_variables.global_variables import use_cuda
 
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--gpu_id', type=int, default=0)
+parser.add_argument("--data_dir", type=str, required=True)
+parser.add_argument("--out_dir", type=str, required=True)
+
+args = parser.parse_args()
+gpu_id = args.gpu_id  # set GPU id to use
+os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
+sys.path.append('../../')
+
 image_basedir = args.data_dir
 save_basedir = args.out_dir
 
 channel_mean = np.array([123.68, 116.779, 103.939], dtype=np.float32)
 
+
 class vgg16_feature_module(nn.Module):
     def __init__(self, vgg16_model):
         super(vgg16_feature_module, self).__init__()
-        self.feature_module = nn.Sequential(*list(list(vgg16_model.children())[0]))
+        self.feature_module = (
+            nn.Sequential(*list(list(vgg16_model.children())[0])))
 
     def forward(self, x):
         return self.feature_module(x)
 
-vgg16 = models.vgg16(pretrained=True)
 
+vgg16 = models.vgg16(pretrained=True)
 vgg16_feature = vgg16_feature_module(vgg16)
 vgg16_feature = vgg16_feature.cuda() if use_cuda else vgg16_feature
 
+
 def extract_image_pool5(impath):
     im = skimage.io.imread(impath)[..., :3]
-    im_val = (im[np.newaxis, ...]- channel_mean)
+    im_val = (im[np.newaxis, ...] - channel_mean)
 
-    ##permute to get NCHW
+    # permute to get NCHW
     im_val = np.transpose(im_val, axes=(0, 3, 1, 2))
     im_val_tensor = torch.FloatTensor(im_val)
     im_val_variable = Variable(im_val_tensor)
@@ -51,6 +57,7 @@ def extract_image_pool5(impath):
 
     pool5_val = vgg16_feature(im_val_variable)
     return pool5_val.data.cpu().numpy()
+
 
 def extract_dataset_pool5(image_dir, save_dir, ext_filter='*.png'):
     image_list = glob(image_dir + '/' + ext_filter)
@@ -64,6 +71,7 @@ def extract_dataset_pool5(image_dir, save_dir, ext_filter='*.png'):
         if not os.path.exists(save_path):
             pool5_val = extract_image_pool5(impath)
             np.save(save_path, pool5_val)
+
 
 for image_set in ['train', 'val', 'test']:
     print('Extracting image set ' + image_set)

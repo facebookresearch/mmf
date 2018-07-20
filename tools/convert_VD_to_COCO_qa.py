@@ -12,7 +12,7 @@ vdtrain_annotations_file = '/private/home/nvivek/VQA/orig_data/v2_mscoco_vdtrain
 vdval_annotations_file = '/private/home/nvivek/VQA/orig_data/v2_mscoco_vdval_annotations.json'
 
 
-translator=str.maketrans('','',string.punctuation)
+translator = str.maketrans('', '', string.punctuation)
 
 vdtrain_questions = []
 vdval_questions = []

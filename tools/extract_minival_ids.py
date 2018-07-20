@@ -1,6 +1,7 @@
 import json
 import pickle
 
+
 def extract_qid_imid(ques_json_file):
     with open(ques_json_file, 'r') as f:
         info = json.load(f)
@@ -14,8 +15,6 @@ def extract_qid_imid(ques_json_file):
 
     return q_im_ids
 
-
-
 if __name__ == '__main__':
     minival_ques_file = "/private/home/tinayujiang/data/VQA2.0/refined/v2_OpenEnded_mscoco_minival2014_questions.json"
 
@@ -25,11 +24,9 @@ if __name__ == '__main__':
     val2train_out_file = "data_prep/vqa_v2.0/val2train_ids.pkl"
 
     minival_ids = extract_qid_imid(minival_ques_file)
-    with open(minival_out_file,'wb') as w1:
+    with open(minival_out_file, 'wb') as w1:
         pickle.dump(minival_ids, w1)
 
     val2train_ids = extract_qid_imid(val2train_ques_file)
     with open(val2train_out_file, 'wb') as w2:
         pickle.dump(val2train_ids, w2)
-
-

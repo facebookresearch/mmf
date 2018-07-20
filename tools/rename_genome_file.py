@@ -17,7 +17,7 @@ print("BEGIN.....")
 for file in os.listdir(inDir):
     if file.endswith(".npy"):
         n += 1
-        if n % 5000 ==0 :
+        if n % 5000 == 0:
             print("process %d files" % n)
         image_id = int(file.split('.')[0])
         out_name = OUT_NAME % image_id

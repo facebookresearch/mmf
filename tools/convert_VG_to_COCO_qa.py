@@ -12,20 +12,6 @@ with open(genome_data_file, 'r') as f:
 genome_questions = []
 genome_annotations = []
 
-# question keys
-# image_id
-# question
-# question_id
-
-# annotation keys
-# question_id
-# image_id
-# multiple_choice_answer
-# answers = []
-    # answer
-    # answer_id = 1:10
-    # answer_confidence
-
 for data in genome_data:
     all_qas = data['qas']
     for qas in all_qas:
