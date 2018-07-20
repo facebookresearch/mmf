@@ -1,3 +1,9 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the license found in the
+# LICENSE file in the root directory of this source tree.
+
 import numpy as np
 import argparse
 import cv2
@@ -5,7 +11,13 @@ import os
 import csv
 import base64
 import sys
+
 import matplotlib
+matplotlib.use('Agg')
+
+import matplotlib.pyplot as plt
+plt.switch_backend('agg')
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')

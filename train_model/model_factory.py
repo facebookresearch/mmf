@@ -1,3 +1,11 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the license found in the
+# LICENSE file in the root directory of this source tree.
+#
+
+
 from global_variables.global_variables import *
 from top_down_bottom_up.top_down_bottom_up_model import vqa_multi_modal_model
 from top_down_bottom_up.image_attention import build_image_attention_module
