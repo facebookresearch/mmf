@@ -1,11 +1,9 @@
 # Pythia
 
-<img src="info/pythia.jpg" width="40%">
-
-The Pythia was the name of the high priestess of the Temple of Apollo at Delphi who also served as the oracle, commonly known as the Oracle of Delphi.
+![Alt text](info/vqa_example.png?raw=true "vqa examples")
 
 This repository contains the code, models and other data (features, annotations) required to reproduce the winning entry to the 2018 VQA Challenge (http://visualqa.org/roe.html) from the FAIR A-STAR team.
-Our eventual goal is to build a software suite for VQA and Visual Dialog supporting many datasets and model architectures to enable easy, fair comparisons among them and accelerate research in this space.
+Our eventual goal is to build a software suite for VQA supporting many datasets and model architectures to enable easy, fair comparisons among them and accelerate research in this space.
 
 
 ## Getting Started
@@ -276,8 +274,13 @@ Here, we listed the size of some large files in our AWS S3 bucket.
 |data/resnet152.tar.gz | 399.6GB|
 |ensembled.tar.gz| 462.1GB|
 
-### Examples
-![Alt text](info/vqa_example.png?raw=true "vqa examples")
+
+
+### References
+- P. Anderson, X. He, C. Buehler, D. Teney, M. Johnson, S. Gould, and L. Zhang. Bottom-up and top-down attenttion for image captioning and visual question answering. In CVPR, 2018.
+- Z. Yu, J. Yu, C. Xiang, J. Fan, and D. Tao. Beyond bilin- ear: Generalized multimodal factorized high-order pooling for visual question answering. IEEE Transactions on Neural Networks and Learning Systems, 2018.
+- D. Teney, P. Anderson, X. He, and A. van den Hengel. Tips and tricks for visual question answering: Learnings from the 2017 challenge. CoRR, abs/1708.02711, 2017.
+- Hu R, Andreas J, Rohrbach M, Darrell T, Saenko K. Learning to reason: End-to-end module networks for visual question answering. CoRR, abs/1704.05526. 2017.
 
 
 
