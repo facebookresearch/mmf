@@ -49,7 +49,7 @@ contractions = {
     "you'll", "youre": "you're", "youve": "you've"
 }
 
-manual_map = { 'none': '0',
+manual_map = {'none': '0',
               'zero': '0',
               'one': '1',
               'two': '2',
@@ -59,14 +59,14 @@ manual_map = { 'none': '0',
               'six': '6',
               'seven': '7',
               'eight': '8',
-               'nine': '9',
+              'nine': '9',
               'ten': '10'}
 articles = ['a', 'an', 'the']
 period_strip = re.compile("(?!<=\d)(\.)(?!\d)")
 comma_strip = re.compile("(\d)(\,)(\d)")
 punct = [';', r"/", '[', ']', '"', '{', '}',
-                '(', ')', '=', '+', '\\', '_', '-',
-                '>', '<', '@', '`', ',', '?', '!']
+         '(', ')', '=', '+', '\\', '_', '-',
+         '>', '<', '@', '`', ',', '?', '!']
 
 
 def get_score(occurences):
@@ -86,7 +86,7 @@ def process_punctuation(inText):
     outText = inText
     for p in punct:
         if (p + ' ' in inText or ' ' + p in inText) \
-           or (re.search(comma_strip, inText) != None):
+           or (re.search(comma_strip, inText) is not None):
             outText = outText.replace(p, '')
         else:
             outText = outText.replace(p, ' ')
@@ -126,9 +126,8 @@ def filter_answers(answers_dset, min_occurence):
     """This will change the answer to preprocessed version
     """
     occurence = {}
-    answer_list= []
+    answer_list = []
     for ans_entry in answers_dset:
-        answers = ans_entry['answers']
         gtruth = ans_entry['multiple_choice_answer']
         gtruth = preprocess_answer(gtruth)
         if gtruth not in occurence:
@@ -145,12 +144,22 @@ def filter_answers(answers_dset, min_occurence):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--annotation_file", type=str, required=True, help="input train annotationjson file")
-    parser.add_argument("--val_annotation_file", type=str, required=False, help="input val annotation json file")
-
-    parser.add_argument("--out_dir", type=str, default="./", help="output directory, default is current directory")
-    parser.add_argument("--min_freq", type=int, default=0,
-                        help="the minimum times of answer occurrence to be included in vocabulary, default 0")
+    parser.add_argument("--annotation_file",
+                        type=str,
+                        required=True,
+                        help="input train annotationjson file")
+    parser.add_argument("--val_annotation_file",
+                        type=str,
+                        required=False,
+                        help="input val annotation json file")
+    parser.add_argument("--out_dir",
+                        type=str,
+                        default="./",
+                        help="output directory, default is current directory")
+    parser.add_argument("--min_freq",
+                        type=int, default=0,
+                        help="the minimum times of answer occurrence \
+                              to be included in vocabulary, default 0")
     args = parser.parse_args()
 
     train_annotation_file = args.annotation_file
@@ -169,7 +178,7 @@ if __name__ == '__main__':
         answers = train_answers + val_answers
 
     answer_list = filter_answers(answers, min_freq)
-    answer_list = [t.strip() for t in answer_list if len(t.strip()) > 0 ]
+    answer_list = [t.strip() for t in answer_list if len(t.strip()) > 0]
     answer_list.sort()
 
     if '<unk>' not in answer_list:
@@ -178,4 +187,3 @@ if __name__ == '__main__':
     answer_file = os.path.join(out_dir, answer_file_name)
     with open(answer_file, 'w') as f:
         f.writelines([w+'\n' for w in answer_list])
-

@@ -1,4 +1,3 @@
-import os
 import argparse
 import json
 
@@ -10,24 +9,28 @@ def extract_info(annotations, writer):
         question_type = annotation['question_type']
         multiple_choice_answer = annotation['multiple_choice_answer']
         answers = [a['answer'] for a in annotation['answers']]
-        answers_out = '|'.join([str(a) for a in answers ])
+        answers_out = '|'.join([str(a) for a in answers])
         confidences = [a['answer_confidence'] for a in annotation['answers']]
         confidences_out = '|'.join(str(a) for a in confidences)
 
-        writer.write(str(question_id) + "\t" + question_type +"\t" +
-                     answer_type +"\t"+ str(multiple_choice_answer)+"\t"+answers_out +"\t"+confidences_out+"\n")
-
-
+        writer.write(str(question_id) + "\t" +
+                     question_type + "\t" +
+                     answer_type + "\t" +
+                     str(multiple_choice_answer) + "\t" +
+                     answers_out + "\t" +
+                     confidences_out+"\n")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--annotation_files", nargs='+', required=True,
-                        help="input annotation json files, if more than 1, split by space")
-    parser.add_argument("--out", type=str, required=True, help="out put files" )
+    parser.add_argument("--annotation_files", nargs='+',
+                        required=True,
+                        help="input annotation json files, \
+                             if more than 1, split by space")
+    parser.add_argument("--out",
+                        type=str, required=True, help="out put files")
 
     args = parser.parse_args()
-
     out_writer = open(args.out, 'w')
 
     for annotation_file in args.annotation_files:
@@ -36,4 +39,3 @@ if __name__ == '__main__':
         extract_info(annotations, out_writer)
 
     out_writer.close()
-

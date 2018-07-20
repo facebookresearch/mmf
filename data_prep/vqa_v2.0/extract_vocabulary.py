@@ -5,11 +5,21 @@ from collections import Counter
 from dataset_utils.text_processing import tokenize
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--input_files", nargs='+', required=True,
-                    help="input question json files, if more than 1, split by space")
-parser.add_argument("--out_dir", type=str, default="./", help="output directory, default is current directory")
-parser.add_argument("--min_freq", type=int, default=0,
-                    help="the minimum times of word occurrence to be included in vocabulary, default 0")
+parser.add_argument("--input_files",
+                    nargs='+',
+                    required=True,
+                    help="input question json files, \
+                         if more than 1, split by space")
+parser.add_argument("--out_dir",
+                    type=str,
+                    default="./",
+                    help="output directory, default is current directory")
+parser.add_argument("--min_freq",
+                    type=int,
+                    default=0,
+                    help="the minimum times of word occurrence \
+                          to be included in vocabulary, default 0")
+
 args = parser.parse_args()
 
 input_files = args.input_files
@@ -21,7 +31,7 @@ os.makedirs(out_dir, exist_ok=True)
 vocab_file_name = 'vocabulary_vqa.txt'
 
 word_count = Counter()
-questions=[]
+questions = []
 
 for idx, input_file in enumerate(input_files):
     with open(input_file, 'r') as f:
@@ -36,7 +46,7 @@ for inx, question in enumerate(questions):
 
 vocabulary = [w[0] for w in word_count.items() if w[1] >= min_freq]
 vocabulary.sort()
-vocabulary=['<unk>'] + vocabulary
+vocabulary = ['<unk>'] + vocabulary
 
 vocab_file = os.path.join(out_dir, vocab_file_name)
 with open(vocab_file, 'w') as f:
@@ -45,5 +55,3 @@ with open(vocab_file, 'w') as f:
 
 print("min question len=", min(question_length))
 print("max question len=", max(question_length))
-
-

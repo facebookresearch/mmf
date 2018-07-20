@@ -14,7 +14,7 @@ def subset_weights(glove_file, vocabulary_file):
 
     weights = np.zeros((vocabulary.num_vocab, emb_dim), dtype=np.float32)
 
-    word2emb={}
+    word2emb = {}
     for entry in entries:
         vals = entry.split(' ')
         word = vals[0]
@@ -31,9 +31,18 @@ def subset_weights(glove_file, vocabulary_file):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--vocabulary_file", type=str, required=True, help="input train annotationjson file")
-    parser.add_argument("--glove_file", type=str, required=True, help="glove files with the corresponding dim")
-    parser.add_argument("--out_dir", type=str, default="./", help="output directory, default is current directory")
+    parser.add_argument("--vocabulary_file",
+                        type=str,
+                        required=True,
+                        help="input train annotationjson file")
+    parser.add_argument("--glove_file",
+                        type=str,
+                        required=True,
+                        help="glove files with the corresponding dim")
+    parser.add_argument("--out_dir",
+                        type=str,
+                        default="./",
+                        help="output directory, default is current directory")
 
     args = parser.parse_args()
 
@@ -46,5 +55,5 @@ if __name__ == '__main__':
 
     weights = subset_weights(glove_file, vocabulary_file)
 
-    emb_file = os.path.join(out_dir,emb_file_name)
+    emb_file = os.path.join(out_dir, emb_file_name)
     np.save(emb_file, weights)
