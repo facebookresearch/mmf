@@ -13,7 +13,7 @@ class faster_RCNN_feat_reader:
 class CHW_feat_reader:
     def read(self, image_feat_path):
         feat = np.load(image_feat_path)
-        assert (feat.shape[0] ==1), "batch is not 1"
+        assert (feat.shape[0] == 1), "batch is not 1"
         feat = feat.squeeze(0)
         return feat
 
@@ -30,7 +30,7 @@ class HWC_feat_reader:
     def read(self, image_feat_path):
         tmp = np.load(image_feat_path)
         assert (tmp.shape[0] == 1), "batch is not 1"
-        _, _, _,c_dim = tmp.shape
+        _, _, _, c_dim = tmp.shape
         image_feat = np.reshape(tmp, (-1, c_dim))
         return image_feat
 
@@ -44,7 +44,7 @@ class padded_faster_RCNN_feat_reader:
         image_loc, image_dim = image_feat.shape
         tmp_image_feat = np.zeros((self.max_loc, image_dim), dtype=np.float32)
         tmp_image_feat[0:image_loc, ] = image_feat
-        image_feat= tmp_image_feat
+        image_feat = tmp_image_feat
         return (image_feat, image_loc)
 
 
@@ -167,7 +167,7 @@ class vqa_dataset(Dataset):
             print('Loading model and config ...')
 
         # load one feature map to peek its size
-        self.image_feat_readers =[]
+        self.image_feat_readers = []
         for image_dir in self.image_feat_directories:
             image_file_name = os.path.basename(
                 self.imdb[self.first_element_idx]['feature_path'])
@@ -176,7 +176,7 @@ class vqa_dataset(Dataset):
             self.image_feat_readers.append(get_image_feat_reader(
                 feats.ndim, self.image_depth_first, feats, self.image_max_loc))
 
-        self.fastRead=False
+        self.fastRead = False
         self.testMode = False
         if data_params['test_mode']:
             self.testMode = True
@@ -216,7 +216,7 @@ class vqa_dataset(Dataset):
         image_loc = None
 
         if isinstance(image_feats[0], tuple):
-            image_loc =image_feats[0][1]
+            image_loc = image_feats[0][1]
             image_feats_return = [image_feats[0][0]] + image_feats[1:]
             if len(image_feats[0]) == 3:
                 image_boxes = image_feats[0][2]
