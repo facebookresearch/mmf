@@ -17,7 +17,8 @@ from torch.utils.data import DataLoader
 from config.config_utils import finalize_config, dump_config
 from config.config import cfg
 from global_variables.global_variables import use_cuda
-from train_model.dataset_utils import prepare_train_data_set, prepare_eval_data_set, prepare_test_data_set
+from train_model.dataset_utils import prepare_train_data_set, \
+    prepare_eval_data_set, prepare_test_data_set
 from train_model.helper import build_model, run_model, print_result
 from train_model.Loss import get_loss_criterion
 from train_model.Engineer import one_stage_train
@@ -29,15 +30,28 @@ import gc
 import operator as op
 import functools
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, required=False, help="config yaml file")
-    parser.add_argument("--out_dir", type=str, default=None, help="output directory, default is current directory")
+    parser.add_argument("--config",
+                        type=str,
+                        required=False,
+                        help="config yaml file")
+    parser.add_argument("--out_dir",
+                        type=str,
+                        default=None,
+                        help="output directory, default is current directory")
     parser.add_argument('--seed', type=int, default=1234,
-                        help='random seed, default 1234, set seed to -1 if need a random seed between 1 and 100000')
-    parser.add_argument('--config_overwrite', type=str, help="a json string to update yaml config file", default=None)
+                        help="random seed, default 1234,"
+                        "set seed to -1 if need a random seed"
+                        "between 1 and 100000")
+    parser.add_argument('--config_overwrite',
+                        type=str,
+                        help="a json string to update yaml config file",
+                        default=None)
     parser.add_argument("--force_restart", action='store_true',
-                        help="flag to force clean previous result and restart training")
+                        help="flag to force clean previous"
+                        "result and restart training")
 
     arguments = parser.parse_args()
     return arguments
@@ -89,20 +103,33 @@ def get_optim_scheduler(optimizer):
 
 def print_eval(prepare_data_fun, out_label):
     model_file = os.path.join(snapshot_dir, "best_model.pth")
-    pkl_res_file = os.path.join(snapshot_dir, "best_model_predict_%s.pkl" % out_label)
-    out_file = os.path.join(snapshot_dir, "best_model_predict_%s.json" % out_label)
+    pkl_res_file = os.path.join(snapshot_dir,
+                                "best_model_predict_%s.pkl" % out_label)
+    out_file = os.path.join(snapshot_dir,
+                            "best_model_predict_%s.json" % out_label)
 
-    data_set_test = prepare_data_fun(**cfg['data'], **cfg['model'], verbose=True)
-    data_reader_test = DataLoader(data_set_test, shuffle=False,
-                                  batch_size=cfg.data.batch_size, num_workers=cfg.data.num_workers)
+    data_set_test = prepare_data_fun(**cfg['data'],
+                                     **cfg['model'],
+                                     verbose=True)
+    data_reader_test = DataLoader(data_set_test,
+                                  shuffle=False,
+                                  batch_size=cfg.data.batch_size,
+                                  num_workers=cfg.data.num_workers)
     ans_dic = data_set_test.answer_dict
 
     model = build_model(cfg, data_set_test)
     model.load_state_dict(torch.load(model_file)['state_dict'])
     model.eval()
 
-    question_ids, soft_max_result = run_model(model, data_reader_test, ans_dic.UNK_idx)
-    print_result(question_ids, soft_max_result, ans_dic, out_file, json_only=False, pkl_res_file=pkl_res_file)
+    question_ids, soft_max_result = run_model(model,
+                                              data_reader_test,
+                                              ans_dic.UNK_idx)
+    print_result(question_ids,
+                 soft_max_result,
+                 ans_dic,
+                 out_file,
+                 json_only=False,
+                 pkl_res_file=pkl_res_file)
 
 
 if __name__ == '__main__':
@@ -117,12 +144,14 @@ if __name__ == '__main__':
     if use_cuda:
         torch.cuda.manual_seed(seed)
 
+    basename = 'default' \
+        if args.config is None else os.path.basename(args.config)
 
-    basename = 'default' if args.config is None else os.path.basename(args.config)
+    cmd_cfg_obj = demjson.decode(args.config_overwrite) \
+        if args.config_overwrite is not None else None
 
-    cmd_cfg_obj = demjson.decode(args.config_overwrite) if args.config_overwrite is not None else None
-
-    middle_name, final_name = get_output_folder_name(basename, cmd_cfg_obj, seed)
+    middle_name, final_name = get_output_folder_name(basename,
+                                                     cmd_cfg_obj, seed)
 
     out_dir = args.out_dir if args.out_dir is not None else os.getcwd()
 
@@ -154,9 +183,11 @@ if __name__ == '__main__':
               {'params': model.question_embedding_models.parameters()},
               {'params': model.multi_modal_combine.parameters()},
               {'params': model.classifier.parameters()},
-              {'params': model.image_feature_encode_list.parameters(), 'lr': cfg.optimizer.par.lr * 0.1}]
+              {'params': model.image_feature_encode_list.parameters(),
+               'lr': cfg.optimizer.par.lr * 0.1}]
 
-    my_optim = getattr(optim, cfg.optimizer.method)(params, **cfg.optimizer.par)
+    my_optim = getattr(optim, cfg.optimizer.method)(
+        params, **cfg.optimizer.par)
 
     i_epoch = 0
     i_iter = 0
@@ -179,18 +210,22 @@ if __name__ == '__main__':
 
     data_set_val = prepare_eval_data_set(**cfg['data'], **cfg['model'])
 
-    data_reader_trn = DataLoader(dataset=train_dataSet, batch_size=cfg.data.batch_size, shuffle=True,
+    data_reader_trn = DataLoader(dataset=train_dataSet,
+                                 batch_size=cfg.data.batch_size,
+                                 shuffle=True,
                                  num_workers=cfg.data.num_workers)
-    data_reader_val = DataLoader(data_set_val, shuffle=True, batch_size=cfg.data.batch_size,
+    data_reader_val = DataLoader(data_set_val,
+                                 shuffle=True,
+                                 batch_size=cfg.data.batch_size,
                                  num_workers=cfg.data.num_workers)
 
     total = 0
     print("Before training")
     for obj in gc.get_objects():
         try:
-            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-                # print(functools.reduce(op.mul, obj.size()) if len(obj.size()) > 0 else 0, type(obj), obj.size())
-                total += functools.reduce(op.mul, obj.size())
+            if torch.is_tensor(obj) or \
+                    (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                        total += functools.reduce(op.mul, obj.size())
         except:
             continue
 
@@ -200,16 +235,19 @@ if __name__ == '__main__':
 
     my_model.train()
 
-    one_stage_train(my_model, data_reader_trn, my_optim, my_loss, data_reader_eval=data_reader_val,
-                    snapshot_dir=snapshot_dir, log_dir=boards_dir, start_epoch=i_epoch, i_iter=i_iter,
+    one_stage_train(my_model,
+                    data_reader_trn,
+                    my_optim, my_loss, data_reader_eval=data_reader_val,
+                    snapshot_dir=snapshot_dir, log_dir=boards_dir,
+                    start_epoch=i_epoch, i_iter=i_iter,
                     scheduler=scheduler)
 
     print("After training")
     for obj in gc.get_objects():
         try:
-            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-                # print(functools.reduce(op.mul, obj.size()) if len(obj.size()) > 0 else 0, type(obj), obj.size())
-                total += functools.reduce(op.mul, obj.size())
+            if torch.is_tensor(obj) or \
+                    (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                        total += functools.reduce(op.mul, obj.size())
         except:
             continue
 

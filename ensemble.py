@@ -16,9 +16,14 @@ from train_model.helper import print_result
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--out", type=str, required=True, help="output file name")
-    parser.add_argument("--res_dirs", nargs='+', help="directories for results, NOTE:"
-                                                      " all *.pkl file under these dirs will be ensembled", default=None)
+    parser.add_argument("--out",
+                        type=str,
+                        required=True,
+                        help="output file name")
+    parser.add_argument("--res_dirs", nargs='+',
+                        help="directories for results, NOTE:"
+                        "all *.pkl file under these dirs will be ensembled",
+                        default=None)
     argments = parser.parse_args()
 
     return argments
@@ -63,7 +68,11 @@ if __name__ == '__main__':
 
     pkl_file = out_file+".pkl"
 
-    print_result(question_ids, soft_max_result,ans_dic,out_file, False, pkl_file)
+    print_result(question_ids,
+                 soft_max_result,
+                 ans_dic,
+                 out_file,
+                 False,
+                 pkl_file)
 
     print("Done")
-    

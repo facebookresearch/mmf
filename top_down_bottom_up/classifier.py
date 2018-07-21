@@ -35,10 +35,14 @@ class logit_classifier(nn.Module):
         self.f_o_image = nonlinear_layer(input_dim, image_nonLinear_dim)
         self.linear_text = nn.Linear(txt_nonLinear_dim, num_ans_candidates)
         self.linear_image = nn.Linear(image_nonLinear_dim, num_ans_candidates)
-        if 'pretrained_image' in kwargs and kwargs['pretrained_text'] is not None:
-            self.linear_text.weight.data.copy_(torch.from_numpy(kwargs['pretrained_text']))
-        if 'pretrained_image' in kwargs and kwargs['pretrained_image'] is not None:
-            self.linear_image.weight.data.copy_(torch.from_numpy(kwargs['pretrained_image']))
+        if 'pretrained_image' in kwargs and \
+                kwargs['pretrained_text'] is not None:
+            self.linear_text.weight.data.copy_(
+                torch.from_numpy(kwargs['pretrained_text']))
+        if 'pretrained_image' in kwargs and \
+                kwargs['pretrained_image'] is not None:
+            self.linear_image.weight.data.copy_(
+                torch.from_numpy(kwargs['pretrained_image']))
 
     def forward(self, joint_embedding):
         text_val = self.linear_text(self.f_o_text(joint_embedding))
