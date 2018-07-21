@@ -6,12 +6,13 @@
 #
 
 
-import yaml
 import argparse
 from torch.utils.data import DataLoader
 from train_model.dataset_utils import prepare_test_data_set,prepare_eval_data_set
 import torch
 from train_model.helper import run_model, print_result, build_model
+from config.config_utils import finalize_config, dump_config
+from config.config import cfg
 
 
 def parse_args():
@@ -38,18 +39,17 @@ if __name__ == '__main__':
     out_file = args.out_prefix+".json"
     model_file = args.model_path
 
-    with open(config_file, 'r') as f:
-        config = yaml.load(f)
+    finalize_config(cfg, config_file, None)
 
-    batch_size = config['data']['batch_size'] if args.batch_size is None else args.batch_size
+    batch_size = cfg['data']['batch_size'] if args.batch_size is None else args.batch_size
     if args.use_val:
-        data_set_test = prepare_eval_data_set(**config['data'], **config['model'], verbose=True)
+        data_set_test = prepare_eval_data_set(**cfg['data'], **cfg['model'], verbose=True)
     else:
-        data_set_test = prepare_test_data_set(**config['data'], **config['model'], verbose=True)
+        data_set_test = prepare_test_data_set(**cfg['data'], **cfg['model'], verbose=True)
     data_reader_test = DataLoader(data_set_test, shuffle=False, batch_size=batch_size, num_workers=args.num_workers)
     ans_dic = data_set_test.answer_dict
 
-    myModel = build_model(config, data_set_test)
+    myModel = build_model(cfg, data_set_test)
     myModel.load_state_dict(torch.load(model_file)['state_dict'])
 
     myModel.eval()

@@ -1,9 +1,10 @@
 # Pythia
 
-![Alt text](info/vqa_example.png?raw=true "vqa examples")
-
 This repository contains the code, models and other data (features, annotations) required to reproduce the winning entry to the 2018 VQA Challenge (http://visualqa.org/roe.html) from the FAIR A-STAR team.
 Our eventual goal is to build a software suite for VQA supporting many datasets and model architectures to enable easy, fair comparisons among them and accelerate research in this space.
+
+![Alt text](info/vqa_example.png?raw=true "vqa examples")
+
 
 
 ## Getting Started
@@ -14,7 +15,7 @@ These instructions will get you a copy of the project and start running the mode
 ### Installing
 
 1. Install Anaconda (Anaconda recommended: https://www.continuum.io/downloads).
-2. Install cudnn/v7.0-cuda.9.0
+2. Install cudnn v7.0 and cuda.9.0
 3. Create envioment for vqa-suite
 ```bash
 conda create --name vqa python=3.6
