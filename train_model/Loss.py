@@ -31,7 +31,9 @@ class LogitBinaryCrossEntropy(nn.Module):
         super(LogitBinaryCrossEntropy, self).__init__()
 
     def forward(self, pred_score, target_score, weights=None):
-        loss = F.binary_cross_entropy_with_logits(pred_score, target_score, size_average=True)
+        loss = F.binary_cross_entropy_with_logits(pred_score,
+                                                  target_score,
+                                                  size_average=True)
         loss = loss * target_score.size(1)
         return loss
 
@@ -110,7 +112,9 @@ class CombinedLoss(nn.Module):
         loss1 = kl_div(res, tar)
         loss1 = torch.sum(loss1) / loss1.size(0)
 
-        loss2 = F.binary_cross_entropy_with_logits(pred_score, target_score, size_average=True)
+        loss2 = F.binary_cross_entropy_with_logits(pred_score,
+                                                   target_score,
+                                                   size_average=True)
         loss2 *= target_score.size(1)
 
         loss = self.weight_softmax * loss1 + loss2

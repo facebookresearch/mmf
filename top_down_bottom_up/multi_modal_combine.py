@@ -20,14 +20,19 @@ def build_modal_combine_module(method, par, image_feat_dim, ques_emb_dim):
     elif method == "two_layer_elmt_multiply":
         return two_layer_elmt_multiply(image_feat_dim, ques_emb_dim, **par)
     else:
-        raise NotImplemented("unimplemented %s for modal combine module" % method)
+        raise NotImplemented(
+            "unimplemented %s for modal combine module" % method)
 
 
 class MfbExpand(nn.Module):
     def __init__(self, **kwargs):
         super(MfbExpand, self).__init__()
-        self.lc_image = nn.Linear(in_features=kwargs['image_feat_dim'], out_features=kwargs['hidden_size'])
-        self.lc_ques = nn.Linear(in_features=kwargs['ques_emb_dim'], out_features=kwargs['hidden_size'])
+        self.lc_image = nn.Linear(
+            in_features=kwargs['image_feat_dim'],
+            out_features=kwargs['hidden_size'])
+        self.lc_ques = nn.Linear(
+            in_features=kwargs['ques_emb_dim'],
+            out_features=kwargs['hidden_size'])
         self.dropout = nn.Dropout(kwargs['dropout'])
 
     def forward(self, image_feat, question_embed):
@@ -35,12 +40,12 @@ class MfbExpand(nn.Module):
         ques1 = self.lc_ques(question_embed)
         if len(image_feat.data.shape) == 3:
             num_location = image_feat.data.size(1)
-            ques1_expand = torch.unsqueeze(ques1, 1).expand(-1, num_location, -1)
+            ques1_expand = (
+                torch.unsqueeze(ques1, 1).expand(-1, num_location, -1))
         else:
             ques1_expand = ques1
         joint_feature = image1 * ques1_expand
         joint_feature = self.dropout(joint_feature)
-
         return joint_feature
 
 
@@ -58,13 +63,18 @@ class MfbSqueeze(nn.Module):
         batch_size, num_loc, dim = joint_feature.size()
 
         if dim % self.pool_size != 0:
-            exit("the dim %d is not multiply of pool_size %d" % (dim, self.pool_size))
-        joint_feature_reshape = joint_feature.view(batch_size, num_loc, int(dim / self.pool_size), self.pool_size)
-        iatt_iq_sumpool = torch.sum(joint_feature_reshape, 3)  # N x 100 x 1000 x 1
-        iatt_iq_sqrt = torch.sqrt(F.relu(iatt_iq_sumpool)) - torch.sqrt(F.relu(-iatt_iq_sumpool))
+            exit("the dim %d is not multiply of \
+             pool_size %d" % (dim, self.pool_size))
+        joint_feature_reshape = joint_feature.view(
+            batch_size, num_loc, int(dim / self.pool_size), self.pool_size)
+        # N x 100 x 1000 x 1
+        iatt_iq_sumpool = torch.sum(joint_feature_reshape, 3)
+        iatt_iq_sqrt = torch.sqrt(
+            F.relu(iatt_iq_sumpool)) - torch.sqrt(F.relu(-iatt_iq_sumpool))
         iatt_iq_sqrt = iatt_iq_sqrt.view(batch_size, -1)  # N x 100000
         iatt_iq_l2 = F.normalize(iatt_iq_sqrt)
-        iatt_iq_l2 = iatt_iq_l2.view(batch_size, num_loc, int(dim / self.pool_size))
+        iatt_iq_l2 = iatt_iq_l2.view(
+            batch_size, num_loc, int(dim / self.pool_size))
         if orig_feature_size == 2:
             iatt_iq_l2 = torch.squeeze(iatt_iq_l2, dim=1)
 
@@ -80,8 +90,10 @@ class MFH(nn.Module):
         self.mfb_sqz_list = nn.ModuleList()
         self.out_dim = int(sum(hidden_sizes) / kwargs['pool_size'])
         for i in range(self.order):
-            mfb_exp_i = MfbExpand(image_feat_dim=image_feat_dim, ques_emb_dim=ques_emb_dim,
-                                  hidden_size=hidden_sizes[i], dropout=kwargs['dropout'])
+            mfb_exp_i = MfbExpand(image_feat_dim=image_feat_dim,
+                                  ques_emb_dim=ques_emb_dim,
+                                  hidden_size=hidden_sizes[i],
+                                  dropout=kwargs['dropout'])
             self.mfb_expand_list.append(mfb_exp_i)
             mfb_sqz_i = MfbSqueeze(pool_size=kwargs['pool_size'])
             self.mfb_sqz_list.append(mfb_sqz_i)
@@ -104,7 +116,8 @@ class MFH(nn.Module):
         return feature
 
 
-# need to handle two situations, first: image (N, K, i_dim), question (N, q_dim);
+# need to handle two situations,
+# first: image (N, K, i_dim), question (N, q_dim);
 # second: image (N, i_dim), question (N, q_dim);
 class non_linear_elmt_multiply(nn.Module):
     def __init__(self, image_feat_dim, ques_emb_dim, **kwargs):
@@ -120,7 +133,8 @@ class non_linear_elmt_multiply(nn.Module):
 
         if len(image_feat.data.shape) == 3:
             num_location = image_feat.data.size(1)
-            question_fa_expand = torch.unsqueeze(question_fa, 1).expand(-1, num_location, -1)
+            question_fa_expand = torch.unsqueeze(
+                question_fa, 1).expand(-1, num_location, -1)
         else:
             question_fa_expand = question_fa
 
@@ -134,9 +148,11 @@ class two_layer_elmt_multiply(nn.Module):
     def __init__(self, image_feat_dim, ques_emb_dim, **kwargs):
         super(two_layer_elmt_multiply, self).__init__()
         self.Fa_image1 = nonlinear_layer(image_feat_dim, kwargs['hidden_size'])
-        self.Fa_image2 = nonlinear_layer(kwargs['hidden_size'], kwargs['hidden_size'])
+        self.Fa_image2 = nonlinear_layer(
+            kwargs['hidden_size'], kwargs['hidden_size'])
         self.Fa_txt1 = nonlinear_layer(ques_emb_dim, kwargs['hidden_size'])
-        self.Fa_txt2 = nonlinear_layer(kwargs['hidden_size'], kwargs['hidden_size'])
+        self.Fa_txt2 = nonlinear_layer(
+            kwargs['hidden_size'], kwargs['hidden_size'])
         self.dropout = nn.Dropout(kwargs['dropout'])
         self.out_dim = kwargs['hidden_size']
 
@@ -146,7 +162,8 @@ class two_layer_elmt_multiply(nn.Module):
 
         if len(image_feat.data.shape) == 3:
             num_location = image_feat.data.size(1)
-            question_fa_expand = torch.unsqueeze(question_fa, 1).expand(-1, num_location, -1)
+            question_fa_expand = torch.unsqueeze(
+                question_fa, 1).expand(-1, num_location, -1)
         else:
             question_fa_expand = question_fa
 

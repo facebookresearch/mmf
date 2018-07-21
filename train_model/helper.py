@@ -5,18 +5,12 @@
 # LICENSE file in the root directory of this source tree.
 #
 
-
-import yaml
-import argparse
-import numpy as np
-from torch.utils.data import DataLoader
-from train_model.Engineer import one_stage_run_model, masked_unk_softmax
-from train_model.dataset_utils import prepare_test_data_set
-import torch
 import json
 import _pickle as pickle
 import timeit
 import sys
+import numpy as np
+from train_model.Engineer import one_stage_run_model, masked_unk_softmax
 from train_model.model_factory import prepare_model
 
 
@@ -33,9 +27,7 @@ class answer_json:
 
 
 def build_model(config, dataset):
-    assembler = dataset.assembler if hasattr(dataset, 'assembler') else None
     num_vocab_txt = dataset.vocab_dict.num_vocab
-    num_vocab_nmn = 0 if assembler is None else len(assembler.module_names)
     num_choices = dataset.answer_dict.num_vocab
 
     num_image_feat = len(config['data']['image_feat_train'][0].split(','))
@@ -70,7 +62,12 @@ def run_model(current_model, data_reader, UNK_idx=0):
     return q_id_tot, softmax_result
 
 
-def print_result(question_ids, soft_max_result, ans_dic, out_file, json_only=True,pkl_res_file=None):
+def print_result(question_ids,
+                 soft_max_result,
+                 ans_dic,
+                 out_file,
+                 json_only=True,
+                 pkl_res_file=None):
     predicted_answers = np.argmax(soft_max_result, axis=1)
 
     if not json_only:
@@ -85,6 +82,6 @@ def print_result(question_ids, soft_max_result, ans_dic, out_file, json_only=Tru
         pred_ans = ans_dic.idx2word(pred_idx)
         ans_json_out.add(question_id, pred_ans)
 
-    ##dump the result
+    # dump the result
     with open(out_file, "w") as f:
         json.dump(ans_json_out.answers, f)

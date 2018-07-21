@@ -11,6 +11,7 @@ import argparse
 from torch.utils.data import DataLoader
 from train_model.model_factory import is_one_stageModel
 from train_model.dataset_utils import prepare_eval_data_set
+from train_model.Engineer import masked_unk_softmax, one_stage_run_model
 import torch
 import glob
 import _pickle as pickle
@@ -41,13 +42,13 @@ def compute_score_with_prob(prob, scores):
 
 
 def ensemble(results, ans_unk_idx):
-    final_result = masked_unk_softmax(results[0], dim=1,mask_idx=ans_unk_idx)
+    final_result = masked_unk_softmax(results[0], dim=1, mask_idx=ans_unk_idx)
 
     if len(results) == 1:
         return final_result
 
     for result in results[1:]:
-        final_result += masked_unk_softmax(result, dim=1,mask_idx=ans_unk_idx)
+        final_result += masked_unk_softmax(result, dim=1, mask_idx=ans_unk_idx)
 
     return final_result
 
