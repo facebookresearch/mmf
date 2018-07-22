@@ -270,7 +270,7 @@ Here, we listed the size of some large files in our AWS S3 bucket.
 | Description | size  |
 | --- | --- | 
 |data/rcnn_10_100.tar.gz | 71.0GB |
-|data/detectron.tar.gz | 64.7GB|
+|data/detectron.tar.gz | 106.2 GB|
 |data/detectron_fix_100.tar.gz|98.1GB|
 |data/resnet152.tar.gz | 399.6GB|
 |ensembled.tar.gz| 462.1GB|
