@@ -36,7 +36,7 @@ pip install tensorboardX
 ### Quick start
 We provide preprocessed data files to directly start training and evaluating. Instead of using the original `train2014` and `val2014` splits, we split `val2014` into `val2train2014` and `minival2014`, and use `train2014` + `val2train2014` for training and `minival2014` for validation.
 
-Download data, this step may take some time. (check the size of files at the end of readme)
+Download data. This step may take some time. Check the sizes of files at the end of readme.
 ```bash
 
 git clone git@github.com:fairinternal/Pythia.git
@@ -64,7 +64,7 @@ tar -xf detectron.tar
 rm -f detectron.tar
 ```
 
-Get the help 
+Optional command-line arguments for `train.py`
 ```bash
 python train.py -h
 
@@ -103,7 +103,7 @@ Check result for the default run
 cd results/default/1234
 
 ```
-The results folder contains following info
+The results folder contains the following info
 ```angular2html
 results
 |_ default
@@ -121,17 +121,17 @@ results
 |
 
 ```
-The log files for tensorbord is stored under boards/
+The log files for tensorbord are stored under `boards/`
 
 
 
 ### Preprocess dataset
-If you want to start from the original VQA dataset and preprocess data by yourself, use the follow instructions. 
+If you want to start from the original VQA dataset and preprocess data by yourself, use the following instructions. 
 ***This part is not necessary if you download all data from quick start.***
 
 #### VQA v2.0
  
-Dowload dataset 
+Download dataset 
 ```bash
 cd ../
 mkdir -p orig_data/vqa_v2.0
@@ -140,7 +140,7 @@ cd orig_data/vqa_v2.0
 
 ```
 
-preprocess dataset
+Preprocess dataset
 ```bash
 cd ../../VQA_suite 
 mkdir data
@@ -167,7 +167,7 @@ python data_prep/vqa_v2.0/build_vqa_2.0_imdb.py --data_dir ../orig_data/vqa_v2.0
 
 ```
 
-Dowload image features
+Download image features
 ```bash
 cd data/
 wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/rcnn_10_100.tar.gz
@@ -185,8 +185,6 @@ rm -f detectron.tar
 
 
 Training
-
-Example:
 ```
 python train.py 
 ```
@@ -202,18 +200,19 @@ python train.py
 
 
 #### Best Pretrained Model
-The best pretrained Model can be download from:
+The best pretrained model can be downloaded as follows:
 
 ```bash
 mkdir pretrained_models/
 cd pretrained_models
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/most_data_models.tar.gz
-gunzip most_data_models.tar.gz 
-tar -xf most_data_models.tar
-rm -f most_data_models.tar
+wget https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_100_resnet_VG.tar.gz
+gunzip detectron_100_resnet_VG.tar.gz 
+tar -xf detectron_100_resnet_VG.tar
+rm -f detectron_100_resnet_VG.tar
 ```
+``
 
-get the resnet152 features for the best model and detectron features with fixed 100 bounding boxes
+Get ResNet152 features and Detectron features with fixed 100 bounding boxes"
 ```bash
 cd data
 wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/detectron_fix_100.tar.gz
@@ -227,16 +226,8 @@ tar -xf resnet152.tar
 rm -f resnet152.tar
 ```
 
-```bash
-mkdir pretrained_models/
-cd pretrained_models
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_100_resnet_VG.tar.gz
-gunzip detectron_100_resnet_VG.tar.gz 
-tar -xf detectron_100_resnet_VG.tar
-rm -f detectron_100_resnet_VG.tar
-```
 
-test the best model with vqa test2015 datasset
+Test the best model on the VQA test2015 dataset
 ```bash
 
 python run_test.py --config pretrained_models/detectron_100_resnet_VG/567/config.yaml \
@@ -244,24 +235,23 @@ python run_test.py --config pretrained_models/detectron_100_resnet_VG/567/config
 --out_prefix test_best_model
 ```
 
-The result can be found as a json file test_best_model.json , 
-this file can be uploaded to test on evalAI(https://evalai.cloudcv.org/web/challenges/challenge-page/80/submission)
+The results will be saved as a json file `test_best_model.json`, and this file can be uploaded to the evaluation server on EvalAI (https://evalai.cloudcv.org/web/challenges/challenge-page/80/submission).
 
 ### Ensemble different models
-download all the models above
+Download all the models above
 ```bash
 python ensemble.py --res_dirs pretrained_models/ --out ensemble_5.json
 ```
-The result is in ensemble_5.json, check on evalAI, get the overall accuracy is 71.3
+Results will be saved in `ensemble_5.json`. Submit it on evalAI to get overall accuracy as 71.3.
 
 ### Ensemble 30 models
-To get all 30 pretrained models and the corresponding image features.The ensemble result for these 30 models is 72.18 on test-dev the models can be download:
+To run an ensemble of 30 pretrained models, download the models and image features as follows. This gets an accuracy of 72.18 on test-dev.
 
 ```bash
 wget https://s3-us-west-1.amazonaws.com/pythia-vqa/ensembled.tar.gz
 ```
 ### Customize config
-TO change models or adjust hyper-parameters, see [config_help.md](config_help.md)
+To change models or adjust hyper-parameters, see [config_help.md](config_help.md)
 
 
 ### AWS s3 dataset summary
@@ -271,7 +261,7 @@ Here, we listed the size of some large files in our AWS S3 bucket.
 | --- | --- | 
 |data/rcnn_10_100.tar.gz | 71.0GB |
 |data/detectron.tar.gz | 106.2 GB|
-|data/detectron_fix_100.tar.gz|98.1GB|
+|data/detectron_fix_100.tar.gz|162.6GB|
 |data/resnet152.tar.gz | 399.6GB|
 |ensembled.tar.gz| 462.1GB|
 
@@ -281,7 +271,7 @@ Here, we listed the size of some large files in our AWS S3 bucket.
 - P. Anderson, X. He, C. Buehler, D. Teney, M. Johnson, S. Gould, and L. Zhang. Bottom-up and top-down attenttion for image captioning and visual question answering. In CVPR, 2018.
 - Z. Yu, J. Yu, C. Xiang, J. Fan, and D. Tao. Beyond bilin- ear: Generalized multimodal factorized high-order pooling for visual question answering. IEEE Transactions on Neural Networks and Learning Systems, 2018.
 - D. Teney, P. Anderson, X. He, and A. van den Hengel. Tips and tricks for visual question answering: Learnings from the 2017 challenge. CoRR, abs/1708.02711, 2017.
-- Hu R, Andreas J, Rohrbach M, Darrell T, Saenko K. Learning to reason: End-to-end module networks for visual question answering. CoRR, abs/1704.05526. 2017.
+- Hu R, Andreas J, Rohrbach M, Darrell T, Saenko K. Learning to reason: End-to-end module networks for visual question answering. In ICCV, 2017.
 
 
 
