@@ -190,7 +190,7 @@ python train.py
 ### Test with pretrained models
 | Description | performance (test-dev) | Link |
 | --- | --- | --- |
-|detectron_100_resnet_most_data | 69.54 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_100_resnet_most_data.tar.gz
+|detectron_100_resnet_most_data | 70.22 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_100_resnet_most_data.tar.gz
 |detectron_100_resnet_VG | 69.54 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_100_resnet_VG.tar.gz
 | baseline | 68.05 | https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/baseline.tar.gz |
 | baseline +VG +VD +mirror | 68.98 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/most_data.tar.gz |
