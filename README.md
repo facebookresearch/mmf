@@ -190,12 +190,11 @@ python train.py
 ### Test with pretrained models
 | Description | performance (test-dev) | Link |
 | --- | --- | --- |
-|detectron_100_resnet_most_data | 69.54 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_100_resnet_most_data.tar.gz
-|detectron_100_resnet_VG | 69.54 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_100_resnet_VG.tar.gz
+|detectron_100_resnet_most_data | 70.22 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_100_resnet_most_data.tar.gz
 | baseline | 68.05 | https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/baseline.tar.gz |
-| baseline +VG +VD +mirror | 68.98 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/most_data.tar.gz |
+| baseline +VG +VisDal +mirror | 68.98 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/most_data.tar.gz |
 | detectron_finetune | 68.49 | https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron.tar.gz|
-| detectron_finetune+VG |68.77 | https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_VG.tar.gz |
+| detectron_finetune+VG +VisDal +mirror |69.24 | https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_most_data.tar.gz |
 
 
 #### Best Pretrained Model
@@ -239,9 +238,9 @@ The results will be saved as a json file `test_best_model.json`, and this file c
 ### Ensemble different models
 Download all the models above
 ```bash
-python ensemble.py --res_dirs pretrained_models/ --out ensemble_6.json
+python ensemble.py --res_dirs pretrained_models/ --out ensemble_5.json
 ```
-Results will be saved in `ensemble_6.json`. 
+Results will be saved in `ensemble_5.json`. This ensemble can get accuracy 71.65 on test-dev.
 
 ### Ensemble 30 models
 To run an ensemble of 30 pretrained models, download the models and image features as follows. This gets an accuracy of 72.18 on test-dev.
