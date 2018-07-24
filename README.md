@@ -6,11 +6,8 @@ This repository contains the code, models and other data (features, annotations)
 
 
 
-## Getting Started
 
-
-
-### Installing
+### Installing pythia environment
 
 1. Install Anaconda (Anaconda recommended: https://www.continuum.io/downloads).
 2. Install cudnn v7.0 and cuda.9.0
@@ -169,7 +166,7 @@ Download image features
 ```bash
 cd data/
 wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/rcnn_10_100.tar.gz
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/detectron_23.tar.gz
+wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/detectron.tar.gz
 gunzip rcnn_10_100.tar.gz 
 tar -xvf rcnn_10_100.tar
 rm -f rcnn_10_100.tar
@@ -188,6 +185,8 @@ python train.py
 ```
 
 ### Test with pretrained models
+Note: all of these models below are trained with validation set included
+
 | Description | performance (test-dev) | Link |
 | --- | --- | --- |
 |detectron_100_resnet_most_data | 70.22 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_100_resnet_most_data.tar.gz
@@ -208,7 +207,7 @@ gunzip detectron_100_resnet_most_data.tar.gz
 tar -xf detectron_100_resnet_most_data.tar
 rm -f detectron_100_resnet_most_data.tar
 ```
-``
+
 
 Get ResNet152 features and Detectron features with fixed 100 bounding boxes
 ```bash
