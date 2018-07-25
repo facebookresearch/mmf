@@ -250,6 +250,16 @@ wget https://s3-us-west-1.amazonaws.com/pythia-vqa/ensembled.tar.gz
 ### Customize config
 To change models or adjust hyper-parameters, see [config_help.md](config_help.md)
 
+### Docker Demo
+To quickly tryout a model interactively with [nvidia-docker](https://github.com/NVIDIA/nvidia-docker)
+
+```bash
+git clone https://github.com/facebookresearch/pythia.git
+nvidia-docker build pythia -t pythia:latest
+nvidia-docker run -ti --net=host pythia:latest
+```
+
+This will open a jupyter notebook with a demo model to which you can ask questions interactively.
 
 ### AWS s3 dataset summary
 Here, we listed the size of some large files in our AWS S3 bucket.
