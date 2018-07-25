@@ -1,0 +1,86 @@
+data:
+  batch_size: 512
+  data_root_dir: data/
+  dataset: vqa_2.0
+  image_depth_first: false
+  image_fast_reader: false
+  image_feat_test:
+  - demo/features/
+  image_feat_train:
+  - rcnn_10_100/train2014
+  - rcnn_10_100/val2014
+  image_feat_val:
+  - rcnn_10_100/val2014
+  image_max_loc: 100
+  imdb_file_test:
+  - demo/imdb/imdb_demo.npy
+  imdb_file_train:
+  - imdb/imdb_train2014.npy
+  - imdb/imdb_val2014.npy
+  imdb_file_val:
+  - imdb/imdb_minival2014.npy
+  num_workers: 5
+  question_max_len: 14
+  vocab_answer_file: answers_vqa.txt
+  vocab_question_file: large_vocabulary_vqa.txt
+exp_name: baseline
+loss: logitBCE
+model:
+  classifier:
+    method: logit_classifier
+    par:
+      img_hidden_dim: 5000
+      txt_hidden_dim: 300
+  image_embedding_models:
+  - modal_combine:
+      method: non_linear_elmt_multiply
+      par:
+        dropout: 0
+        hidden_size: 5000
+    normalization: softmax
+    transform:
+      method: linear_transform
+      par:
+        out_dim: 1
+  image_feat_dim: 2048
+  image_feature_encoding:
+  - method: default_image
+    par: {}
+  modal_combine:
+    method: non_linear_elmt_multiply
+    par:
+      dropout: 0
+      hidden_size: 5000
+  question_embedding:
+  - method: att_que_embed
+    par:
+      LSTM_hidden_size: 1024
+      LSTM_layer: 1
+      conv1_out: 512
+      conv2_out: 2
+      dropout: 0
+      embedding_dim: 300
+      embedding_init_file: large_vqa2.0_glove.6B.300d.txt.npy
+      kernel_size: 1
+      padding: 0
+optimizer:
+  method: Adamax
+  par:
+    eps: 1.0e-08
+    lr: 0.01
+    weight_decay: 0
+run: train+predict
+training_parameters:
+  clip_norm_mode: all
+  lr_ratio: 0.1
+  lr_steps:
+  - 15000
+  - 18000
+  - 20000
+  - 21000
+  max_grad_l2_norm: 0.25
+  max_iter: 22000
+  report_interval: 100
+  snapshot_interval: 1000
+  wu_factor: 0.2
+  wu_iters: 1000
