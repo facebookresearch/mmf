@@ -1,10 +1,39 @@
 # Pythia
 
-This repository contains the code, models and other data (features, annotations) required to reproduce the winning entry to the 2018 VQA Challenge (http://visualqa.org/roe.html) from the FAIR A-STAR team.
+Pythia is a modular framework for Visual
+Question Answering research, which formed which formed the basis for
+the winning entry to the VQA Challenge 2018 from Facebook AI Research (FAIR)’s A-STAR team.
+
+(A-STAR: Agents that See, Talk, Act, and Reason.)
 
 ![Alt text](info/vqa_example.png?raw=true "vqa examples")
 
+### Motivation
+The motivation for Pythia comes from the following observation – a majority of today’s Visual Question Answering (VQA) models fit a particular design paradigm, with
+modules for question encoding, image feature extraction,
+fusion of the two (typically with attention), and classifica-
+tion over the space of answers. The long-term goal of Pythia
+is to serve as a platform for easy and modular research &
+development in VQA and related directions like visual dialog.
 
+#### Why the name _Pythia_?
+The name Pythia is an homage to the Oracle
+of Apollo at Delphi, who answered questions in Ancient
+Greece. 
+<img src="info/pythia.jpg" width="40%">
+
+
+### cite pythia
+If you use Pythia in your research or wish to refer to the baseline results included, please use the following BibTeX entry.
+
+```
+@misc{pythia2018,
+  author =       {Yu Jiang, Vivek Natarajan, Xinlei Chen, Marcus Rohrbach, Dhruv Batra, Devi Parikh},
+  title =        {Pythia v0.1: The Winning Entry to the VQA Challenge 2018},
+  howpublished = {\url{https://github.com/facebookresearch/pythia}},
+  year =         {2018}
+}
+```
 
 
 ### Installing pythia environment
@@ -121,68 +150,12 @@ The log files for tensorbord are stored under `boards/`
 
 
 ### Preprocess dataset
-If you want to start from the original VQA dataset and preprocess data by yourself, use the following instructions. 
+If you want to start from the original VQA dataset and preprocess data by yourself, use the following instructions in [data_preprocess.md](data_prep/data_preprocess.md). 
 ***This part is not necessary if you download all data from quick start.***
 
-#### VQA v2.0
- 
-Download dataset 
-```bash
-cd ../
-mkdir -p orig_data/vqa_v2.0
-cd orig_data/vqa_v2.0
-./../../data_prep/vqa_v2.0/download_vqa_2.0.sh
-
-```
-
-Preprocess dataset
-```bash
-cd ../../VQA_suite 
-mkdir data
-
-export PYTHONPATH=.
-
-python data_prep/vqa_v2.0/extract_vocabulary.py \
---input_files ../orig_data/vqa_v2.0/v2_OpenEnded_mscoco_train2014_questions.json \
- ../orig_data/vqa_v2.0/v2_OpenEnded_mscoco_val2014_questions.json \
- ../orig_data/vqa_v2.0/v2_OpenEnded_mscoco_test2015_questions.json \
---out_dir data/
-
-python data_prep/vqa_v2.0/process_answers.py \
---annotation_file ../orig_data/vqa_v2.0/v2_mscoco_train2014_annotations.json \
---val_annotation_file ../orig_data/vqa_v2.0/v2_mscoco_val2014_annotations.json  \
---out_dir data/ --min_freq 9
-
-python data_prep/vqa_v2.0/extract_word_glove_embedding.py  \
---vocabulary_file data/vocabulary_vqa.txt  \
---glove_file ../orig_data/vqa_v2.0/glove/glove.6B.300d.txt \
---out_dir data/
-
-python data_prep/vqa_v2.0/build_vqa_2.0_imdb.py --data_dir ../orig_data/vqa_v2.0/ --out_dir data/
-
-```
-
-Download image features
-```bash
-cd data/
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/rcnn_10_100.tar.gz
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/detectron.tar.gz
-gunzip rcnn_10_100.tar.gz 
-tar -xvf rcnn_10_100.tar
-rm -f rcnn_10_100.tar
-
-gunzip detectron.tar.gz
-tar -xvf detectron.tar
-rm -f detectron.tar
 
 
-``` 
 
-
-Training
-```
-python train.py 
-```
 
 ### Test with pretrained models
 Note: all of these models below are trained with validation set included
@@ -275,10 +248,12 @@ Here, we listed the size of some large files in our AWS S3 bucket.
 
 
 ### References
-- P. Anderson, X. He, C. Buehler, D. Teney, M. Johnson, S. Gould, and L. Zhang. Bottom-up and top-down attenttion for image captioning and visual question answering. In CVPR, 2018.
+- S.  Antol,   A.  Agrawal,   J.  Lu,   M.  Mitchell,   D.  Batra,C. Lawrence Zitnick, and D. Parikh.  Vqa:  Visual question answering. In _ICCV_, 2015
+- A.  Das,  S.  Kottur,  K.  Gupta,  A.  Singh,  D.  Yadav,  J.  M.Moura, D. Parikh, and D. Batra.  Visual Dialog.  In _CVPR_,2017
+- P. Anderson, X. He, C. Buehler, D. Teney, M. Johnson, S. Gould, and L. Zhang. Bottom-up and top-down attenttion for image captioning and visual question answering. In _CVPR_, 2018.
 - Z. Yu, J. Yu, C. Xiang, J. Fan, and D. Tao. Beyond bilinear: Generalized multimodal factorized high-order pooling for visual question answering. IEEE Transactions on Neural Networks and Learning Systems, 2018.
 - D. Teney, P. Anderson, X. He, and A. van den Hengel. Tips and tricks for visual question answering: Learnings from the 2017 challenge. CoRR, abs/1708.02711, 2017.
-- Hu R, Andreas J, Rohrbach M, Darrell T, Saenko K. Learning to reason: End-to-end module networks for visual question answering. In ICCV, 2017.
+- Hu R, Andreas J, Rohrbach M, Darrell T, Saenko K. Learning to reason: End-to-end module networks for visual question answering. In _ICCV_, 2017.
 
 
 
