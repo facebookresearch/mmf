@@ -37,7 +37,7 @@ If you use Pythia in your research or wish to refer to the baseline results incl
 
 ```
 @misc{pythia2018,
-  author =       {Yu Jiang, Vivek Natarajan, Xinlei Chen, Marcus Rohrbach, Dhruv Batra, Devi Parikh},
+  author =       {Yu Jiang and Vivek Natarajan and Xinlei Chen and Marcus Rohrbach and Dhruv Batra and Devi Parikh},
   title =        {Pythia v0.1: The Winning Entry to the VQA Challenge 2018},
   howpublished = {\url{https://github.com/facebookresearch/pythia}},
   year =         {2018}
