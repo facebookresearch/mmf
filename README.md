@@ -8,6 +8,21 @@ the winning entry to the VQA Challenge 2018 from Facebook AI Research (FAIR)’s
 
 ![Alt text](info/vqa_example.png?raw=true "vqa examples")
 
+
+### Table of Contents
+0. [Motivation](#Motivation)
+0. [Citation](#Citing pythia)
+0. [Installing pythia environment](#Installing pythia environment)
+0. [Quick start](#Quick start)
+0. [Preprocess dataset](#Preprocess dataset)
+0. [Test with pretrained models](#Test with pretrained models)
+0. [Ensemble models](#Ensemble models)
+0. [Customize config](#Customize config)
+0. [Docker Demo](#Docker Demo)
+0. [AWS s3 dataset summary](#AWS s3 dataset summary)
+0. [References](#References)
+
+
 ### Motivation
 The motivation for Pythia comes from the following observation – a majority of today’s Visual Question Answering (VQA) models fit a particular design paradigm, with
 modules for question encoding, image feature extraction,
@@ -207,14 +222,14 @@ python run_test.py --config pretrained_models/detectron_100_resnet_most_data/123
 
 The results will be saved as a json file `test_best_model.json`, and this file can be uploaded to the evaluation server on EvalAI (https://evalai.cloudcv.org/web/challenges/challenge-page/80/submission).
 
-### Ensemble different models
+### Ensemble models
 Download all the models above
 ```bash
 python ensemble.py --res_dirs pretrained_models/ --out ensemble_5.json
 ```
 Results will be saved in `ensemble_5.json`. This ensemble can get accuracy 71.65 on test-dev.
 
-### Ensemble 30 models
+#### Ensemble 30 models
 To run an ensemble of 30 pretrained models, download the models and image features as follows. This gets an accuracy of 72.18 on test-dev.
 
 ```bash
