@@ -30,9 +30,7 @@ fusion of the two (typically with attention), and classification over the space 
 #### Why the name _Pythia_?
 The name Pythia is an homage to the Oracle
 of Apollo at Delphi, who answered questions in Ancient
-Greece. 
-<img src="info/pythia.jpg" width="30%">
-
+Greece. See [here](https://en.wikipedia.org/wiki/Pythia) for more details.
 
 ### Citing pythia
 If you use Pythia in your research or wish to refer to the baseline results included, please use the following BibTeX entry.
