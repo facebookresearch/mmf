@@ -11,7 +11,7 @@ the winning entry to the VQA Challenge 2018 from Facebook AI Research (FAIR)’s
 
 ### Table of Contents
 0. [Motivation](#Motivation)
-0. [Citing pythia](#Citing-pythia)
+0. [Citing pythia](###Citing-pythia)
 0. [Installing pythia environment](#Installing-pythia-environment)
 0. [Quick start](#Quick-start)
 0. [Preprocess dataset](#Preprocess-dataset)
