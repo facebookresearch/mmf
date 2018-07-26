@@ -20,10 +20,10 @@ development in VQA and related directions like visual dialog.
 The name Pythia is an homage to the Oracle
 of Apollo at Delphi, who answered questions in Ancient
 Greece. 
-<img src="info/pythia.jpg" width="40%">
+<img src="info/pythia.jpg" width="30%">
 
 
-### cite pythia
+### Citing pythia
 If you use Pythia in your research or wish to refer to the baseline results included, please use the following BibTeX entry.
 
 ```
