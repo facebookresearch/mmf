@@ -10,17 +10,17 @@ the winning entry to the VQA Challenge 2018 from Facebook AI Research (FAIR)’s
 
 
 ### Table of Contents
-0. [Motivation](#Motivation)
-0. [Citing pythia](###Citing-pythia)
-0. [Installing pythia environment](#Installing-pythia-environment)
-0. [Quick start](#Quick-start)
-0. [Preprocess dataset](#Preprocess-dataset)
-0. [Test with pretrained models](#Test-with-pretrained-models)
-0. [Ensemble models](#Ensemble-models)
-0. [Customize config](#Customize-config)
-0. [Docker Demo](#Docker-Demo)
-0. [AWS s3 dataset summary](#AWS-s3-dataset-summary)
-0. [References](#References)
+0. [Motivation](#motivation)
+0. [Citing pythia](#citing-pythia)
+0. [Installing pythia environment](#installing-pythia-environment)
+0. [Quick start](#quick-start)
+0. [Preprocess dataset](#preprocess-dataset)
+0. [Test with pretrained models](#test-with-pretrained-models)
+0. [Ensemble models](#ensemble-models)
+0. [Customize config](#customize-config)
+0. [Docker Demo](#docker-demo)
+0. [AWS s3 dataset summary](#aws-s3-dataset-summary)
+0. [References](#references)
 
 
 ### Motivation
