@@ -18,7 +18,7 @@ the winning entry to the VQA Challenge 2018 from Facebook AI Research (FAIR)’s
 0. [Test with pretrained models](#test-with-pretrained-models)
 0. [Ensemble models](#ensemble-models)
 0. [Customize config](#customize-config)
-0. [Docker Demo](#docker-demo)
+0. [Docker demo](#docker-demo)
 0. [AWS s3 dataset summary](#aws-s3-dataset-summary)
 0. [References](#references)
 
@@ -234,7 +234,7 @@ wget https://s3-us-west-1.amazonaws.com/pythia-vqa/ensembled.tar.gz
 ### Customize config
 To change models or adjust hyper-parameters, see [config_help.md](config_help.md)
 
-### Docker Demo
+### Docker demo
 To quickly tryout a model interactively with [nvidia-docker](https://github.com/NVIDIA/nvidia-docker)
 
 ```bash
