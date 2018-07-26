@@ -11,25 +11,21 @@ the winning entry to the VQA Challenge 2018 from Facebook AI Research (FAIR)’s
 
 ### Table of Contents
 0. [Motivation](#Motivation)
-0. [Citation](#Citing pythia)
-0. [Installing pythia environment](#Installing pythia environment)
-0. [Quick start](#Quick start)
-0. [Preprocess dataset](#Preprocess dataset)
-0. [Test with pretrained models](#Test with pretrained models)
-0. [Ensemble models](#Ensemble models)
-0. [Customize config](#Customize config)
-0. [Docker Demo](#Docker Demo)
-0. [AWS s3 dataset summary](#AWS s3 dataset summary)
+0. [Citing pythia](#Citing-pythia)
+0. [Installing pythia environment](#Installing-pythia-environment)
+0. [Quick start](#Quick-start)
+0. [Preprocess dataset](#Preprocess-dataset)
+0. [Test with pretrained models](#Test-with-pretrained-models)
+0. [Ensemble models](#Ensemble-models)
+0. [Customize config](#Customize-config)
+0. [Docker Demo](#Docker-Demo)
+0. [AWS s3 dataset summary](#AWS-s3-dataset-summary)
 0. [References](#References)
 
 
 ### Motivation
-The motivation for Pythia comes from the following observation – a majority of today’s Visual Question Answering (VQA) models fit a particular design paradigm, with
-modules for question encoding, image feature extraction,
-fusion of the two (typically with attention), and classifica-
-tion over the space of answers. The long-term goal of Pythia
-is to serve as a platform for easy and modular research &
-development in VQA and related directions like visual dialog.
+The motivation for Pythia comes from the following observation – a majority of today’s Visual Question Answering (VQA) models fit a particular design paradigm, with modules for question encoding, image feature extraction,
+fusion of the two (typically with attention), and classification over the space of answers. The long-term goal of Pythia is to serve as a platform for easy and modular research & development in VQA and related directions like visual dialog.
 
 #### Why the name _Pythia_?
 The name Pythia is an homage to the Oracle
@@ -265,6 +261,7 @@ Here, we listed the size of some large files in our AWS S3 bucket.
 ### References
 - S.  Antol,   A.  Agrawal,   J.  Lu,   M.  Mitchell,   D.  Batra,C. Lawrence Zitnick, and D. Parikh.  Vqa:  Visual question answering. In _ICCV_, 2015
 - A.  Das,  S.  Kottur,  K.  Gupta,  A.  Singh,  D.  Yadav,  J.  M.Moura, D. Parikh, and D. Batra.  Visual Dialog.  In _CVPR_,2017
+- Y. Goyal, T. Khot, D. Summers-Stay, D. Batra, and D. Parikh. Making the V in VQA matter: Elevating the role of image understanding in Visual Question Answering. In _CVPR_, 2017.
 - P. Anderson, X. He, C. Buehler, D. Teney, M. Johnson, S. Gould, and L. Zhang. Bottom-up and top-down attenttion for image captioning and visual question answering. In _CVPR_, 2018.
 - Z. Yu, J. Yu, C. Xiang, J. Fan, and D. Tao. Beyond bilinear: Generalized multimodal factorized high-order pooling for visual question answering. IEEE Transactions on Neural Networks and Learning Systems, 2018.
 - D. Teney, P. Anderson, X. He, and A. van den Hengel. Tips and tricks for visual question answering: Learnings from the 2017 challenge. CoRR, abs/1708.02711, 2017.
