@@ -51,12 +51,11 @@ def run_model(current_model, data_reader, UNK_idx=0):
 
         verbose_info = batch['verbose_info']
         q_ids = verbose_info['question_id'].cpu().numpy().tolist()
-        logit_res = one_stage_run_model(batch, current_model)
+        logit_res = one_stage_run_model(batch, current_model, eval_mode=True)
         softmax_res = masked_unk_softmax(logit_res, dim=1, mask_idx=UNK_idx)
         softmax_res = softmax_res.data.cpu().numpy().astype(np.float16)
         q_id_tot += q_ids
         softmax_tot.append(softmax_res)
-
     softmax_result = np.vstack(softmax_tot)
 
     return q_id_tot, softmax_result
@@ -82,6 +81,5 @@ def print_result(question_ids,
         pred_ans = ans_dic.idx2word(pred_idx)
         ans_json_out.add(question_id, pred_ans)
 
-    # dump the result
     with open(out_file, "w") as f:
         json.dump(ans_json_out.answers, f)

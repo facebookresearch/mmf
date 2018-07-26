@@ -26,9 +26,7 @@ import glob
 import torch
 from torch.optim.lr_scheduler import LambdaLR
 from bisect import bisect
-import gc
-import operator as op
-import functools
+from tools.timer import Timer
 
 
 def parse_args():
@@ -133,7 +131,7 @@ def print_eval(prepare_data_fun, out_label):
 
 
 if __name__ == '__main__':
-    start = timeit.default_timer()
+    prg_timer = Timer()
 
     args = parse_args()
     config_file = args.config
@@ -191,6 +189,7 @@ if __name__ == '__main__':
 
     i_epoch = 0
     i_iter = 0
+    best_accuracy = 0
     if not args.force_restart:
         md_pths = os.path.join(snapshot_dir, "model_*.pth")
         files = glob.glob(md_pths)
@@ -203,6 +202,7 @@ if __name__ == '__main__':
             op_sd = info['optimizer']
             my_model.load_state_dict(sd)
             my_optim.load_state_dict(op_sd)
+            best_accuracy = info['best_val_accuracy']
 
     scheduler = get_optim_scheduler(my_optim)
 
@@ -218,21 +218,6 @@ if __name__ == '__main__':
                                  shuffle=True,
                                  batch_size=cfg.data.batch_size,
                                  num_workers=cfg.data.num_workers)
-
-    total = 0
-    print("Before training")
-    for obj in gc.get_objects():
-        try:
-            if torch.is_tensor(obj) or \
-                    (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-                        total += functools.reduce(op.mul, obj.size())
-        except:
-            continue
-
-    print("Total memory in use " + str(total*4.0/(10**9)) + " GB")
-
-    print("BEGIN TRAINING MODEL...")
-
     my_model.train()
 
     one_stage_train(my_model,
@@ -240,18 +225,7 @@ if __name__ == '__main__':
                     my_optim, my_loss, data_reader_eval=data_reader_val,
                     snapshot_dir=snapshot_dir, log_dir=boards_dir,
                     start_epoch=i_epoch, i_iter=i_iter,
-                    scheduler=scheduler)
-
-    print("After training")
-    for obj in gc.get_objects():
-        try:
-            if torch.is_tensor(obj) or \
-                    (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-                        total += functools.reduce(op.mul, obj.size())
-        except:
-            continue
-
-    print("Total memory in use " + str(total*4.0/(10**9)) + " GB")
+                    scheduler=scheduler,best_val_accuracy=best_accuracy)
 
     print("BEGIN PREDICTING ON TEST/VAL set...")
 
@@ -260,7 +234,4 @@ if __name__ == '__main__':
     if cfg.run == 'train+val':
         print_eval(prepare_eval_data_set, "val")
 
-    end = timeit.default_timer()
-    total_time = (end - start) / 3600.0
-
-    print("total runtime(h): %.2f" % total_time)
+    print("total runtime(h): %s" % prg_timer.end())

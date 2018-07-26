@@ -6,17 +6,16 @@
 #
 
 
-import shutil
 import torch
 import torch.nn as nn
 import sys
 import os
 from torch.autograd import Variable
 from global_variables.global_variables import use_cuda
-import timeit
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from config.config import cfg
+from tools.timer import Timer
 
 
 def masked_unk_softmax(x, dim, mask_idx):
@@ -37,28 +36,98 @@ def compute_score_with_logits(logits, labels):
     return scores
 
 
-def one_stage_train(myModel, data_reader_trn, myOptimizer,
-                    loss_criterion, snapshot_dir, log_dir,
-                    i_iter, start_epoch, data_reader_eval=None,
-                    scheduler=None):
-    clip_norm_mode = cfg.training_parameters.clip_norm_mode
+def clip_gradients(myModel, i_iter, writer):
     max_grad_l2_norm = cfg.training_parameters.max_grad_l2_norm
+    clip_norm_mode = cfg.training_parameters.clip_norm_mode
+    if max_grad_l2_norm is not None:
+        if clip_norm_mode == 'all':
+            norm = nn.utils.clip_grad_norm_(myModel.parameters(), max_grad_l2_norm)
+            writer.add_scalar('grad_norm', norm, i_iter)
+        elif clip_norm_mode == 'question':
+            norm = nn.utils.clip_grad_norm_(myModel.module.question_embedding_models.parameters(),
+                                            max_grad_l2_norm)
+            writer.add_scalar('question_grad_norm', norm, i_iter)
+        else:
+            raise NotImplementedError
+
+
+def save_a_report(i_iter, train_loss, train_acc, train_avg_acc, report_timer, writer, data_reader_eval,
+                  myModel, loss_criterion):
+    val_batch = next(iter(data_reader_eval))
+    val_score, val_loss, n_val_sample = compute_a_batch(val_batch, myModel, loss_criterion, eval_mode=True)
+    val_acc = val_score / n_val_sample
+
+    print("iter:", i_iter, "train_loss: %.4f" % train_loss, " train_score: %.4f" % train_acc,
+          " avg_train_score: %.4f" % train_avg_acc, "val_score: %.4f" % val_acc,
+          "val_loss: %.4f" % val_loss.item(), "time(s): % s" % report_timer.end())
+    sys.stdout.flush()
+    report_timer.start()
+
+    writer.add_scalar('train_loss', train_loss, i_iter)
+    writer.add_scalar('train_score', train_acc, i_iter)
+    writer.add_scalar('train_score_avg', train_avg_acc, i_iter)
+    writer.add_scalar('val_score', val_score, i_iter)
+    writer.add_scalar('val_loss', val_loss.item(), i_iter)
+    for name, param in myModel.named_parameters():
+        writer.add_histogram(name, param.clone().cpu().data.numpy(), i_iter)
+
+
+def save_a_snapshot(snapshot_dir,i_iter, iepoch, myModel, my_optimizer, loss_criterion, best_val_accuracy,
+                    best_epoch, best_iter, snapshot_timer, data_reader_eval):
+    model_snapshot_file = os.path.join(snapshot_dir, "model_%08d.pth" % i_iter)
+    model_result_file = os.path.join(snapshot_dir, "result_on_val.txt")
+    save_dic = {
+        'epoch': iepoch,
+        'iter': i_iter,
+        'state_dict': myModel.state_dict(),
+        'optimizer': my_optimizer.state_dict()}
+
+    if data_reader_eval is not None:
+        val_accuracy, avg_loss, val_sample_tot = one_stage_eval_model(data_reader_eval, myModel,
+                                                                      loss_criterion=loss_criterion)
+        print("i_epoch:", iepoch, "i_iter:", i_iter, "val_loss:%.4f" % avg_loss,
+              "val_acc:%.4f" % val_accuracy, "runtime: %s" % snapshot_timer.end())
+        snapshot_timer.start()
+        sys.stdout.flush()
+
+        with open(model_result_file, 'a') as fid:
+            fid.write('%d %d %.5f\n' % (iepoch, i_iter, val_accuracy))
+
+        if val_accuracy > best_val_accuracy:
+            best_val_accuracy = val_accuracy
+            best_epoch = iepoch
+            best_iter = i_iter
+            best_model_snapshot_file = os.path.join(snapshot_dir, "best_model.pth")
+
+        save_dic['best_val_accuracy'] = best_val_accuracy
+        torch.save(save_dic, model_snapshot_file)
+
+        if best_iter == i_iter:
+            if os.path.exists(best_model_snapshot_file):
+                os.remove(best_model_snapshot_file)
+            os.link(model_snapshot_file, best_model_snapshot_file)
+
+    return best_val_accuracy, best_epoch, best_iter
+
+
+def one_stage_train(myModel, data_reader_trn, my_optimizer,
+                    loss_criterion, snapshot_dir, log_dir,
+                    i_iter, start_epoch, best_val_accuracy=0, data_reader_eval=None,
+                    scheduler=None):
     report_interval = cfg.training_parameters.report_interval
     snapshot_interval = cfg.training_parameters.snapshot_interval
     max_iter = cfg.training_parameters.max_iter
 
     avg_accuracy = 0
     accuracy_decay = 0.99
-    best_val_accuracy = 0
+    best_epoch = 0
     writer = SummaryWriter(log_dir)
-    print(log_dir)
     best_iter = i_iter
     iepoch = start_epoch
-    start = timeit.default_timer()
-    while i_iter < max_iter:
-        n_sample_tot = 0
+    snapshot_timer = Timer('m')
+    report_timer = Timer('s')
 
-        start_iter = timeit.default_timer()
+    while i_iter < max_iter:
         iepoch += 1
         for i, batch in enumerate(data_reader_trn):
             i_iter += 1
@@ -67,109 +136,30 @@ def one_stage_train(myModel, data_reader_trn, myOptimizer,
 
             scheduler.step(i_iter)
 
-            answer_scores = batch['ans_scores']
-            n_sample = answer_scores.size(0)
-            n_sample_tot += n_sample
-            myOptimizer.zero_grad()
-
+            my_optimizer.zero_grad()
             add_graph = False
-            logit_res = one_stage_run_model(batch, myModel, add_graph, log_dir)
-
-            input_answers_variable = Variable(
-                answer_scores.type(torch.FloatTensor))
-            input_answers_variable = input_answers_variable.cuda() \
-                if use_cuda else input_answers_variable
-
-            total_loss = loss_criterion(logit_res, input_answers_variable)
+            scores, total_loss, n_sample = compute_a_batch(batch, myModel, loss_criterion,
+                                                           add_graph=add_graph, log_dir=log_dir, eval_mode=False)
             total_loss.backward()
-            if max_grad_l2_norm is not None:
-                if clip_norm_mode == 'all':
-                    norm = nn.utils.clip_grad_norm(
-                        myModel.parameters(), max_grad_l2_norm)
-                    writer.add_scalar('grad_norm', norm, i_iter)
-                elif clip_norm_mode == 'question':
-                    norm = nn.utils.clip_grad_norm(
-                        myModel.module.question_embedding_models.parameters(),
-                        max_grad_l2_norm)
-                    writer.add_scalar('question_grad_norm', norm, i_iter)
-                else:
-                    raise NotImplementedError
-            myOptimizer.step()
-
-            scores = torch.sum(compute_score_with_logits(logit_res,
-                               input_answers_variable.data))
             accuracy = scores / n_sample
             avg_accuracy += (1 - accuracy_decay) * (accuracy - avg_accuracy)
 
+            clip_gradients(myModel, i_iter, writer)
+            my_optimizer.step()
+
             if i_iter % report_interval == 0:
-                cur_loss = total_loss.data[0]
-                end_iter = timeit.default_timer()
-                time = end_iter - start_iter
-                start_iter = timeit.default_timer()
-                val_batch = next(iter(data_reader_eval))
-                val_score, val_loss = evaluate_a_batch(val_batch,
-                                                       myModel,
-                                                       loss_criterion)
-
-                print("iter:", i_iter, "train_loss: %.4f" % cur_loss,
-                      " train_score: %.4f" % accuracy,
-                      " avg_train_score: %.4f" % avg_accuracy,
-                      "val_score: %.4f" % val_score,
-                      "val_loss: %.4f" % val_loss,
-                      "time(s): %.1f" % time)
-                sys.stdout.flush()
-
-                writer.add_scalar('train_loss', cur_loss, i_iter)
-                writer.add_scalar('train_score', accuracy, i_iter)
-                writer.add_scalar('train_score_avg', avg_accuracy, i_iter)
-                writer.add_scalar('val_score', val_score, i_iter)
-                writer.add_scalar('val_loss', val_loss, i_iter)
-                # write out parameters
-                for name, param in myModel.named_parameters():
-                    writer.add_histogram(name,
-                                         param.clone().cpu().data.numpy(),
-                                         i_iter)
+                save_a_report(i_iter, total_loss.item(), accuracy, avg_accuracy, report_timer,
+                              writer, data_reader_eval,myModel, loss_criterion)
 
             if i_iter % snapshot_interval == 0 or i_iter == max_iter:
-                # evaluate the model when finishing one epoch
-                if data_reader_eval is not None:
-                    val_accuracy, upbound_acc, val_sample_tot = \
-                        one_stage_eval_model(data_reader_eval, myModel)
-                    end = timeit.default_timer()
-                    epoch_time = end - start
-                    start = timeit.default_timer()
-                    print("i_epoch:", iepoch,
-                          "i_iter:", i_iter,
-                          "val_acc:%.4f" % val_accuracy,
-                          "runtime(s):%d" % epoch_time)
-                    sys.stdout.flush()
-
-                model_snapshot_file = os.path.join(snapshot_dir,
-                                                   "model_%08d.pth" % i_iter)
-                model_result_file = os.path.join(snapshot_dir,
-                                                 "result_on_val.txt")
-                torch.save({
-                    'epoch': iepoch,
-                    'iter': i_iter,
-                    'state_dict': myModel.state_dict(),
-                    'optimizer': myOptimizer.state_dict(),
-                }, model_snapshot_file)
-                with open(model_result_file, 'a') as fid:
-                    fid.write('%d %d %.5f\n' %
-                              (iepoch, i_iter, val_accuracy * 100))
-
-                if val_accuracy > best_val_accuracy:
-                    best_val_accuracy = val_accuracy
-                    best_epoch = iepoch
-                    best_iter = i_iter
-                    best_model_snapshot_file = os.path.join(snapshot_dir,
-                                                            "best_model.pth")
-                    shutil.copy(model_snapshot_file, best_model_snapshot_file)
+                best_val_accuracy, best_epoch, best_iter = save_a_snapshot(snapshot_dir, i_iter, iepoch, myModel,
+                                                                         my_optimizer, loss_criterion, best_val_accuracy,
+                                                                          best_epoch, best_iter, snapshot_timer,
+                                                                          data_reader_eval)
 
     writer.export_scalars_to_json(os.path.join(log_dir, "all_scalars.json"))
     writer.close()
-    print("best_acc:%.6f after epoch: %d/%d at iter %d" %
-          (best_val_accuracy, best_epoch, iepoch, best_iter))
+    print("best_acc:%.6f after epoch: %d/%d at iter %d" % (best_val_accuracy, best_epoch, iepoch, best_iter))
     sys.stdout.flush()
 
 
@@ -178,8 +168,8 @@ def evaluate_a_batch(batch, myModel, loss_criterion):
     n_sample = answer_scores.size(0)
 
     input_answers_variable = Variable(answer_scores.type(torch.FloatTensor))
-    input_answers_variable = input_answers_variable.cuda() \
-        if use_cuda else input_answers_variable
+    if use_cuda:
+        input_answers_variable = input_answers_variable.cuda()
 
     logit_res = one_stage_run_model(batch, myModel)
     predicted_scores = torch.sum(compute_score_with_logits(logit_res,
@@ -189,37 +179,50 @@ def evaluate_a_batch(batch, myModel, loss_criterion):
     return predicted_scores / n_sample, total_loss.data[0]
 
 
-def one_stage_eval_model(data_reader_eval, myModel):
-    val_score_tot = 0
-    val_sample_tot = 0
-    upbound_tot = 0
+def compute_a_batch(batch, my_model, eval_mode, loss_criterion=None, add_graph=False, log_dir=None):
+
+    obs_res = batch['ans_scores']
+    obs_res = Variable(obs_res.type(torch.FloatTensor))
+    if use_cuda:
+        obs_res = obs_res.cuda()
+
+    n_sample = obs_res.size(0)
+    logit_res = one_stage_run_model(batch, my_model, add_graph, log_dir, eval_mode)
+    predicted_scores = torch.sum(compute_score_with_logits(logit_res, obs_res.data))
+
+    total_loss = None if loss_criterion is None else loss_criterion(logit_res, obs_res.data)
+
+    return predicted_scores, total_loss, n_sample
+
+
+
+def one_stage_eval_model(data_reader_eval, myModel, loss_criterion=None):
+    score_tot = 0
+    n_sample_tot = 0
+    loss_tot = 0
     for idx, batch in enumerate(data_reader_eval):
-        answer_scores = batch['ans_scores']
-        n_sample = answer_scores.size(0)
-        answer_scores = answer_scores.cuda() if use_cuda else answer_scores
-        logit_res = one_stage_run_model(batch, myModel)
-        predicted_scores = torch.sum(
-            compute_score_with_logits(logit_res, answer_scores))
-        upbound = torch.sum(torch.max(answer_scores, dim=1)[0])
-
-        val_score_tot += predicted_scores
-        val_sample_tot += n_sample
-        upbound_tot += upbound
-
-    return val_score_tot / val_sample_tot, \
-        upbound_tot / val_sample_tot, val_sample_tot
+        score, loss, n_sample = compute_a_batch(batch, myModel, loss_criterion, eval_mode=True)
+        score_tot += score
+        n_sample_tot += n_sample
+        if loss is not None:
+            loss_tot += loss.item() * n_sample
+    return score_tot / n_sample_tot, loss_tot / n_sample_tot, n_sample_tot
 
 
-def one_stage_run_model(batch, myModel, add_graph=False, log_dir=None):
+def one_stage_run_model(batch, my_model, eval_mode, add_graph=False, log_dir=None):
+    if eval_mode:
+        my_model.eval()
+    else:
+        my_model.train()
+
     input_text_seqs = batch['input_seq_batch']
     input_images = batch['image_feat_batch']
     input_txt_variable = Variable(input_text_seqs.type(torch.LongTensor))
-    input_txt_variable = input_txt_variable.cuda() \
-        if use_cuda else input_txt_variable
-
     image_feat_variable = Variable(input_images)
-    image_feat_variable = image_feat_variable.cuda() \
-        if use_cuda else image_feat_variable
+    if use_cuda:
+        input_txt_variable = input_txt_variable.cuda()
+        image_feat_variable = image_feat_variable.cuda()
+
     image_feat_variables = [image_feat_variable]
 
     image_dim_variable = None
@@ -228,26 +231,27 @@ def one_stage_run_model(batch, myModel, add_graph=False, log_dir=None):
         image_dim_variable = Variable(image_dims,
                                       requires_grad=False,
                                       volatile=False)
-        image_dim_variable = image_dim_variable.cuda() \
-            if use_cuda else image_dim_variable
+        if use_cuda:
+            image_dim_variable = image_dim_variable.cuda()
 
     # check if more than 1 image_feat_batch
     i = 1
     image_feat_key = "image_feat_batch_%s"
     while image_feat_key % str(i) in batch:
         tmp_image_variable = Variable(batch[image_feat_key % str(i)])
-        tmp_image_variable = tmp_image_variable.cuda() \
-            if use_cuda else tmp_image_variable
+        if use_cuda:
+            tmp_image_variable = tmp_image_variable.cuda()
         image_feat_variables.append(tmp_image_variable)
         i += 1
 
-    logit_res = myModel(input_question_variable=input_txt_variable,
-                        image_dim_variable=image_dim_variable,
-                        image_feat_variables=image_feat_variables)
+    logit_res = my_model(input_question_variable=input_txt_variable,
+                         image_dim_variable=image_dim_variable,
+                         image_feat_variables=image_feat_variables)
 
     if add_graph:
         with SummaryWriter(log_dir=log_dir, comment='basicblock') as w:
-            w.add_graph(myModel, (input_txt_variable,
-                        image_dim_variable, image_feat_variables))
+            w.add_graph(my_model, (input_txt_variable,
+                                   image_dim_variable, image_feat_variables))
 
     return logit_res
+
