@@ -258,7 +258,7 @@ Here, we listed the size of some large files in our AWS S3 bucket.
 
 ### References
 - P. Anderson, X. He, C. Buehler, D. Teney, M. Johnson, S. Gould, and L. Zhang. Bottom-up and top-down attenttion for image captioning and visual question answering. In _CVPR_, 2018.
-- S.  Antol,   A.  Agrawal,   J.  Lu,   M.  Mitchell,   D.  Batra,C. Lawrence Zitnick, and D. Parikh.  Vqa:  Visual question answering. In _ICCV_, 2015
+- S.  Antol,   A.  Agrawal,   J.  Lu,   M.  Mitchell,   D.  Batra,C. Lawrence Zitnick, and D. Parikh.  VQA:  Visual question answering. In _ICCV_, 2015
 - A.  Das,  S.  Kottur,  K.  Gupta,  A.  Singh,  D.  Yadav,  J.  M.Moura, D. Parikh, and D. Batra.  Visual Dialog.  In _CVPR_,2017
 - Y. Goyal, T. Khot, D. Summers-Stay, D. Batra, and D. Parikh. Making the V in VQA matter: Elevating the role of image understanding in Visual Question Answering. In _CVPR_, 2017.
 - Hu R, Andreas J, Rohrbach M, Darrell T, Saenko K. Learning to reason: End-to-end module networks for visual question answering. In _ICCV_, 2017.
