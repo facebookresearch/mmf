@@ -171,7 +171,7 @@ Note: all of these models below are trained with validation set included
 
 | Description | performance (test-dev) | Link |
 | --- | --- | --- |
-|detectron_100_resnet_most_data | 70.22 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_100_resnet_most_data.tar.gz
+|detectron_100_resnet_most_data | 70.01 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_100_resnet_most_data.tar.gz
 | baseline | 68.05 | https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/baseline.tar.gz |
 | baseline +VG +VisDal +mirror | 68.98 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/most_data.tar.gz |
 | detectron_finetune | 68.49 | https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron.tar.gz|
