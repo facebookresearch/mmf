@@ -20,6 +20,7 @@ the winning entry to the VQA Challenge 2018 from Facebook AI Research (FAIR)’s
 0. [Customize config](#customize-config)
 0. [Docker demo](#docker-demo)
 0. [AWS s3 dataset summary](#aws-s3-dataset-summary)
+0. [Acknowledgements](#acknowledgements)
 0. [References](#references)
 
 
@@ -254,6 +255,13 @@ Here, we listed the size of some large files in our AWS S3 bucket.
 |data/resnet152.tar.gz | 399.6GB|
 |ensembled.tar.gz| 462.1GB|
 
+### Acknowledgements
+We would like to thank Peter Anderson, Abhishek Das, Stefan Lee, Jiasen Lu, Jianwei Yang, Licheng Yu, 
+Luowei Zhou for helpful discussions, Peter Anderson for providing
+training data for the Visual Genome detector, Deshraj Yadav
+for responses on EvalAI related questions, Stefan Lee
+for suggesting the name *Pythia*, Meet Shah for building the docker demo for Pythia and 
+Abhishek Das, Abhishek Kadian for feedback on our codebase
 
 
 ### References
