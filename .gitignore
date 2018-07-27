@@ -1,0 +1,9 @@
+*.log
+*.err
+*.pyc
+.idea/*
+*/__pycache__/*
+data/.DS_Store
+results/*
+boards/*
+.DS_Store

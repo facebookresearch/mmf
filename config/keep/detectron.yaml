@@ -1,0 +1,23 @@
+data:
+  data_root_dir: data
+  image_feat_test:
+  - detectron/fc6/vqa/test2015
+  image_feat_train:
+  - detectron/fc6/vqa/train2014
+  - detectron/fc6/vqa/val2014
+  image_feat_val:
+  - detectron/fc6/vqa/val2014
+  image_max_loc: 100
+  imdb_file_test:
+  - imdb/imdb_test2015.npy
+  imdb_file_train:
+  - imdb/imdb_train2014.npy
+  - imdb/imdb_val2train2014.npy
+  imdb_file_val:
+  - imdb/imdb_minival2014.npy
+model:
+  image_feature_encoding:
+  - method: finetune_faster_rcnn_fpn_fc7
+    par:
+      weights_file: detectron/fc6/fc7_w.pkl
+      bias_file: detectron/fc6/fc7_b.pkl
