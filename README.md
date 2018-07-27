@@ -72,7 +72,7 @@ We provide preprocessed data files to directly start training and evaluating. In
 Download data. This step may take some time. Check the sizes of files at the end of readme.
 ```bash
 
-git clone git@github.com:fairinternal/Pythia.git
+git clone git@github.com:facebookresearch/pythia.git
 cd Pythia
 
 mkdir data
