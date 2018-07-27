@@ -9,9 +9,9 @@
 import json
 import string
 
-genome_data_file = '/datasets01/VisualGenome1.2/061517/question_answers.json'
-genome_questions_file = '/private/home/nvivek/VQA/orig_data/v2_OpenEnded_mscoco_genome_questions.json'
-genome_annotations_file = '/private/home/nvivek/VQA/orig_data/v2_mscoco_genome_annotations.json'
+genome_data_file = 'question_answers.json'
+genome_questions_file = 'v2_OpenEnded_mscoco_genome_questions.json'
+genome_annotations_file = 'v2_mscoco_genome_annotations.json'
 
 translator=str.maketrans('','',string.punctuation)
 with open(genome_data_file, 'r') as f:
