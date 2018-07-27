@@ -31,9 +31,9 @@ def build_model(config, dataset):
     num_choices = dataset.answer_dict.num_vocab
 
     num_image_feat = len(config['data']['image_feat_train'][0].split(','))
-    myModel = prepare_model(num_vocab_txt, num_choices, **config['model'],
+    my_model = prepare_model(num_vocab_txt, num_choices, **config['model'],
                             num_image_feat=num_image_feat)
-    return myModel
+    return my_model
 
 
 def run_model(current_model, data_reader, UNK_idx=0):

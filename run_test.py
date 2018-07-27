@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from train_model.dataset_utils import prepare_test_data_set,prepare_eval_data_set
 import torch
 from train_model.helper import run_model, print_result, build_model
-from config.config_utils import finalize_config, dump_config
+from config.config_utils import finalize_config
 from config.config import cfg
 
 

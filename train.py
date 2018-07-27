@@ -202,7 +202,8 @@ if __name__ == '__main__':
             op_sd = info['optimizer']
             my_model.load_state_dict(sd)
             my_optim.load_state_dict(op_sd)
-            best_accuracy = info['best_val_accuracy']
+            if 'best_val_accuracy' in info:
+                best_accuracy = info['best_val_accuracy']
 
     scheduler = get_optim_scheduler(my_optim)
 
@@ -220,6 +221,7 @@ if __name__ == '__main__':
                                  num_workers=cfg.data.num_workers)
     my_model.train()
 
+    print("BEGIN TRAINING...")
     one_stage_train(my_model,
                     data_reader_trn,
                     my_optim, my_loss, data_reader_eval=data_reader_val,

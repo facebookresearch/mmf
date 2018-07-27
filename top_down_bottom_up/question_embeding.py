@@ -47,7 +47,6 @@ class QuestionEmbeding(nn.Module):
     def forward(self, input_text):
         embeded_txt = self.embedding(input_text)
         out, hidden_state = self.gru(embeded_txt)
-        hidden_state = hidden_state.squeeze(0)
         res = out[:, -1]
         return res
 

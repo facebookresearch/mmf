@@ -41,10 +41,10 @@ def clip_gradients(myModel, i_iter, writer):
     clip_norm_mode = cfg.training_parameters.clip_norm_mode
     if max_grad_l2_norm is not None:
         if clip_norm_mode == 'all':
-            norm = nn.utils.clip_grad_norm_(myModel.parameters(), max_grad_l2_norm)
+            norm = nn.utils.clip_grad_norm(myModel.parameters(), max_grad_l2_norm)
             writer.add_scalar('grad_norm', norm, i_iter)
         elif clip_norm_mode == 'question':
-            norm = nn.utils.clip_grad_norm_(myModel.module.question_embedding_models.parameters(),
+            norm = nn.utils.clip_grad_norm(myModel.module.question_embedding_models.parameters(),
                                             max_grad_l2_norm)
             writer.add_scalar('question_grad_norm', norm, i_iter)
         else:
@@ -54,12 +54,12 @@ def clip_gradients(myModel, i_iter, writer):
 def save_a_report(i_iter, train_loss, train_acc, train_avg_acc, report_timer, writer, data_reader_eval,
                   myModel, loss_criterion):
     val_batch = next(iter(data_reader_eval))
-    val_score, val_loss, n_val_sample = compute_a_batch(val_batch, myModel, loss_criterion, eval_mode=True)
+    val_score, val_loss, n_val_sample = compute_a_batch(val_batch, myModel, eval_mode=True, loss_criterion=loss_criterion)
     val_acc = val_score / n_val_sample
 
     print("iter:", i_iter, "train_loss: %.4f" % train_loss, " train_score: %.4f" % train_acc,
           " avg_train_score: %.4f" % train_avg_acc, "val_score: %.4f" % val_acc,
-          "val_loss: %.4f" % val_loss.item(), "time(s): % s" % report_timer.end())
+          "val_loss: %.4f" % val_loss.data[0], "time(s): % s" % report_timer.end())
     sys.stdout.flush()
     report_timer.start()
 
@@ -67,7 +67,7 @@ def save_a_report(i_iter, train_loss, train_acc, train_avg_acc, report_timer, wr
     writer.add_scalar('train_score', train_acc, i_iter)
     writer.add_scalar('train_score_avg', train_avg_acc, i_iter)
     writer.add_scalar('val_score', val_score, i_iter)
-    writer.add_scalar('val_loss', val_loss.item(), i_iter)
+    writer.add_scalar('val_loss', val_loss.data[0], i_iter)
     for name, param in myModel.named_parameters():
         writer.add_histogram(name, param.clone().cpu().data.numpy(), i_iter)
 
@@ -138,8 +138,9 @@ def one_stage_train(myModel, data_reader_trn, my_optimizer,
 
             my_optimizer.zero_grad()
             add_graph = False
-            scores, total_loss, n_sample = compute_a_batch(batch, myModel, loss_criterion,
-                                                           add_graph=add_graph, log_dir=log_dir, eval_mode=False)
+            scores, total_loss, n_sample = compute_a_batch(batch, myModel, eval_mode=False,
+                                                           loss_criterion=loss_criterion,
+                                                           add_graph=add_graph, log_dir=log_dir)
             total_loss.backward()
             accuracy = scores / n_sample
             avg_accuracy += (1 - accuracy_decay) * (accuracy - avg_accuracy)
@@ -148,7 +149,7 @@ def one_stage_train(myModel, data_reader_trn, my_optimizer,
             my_optimizer.step()
 
             if i_iter % report_interval == 0:
-                save_a_report(i_iter, total_loss.item(), accuracy, avg_accuracy, report_timer,
+                save_a_report(i_iter, total_loss.data[0], accuracy, avg_accuracy, report_timer,
                               writer, data_reader_eval,myModel, loss_criterion)
 
             if i_iter % snapshot_interval == 0 or i_iter == max_iter:
@@ -190,10 +191,9 @@ def compute_a_batch(batch, my_model, eval_mode, loss_criterion=None, add_graph=F
     logit_res = one_stage_run_model(batch, my_model, add_graph, log_dir, eval_mode)
     predicted_scores = torch.sum(compute_score_with_logits(logit_res, obs_res.data))
 
-    total_loss = None if loss_criterion is None else loss_criterion(logit_res, obs_res.data)
+    total_loss = None if loss_criterion is None else loss_criterion(logit_res, obs_res)
 
     return predicted_scores, total_loss, n_sample
-
 
 
 def one_stage_eval_model(data_reader_eval, myModel, loss_criterion=None):
@@ -201,11 +201,11 @@ def one_stage_eval_model(data_reader_eval, myModel, loss_criterion=None):
     n_sample_tot = 0
     loss_tot = 0
     for idx, batch in enumerate(data_reader_eval):
-        score, loss, n_sample = compute_a_batch(batch, myModel, loss_criterion, eval_mode=True)
+        score, loss, n_sample = compute_a_batch(batch, myModel, eval_mode=True, loss_criterion=loss_criterion)
         score_tot += score
         n_sample_tot += n_sample
         if loss is not None:
-            loss_tot += loss.item() * n_sample
+            loss_tot += loss.data[0] * n_sample
     return score_tot / n_sample_tot, loss_tot / n_sample_tot, n_sample_tot
 
 
@@ -247,11 +247,6 @@ def one_stage_run_model(batch, my_model, eval_mode, add_graph=False, log_dir=Non
     logit_res = my_model(input_question_variable=input_txt_variable,
                          image_dim_variable=image_dim_variable,
                          image_feat_variables=image_feat_variables)
-
-    if add_graph:
-        with SummaryWriter(log_dir=log_dir, comment='basicblock') as w:
-            w.add_graph(my_model, (input_txt_variable,
-                                   image_dim_variable, image_feat_variables))
 
     return logit_res
 
