@@ -1,7 +1,7 @@
 # Pythia
 
 Pythia is a modular framework for Visual
-Question Answering research, which formed which formed the basis for
+Question Answering research, which formed the basis for
 the winning entry to the VQA Challenge 2018 from Facebook AI Research (FAIR)’s A-STAR team. Please check our [paper](https://arxiv.org/abs/1807.09956) for more details.
 
 (A-STAR: Agents that See, Talk, Act, and Reason.)
