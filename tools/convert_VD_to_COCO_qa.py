@@ -9,15 +9,16 @@
 import json
 import string
 
-visdial_train_data_file = '/private/home/nvivek/VisDial/visdial_0.9_train.json'
-visdial_val_data_file = '/private/home/nvivek/VisDial/visdial_0.9_val.json'
+# The paths need to be updated
+visdial_train_data_file = 'visdial_0.9_train.json'
+visdial_val_data_file = 'visdial_0.9_val.json'
 
 
-vdtrain_questions_file = '/private/home/nvivek/VQA/orig_data/v2_OpenEnded_mscoco_vdtrain_questions.json'
-vdval_questions_file = '/private/home/nvivek/VQA/orig_data/v2_OpenEnded_mscoco_vdval_questions.json'
+vdtrain_questions_file = 'v2_OpenEnded_mscoco_vdtrain_questions.json'
+vdval_questions_file = 'v2_OpenEnded_mscoco_vdval_questions.json'
 
-vdtrain_annotations_file = '/private/home/nvivek/VQA/orig_data/v2_mscoco_vdtrain_annotations.json'
-vdval_annotations_file = '/private/home/nvivek/VQA/orig_data/v2_mscoco_vdval_annotations.json'
+vdtrain_annotations_file = 'v2_mscoco_vdtrain_annotations.json'
+vdval_annotations_file = 'v2_mscoco_vdval_annotations.json'
 
 
 translator = str.maketrans('', '', string.punctuation)
