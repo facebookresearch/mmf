@@ -31,6 +31,16 @@ def parse_args():
     return arguments
 
 
+def multi_gpu_state_to_single(state_dict):
+    new_sd = {}
+    for k, v in state_dict.items():
+        if not k.startswith('module.'):
+            raise TypeError("Not a multiple GPU state of dict")
+        k1 = k[7:]
+        new_sd[k1] = v
+    return new_sd
+
+
 if __name__ == '__main__':
 
     args = parse_args()
@@ -49,16 +59,24 @@ if __name__ == '__main__':
     data_reader_test = DataLoader(data_set_test, shuffle=False, batch_size=batch_size, num_workers=args.num_workers)
     ans_dic = data_set_test.answer_dict
 
-    myModel = build_model(cfg, data_set_test)
-    myModel.load_state_dict(torch.load(model_file)['state_dict'])
+    my_model = build_model(cfg, data_set_test)
 
-    myModel.eval()
+    sd = torch.load(model_file)['state_dict']
 
-    question_ids, soft_max_result = run_model(myModel, data_reader_test, ans_dic.UNK_idx)
+    if list(sd.keys())[0].startswith('module') and not hasattr(my_model, 'module'):
+        sd = multi_gpu_state_to_single(sd)
+
+    my_model.load_state_dict(sd)
+
+    my_model.eval()
+
+    print("BEGIN TESTING")
+    question_ids, soft_max_result = run_model(my_model, data_reader_test, ans_dic.UNK_idx)
 
     pkl_res_file = args.out_prefix + ".pkl" if not args.json_only else None
 
     print_result(question_ids, soft_max_result, ans_dic, out_file, args.json_only, pkl_res_file)
 
+    print("DONE")
 
 
