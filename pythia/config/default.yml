@@ -1,0 +1,18 @@
+data:
+  batch_size: 512
+  data_root_dir: data/
+  num_workers: 5
+exp_name: test
+loss: mse
+optimizer_attr:
+  method: Adamax
+  params:
+    eps: 1.0e-08
+    lr: 0.01
+    weight_decay: 0
+task: vqa2
+training_parameters:
+  max_iterations: 22000
+  log_interval: 100
+  snapshot_interval: 1000
+use_cuda: false
