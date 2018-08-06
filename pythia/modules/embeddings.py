@@ -81,7 +81,7 @@ class AttentionQuestionEmbedding(nn.Module):
                  vocab_size, num_layers, dropout, **kwargs):
         super(AttentionQuestionEmbedding, self).__init__()
 
-        self.text_out_dim = kwargs['LSTM_hidden_size'] * kwargs['conv2_out']
+        self.text_out_dim = kwargs['hidden_dim'] * kwargs['conv2_out']
 
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         self.recurrent_unit = nn.LSTM(

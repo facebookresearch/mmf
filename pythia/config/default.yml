@@ -1,4 +1,4 @@
-data:
+task_attributes:
   batch_size: 512
   data_root_dir: data/
   num_workers: 5

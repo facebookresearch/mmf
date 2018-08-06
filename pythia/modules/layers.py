@@ -107,9 +107,11 @@ class ModalCombineLayer(nn.Module):
         if combine_type == "MFH":
             self.module = MFH(img_feat_dim, txt_emb_dim, kwargs)
         elif combine_type == "gated_element_multiply":
-            self.module = GatedElementMultiply(img_feat_dim, txt_emb_dim, kwargs)
+            self.module = GatedElementMultiply(img_feat_dim, txt_emb_dim,
+                                               kwargs)
         elif combine_type == "two_layer_element_multiply":
-            self.module = TwoLayerElementMultiply(img_feat_dim, txt_emb_dim, kwargs)
+            self.module = TwoLayerElementMultiply(img_feat_dim, txt_emb_dim,
+                                                  kwargs)
         else:
             raise NotImplementedError("Not implemented combine type: %s"
                                       % combine_type)

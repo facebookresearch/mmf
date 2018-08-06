@@ -9,12 +9,12 @@ class AttentionLayer(nn.Module):
         super(AttentionLayer, self).__init__()
 
         combine_type = kwargs['modal_combine']['type']
-        combine_params = kwargs['modal_combine']['kwargs']
+        combine_params = kwargs['modal_combine']['params']
         modal_combine_layer = ModalCombineLayer(combine_type, image_dim,
                                                 question_dim, **combine_params)
 
         transform_type = kwargs['transform']['type']
-        transform_params = kwargs['transform']['kwargs']
+        transform_params = kwargs['transform']['params']
         transform_layer = TransformLayer(transform_type,
                                          modal_combine_layer.out_dim,
                                          **transform_params)
@@ -118,6 +118,7 @@ class TopDownAttention(nn.Module):
         tmp1 = torch.unsqueeze(
             torch.arange(0, num_loc).type(torch.LongTensor),
             dim=0).expand(batch_size, num_loc)
+        use_cuda = attention.is_cuda
         tmp1 = tmp1.cuda() if use_cuda else tmp1
         tmp2 = torch.unsqueeze(image_locs.data, 1).expand(batch_size, num_loc)
         mask = torch.ge(tmp1, tmp2)
