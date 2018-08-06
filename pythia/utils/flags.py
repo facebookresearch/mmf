@@ -26,6 +26,10 @@ class Flags:
                                  type=str,
                                  required=True,
                                  help="Task for training")
+        self.parser.add_argument("--model",
+                                 type=str,
+                                 required=True,
+                                 help="Model for training")
         self.parser.add_argument("--out_dir",
                                  type=str,
                                  default=None,
@@ -56,6 +60,11 @@ class Flags:
                                  help="Number of epochs after which "
                                  " we should stop training"
                                  " (mutually exclusive with max_iterations)")
+        self.parser.add_argument("--save_loc", type=str, default="./save",
+                                 help="Location for saving model checkpoint")
+        self.parser.add_argument("--should_not_log", action="store_true",
+                                 default=False, help="Set when you don't want"
+                                 " logging to happen")
 
     def update_task_args(self):
         args = sys.argv

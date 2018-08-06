@@ -18,6 +18,7 @@ class Checkpoint:
         if hasattr(self.trainer.model, 'get_ckpt_name'):
             self.ckpt_filename += self.trainer.model.get_ckpt_name()
 
+        self.config['log_filename'] = self.ckpt_filename
         self.ckpt_filepath = os.path.join(self.save_loc, self.ckpt_filename
                                           + ".ckpt")
         self.pth_filepath = os.path.join(self.save_loc, self.ckpt_filename

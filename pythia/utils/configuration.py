@@ -1,6 +1,7 @@
 import yaml
 import sys
 import random
+import torch
 
 
 class Configuration:
@@ -24,7 +25,8 @@ class Configuration:
         self._update_key(self.config, args_dict)
         self.config.update(args_dict)
 
-        self.update_specific()
+        self._update_specific()
+        self._update_with_task_args()
 
     def _update_key(self, dictionary, update_dict):
         for key, value in dictionary.items():
@@ -36,6 +38,9 @@ class Configuration:
 
         return dictionary
 
+    def _update_with_task_args(self):
+
+
     def _update_specific(self):
         if self.config['seed'] <= 0:
             self.config['seed'] = random.randint(1, 1000000)
@@ -45,3 +50,8 @@ class Configuration:
                'params' in self.config['optimizer']:
                 lr = self.config['learning_rate']
                 self.config['optimizer']['params']['lr'] = lr
+
+        if self.config['use_cuda'] and not torch.cuda.is_available():
+            print("[Warning] CUDA option used but cuda is not present"
+                  ". Switching to CPU version")
+            self.config['use_cuda'] = False

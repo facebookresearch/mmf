@@ -22,6 +22,8 @@ class Loss(nn.Module):
             self.loss_criterion = WrongLoss()
         elif loss_type == 'combined':
             self.loss_criterion = CombinedLoss()
+        elif loss_type == 'mse':
+            self.loss_criterion = nn.MSELoss()
         else:
             raise NotImplementedError("Unknown loss type: %s" % loss_type)
 

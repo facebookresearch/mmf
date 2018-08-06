@@ -5,6 +5,7 @@ from torch import optim
 
 from pythia.utils.flags import flags
 from pythia.utils.configuration import Configuration
+from pythia.utils.checkpoint import Checkpoint
 from pythia.utils.logger import Logger
 from pythia.utils.general import lr_lambda_update, clip_gradients
 from pythia.utils.build import build_model
@@ -45,22 +46,32 @@ class Trainer:
         self.test_loader = self.task_loader.test_loader
 
     def load_model(self):
-        self.task_loader.update_config_for_model(self.config['model'])
-        self.model = build_model(self.config['model'])
+        self.task_loader.update_config_for_model(self.config['model_attr'])
+        self.model = build_model(self.config['model_attr'])
+
+        if self.config['use_cuda']:
+            self.model = self.model.cuda()
 
     def load_optimizer(self):
-        optimizer_class = getattr(optim, self.config['optimizer']['method'])
+        optimizer_class = getattr(optim,
+                                  self.config['optimizer_attr']['method'])
 
         parameters = self.model.parameters()
 
         if hasattr(self.model, 'get_optimizer_parameters'):
             parameters = self.model.get_optimizer_parameters(self.config)
 
-        self.optimizer = optimizer_class(parameters,
-                                         **self.config['optimizer']['params'])
+        rest_optimizer_params = self.config['optimizer_attr']['params']
+        self.optimizer = optimizer_class(parameters, **rest_optimizer_params)
+
+        if self.config['use_cuda']:
+            self.optimizer = self.optimizer.cuda()
 
     def load_extras(self):
         self.criterion = Loss(self.config['loss'])
+
+        self.checkpoint = Checkpoint(self)
+        self.checkpoint.load_state_dict()
 
         if self.config['lr_scheduler'] is True:
             self.lr_scheduler = optim.LambdaLR(self.optimizer,
@@ -128,12 +139,31 @@ class Trainer:
                 if current_iteration % log_interval:
                     # TODO: Implement logging
                     # TODO: Do validation check here
-                    self.evaluate()
+                    avg_loss = self.evaluate(self.dev_loader)
                     self.writer.save_log()
 
                 if current_iteration % snapshot_interval:
-                    # TODO: Implement checkpointing
-                    self.checkpoint()
+                    # TODO: Implement early stopping
+                    self.checkpoint.save()
+        # TODO: Do test eval here and log
+        avg_test_loss = self.evaluate(self.test_loader)
 
-    def evaluate(self):
-        return
+    def evaluate(self, loader):
+        self.model.eval()
+
+        total_loss = 0
+        total_samples = 0
+
+        for batch in loader:
+            data, y = loader.prepare_data(batch)
+            total_samples += len(data)
+
+            if not isinstance(data, list):
+                data = [data]
+
+            output = self.model(*data)
+            loss = self.criterion(output, y)
+            if loss is not None:
+                total_loss += loss.data[0] * len(data)
+
+        return total_loss / total_samples

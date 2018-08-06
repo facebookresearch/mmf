@@ -33,3 +33,7 @@ def clip_gradients(model, i_iter, writer, config):
         else:
             raise NotImplementedError("Clip norm mode %s not implemented"
                                       % clip_norm_mode)
+
+
+def ckpt_name_from_core_args(config):
+    return ("%s_%s_%d" % (config['task'], config['model'], config['seed']))
