@@ -18,7 +18,7 @@ class TaskLoader:
         self.dev_dataset = task_class(task_name, 'dev')
         self.test_dataset = task_class(task_name, 'test')
 
-    def make_dataloader(self):
+    def make_dataloaders(self):
         self.train_loader = DataLoader(dataset=self.train_dataset,
                                        batch_size=self.config['batch_size'],
                                        shuffle=True,
@@ -32,3 +32,8 @@ class TaskLoader:
                                       batch_size=self.config['batch_size'],
                                       shuffle=True,
                                       num_workers=self.config['num_workers'])
+
+    def update_config_for_model(self, config):
+        self.train_dataset.update_config_for_model(config)
+        self.dev_dataset.update_config_for_model(config)
+        self.test_dataset.update_config_for_model(config)

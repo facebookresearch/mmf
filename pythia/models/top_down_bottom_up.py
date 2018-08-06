@@ -96,6 +96,16 @@ class VQAMultiModalModel(nn.Module):
             out_dim=self.num_choices
         )
 
+    def get_optimizer_parameters(self, config):
+        params = [{'params': self.img_embeddings_list.parameters()},
+                  {'params': self.question_embeddings.parameters()},
+                  {'params': self.multi_modal_combine_layer.parameters()},
+                  {'params': self.classifier.parameters()},
+                  {'params': self.img_feat_encoders.parameters(),
+                   'lr': self.config['optimizer']['params']['lr'] * 0.1}]
+
+        return params
+
     def forward(self,
                 image_feat_variables,
                 input_question_variable,

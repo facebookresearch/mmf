@@ -1,5 +1,6 @@
 import yaml
 import sys
+import random
 
 
 class Configuration:
@@ -8,6 +9,8 @@ class Configuration:
 
         with open(self.config_path, 'r') as f:
             try:
+                # TODO: Create a default config here
+                # and then update it with yaml config
                 self.config = yaml.load(f)
             except yaml.YAMLError as err:
                 print('Config yaml error', err)
@@ -21,6 +24,8 @@ class Configuration:
         self._update_key(self.config, args_dict)
         self.config.update(args_dict)
 
+        self.update_specific()
+
     def _update_key(self, dictionary, update_dict):
         for key, value in dictionary.items():
             if not isinstance(value, dict):
@@ -30,3 +35,13 @@ class Configuration:
                 dictionary[key] = self._update_key(value, update_dict)
 
         return dictionary
+
+    def _update_specific(self):
+        if self.config['seed'] <= 0:
+            self.config['seed'] = random.randint(1, 1000000)
+
+        if 'learning_rate' in self.config:
+            if 'optimizer' in self.config and \
+               'params' in self.config['optimizer']:
+                lr = self.config['learning_rate']
+                self.config['optimizer']['params']['lr'] = lr

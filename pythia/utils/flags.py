@@ -15,6 +15,7 @@ class Flags:
         return self.parser
 
     def add_core_args(self):
+        #TODO: Update default values
         self.parser.add_argument_group("Core Arguments")
 
         self.parser.add_argument("--config",
@@ -42,6 +43,19 @@ class Flags:
         self.parser.add_argument("--force_restart", action='store_true',
                                  help="flag to force clean previous"
                                  " result and restart training")
+        self.parser.add_argument("--log_interval", type=int, default=100,
+                                 help="Number of iterations after which"
+                                 " we should log validation results")
+        self.parser.add_argument("--snapshot_interval", type=int, default=100,
+                                 help="Number of iterations after which "
+                                 " we should save snapshots")
+        self.parser.add_argument("--max_iterations", type=int, default=100,
+                                 help="Number of iterations after which "
+                                 " we should stop training")
+        self.parser.add_argument("--max_epochs", type=int, default=None,
+                                 help="Number of epochs after which "
+                                 " we should stop training"
+                                 " (mutually exclusive with max_iterations)")
 
     def update_task_args(self):
         args = sys.argv
