@@ -25,6 +25,7 @@ class Logger:
 
         self.log_file = open(self.log_filename, 'a', 4)
         self.should_log = not self.config['should_not_log']
+        self.config['should_log'] = self.should_log
 
     def __del__(self):
         self.log_file.close()
@@ -38,7 +39,7 @@ class Logger:
 
     def add_scalars(self, scalar_dict, iteration):
         for key, val in scalar_dict.items():
-            self.summary_writer.add_scaler(key, val, iteration)
+            self.summary_writer.add_scalar(key, val, iteration)
 
     def add_histogram_for_model(self, model, iteration):
         for name, param in model.parameters():

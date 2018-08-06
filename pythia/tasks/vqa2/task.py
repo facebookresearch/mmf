@@ -15,25 +15,22 @@ from pythia.tasks.task_base import BaseTask
 
 
 class VQA2Task(BaseTask):
-    def __init__(self, dataset_type, imdb_file_label, image_dir_label,
-                 enforce_slow_reader=False, **data_config):
+    def __init__(self, dataset_type):
         super(VQA2Task, self).__init__('VQA2', dataset_type)
 
-        image_features = data_config['image_feat_train'][0].split(',')
+    def load(self, **opts):
+        image_features = opts['image_feat_train'][0].split(',')
         self.num_image_features = len(image_features)
 
-        if dataset_type == 'train':
-            self.dataset = prepare_train_data_set(**data_config)
-        elif dataset_type == 'dev':
-            self.dataset = prepare_eval_data_set(enforce_slow_reader,
-                                                 **data_config)
-        elif dataset_type == 'test':
-            self.dataset = prepare_test_data_set(**data_config)
+        if self.dataset_type == 'train':
+            self.dataset = prepare_train_data_set(**opts)
+        elif self.dataset_type == 'dev':
+            self.dataset = prepare_eval_data_set(**opts)
+        elif self.dataset_type == 'test':
+            self.dataset = prepare_test_data_set(**opts)
         else:
             raise NotImplementedError("Unknown dataset type: %s"
-                                      % dataset_type)
-
-    def load(self, opts):
+                                      % self.dataset_type)
         # TODO: Load here
         return
 
@@ -123,7 +120,9 @@ def prepare_train_data_set(**data_config):
                             **data_config)
 
 
-def prepare_eval_data_set(enforce_slow_reader=False, **data_config):
+def prepare_eval_data_set(**data_config):
+    # TODO: Add enforce_slow_reader to task args
+    enforce_slow_reader = data_config['enforce_slow_reader']
     if enforce_slow_reader:
         data_config['image_fast_reader'] = False
 

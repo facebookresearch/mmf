@@ -2,20 +2,35 @@ import yaml
 import sys
 import random
 import torch
+import os
 
 
 class Configuration:
     def __init__(self, config_yaml_file):
         self.config_path = config_yaml_file
+        self.default_config = self._get_default_config_path()
 
+        self.config = {}
+        with open(self.default_config, 'r') as f:
+            try:
+                self.config = yaml.load(f)
+            except yaml.YAMLError as err:
+                print("[Error] Default config yaml error", err)
+
+        if self.config_path is None:
+            return
+
+        user_config = {}
         with open(self.config_path, 'r') as f:
             try:
                 # TODO: Create a default config here
                 # and then update it with yaml config
-                self.config = yaml.load(f)
+                user_config = yaml.load(f)
             except yaml.YAMLError as err:
-                print('Config yaml error', err)
+                print("Config yaml error", err)
                 sys.exit(0)
+
+        self.config.update(user_config)
 
     def get_config(self):
         return self.config
@@ -28,6 +43,10 @@ class Configuration:
         self._update_specific()
         self._update_with_task_args()
 
+    def update_with_task_args(self, task_loader):
+        self.task_loader.load_config()
+        self.config.update(self.task_loader.task_config)
+
     def _update_key(self, dictionary, update_dict):
         for key, value in dictionary.items():
             if not isinstance(value, dict):
@@ -38,8 +57,9 @@ class Configuration:
 
         return dictionary
 
-    def _update_with_task_args(self):
-
+    def _get_default_config_path(self):
+        directory = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(directory, 'config', 'default.yml')
 
     def _update_specific(self):
         if self.config['seed'] <= 0:

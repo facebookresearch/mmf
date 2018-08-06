@@ -38,6 +38,7 @@ class Trainer:
 
     def load_task(self):
         self.task_loader = TaskLoader(self.config)
+        self.configuration.update_with_task_args(self.task_loader)
         self.task_loader.load_dataset()
         self.task_loader.make_dataloaders()
 
@@ -46,22 +47,23 @@ class Trainer:
         self.test_loader = self.task_loader.test_loader
 
     def load_model(self):
-        self.task_loader.update_config_for_model(self.config['model_attr'])
-        self.model = build_model(self.config['model_attr'])
+        attributes = self.config['model_attributes']
+        self.task_loader.update_config_for_model(attributes)
+        self.model = build_model(attributes)
 
         if self.config['use_cuda']:
             self.model = self.model.cuda()
 
     def load_optimizer(self):
-        optimizer_class = getattr(optim,
-                                  self.config['optimizer_attr']['method'])
+        optimizer_method = self.config['optimizer_attributes']['method']
+        optimizer_class = getattr(optim, optimizer_method)
 
         parameters = self.model.parameters()
 
         if hasattr(self.model, 'get_optimizer_parameters'):
             parameters = self.model.get_optimizer_parameters(self.config)
 
-        rest_optimizer_params = self.config['optimizer_attr']['params']
+        rest_optimizer_params = self.config['optimizer_attributes']['params']
         self.optimizer = optimizer_class(parameters, **rest_optimizer_params)
 
         if self.config['use_cuda']:
@@ -133,24 +135,48 @@ class Trainer:
                                    self.config)
 
                 self.optimizer.step()
+                self.train_loader.train_meter(output, y)
 
-                # TODO: Add to meter here
+                self.task_loader.report_metric(self.writer,
+                                               self.train_meter,
+                                               loss.data[0],
+                                               current_iteration,
+                                               should_print=False)
 
                 if current_iteration % log_interval:
-                    # TODO: Implement logging
                     # TODO: Do validation check here
-                    avg_loss = self.evaluate(self.dev_loader)
-                    self.writer.save_log()
+                    avg_loss = self.evaluate(self.dev_loader, self.dev_meter)
+
+                    self.task_loader.report_metrics(self.writer,
+                                                    self.dev_meter,
+                                                    avg_loss,
+                                                    current_iteration)
+
+                    self.task_loader.report_metric(self.writer,
+                                                   self.train_meter,
+                                                   loss.data[0],
+                                                   current_iteration)
+                else:
+                    # Don't print train metrics if it is not log interval
+                    # so as to escape clutter
+                    self.task_loader.report_metric(self.writer,
+                                                   self.train_meter,
+                                                   loss.data[0],
+                                                   current_iteration,
+                                                   should_print=False)
 
                 if current_iteration % snapshot_interval:
                     # TODO: Implement early stopping
                     self.checkpoint.save()
-        # TODO: Do test eval here and log
-        avg_test_loss = self.evaluate(self.test_loader)
 
-    def evaluate(self, loader):
+        avg_test_loss = self.evaluate(self.test_loader, self.test_meter)
+        self.task_loader.report_metrics(self.writer, self.test_meter,
+                                        avg_test_loss, current_iteration)
+
+    def evaluate(self, loader, meter):
         self.model.eval()
 
+        meter.reset()
         total_loss = 0
         total_samples = 0
 
@@ -162,8 +188,11 @@ class Trainer:
                 data = [data]
 
             output = self.model(*data)
+
+            meter(output, y)
             loss = self.criterion(output, y)
             if loss is not None:
                 total_loss += loss.data[0] * len(data)
 
+        self.model.train()
         return total_loss / total_samples

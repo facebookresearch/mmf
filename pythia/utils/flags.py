@@ -20,6 +20,7 @@ class Flags:
 
         self.parser.add_argument("--config",
                                  type=str,
+                                 default=None,
                                  required=False,
                                  help="config yaml file")
         self.parser.add_argument("--task",
@@ -30,7 +31,7 @@ class Flags:
                                  type=str,
                                  required=True,
                                  help="Model for training")
-        self.parser.add_argument("--out_dir",
+        self.parser.add_argument("--save_loc",
                                  type=str,
                                  default=None,
                                  help="output directory, default"
