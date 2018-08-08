@@ -8,14 +8,14 @@ from pythia.constants import task_name_mapping
 class Flags:
     def __init__(self):
         self.parser = argparse.ArgumentParser()
-        self.parser.add_core_args()
+        self.add_core_args()
         self.update_task_args()
 
     def get_parser(self):
         return self.parser
 
     def add_core_args(self):
-        #TODO: Update default values
+        # TODO: Update default values
         self.parser.add_argument_group("Core Arguments")
 
         self.parser.add_argument("--config",
@@ -31,11 +31,6 @@ class Flags:
                                  type=str,
                                  required=True,
                                  help="Model for training")
-        self.parser.add_argument("--save_loc",
-                                 type=str,
-                                 default=None,
-                                 help="output directory, default"
-                                 " is current directory")
         self.parser.add_argument('--seed', type=int, default=1234,
                                  help="random seed, default 1234,"
                                  " set seed to -1 if need a random seed"
@@ -80,9 +75,11 @@ class Flags:
         task_module_name = "pythia.tasks"
         task_module = importlib.import_module(task_module_name)
 
-        task_class = getattr(task_module, task_name)
+        task_class_name = task_name_mapping[task_name]
+        task_class = getattr(task_module, task_class_name)
 
-        task_class.init_args(self.parser)
+        task_object = task_class('test')
+        task_object.init_args(self.parser)
 
 
 flags = Flags()

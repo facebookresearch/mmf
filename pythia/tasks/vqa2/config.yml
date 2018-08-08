@@ -1,6 +1,6 @@
-data:
+task_attributes:
   batch_size: 512
-  data_root_dir: data/
+  data_root_dir: ../data/
   dataset: vqa_2.0
   image_depth_first: false
   image_fast_reader: false

@@ -43,6 +43,11 @@ class VQA2Task(BaseTask):
         config['num_choices'] = self.dataset.answer_dict.num_vocab
         config['num_image_features'] = self.num_image_features
 
+    def init_args(self, parser):
+        parser.add_argument_group("VQA2 task specific arguments")
+        parser.add_argument('--data_root_dir', type=str, default="../data",
+                            help="Root directory for data")
+
     def __len__(self):
         return self.dataset.__len__()
 

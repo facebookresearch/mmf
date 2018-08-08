@@ -5,6 +5,7 @@ import yaml
 from torch.utils.data import DataLoader
 
 from pythia.utils.meter import Meter
+from pythia.constants import task_name_mapping
 
 
 class TaskLoader:
@@ -14,24 +15,31 @@ class TaskLoader:
 
     def load_dataset(self):
         base_task_path = "pythia.tasks"
-        tasks_module = importlib.import_module(base_task_path)
-        task_class = getattr(tasks_module, self.config['task'])
         self.task_name = self.config['task']
 
-        self.train_dataset = task_class(self.task_name, 'train')
-        self.dev_dataset = task_class(self.task_name, 'dev')
-        self.test_dataset = task_class(self.task_name, 'test')
+        if self.task_name not in task_name_mapping:
+            print("[Error] %s not present in our mapping"
+                  % self.task_name)
+            return
 
-        self.train_dataset.load(self.config['task_attributes'])
-        self.dev_dataset.load(self.config['task_attributes'])
-        self.test_dataset.load(self.config['task_attributes'])
+        task_keyword = task_name_mapping[self.task_name]
+        tasks_module = importlib.import_module(base_task_path)
+        task_class = getattr(tasks_module, task_keyword)
+
+        self.train_dataset = task_class('train')
+        self.dev_dataset = task_class('dev')
+        self.test_dataset = task_class('test')
+
+        self.train_dataset.load(**self.config['task_attributes'])
+        self.dev_dataset.load(**self.config['task_attributes'])
+        self.test_dataset.load(**self.config['task_attributes'])
 
         self.make_meters()
 
     def load_config(self):
         directory = os.path.dirname(os.path.abspath(__file__))
 
-        config_path = os.path.join(directory, 'tasks', self.task_name,
+        config_path = os.path.join(directory, 'tasks', self.config['task'],
                                    'config.yml')
 
         if not os.path.exists(config_path):

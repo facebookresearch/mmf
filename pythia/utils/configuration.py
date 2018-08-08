@@ -41,11 +41,10 @@ class Configuration:
         self.config.update(args_dict)
 
         self._update_specific()
-        self._update_with_task_args()
 
-    def update_with_task_args(self, task_loader):
-        self.task_loader.load_config()
-        self.config.update(self.task_loader.task_config)
+    def update_with_task_config(self, task_loader):
+        task_loader.load_config()
+        self.config.update(task_loader.task_config)
 
     def _update_key(self, dictionary, update_dict):
         for key, value in dictionary.items():
@@ -59,7 +58,7 @@ class Configuration:
 
     def _get_default_config_path(self):
         directory = os.path.dirname(os.path.abspath(__file__))
-        return os.path.join(directory, 'config', 'default.yml')
+        return os.path.join(directory, '..', 'config', 'default.yml')
 
     def _update_specific(self):
         if self.config['seed'] <= 0:

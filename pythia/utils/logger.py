@@ -3,7 +3,7 @@ import os
 from tensorboardX import SummaryWriter
 
 from pythia.utils.general import ckpt_name_from_core_args
-from pythia.utils.time import Timer
+from pythia.utils.timer import Timer
 
 
 class Logger:

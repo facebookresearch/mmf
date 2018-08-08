@@ -29,5 +29,13 @@ class BaseTask(Dataset):
         return batch
 
     def update_config_for_model(self, config):
+        '''
+        Use this if there is some specific configuration required by model
+        which must be inferred at runtime.
+        '''
         raise NotImplementedError("This task doesn't implement config"
                                   " update method")
+
+    def init_args(self, parser):
+        raise NotImplementedError("This task doesn't implement args "
+                                  " initialization method")

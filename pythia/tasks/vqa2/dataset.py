@@ -11,7 +11,7 @@ import numpy as np
 from torch.utils.data import Dataset
 
 from .utils import VocabDict
-from global_variables.global_variables import imdb_version
+from pythia.constants import imdb_version
 
 
 class faster_RCNN_feat_reader:

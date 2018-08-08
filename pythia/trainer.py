@@ -38,7 +38,7 @@ class Trainer:
 
     def load_task(self):
         self.task_loader = TaskLoader(self.config)
-        self.configuration.update_with_task_args(self.task_loader)
+        self.configuration.update_with_task_config(self.task_loader)
         self.task_loader.load_dataset()
         self.task_loader.make_dataloaders()
 
