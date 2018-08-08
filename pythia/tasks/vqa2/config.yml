@@ -7,10 +7,10 @@ task_attributes:
   image_feat_test:
   - demo/features/
   image_feat_train:
-  - rcnn_10_100/train2014
-  - rcnn_10_100/val2014
+  - rcnn_10_100/vqa/train2014
+  - rcnn_10_100/vqa/val2014
   image_feat_val:
-  - rcnn_10_100/val2014
+  - rcnn_10_100/vqa/val2014
   image_max_loc: 100
   imdb_file_test:
   - demo/imdb/imdb_demo.npy
@@ -23,9 +23,11 @@ task_attributes:
   question_max_len: 14
   vocab_answer_file: answers_vqa.txt
   vocab_question_file: large_vocabulary_vqa.txt
+  enforce_slow_reader: false
+  metrics: accuracy
 exp_name: baseline
 loss: logit_bce
-model:
+model_attributes:
   classifier:
     classifier_type: logit
     params:

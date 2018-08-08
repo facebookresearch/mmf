@@ -56,19 +56,23 @@ class TaskLoader:
                       err)
 
     def make_dataloaders(self):
-        self.train_loader = DataLoader(dataset=self.train_dataset,
-                                       batch_size=self.config['batch_size'],
-                                       shuffle=True,
-                                       num_workers=self.config['num_workers'])
+        task_attributes = self.config['task_attributes']
+        batch_size = task_attributes['batch_size']
+        num_workers = task_attributes['num_workers']
 
-        self.dev_loader = DataLoader(dataset=self.val_dataset,
-                                     batch_size=self.config['batch_size'],
+        self.train_loader = DataLoader(dataset=self.train_dataset,
+                                       batch_size=batch_size,
+                                       shuffle=True,
+                                       num_workers=num_workers)
+
+        self.dev_loader = DataLoader(dataset=self.dev_dataset,
+                                     batch_size=batch_size,
                                      shuffle=True,
-                                     num_workers=self.config['num_workers'])
+                                     num_workers=num_workers)
         self.test_loader = DataLoader(dataset=self.test_dataset,
-                                      batch_size=self.config['batch_size'],
+                                      batch_size=batch_size,
                                       shuffle=True,
-                                      num_workers=self.config['num_workers'])
+                                      num_workers=num_workers)
 
     def make_meters(self):
         task_metrics = self.config['task_attributes']['metrics']

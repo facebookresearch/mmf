@@ -49,7 +49,7 @@ class Configuration:
     def _update_key(self, dictionary, update_dict):
         for key, value in dictionary.items():
             if not isinstance(value, dict):
-                if key in update_dict:
+                if key in update_dict and update_dict[key] is not None:
                     dictionary[key] = update_dict[key]
             else:
                 dictionary[key] = self._update_key(value, update_dict)

@@ -23,6 +23,7 @@ class Flags:
                                  default=None,
                                  required=False,
                                  help="config yaml file")
+
         self.parser.add_argument("--task",
                                  type=str,
                                  required=True,
@@ -31,6 +32,7 @@ class Flags:
                                  type=str,
                                  required=True,
                                  help="Model for training")
+
         self.parser.add_argument('--seed', type=int, default=1234,
                                  help="random seed, default 1234,"
                                  " set seed to -1 if need a random seed"
@@ -56,8 +58,13 @@ class Flags:
                                  help="Number of epochs after which "
                                  " we should stop training"
                                  " (mutually exclusive with max_iterations)")
+        self.parser.add_argument("--batch_size", type=int, default=None,
+                                 help="Batch size to be used for training "
+                                 "If not passed it will default to config one")
         self.parser.add_argument("--save_loc", type=str, default="./save",
                                  help="Location for saving model checkpoint")
+        self.parser.add_argument("--log_dir", type=str, default="./logs",
+                                 help="Location for saving logs")
         self.parser.add_argument("--should_not_log", action="store_true",
                                  default=False, help="Set when you don't want"
                                  " logging to happen")

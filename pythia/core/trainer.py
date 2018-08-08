@@ -48,11 +48,16 @@ class Trainer:
 
     def load_model(self):
         attributes = self.config['model_attributes']
+        attributes['model'] = self.config['model']
+
         self.task_loader.update_config_for_model(attributes)
         self.model = build_model(attributes)
 
         if self.config['use_cuda']:
             self.model = self.model.cuda()
+
+        if self.config['use_cuda'] and torch.cuda.device_count() > 1:
+            self.model = torch.nn.DataParallel(self.model)
 
     def load_optimizer(self):
         optimizer_method = self.config['optimizer_attributes']['method']
