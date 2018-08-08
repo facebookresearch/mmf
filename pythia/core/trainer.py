@@ -9,7 +9,7 @@ from pythia.utils.checkpoint import Checkpoint
 from pythia.utils.logger import Logger
 from pythia.utils.general import lr_lambda_update, clip_gradients
 from pythia.utils.build import build_model
-from pythia.task_loader import TaskLoader
+from pythia.core.task_loader import TaskLoader
 from pythia.modules.losses import Loss
 
 

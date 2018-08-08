@@ -1,4 +1,4 @@
-from pythia.trainer import Trainer
+from pythia.core.trainer import Trainer
 
 
 def run():

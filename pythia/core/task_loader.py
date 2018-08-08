@@ -5,7 +5,7 @@ import yaml
 from torch.utils.data import DataLoader
 
 from pythia.utils.meter import Meter
-from pythia.constants import task_name_mapping
+from pythia.core.constants import task_name_mapping
 
 
 class TaskLoader:
@@ -39,10 +39,12 @@ class TaskLoader:
     def load_config(self):
         directory = os.path.dirname(os.path.abspath(__file__))
 
-        config_path = os.path.join(directory, 'tasks', self.config['task'],
-                                   'config.yml')
+        config_path = os.path.join(directory, '..', 'tasks',
+                                   self.config['task'], 'config.yml')
 
         if not os.path.exists(config_path):
+            print("[Warning] No config present for task %s" %
+                  self.config['task'])
             return
 
         self.task_config = {}

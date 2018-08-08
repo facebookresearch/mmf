@@ -2,7 +2,7 @@ import argparse
 import sys
 import importlib
 
-from pythia.constants import task_name_mapping
+from pythia.core.constants import task_name_mapping
 
 
 class Flags:
