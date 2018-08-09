@@ -64,15 +64,21 @@ class TaskLoader:
                                        batch_size=batch_size,
                                        shuffle=True,
                                        num_workers=num_workers)
+        self.train_loader.dataset_type = 'train'
 
         self.dev_loader = DataLoader(dataset=self.dev_dataset,
                                      batch_size=batch_size,
                                      shuffle=True,
                                      num_workers=num_workers)
+        self.dev_loader.dataset_type = 'dev'
+
         self.test_loader = DataLoader(dataset=self.test_dataset,
                                       batch_size=batch_size,
                                       shuffle=True,
                                       num_workers=num_workers)
+        self.test_loader.dataset_type = 'test'
+
+        self.use_cuda = self.config['use_cuda']
 
     def make_meters(self):
         task_metrics = self.config['task_attributes']['metrics']
@@ -108,3 +114,12 @@ class TaskLoader:
             scalars[key] = value
 
         writer.add_scalars(scalars)
+
+    def prepare_batch(self, dataset_type, batch):
+        mapping = {
+            'train': self.train_dataset,
+            'dev': self.dev_dataset,
+            'test': self.test_dataset
+        }
+
+        return mapping[dataset_type].prepare_batch(batch, self.use_cuda)

@@ -15,4 +15,5 @@ training_parameters:
   max_iterations: 22000
   log_interval: 100
   snapshot_interval: 1000
+  clip_gradients: false
 use_cuda: false

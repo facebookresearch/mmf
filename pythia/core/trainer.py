@@ -29,6 +29,8 @@ class Trainer:
         self.load_extras()
 
     def load_config(self):
+        # TODO: Review configuration update once again
+        # (remember clip_gradients case)
         self.configuration = Configuration(self.args.config)
         self.configuration.update_with_args(self.args)
 
@@ -39,6 +41,10 @@ class Trainer:
     def load_task(self):
         self.task_loader = TaskLoader(self.config)
         self.configuration.update_with_task_config(self.task_loader)
+
+        # Update with args once again as they are the most important
+        self.configuration.update_with_args(self.args)
+
         self.task_loader.load_dataset()
         self.task_loader.make_dataloaders()
 
@@ -47,8 +53,11 @@ class Trainer:
         self.test_loader = self.task_loader.test_loader
 
     def load_model(self):
-        attributes = self.config['model_attributes']
+        attributes = self.config['model_attributes'][self.config['model']]
         attributes['model'] = self.config['model']
+
+        data_root_dir = self.config['task_attributes']['data_root_dir']
+        attributes['data_root_dir'] = data_root_dir
 
         self.task_loader.update_config_for_model(attributes)
         self.model = build_model(attributes)
@@ -60,7 +69,7 @@ class Trainer:
             self.model = torch.nn.DataParallel(self.model)
 
     def load_optimizer(self):
-        optimizer_method = self.config['optimizer_attributes']['method']
+        optimizer_method = self.config['optimizer_attributes']['type']
         optimizer_class = getattr(optim, optimizer_method)
 
         parameters = self.model.parameters()
@@ -80,6 +89,7 @@ class Trainer:
         self.checkpoint = Checkpoint(self)
         self.checkpoint.load_state_dict()
 
+        self.lr_scheduler = None
         if self.config['lr_scheduler'] is True:
             self.lr_scheduler = optim.LambdaLR(self.optimizer,
                                                lr_lambda=lr_lambda_update)
@@ -125,12 +135,10 @@ class Trainer:
 
                 self.optimizer.zero_grad()
 
-                data, y = self.train_loader.prepare_data(batch)
+                data, y = self.task_loader.prepare_batch('train', batch)
 
-                if not isinstance(data, list):
-                    data = [data]
-
-                output = self.model(*data)
+                # Arguments should be a dict at this point
+                output = self.model(**data)
                 loss = self.criterion(output, y)
 
                 loss.backward()
@@ -186,7 +194,8 @@ class Trainer:
         total_samples = 0
 
         for batch in loader:
-            data, y = loader.prepare_data(batch)
+            data, y = self.task_loader.prepare_batch(loader.dataset_type,
+                                                     batch)
             total_samples += len(data)
 
             if not isinstance(data, list):

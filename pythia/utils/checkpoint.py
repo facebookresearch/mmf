@@ -13,6 +13,8 @@ class Checkpoint:
         self.trainer = trainer
 
         self.config = self.trainer.config
+        self.save_loc = self.config['save_loc']
+
         self.ckpt_filename = ckpt_name_from_core_args(self.config)
 
         if hasattr(self.trainer.model, 'get_ckpt_name'):
@@ -25,11 +27,12 @@ class Checkpoint:
                                          + ".pth")
 
     def load_state_dict(self):
-        if self.config['resume_file'] and \
+        if self.config['resume_file'] is not None and \
            os.path.exists(self.config['resume_file']):
             self._load(self.config['resume_file'])
 
-        if self.config['resume'] and os.path.exists(self.ckpt_filepath):
+        if self.config['resume'] is True \
+           and os.path.exists(self.ckpt_filepath):
             self._load(self.config['resume'])
 
     def _load(self, file):

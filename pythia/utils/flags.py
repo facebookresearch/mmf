@@ -69,6 +69,19 @@ class Flags:
                                  default=False, help="Set when you don't want"
                                  " logging to happen")
 
+        self.parser.add_argument("--resume_file", type=str, default=None,
+                                 help="File from which to resume checkpoint")
+        self.parser.add_argument("--resume", type=bool,
+                                 default=None,
+                                 help="Use when you want to restore from "
+                                 "automatic checkpoint")
+        self.parser.add_argument("--lr_scheduler", type=bool,
+                                 default=None,
+                                 help="Use when you want to use lr scheduler")
+        self.parser.add_argument("--clip_gradients", type=bool,
+                                 default=None,
+                                 help="Use when you want to clip gradients")
+
     def update_task_args(self):
         args = sys.argv
         task_name = None

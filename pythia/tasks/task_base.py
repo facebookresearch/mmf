@@ -19,7 +19,7 @@ class BaseTask(Dataset):
     def __getitem__(self, idx):
         raise NotImplementedError("This task doesn't implement getitem method")
 
-    def prepare_batch(self, batch):
+    def prepare_batch(self, batch, use_cuda=False):
         '''
         Override in your child class
 

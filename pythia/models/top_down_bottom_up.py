@@ -29,10 +29,14 @@ class VQAMultiModalModel(nn.Module):
         self.question_embeddings_out_dim = 0
 
         for question_embedding in question_embeddings_list_config:
-            embedding_type = question_embedding['embedding_type']
-            embedding_kwargs = question_embeddings['params']
+            embedding_type = question_embedding['type']
+            embedding_kwargs = question_embedding['params']
 
-            embedding = QuestionEmbedding(embedding_type, embedding_kwargs)
+            # Add data_root_dir to kwargs
+            embedding_kwargs['data_root_dir'] = self.config['data_root_dir']
+            embedding_kwargs['vocab_size'] = self.config['vocab_size']
+
+            embedding = QuestionEmbedding(embedding_type, **embedding_kwargs)
             question_embeddings.append(embedding)
             self.question_embeddings_out_dim += embedding.text_out_dim
 
@@ -44,10 +48,10 @@ class VQAMultiModalModel(nn.Module):
         self.img_feat_dim = self.config['image_feature_dim']
 
         for img_feat_encoder in img_feat_encoders_list_config:
-            encoder_type = img_feat_encoder['encoder_type']
+            encoder_type = img_feat_encoder['type']
             encoder_kwargs = img_feat_encoder['params']
             img_feat_model = ImageEncoder(encoder_type, self.img_feat_dim,
-                                          encoder_kwargs)
+                                          **encoder_kwargs)
 
             img_feat_encoders.append(img_feat_model)
             self.img_feat_dim = img_feat_model.out_dim
@@ -68,7 +72,7 @@ class VQAMultiModalModel(nn.Module):
                 img_embedding = ImageEmbedding(
                     self.img_feat_dim,
                     self.question_embeddings_out_dim,
-                    img_attn_model_params
+                    **img_attn_model_params
                 )
                 img_embeddings.append(img_embedding)
                 self.img_embeddings_out_dim += img_embedding.out_dim
@@ -81,19 +85,20 @@ class VQAMultiModalModel(nn.Module):
 
     def _init_combine_layer(self):
         self.multi_modal_combine_layer = ModalCombineLayer(
-            self.config['modal_combine']['combine_type'],
+            self.config['modal_combine']['type'],
             self.img_embeddings_out_dim,
             self.question_embeddings_out_dim,
-            self.config['modal_combine']['params']
+            **self.config['modal_combine']['params']
         )
 
     def _init_classifier(self):
         combined_embedding_dim = self.multi_modal_combine_layer.out_dim
 
         self.classifier = ClassifierLayer(
-            self.config['classifier']['classifier_type'],
+            self.config['classifier']['type'],
             in_dim=combined_embedding_dim,
-            out_dim=self.num_choices
+            out_dim=self.num_choices,
+            **self.config['classifier']['params']
         )
 
     def get_optimizer_parameters(self, config):
@@ -102,12 +107,13 @@ class VQAMultiModalModel(nn.Module):
                   {'params': self.multi_modal_combine_layer.parameters()},
                   {'params': self.classifier.parameters()},
                   {'params': self.img_feat_encoders.parameters(),
-                   'lr': self.config['optimizer']['params']['lr'] * 0.1}]
+                   'lr': (config['optimizer_attributes']['params']['lr']
+                          * 0.1)}]
 
         return params
 
     def forward(self,
-                image_feat_variables,
+                image_feature_variables,
                 input_question_variable,
                 image_dim_variable,
                 input_answers=None, **kwargs):
@@ -117,14 +123,14 @@ class VQAMultiModalModel(nn.Module):
             question_embeddings.append(q_embedding)
         question_embedding_total = torch.cat(question_embeddings, dim=1)
 
-        assert (len(image_feat_variables) ==
+        assert (len(image_feature_variables) ==
                 len(self.img_feat_encoders)), \
             "number of image feature model doesnot equal \
              to number of image features"
 
         image_embeddings = []
 
-        for i, image_feat_variable in enumerate(image_feat_variables):
+        for i, image_feat_variable in enumerate(image_feature_variables):
             image_dim_variable_use = None if i > 0 else image_dim_variable
             image_feat_variable_ft = (
                 self.img_feat_encoders[i](image_feat_variable))

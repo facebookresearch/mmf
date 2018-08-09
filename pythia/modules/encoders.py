@@ -12,22 +12,27 @@ class ImageEncoder(nn.Module):
 
         if encoder_type == "default":
             self.module = Identity()
+            self.module.in_dim = in_dim
+            self.module.out_dim = in_dim
         elif encoder_type == "finetune_faster_rcnn_fpn_fc7":
             self.module = FinetuneFasterRcnnFpnFc7(in_dim, kwargs)
         else:
             raise NotImplementedError("Unknown Image Encoder: %s"
                                       % encoder_type)
 
+        self.out_dim = self.module.out_dim
+
     def forward(self, *args, **kwargs):
         return self.module(*args, **kwargs)
 
+
 class FinetuneFasterRcnnFpnFc7(nn.Module):
-    def __init__(self, in_dim, weights_file, bias_file):
+    def __init__(self, in_dim, weights_file, bias_file, data_root_dir):
         super(FinetuneFasterRcnnFpnFc7, self).__init__()
         if not os.path.isabs(weights_file):
-            weights_file = os.path.join(cfg.data.data_root_dir, weights_file)
+            weights_file = os.path.join(data_root_dir, weights_file)
         if not os.path.isabs(bias_file):
-            bias_file = os.path.join(cfg.data.data_root_dir, bias_file)
+            bias_file = os.path.join(data_root_dir, bias_file)
         with open(weights_file, 'rb') as w:
             weights = pickle.load(w)
         with open(bias_file, 'rb') as b:

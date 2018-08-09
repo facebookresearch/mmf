@@ -34,9 +34,9 @@ class ClassifierLayer(nn.Module):
         super(ClassifierLayer, self).__init__()
 
         if classifier_type == "weight_norm":
-            self.module = WeightNormClassifier(in_dim, out_dim, kwargs)
+            self.module = WeightNormClassifier(in_dim, out_dim, **kwargs)
         elif classifier_type == "logit":
-            self.module = LogitClassifier(in_dim, out_dim, kwargs)
+            self.module = LogitClassifier(in_dim, out_dim, **kwargs)
         elif classifier_type == "linear":
             self.module = nn.Linear(in_dim, out_dim)
         else:
@@ -52,7 +52,7 @@ class LogitClassifier(nn.Module):
         super(LogitClassifier, self).__init__()
         input_dim = in_dim
         num_ans_candidates = out_dim
-        txt_nonLinear_dim = kwargs['txt_hidden_dim']
+        txt_nonLinear_dim = kwargs['text_hidden_dim']
         image_nonLinear_dim = kwargs['img_hidden_dim']
 
         self.f_o_text = GatedTanh(input_dim, txt_nonLinear_dim)
@@ -104,17 +104,20 @@ class Identity(nn.Module):
 
 class ModalCombineLayer(nn.Module):
     def __init__(self, combine_type, img_feat_dim, txt_emb_dim, **kwargs):
+        super(ModalCombineLayer, self).__init__()
         if combine_type == "MFH":
-            self.module = MFH(img_feat_dim, txt_emb_dim, kwargs)
+            self.module = MFH(img_feat_dim, txt_emb_dim, **kwargs)
         elif combine_type == "gated_element_multiply":
             self.module = GatedElementMultiply(img_feat_dim, txt_emb_dim,
-                                               kwargs)
+                                               **kwargs)
         elif combine_type == "two_layer_element_multiply":
             self.module = TwoLayerElementMultiply(img_feat_dim, txt_emb_dim,
-                                                  kwargs)
+                                                  **kwargs)
         else:
             raise NotImplementedError("Not implemented combine type: %s"
                                       % combine_type)
+
+        self.out_dim = self.module.out_dim
 
     def forward(self, *args, **kwargs):
         return self.module(*args, **kwargs)
@@ -225,10 +228,10 @@ class MFH(nn.Module):
 class GatedElementMultiply(nn.Module):
     def __init__(self, image_feat_dim, ques_emb_dim, **kwargs):
         super(GatedElementMultiply, self).__init__()
-        self.fa_image = GatedTanh(image_feat_dim, kwargs['hidden_size'])
-        self.fa_txt = GatedTanh(ques_emb_dim, kwargs['hidden_size'])
+        self.fa_image = GatedTanh(image_feat_dim, kwargs['hidden_dim'])
+        self.fa_txt = GatedTanh(ques_emb_dim, kwargs['hidden_dim'])
         self.dropout = nn.Dropout(kwargs['dropout'])
-        self.out_dim = kwargs['hidden_size']
+        self.out_dim = kwargs['hidden_dim']
 
     def forward(self, image_feat, question_embedding):
         image_fa = self.fa_image(image_feat)
@@ -251,16 +254,16 @@ class TwoLayerElementMultiply(nn.Module):
     def __init__(self, image_feat_dim, ques_emb_dim, **kwargs):
         super(TwoLayerElementMultiply, self).__init__()
 
-        self.fa_image1 = GatedTanh(image_feat_dim, kwargs['hidden_size'])
+        self.fa_image1 = GatedTanh(image_feat_dim, kwargs['hidden_dim'])
         self.fa_image2 = GatedTanh(
-            kwargs['hidden_size'], kwargs['hidden_size'])
-        self.fa_txt1 = GatedTanh(ques_emb_dim, kwargs['hidden_size'])
+            kwargs['hidden_dim'], kwargs['hidden_dim'])
+        self.fa_txt1 = GatedTanh(ques_emb_dim, kwargs['hidden_dim'])
         self.fa_txt2 = GatedTanh(
-            kwargs['hidden_size'], kwargs['hidden_size'])
+            kwargs['hidden_dim'], kwargs['hidden_dim'])
 
         self.dropout = nn.Dropout(kwargs['dropout'])
 
-        self.out_dim = kwargs['hidden_size']
+        self.out_dim = kwargs['hidden_dim']
 
     def forward(self, image_feat, question_embedding):
         image_fa = self.fa_image2(self.fa_image1(image_feat))
@@ -280,7 +283,7 @@ class TwoLayerElementMultiply(nn.Module):
 
 
 class TransformLayer(nn.Module):
-    def __init__(self, transform_type, in_dim, out_dim, hidden_dim):
+    def __init__(self, transform_type, in_dim, out_dim, hidden_dim=None):
         super(TransformLayer, self).__init__()
 
         if transform_type == "linear":
@@ -291,6 +294,7 @@ class TransformLayer(nn.Module):
             raise NotImplementedError(
                 "Unknown post combine transform type: %s" % transform_type
             )
+        self.out_dim = self.module.out_dim
 
     def forward(self, *args, **kwargs):
         return self.module(*args, **kwargs)

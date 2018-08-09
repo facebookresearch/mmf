@@ -12,6 +12,8 @@ from pythia.modules.attention import AttentionLayer
 class QuestionEmbedding(nn.Module):
     def __init__(self, emb_type, **kwargs):
         super(QuestionEmbedding, self).__init__()
+        self.data_root_dir = kwargs.get('data_root_dir', None)
+
         # Update kwargs here
         if emb_type == "default":
             params = {
@@ -22,28 +24,32 @@ class QuestionEmbedding(nn.Module):
                 'dropout': kwargs['dropout']
             }
             embedding = DefaultQuestionEmbedding(**params)
-            self.module = self.init_embedding(embedding,
-                                              kwargs['embedding_init'])
+            self.init_embedding(embedding.embedding,
+                                kwargs.get('embedding_init', None),
+                                kwargs.get('embedding_init_file', None))
+            self.module = embedding
 
         elif emb_type == "attention":
-            params['']
             embedding = AttentionQuestionEmbedding(**kwargs)
-            self.module = self.init_embedding(embedding,
-                                              kwargs['embedding_init'])
-
+            self.init_embedding(embedding.embedding,
+                                kwargs.get('embedding_init', None),
+                                kwargs.get('embedding_init_file', None))
+            self.module = embedding
         else:
             raise NotImplementedError("Unknown question embedding '%s'"
                                       % emb_type)
+
+        self.text_out_dim = self.module.text_out_dim
 
     def init_embedding(self, embedding, embedding_init, embedding_init_file):
         if embedding_init is not None:
             weights = torch.from_numpy(embedding_init)
             embedding.weights.data.copy_(weights)
 
-        if embedding_init_file is not None:
+        if embedding_init_file is not None and self.data_root_dir is not None:
             embedding_file = embedding_init_file
             if not os.path.isabs(embedding_file):
-                embedding_file = os.path.join(cfg.data.data_root_dir,
+                embedding_file = os.path.join(self.data_root_dir,
                                               embedding_file)
             embedding_init = np.load(embedding_file)
             embedding.weight.data.copy_(torch.from_numpy(embedding_init))
@@ -81,7 +87,7 @@ class AttentionQuestionEmbedding(nn.Module):
                  vocab_size, num_layers, dropout, **kwargs):
         super(AttentionQuestionEmbedding, self).__init__()
 
-        self.text_out_dim = kwargs['hidden_dim'] * kwargs['conv2_out']
+        self.text_out_dim = hidden_dim * kwargs['conv2_out']
 
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         self.recurrent_unit = nn.LSTM(
@@ -118,9 +124,9 @@ class AttentionQuestionEmbedding(nn.Module):
         batch_size, _ = x.data.shape
         embedded_x = self.embedding(x)  # N * T * embedding_dim
 
-        # self.LSTM.flatten_parameters()
-        lstm_out, _ = self.LSTM(embedded_x)  # N * T * hidden_dim
-        lstm_drop = self.Dropout(lstm_out)  # N * T * hidden_dim
+        # self.recurrent_unit.flatten_parameters()
+        lstm_out, _ = self.recurrent_unit(embedded_x)  # N * T * hidden_dim
+        lstm_drop = self.dropout(lstm_out)  # N * T * hidden_dim
         lstm_reshape = lstm_drop.permute(0, 2, 1)  # N * hidden_dim * T
 
         qatt_conv1 = self.conv1(lstm_reshape)  # N x conv1_out x T

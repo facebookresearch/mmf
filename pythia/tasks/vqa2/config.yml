@@ -28,45 +28,46 @@ task_attributes:
 exp_name: baseline
 loss: logit_bce
 model_attributes:
-  classifier:
-    classifier_type: logit
-    params:
-      img_hidden_dim: 5000
-      txt_hidden_dim: 300
-  image_embeddings:
-  - modal_combine:
+  top_down_bottom_up:
+    classifier:
+      type: logit
+      params:
+        img_hidden_dim: 5000
+        text_hidden_dim: 300
+    image_embeddings:
+    - modal_combine:
+        type: gated_element_multiply
+        params:
+          dropout: 0
+          hidden_dim: 5000
+      normalization: softmax
+      transform:
+        type: linear
+        params:
+          out_dim: 1
+    image_feature_dim: 2048
+    image_feature_encodings:
+    - type: default
+      params: {}
+    modal_combine:
       type: gated_element_multiply
       params:
         dropout: 0
-        hidden_size: 5000
-    normalization: softmax
-    transform:
-      method: linear
+        hidden_dim: 5000
+    question_embeddings:
+    - type: attention
       params:
-        out_dim: 1
-  image_feat_dim: 2048
-  image_feature_encoding:
-  - method: default
-    params: {}
-  modal_combine:
-    method: gated_element_multiply
-    params:
-      dropout: 0
-      hidden_size: 5000
-  question_embedding:
-  - embedding_type: attention
-    params:
-      hidden_dim: 1024
-      num_layers: 1
-      conv1_out: 512
-      conv2_out: 2
-      dropout: 0
-      embedding_dim: 300
-      embedding_init_file: large_vqa2.0_glove.6B.300d.txt.npy
-      kernel_size: 1
-      padding: 0
-optimizer:
-  method: Adamax
+        hidden_dim: 1024
+        num_layers: 1
+        conv1_out: 512
+        conv2_out: 2
+        dropout: 0
+        embedding_dim: 300
+        embedding_init_file: large_vqa2.0_glove.6B.300d.txt.npy
+        kernel_size: 1
+        padding: 0
+optimizer_attributes:
+  type: Adamax
   params:
     eps: 1.0e-08
     lr: 0.01
@@ -74,6 +75,7 @@ optimizer:
 run: train+predict
 training_parameters:
   clip_norm_mode: all
+  clip_gradients: true
   lr_ratio: 0.1
   lr_steps:
   - 15000

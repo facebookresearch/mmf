@@ -7,8 +7,10 @@
 
 
 import os
+import torch
 
 from torch.utils.data import ConcatDataset
+from torch.autograd import Variable
 
 from .dataset import VQA2Dataset
 from pythia.tasks.task_base import BaseTask
@@ -40,6 +42,7 @@ class VQA2Task(BaseTask):
 
     def update_config_for_model(self, config):
         config['num_vocab_txt'] = self.dataset.vocab_dict.num_vocab
+        config['vocab_size'] = self.dataset.vocab_dict.num_vocab
         config['num_choices'] = self.dataset.answer_dict.num_vocab
         config['num_image_features'] = self.num_image_features
 
@@ -47,6 +50,52 @@ class VQA2Task(BaseTask):
         parser.add_argument_group("VQA2 task specific arguments")
         parser.add_argument('--data_root_dir', type=str, default="../data",
                             help="Root directory for data")
+
+    def prepare_batch(self, batch, use_cuda):
+        obs = batch['ans_scores']
+        obs = Variable(obs.type(torch.FloatTensor))
+
+        if use_cuda:
+            obs = obs.cuda()
+
+        input_text_seqs = batch['input_seq_batch']
+        input_image_features = batch['image_feat_batch']
+
+        input_text_seqs = Variable(input_text_seqs.type(torch.LongTensor))
+        input_image_features = Variable(input_image_features)
+
+        if use_cuda:
+            input_text_seqs = input_text_seqs.cuda()
+            input_image_features = input_image_features.cuda()
+
+        image_feature_variables = [input_image_features]
+        image_dim_variable = None
+
+        if 'image_dim' in batch:
+            image_dims = batch['image_dim']
+            image_dim_variable = Variable(image_dims, requires_grad=False,
+                                          volatile=False)
+
+            if use_cuda:
+                image_dim_variable = image_dim_variable.cuda()
+
+        # check if more than 1 image_feat_batch
+        i = 1
+        image_feat_key = "image_feat_batch_%s"
+        while image_feat_key % str(i) in batch:
+            tmp_image_variable = Variable(batch[image_feat_key % str(i)])
+            if use_cuda:
+                tmp_image_variable = tmp_image_variable.cuda()
+            image_feature_variables.append(tmp_image_variable)
+            i += 1
+
+        data = {
+            'input_question_variable': input_text_seqs,
+            'image_dim_variable': image_dim_variable,
+            'image_feature_variables': image_feature_variables
+        }
+
+        return data, obs
 
     def __len__(self):
         return self.dataset.__len__()

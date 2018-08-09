@@ -24,6 +24,9 @@ class AttentionLayer(nn.Module):
         self.module = TopDownAttention(modal_combine_layer, transform_layer,
                                        normalization)
 
+        if getattr(self.module, 'out_dim'):
+            self.out_dim = self.module.out_dim
+
     def forward(self, *args, **kwargs):
         return self.module(*args, **kwargs)
 
