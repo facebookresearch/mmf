@@ -177,7 +177,7 @@ def prepare_train_data_set(**data_config):
 def prepare_eval_data_set(**data_config):
     # TODO: Add enforce_slow_reader to task args
     enforce_slow_reader = data_config['enforce_slow_reader']
-    if enforce_slow_reader:
+    if enforce_slow_reader is True:
         data_config['image_fast_reader'] = False
 
     return prepare_data_set('imdb_file_val', 'image_feat_val', **data_config)

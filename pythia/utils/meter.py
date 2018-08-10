@@ -4,8 +4,10 @@ import torch
 class Meter:
     METRICS_TO_FUNC_MAPPING = {
         'accuracy': 'accuracy',
-        'vqa_accuracy': 'vqa_accuracy'
+        'vqa_accuracy': 'average_vqa_accuracy'
     }
+
+    ACCURACY_DECAY = 0.99
 
     def __init__(self, dataset_type, config, meter_types):
         self.dataset_type = dataset_type
@@ -24,9 +26,12 @@ class Meter:
         for i in range(len(self.meter_types)):
             meter_type = self.meter_types[i]
             func = getattr(self, self.METRICS_TO_FUNC_MAPPING[meter_type])
-            value = func(output, expected)
+            # Maintain value in the function itself.
+            # If you need to calculate average, use iteration_count to update
+            # the value
+            value = func(self.meter_values[i], output, expected)
             values.append(value)
-            self.avg_meter_values[i] += value
+            self.meter_values[i] = value
 
         return values
 
@@ -40,7 +45,7 @@ class Meter:
         y = x1 / x1_sum
         return y
 
-    def accuracy(self, output, expected):
+    def accuracy(self, current, output, expected):
         if self.config['use_cuda']:
             correct = (expected == output.squeeze()).data.cpu().numpy().sum()
         else:
@@ -50,23 +55,28 @@ class Meter:
 
         return correct / total
 
-    def vqa_accuracy(self, output, expected):
+    def average_vqa_accuracy(self, current, output, expected):
+        expected_data = expected.data
         output = self.masked_unk_softmax(output, 1, 0)
         output = torch.max(output, 1)[1].data  # argmax
-        one_hots = torch.zeros(*expected.size())
+        one_hots = torch.zeros(*expected_data.size())
         one_hots = one_hots.cuda() if self.config['use_cuda'] else one_hots
         one_hots.scatter_(1, output.view(-1, 1), 1)
-        scores = (one_hots * expected)
-        return torch.sum(scores)
+        scores = (one_hots * expected_data)
 
-    def get_averages(self):
-        return self.avg_meter_values / self.iteration_count
+        accuracy = torch.sum(scores) / expected_data.size(0)
+        current += (1 - self.ACCURACY_DECAY) * (accuracy - current)
+
+        return current
+
+    def get_values(self):
+        return self.meter_values
 
     def reset(self):
-        self.avg_meter_values = []
+        self.meter_values = []
 
         for _ in self.meter_types:
-            self.avg_meter_values.append(0)
+            self.meter_values.append(0)
 
         self.iteration_count = 0
 
@@ -75,12 +85,13 @@ class Meter:
 
         for i in range(len(self.meter_types)):
             meter_type = self.meter_types[i]
-            avg_value = self.avg_meter_values[i] / self.iteration_count
-            log_string.append("Average %s: %.4f" % (meter_type, avg_value))
+            value = self.meter_values[i]
+            log_string.append("Average %s: %.4f" % (meter_type, value))
 
+        max_iterations = self.config['training_parameters']['max_iterations']
         iteration = "%s: %s/%s: " % (self.dataset_type,
                                      self.iteration_count,
-                                     self.config['max_iterations'])
+                                     max_iterations)
 
         # If it is not train, then no sense of iteration count
         if self.dataset_type != 'train':

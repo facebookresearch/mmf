@@ -178,6 +178,7 @@ class Trainer:
                                                     self.dev_meter,
                                                     avg_loss,
                                                     current_iteration)
+
                     self.checkpoint.save()
 
         avg_test_loss = self.evaluate(self.test_loader, self.test_meter)
@@ -201,7 +202,7 @@ class Trainer:
             meter(output, y)
             loss = self.criterion(output, y)
             if loss is not None:
-                total_loss += loss.data[0] * len(data)
+                total_loss += loss.data[0] * y.size(0)
 
         self.model.train()
         return total_loss / total_samples

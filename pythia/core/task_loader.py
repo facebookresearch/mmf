@@ -107,8 +107,7 @@ class TaskLoader:
         scalars = {}
         for i in range(len(meter.meter_types)):
             meter_type = meter.meter_types[i]
-            value = meter.avg_meter_values[i]
-            value /= meter.iteration_count
+            value = meter.meter_values[i]
 
             key = "%s_%s" % (dataset_type, meter_type)
             scalars[key] = value

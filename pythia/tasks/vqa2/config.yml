@@ -5,7 +5,7 @@ task_attributes:
   image_depth_first: false
   image_fast_reader: false
   image_feat_test:
-  - demo/features/
+  - rcnn_10_100/vqa/test2015
   image_feat_train:
   - rcnn_10_100/vqa/train2014
   - rcnn_10_100/vqa/val2014
@@ -13,10 +13,10 @@ task_attributes:
   - rcnn_10_100/vqa/val2014
   image_max_loc: 100
   imdb_file_test:
-  - demo/imdb/imdb_demo.npy
+  - imdb/imdb_test2015.npy
   imdb_file_train:
   - imdb/imdb_train2014.npy
-  - imdb/imdb_val2014.npy
+  - imdb/imdb_val2train2014.npy
   imdb_file_val:
   - imdb/imdb_minival2014.npy
   num_workers: 5
