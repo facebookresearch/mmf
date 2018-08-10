@@ -1,6 +1,10 @@
+import torch
+
+
 class Meter:
     METRICS_TO_FUNC_MAPPING = {
-        'accuracy': 'accuracy'
+        'accuracy': 'accuracy',
+        'vqa_accuracy': 'vqa_accuracy'
     }
 
     def __init__(self, dataset_type, config, meter_types):
@@ -29,8 +33,14 @@ class Meter:
     def get_dataset_type(self):
         return self.dataset_type
 
+    def masked_unk_softmax(self, x, dim, mask_idx):
+        x1 = torch.nn.functional.softmax(x, dim=dim)
+        x1[:, mask_idx] = 0
+        x1_sum = torch.sum(x1, dim=1, keepdim=True)
+        y = x1 / x1_sum
+        return y
+
     def accuracy(self, output, expected):
-        import pdb; pdb.set_trace()
         if self.config['use_cuda']:
             correct = (expected == output.squeeze()).data.cpu().numpy().sum()
         else:
@@ -39,6 +49,15 @@ class Meter:
         total = len(expected)
 
         return correct / total
+
+    def vqa_accuracy(self, output, expected):
+        output = self.masked_unk_softmax(output, 1, 0)
+        output = torch.max(output, 1)[1].data  # argmax
+        one_hots = torch.zeros(*expected.size())
+        one_hots = one_hots.cuda() if self.config['use_cuda'] else one_hots
+        one_hots.scatter_(1, output.view(-1, 1), 1)
+        scores = (one_hots * expected)
+        return torch.sum(scores)
 
     def get_averages(self):
         return self.avg_meter_values / self.iteration_count
@@ -51,8 +70,8 @@ class Meter:
 
         self.iteration_count = 0
 
-    def get_log_string(self):
-        log_string = []
+    def get_log_string(self, loss):
+        log_string = ["Average loss: %.4f" % loss]
 
         for i in range(len(self.meter_types)):
             meter_type = self.meter_types[i]
@@ -62,4 +81,8 @@ class Meter:
         iteration = "%s: %s/%s: " % (self.dataset_type,
                                      self.iteration_count,
                                      self.config['max_iterations'])
+
+        # If it is not train, then no sense of iteration count
+        if self.dataset_type != 'train':
+            iteration = self.dataset_type + ": "
         return iteration + ', '.join(log_string)

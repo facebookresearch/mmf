@@ -101,7 +101,7 @@ class TaskLoader:
         dataset_type = meter.get_dataset_type()
 
         if should_print:
-            log_string = meter.get_log_string()
+            log_string = meter.get_log_string(loss)
             writer.write(log_string)
 
         scalars = {}
@@ -112,7 +112,6 @@ class TaskLoader:
 
             key = "%s_%s" % (dataset_type, meter_type)
             scalars[key] = value
-
         writer.add_scalars(scalars, iteration)
 
     def prepare_batch(self, dataset_type, batch):

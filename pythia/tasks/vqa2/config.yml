@@ -24,7 +24,7 @@ task_attributes:
   vocab_answer_file: answers_vqa.txt
   vocab_question_file: large_vocabulary_vqa.txt
   enforce_slow_reader: false
-  metrics: accuracy
+  metrics: vqa_accuracy
 exp_name: baseline
 loss: logit_bce
 model_attributes:
