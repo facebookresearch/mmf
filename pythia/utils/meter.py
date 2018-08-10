@@ -17,7 +17,7 @@ class Meter:
         values = []
         self.iteration_count += 1
 
-        for i in range(self.meter_types):
+        for i in range(len(self.meter_types)):
             meter_type = self.meter_types[i]
             func = getattr(self, self.METRICS_TO_FUNC_MAPPING[meter_type])
             value = func(output, expected)
@@ -30,6 +30,7 @@ class Meter:
         return self.dataset_type
 
     def accuracy(self, output, expected):
+        import pdb; pdb.set_trace()
         if self.config['use_cuda']:
             correct = (expected == output.squeeze()).data.cpu().numpy().sum()
         else:
@@ -53,7 +54,7 @@ class Meter:
     def get_log_string(self):
         log_string = []
 
-        for i in range(self.meter_types):
+        for i in range(len(self.meter_types)):
             meter_type = self.meter_types[i]
             avg_value = self.avg_meter_values[i] / self.iteration_count
             log_string.append("Average %s: %.4f" % (meter_type, avg_value))

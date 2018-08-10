@@ -22,14 +22,14 @@ def clip_gradients(model, i_iter, writer, config):
             norm = nn.utils.clip_grad_norm(model.parameters(),
                                            max_grad_l2_norm)
 
-            writer.add_scalar('grad_norm', norm, i_iter)
+            writer.add_scalars({'grad_norm': norm}, i_iter)
 
         elif clip_norm_mode == 'question':
             question_embedding = model.module.question_embedding_module
             norm = nn.utils.clip_grad_norm(question_embedding.parameters(),
                                            max_grad_l2_norm)
 
-            writer.add_scalar('question_grad_norm', norm, i_iter)
+            writer.add_scalars({'question_grad_norm': norm}, i_iter)
         else:
             raise NotImplementedError("Clip norm mode %s not implemented"
                                       % clip_norm_mode)

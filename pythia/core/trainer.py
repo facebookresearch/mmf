@@ -52,6 +52,10 @@ class Trainer:
         self.dev_loader = self.task_loader.dev_loader
         self.test_loader = self.task_loader.test_loader
 
+        self.train_meter = self.task_loader.train_meter
+        self.dev_meter = self.task_loader.dev_meter
+        self.test_meter = self.task_loader.test_meter
+
     def load_model(self):
         attributes = self.config['model_attributes'][self.config['model']]
         attributes['model'] = self.config['model']
@@ -80,9 +84,6 @@ class Trainer:
         rest_optimizer_params = self.config['optimizer_attributes']['params']
         self.optimizer = optimizer_class(parameters, **rest_optimizer_params)
 
-        if self.config['use_cuda']:
-            self.optimizer = self.optimizer.cuda()
-
     def load_extras(self):
         self.criterion = Loss(self.config['loss'])
 
@@ -101,6 +102,8 @@ class Trainer:
             torch.cuda.manual_seed(self.config['seed'])
 
     def train(self):
+        self.configuration.pretty_print()
+
         training_parameters = self.config['training_parameters']
         log_interval = training_parameters['log_interval']
         snapshot_interval = training_parameters['snapshot_interval']
@@ -148,38 +151,33 @@ class Trainer:
                                    self.config)
 
                 self.optimizer.step()
-                self.train_loader.train_meter(output, y)
+                self.train_meter(output, y)
 
-                self.task_loader.report_metric(self.writer,
-                                               self.train_meter,
-                                               loss.data[0],
-                                               current_iteration,
-                                               should_print=False)
+                self.task_loader.report_metrics(self.writer,
+                                                self.train_meter,
+                                                loss.data[0],
+                                                current_iteration,
+                                                should_print=False)
 
-                if current_iteration % log_interval:
+                should_print = current_iteration % log_interval == 0
+                # Don't print train metrics if it is not log interval
+                # so as to escape clutter
+                self.task_loader.report_metrics(self.writer,
+                                                self.train_meter,
+                                                loss.data[0],
+                                                current_iteration,
+                                                should_print=should_print)
+
+                if current_iteration % snapshot_interval == 0:
+                    # TODO: Implement early stopping
                     # TODO: Do validation check here
-                    avg_loss = self.evaluate(self.dev_loader, self.dev_meter)
+                    avg_loss = self.evaluate(self.dev_loader,
+                                             self.dev_meter)
 
                     self.task_loader.report_metrics(self.writer,
                                                     self.dev_meter,
                                                     avg_loss,
                                                     current_iteration)
-
-                    self.task_loader.report_metric(self.writer,
-                                                   self.train_meter,
-                                                   loss.data[0],
-                                                   current_iteration)
-                else:
-                    # Don't print train metrics if it is not log interval
-                    # so as to escape clutter
-                    self.task_loader.report_metric(self.writer,
-                                                   self.train_meter,
-                                                   loss.data[0],
-                                                   current_iteration,
-                                                   should_print=False)
-
-                if current_iteration % snapshot_interval:
-                    # TODO: Implement early stopping
                     self.checkpoint.save()
 
         avg_test_loss = self.evaluate(self.test_loader, self.test_meter)
@@ -196,12 +194,9 @@ class Trainer:
         for batch in loader:
             data, y = self.task_loader.prepare_batch(loader.dataset_type,
                                                      batch)
-            total_samples += len(data)
+            total_samples += y.size(0)
 
-            if not isinstance(data, list):
-                data = [data]
-
-            output = self.model(*data)
+            output = self.model(**data)
 
             meter(output, y)
             loss = self.criterion(output, y)

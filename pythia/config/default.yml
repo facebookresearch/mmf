@@ -16,4 +16,4 @@ training_parameters:
   log_interval: 100
   snapshot_interval: 1000
   clip_gradients: false
-use_cuda: false
+use_cuda: true

@@ -3,6 +3,7 @@ import sys
 import random
 import torch
 import os
+import json
 
 
 class Configuration:
@@ -56,6 +57,9 @@ class Configuration:
 
         return dictionary
 
+    def pretty_print(self):
+        print(json.dumps(self.config, indent=4, sort_keys=True))
+
     def _get_default_config_path(self):
         directory = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(directory, '..', 'config', 'default.yml')
@@ -70,7 +74,7 @@ class Configuration:
                 lr = self.config['learning_rate']
                 self.config['optimizer']['params']['lr'] = lr
 
-        if self.config['use_cuda'] and not torch.cuda.is_available():
+        if not torch.cuda.is_available() or self.config['no_cuda'] is True:
             print("[Warning] CUDA option used but cuda is not present"
                   ". Switching to CPU version")
             self.config['use_cuda'] = False

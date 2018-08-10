@@ -21,6 +21,7 @@ class VQAMultiModalModel(nn.Module):
         self._init_image_embeddings()
         self._init_combine_layer()
         self._init_classifier()
+        self._init_extras()
 
     def _init_question_embedding(self):
         question_embeddings = []
@@ -100,6 +101,9 @@ class VQAMultiModalModel(nn.Module):
             out_dim=self.num_choices,
             **self.config['classifier']['params']
         )
+
+    def _init_extras(self):
+        self.inter_model = None
 
     def get_optimizer_parameters(self, config):
         params = [{'params': self.img_embeddings_list.parameters()},

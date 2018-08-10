@@ -105,7 +105,7 @@ class TaskLoader:
             writer.write(log_string)
 
         scalars = {}
-        for i in range(meter.meter_types):
+        for i in range(len(meter.meter_types)):
             meter_type = meter.meter_types[i]
             value = meter.avg_meter_values[i]
             value /= meter.iteration_count
@@ -113,7 +113,7 @@ class TaskLoader:
             key = "%s_%s" % (dataset_type, meter_type)
             scalars[key] = value
 
-        writer.add_scalars(scalars)
+        writer.add_scalars(scalars, iteration)
 
     def prepare_batch(self, dataset_type, batch):
         mapping = {

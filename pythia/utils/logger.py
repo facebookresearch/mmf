@@ -13,7 +13,7 @@ class Logger:
         self.config = config
 
         self.log_filename = ckpt_name_from_core_args(config) + '_'
-        time_format = "%Y-%m-%dT%H:%M:%"
+        time_format = "%Y-%m-%dT%H:%M:%S"
         self.log_filename += self.timer.get_time_hhmmss(None, time_format)
         self.log_filename += ".log"
 

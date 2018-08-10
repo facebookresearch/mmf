@@ -45,13 +45,13 @@ class Flags:
         self.parser.add_argument("--force_restart", action='store_true',
                                  help="flag to force clean previous"
                                  " result and restart training")
-        self.parser.add_argument("--log_interval", type=int, default=100,
+        self.parser.add_argument("--log_interval", type=int, default=None,
                                  help="Number of iterations after which"
                                  " we should log validation results")
-        self.parser.add_argument("--snapshot_interval", type=int, default=100,
+        self.parser.add_argument("--snapshot_interval", type=int, default=None,
                                  help="Number of iterations after which "
                                  " we should save snapshots")
-        self.parser.add_argument("--max_iterations", type=int, default=100,
+        self.parser.add_argument("--max_iterations", type=int, default=None,
                                  help="Number of iterations after which "
                                  " we should stop training")
         self.parser.add_argument("--max_epochs", type=int, default=None,
@@ -81,6 +81,9 @@ class Flags:
         self.parser.add_argument("--clip_gradients", type=bool,
                                  default=None,
                                  help="Use when you want to clip gradients")
+        self.parser.add_argument("-cpu", "--no_cuda", action="store_true",
+                                 default=False, help="Use when you don't want"
+                                 " to use CUDA")
 
     def update_task_args(self):
         args = sys.argv
