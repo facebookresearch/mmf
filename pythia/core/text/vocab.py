@@ -7,37 +7,33 @@ from torchtext import vocab
 
 
 class Vocab:
-    UNK_TOKEN = '<unk>'
+    PAD_TOKEN = '<pad>'
     SOS_TOKEN = '<s>'
     EOS_TOKEN = '</s>'
-    PAD_TOKEN = '<pad>'
+    UNK_TOKEN = '<unk>'
 
-    UNK_INDEX = 0
+    PAD_INDEX = 0
     SOS_INDEX = 1
     EOS_INDEX = 2
-    PAD_INDEX = 3
+    UNK_INDEX = 3
 
-    def __init__(self, vocab_path, use_pad=False):
+    def __init__(self, vocab_path):
         if not os.path.exists(vocab_path):
             print("Vocab not found at " + vocab_path)
             sys.exit(1)
 
-        self.itos = [''] * 3
+        self.itos = [''] * 4
+        self.itos[self.PAD_INDEX] = self.PAD_TOKEN
         self.itos[self.UNK_INDEX] = self.UNK_TOKEN
         self.itos[self.SOS_INDEX] = self.SOS_TOKEN
         self.itos[self.EOS_INDEX] = self.EOS_TOKEN
-
-        if use_pad:
-            self.itos.append(self.PAD_INDEX)
 
         # Return unk index by default
         self.stoi = defaultdict(lambda: self.UNK_INDEX)
         self.stoi[self.SOS_TOKEN] = self.SOS_INDEX
         self.stoi[self.EOS_TOKEN] = self.EOS_INDEX
         self.stoi[self.UNK_TOKEN] = self.UNK_INDEX
-
-        if use_pad:
-            self.stoi[self.PAD_INDEX] = self.PAD_INDEX
+        self.stoi[self.PAD_INDEX] = self.PAD_INDEX
 
         index = len(self.itos)
 
@@ -58,10 +54,10 @@ class Vocab:
 
 
 class GloVeIntersectedVocab(Vocab):
-    def __init__(self, args, use_pad=True):
-        super(GloVeIntersectedVocab, self).__init__(args.vocab_file, use_pad)
-        name = args.embedding.split('.')[1]
-        dim = args.embedding.split('.')[2][:-1]
+    def __init__(self, vocab_file, embedding_name):
+        super(GloVeIntersectedVocab, self).__init__(vocab_file)
+        name = embedding_name.split('.')[1]
+        dim = embedding_name.split('.')[2][:-1]
         glove = vocab.GloVe(name, int(dim))
 
         self.vectors = torch.FloatTensor(self.get_size(),
@@ -76,6 +72,6 @@ class GloVeIntersectedVocab(Vocab):
             glove_index = glove.stoi.get(word, None)
 
             if glove_index is None:
-                self.vectors[i] = self.vectors[self.UNK_INDEX].copy()
+                self.vectors[i] = self.vectors[self.UNK_INDEX].clone()
             else:
                 self.vectors[i] = glove.vectors[glove_index]

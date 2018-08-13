@@ -81,8 +81,11 @@ class TaskLoader:
         self.use_cuda = self.config['use_cuda']
 
     def make_meters(self):
-        task_metrics = self.config['task_attributes']['metrics']
-        task_metrics = task_metrics.split(',')
+        if 'metrics' in self.config['task_attributes']:
+            task_metrics = self.config['task_attributes']['metrics']
+            task_metrics = task_metrics.split(',')
+        else:
+            task_metrics = []
 
         self.train_meter = Meter('train', self.config, task_metrics)
         self.dev_meter = Meter('dev', self.config, task_metrics)
