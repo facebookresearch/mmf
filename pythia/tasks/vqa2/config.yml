@@ -3,7 +3,7 @@ task_attributes:
   data_root_dir: ../data/
   dataset: vqa_2.0
   image_depth_first: false
-  image_fast_reader: false
+  image_fast_reader: true
   image_feat_test:
   - rcnn_10_100/vqa/test2015
   image_feat_train:
@@ -22,7 +22,7 @@ task_attributes:
   num_workers: 5
   question_max_len: 14
   vocab_answer_file: answers_vqa.txt
-  vocab_question_file: large_vocabulary_vqa.txt
+  vocab_question_file: vocabulary_vqa.txt
   enforce_slow_reader: false
   metrics: vqa_accuracy
 exp_name: baseline

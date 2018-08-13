@@ -46,8 +46,8 @@ class IMDBBuilder:
         with open(visdial_json_file, 'r') as f:
             data = json.load(f)['data']
 
-        final_questions = self.get_strings_and_tokens(data['questions'])
-        final_answers = self.get_strings_and_tokens(data['answers'])
+        final_questions = self.get_tokens(data['questions'])
+        final_answers = self.get_tokens(data['answers'])
         dialogs = data['dialogs']
 
         dialogs_with_features = self.parse_dialogs(dialogs)
@@ -64,12 +64,13 @@ class IMDBBuilder:
         with open(self.args.out_file, 'w') as f:
             json.dump(imdb, f)
 
-    def get_strings_and_tokens(self, sentences):
-        final_sentences = {'strings': [], 'tokens': []}
+    def get_tokens(self, sentences):
+        if not isinstance(sentences, list):
+            sentences = [sentences]
+        final_sentences = []
         for idx, sentence in enumerate(sentences):
             tokens = text_tokenize(sentence)
-            final_sentences['strings'].append(sentence)
-            final_sentences['tokens'].append(tokens)
+            final_sentences.append(tokens)
 
         return final_sentences
 
@@ -80,6 +81,7 @@ class IMDBBuilder:
             image_id = dialog['image_id']
             image_feature_path = id2path[image_id]
             dialog['image_feature_path'] = image_feature_path
+            dialog['caption'] = self.get_tokens(dialog['caption'])
 
         return dialogs
 

@@ -19,6 +19,8 @@ class ExtractVisdialVocabulary(ExtractVocabulary):
                 # Add 'answers' from visdial
                 text += f_json['data']['answers']
 
+                for dialog in f_json['data']['dialogs']:
+                    text += [dialog['caption']]
         return text
 
 

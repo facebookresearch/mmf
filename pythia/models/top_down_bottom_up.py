@@ -11,8 +11,6 @@ class VQAMultiModalModel(nn.Module):
     def __init__(self, config):
         super(VQAMultiModalModel, self).__init__()
         self.config = config
-        self.num_choices = self.config['num_choices']
-
         self._init_layers()
 
     def _init_layers(self):
@@ -94,11 +92,12 @@ class VQAMultiModalModel(nn.Module):
 
     def _init_classifier(self):
         combined_embedding_dim = self.multi_modal_combine_layer.out_dim
+        num_choices = self.config['num_choices']
 
         self.classifier = ClassifierLayer(
             self.config['classifier']['type'],
             in_dim=combined_embedding_dim,
-            out_dim=self.num_choices,
+            out_dim=num_choices,
             **self.config['classifier']['params']
         )
 

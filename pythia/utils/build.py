@@ -3,7 +3,8 @@ import importlib
 MODEL_KEY_TO_CLASS_NAME_MAPPING = {
     'top_down_bottom_up_modified': 'VQAMultiModalModel',
     # TODO: top_down_bottom_up should be different
-    'top_down_bottom_up': 'VQAMultiModalModel'
+    'top_down_bottom_up': 'VQAMultiModalModel',
+    'visdial_top_down_bottom_up': 'VisDialMultiModalModel'
 }
 
 
