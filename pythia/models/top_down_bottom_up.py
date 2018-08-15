@@ -11,9 +11,8 @@ class VQAMultiModalModel(nn.Module):
     def __init__(self, config):
         super(VQAMultiModalModel, self).__init__()
         self.config = config
-        self._init_layers()
 
-    def _init_layers(self):
+    def build(self):
         self._init_question_embedding()
         self._init_image_encoders()
         self._init_image_embeddings()
@@ -31,15 +30,18 @@ class VQAMultiModalModel(nn.Module):
             embedding_type = question_embedding['type']
             embedding_kwargs = question_embedding['params']
 
-            # Add data_root_dir to kwargs
-            embedding_kwargs['data_root_dir'] = self.config['data_root_dir']
-            embedding_kwargs['vocab_size'] = self.config['vocab_size']
+            self._update_question_embedding_args(embedding_kwargs)
 
             embedding = QuestionEmbedding(embedding_type, **embedding_kwargs)
             question_embeddings.append(embedding)
             self.question_embeddings_out_dim += embedding.text_out_dim
 
         self.question_embeddings = nn.ModuleList(question_embeddings)
+
+    def _update_question_embedding_args(self, args):
+        # Add data_root_dir to kwargs
+        args['data_root_dir'] = self.config['data_root_dir']
+        args['vocab_size'] = self.config['vocab_size']
 
     def _init_image_encoders(self):
         img_feat_encoders = []
@@ -49,6 +51,7 @@ class VQAMultiModalModel(nn.Module):
         for img_feat_encoder in img_feat_encoders_list_config:
             encoder_type = img_feat_encoder['type']
             encoder_kwargs = img_feat_encoder['params']
+            encoder_kwargs['data_root_dir'] = self.config['data_root_dir']
             img_feat_model = ImageEncoder(encoder_type, self.img_feat_dim,
                                           **encoder_kwargs)
 

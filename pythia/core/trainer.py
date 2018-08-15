@@ -1,5 +1,6 @@
 import math
 import torch
+import gc
 
 from torch import optim
 
@@ -44,6 +45,7 @@ class Trainer:
 
         # Update with args once again as they are the most important
         self.configuration.update_with_args(self.args)
+        self.configuration.pretty_print()
 
         self.task_loader.load_dataset()
         self.task_loader.make_dataloaders()
@@ -65,6 +67,7 @@ class Trainer:
 
         self.task_loader.update_config_for_model(attributes)
         self.model = build_model(attributes)
+        self.task_loader.clean_config(attributes)
 
         if self.config['use_cuda']:
             self.model = self.model.cuda()
@@ -102,8 +105,6 @@ class Trainer:
             torch.cuda.manual_seed(self.config['seed'])
 
     def train(self):
-        self.configuration.pretty_print()
-
         training_parameters = self.config['training_parameters']
         log_interval = training_parameters['log_interval']
         snapshot_interval = training_parameters['snapshot_interval']
@@ -155,7 +156,7 @@ class Trainer:
 
                 self.task_loader.report_metrics(self.writer,
                                                 self.train_meter,
-                                                loss.data[0],
+                                                loss.data.item(),
                                                 current_iteration,
                                                 should_print=False)
 
@@ -164,7 +165,7 @@ class Trainer:
                 # so as to escape clutter
                 self.task_loader.report_metrics(self.writer,
                                                 self.train_meter,
-                                                loss.data[0],
+                                                loss.data.item(),
                                                 current_iteration,
                                                 should_print=should_print)
 
@@ -180,6 +181,7 @@ class Trainer:
                                                     current_iteration)
 
                     self.checkpoint.save()
+                gc.collect()
 
         avg_test_loss = self.evaluate(self.test_loader, self.test_meter)
         self.task_loader.report_metrics(self.writer, self.test_meter,
@@ -202,7 +204,7 @@ class Trainer:
             meter(output, y)
             loss = self.criterion(output, y)
             if loss is not None:
-                total_loss += loss.data[0] * y.size(0)
+                total_loss += loss.data.item() * y.size(0)
 
         self.model.train()
         return total_loss / total_samples

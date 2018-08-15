@@ -13,7 +13,7 @@ class QuestionEmbedding(nn.Module):
     def __init__(self, emb_type, **kwargs):
         super(QuestionEmbedding, self).__init__()
         self.data_root_dir = kwargs.get('data_root_dir', None)
-
+        self.embedding_dim = kwargs.get('embedding_dim', None)
         # Update kwargs here
         if emb_type == "default":
             params = {
@@ -25,6 +25,7 @@ class QuestionEmbedding(nn.Module):
             }
             embedding = DefaultQuestionEmbedding(**params)
             self.init_embedding(embedding.embedding,
+                                kwargs.get('embedding_vectors', None),
                                 kwargs.get('embedding_init', None),
                                 kwargs.get('embedding_init_file', None))
             self.module = embedding
@@ -32,6 +33,7 @@ class QuestionEmbedding(nn.Module):
         elif emb_type == "attention":
             embedding = AttentionQuestionEmbedding(**kwargs)
             self.init_embedding(embedding.embedding,
+                                kwargs.get('embedding_vectors', None),
                                 kwargs.get('embedding_init', None),
                                 kwargs.get('embedding_init_file', None))
             self.module = embedding
@@ -41,10 +43,17 @@ class QuestionEmbedding(nn.Module):
 
         self.text_out_dim = self.module.text_out_dim
 
-    def init_embedding(self, embedding, embedding_init, embedding_init_file):
+    def init_embedding(self, embedding, embedding_vectors, embedding_init,
+                       embedding_init_file):
+        if embedding_vectors is not None:
+            embedding.weight.data.copy_(embedding_vectors)
+            return embedding
+
         if embedding_init is not None:
             weights = torch.from_numpy(embedding_init)
-            embedding.weights.data.copy_(weights)
+            embedding.weight.data.copy_(weights)
+
+            return embedding
 
         if embedding_init_file is not None and self.data_root_dir is not None:
             embedding_file = embedding_init_file
@@ -54,7 +63,7 @@ class QuestionEmbedding(nn.Module):
             embedding_init = np.load(embedding_file)
             embedding.weight.data.copy_(torch.from_numpy(embedding_init))
 
-        return embedding
+            return embedding
 
     def forward(self, *args, **kwargs):
         return self.module(*args, **kwargs)
@@ -124,6 +133,7 @@ class AttentionQuestionEmbedding(nn.Module):
         batch_size, _ = x.data.shape
         embedded_x = self.embedding(x)  # N * T * embedding_dim
 
+        self.recurrent_unit.flatten_parameters()
         # self.recurrent_unit.flatten_parameters()
         lstm_out, _ = self.recurrent_unit(embedded_x)  # N * T * hidden_dim
         lstm_drop = self.dropout(lstm_out)  # N * T * hidden_dim

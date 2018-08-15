@@ -20,8 +20,8 @@ class GatedTanh(nn.Module):
         self.gate_fc = nn.Linear(in_dim, out_dim)
 
     def forward(self, x):
-        y_tilda = nn.functional.tanh(self.fc(x))
-        gated = nn.functional.sigmoid(self.gate_fc(x))
+        y_tilda = torch.tanh(self.fc(x))
+        gated = torch.sigmoid(self.gate_fc(x))
 
         # Element wise multiplication
         y = y_tilda * gated
@@ -236,7 +236,6 @@ class GatedElementMultiply(nn.Module):
     def forward(self, image_feat, question_embedding):
         image_fa = self.fa_image(image_feat)
         question_fa = self.fa_txt(question_embedding)
-
         if len(image_feat.data.shape) == 3:
             num_location = image_feat.data.size(1)
             question_fa_expand = torch.unsqueeze(

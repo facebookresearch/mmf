@@ -38,10 +38,9 @@ class LogitBinaryCrossEntropy(nn.Module):
     def forward(self, pred_score, target_score, weights=None):
         loss = F.binary_cross_entropy_with_logits(pred_score,
                                                   target_score,
-                                                  size_average=True)
-        loss = loss * target_score.size(1)
-        return loss
+                                                  reduction='elementwise_mean')
 
+        return loss * target_score.size(1)
 
 def kl_div(log_x, y):
     y_is_0 = torch.eq(y.data, 0)

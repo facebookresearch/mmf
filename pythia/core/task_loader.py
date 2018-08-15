@@ -83,7 +83,8 @@ class TaskLoader:
     def make_meters(self):
         if 'metrics' in self.config['task_attributes']:
             task_metrics = self.config['task_attributes']['metrics']
-            task_metrics = task_metrics.split(',')
+            if isinstance(task_metrics, str):
+                task_metrics = task_metrics.split(',')
         else:
             task_metrics = []
 
@@ -95,6 +96,11 @@ class TaskLoader:
         self.train_dataset.update_config_for_model(config)
         self.dev_dataset.update_config_for_model(config)
         self.test_dataset.update_config_for_model(config)
+
+    def clean_config(self, config):
+        self.train_dataset.clean_config(config)
+        self.dev_dataset.clean_config(config)
+        self.test_dataset.clean_config(config)
 
     def report_metrics(self, writer, meter, loss,
                        iteration, should_print=True):

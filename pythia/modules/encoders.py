@@ -15,7 +15,7 @@ class ImageEncoder(nn.Module):
             self.module.in_dim = in_dim
             self.module.out_dim = in_dim
         elif encoder_type == "finetune_faster_rcnn_fpn_fc7":
-            self.module = FinetuneFasterRcnnFpnFc7(in_dim, kwargs)
+            self.module = FinetuneFasterRcnnFpnFc7(in_dim, **kwargs)
         else:
             raise NotImplementedError("Unknown Image Encoder: %s"
                                       % encoder_type)

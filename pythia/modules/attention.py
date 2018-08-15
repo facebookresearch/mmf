@@ -146,7 +146,7 @@ class TopDownAttention(nn.Module):
                 masked_attention = attention
 
         elif self.normalization.lower() == 'sigmoid':
-            attention = nn.functional.sigmoid(raw_attn)
+            attention = torch.sigmoid(raw_attn)
             masked_attention = attention
             if image_locs is not None:
                 masked_attention = self._mask_attentions(attention, image_locs)

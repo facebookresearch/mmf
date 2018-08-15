@@ -39,3 +39,10 @@ class BaseTask(Dataset):
     def init_args(self, parser):
         raise NotImplementedError("This task doesn't implement args "
                                   " initialization method")
+
+    def clean_config(self, config):
+        '''
+        Use this in case you want to clean the config you updated earlier
+        in update_config_for_model
+        '''
+        return
