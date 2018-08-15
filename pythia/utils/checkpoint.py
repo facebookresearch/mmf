@@ -33,7 +33,7 @@ class Checkpoint:
 
         if self.config['resume'] is True \
            and os.path.exists(self.ckpt_filepath):
-            self._load(self.config['resume'])
+            self._load(self.ckpt_filepath)
 
     def _load(self, file):
         self.trainer.writer.write("Loading checkpoint")
@@ -43,7 +43,7 @@ class Checkpoint:
         self.trainer.optimizer.load_state_dict(ckpt['optimizer'])
 
     def _torch_load(self, file):
-        if self.config['use_gpu']:
+        if self.config['use_cuda']:
             return torch.load(file)
         else:
             return torch.load(file, map_location=lambda storage, loc: storage)

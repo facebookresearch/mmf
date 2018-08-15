@@ -19,8 +19,8 @@ def clip_gradients(model, i_iter, writer, config):
 
     if max_grad_l2_norm is not None:
         if clip_norm_mode == 'all':
-            norm = nn.utils.clip_grad_norm(model.parameters(),
-                                           max_grad_l2_norm)
+            norm = nn.utils.clip_grad_norm_(model.parameters(),
+                                            max_grad_l2_norm)
 
             writer.add_scalars({'grad_norm': norm}, i_iter)
 

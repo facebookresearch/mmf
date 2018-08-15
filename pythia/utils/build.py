@@ -13,7 +13,10 @@ def build_model(config):
     models_module = importlib.import_module(models_module_key)
 
     model_name = MODEL_KEY_TO_CLASS_NAME_MAPPING[config['model']]
-    print(model_name)
     model_class = getattr(models_module, model_name)
+    model = model_class(config)
 
-    return model_class(config)
+    if hasattr(model, 'build'):
+        model.build()
+
+    return model

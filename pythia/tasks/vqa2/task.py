@@ -21,6 +21,7 @@ class VQA2Task(BaseTask):
         super(VQA2Task, self).__init__('VQA2', dataset_type)
 
     def load(self, **opts):
+        self.data_root_dir = opts['data_root_dir']
         image_features = opts['image_feat_train'][0].split(',')
         self.num_image_features = len(image_features)
 
@@ -45,6 +46,7 @@ class VQA2Task(BaseTask):
         config['vocab_size'] = self.dataset.vocab_dict.num_vocab
         config['num_choices'] = self.dataset.answer_dict.num_vocab
         config['num_image_features'] = self.num_image_features
+        config['data_root_dir'] = self.data_root_dir
 
     def init_args(self, parser):
         parser.add_argument_group("VQA2 task specific arguments")

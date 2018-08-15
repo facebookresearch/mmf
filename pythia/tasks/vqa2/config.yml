@@ -3,14 +3,14 @@ task_attributes:
   data_root_dir: ../data/
   dataset: vqa_2.0
   image_depth_first: false
-  image_fast_reader: true
+  image_fast_reader: false
   image_feat_test:
-  - rcnn_10_100/vqa/test2015
+  - detec/detectron/fc6/vqa/test2015
   image_feat_train:
-  - rcnn_10_100/vqa/train2014
-  - rcnn_10_100/vqa/val2014
+  - detec/detectron/fc6/vqa/train2014
+  - detec/detectron/fc6/vqa/val2014
   image_feat_val:
-  - rcnn_10_100/vqa/val2014
+  - detec/detectron/fc6/vqa/val2014
   image_max_loc: 100
   imdb_file_test:
   - imdb/imdb_test2015.npy
@@ -47,8 +47,10 @@ model_attributes:
           out_dim: 1
     image_feature_dim: 2048
     image_feature_encodings:
-    - type: default
-      params: {}
+    - type: finetune_faster_rcnn_fpn_fc7
+      params:
+        bias_file: detec/detectron/fc6/fc7_b.pkl
+        weights_file: detec/detectron/fc6/fc7_w.pkl
     modal_combine:
       type: gated_element_multiply
       params:
@@ -63,7 +65,7 @@ model_attributes:
         conv2_out: 2
         dropout: 0
         embedding_dim: 300
-        embedding_init_file: large_vqa2.0_glove.6B.300d.txt.npy
+        embedding_init_file: vqa2.0_glove.6B.300d.txt.npy
         kernel_size: 1
         padding: 0
 optimizer_attributes:
