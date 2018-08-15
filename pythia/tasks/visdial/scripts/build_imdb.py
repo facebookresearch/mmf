@@ -77,13 +77,13 @@ class IMDBBuilder:
     def parse_dialogs(self, dialogs):
         id2path = self.get_id_to_path_dict()
 
-        for dialog in dialogs:
+        for dialog in dialogs[:10]:
             image_id = dialog['image_id']
             image_feature_path = id2path[image_id]
             dialog['image_feature_path'] = image_feature_path
             dialog['caption'] = self.get_tokens(dialog['caption'])
 
-        return dialogs
+        return dialogs[:10]
 
 
 if __name__ == '__main__':

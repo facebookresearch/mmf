@@ -1,29 +1,35 @@
 task_attributes:
   data_root_dir: data
-  batch_size: 512
+  batch_size: 10
   vocab_file: visdial/visdial_vocabulary.txt
   max_seq_len: 20
   max_history_len: 60
   embedding_name: glove.6B.300d
   image_depth_first: false
-  image_fast_reader: true
+  image_fast_reader: false
   image_feat_test:
-  - rcnn_10_100/vqa/val2014
+  - rcnn_10_100/vqa/
   image_feat_train:
-  - rcnn_10_100/vqa/train2014
+  - rcnn_10_100/vqa/
   image_feat_val:
-  - rcnn_10_100/vqa/val2014
+  - rcnn_10_100/vqa/
   image_max_loc: 100
   imdb_file_test:
   - visdial/visdial_val_imdb.json
   imdb_file_train:
-  - visdial/visdial_train_imdb.json
-  imdb_file_val:
   - visdial/visdial_val_imdb.json
+  imdb_file_val:
+  - visdial/visdial_train_imdb.json
   num_workers: 5
   enforce_slow_reader: false
+  metrics:
+    - r@1
+    - r@5
+    - r@10
+    - mean_r
+    - mean_rr
 exp_name: baseline
-loss: logits_bce
+loss: logit_bce
 model_attributes:
   visdial_top_down_bottom_up:
     classifier:

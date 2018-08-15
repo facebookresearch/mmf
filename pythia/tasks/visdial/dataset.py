@@ -37,9 +37,30 @@ class VisualDialogDataset(Dataset):
         self.max_history_len = data_params['max_history_len']
         self.vocab = GloVeIntersectedVocab(data_params['vocab_file'],
                                            data_params['embedding_name'])
+        self.fast_read = False
         self.test_mode = False
+        if data_params['test_mode']:
+            self.test_mode = True
+
         self._init_image_readers()
+        self._try_fast_read()
         self._process_dialogues()
+
+    def _try_fast_read(self):
+        if self.data_params['fast_read']:
+            self.fast_read = True
+            self.feat_dict = {}
+            image_count = 0
+            image_dir = self.image_feat_directories[0]
+            for feat_file in os.listdir(image_dir):
+                if feat_file.endswith("npy"):
+                    image_feats = read_in_image_feats(
+                        self.image_feat_directories,
+                        self.image_feat_readers,
+                        feat_file)
+                    self.feat_dict[feat_file] = image_feats
+                    image_count += 1
+            print("Loaded %d images" % image_count)
 
     def _init_image_readers(self):
         # load one feature map to peek its size
@@ -47,16 +68,15 @@ class VisualDialogDataset(Dataset):
         for image_dir in self.image_feat_directories:
             feature_path = self.imdb['dialogs'][self.first_element_idx]
             feature_path = feature_path['image_feature_path']
-            image_file_name = os.path.basename(feature_path)
-            image_feat_path = os.path.join(image_dir, image_file_name)
+            image_feat_path = os.path.join(image_dir, feature_path)
             feats = np.load(image_feat_path)
             self.image_feat_readers.append(get_image_feat_reader(
                 feats.ndim, self.image_depth_first, feats, self.image_max_loc
             ))
 
     def _get_image_features(self, image_file_name):
-        if self.fastRead:
-            image_feats = self.featDict[image_file_name]
+        if self.fast_read:
+            image_feats = self.feat_dict[image_file_name]
             if len(image_feats) != len(self.image_feat_directories):
                 exit(image_file_name + "have %d features" % len(image_feats))
         else:
@@ -95,8 +115,6 @@ class VisualDialogDataset(Dataset):
         nrounds = 10
         questions = torch.zeros(nthreads, nrounds, self.max_seq_len).long()
         question_lens = torch.zeros(nthreads, nrounds).long()
-        answers = torch.zeros(nthreads, nrounds, self.max_seq_len).long()
-        answer_lens = torch.zeros(nthreads, nrounds).long()
         history = torch.zeros(nthreads, nrounds, self.max_history_len).long()
         history_lens = torch.zeros(nthreads, nrounds).long()
         answer_options = torch.zeros(nthreads, nrounds, 100).long()
@@ -108,7 +126,7 @@ class VisualDialogDataset(Dataset):
         answer_tokens = self._tokens_to_word_indices(answer_tokens)
 
         threads = self.imdb['dialogs']
-        gt_indices = torch.zeros(nthreads, nrounds)
+        gt_indices = torch.zeros(nthreads, nrounds).long()
 
         stoi = self.vocab.get_stoi()
 
@@ -134,13 +152,6 @@ class VisualDialogDataset(Dataset):
                 gt_indices[idx][round_id] = dialog['gt_index']
                 answer_id = dialog['answer']
 
-                curr_answer_tokens = torch.Tensor(answer_tokens[answer_id])
-                curr_answer_tokens = curr_answer_tokens.long()
-                curr_answer_tokens = curr_answer_tokens[:self.max_seq_len]
-                answer_len = len(curr_answer_tokens)
-                answer_lens[idx][round_id] = answer_len
-                answers[idx][round_id][:answer_len] = curr_answer_tokens
-
                 previous_dialog = previous_dialog[:self.max_history_len]
                 prev_dialog_np = torch.Tensor(previous_dialog).long()
                 history[idx][round_id][:len(previous_dialog)] = prev_dialog_np
@@ -160,8 +171,6 @@ class VisualDialogDataset(Dataset):
         self.questions = questions
         self.question_lens = question_lens
         self.answer_options = answer_options
-        self.answers = answers
-        self.answer_lens = answer_lens
         self.answer_tokens = answer_tokens
         self.history = history
         self.history_lens = history_lens
@@ -176,46 +185,51 @@ class VisualDialogDataset(Dataset):
     def __getitem__(self, idx):
         questions = self.questions[idx]
         histories = self.history[idx]
-        answers = self.answers[idx]
         questions_len = self.question_lens[idx]
-        answers_len = self.answer_lens[idx]
         histories_len = self.history_lens[idx]
         gt_indices = self.gt_indices[idx]
         answer_options = self.answer_options[idx]
 
         answer_options_np = torch.zeros(questions.shape[0],
                                         len(answer_options[0]),
-                                        self.max_seq_len)
+                                        self.max_seq_len).long()
+        answer_options_len = torch.zeros(questions.shape[0],
+                                         len(answer_options[0])).long()
 
         for idx, dialog_options in enumerate(answer_options):
-            for option_id, option in dialog_options:
+            for option_id, option in enumerate(dialog_options):
                 tokens = self.answer_tokens[option][:self.max_seq_len]
+                answer_options_len[idx][option_id] = len(tokens)
+                tokens = torch.LongTensor(tokens)
                 answer_options_np[idx][option_id][:len(tokens)] = tokens
 
         expected_output = torch.zeros(questions.shape[0],
-                                      len(answer_options[0]))
+                                      len(answer_options[0])).long()
 
         for idx, gt_index in enumerate(gt_indices):
-            expected_output[idx][gt_index] = 1
+            expected_output[idx][gt_index.item()] = 1
 
         sample = {
             'questions': questions,
             'histories': histories,
-            'answers': answers,
             'questions_len': questions_len,
-            'answers_len': answers_len,
             'histories_len': histories_len,
             'gt_indices': gt_indices,
             'answer_options': answer_options_np,
+            'answer_options_len': answer_options_len,
             'expected': expected_output,
         }
 
-        image_file_name = self.imdb[idx]['image_feature_path']
-
+        image_file_name = self.imdb['dialogs'][idx]['image_feature_path']
         image_feats, image_boxes, image_loc = (
             self._get_image_features(image_file_name))
 
+        n_questions = questions.size(0)
         for im_idx, image_feat in enumerate(image_feats):
+            image_feat = torch.from_numpy(image_feat)
+            feat_dims = len(image_feat.size())
+            image_feat = image_feat.unsqueeze(0).repeat(n_questions,
+                                                        *([1] * feat_dims))
             if im_idx == 0:
                 sample['image_feat_batch'] = image_feat
             else:
@@ -223,7 +237,7 @@ class VisualDialogDataset(Dataset):
                 sample[feat_key] = image_feat
 
         if image_loc is not None:
-            sample['image_dim'] = image_loc
+            sample['image_dim'] = torch.LongTensor([image_loc] * n_questions)
 
         return sample
 
