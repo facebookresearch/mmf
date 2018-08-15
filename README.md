@@ -261,7 +261,7 @@ Luowei Zhou for helpful discussions, Peter Anderson for providing
 training data for the Visual Genome detector, Deshraj Yadav
 for responses on EvalAI related questions, Stefan Lee
 for suggesting the name *Pythia*, Meet Shah for building the docker demo for Pythia and 
-Abhishek Das, Abhishek Kadian for feedback on our codebase
+Abhishek Das, Abhishek Kadian for feedback on our codebase.
 
 
 ### References
