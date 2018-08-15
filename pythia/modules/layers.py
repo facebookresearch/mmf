@@ -29,6 +29,20 @@ class GatedTanh(nn.Module):
         return y
 
 
+# TODO: Do clean implementation without Sequential
+class ReLUWithWeightNormFC(nn.Module):
+    def __init__(self, in_dim, out_dim):
+        super(ReLUWithWeightNormFC, self).__init__()
+
+        layers = []
+        layers.append(weight_norm(nn.Linear(in_dim, out_dim), dim=None))
+        layers.append(nn.ReLU())
+        self.layers = nn.Sequential(*layers)
+
+    def forward(self, x):
+        return self.layers(x)
+
+
 class ClassifierLayer(nn.Module):
     def __init__(self, classifier_type, in_dim, out_dim, **kwargs):
         super(ClassifierLayer, self).__init__()
@@ -55,8 +69,8 @@ class LogitClassifier(nn.Module):
         txt_nonLinear_dim = kwargs['text_hidden_dim']
         image_nonLinear_dim = kwargs['img_hidden_dim']
 
-        self.f_o_text = GatedTanh(input_dim, txt_nonLinear_dim)
-        self.f_o_image = GatedTanh(input_dim, image_nonLinear_dim)
+        self.f_o_text = ReLUWithWeightNormFC(input_dim, txt_nonLinear_dim)
+        self.f_o_image = ReLUWithWeightNormFC(input_dim, image_nonLinear_dim)
         self.linear_text = nn.Linear(txt_nonLinear_dim, num_ans_candidates)
         self.linear_image = nn.Linear(image_nonLinear_dim, num_ans_candidates)
 
@@ -107,9 +121,9 @@ class ModalCombineLayer(nn.Module):
         super(ModalCombineLayer, self).__init__()
         if combine_type == "MFH":
             self.module = MFH(img_feat_dim, txt_emb_dim, **kwargs)
-        elif combine_type == "gated_element_multiply":
-            self.module = GatedElementMultiply(img_feat_dim, txt_emb_dim,
-                                               **kwargs)
+        elif combine_type == "non_linear_element_multiply":
+            self.module = NonLinearElementMultiply(img_feat_dim, txt_emb_dim,
+                                                   **kwargs)
         elif combine_type == "two_layer_element_multiply":
             self.module = TwoLayerElementMultiply(img_feat_dim, txt_emb_dim,
                                                   **kwargs)
@@ -225,11 +239,11 @@ class MFH(nn.Module):
 # need to handle two situations,
 # first: image (N, K, i_dim), question (N, q_dim);
 # second: image (N, i_dim), question (N, q_dim);
-class GatedElementMultiply(nn.Module):
+class NonLinearElementMultiply(nn.Module):
     def __init__(self, image_feat_dim, ques_emb_dim, **kwargs):
-        super(GatedElementMultiply, self).__init__()
-        self.fa_image = GatedTanh(image_feat_dim, kwargs['hidden_dim'])
-        self.fa_txt = GatedTanh(ques_emb_dim, kwargs['hidden_dim'])
+        super(NonLinearElementMultiply, self).__init__()
+        self.fa_image = ReLUWithWeightNormFC(image_feat_dim, kwargs['hidden_dim'])
+        self.fa_txt = ReLUWithWeightNormFC(ques_emb_dim, kwargs['hidden_dim'])
         self.dropout = nn.Dropout(kwargs['dropout'])
         self.out_dim = kwargs['hidden_dim']
 
@@ -253,11 +267,11 @@ class TwoLayerElementMultiply(nn.Module):
     def __init__(self, image_feat_dim, ques_emb_dim, **kwargs):
         super(TwoLayerElementMultiply, self).__init__()
 
-        self.fa_image1 = GatedTanh(image_feat_dim, kwargs['hidden_dim'])
-        self.fa_image2 = GatedTanh(
+        self.fa_image1 = ReLUWithWeightNormFC(image_feat_dim, kwargs['hidden_dim'])
+        self.fa_image2 = ReLUWithWeightNormFC(
             kwargs['hidden_dim'], kwargs['hidden_dim'])
-        self.fa_txt1 = GatedTanh(ques_emb_dim, kwargs['hidden_dim'])
-        self.fa_txt2 = GatedTanh(
+        self.fa_txt1 = ReLUWithWeightNormFC(ques_emb_dim, kwargs['hidden_dim'])
+        self.fa_txt2 = ReLUWithWeightNormFC(
             kwargs['hidden_dim'], kwargs['hidden_dim'])
 
         self.dropout = nn.Dropout(kwargs['dropout'])

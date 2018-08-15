@@ -27,6 +27,7 @@ task_attributes:
   metrics: vqa_accuracy
 exp_name: baseline
 loss: logit_bce
+lr_scheduler: true
 model_attributes:
   top_down_bottom_up:
     classifier:
@@ -36,7 +37,7 @@ model_attributes:
         text_hidden_dim: 300
     image_embeddings:
     - modal_combine:
-        type: gated_element_multiply
+        type: non_linear_element_multiply
         params:
           dropout: 0
           hidden_dim: 5000
@@ -52,7 +53,7 @@ model_attributes:
         bias_file: detec/detectron/fc6/fc7_b.pkl
         weights_file: detec/detectron/fc6/fc7_w.pkl
     modal_combine:
-      type: gated_element_multiply
+      type: non_linear_element_multiply
       params:
         dropout: 0
         hidden_dim: 5000
@@ -80,12 +81,12 @@ training_parameters:
   clip_gradients: true
   lr_ratio: 0.1
   lr_steps:
-  - 15000
-  - 18000
-  - 20000
-  - 21000
+  - 5000
+  - 7000
+  - 9000
+  - 11000
   max_grad_l2_norm: 0.25
-  max_iterations: 22000
+  max_iterations: 12000
   log_interval: 100
   snapshot_interval: 1000
   wu_factor: 0.2
