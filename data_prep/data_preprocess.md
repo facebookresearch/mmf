@@ -61,6 +61,6 @@ wget https://s3-us-west-1.amazonaws.com/pythia-vqa/detectron/e2e_faster_rcnn_X-1
 python extract_features.py --cfg e2e_faster_rcnn_X-101-64x4d-FPN_1x_MLP_2048_FPN_512.yaml \
 --wts FAST_RCNN_MLP_DIM2048_FPN_DIM512.pkl \
 --min_bboxes 100 --max_bboxes 100 \
---feat_name gpu0/fc6 \
+--feat_name gpu_0/fc6 \
 --out_dir ~/temp_out $INPUT_DIR
 ```
