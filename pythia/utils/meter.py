@@ -70,8 +70,13 @@ class Meter:
         scores = (one_hots * expected_data)
 
         accuracy = torch.sum(scores) / expected_data.size(0)
-        current += (1 - self.ACCURACY_DECAY) * (accuracy - current)
 
+        if self.dataset_type == 'train':
+            current += (1 - self.ACCURACY_DECAY) * (accuracy - current)
+        else:
+            current = current * (self.iteration_count - 1)
+            current += accuracy
+            current /= self.iteration_count
         return current
 
     def get_values(self):

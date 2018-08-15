@@ -103,7 +103,8 @@ class TaskLoader:
         self.test_dataset.clean_config(config)
 
     def report_metrics(self, writer, meter, loss,
-                       iteration, should_print=True):
+                       iteration, extra_info=None,
+                       should_print=True):
         if not self.config['should_log']:
             return
 
@@ -111,6 +112,8 @@ class TaskLoader:
 
         if should_print:
             log_string = meter.get_log_string(loss)
+            if extra_info is not None:
+                log_string += " " + extra_info
             writer.write(log_string)
 
         scalars = {}

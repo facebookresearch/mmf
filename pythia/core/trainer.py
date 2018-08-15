@@ -1,6 +1,7 @@
 import math
 import torch
 import gc
+import sys
 
 from torch import optim
 
@@ -8,7 +9,8 @@ from pythia.utils.flags import flags
 from pythia.utils.configuration import Configuration
 from pythia.utils.checkpoint import Checkpoint
 from pythia.utils.logger import Logger
-from pythia.utils.general import lr_lambda_update, clip_gradients
+from pythia.utils.general import lr_lambda_update, clip_gradients, \
+                get_optimizer_parameters
 from pythia.utils.build import build_model
 from pythia.core.task_loader import TaskLoader
 from pythia.modules.losses import Loss
@@ -33,7 +35,7 @@ class Trainer:
         # TODO: Review configuration update once again
         # (remember clip_gradients case)
         self.configuration = Configuration(self.args.config)
-        self.configuration.update_with_args(self.args)
+        self.configuration.update_with_args(self.args, force=True)
 
         self.config = self.configuration.get_config()
 
@@ -79,12 +81,9 @@ class Trainer:
         optimizer_method = self.config['optimizer_attributes']['type']
         optimizer_class = getattr(optim, optimizer_method)
 
-        parameters = self.model.parameters()
-
-        if hasattr(self.model, 'get_optimizer_parameters'):
-            parameters = self.model.get_optimizer_parameters(self.config)
-
+        parameters = get_optimizer_parameters(self.model, self.config)
         rest_optimizer_params = self.config['optimizer_attributes']['params']
+        print(parameters, rest_optimizer_params)
         self.optimizer = optimizer_class(parameters, **rest_optimizer_params)
 
     def load_extras(self):
@@ -95,8 +94,10 @@ class Trainer:
 
         self.lr_scheduler = None
         if self.config['lr_scheduler'] is True:
-            self.lr_scheduler = optim.LambdaLR(self.optimizer,
-                                               lr_lambda=lr_lambda_update)
+            scheduler_class = optim.lr_scheduler.LambdaLR
+            scheduler_func = lambda x: lr_lambda_update(x, self.config)
+            self.lr_scheduler = scheduler_class(self.optimizer,
+                                                lr_lambda=scheduler_func)
 
     def config_based_setup(self):
         torch.manual_seed(self.config['seed'])
@@ -111,7 +112,8 @@ class Trainer:
         max_iterations = training_parameters['max_iterations']
         should_clip_gradients = training_parameters['clip_gradients']
         max_epochs = self.config['max_epochs']
-
+        print(self.optimizer)
+        print(self.model)
         should_check_on_epoch = False
 
         if max_epochs is not None:
@@ -135,7 +137,7 @@ class Trainer:
                     break
 
                 if self.lr_scheduler is not None:
-                    self.lr_scheduler.step(current_iteration, self.config)
+                    self.lr_scheduler.step(current_iteration)
 
                 self.optimizer.zero_grad()
 
@@ -154,19 +156,20 @@ class Trainer:
                 self.optimizer.step()
                 self.train_meter(output, y)
 
-                self.task_loader.report_metrics(self.writer,
-                                                self.train_meter,
-                                                loss.data.item(),
-                                                current_iteration,
-                                                should_print=False)
-
+                extra_info = None
                 should_print = current_iteration % log_interval == 0
+
+                if should_print is True:
+                    sys.stdout.flush()
+                    extra_info = self.single_batch_eval(self.dev_loader,
+                                                        self.dev_meter)
                 # Don't print train metrics if it is not log interval
                 # so as to escape clutter
                 self.task_loader.report_metrics(self.writer,
                                                 self.train_meter,
                                                 loss.data.item(),
                                                 current_iteration,
+                                                extra_info=extra_info,
                                                 should_print=should_print)
 
                 if current_iteration % snapshot_interval == 0:
@@ -186,6 +189,18 @@ class Trainer:
         avg_test_loss = self.evaluate(self.test_loader, self.test_meter)
         self.task_loader.report_metrics(self.writer, self.test_meter,
                                         avg_test_loss, current_iteration)
+
+    def single_batch_eval(self, loader, meter):
+        self.model.eval()
+        batch = next(iter(loader))
+        meter.reset()
+        data, y = self.task_loader.prepare_batch(loader.dataset_type, batch)
+        output = self.model(**data)
+        meter(output, y)
+        loss = self.criterion(output, y)
+        self.model.train()
+
+        return meter.get_log_string(loss)
 
     def evaluate(self, loader, meter):
         self.model.eval()
