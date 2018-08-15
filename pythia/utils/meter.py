@@ -4,7 +4,12 @@ import torch
 class Meter:
     METRICS_TO_FUNC_MAPPING = {
         'accuracy': 'accuracy',
-        'vqa_accuracy': 'average_vqa_accuracy'
+        'vqa_accuracy': 'average_vqa_accuracy',
+        'r@1': 'recall_at_1',
+        'r@5': 'recall_at_5',
+        'r@10': 'recall_at_10',
+        'mean_r': 'mean_rank',
+        'mean_rr': 'mean_reciprocal_rank'
     }
 
     ACCURACY_DECAY = 0.99
@@ -97,3 +102,77 @@ class Meter:
         if self.dataset_type != 'train':
             iteration = self.dataset_type + ": "
         return iteration + ', '.join(log_string)
+
+    def recall_at_k(self, current, output, expected, k):
+        ranks = self.get_ranks(output, expected)
+        current = current * (self.iteration_count - 1)
+        current += float(torch.sum(torch.le(ranks, k))) / ranks.size(0)
+        current /= self.iteration_count
+        return current
+
+    def recall_at_1(self, current, output, expected):
+        return self.recall_at_k(current, output, expected, 1)
+
+    def recall_at_5(self, current, output, expected):
+        return self.recall_at_k(current, output, expected, 5)
+
+    def recall_at_10(self, current, output, expected):
+        return self.recall_at_k(current, output, expected, 10)
+
+    def mean_rank(self, current, output, expected):
+        ranks = self.get_ranks(output, expected)
+        current = current * (self.iteration_count - 1)
+        current += torch.mean(ranks)
+        return current / self.iteration_count
+
+    def get_ranks(self, output, expected):
+        ranks = self.score_to_ranks(output)
+        gt_ranks = self.get_gt_ranks(ranks, expected)
+
+        ranks = self.process_ranks(gt_ranks)
+        return ranks.float()
+
+    def mean_reciprocal_rank(self, current, output, expected):
+        ranks = self.get_ranks(output, expected)
+        current = current * (self.iteration_count - 1)
+        current += torch.mean(ranks.reciprocal())
+        current /= self.iteration_count
+
+        return current
+
+    def score_to_ranks(self, scores):
+        # sort in descending order - largest score gets highest rank
+        sorted_ranks, ranked_idx = scores.sort(1, descending=True)
+
+        # convert from ranked_idx to ranks
+        ranks = ranked_idx.clone().fill_(0)
+        for i in range(ranked_idx.size(0)):
+            for j in range(100):
+                ranks[i][ranked_idx[i][j]] = j
+        ranks += 1
+        return ranks
+
+    def get_gt_ranks(self, ranks, ans_ind):
+        _, ans_ind = ans_ind.max(dim=1)
+        ans_ind = ans_ind.view(-1)
+        gt_ranks = torch.LongTensor(ans_ind.size(0))
+
+        for i in range(ans_ind.size(0)):
+            gt_ranks[i] = int(ranks[i, ans_ind[i].long()])
+        return gt_ranks
+
+    def process_ranks(self, ranks):
+        num_opts = 100
+
+        # none of the values should be 0, there is gt in options
+        if torch.sum(ranks.le(0)) > 0:
+            num_zero = torch.sum(ranks.le(0))
+            print("Warning: some of ranks are zero: {}".format(num_zero))
+            ranks = ranks[ranks.gt(0)]
+
+        # rank should not exceed the number of options
+        if torch.sum(ranks.ge(num_opts + 1)) > 0:
+            num_ge = torch.sum(ranks.ge(num_opts + 1))
+            print("Warning: some of ranks > 100: {}".format(num_ge))
+            ranks = ranks[ranks.le(num_opts + 1)]
+        return ranks
