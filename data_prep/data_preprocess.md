@@ -48,6 +48,19 @@ rm -f rcnn_10_100.tar
 gunzip detectron.tar.gz
 tar -xvf detectron.tar
 rm -f detectron.tar
-
-
 ``` 
+Extract Image Features
+We use detectron to extract image features. Setting up [detectron](https://github.com/facebookresearch/Detectron) 
+and copy [tools/extract_features.py](tools/extract_features.py) to detectron for extracting features
+
+download the pretrained detectron model
+```bash
+wget https://s3-us-west-1.amazonaws.com/pythia-vqa/detectron/FAST_RCNN_MLP_DIM2048_FPN_DIM512.pkl
+wget https://s3-us-west-1.amazonaws.com/pythia-vqa/detectron/e2e_faster_rcnn_X-101-64x4d-FPN_1x_MLP_2048_FPN_512.yaml
+
+python extract_features.py --cfg e2e_faster_rcnn_X-101-64x4d-FPN_1x_MLP_2048_FPN_512.yaml \
+--wts FAST_RCNN_MLP_DIM2048_FPN_DIM512.pkl \
+--min_bboxes 100 --max_bboxes 100 \
+--feat_name gpu0/fc6 \
+--out_dir ~/temp_out $INPUT_DIR
+```
