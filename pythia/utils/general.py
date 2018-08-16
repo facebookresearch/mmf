@@ -1,5 +1,4 @@
-import bisect
-
+from bisect import bisect
 from torch import nn
 
 
@@ -37,3 +36,19 @@ def clip_gradients(model, i_iter, writer, config):
 
 def ckpt_name_from_core_args(config):
     return ("%s_%s_%d" % (config['task'], config['model'], config['seed']))
+
+
+def get_optimizer_parameters(model, config):
+    parameters = model.parameters()
+
+    has_custom = hasattr(model, 'get_optimizer_parameters')
+    if has_custom:
+        parameters = model.get_optimizer_parameters(config)
+
+    is_parallel = isinstance(model, nn.DataParallel)
+    parameters = model.module.get_optimizer_parameters(config)
+
+    if is_parallel and hasattr(model.module, 'get_optimizer_parameters'):
+        parameters = model.module.get_optimizer_parameters(config)
+
+    return parameters

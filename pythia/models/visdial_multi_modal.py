@@ -21,7 +21,7 @@ class VisDialMultiModalModel(VQAMultiModalModel):
         params = [{'params': self.img_embeddings_list.parameters()},
                   {'params': self.question_embeddings.parameters()},
                   {'params': self.multi_modal_combine_layer.parameters()},
-                  {'params': self.decoder.parameters()},
+                  {'params': self.decoder.projection_layer.parameters()},
                   {'params': self.img_feat_encoders.parameters(),
                    'lr': (config['optimizer_attributes']['params']['lr']
                           * 0.1)}]

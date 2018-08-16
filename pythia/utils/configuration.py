@@ -36,21 +36,24 @@ class Configuration:
     def get_config(self):
         return self.config
 
-    def update_with_args(self, args):
+    def update_with_args(self, args, force=False):
         args_dict = vars(args)
-        self._update_key(self.config, args_dict)
-        self.config.update(args_dict)
 
+        self._update_key(self.config, args_dict)
+        if force is True:
+            self.config.update(args_dict)
         self._update_specific()
 
     def update_with_task_config(self, task_loader):
         task_loader.load_config()
         self.config.update(task_loader.task_config)
+        print(self.config['lr_scheduler'])
 
     def _update_key(self, dictionary, update_dict):
         for key, value in dictionary.items():
             if not isinstance(value, dict):
                 if key in update_dict and update_dict[key] is not None:
+                    print(key, update_dict[key])
                     dictionary[key] = update_dict[key]
             else:
                 dictionary[key] = self._update_key(value, update_dict)
