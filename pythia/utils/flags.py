@@ -84,6 +84,12 @@ class Flags:
         self.parser.add_argument("-cpu", "--no_cuda", action="store_true",
                                  default=False, help="Use when you don't want"
                                  " to use CUDA")
+        self.parser.add_argument("-p", "--patience", type=int,
+                                 default=None, help="Patience for early stop")
+        self.parser.add_argument("-nw", "--num_workers", type=int,
+                                 default=None,
+                                 help="Number of workers for dataloaders")
+
 
     def update_task_args(self):
         args = sys.argv

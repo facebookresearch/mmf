@@ -2,6 +2,9 @@ task_attributes:
   batch_size: 512
   data_root_dir: data/
   num_workers: 5
+  monitored_metric: -1
+  metric_minimize: True
+  should_early_stop: True
 exp_name: test
 loss: mse
 optimizer_attr:
@@ -16,4 +19,5 @@ training_parameters:
   log_interval: 100
   snapshot_interval: 1000
   clip_gradients: false
+  patience: 2000
 use_cuda: true

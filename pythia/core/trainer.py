@@ -13,6 +13,7 @@ from pythia.utils.general import lr_lambda_update, clip_gradients, \
                 get_optimizer_parameters
 from pythia.utils.build import build_model
 from pythia.utils.timer import Timer
+from pythia.utils.early_stopping import EarlyStopping
 from pythia.core.task_loader import TaskLoader
 from pythia.modules.losses import Loss
 
@@ -84,13 +85,25 @@ class Trainer:
 
         parameters = get_optimizer_parameters(self.model, self.config)
         rest_optimizer_params = self.config['optimizer_attributes']['params']
-        print(parameters, rest_optimizer_params)
         self.optimizer = optimizer_class(parameters, **rest_optimizer_params)
 
     def load_extras(self):
         self.criterion = Loss(self.config['loss'])
 
         self.checkpoint = Checkpoint(self)
+
+        monitored_metric = self.config['task_attributes']['monitored_metric']
+        metric_minimize = self.config['task_attributes']['metric_minimize']
+        should_early_stop = self.config['task_attributes']['should_early_stop']
+        patience = self.config['training_parameters']['patience']
+        self.early_stopping = EarlyStopping(self.model,
+                                            self.checkpoint,
+                                            self.dev_meter,
+                                            monitored_metric,
+                                            patience=patience,
+                                            minimize=metric_minimize,
+                                            should_stop=should_early_stop)
+
         self.checkpoint.load_state_dict()
 
         self.lr_scheduler = None
@@ -167,8 +180,7 @@ class Trainer:
                     sys.stdout.flush()
                     extra_info = self.single_batch_eval(self.dev_loader,
                                                         self.dev_meter)
-                    time_taken = self.train_timer.get_time_hhmmss()
-                    self.train_timer.reset()
+                    time_taken = self.train_timer.get_time_since_start()
                     extra_info += ", time: %s" % time_taken
 
                 # Don't print train metrics if it is not log interval
@@ -180,21 +192,30 @@ class Trainer:
                                                 extra_info=extra_info,
                                                 should_print=should_print)
 
+                if should_print is True:
+                    self.train_timer.reset()
+
                 if current_iteration % snapshot_interval == 0:
                     # TODO: Implement early stopping
                     # TODO: Do validation check here
                     avg_loss = self.evaluate(self.dev_loader,
                                              self.dev_meter)
-                    time_taken = self.snapshot_timer.get_time_hhmmss()
+                    time_taken = self.snapshot_timer.get_time_since_start()
                     extra_info = ", time: %s" % time_taken
                     self.snapshot_timer.reset()
+                    stop = self.early_stopping(current_iteration, avg_loss)
+                    extra_info += "\n %s" % self.early_stopping.get_info()
+
                     self.task_loader.report_metrics(self.writer,
                                                     self.dev_meter,
                                                     avg_loss,
                                                     current_iteration,
                                                     extra_info=extra_info)
 
-                    self.checkpoint.save()
+                    if stop is True:
+                        self.writer.write("Early stopping activated")
+                        break
+
                 gc.collect()
 
         avg_test_loss = self.evaluate(self.test_loader, self.test_meter)
@@ -211,7 +232,8 @@ class Trainer:
         loss = self.criterion(output, y)
         self.model.train()
 
-        return meter.get_log_string(loss)
+        # TODO: Do replace in log string function itself
+        return meter.get_log_string(loss).replace("Average", "Single")
 
     def evaluate(self, loader, meter):
         self.model.eval()

@@ -21,8 +21,7 @@ class Checkpoint:
             self.ckpt_filename += self.trainer.model.get_ckpt_name()
 
         self.config['log_filename'] = self.ckpt_filename
-        self.ckpt_filepath = os.path.join(self.save_loc, self.ckpt_filename
-                                          + ".ckpt")
+        self.ckpt_filename = os.path.join(self.save_loc, self.ckpt_filename)
         self.pth_filepath = os.path.join(self.save_loc, self.ckpt_filename
                                          + ".pth")
 
@@ -41,6 +40,7 @@ class Checkpoint:
 
         self.trainer.model.load_state_dict(ckpt['model'])
         self.trainer.optimizer.load_state_dict(ckpt['optimizer'])
+        self.trainer.early_stopping.init_from_checkpoint(ckpt)
 
     def _torch_load(self, file):
         if self.config['use_cuda']:
@@ -48,21 +48,32 @@ class Checkpoint:
         else:
             return torch.load(file, map_location=lambda storage, loc: storage)
 
-    def save(self):
-        if not os.path.exists(os.path.dirname(self.ckpt_filepath)):
-            os.mkdir(os.path.dirname(self.ckpt_filepath))
+    def save(self, iteration, update_best=False):
+        ckpt_filepath = self.ckpt_filename + "_%d.ckpt" % iteration
+        best_ckpt_filepath = self.ckpt_filename + "_best.ckpt"
 
+        if not os.path.exists(os.path.dirname(ckpt_filepath)):
+            os.mkdir(os.path.dirname(ckpt_filepath))
+
+        best_iteration = self.trainer.early_stopping.best_monitored_iteration
+        best_metric = self.trainer.early_stopping.best_monitored_metric
         ckpt = {
             'model': self.trainer.model.state_dict(),
-            'optimizer': self.trainer.optimizer.state_dict()
+            'optimizer': self.trainer.optimizer.state_dict(),
+            'best_iteration': best_iteration,
+            'best_metric': best_metric
         }
 
-        torch.save(ckpt, self.ckpt_filepath)
+        torch.save(ckpt, ckpt_filepath)
+
+        if update_best:
+            torch.save(ckpt, best_ckpt_filepath)
 
     def restore(self):
-        if os.path.exists(self.ckpt_filepath):
+        best_path = self.ckpt_filepath + "_best.ckpt"
+        if os.path.exists(best_path):
             self.trainer.model.load_state_dict(
-                self._torch_load(self.ckpt_filepath))
+                self._torch_load(best_path))
 
     def finalize(self):
         if not os.path.exists(os.path.dirname(self.pth_filepath)):

@@ -43,6 +43,38 @@ class Meter:
     def get_dataset_type(self):
         return self.dataset_type
 
+    def get_values(self, index=None):
+        if index is None:
+            return self.meter_values
+        else:
+            return self.meter_values[index]
+
+    def reset(self):
+        self.meter_values = []
+
+        for _ in self.meter_types:
+            self.meter_values.append(0)
+
+        self.iteration_count = 0
+
+    def get_log_string(self, loss):
+        log_string = ["Average loss: %.4f" % loss]
+
+        for i in range(len(self.meter_types)):
+            meter_type = self.meter_types[i]
+            value = self.meter_values[i]
+            log_string.append("Average %s: %.4f" % (meter_type, value))
+
+        max_iterations = self.config['training_parameters']['max_iterations']
+        iteration = "%s: %s/%s: " % (self.dataset_type,
+                                     self.iteration_count,
+                                     max_iterations)
+
+        # If it is not train, then no sense of iteration count
+        if self.dataset_type != 'train':
+            iteration = self.dataset_type + ": "
+        return iteration + ', '.join(log_string)
+
     def masked_unk_softmax(self, x, dim, mask_idx):
         x1 = torch.nn.functional.softmax(x, dim=dim)
         x1[:, mask_idx] = 0
@@ -78,35 +110,6 @@ class Meter:
             current += accuracy
             current /= self.iteration_count
         return current
-
-    def get_values(self):
-        return self.meter_values
-
-    def reset(self):
-        self.meter_values = []
-
-        for _ in self.meter_types:
-            self.meter_values.append(0)
-
-        self.iteration_count = 0
-
-    def get_log_string(self, loss):
-        log_string = ["Average loss: %.4f" % loss]
-
-        for i in range(len(self.meter_types)):
-            meter_type = self.meter_types[i]
-            value = self.meter_values[i]
-            log_string.append("Average %s: %.4f" % (meter_type, value))
-
-        max_iterations = self.config['training_parameters']['max_iterations']
-        iteration = "%s: %s/%s: " % (self.dataset_type,
-                                     self.iteration_count,
-                                     max_iterations)
-
-        # If it is not train, then no sense of iteration count
-        if self.dataset_type != 'train':
-            iteration = self.dataset_type + ": "
-        return iteration + ', '.join(log_string)
 
     def recall_at_k(self, current, output, expected, k):
         ranks = self.get_ranks(output, expected)
