@@ -11,6 +11,9 @@ class Timer:
     def get_current(self):
         return self.get_time_hhmmss(self.start)
 
+    def reset(self):
+        self.start = time.time()
+
     def get_time_hhmmss(self, start=None, format=None):
         """
         Calculates time since `start` and formats as a string.

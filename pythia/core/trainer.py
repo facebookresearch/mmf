@@ -12,6 +12,7 @@ from pythia.utils.logger import Logger
 from pythia.utils.general import lr_lambda_update, clip_gradients, \
                 get_optimizer_parameters
 from pythia.utils.build import build_model
+from pythia.utils.timer import Timer
 from pythia.core.task_loader import TaskLoader
 from pythia.modules.losses import Loss
 
@@ -112,8 +113,8 @@ class Trainer:
         max_iterations = training_parameters['max_iterations']
         should_clip_gradients = training_parameters['clip_gradients']
         max_epochs = self.config['max_epochs']
-        print(self.optimizer)
-        print(self.model)
+
+        self.writer.write(self.model)
         should_check_on_epoch = False
 
         if max_epochs is not None:
@@ -124,6 +125,8 @@ class Trainer:
         current_iteration = 0
 
         self.model.train()
+        self.train_timer = Timer()
+        self.snapshot_timer = Timer()
 
         while current_iteration < max_iterations:
             current_epoch += 1
@@ -159,10 +162,15 @@ class Trainer:
                 extra_info = None
                 should_print = current_iteration % log_interval == 0
 
+                # TODO: Move in separate function
                 if should_print is True:
                     sys.stdout.flush()
                     extra_info = self.single_batch_eval(self.dev_loader,
                                                         self.dev_meter)
+                    time_taken = self.train_timer.get_time_hhmmss()
+                    self.train_timer.reset()
+                    extra_info += ", time: %s" % time_taken
+
                 # Don't print train metrics if it is not log interval
                 # so as to escape clutter
                 self.task_loader.report_metrics(self.writer,
@@ -177,11 +185,14 @@ class Trainer:
                     # TODO: Do validation check here
                     avg_loss = self.evaluate(self.dev_loader,
                                              self.dev_meter)
-
+                    time_taken = self.snapshot_timer.get_time_hhmmss()
+                    extra_info = ", time: %s" % time_taken
+                    self.snapshot_timer.reset()
                     self.task_loader.report_metrics(self.writer,
                                                     self.dev_meter,
                                                     avg_loss,
-                                                    current_iteration)
+                                                    current_iteration,
+                                                    extra_info=extra_info)
 
                     self.checkpoint.save()
                 gc.collect()
