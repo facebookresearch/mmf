@@ -9,9 +9,9 @@ from torch import nn
 from pythia.modules.attention import AttentionLayer
 
 
-class QuestionEmbedding(nn.Module):
+class TextEmbedding(nn.Module):
     def __init__(self, emb_type, **kwargs):
-        super(QuestionEmbedding, self).__init__()
+        super(TextEmbedding, self).__init__()
         self.data_root_dir = kwargs.get('data_root_dir', None)
         self.embedding_dim = kwargs.get('embedding_dim', None)
         # Update kwargs here
@@ -23,7 +23,7 @@ class QuestionEmbedding(nn.Module):
                 'num_layers': kwargs['num_layers'],
                 'dropout': kwargs['dropout']
             }
-            embedding = DefaultQuestionEmbedding(**params)
+            embedding = DefaultTextEmbedding(**params)
             self.init_embedding(embedding.embedding,
                                 kwargs.get('embedding_vectors', None),
                                 kwargs.get('embedding_init', None),
@@ -31,7 +31,7 @@ class QuestionEmbedding(nn.Module):
             self.module = embedding
 
         elif emb_type == "attention":
-            embedding = AttentionQuestionEmbedding(**kwargs)
+            embedding = AttentionTextEmbedding(**kwargs)
             self.init_embedding(embedding.embedding,
                                 kwargs.get('embedding_vectors', None),
                                 kwargs.get('embedding_init', None),
@@ -69,10 +69,10 @@ class QuestionEmbedding(nn.Module):
         return self.module(*args, **kwargs)
 
 
-class DefaultQuestionEmbedding(nn.Module):
+class DefaultTextEmbedding(nn.Module):
     def __init__(self, hidden_dim, embedding_dim,
                  vocab_size, num_layers, dropout):
-        super(DefaultQuestionEmbedding, self).__init__()
+        super(DefaultTextEmbedding, self).__init__()
         self.text_out_dim = hidden_dim
 
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
@@ -91,10 +91,10 @@ class DefaultQuestionEmbedding(nn.Module):
         return out[:, -1]
 
 
-class AttentionQuestionEmbedding(nn.Module):
+class AttentionTextEmbedding(nn.Module):
     def __init__(self, hidden_dim, embedding_dim,
                  vocab_size, num_layers, dropout, **kwargs):
-        super(AttentionQuestionEmbedding, self).__init__()
+        super(AttentionTextEmbedding, self).__init__()
 
         self.text_out_dim = hidden_dim * kwargs['conv2_out']
 

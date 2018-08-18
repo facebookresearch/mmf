@@ -30,9 +30,10 @@ class Checkpoint:
            os.path.exists(self.config['resume_file']):
             self._load(self.config['resume_file'])
 
+        ckpt_filepath = self.ckpt_filename + "_best.pth"
         if self.config['resume'] is True \
-           and os.path.exists(self.ckpt_filepath):
-            self._load(self.ckpt_filepath)
+           and os.path.exists(ckpt_filepath):
+            self._load(ckpt_filepath)
 
     def _load(self, file):
         self.trainer.writer.write("Loading checkpoint")
@@ -70,10 +71,11 @@ class Checkpoint:
             torch.save(ckpt, best_ckpt_filepath)
 
     def restore(self):
-        best_path = self.ckpt_filepath + "_best.ckpt"
+        best_path = self.ckpt_filename + "_best.ckpt"
         if os.path.exists(best_path):
-            self.trainer.model.load_state_dict(
-                self._torch_load(best_path))
+            ckpt = self._torch_load(best_path)
+            self.trainer.model.load_state_dict(ckpt['model'])
+            self.trainer.optimizer.load_state_dict()
 
     def finalize(self):
         if not os.path.exists(os.path.dirname(self.pth_filepath)):

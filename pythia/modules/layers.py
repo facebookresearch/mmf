@@ -242,22 +242,36 @@ class MFH(nn.Module):
 class NonLinearElementMultiply(nn.Module):
     def __init__(self, image_feat_dim, ques_emb_dim, **kwargs):
         super(NonLinearElementMultiply, self).__init__()
-        self.fa_image = ReLUWithWeightNormFC(image_feat_dim, kwargs['hidden_dim'])
+        self.fa_image = ReLUWithWeightNormFC(image_feat_dim,
+                                             kwargs['hidden_dim'])
         self.fa_txt = ReLUWithWeightNormFC(ques_emb_dim, kwargs['hidden_dim'])
+        self.fa_history = ReLUWithWeightNormFC(ques_emb_dim,
+                                               kwargs['hidden_dim'])
         self.dropout = nn.Dropout(kwargs['dropout'])
         self.out_dim = kwargs['hidden_dim']
 
-    def forward(self, image_feat, question_embedding):
+    def forward(self, image_feat, question_embedding, history_embedding=None):
         image_fa = self.fa_image(image_feat)
         question_fa = self.fa_txt(question_embedding)
+
+        if history_embedding is None:
+            history_fa = torch.new_tensor(question_fa)
+            history_fa.ones_()
+        else:
+            history_fa = self.fa_history(history_embedding)
+
         if len(image_feat.data.shape) == 3:
             num_location = image_feat.data.size(1)
             question_fa_expand = torch.unsqueeze(
                 question_fa, 1).expand(-1, num_location, -1)
+            history_fa_expand = torch.unsqueeze(
+                history_fa, 1).expand(-1, num_location, -1)
+
         else:
             question_fa_expand = question_fa
+            history_fa_expand = history_fa
 
-        joint_feature = image_fa * question_fa_expand
+        joint_feature = image_fa * question_fa_expand * history_fa_expand
         joint_feature = self.dropout(joint_feature)
 
         return joint_feature
@@ -267,7 +281,8 @@ class TwoLayerElementMultiply(nn.Module):
     def __init__(self, image_feat_dim, ques_emb_dim, **kwargs):
         super(TwoLayerElementMultiply, self).__init__()
 
-        self.fa_image1 = ReLUWithWeightNormFC(image_feat_dim, kwargs['hidden_dim'])
+        self.fa_image1 = ReLUWithWeightNormFC(image_feat_dim,
+                                              kwargs['hidden_dim'])
         self.fa_image2 = ReLUWithWeightNormFC(
             kwargs['hidden_dim'], kwargs['hidden_dim'])
         self.fa_txt1 = ReLUWithWeightNormFC(ques_emb_dim, kwargs['hidden_dim'])
