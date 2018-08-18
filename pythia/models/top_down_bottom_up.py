@@ -2,9 +2,10 @@ import torch
 
 from torch import nn
 
-from pythia.modules.embeddings import QuestionEmbedding, ImageEmbedding
+from pythia.modules.embeddings import TextEmbedding, ImageEmbedding
 from pythia.modules.encoders import ImageEncoder
-from pythia.modules.layers import ModalCombineLayer, ClassifierLayer, GatedTanh
+from pythia.modules.layers import ModalCombineLayer, ClassifierLayer, \
+                                  ReLUWithWeightNormFC
 
 
 class VQAMultiModalModel(nn.Module):
@@ -13,32 +14,32 @@ class VQAMultiModalModel(nn.Module):
         self.config = config
 
     def build(self):
-        self._init_question_embedding()
+        self._init_text_embedding()
         self._init_image_encoders()
         self._init_image_embeddings()
         self._init_combine_layer()
         self._init_classifier()
         self._init_extras()
 
-    def _init_question_embedding(self):
-        question_embeddings = []
-        question_embeddings_list_config = self.config['question_embeddings']
+    def _init_text_embedding(self):
+        text_embeddings = []
+        text_embeddings_list_config = self.config['text_embeddings']
 
-        self.question_embeddings_out_dim = 0
+        self.text_embeddings_out_dim = 0
 
-        for question_embedding in question_embeddings_list_config:
-            embedding_type = question_embedding['type']
-            embedding_kwargs = question_embedding['params']
+        for text_embedding in text_embeddings_list_config:
+            embedding_type = text_embedding['type']
+            embedding_kwargs = text_embedding['params']
 
-            self._update_question_embedding_args(embedding_kwargs)
+            self._update_text_embedding_args(embedding_kwargs)
 
-            embedding = QuestionEmbedding(embedding_type, **embedding_kwargs)
-            question_embeddings.append(embedding)
-            self.question_embeddings_out_dim += embedding.text_out_dim
+            embedding = TextEmbedding(embedding_type, **embedding_kwargs)
+            text_embeddings.append(embedding)
+            self.text_embeddings_out_dim += embedding.text_out_dim
 
-        self.question_embeddings = nn.ModuleList(question_embeddings)
+        self.text_embeddings = nn.ModuleList(text_embeddings)
 
-    def _update_question_embedding_args(self, args):
+    def _update_text_embedding_args(self, args):
         # Add data_root_dir to kwargs
         args['data_root_dir'] = self.config['data_root_dir']
         args['vocab_size'] = self.config['vocab_size']
@@ -73,7 +74,7 @@ class VQAMultiModalModel(nn.Module):
             for img_attn_model_params in img_attn_model_list:
                 img_embedding = ImageEmbedding(
                     self.img_feat_dim,
-                    self.question_embeddings_out_dim,
+                    self.text_embeddings_out_dim,
                     **img_attn_model_params
                 )
                 img_embeddings.append(img_embedding)
@@ -89,7 +90,7 @@ class VQAMultiModalModel(nn.Module):
         self.multi_modal_combine_layer = ModalCombineLayer(
             self.config['modal_combine']['type'],
             self.img_embeddings_out_dim,
-            self.question_embeddings_out_dim,
+            self.text_embeddings_out_dim,
             **self.config['modal_combine']['params']
         )
 
@@ -109,7 +110,7 @@ class VQAMultiModalModel(nn.Module):
 
     def get_optimizer_parameters(self, config):
         params = [{'params': self.img_embeddings_list.parameters()},
-                  {'params': self.question_embeddings.parameters()},
+                  {'params': self.text_embeddings.parameters()},
                   {'params': self.multi_modal_combine_layer.parameters()},
                   {'params': self.classifier.parameters()},
                   {'params': self.img_feat_encoders.parameters(),
@@ -118,22 +119,17 @@ class VQAMultiModalModel(nn.Module):
 
         return params
 
-    def forward(self,
-                image_feature_variables,
-                input_question_variable,
-                image_dim_variable,
-                input_answers=None, **kwargs):
-        question_embeddings = []
-        for q_model in self.question_embeddings:
-            q_embedding = q_model(input_question_variable)
-            question_embeddings.append(q_embedding)
-        question_embedding_total = torch.cat(question_embeddings, dim=1)
+    def process_text_embedding(self, texts):
+        text_embeddings = []
 
-        assert (len(image_feature_variables) ==
-                len(self.img_feat_encoders)), \
-            "number of image feature model doesnot equal \
-             to number of image features"
+        for t_model in self.text_embeddings:
+            text_embedding = t_model(texts)
+            text_embeddings.append(text_embedding)
+        text_embeddding_total = torch.cat(text_embeddings, dim=1)
+        return text_embeddding_total
 
+    def process_image_embedding(self, image_feature_variables,
+                                image_dim_variable, text_embedding_total):
         image_embeddings = []
 
         for i, image_feat_variable in enumerate(image_feature_variables):
@@ -145,50 +141,77 @@ class VQAMultiModalModel(nn.Module):
             for i_model in image_embedding_models_i:
                 i_embedding = i_model(
                     image_feat_variable_ft,
-                    question_embedding_total, image_dim_variable_use)
+                    text_embedding_total, image_dim_variable_use)
                 image_embeddings.append(i_embedding)
 
         image_embedding_total = torch.cat(image_embeddings, dim=1)
+        return image_embedding_total
+
+    def combine_embeddings(self, *args):
+        image_embedding = args[0]
+        text_embedding = args[1]
+
+        return self.multi_modal_combine_layer(image_embedding, text_embedding)
+
+    def calculate_logits(self, joint_embedding, **kwargs):
+        return self.classifier(joint_embedding)
+
+    def forward(self,
+                image_feature_variables,
+                input_text_variable,
+                image_dim_variable,
+                input_answers=None, **kwargs):
+        text_embedding_total = self.process_text_embedding(input_text_variable)
+
+        assert (len(image_feature_variables) ==
+                len(self.img_feat_encoders)), \
+            "number of image feature model doesnot equal \
+             to number of image features"
+
+        image_embedding_total = self.process_image_embedding(
+            image_feature_variables,
+            image_dim_variable,
+            text_embedding_total
+        )
 
         if self.inter_model is not None:
             image_embedding_total = self.inter_model(image_embedding_total)
 
-        joint_embedding = self.multi_modal_combine_layer(
-            image_embedding_total, question_embedding_total)
-        logit_res = self.classifier(joint_embedding)
+        joint_embedding = self.combine_embeddings(image_embedding_total,
+                                                  text_embedding_total)
 
-        return logit_res
+        return self.calculate_logits(joint_embedding)
 
 
 class TopDownBottomUpModel(nn.Module):
     def __init__(self, image_attention_model,
-                 question_embedding_models, classifier):
+                 text_embedding_models, classifier):
         super(TopDownBottomUpModel, self).__init__()
         self.image_attention_model = image_attention_model
-        self.question_embedding_models = question_embedding_models
+        self.text_embedding_models = text_embedding_models
         self.classifier = classifier
         text_lstm_dim = sum(
-            [q.text_out_dim for q in question_embedding_models])
+            [q.text_out_dim for q in text_embedding_models])
         joint_embedding_out_dim = classifier.input_dim
         image_feat_dim = image_attention_model.image_feat_dim
-        self.non_linear_question = GatedTanh(
+        self.non_linear_text = ReLUWithWeightNormFC(
             text_lstm_dim, joint_embedding_out_dim)
-        self.non_linear_image = GatedTanh(
+        self.non_linear_image = ReLUWithWeightNormFC(
             image_feat_dim, joint_embedding_out_dim)
 
     def forward(self, image_feat_variable,
-                input_question_variable, input_answers=None, **kwargs):
-        question_embeddings = []
-        for q_model in self.question_embedding_models:
-            q_embedding = q_model(input_question_variable)
-            question_embeddings.append(q_embedding)
-        question_embedding = torch.cat(question_embeddings, dim=1)
+                input_text_variable, input_answers=None, **kwargs):
+        text_embeddings = []
+        for q_model in self.text_embedding_models:
+            q_embedding = q_model(input_text_variable)
+            text_embeddings.append(q_embedding)
+        text_embedding = torch.cat(text_embeddings, dim=1)
 
         if isinstance(image_feat_variable, list):
             image_embeddings = []
             for idx, image_feat in enumerate(image_feat_variable):
                 ques_embedding_each = torch.unsqueeze(
-                    question_embedding[idx, :], 0)
+                    text_embedding[idx, :], 0)
                 image_feat_each = torch.unsqueeze(image_feat, dim=0)
                 attention_each = self.image_attention_model(
                     image_feat_each, ques_embedding_each)
@@ -198,11 +221,11 @@ class TopDownBottomUpModel(nn.Module):
             image_embedding = torch.cat(image_embeddings, dim=0)
         else:
             attention = self.image_attention_model(
-                image_feat_variable, question_embedding)
+                image_feat_variable, text_embedding)
             image_embedding = torch.sum(attention * image_feat_variable, dim=1)
 
-        joint_embedding = self.non_linear_question(
-            question_embedding) * self.non_linear_image(image_embedding)
+        joint_embedding = self.non_linear_text(
+            text_embedding) * self.non_linear_image(image_embedding)
         logit_res = self.classifier(joint_embedding)
 
         return logit_res
