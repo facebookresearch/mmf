@@ -25,6 +25,9 @@ task_attributes:
   vocab_question_file: vocabulary_vqa.txt
   enforce_slow_reader: false
   metrics: vqa_accuracy
+  monitored_metric: 0
+  metric_minimize: False
+  should_early_stop: True
 exp_name: baseline
 loss: logit_bce
 lr_scheduler: true
@@ -57,7 +60,7 @@ model_attributes:
       params:
         dropout: 0
         hidden_dim: 5000
-    question_embeddings:
+    text_embeddings:
     - type: attention
       params:
         hidden_dim: 1024
@@ -91,3 +94,4 @@ training_parameters:
   snapshot_interval: 1000
   wu_factor: 0.2
   wu_iters: 1000
+  patience: 2000

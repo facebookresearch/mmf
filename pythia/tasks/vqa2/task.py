@@ -92,7 +92,7 @@ class VQA2Task(BaseTask):
             i += 1
 
         data = {
-            'input_question_variable': input_text_seqs,
+            'input_text_variable': input_text_seqs,
             'image_dim_variable': image_dim_variable,
             'image_feature_variables': image_feature_variables
         }
