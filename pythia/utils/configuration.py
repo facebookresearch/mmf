@@ -4,6 +4,7 @@ import random
 import torch
 import os
 import json
+import collections
 
 
 class Configuration:
@@ -18,10 +19,12 @@ class Configuration:
             except yaml.YAMLError as err:
                 print("[Error] Default config yaml error", err)
 
+        user_config = {}
+        self.user_config = user_config
+
         if self.config_path is None:
             return
 
-        user_config = {}
         with open(self.config_path, 'r') as f:
             try:
                 # TODO: Create a default config here
@@ -30,8 +33,7 @@ class Configuration:
             except yaml.YAMLError as err:
                 print("Config yaml error", err)
                 sys.exit(0)
-
-        self.config.update(user_config)
+        self.user_config = user_config
 
     def get_config(self):
         return self.config
@@ -46,18 +48,36 @@ class Configuration:
 
     def update_with_task_config(self, task_loader):
         task_loader.load_config()
-        self.config.update(task_loader.task_config)
-        print(self.config['lr_scheduler'])
+        self.config = self.nested_dict_update(self.config,
+                                              task_loader.task_config)
+        # At this point update with user's config
+        self._update_with_user_config()
+
+    def _update_with_user_config(self):
+        self.config = self.nested_dict_update(self.config, self.user_config)
 
     def _update_key(self, dictionary, update_dict):
+        '''
+        Takes a single depth dictionary update_dict and uses it to
+        update 'dictionary' whenever key in 'update_dict' is found at
+        any level in 'dictionary'
+        '''
         for key, value in dictionary.items():
-            if not isinstance(value, dict):
+            if not isinstance(value, collections.Mapping):
                 if key in update_dict and update_dict[key] is not None:
-                    print(key, update_dict[key])
                     dictionary[key] = update_dict[key]
             else:
                 dictionary[key] = self._update_key(value, update_dict)
 
+        return dictionary
+
+    def nested_dict_update(self, dictionary, update):
+        for k, v in update.items():
+            if isinstance(v, collections.Mapping):
+                dictionary[k] = self.nested_dict_update(dictionary.get(k, {}),
+                                                        v)
+            else:
+                dictionary[k] = v
         return dictionary
 
     def pretty_print(self):
