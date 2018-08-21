@@ -30,7 +30,8 @@ class Checkpoint:
            os.path.exists(self.config['resume_file']):
             self._load(self.config['resume_file'])
 
-        ckpt_filepath = self.ckpt_filename + "_best.pth"
+        ckpt_filepath = self.ckpt_filename + "_best.ckpt"
+
         if self.config['resume'] is True \
            and os.path.exists(ckpt_filepath):
             self._load(ckpt_filepath)
@@ -42,6 +43,12 @@ class Checkpoint:
         self.trainer.model.load_state_dict(ckpt['model'])
         self.trainer.optimizer.load_state_dict(ckpt['optimizer'])
         self.trainer.early_stopping.init_from_checkpoint(ckpt)
+
+        if 'best_iteration' in ckpt:
+            self.trainer.current_iteration = ckpt['best_iteration']
+
+        if 'best_epoch' in ckpt:
+            self.trainer.current_epoch = ckpt['best_epoch']
 
     def _torch_load(self, file):
         if self.config['use_cuda']:

@@ -104,6 +104,9 @@ class Trainer:
                                             minimize=metric_minimize,
                                             should_stop=should_early_stop)
 
+        self.current_epoch = 0
+        self.current_iteration = 0
+
         self.checkpoint.load_state_dict()
 
         self.lr_scheduler = None
@@ -134,26 +137,23 @@ class Trainer:
             should_check_on_epoch = True
             max_iterations = math.inf
 
-        current_epoch = 0
-        current_iteration = 0
-
         self.model.train()
         self.train_timer = Timer()
         self.snapshot_timer = Timer()
 
-        while current_iteration < max_iterations:
-            current_epoch += 1
-            if should_check_on_epoch and current_epoch > max_epochs:
+        while self.current_iteration < max_iterations:
+            self.current_epoch += 1
+            if should_check_on_epoch and self.current_epoch > max_epochs:
                 break
 
             for batch in self.train_loader:
-                current_iteration += 1
+                self.current_iteration += 1
 
-                if current_iteration > max_iterations:
+                if self.current_iteration > max_iterations:
                     break
 
                 if self.lr_scheduler is not None:
-                    self.lr_scheduler.step(current_iteration)
+                    self.lr_scheduler.step(self.current_iteration)
 
                 self.optimizer.zero_grad()
 
@@ -166,14 +166,14 @@ class Trainer:
                 loss.backward()
 
                 if should_clip_gradients:
-                    clip_gradients(self.model, current_iteration, self.writer,
-                                   self.config)
+                    clip_gradients(self.model, self.current_iteration,
+                                   self.writer, self.config)
 
                 self.optimizer.step()
                 self.train_meter(output, y)
 
                 extra_info = None
-                should_print = current_iteration % log_interval == 0
+                should_print = self.current_iteration % log_interval == 0
 
                 # TODO: Move in separate function
                 if should_print is True:
@@ -188,14 +188,14 @@ class Trainer:
                 self.task_loader.report_metrics(self.writer,
                                                 self.train_meter,
                                                 loss.data.item(),
-                                                current_iteration,
+                                                self.current_iteration,
                                                 extra_info=extra_info,
                                                 should_print=should_print)
 
                 if should_print is True:
                     self.train_timer.reset()
 
-                if current_iteration % snapshot_interval == 0:
+                if self.current_iteration % snapshot_interval == 0:
                     # TODO: Implement early stopping
                     # TODO: Do validation check here
                     avg_loss = self.evaluate(self.dev_loader,
@@ -203,13 +203,14 @@ class Trainer:
                     time_taken = self.snapshot_timer.get_time_since_start()
                     extra_info = ", time: %s" % time_taken
                     self.snapshot_timer.reset()
-                    stop = self.early_stopping(current_iteration, avg_loss)
+                    stop = self.early_stopping(self.current_iteration,
+                                               avg_loss)
                     extra_info += "\n %s" % self.early_stopping.get_info()
 
                     self.task_loader.report_metrics(self.writer,
                                                     self.dev_meter,
                                                     avg_loss,
-                                                    current_iteration,
+                                                    self.current_iteration,
                                                     extra_info=extra_info)
 
                     if stop is True:
@@ -220,7 +221,7 @@ class Trainer:
 
         avg_test_loss = self.evaluate(self.test_loader, self.test_meter)
         self.task_loader.report_metrics(self.writer, self.test_meter,
-                                        avg_test_loss, current_iteration)
+                                        avg_test_loss, self.current_iteration)
 
     def single_batch_eval(self, loader, meter):
         self.model.eval()
