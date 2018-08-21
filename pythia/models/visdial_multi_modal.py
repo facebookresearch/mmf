@@ -16,6 +16,11 @@ class VisDialMultiModalModel(VQAMultiModalModel):
         self._init_decoder()
         self._init_extras()
 
+    def _init_text_embedding(self):
+        parent = super(VisDialMultiModalModel, self)
+        parent._init_text_embedding('text_embeddings', False)
+        parent._init_text_embedding('history_embeddings', True)
+
     def get_optimizer_parameters(self, config):
         # TODO: Update after implementing decoder
         params = [{'params': self.img_embeddings_list.parameters()},
@@ -48,7 +53,7 @@ class VisDialMultiModalModel(VQAMultiModalModel):
         return self.multi_modal_combine_layer(*args)
 
     def calculate_logits(self, joint_embedding, **kwargs):
-        return self.decoder(joint_embedding, **kwargs)
+        return self.decoder(joint_embedding, kwargs)
 
     def forward(self,
                 texts,
@@ -59,8 +64,10 @@ class VisDialMultiModalModel(VQAMultiModalModel):
                 **kwargs):
 
             texts = texts.view(-1, texts.size(2))
+            histories = histories.view(-1, histories.size(2))
             text_embedding_total = self.process_text_embedding(texts)
-            histories_total = self.process_text_embedding(histories)
+            histories_total = self.process_text_embedding(histories,
+                                                          'history_embeddings')
 
             for idx, image_feature in enumerate(image_features):
                 feature_size = image_feature.size()[2:]
@@ -89,8 +96,8 @@ class VisDialMultiModalModel(VQAMultiModalModel):
                 histories_total
             )
 
-            kwargs = {
+            decoder_info = {
                 'answer_options': answer_options,
                 'answer_options_len': kwargs['answer_options_len']
             }
-            return self.calculate_logits(joint_embedding, **kwargs)
+            return self.calculate_logits(joint_embedding, **decoder_info)

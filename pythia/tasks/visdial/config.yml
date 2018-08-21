@@ -3,24 +3,24 @@ task_attributes:
   batch_size: 10
   vocab_file: visdial/visdial_vocabulary.txt
   max_seq_len: 20
-  max_history_len: 60
+  max_history_len: 300
   embedding_name: glove.6B.300d
   image_depth_first: false
   image_fast_reader: false
   image_feat_test:
-  - rcnn_10_100/vqa/
+  - /checkpoint02/tinayujiang/features/visdial/detectron_23/fc6/
   image_feat_train:
-  - rcnn_10_100/vqa/
+  - detec/detectron/fc6/vqa/train+val2014
   image_feat_val:
-  - rcnn_10_100/vqa/
+  - /checkpoint02/tinayujiang/features/visdial/detectron_23/fc6/
   image_max_loc: 100
   imdb_file_test:
-  - visdial/visdial_val_imdb.json
+  - visdial/visdial_1.0_val_imdb.json
   imdb_file_train:
-  - visdial/visdial_val_imdb.json
+  - visdial/visdial_1.0_train_imdb.json
   imdb_file_val:
-  - visdial/visdial_train_imdb.json
-  num_workers: 5
+  - visdial/visdial_1.0_val_imdb.json
+  num_workers: 12
   enforce_slow_reader: false
   metrics:
     - r@1
@@ -28,8 +28,12 @@ task_attributes:
     - r@10
     - mean_r
     - mean_rr
+  monitored_metric: 0
+  metric_minimize: False
+  should_early_stop: True
 exp_name: baseline
 loss: logit_bce
+lr_scheduler: true
 model_attributes:
   visdial_top_down_bottom_up:
     classifier:
@@ -39,7 +43,7 @@ model_attributes:
         text_hidden_dim: 300
     image_embeddings:
     - modal_combine:
-        type: gated_element_multiply
+        type: non_linear_element_multiply
         params:
           dropout: 0
           hidden_dim: 5000
@@ -50,14 +54,16 @@ model_attributes:
           out_dim: 1
     image_feature_dim: 2048
     image_feature_encodings:
-    - type: default
-      params: {}
+    - type: finetune_faster_rcnn_fpn_fc7
+      params:
+        bias_file: detec/detectron/fc6/fc7_b.pkl
+        weights_file: detec/detectron/fc6/fc7_w.pkl
     modal_combine:
-      type: gated_element_multiply
+      type: non_linear_element_multiply
       params:
         dropout: 0
         hidden_dim: 5000
-    question_embeddings:
+    text_embeddings:
     - type: attention
       params:
         hidden_dim: 1024
@@ -66,7 +72,7 @@ model_attributes:
         conv2_out: 2
         dropout: 0
         embedding_dim: 300
-        embedding_init_file: large_vqa2.0_glove.6B.300d.txt.npy
+        embedding_init_file: vqa2.0_glove.6B.300d.txt.npy
         kernel_size: 1
         padding: 0
 optimizer_attributes:
@@ -88,6 +94,7 @@ training_parameters:
   max_grad_l2_norm: 0.25
   max_iterations: 22000
   log_interval: 100
-  snapshot_interval: 1000
+  snapshot_interval: 3000
   wu_factor: 0.2
   wu_iters: 1000
+  patience: 3500

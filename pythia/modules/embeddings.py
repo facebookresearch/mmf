@@ -98,12 +98,14 @@ class AttentionTextEmbedding(nn.Module):
 
         self.text_out_dim = hidden_dim * kwargs['conv2_out']
 
+        bidirectional = kwargs.get('bidirectional', False)
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         self.recurrent_unit = nn.LSTM(
             input_size=embedding_dim,
-            hidden_size=hidden_dim,
+            hidden_size=hidden_dim // 2 if bidirectional else hidden_dim,
             num_layers=num_layers,
-            batch_first=True
+            batch_first=True,
+            bidirectional=bidirectional
         )
 
         self.dropout = nn.Dropout(p=dropout)

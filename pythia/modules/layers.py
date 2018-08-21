@@ -255,8 +255,11 @@ class NonLinearElementMultiply(nn.Module):
         question_fa = self.fa_txt(question_embedding)
 
         if history_embedding is None:
-            history_fa = torch.new_tensor(question_fa)
-            history_fa.ones_()
+            history_fa = question_fa.new_ones(size=question_fa.size())
+            history_fa = torch.autograd.Variable(history_fa)
+
+            if question_fa.is_cuda is True:
+                history_fa = history_fa.cuda()
         else:
             history_fa = self.fa_history(history_embedding)
 

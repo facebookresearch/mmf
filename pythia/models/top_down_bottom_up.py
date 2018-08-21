@@ -21,7 +21,8 @@ class VQAMultiModalModel(nn.Module):
         self._init_classifier()
         self._init_extras()
 
-    def _init_text_embedding(self):
+    def _init_text_embedding(self, attr='text_embeddings',
+                             bidirectional=False):
         text_embeddings = []
         text_embeddings_list_config = self.config['text_embeddings']
 
@@ -30,14 +31,14 @@ class VQAMultiModalModel(nn.Module):
         for text_embedding in text_embeddings_list_config:
             embedding_type = text_embedding['type']
             embedding_kwargs = text_embedding['params']
-
+            embedding_kwargs['bidirectional'] = bidirectional
             self._update_text_embedding_args(embedding_kwargs)
 
             embedding = TextEmbedding(embedding_type, **embedding_kwargs)
             text_embeddings.append(embedding)
             self.text_embeddings_out_dim += embedding.text_out_dim
 
-        self.text_embeddings = nn.ModuleList(text_embeddings)
+        setattr(self, attr, nn.ModuleList(text_embeddings))
 
     def _update_text_embedding_args(self, args):
         # Add data_root_dir to kwargs
@@ -119,10 +120,10 @@ class VQAMultiModalModel(nn.Module):
 
         return params
 
-    def process_text_embedding(self, texts):
+    def process_text_embedding(self, texts, embedding_attr='text_embeddings'):
         text_embeddings = []
 
-        for t_model in self.text_embeddings:
+        for t_model in getattr(self, embedding_attr):
             text_embedding = t_model(texts)
             text_embeddings.append(text_embedding)
         text_embeddding_total = torch.cat(text_embeddings, dim=1)
