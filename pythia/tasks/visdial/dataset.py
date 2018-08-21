@@ -128,15 +128,15 @@ class VisualDialogDataset(Dataset):
         threads = self.imdb['dialogs']
         gt_indices = torch.zeros(nthreads, nrounds).long()
 
-        stoi = self.vocab.get_stoi()
-
+        sos_index = self.vocab.SOS_INDEX
+        eos_index = self.vocab.EOS_INDEX
         for idx, thread in enumerate(threads):
             # Start with caption as initial dialog history
             # Prepend with SOS and append with EOS to signal end of sequence
-            previous_dialog = [stoi[self.vocab.SOS_TOKEN]]
+            previous_dialog = [sos_index]
             caption_tokens = self._tokens_to_word_indices(thread['caption'])
-            previous_dialog += caption_tokens[0][:self.max_seq_len]
-            previous_dialog += [stoi[self.vocab.EOS_TOKEN]]
+            previous_dialog += caption_tokens[0][:self.max_history_len]
+            previous_dialog += [eos_index]
 
             for round_id, dialog in enumerate(thread['dialog']):
                 # Add question's tokens, length trimmed on max_seq_len
@@ -160,13 +160,17 @@ class VisualDialogDataset(Dataset):
                 options = torch.LongTensor(dialog['answer_options'])
                 answer_options[idx][round_id] = options.long()
 
-                previous_dialog += [stoi[self.vocab.SOS_TOKEN]]
+                previous_dialog += [sos_index]
                 previous_dialog += question_tokens[question_id]
-                previous_dialog += [stoi[self.vocab.EOS_TOKEN]]
+                previous_dialog += [eos_index]
 
-                previous_dialog += [stoi[self.vocab.SOS_TOKEN]]
+                previous_dialog += [sos_index]
                 previous_dialog += answer_tokens[answer_id]
-                previous_dialog += [stoi[self.vocab.EOS_TOKEN]]
+                previous_dialog += [eos_index]
+
+                if len(previous_dialog) > self.max_history_len:
+                    first_eos = previous_dialog.index(eos_index)
+                    previous_dialog = previous_dialog[first_eos + 1:]
 
         self.questions = questions
         self.question_lens = question_lens

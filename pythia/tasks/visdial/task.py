@@ -118,12 +118,12 @@ class VisualDialogTask(VQA2Task):
             y = y.cuda()
 
         out = {
-            'questions': questions,
+            'texts': questions,
             'answer_options': answer_options,
             'histories': histories,
             'image_features': image_feature_variables,
             'image_dims': image_dim_variable,
-            'questions_len': batch['questions_len'],
+            'texts_len': batch['questions_len'],
             'answer_options_len': batch['answer_options_len'],
             'histories_len': batch['histories_len']
         }
