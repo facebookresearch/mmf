@@ -4,6 +4,7 @@ import random
 import torch
 import os
 import json
+import demjson
 import collections
 
 
@@ -55,6 +56,13 @@ class Configuration:
 
     def _update_with_user_config(self):
         self.config = self.nested_dict_update(self.config, self.user_config)
+
+    def override_with_cmd_config(self, cmd_config):
+        if cmd_config is None:
+            return
+
+        cmd_config = demjson.decode(cmd_config)
+        self.config = self.nested_dict_update(self.config, cmd_config)
 
     def _update_key(self, dictionary, update_dict):
         '''

@@ -47,6 +47,9 @@ class Trainer:
         self.task_loader = TaskLoader(self.config)
         self.configuration.update_with_task_config(self.task_loader)
 
+        # Update with the config override if passed
+        self.configuration.override_with_cmd_config(self.args.config_override)
+
         # Update with args once again as they are the most important
         self.configuration.update_with_args(self.args)
         self.configuration.pretty_print()

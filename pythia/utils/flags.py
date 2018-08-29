@@ -68,7 +68,9 @@ class Flags:
         self.parser.add_argument("--should_not_log", action="store_true",
                                  default=False, help="Set when you don't want"
                                  " logging to happen")
-
+        self.parser.add_argument("-co", "--config_override", type=str,
+                                 default=None, help="Use to override config "
+                                 "from command line directly")
         self.parser.add_argument("--resume_file", type=str, default=None,
                                  help="File from which to resume checkpoint")
         self.parser.add_argument("--resume", type=bool,
@@ -89,7 +91,6 @@ class Flags:
         self.parser.add_argument("-nw", "--num_workers", type=int,
                                  default=None,
                                  help="Number of workers for dataloaders")
-
 
     def update_task_args(self):
         args = sys.argv
