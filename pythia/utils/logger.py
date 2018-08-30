@@ -1,8 +1,10 @@
 import os
+import logging
 
 from tensorboardX import SummaryWriter
 
-from pythia.utils.general import ckpt_name_from_core_args
+from pythia.utils.general import ckpt_name_from_core_args, \
+                                 foldername_from_config_override
 from pythia.utils.timer import Timer
 
 
@@ -12,27 +14,25 @@ class Logger:
 
         self.config = config
 
-        self.log_filename = ckpt_name_from_core_args(config) + '_'
+        self.log_folder = ckpt_name_from_core_args(config)
+        self.log_folder += foldername_from_config_override(config)
         time_format = "%Y-%m-%dT%H:%M:%S"
+        self.log_filename = ckpt_name_from_core_args(config) + '_'
         self.log_filename += self.timer.get_time_hhmmss(None, time_format)
         self.log_filename += ".log"
 
         self.log_file = None
         self.summary_writer = None
 
-        if 'log_dir' not in self.config:
-            print("[Warning] log_dir missing from config")
-            return
+        tensboard_folder = os.path.join(self.log_folder, "tensorboard")
+        self.summary_writer = SummaryWriter(tensboard_folder)
 
-        self.summary_writer = SummaryWriter(self.config['log_dir'])
-
-        if not os.path.exists(self.config['log_dir']):
-            os.makedirs(self.config['log_dir'])
-
-        self.log_filename = os.path.join(self.config['log_dir'],
+        self.log_filename = os.path.join(self.log_folder,
                                          self.log_filename)
 
-        self.log_file = open(self.log_filename, 'a', 4)
+        logging.basicConfig(filename=self.log_filename,level=logging.DEBUG,
+                            filemode='a', format="%(levelname)s: %(message)s")
+        self.logger = logging.getLogger(__name__)
         self.should_log = not self.config['should_not_log']
         self.config['should_log'] = self.should_log
 
@@ -42,11 +42,15 @@ class Logger:
         if self.log_file is not None:
             self.summary_writer.close()
 
-    def write(self, x):
+    def write(self, x, level='debug'):
+        # if it should not log then just print it
         if self.should_log and self.log_file is not None:
-            self.log_file.write(str(x) + '\n')
-
-        print(str(x) + '\n')
+            if hasattr(self.logger, level):
+                getattr(self.logger, level)(str(x))
+            else:
+                self.logger.error("Unknown log level type: %s" % level)
+        else:
+            print(str(x) + '\n')
 
     def add_scalars(self, scalar_dict, iteration):
         if self.summary_writer is None:

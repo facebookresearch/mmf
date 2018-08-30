@@ -1,7 +1,9 @@
 import os
 import torch
+import yaml
 
-from pythia.utils.general import ckpt_name_from_core_args
+from pythia.utils.general import ckpt_name_from_core_args, \
+                                 foldername_from_config_override
 
 
 class Checkpoint:
@@ -15,22 +17,41 @@ class Checkpoint:
         self.config = self.trainer.config
         self.save_loc = self.config['save_loc']
 
-        self.ckpt_filename = ckpt_name_from_core_args(self.config)
+        self.ckpt_foldername = ckpt_name_from_core_args(self.config)
+        self.ckpt_foldername += foldername_from_config_override(
+            self.trainer.args
+        )
 
+        self.ckpt_prefix = ""
         if hasattr(self.trainer.model, 'get_ckpt_name'):
-            self.ckpt_filename += self.trainer.model.get_ckpt_name()
+            self.ckpt_prefix = self.trainer.model.get_ckpt_name() + '_'
 
-        self.config['log_filename'] = self.ckpt_filename
-        self.ckpt_filename = os.path.join(self.save_loc, self.ckpt_filename)
-        self.pth_filepath = os.path.join(self.save_loc, self.ckpt_filename
-                                         + ".pth")
+        self.config['log_foldername'] = self.ckpt_foldername
+        self.ckpt_foldername = os.path.join(self.save_loc,
+                                            self.ckpt_foldername)
+        self.pth_filepath = os.path.join(self.save_loc, self.ckpt_foldername,
+                                         self.ckpt_prefix + "final.pth")
+
+        if not os.path.exists(os.path.dirname(self.ckpt_foldername)):
+            os.mkdirs(os.path.join(self.ckpt_foldername, "models"))
+
+        self.save_config()
+
+    def save_config(self):
+        cfg_file = os.path.join(self.ckpt_foldername, "config.yaml")
+        with open(cfg_file, 'w') as f:
+            # Pop out config_override if present to remove clutter in
+            # saved configuration yaml file
+            self.config.pop('config_override', None)
+            yaml.dump(self.config, f)
 
     def load_state_dict(self):
         if self.config['resume_file'] is not None and \
            os.path.exists(self.config['resume_file']):
             self._load(self.config['resume_file'])
 
-        ckpt_filepath = self.ckpt_filename + "_best.ckpt"
+        ckpt_filepath = os.path.join(self.ckpt_foldername,
+                                     self.ckpt_prefix + "best.ckpt")
 
         if self.config['resume'] is True \
            and os.path.exists(ckpt_filepath):
@@ -57,11 +78,10 @@ class Checkpoint:
             return torch.load(file, map_location=lambda storage, loc: storage)
 
     def save(self, iteration, update_best=False):
-        ckpt_filepath = self.ckpt_filename + "_%d.ckpt" % iteration
-        best_ckpt_filepath = self.ckpt_filename + "_best.ckpt"
-
-        if not os.path.exists(os.path.dirname(ckpt_filepath)):
-            os.mkdir(os.path.dirname(ckpt_filepath))
+        ckpt_filepath = os.path.join(self.ckpt_foldername, "models",
+                                     "model_%d.ckpt" % iteration)
+        best_ckpt_filepath = os.path.join(self.ckpt_foldername,
+                                          self.ckpt_prefix + "best.ckpt")
 
         best_iteration = self.trainer.early_stopping.best_monitored_iteration
         best_metric = self.trainer.early_stopping.best_monitored_metric
@@ -78,14 +98,12 @@ class Checkpoint:
             torch.save(ckpt, best_ckpt_filepath)
 
     def restore(self):
-        best_path = self.ckpt_filename + "_best.ckpt"
+        best_path = os.path.join(self.ckpt_foldername,
+                                 self.ckpt_prefix + "best.ckpt")
         if os.path.exists(best_path):
             ckpt = self._torch_load(best_path)
             self.trainer.model.load_state_dict(ckpt['model'])
             self.trainer.optimizer.load_state_dict()
 
     def finalize(self):
-        if not os.path.exists(os.path.dirname(self.pth_filepath)):
-            os.mkdir(os.path.dirname(self.pth_filepath))
-
         torch.save(self.trainer.model, self.pth_filepath)

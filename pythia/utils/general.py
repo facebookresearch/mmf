@@ -1,3 +1,5 @@
+import yaml
+
 from bisect import bisect
 from torch import nn
 
@@ -36,6 +38,24 @@ def clip_gradients(model, i_iter, writer, config):
 
 def ckpt_name_from_core_args(config):
     return ("%s_%s_%d" % (config['task'], config['model'], config['seed']))
+
+
+def foldername_from_config_override(args):
+    cfg_override = None
+    if hasattr(args, 'config_override'):
+        cfg_override = args.config_override
+    elif 'config_override' in args:
+        cfg_override = args['config_override']
+
+    folder_name = ''
+    if cfg_override is not None and len(cfg_override) > 0:
+        folder_name = yaml.safe_dump(cfg_override, default_flow_style=True)
+        folder_name = folder_name.replace(':', '.').replace('\n', ' ')
+        folder_name = folder_name.replace('/', '_')
+        folder_name = ' '.join(folder_name.split())
+        folder_name = folder_name.replace('. ', '.').replace(' ', '_')
+        folder_name = '_' + folder_name
+    return folder_name
 
 
 def get_optimizer_parameters(model, config):
