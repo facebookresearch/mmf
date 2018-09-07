@@ -66,10 +66,10 @@ cv2.ocl.setUseOpenCL(False)
 
 csv.field_size_limit(sys.maxsize)
 
-BOTTOM_UP_FIELDNAMES = ['image_id', 'image_w', 'image_h', 'num_boxes', 'boxes', 'features']
-
-
-FIELDNAMES = ['image_id', 'image_w','image_h','num_boxes', 'boxes', 'features', 'object']
+BOTTOM_UP_FIELDNAMES = ['image_id', 'image_w', 'image_h', 
+                        'num_boxes', 'boxes', 'features']
+FIELDNAMES = ['image_id', 'image_w', 'image_h', 'num_boxes', 
+            'boxes', 'features', 'object']
 
 def parse_args():
     parser = argparse.ArgumentParser(description='End-to-end inference')
@@ -140,17 +140,21 @@ def parse_args():
         'im_or_folder', help='image or folder of images', default=None
     )
 
-
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
     return parser.parse_args()
 
 
-def get_detections_from_im(cfg, model, im, image_id, feat_blob_name ,MIN_BOXES, MAX_BOXES, conf_thresh=0.2, bboxes=None):
+def get_detections_from_im(cfg, model, im, image_id, feat_blob_name,
+                            MIN_BOXES, MAX_BOXES, conf_thresh=0.2, bboxes=None):
 
     with c2_utils.NamedCudaScope(0):
-        scores, cls_boxes, im_scale = infer_engine.im_detect_bbox(model, im,cfg.TEST.SCALE, cfg.TEST.MAX_SIZE, boxes=bboxes)
+        scores, cls_boxes, im_scale = infer_engine.im_detect_bbox(model, 
+                                                                im,
+                                                                cfg.TEST.SCALE,
+                                                                cfg.TEST.MAX_SIZE,
+                                                                boxes=bboxes)
         box_features = workspace.FetchBlob(feat_blob_name)
         cls_prob = workspace.FetchBlob("gpu_0/cls_prob")
         rois = workspace.FetchBlob("gpu_0/rois")
@@ -189,7 +193,8 @@ def extract_bboxes(bottom_up_csv_file):
     image_bboxes = {}
 
     with open(bottom_up_csv_file, "r") as tsv_in_file:
-        reader = csv.DictReader(tsv_in_file, delimiter='\t', fieldnames=BOTTOM_UP_FIELDNAMES)
+        reader = csv.DictReader(tsv_in_file, delimiter='\t', 
+                                fieldnames=BOTTOM_UP_FIELDNAMES)
         for item in reader:
             item['num_boxes'] = int(item['num_boxes'])
             image_id = int(item['image_id'])
@@ -218,8 +223,7 @@ def main(args):
     else:
         im_list = [args.im_or_folder]
 
-
-    ##extract bboxes from bottom-up attention model
+    # extract bboxes from bottom-up attention model
     image_bboxes={}
     if args.bbox_file is not None:
         image_bboxes = extract_bboxes(args.bbox_file)
@@ -230,20 +234,24 @@ def main(args):
 
     for i, im_name in enumerate(im_list):
         im_base_name = os.path.basename(im_name)
-        image_id = int(im_base_name.split(".")[0].split("_")[-1])   ##for COCO
+        image_id = int(im_base_name.split(".")[0].split("_")[-1])   # for COCO
         if image_id % args.total_group == args.group_id:
             bbox = image_bboxes[image_id] if image_id in image_bboxes else None
             im = cv2.imread(im_name)
             if im is not None:
-                outfile = os.path.join(args.output_dir, im_base_name.replace('jpg', 'npy'))
+                outfile = os.path.join(args.output_dir, 
+                                    im_base_name.replace('jpg', 'npy'))
                 lock_folder = outfile.replace('npy', 'lock')
                 if not os.path.exists(lock_folder) and os.path.exists(outfile):
                     continue
                 if not os.path.exists(lock_folder):
                     os.makedirs(lock_folder)
 
-                result = get_detections_from_im(cfg, model, im, image_id,args.feat_name,
-                                                   args.min_bboxes, args.max_bboxes, bboxes=bbox)
+                result = get_detections_from_im(cfg, model, im, 
+                                                image_id,args.feat_name,
+                                                args.min_bboxes, 
+                                                args.max_bboxes, 
+                                                bboxes=bbox)
 
                 np.save(outfile, result)
                 os.rmdir(lock_folder)
@@ -267,6 +275,6 @@ if __name__ == '__main__':
     utils.logging.setup_logging(__name__)
     args = parse_args()
     if args.group_id >= args.total_group:
-        exit("sahrding group %d is greater than the total group %d" %(args.group_id, args.total_group ))
+        exit("sharding group %d is greater than the total group %d" %(args.group_id, args.total_group ))
 
     main(args)
