@@ -53,6 +53,11 @@ Extract Image Features
 We use detectron to extract image features. Setting up [detectron](https://github.com/facebookresearch/Detectron) 
 and copy [tools/extract_features.py](tools/extract_features.py) to detectron for extracting features
 
+
+Feature extraction works best with commit #3a38b7b of [detectron](https://github.com/facebookresearch/Detectron)
+and #0dd3284 of [caffe2](https://github.com/caffe2/caffe2)
+
+
 download the pretrained detectron model
 ```bash
 wget https://s3-us-west-1.amazonaws.com/pythia-vqa/detectron/FAST_RCNN_MLP_DIM2048_FPN_DIM512.pkl
