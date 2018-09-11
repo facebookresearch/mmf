@@ -49,7 +49,8 @@ gunzip detectron.tar.gz
 tar -xvf detectron.tar
 rm -f detectron.tar
 ``` 
-Extract Image Features
+### Extract Image Features
+
 We use detectron to extract image features. Setting up [detectron](https://github.com/facebookresearch/Detectron) 
 and copy [tools/extract_features.py](tools/extract_features.py) to detectron for extracting features
 
