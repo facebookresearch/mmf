@@ -34,17 +34,31 @@ of Apollo at Delphi, who answered questions in Ancient
 Greece. See [here](https://en.wikipedia.org/wiki/Pythia) for more details.
 
 ### Citing pythia
-If you use Pythia in your research or wish to refer to the baseline results included, please use the following BibTeX entry.
+If you use Pythia in your research, please use the following BibTeX entries for reference:
+
+The software:
 
 ```
-@misc{pythia2018,
+@misc{pythia18software,
+  title =        {Pythia},
   author =       {Yu Jiang and Vivek Natarajan and Xinlei Chen and Marcus Rohrbach and Dhruv Batra and Devi Parikh},
-  title =        {Pythia v0.1: The Winning Entry to the VQA Challenge 2018},
   howpublished = {\url{https://github.com/facebookresearch/pythia}},
   year =         {2018}
 }
 ```
 
+The technical report detailing the description and analysis for our winning entry to the VQA 2018 challenge:
+
+```
+@article{pythia18arxiv,
+  title =        {Pythia v0.1: the Winning Entry to the VQA Challenge 2018},
+  author =       {{Yu Jiang*} and {Vivek Natarajan*} and {Xinlei Chen*} and Marcus Rohrbach and Dhruv Batra and Devi Parikh},
+  journal =      {arXiv preprint arXiv:1807.09956},
+  year =         {2018}
+}
+```
+
+\* Yu Jiang, Vivek Natarajan and Xinlei Chen contributed equally to the winning entry to the VQA 2018 challenge.
 
 ### Installing pythia environment
 
@@ -63,8 +77,6 @@ pip install torchvision
 pip install tensorboardX
 
 ```
-
-
 
 
 ### Quick start
@@ -158,13 +170,9 @@ results
 The log files for tensorbord are stored under `boards/`
 
 
-
 ### Preprocess dataset
 If you want to start from the original VQA dataset and preprocess data by yourself, use the following instructions in [data_preprocess.md](data_prep/data_preprocess.md). 
 ***This part is not necessary if you download all data from quick start.***
-
-
-
 
 
 ### Test with pretrained models
@@ -265,11 +273,11 @@ Abhishek Das, Abhishek Kadian for feedback on our codebase.
 
 
 ### References
+- Y. Jiang, and V. Natarajan and X. Chen and M. Rohrbach and D. Batra and D. Parikh. Pythia v0.1: The Winning Entry to the VQA Challenge 2018. CoRR, abs/1807.09956, 2018.
 - P. Anderson, X. He, C. Buehler, D. Teney, M. Johnson, S. Gould, and L. Zhang. Bottom-up and top-down attenttion for image captioning and visual question answering. In _CVPR_, 2018.
-- S.  Antol,   A.  Agrawal,   J.  Lu,   M.  Mitchell,   D.  Batra,C. Lawrence Zitnick, and D. Parikh.  VQA:  Visual question answering. In _ICCV_, 2015
-- A.  Das,  S.  Kottur,  K.  Gupta,  A.  Singh,  D.  Yadav,  J.  M.Moura, D. Parikh, and D. Batra.  Visual Dialog.  In _CVPR_,2017
+- S. Antol,   A. Agrawal,   J. Lu,   M. Mitchell,   D. Batra,C. Lawrence Zitnick, and D. Parikh.  VQA:  Visual question answering. In _ICCV_, 2015
+- A. Das,  S. Kottur,  K. Gupta,  A. Singh,  D. Yadav,  J. M. Moura, D. Parikh, and D. Batra.  Visual Dialog.  In _CVPR_, 2017
 - Y. Goyal, T. Khot, D. Summers-Stay, D. Batra, and D. Parikh. Making the V in VQA matter: Elevating the role of image understanding in Visual Question Answering. In _CVPR_, 2017.
-- Hu R, Andreas J, Rohrbach M, Darrell T, Saenko K. Learning to reason: End-to-end module networks for visual question answering. In _ICCV_, 2017.
 - D. Teney, P. Anderson, X. He, and A. van den Hengel. Tips and tricks for visual question answering: Learnings from the 2017 challenge. CoRR, abs/1708.02711, 2017.
 - Z. Yu, J. Yu, C. Xiang, J. Fan, and D. Tao. Beyond bilinear: Generalized multimodal factorized high-order pooling for visual question answering. _TNNLS_, 2018.
 
