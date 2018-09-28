@@ -188,7 +188,7 @@ def compute_a_batch(batch, my_model, eval_mode, loss_criterion=None, add_graph=F
         obs_res = obs_res.cuda()
 
     n_sample = obs_res.size(0)
-    logit_res = one_stage_run_model(batch, my_model, add_graph, log_dir, eval_mode)
+    logit_res = one_stage_run_model(batch, my_model, eval_mode, add_graph, log_dir)
     predicted_scores = torch.sum(compute_score_with_logits(logit_res, obs_res.data))
 
     total_loss = None if loss_criterion is None else loss_criterion(logit_res, obs_res)
