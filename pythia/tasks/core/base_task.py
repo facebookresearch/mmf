@@ -1,4 +1,5 @@
 import importlib
+import numpy as np
 
 from torch.utils.data import Dataset
 
@@ -10,11 +11,12 @@ class BaseTask(Dataset):
 
     def load(self, opts):
         self.datasets = []
-        available_datasets = self.get_available_datasets()
+        available_datasets = self._get_available_datasets()
         dataset_module = importlib.import_module('pythia.tasks.datasets')
 
         self.total_length = 0
         self.per_dataset_lengths = []
+        self.num_datasets = 0
 
         for dataset in self.given_datasets:
             if dataset in available_datasets:
@@ -24,7 +26,14 @@ class BaseTask(Dataset):
                 self.per_dataset_lengths.append(len(dataset_instance))
                 self.total_length += len(dataset_instance)
 
-    def get_available_datasets(self):
+        self.num_datasets = len(self.datasets)
+        self.dataset_probablities = [1 for _ in range(self.num_datasets)]
+
+        if opts['size_proportional_sampling']:
+            self.dataset_probablities = self.per_dataset_lengths
+            self.dataset_probablities /= self.total_length
+
+    def _get_available_datasets(self):
         """Set available datasets for this task here.
         Override in your child task class
         Temporary solution, later we will use decorators to easily register
@@ -41,24 +50,49 @@ class BaseTask(Dataset):
         return self.total_length
 
     def __getitem__(self, idx):
-        raise NotImplementedError("This task doesn't implement getitem method")
+        dataset_choice = np.random.choice(self.num_datasets, 1,
+                                          p=self.dataset_probablities)
+        chosen_dataset = self.datasets[dataset_choice]
+        idx = idx % self.per_dataset_lengths[dataset_choice]
+
+        item = chosen_dataset[idx]
+
+        return self._preprocess_item(item)
+
+    def _preprocess_item(self, item):
+        """Preprocess an item to be returned from __getitem__.
+        Override in your child task class, so you have control on what you are
+        returning
+
+        Parameters
+        ----------
+        item : Object
+            Object returned by a particular dataset
+
+        Returns
+        -------
+        Object:
+            Preprocessed item
+        """
+        raise NotImplementedError("This task doesn't implement preprocess_item"
+                                  " method")
 
     def prepare_batch(self, batch, use_cuda=False):
-        '''
+        """
         Override in your child class
 
         Prepare batch for passing to model. Whatever returned from here will
         be directly passed to model's forward function
-        '''
+        """
         return batch
 
     def update_config_for_model(self, config):
-        '''
+        """
         Use this if there is some specific configuration required by model
         which must be inferred at runtime.
-        '''
-        raise NotImplementedError("This task doesn't implement config"
-                                  " update method")
+        """
+        return NotImplemented("This task doesn't implement config"
+                              " update method")
 
     def init_args(self, parser):
         parser.add_argument_group('General Task Arguments')
@@ -85,12 +119,13 @@ class BaseTask(Dataset):
 
         """
 
-        raise NotImplementedError("This task doesn't implement args "
-                                  " initialization method")
+        return NotImplemented("This task doesn't implement args "
+                              " initialization method")
 
     def clean_config(self, config):
-        '''
+        """
         Use this in case you want to clean the config you updated earlier
         in update_config_for_model
-        '''
-        return
+        """
+        return NotImplemented("This task doesn't implement clean_config "
+                              "method")
