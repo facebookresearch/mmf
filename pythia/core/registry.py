@@ -13,6 +13,7 @@ class Registry:
         # one is used to keep a mapping for dataset to its builder class.
         # Use "register_builder" decorator to register a builder
         'builder_name_mapping': {},
+        'metric_name_mapping': {},
         'state': {}
     }
 
@@ -25,8 +26,20 @@ class Registry:
         cls.register['builder_name_mapping'][name] = builder_cls
 
     @classmethod
-    def register(cls, obj, name):
-        cls.register['state'][name] = obj
+    def register_metric(cls, func, name):
+        cls.register['metric_name_mapping'][name] = func
+
+    @classmethod
+    def register(cls, name, obj):
+        path = name.split('.')
+        current = cls.register['state']
+
+        for part in path[:-1]:
+            if part not in current:
+                current[part] = {}
+            current = current[part]
+
+        current[path[-1]] = obj
 
     @classmethod
     def get_task_class(cls, name):
@@ -37,8 +50,18 @@ class Registry:
         return cls.register['builder_name_mapping'].get(name, None)
 
     @classmethod
+    def get_metric_func(cls, name):
+        return cls.register['metric_name_mapping'].get(name, None)
+
+    @classmethod
     def get(cls, name):
-        return cls.register['state'].get(name, None)
+        name = name.split('.')
+        value = cls.register['state']
+        for subname in name:
+            value = value.get(subname, None)
+            if value is None:
+                break
+        return value
 
     @classmethod
     def unregister(cls, name):
