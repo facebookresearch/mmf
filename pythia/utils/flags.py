@@ -24,10 +24,15 @@ class Flags:
                                  required=False,
                                  help="config yaml file")
 
-        self.parser.add_argument("--task",
+        self.parser.add_argument("--tasks",
                                  type=str,
                                  required=True,
-                                 help="Task for training")
+                                 help="Tasks for training")
+        self.parser.add_argument("--datasets",
+                                 type=str,
+                                 required=False,
+                                 default="all",
+                                 help="Datasets to be used for required task")
         self.parser.add_argument("--model",
                                  type=str,
                                  required=True,

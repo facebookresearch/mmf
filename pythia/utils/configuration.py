@@ -7,6 +7,8 @@ import json
 import demjson
 import collections
 
+from .general import nested_dict_update
+
 
 class Configuration:
     def __init__(self, config_yaml_file):
@@ -49,20 +51,20 @@ class Configuration:
 
     def update_with_task_config(self, task_loader):
         task_loader.load_config()
-        self.config = self.nested_dict_update(self.config,
-                                              task_loader.task_config)
+        self.config = nested_dict_update(self.config,
+                                         task_loader.task_config)
         # At this point update with user's config
         self._update_with_user_config()
 
     def _update_with_user_config(self):
-        self.config = self.nested_dict_update(self.config, self.user_config)
+        self.config = nested_dict_update(self.config, self.user_config)
 
     def override_with_cmd_config(self, cmd_config):
         if cmd_config is None:
             return
 
         cmd_config = demjson.decode(cmd_config)
-        self.config = self.nested_dict_update(self.config, cmd_config)
+        self.config = nested_dict_update(self.config, cmd_config)
 
     def _update_key(self, dictionary, update_dict):
         '''
@@ -77,15 +79,6 @@ class Configuration:
             else:
                 dictionary[key] = self._update_key(value, update_dict)
 
-        return dictionary
-
-    def nested_dict_update(self, dictionary, update):
-        for k, v in update.items():
-            if isinstance(v, collections.Mapping):
-                dictionary[k] = self.nested_dict_update(dictionary.get(k, {}),
-                                                        v)
-            else:
-                dictionary[k] = v
         return dictionary
 
     def pretty_print(self):

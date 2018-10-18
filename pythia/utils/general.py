@@ -1,4 +1,5 @@
 import yaml
+import collections
 
 from bisect import bisect
 from torch import nn
@@ -72,3 +73,36 @@ def get_optimizer_parameters(model, config):
         parameters = model.module.get_optimizer_parameters(config)
 
     return parameters
+
+
+def dict_to_string(dictionary):
+    logs = []
+    if dictionary is None:
+        return ""
+    for key, val in dictionary.items():
+        logs.append('%s: %s' % (key, val))
+
+    return logs.join(',')
+
+
+def nested_dict_update(dictionary, update):
+    """Updates a dictionary with other dictionary recursively.
+
+    Parameters
+    ----------
+    dictionary : dict
+        Dictionary to be updated.
+    update : dict
+        Dictionary which has to be added to original one.
+
+    Returns
+    -------
+    dict
+        Updated dictionary.
+    """
+    for k, v in update.items():
+        if isinstance(v, collections.Mapping):
+            dictionary[k] = nested_dict_update(dictionary.get(k, {}), v)
+        else:
+            dictionary[k] = v
+    return dictionary
