@@ -8,14 +8,30 @@ from pythia.core.registry import Registry
 
 
 class BaseTask(Dataset):
-    def __init__(self, task_name, datasets):
+    def __init__(self, task_name, **opts):
+        self.opts = opts
+
+        if 'datasets' not in opts:
+            writer = Registry.get('writer')
+            writer.write("No datasets attribute present for task: %s."
+                         " Defaulting to all" % (task_name))
+            datasets = "all"
+        else:
+            datasets = opts['datasets']
+
         if datasets is None:
+            datasets = self._get_available_datasets()
+
+        if type(datasets) == str:
+            datasets = map(lambda x: x.strip(),
+                           datasets.split(","))
+        if len(datasets) == 0 and datasets[0] == "all":
             datasets = self._get_available_datasets()
 
         self.task_name = task_name
         self.given_datasets = datasets
 
-    def load(self, opts):
+    def load(self):
         self.datasets = []
         self.builders = []
         available_datasets = self._get_available_datasets()
@@ -32,8 +48,10 @@ class BaseTask(Dataset):
                     print("No builder class found for %s." % dataset)
                     continue
                 builder_instance = builder_class()
-                builder_instance.build(**opts)
-                dataset_instance = builder_instance.load(**opts)
+
+                attributes = self.opts['dataset_attributes'][dataset]
+                builder_instance.build(**attributes)
+                dataset_instance = builder_instance.load(**self.opts)
 
                 self.builders.append(builder_instance)
                 self.datasets.append(dataset_instance)
@@ -45,8 +63,9 @@ class BaseTask(Dataset):
 
         self.num_datasets = len(self.datasets)
         self.dataset_probablities = [1 for _ in range(self.num_datasets)]
+        sampling = self.opts.get('dataset_size_proportional_sampling', None)
 
-        if opts['dataset_size_proportional_sampling']:
+        if sampling is True:
             self.dataset_probablities = self.per_dataset_lengths
             self.dataset_probablities /= self.total_length
 

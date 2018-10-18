@@ -119,7 +119,7 @@ class Trainer:
         self.checkpoint.load_state_dict()
 
         self.lr_scheduler = None
-        if self.config['lr_scheduler'] is True:
+        if training_parameters['lr_scheduler'] is True:
             scheduler_class = optim.lr_scheduler.LambdaLR
             scheduler_func = lambda x: lr_lambda_update(x, self.config)
             self.lr_scheduler = scheduler_class(self.optimizer,

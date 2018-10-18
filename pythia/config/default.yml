@@ -1,23 +1,30 @@
-task_attributes:
-  batch_size: 512
-  data_root_dir: data/
-  num_workers: 5
-  monitored_metric: -1
-  metric_minimize: True
-  should_early_stop: True
-exp_name: test
-loss: mse
-optimizer_attr:
-  method: Adamax
-  params:
-    eps: 1.0e-08
-    lr: 0.01
-    weight_decay: 0
-task: vqa2
+experiment_base_name: test
+tasks: vqa2
 training_parameters:
   max_iterations: 22000
   log_interval: 100
   snapshot_interval: 1000
   clip_gradients: false
   patience: 2000
-use_cuda: true
+  use_cuda: true
+  batch_size: 512
+  data_root_dir: data/
+  num_workers: 5
+  monitored_metric: loss
+  metric_minimize: true
+  should_early_stop: false
+  lr_scheduler: false
+  run: train
+optimizer_attributes:
+  method: Adamax
+  params:
+    eps: 1.0e-08
+    lr: 0.01
+    weight_decay: 0
+task_attributes:
+  qa:
+    datasets: all
+    dataset_size_proportional_sampling: true
+    dataset_attributes:
+      vqa2:
+        loss: logit_bce
