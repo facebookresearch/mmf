@@ -1,78 +1,79 @@
-import importlib
 import os
 import yaml
 
 from torch.utils.data import DataLoader
 
-from pythia.utils.meter import Meter
-from pythia.core.constants import task_name_mapping
+from pythia.tasks.core.tasks import MultiTask
+from pythia.utils.general import nested_dict_update
 
 
 class TaskLoader:
     def __init__(self, config):
         self.config = config
-        return
 
-    def load_dataset(self):
-        base_task_path = "pythia.tasks"
-        self.task_name = self.config['task']
+    def load_task(self):
+        self.train_task = MultiTask('train', self.config)
+        self.dev_task = MultiTask('dev', self.config)
+        self.test_task = MultiTask('test', self.config)
 
-        if self.task_name not in task_name_mapping:
-            print("[Error] %s not present in our mapping"
-                  % self.task_name)
-            return
-
-        task_keyword = task_name_mapping[self.task_name]
-        tasks_module = importlib.import_module(base_task_path)
-        task_class = getattr(tasks_module, task_keyword)
-
-        self.train_dataset = task_class('train')
-        self.dev_dataset = task_class('dev')
-        self.test_dataset = task_class('test')
-
-        self.train_dataset.load(**self.config['task_attributes'])
-        self.dev_dataset.load(**self.config['task_attributes'])
-        self.test_dataset.load(**self.config['task_attributes'])
-
-        self.make_meters()
+        self.mapping = {
+            'train': self.train_task,
+            'dev': self.dev_task,
+            'test': self.test_task
+        }
 
     def load_config(self):
+
+        task_names = map(lambda x: x.strip(),
+                         self.config['tasks'].split(","))
+
+        self.task_config = {}
+
+        for task in task_names:
+            current_task_config = self._load_task_config(task)
+            self.task_config = nested_dict_update(self.task_config,
+                                                  current_task_config)
+
+    def get_config(self):
+        return self.task_config
+
+    def _load_task_config(self, task_name):
         directory = os.path.dirname(os.path.abspath(__file__))
-
         config_path = os.path.join(directory, '..', 'tasks',
-                                   self.config['task'], 'config.yml')
-
+                                   task_name, 'config.yml')
+        task_config = {}
         if not os.path.exists(config_path):
             print("[Warning] No config present for task %s" %
                   self.config['task'])
             return
 
-        self.task_config = {}
         with open(config_path, 'r') as f:
             try:
-                self.task_config = yaml.load(f)
+                task_config = yaml.load(f)
             except yaml.YAMLError as err:
                 print("[Error] Task %s's config yaml error" % self.task_name,
                       err)
+
+        return task_config
 
     def make_dataloaders(self):
         task_attributes = self.config['task_attributes']
         batch_size = task_attributes['batch_size']
         num_workers = task_attributes['num_workers']
 
-        self.train_loader = DataLoader(dataset=self.train_dataset,
+        self.train_loader = DataLoader(dataset=self.train_task,
                                        batch_size=batch_size,
                                        shuffle=True,
                                        num_workers=num_workers)
         self.train_loader.dataset_type = 'train'
 
-        self.dev_loader = DataLoader(dataset=self.dev_dataset,
+        self.dev_loader = DataLoader(dataset=self.dev_task,
                                      batch_size=batch_size,
                                      shuffle=True,
                                      num_workers=num_workers)
         self.dev_loader.dataset_type = 'dev'
 
-        self.test_loader = DataLoader(dataset=self.test_dataset,
+        self.test_loader = DataLoader(dataset=self.test_task,
                                       batch_size=batch_size,
                                       shuffle=True,
                                       num_workers=num_workers)
@@ -80,56 +81,27 @@ class TaskLoader:
 
         self.use_cuda = self.config['use_cuda']
 
-    def make_meters(self):
-        if 'metrics' in self.config['task_attributes']:
-            task_metrics = self.config['task_attributes']['metrics']
-            if isinstance(task_metrics, str):
-                task_metrics = task_metrics.split(',')
-        else:
-            task_metrics = []
-
-        self.train_meter = Meter('train', self.config, task_metrics)
-        self.dev_meter = Meter('dev', self.config, task_metrics)
-        self.test_meter = Meter('test', self.config, task_metrics)
-
     def update_config_for_model(self, config):
-        self.train_dataset.update_config_for_model(config)
-        self.dev_dataset.update_config_for_model(config)
-        self.test_dataset.update_config_for_model(config)
+        self.train_task.update_config_for_model(config)
+        self.dev_task.update_config_for_model(config)
+        self.test_task.update_config_for_model(config)
 
     def clean_config(self, config):
-        self.train_dataset.clean_config(config)
-        self.dev_dataset.clean_config(config)
-        self.test_dataset.clean_config(config)
+        self.train_task.clean_config(config)
+        self.dev_task.clean_config(config)
+        self.test_task.clean_config(config)
 
-    def report_metrics(self, writer, meter, loss,
-                       iteration, extra_info=None,
+    def report_metrics(self, dataset_type, loss, extra_info=None,
                        should_print=True):
         if not self.config['should_log']:
             return
+        # TODO: Complete this by calling child report metrics
+        task = self.mapping[dataset_type]
+        task.report_metrics(loss, extra_info, should_print)
 
-        dataset_type = meter.get_dataset_type()
-
-        if should_print:
-            log_string = meter.get_log_string(loss)
-            if extra_info is not None:
-                log_string += " " + extra_info
-            writer.write(log_string)
-
-        scalars = {}
-        for i in range(len(meter.meter_types)):
-            meter_type = meter.meter_types[i]
-            value = meter.meter_values[i]
-
-            key = "%s_%s" % (dataset_type, meter_type)
-            scalars[key] = value
-        writer.add_scalars(scalars, iteration)
+    def calculate_loss(self, dataset_type, output, expected_output):
+        return self.mapping[dataset_type].calculate_loss(output,
+                                                         expected_output)
 
     def prepare_batch(self, dataset_type, batch):
-        mapping = {
-            'train': self.train_dataset,
-            'dev': self.dev_dataset,
-            'test': self.test_dataset
-        }
-
-        return mapping[dataset_type].prepare_batch(batch, self.use_cuda)
+        return self.mapping[dataset_type].prepare_batch(batch, self.use_cuda)
