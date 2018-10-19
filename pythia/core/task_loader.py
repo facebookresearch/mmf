@@ -3,7 +3,7 @@ import yaml
 
 from torch.utils.data import DataLoader
 
-from pythia.tasks.core.tasks import MultiTask
+from pythia.core.tasks import MultiTask
 from pythia.utils.general import nested_dict_update
 
 

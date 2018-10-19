@@ -1,5 +1,5 @@
 class Registry:
-    register = {
+    mapping = {
 
         # Mappings of task name to their respective classes
         # Use decorator "register_task" in pythia.core.decorators to regiter a
@@ -11,28 +11,37 @@ class Registry:
 
         # Similar to the task_name_mapping above except that this
         # one is used to keep a mapping for dataset to its builder class.
-        # Use "register_builder" decorator to register a builder
+        # Use "register_builder" decorator to mapping a builder
         'builder_name_mapping': {},
         'metric_name_mapping': {},
         'state': {}
     }
 
     @classmethod
-    def register_task(cls, task_cls, name):
-        cls.register['task_name_mapping'][name] = task_cls
+    def register_task(cls, name):
+        def wrap(task_cls):
+            cls.mapping['task_name_mapping'][name] = task_cls
+            return task_cls
+        return wrap
 
     @classmethod
-    def register_builder(cls, builder_cls, name):
-        cls.register['builder_name_mapping'][name] = builder_cls
+    def register_builder(cls, name):
+        def wrap(builder_cls):
+            cls.mapping['builder_name_mapping'][name] = builder_cls
+            return builder_cls
+        return wrap
 
     @classmethod
-    def register_metric(cls, func, name):
-        cls.register['metric_name_mapping'][name] = func
+    def register_metric(cls, name):
+        def wrap(func):
+            cls.mapping['metric_name_mapping'][name] = func
+            return func
+        return wrap
 
     @classmethod
     def register(cls, name, obj):
         path = name.split('.')
-        current = cls.register['state']
+        current = cls.mapping['state']
 
         for part in path[:-1]:
             if part not in current:
@@ -43,20 +52,20 @@ class Registry:
 
     @classmethod
     def get_task_class(cls, name):
-        return cls.register['task_name_mapping'].get(name, None)
+        return cls.mapping['task_name_mapping'].get(name, None)
 
     @classmethod
     def get_builder_class(cls, name):
-        return cls.register['builder_name_mapping'].get(name, None)
+        return cls.mapping['builder_name_mapping'].get(name, None)
 
     @classmethod
     def get_metric_func(cls, name):
-        return cls.register['metric_name_mapping'].get(name, None)
+        return cls.mapping['metric_name_mapping'].get(name, None)
 
     @classmethod
     def get(cls, name):
         name = name.split('.')
-        value = cls.register['state']
+        value = cls.mapping['state']
         for subname in name:
             value = value.get(subname, None)
             if value is None:
@@ -65,4 +74,4 @@ class Registry:
 
     @classmethod
     def unregister(cls, name):
-        cls.register['state'].pop(name, None)
+        cls.mapping['state'].pop(name, None)

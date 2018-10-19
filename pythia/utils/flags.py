@@ -1,8 +1,7 @@
 import argparse
 import sys
-import importlib
 
-from pythia.core.constants import task_name_mapping
+from pythia.core.registry import Registry
 
 
 class Flags:
@@ -101,20 +100,22 @@ class Flags:
         args = sys.argv
         task_name = None
         for index, item in enumerate(args):
-            if item == '--task':
-                task_name = args[index + 1]
+            if item == '--tasks':
+                task_names = args[index + 1]
 
-        if not task_name or task_name not in task_name_mapping:
+        if task_names is None:
             return
 
-        task_module_name = "pythia.tasks"
-        task_module = importlib.import_module(task_module_name)
+        task_names = map(lambda x: x.strip(),
+                         task_names.split(","))
 
-        task_class_name = task_name_mapping[task_name]
-        task_class = getattr(task_module, task_class_name)
+        for task_name in task_names:
+            task_class = Registry.get_task_class(task_name)
+            if task_class is None:
+                return
 
-        task_object = task_class('test')
-        task_object.init_args(self.parser)
+            task_object = task_class()
+            task_object.init_args(self.parser)
 
 
 flags = Flags()

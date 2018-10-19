@@ -1,7 +1,7 @@
 import os
 
-from pythia.tasks.datasets.core.features_dataset import FeaturesDataset
-from pythia.tasks.datasets.core.utils.feature_readers import FeatureReader
+from pythia.core.tasks.datasets.features_dataset import FeaturesDataset
+from pythia.core.tasks.datasets.utils.feature_readers import FeatureReader
 
 
 class COCOFeaturesDataset(FeaturesDataset):

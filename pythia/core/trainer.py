@@ -38,6 +38,7 @@ class Trainer:
         # TODO: Review configuration update once again
         # (remember clip_gradients case)
         self.configuration = Configuration(self.args.config)
+        self.args.use_cuda = not self.args.no_cuda
         self.configuration.update_with_args(self.args, force=True)
 
         self.config = self.configuration.get_config()
@@ -47,7 +48,6 @@ class Trainer:
 
     def load_task(self):
         self.task_loader = TaskLoader(self.config)
-        self.task_loader.load_task()
         self.task_loader.load_config()
 
         self.configuration.update_with_task_config(
@@ -60,6 +60,8 @@ class Trainer:
         # Update with args once again as they are the most important
         self.configuration.update_with_args(self.args)
         self.configuration.pretty_print()
+
+        self.task_loader.load_task()
 
         self.task_loader.make_dataloaders()
 
@@ -74,17 +76,18 @@ class Trainer:
         attributes = self.config['model_attributes'][self.config['model']]
         attributes['model'] = self.config['model']
 
-        data_root_dir = self.config['task_attributes']['data_root_dir']
+        data_root_dir = self.config['training_parameters']['data_root_dir']
         attributes['data_root_dir'] = data_root_dir
 
         self.task_loader.update_config_for_model(attributes)
         self.model = build_model(attributes)
         self.task_loader.clean_config(attributes)
 
-        if self.config['use_cuda']:
+        use_cuda = self.config['training_parameters']['use_cuda']
+        if use_cuda:
             self.model = self.model.cuda()
 
-        if self.config['use_cuda'] and torch.cuda.device_count() > 1:
+        if use_cuda and torch.cuda.device_count() > 1:
             self.model = torch.nn.DataParallel(self.model)
 
     def load_optimizer(self):
@@ -128,7 +131,7 @@ class Trainer:
     def config_based_setup(self):
         torch.manual_seed(self.config['seed'])
 
-        if self.config['use_cuda']:
+        if self.config['training_parameters']['use_cuda']:
             torch.cuda.manual_seed(self.config['seed'])
 
     def train(self):

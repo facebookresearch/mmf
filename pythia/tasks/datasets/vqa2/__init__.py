@@ -1,3 +1,3 @@
-__all__ = ['VQA2Task']
+__all__ = ['VQA2Builder']
 
-from .task import VQA2Task
+from .builder import VQA2Builder

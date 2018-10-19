@@ -49,10 +49,9 @@ class Configuration:
             self.config.update(args_dict)
         self._update_specific()
 
-    def update_with_task_config(self, task_loader):
-        task_loader.load_config()
-        self.config = nested_dict_update(self.config,
-                                         task_loader.task_config)
+    def update_with_task_config(self, config):
+        # print(config)
+        self.config = nested_dict_update(self.config, config)
         # At this point update with user's config
         self._update_with_user_config()
 

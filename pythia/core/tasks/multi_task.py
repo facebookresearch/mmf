@@ -28,19 +28,22 @@ class MultiTask:
             task_attributes = self.config['task_attributes'][task_name]
             task_attributes['dataset_type'] = self.dataset_type
 
-            task = task_class(**task_attributes)
-            task.load()
+            task = task_class()
+            task.load(**task_attributes)
 
             self.tasks.append(task)
             self.tasks_lens.append(len(task))
 
-        self.task_probabilities = self.tasks_lens
+        self.task_probabilities = [1 for _ in self.tasks]
 
         self.num_tasks = len(self.tasks)
 
         training_parameters = self.config['training_parameters']
         if training_parameters['task_size_proportional_sampling']:
-            self.task_probabilities /= sum(self.tasks_lens)
+            self.task_probabilities = self.tasks_lens
+            len_sum = sum(self.tasks_lens)
+            self.task_probabilities[:] = [prob / len_sum
+                                          for prob in self.task_probabilities]
 
         self.change_task()
 

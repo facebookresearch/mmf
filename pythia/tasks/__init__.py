@@ -1,5 +1,6 @@
-__all__ = ['VQA2Task', 'VisualDialogTask']
+__all__ = ['QATask', 'DialogTask', 'CaptioningTask']
 
 
-from .vqa2 import VQA2Task
-from .visdial import VisualDialogTask
+from .qa import QATask
+from .dialog import DialogTask
+from .captioning import CaptioningTask

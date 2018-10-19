@@ -8,7 +8,6 @@ training_parameters:
   patience: 2000
   use_cuda: true
   batch_size: 512
-  data_root_dir: data/
   num_workers: 5
   monitored_metric: loss
   metric_minimize: true
@@ -28,3 +27,4 @@ task_attributes:
     dataset_attributes:
       vqa2:
         loss: logit_bce
+        data_root_dir: data/

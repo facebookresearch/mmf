@@ -15,7 +15,7 @@ from pythia.core.tasks.dataset_builder import DatasetBuilder
 from pythia.core.registry import Registry
 
 
-@Registry.register_builder('vqa')
+@Registry.register_builder('vqa2')
 class VQA2Builder(DatasetBuilder):
     def __init__(self):
         super(VQA2Builder, self).__init__('VQA2')
@@ -79,6 +79,7 @@ class VQA2Builder(DatasetBuilder):
     def prepare_data_set(self, imdb_file_label,
                          image_dir_label, **data_config):
         # get the potential shared data_config info
+        # TODO: Update this and move default stuff to configuration
         data_root_dir = data_config['data_root_dir']
         vocab_question_f = os.path.join(
             data_root_dir, data_config['vocab_question_file'])

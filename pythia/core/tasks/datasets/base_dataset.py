@@ -10,10 +10,9 @@ class BaseDataset(Dataset):
         super(BaseDataset, self).__init__()
         self.config = config
         self.name = name
-        self._init_loss_and_metrics(config)
         self.writer = Registry.get('writer')
 
-    def _init_loss_and_metrics(self, config):
+    def init_loss_and_metrics(self, config):
         task_metrics = config.get('metrics', [])
         if isinstance(task_metrics, str):
             task_metrics = task_metrics.split(',')
