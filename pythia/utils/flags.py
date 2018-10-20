@@ -67,8 +67,11 @@ class Flags:
                                  "If not passed it will default to config one")
         self.parser.add_argument("--save_loc", type=str, default="./save",
                                  help="Location for saving model checkpoint")
-        self.parser.add_argument("--log_dir", type=str, default="./logs",
+        self.parser.add_argument("--log_dir", type=str, default=None,
                                  help="Location for saving logs")
+        self.parser.add_argument("--logger_level", type=str, default=None,
+                                 help="Level of logging")
+
         self.parser.add_argument("--should_not_log", action="store_true",
                                  default=False, help="Set when you don't want"
                                  " logging to happen")

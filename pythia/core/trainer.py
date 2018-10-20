@@ -25,11 +25,12 @@ class Trainer:
 
     def load(self):
         self.load_config()
-        self.load_task()
+        self.init_task()
 
         self.writer = Logger(self.config)
         Registry.register('writer', self.writer)
 
+        self.load_task()
         self.load_model()
         self.load_optimizer()
         self.load_extras()
@@ -46,7 +47,7 @@ class Trainer:
 
         self.config_based_setup()
 
-    def load_task(self):
+    def init_task(self):
         self.task_loader = TaskLoader(self.config)
         self.task_loader.load_config()
 
@@ -61,6 +62,7 @@ class Trainer:
         self.configuration.update_with_args(self.args)
         self.configuration.pretty_print()
 
+    def load_task(self):
         self.task_loader.load_task()
 
         self.task_loader.make_dataloaders()
@@ -75,9 +77,6 @@ class Trainer:
     def load_model(self):
         attributes = self.config['model_attributes'][self.config['model']]
         attributes['model'] = self.config['model']
-
-        data_root_dir = self.config['training_parameters']['data_root_dir']
-        attributes['data_root_dir'] = data_root_dir
 
         self.task_loader.update_config_for_model(attributes)
         self.model = build_model(attributes)
@@ -110,7 +109,6 @@ class Trainer:
 
         self.early_stopping = EarlyStopping(self.model,
                                             self.checkpoint,
-                                            self.dev_meter,
                                             monitored_metric,
                                             patience=patience,
                                             minimize=metric_minimize,
@@ -230,17 +228,20 @@ class Trainer:
 
     def single_batch_eval(self, dataset_type, loader):
         self.model.eval()
+
         batch = next(iter(loader))
         self.task_loader.reset_meters(dataset_type)
 
         data, y = self.task_loader.prepare_batch(loader.dataset_type, batch)
         output = self.model(**data)
+
         self.task_loader.calculate_loss(dataset_type, output, y)
+
         self.model.train()
 
         # TODO: Do replace in log string function itself
-        return "Dev: " + dict_to_string(Registry.get('metrics.%s' %
-                                                     dataset_type))
+        return ", dev: " + dict_to_string(Registry.get('metrics.%s' %
+                                                       dataset_type))
 
     def evaluate(self, dataset_type, loader):
         self.model.eval()

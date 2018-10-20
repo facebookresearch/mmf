@@ -34,6 +34,7 @@ class BaseTask(Dataset):
 
     def load(self, **opts):
         self.opts = opts
+        self.use_cuda = Registry.get('config')['use_cuda']
         self._process_datasets()
 
         self.datasets = []
@@ -72,10 +73,10 @@ class BaseTask(Dataset):
         sampling = self.opts.get('dataset_size_proportional_sampling', None)
 
         if sampling is True:
-            self.dataset_probablities = self.per_dataset_lengths
-            self.dataset_probablities[:] = [prob / self.total_length
-                                            for prob in
-                                            self.dataset_probablities]
+            self.dataset_probablities = self.per_dataset_lengths[:]
+            self.dataset_probablities = [prob / self.total_length
+                                         for prob in
+                                         self.dataset_probablities]
 
         self.change_dataset()
 
@@ -104,10 +105,10 @@ class BaseTask(Dataset):
 
     def change_dataset(self):
         self.dataset_choice = np.random.choice(self.num_datasets, 1,
-                                               p=self.dataset_probablities)
+                                               p=self.dataset_probablities)[0]
         self.chosen_dataset = self.datasets[self.dataset_choice]
 
-    def prepare_batch(self, batch, use_cuda):
+    def prepare_batch(self, batch):
         """
         Can be possibly overriden in your child class
 
@@ -137,7 +138,7 @@ class BaseTask(Dataset):
         obs = batch['answers']
         obs = Variable(obs.type(torch.FloatTensor))
 
-        if use_cuda:
+        if self.use_cuda:
             obs = obs.cuda()
 
         input_text_seqs = batch['texts']
@@ -149,12 +150,15 @@ class BaseTask(Dataset):
 
         input_text_seqs = Variable(input_text_seqs.type(torch.LongTensor))
         input_image_features = Variable(input_image_features)
-        input_contexts = Variable(input_contexts.type(torch.LongTensor))
 
-        if use_cuda:
+        if input_contexts:
+            input_contexts = Variable(input_contexts.type(torch.LongTensor))
+
+        if self.use_cuda:
             input_text_seqs = input_text_seqs.cuda()
             input_image_features = input_image_features.cuda()
-            input_contexts = input_contexts.cuda()
+            if input_contexts:
+                input_contexts = input_contexts.cuda()
 
         image_feature_variables = [input_image_features]
         image_dim_variable = None
@@ -164,15 +168,15 @@ class BaseTask(Dataset):
             image_dim_variable = Variable(image_dims, requires_grad=False,
                                           volatile=False)
 
-            if use_cuda:
+            if self.use_cuda:
                 image_dim_variable = image_dim_variable.cuda()
 
         # check if more than 1 image_feat_batch
         i = 1
-        image_feat_key = "image_features_%s"
+        image_feat_key = "image_feature_%s"
         while image_feat_key % str(i) in batch:
             tmp_image_variable = Variable(batch[image_feat_key % str(i)])
-            if use_cuda:
+            if self.use_cuda:
                 tmp_image_variable = tmp_image_variable.cuda()
             image_feature_variables.append(tmp_image_variable)
             i += 1
@@ -191,6 +195,9 @@ class BaseTask(Dataset):
 
     def report_metrics(self, loss, extra_info=None, should_print=True):
         self.chosen_dataset.report_metrics(loss, extra_info, should_print)
+
+    def reset_meters(self):
+        self.chosen_dataset.reset_meters()
 
     def _preprocess_item(self, item):
         """Preprocess an item to be returned from __getitem__.
@@ -250,8 +257,7 @@ class BaseTask(Dataset):
 
     def clean_config(self, config):
         """
-        Use this in case you want to clean the config you updated earlier
+        Override this in case you want to clean the config you updated earlier
         in update_config_for_model
         """
-        return NotImplemented("This task doesn't implement clean_config "
-                              "method")
+        return config

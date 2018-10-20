@@ -57,9 +57,9 @@ class TaskLoader:
         return task_config
 
     def make_dataloaders(self):
-        task_attributes = self.config['task_attributes']
-        batch_size = task_attributes['batch_size']
-        num_workers = task_attributes['num_workers']
+        training_parameters = self.config['training_parameters']
+        batch_size = training_parameters['batch_size']
+        num_workers = training_parameters['num_workers']
 
         self.train_loader = DataLoader(dataset=self.train_task,
                                        batch_size=batch_size,
@@ -104,4 +104,7 @@ class TaskLoader:
                                                          expected_output)
 
     def prepare_batch(self, dataset_type, batch):
-        return self.mapping[dataset_type].prepare_batch(batch, self.use_cuda)
+        return self.mapping[dataset_type].prepare_batch(batch)
+
+    def reset_meters(self, dataset_type):
+        self.mapping[dataset_type].reset_meters()

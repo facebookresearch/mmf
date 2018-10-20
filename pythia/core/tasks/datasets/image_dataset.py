@@ -28,8 +28,14 @@ class ImageDataset(torch.utils.data.Dataset):
         super(ImageDataset, self).__init__()
 
         self.db = np.load(imdb_path)
-        self.metadata = self.db.get('metadata', {})
-        self.data = self.db.get('data', [])
+
+        if type(self.db) == dict:
+            self.metadata = self.db.get('metadata', {})
+            self.data = self.db.get('data', [])
+        else:
+            # TODO: Deprecate support for this
+            self.metadata = {'version': 1}
+            self.data = self.db
 
         if len(self.data) == 0:
             self.data = self.db

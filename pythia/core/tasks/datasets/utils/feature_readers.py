@@ -42,14 +42,15 @@ class FeatureReader:
             if self.max_bboxes is None:
                 self.feat_reader = FasterRCNNFeatureReader()
             else:
-                if isinstance(self.image_feature.item(0), dict):
-                    self.feat_reader = \
-                        PaddedFeatureRCNNWithBBoxesFeatureReader(
-                            self.max_bboxes
-                        )
-                else:
-                    self.feat_reader = \
-                        PaddedFasterRCNNFeatureReader(self.max_bboxes)
+                # TODO: Fix later when we move to proper standardized features
+                # if isinstance(self.image_feature.item(0), dict):
+                #     self.feat_reader = \
+                #         PaddedFeatureRCNNWithBBoxesFeatureReader(
+                #             self.max_bboxes
+                #         )
+                # else:
+                self.feat_reader = \
+                    PaddedFasterRCNNFeatureReader(self.max_bboxes)
         elif self.ndim == 3 and not self.channel_first:
             self.feat_reader = Dim3FeatureReader()
         elif self.ndim == 4 and self.channel_first:
@@ -70,7 +71,7 @@ class FeatureReader:
                 self.ndim = feat.ndim
             self._init_reader()
 
-        return self.feat_reader(image_feat_path)
+        return self.feat_reader.read(image_feat_path)
 
 
 class FasterRCNNFeatureReader:

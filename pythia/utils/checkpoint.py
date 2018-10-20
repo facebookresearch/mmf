@@ -33,7 +33,7 @@ class Checkpoint:
                                          self.ckpt_prefix + "final.pth")
 
         if not os.path.exists(os.path.dirname(self.ckpt_foldername)):
-            os.mkdirs(os.path.join(self.ckpt_foldername, "models"))
+            os.makedirs(os.path.join(self.ckpt_foldername, "models"))
 
         self.save_config()
 

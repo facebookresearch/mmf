@@ -9,6 +9,7 @@
 import numpy as np
 
 from .utils import VocabDict
+from torch.utils.data import ConcatDataset
 from pythia.core.constants import imdb_version
 # TODO: Move in __all__ in __init__.py
 from pythia.tasks.datasets.coco.coco_features_dataset \
@@ -46,9 +47,13 @@ class VQA2Dataset(BaseDataset):
                            if 'image_max_loc' in data_params else None)
         self.vocab_dict = VocabDict(data_params['vocab_question_file'])
 
+        # TODO: Remove after shifting to proper features standard
+        self.first_element_idx = 1
         # TODO: Update T_encoder and T_decoder to proper names
         self.T_encoder = data_params['T_encoder']
 
+        # TODO: Provide in the metadata itself
+        self.load_answer = True
         # read the header of imdb file
         self.load_gt_layout = False
         data_version = self.imdb.get_version()
@@ -76,10 +81,13 @@ class VQA2Dataset(BaseDataset):
             print('Loading model and config ...')
 
         self.features_db = COCOFeaturesDataset(
-                            image_feat_dirs=self.image_feat_directories,
+                            image_feature_dirs=self.image_feat_directories,
                             channel_first=self.channel_first,
                             max_bboxes=self.max_bboxes,
                             imdb=self.imdb,
+                            ndim=data_params.get('ndim', None),
+                            dataset_type=data_params['dataset_type'],
+                            fast_read=data_params['fast_read'],
                             return_info=self.load_gt_layout)
 
     def __len__(self):
@@ -88,7 +96,9 @@ class VQA2Dataset(BaseDataset):
     def __getitem__(self, idx):
         input_seq = np.zeros((self.T_encoder), np.int32)
         idx += self.first_element_idx
-        iminfo = self.imdb[idx]['info']
+        # TODO: Bring back commented out code when we reformat imdb
+        # iminfo = self.imdb[idx]['info']
+        iminfo = self.imdb[idx]
         question_inds = (
             [self.vocab_dict.word2idx(w) for w in iminfo['question_tokens']])
         seq_length = len(question_inds)
@@ -102,10 +112,14 @@ class VQA2Dataset(BaseDataset):
         valid_answers_idx.fill(-1)
         answer_scores = np.zeros(self.answer_dict.num_vocab, np.float32)
         if self.load_answer:
-            if 'answer_tokens' in iminfo:
-                answer_tokens = iminfo['answer_tokens']
-            elif 'valid_answers_tokens' in iminfo:
-                valid_answers_tokens = iminfo['valid_answers_tokens']
+            if 'answer' in iminfo:
+                answer_tokens = iminfo['answer']
+            # if 'answer_tokens' in iminfo:
+            #     answer_tokens = iminfo['answer_tokens']
+            # elif 'valid_answers_tokens' in iminfo:
+            #     valid_answers_tokens = iminfo['valid_answers_tokens']
+            elif 'valid_answers' in iminfo:
+                valid_answers_tokens = iminfo['valid_answers']
                 answer_tokens = np.random.choice(valid_answers_tokens)
                 valid_answers_idx[:len(valid_answers_tokens)] = (
                     [self.answer_dict.word2idx(ans)
@@ -131,8 +145,8 @@ class VQA2Dataset(BaseDataset):
             gt_layout = np.array(self.assembler.module_list2tokens(
                 gt_layout_tokens, self.T_decoder))
 
-        sample = dict(input_seq_batch=input_seq,
-                      seq_length_batch=seq_length)
+        sample = dict(texts=input_seq,
+                      texts_lens=seq_length)
 
         for idx in range(len(image_features.keys())):
             if ("image_feature_%d" % idx) in image_features:
@@ -151,17 +165,35 @@ class VQA2Dataset(BaseDataset):
                 sample['image_boxes'] = info['bboxes']
 
         if self.load_answer:
-            sample['answer_label_batch'] = answer_idx
+            sample['answer_label'] = answer_idx
         if self.load_gt_layout:
-            sample['gt_layout_batch'] = gt_layout
+            sample['gt_layout'] = gt_layout
 
         if valid_answers_idx is not None:
-            sample['valid_ans_label_batch'] = valid_answers_idx
+            sample['valid_ans_labels'] = valid_answers_idx
             sample['answers'] = answer_scores
 
         # used for error analysis and debug,
         # output question_id, image_id, question, answer,valid_answers,
         if self.verbose:
             sample['verbose_info'] = iminfo
-
         return sample
+
+
+class VQAConcatDataset(ConcatDataset):
+    def __init__(self, datasets):
+        super(VQAConcatDataset, self).__init__(datasets)
+        self.vocab_dict = datasets[0].vocab_dict
+        self.answer_dict = datasets[0].answer_dict
+
+    def calculate_loss(self, output, expected_output):
+        return self.datasets[0].calculate_loss(output, expected_output)
+
+    def init_loss_and_metrics(self, config):
+        self.datasets[0].init_loss_and_metrics(config)
+
+    def report_metrics(self, loss=None, extra_info=None, should_print=True):
+        self.datasets[0].report_metrics(loss, extra_info, should_print)
+
+    def reset_meters(self):
+        self.datasets[0].reset_meters()

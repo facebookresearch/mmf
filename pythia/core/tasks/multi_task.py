@@ -40,17 +40,17 @@ class MultiTask:
 
         training_parameters = self.config['training_parameters']
         if training_parameters['task_size_proportional_sampling']:
-            self.task_probabilities = self.tasks_lens
+            self.task_probabilities = self.tasks_lens[:]
             len_sum = sum(self.tasks_lens)
-            self.task_probabilities[:] = [prob / len_sum
-                                          for prob in self.task_probabilities]
+            self.task_probabilities = [prob / len_sum
+                                       for prob in self.task_probabilities]
 
         self.change_task()
 
     def change_task(self):
         self.selected_task = np.random.choice(self.num_tasks, 1,
-                                              p=self.task_probabilities)
-        self.chosen_task = self.tasks[self.selected_tasks]
+                                              p=self.task_probabilities)[0]
+        self.chosen_task = self.tasks[self.selected_task]
         self.chosen_task.change_dataset()
 
     def calculate_loss(self, output, expected_output):
@@ -59,7 +59,7 @@ class MultiTask:
         return loss
 
     def __len__(self):
-        return sum(self.tasks_len)
+        return sum(self.tasks_lens)
 
     def __getitem__(self, idx):
         idx = idx % self.tasks_lens[self.selected_task]
@@ -76,6 +76,9 @@ class MultiTask:
 
     def prepare_batch(self, batch):
         return self.chosen_task.prepare_batch(batch)
+
+    def reset_meters(self):
+        self.chosen_task.reset_meters()
 
     def init_args(self, parser):
         for task in self.tasks:

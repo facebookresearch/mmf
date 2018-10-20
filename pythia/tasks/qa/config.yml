@@ -28,8 +28,10 @@ task_attributes:
         enforce_slow_reader: false
         metrics: vqa_accuracy
         loss: logit_bce
+        ndim: 2
 model_attributes:
   top_down_bottom_up:
+    data_root_dir: ../data
     classifier:
       type: logit
       params:
@@ -94,4 +96,5 @@ training_parameters:
   batch_size: 512
   num_workers: 5
   lr_scheduler: true
+  task_size_proportional_sampling: true
   run: train

@@ -8,9 +8,7 @@
 
 import os
 
-from torch.utils.data import ConcatDataset
-
-from .dataset import VQA2Dataset
+from .dataset import VQA2Dataset, VQAConcatDataset
 from pythia.core.tasks.dataset_builder import DatasetBuilder
 from pythia.core.registry import Registry
 
@@ -20,7 +18,7 @@ class VQA2Builder(DatasetBuilder):
     def __init__(self):
         super(VQA2Builder, self).__init__('VQA2')
 
-    def load(self, **opts):
+    def _load(self, **opts):
         dataset_type = opts['dataset_type']
 
         self.data_root_dir = opts['data_root_dir']
@@ -41,7 +39,7 @@ class VQA2Builder(DatasetBuilder):
         self.dataset = dataset
         return dataset
 
-    def build(self, **opts):
+    def _build(self, **opts):
         # TODO: Build actually here
         return
 
@@ -104,6 +102,7 @@ class VQA2Builder(DatasetBuilder):
         image_max_loc = data_config.get('image_max_loc', None)
 
         datasets = []
+        dataset_type = data_config.get('dataset_type', "train")
         for imdb_file_trn_name, image_feat_dir in \
                 zip(imdb_files, image_feat_dirs):
             imdb_file_trn = os.path.join(data_root_dir, imdb_file_trn_name)
@@ -119,19 +118,13 @@ class VQA2Builder(DatasetBuilder):
                                         vocab_answer_file=vocab_answer_file,
                                         prune_filter_module=prune_filter_mod,
                                         image_depth_first=image_depth_first,
-                                        fastRead=image_fast_reader,
+                                        fast_read=image_fast_reader,
                                         verbose=verbose,
                                         test_mode=test_mode,
+                                        dataset_type=dataset_type,
                                         image_max_loc=image_max_loc)
             datasets.append(train_dataset)
 
         dataset = VQAConcatDataset(datasets)
 
         return dataset
-
-
-class VQAConcatDataset(ConcatDataset):
-    def __init__(self, datasets):
-        super(VQAConcatDataset, self).__init__(datasets)
-        self.vocab_dict = datasets[0].vocab_dict
-        self.answer_dict = datasets[0].answer_dict

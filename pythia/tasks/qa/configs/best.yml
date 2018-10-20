@@ -33,12 +33,14 @@ task_attributes:
         question_max_len: 14
         vocab_answer_file: answers_vqa.txt
         vocab_question_file: vocabulary_vqa.txt
-        enforce_slow_reader: false
+        enforce_slow_reader: true
         metrics: vqa_accuracy
         loss: logit_bce
+        ndim: 2
 exp_name: baseline
 model_attributes:
   top_down_bottom_up:
+    data_root_dir: ../data
     classifier:
       type: logit
       params:
@@ -105,4 +107,5 @@ training_parameters:
   patience: 2000
   batch_size: 512
   num_workers: 7
+  task_size_proportional_sampling: true
   run: train

@@ -29,26 +29,40 @@ class COCOFeaturesDataset(FeaturesDataset):
 
         if self.fast_read:
             for feat_file in os.listdir(image_feature_dir):
-                features = self._read_features_and_info(feat_file)
-                self.feature_dict[feat_file] = features
+                features, info = self._read_features_and_info(feat_file)
+                self.feature_dict[feat_file] = (features, info)
 
     def _read_features_and_info(self, feat_file):
         features = []
         infos = []
         for feature_reader in self.feature_readers:
             feature_info = feature_reader.read(feat_file)
-            features.append(feature_info['features'])
-            infos.append(feature_info['info'])
+
+            # TODO: Remove later after migration to standard features
+            if type(feature_info) == dict:
+                features.append(feature_info['features'])
+                infos.append(feature_info['info'])
+            else:
+                features.append(feature_info)
+                infos.append({})
 
         if not self.should_return_info:
             infos = None
         return features, infos
 
     def _get_image_features_and_info(self, feat_file):
-        image_feats, info = self.feature_dict.get(feat_file, None)
+        image_feats, info = self.feature_dict.get(feat_file, (None, None))
 
         if image_feats is None:
             image_feats, info = self._read_features_and_info(feat_file)
+
+        # TODO: Remove after standardization
+        # https://github.com/facebookresearch/pythia/blob/master/dataset_utils/dataSet.py#L226
+        if isinstance(image_feats[0], tuple):
+            image_feats_final = [image_feats[0][0]] + image_feats[1:]
+        else:
+            image_feats_final = image_feats
+        return image_feats_final, info
 
     def __len__(self):
         return len(self.imdb)

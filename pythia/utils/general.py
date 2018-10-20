@@ -38,7 +38,8 @@ def clip_gradients(model, i_iter, writer, config):
 
 
 def ckpt_name_from_core_args(config):
-    return ("%s_%s_%d" % (config['task'], config['model'], config['seed']))
+    return ("%s_%s_%s_%d" % (config['tasks'], config['datasets'],
+                             config['model'], config['seed']))
 
 
 def foldername_from_config_override(args):
@@ -80,9 +81,13 @@ def dict_to_string(dictionary):
     if dictionary is None:
         return ""
     for key, val in dictionary.items():
+        if hasattr(val, 'item'):
+            val = val.item()
+        if key.count('_') == 2:
+            key = key[key.find('_') + 1:]
         logs.append('%s: %s' % (key, val))
 
-    return logs.join(',')
+    return ", ".join(logs)
 
 
 def nested_dict_update(dictionary, update):

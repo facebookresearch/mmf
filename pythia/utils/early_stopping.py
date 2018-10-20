@@ -13,7 +13,7 @@ class EarlyStopping:
     array index of your metric in metrics section of your config
     """
 
-    def __init__(self, model, checkpoint_instance, meter, monitored_metric=-1,
+    def __init__(self, model, checkpoint_instance, monitored_metric=-1,
                  patience=1000, minimize=False, should_stop=True):
         self.minimize = minimize
         self.patience = patience

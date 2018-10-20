@@ -158,10 +158,14 @@ class VQAMultiModalModel(nn.Module):
         return self.classifier(joint_embedding)
 
     def forward(self,
-                image_feature_variables,
-                input_text_variable,
-                image_dim_variable,
+                image_features,
+                texts,
+                image_dim,
                 input_answers=None, **kwargs):
+
+        input_text_variable = texts
+        image_dim_variable = image_dim
+        image_feature_variables = image_features
         text_embedding_total = self.process_text_embedding(input_text_variable)
 
         assert (len(image_feature_variables) ==
