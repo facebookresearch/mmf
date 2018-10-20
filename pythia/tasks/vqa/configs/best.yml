@@ -1,34 +1,43 @@
 task_attributes:
-  qa:
+  vqa:
     datasets: all
     dataset_size_proportional_sampling: true
     dataset_attributes:
       vqa2:
-        data_root_dir: data/
+        data_root_dir: ../data/
         image_depth_first: false
         image_fast_reader: false
         image_feat_test:
-        - detec/detectron/fc6/vqa/test2015
+        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/vqa/test2015,../../../../../checkpoint02/asg/data/resnet152/vqa/test2015
         image_feat_train:
-        - detec/detectron/fc6/vqa/train2014
-        - detec/detectron/fc6/vqa/val2014
+        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/vqa/train2014,../../../../../checkpoint02/asg/data/resnet152/vqa/train2014
+        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/vqa/val2014,../../../../../checkpoint02/asg/data/resnet152/vqa/val2014
+        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/genome,../../../../../checkpoint02/asg/data/resnet152/genome
+        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/vqa_mirror/train2014,../../../../../checkpoint02/asg/data/resnet152/vqa_mirror/train2014
+        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/vqa_mirror/val2014,../../../../../checkpoint02/asg/data/resnet152/vqa_mirror/val2014
+        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/vqa/train2014,../../../../../checkpoint02/asg/data/resnet152/vqa/train2014
         image_feat_val:
-        - detec/detectron/fc6/vqa/val2014
+        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/vqa/val2014,../../../../../checkpoint02/asg/data/resnet152/vqa/val2014
         image_max_loc: 100
         imdb_file_test:
         - imdb/imdb_test2015.npy
         imdb_file_train:
         - imdb/imdb_train2014.npy
-        - imdb/imdb_val2train2014.npy
+        - imdb/imdb_val2014.npy
+        - imdb/imdb_genome.npy
+        - imdb/imdb_mirror_train2014.npy
+        - imdb/imdb_mirror_val2014.npy
+        - imdb/imdb_vdtrain.npy
         imdb_file_val:
         - imdb/imdb_minival2014.npy
         question_max_len: 14
         vocab_answer_file: answers_vqa.txt
         vocab_question_file: vocabulary_vqa.txt
-        enforce_slow_reader: false
+        enforce_slow_reader: true
         metrics: vqa_accuracy
         loss: logit_bce
         ndim: 2
+exp_name: baseline
 model_attributes:
   top_down_bottom_up:
     data_root_dir: ../data
@@ -54,6 +63,8 @@ model_attributes:
       params:
         bias_file: detec/detectron/fc6/fc7_b.pkl
         weights_file: detec/detectron/fc6/fc7_w.pkl
+    - type: default
+      params: {}
     modal_combine:
       type: non_linear_element_multiply
       params:
@@ -81,20 +92,20 @@ training_parameters:
   clip_norm_mode: all
   clip_gradients: true
   lr_ratio: 0.1
+  lr_scheduler: true
   lr_steps:
-  - 5000
-  - 7000
-  - 9000
-  - 11000
+  - 15000
+  - 18000
+  - 20000
+  - 21000
   max_grad_l2_norm: 0.25
-  max_iterations: 12000
-  log_interval: 100
+  max_iterations: 22000
+  report_interval: 100
   snapshot_interval: 1000
   wu_factor: 0.2
   wu_iters: 1000
   patience: 2000
   batch_size: 512
-  num_workers: 5
-  lr_scheduler: true
+  num_workers: 7
   task_size_proportional_sampling: true
   run: train

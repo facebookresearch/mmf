@@ -1,5 +1,5 @@
 experiment_base_name: test
-tasks: vqa2
+tasks: vqa
 training_parameters:
   max_iterations: 22000
   log_interval: 100
@@ -22,7 +22,7 @@ optimizer_attributes:
     lr: 0.01
     weight_decay: 0
 task_attributes:
-  qa:
+  vqa:
     datasets: all
     dataset_size_proportional_sampling: true
     dataset_attributes:
