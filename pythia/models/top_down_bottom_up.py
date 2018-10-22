@@ -41,8 +41,8 @@ class VQAMultiModalModel(nn.Module):
         setattr(self, attr, nn.ModuleList(text_embeddings))
 
     def _update_text_embedding_args(self, args):
-        # Add data_root_dir to kwargs
-        args['data_root_dir'] = self.config['data_root_dir']
+        # Add model_data_dir to kwargs
+        args['model_data_dir'] = self.config['model_data_dir']
         args['vocab_size'] = self.config['vocab_size']
 
     def _init_image_encoders(self):
@@ -53,7 +53,7 @@ class VQAMultiModalModel(nn.Module):
         for img_feat_encoder in img_feat_encoders_list_config:
             encoder_type = img_feat_encoder['type']
             encoder_kwargs = img_feat_encoder['params']
-            encoder_kwargs['data_root_dir'] = self.config['data_root_dir']
+            encoder_kwargs['model_data_dir'] = self.config['model_data_dir']
             img_feat_model = ImageEncoder(encoder_type, self.img_feat_dim,
                                           **encoder_kwargs)
 

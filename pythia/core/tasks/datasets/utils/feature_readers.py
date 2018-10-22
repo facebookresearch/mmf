@@ -107,9 +107,22 @@ class HWCFeatureReader:
 class PaddedFasterRCNNFeatureReader:
     def __init__(self, max_loc):
         self.max_loc = max_loc
+        self.first = True
+        self.take_item = False
 
     def read(self, image_feat_path):
         image_feature = np.load(image_feat_path)
+
+        if not self.first:
+            if self.take_item:
+                image_feature = image_feature.item()['image_feat']
+        else:
+            self.first = False
+            if image_feature.size == 1 and \
+               'image_feat' in image_feature.item():
+                self.take_item = True
+                image_feature = image_feature.item()['image_feat']
+
         image_loc, image_dim = image_feature.shape
         tmp_image_feat = np.zeros((self.max_loc, image_dim), dtype=np.float32)
         tmp_image_feat[0:image_loc, ] = image_feature

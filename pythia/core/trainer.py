@@ -85,6 +85,7 @@ class Trainer:
         self.task_loader.update_config_for_model(attributes)
         self.model = build_model(attributes)
         self.task_loader.clean_config(attributes)
+
         training_parameters = self.config['training_parameters']
         use_cuda = training_parameters['use_cuda']
         no_data_parallel = training_parameters.get('no_data_parallel', None)

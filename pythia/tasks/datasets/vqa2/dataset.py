@@ -46,6 +46,8 @@ class VQA2Dataset(BaseDataset):
         self.channel_first = data_params['image_depth_first']
         self.max_bboxes = (data_params['image_max_loc']
                            if 'image_max_loc' in data_params else None)
+
+        self.max_valid_answer_length = 10
         self.vocab_dict = VocabDict(data_params['vocab_question_file'])
 
         # TODO: Remove after shifting to proper features standard
@@ -121,7 +123,8 @@ class VQA2Dataset(BaseDataset):
         image_features = self.features_db[idx]
 
         answer_tokens = None
-        valid_answers_idx = np.zeros((10), np.int32)
+
+        valid_answers_idx = np.zeros((self.max_valid_answer_length), np.int32)
         valid_answers_idx.fill(-1)
         answer_scores = np.zeros(self.answer_dict.num_vocab, np.float32)
         if self.load_answer:
@@ -191,6 +194,7 @@ class VQA2Dataset(BaseDataset):
         # output question_id, image_id, question, answer,valid_answers,
         if self.verbose:
             sample['verbose_info'] = iminfo
+
         return sample
 
 

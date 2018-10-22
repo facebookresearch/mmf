@@ -40,7 +40,7 @@ task_attributes:
 exp_name: baseline
 model_attributes:
   top_down_bottom_up:
-    data_root_dir: ../data
+    model_data_dir: ../data
     classifier:
       type: logit
       params:

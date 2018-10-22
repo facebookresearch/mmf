@@ -11,7 +11,6 @@ MODEL_KEY_TO_CLASS_NAME_MAPPING = {
 def build_model(config):
     models_module_key = "pythia.models"
     models_module = importlib.import_module(models_module_key)
-
     model_name = MODEL_KEY_TO_CLASS_NAME_MAPPING[config['model']]
     model_class = getattr(models_module, model_name)
     model = model_class(config)

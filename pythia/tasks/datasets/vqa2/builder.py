@@ -37,6 +37,7 @@ class VQA2Builder(DatasetBuilder):
                                       % dataset_type)
 
         self.dataset = dataset
+        self.dataset_class = VQA2Dataset
         return dataset
 
     def _build(self, **opts):
@@ -48,7 +49,6 @@ class VQA2Builder(DatasetBuilder):
         config['vocab_size'] = self.dataset.vocab_dict.num_vocab
         config['num_choices'] = self.dataset.answer_dict.num_vocab
         config['num_image_features'] = self.num_image_features
-        config['data_root_dir'] = self.data_root_dir
 
     def init_args(self, parser):
         parser.add_argument_group("VQA2 task specific arguments")
@@ -73,6 +73,9 @@ class VQA2Builder(DatasetBuilder):
         data_config['image_fast_reader'] = False
         return self.prepare_data_set('imdb_file_test', 'image_feat_test',
                                      **data_config)
+
+    def set_dataset_class(self, cls):
+        self.dataset_class = cls
 
     def prepare_data_set(self, imdb_file_label,
                          image_dir_label, **data_config):
@@ -109,20 +112,21 @@ class VQA2Builder(DatasetBuilder):
             image_feat_dirs = [os.path.join(data_root_dir, d)
                                for d in image_feat_dir.split(',')]
 
-            train_dataset = VQA2Dataset(imdb_file=imdb_file_trn,
-                                        image_feat_directories=image_feat_dirs,
-                                        T_encoder=question_max_len,
-                                        T_decoder=layout_max_len,
-                                        assembler=None,
-                                        vocab_question_file=vocab_question_f,
-                                        vocab_answer_file=vocab_answer_file,
-                                        prune_filter_module=prune_filter_mod,
-                                        image_depth_first=image_depth_first,
-                                        fast_read=image_fast_reader,
-                                        verbose=verbose,
-                                        test_mode=test_mode,
-                                        dataset_type=dataset_type,
-                                        image_max_loc=image_max_loc)
+            cls = self.dataset_class
+            train_dataset = cls(imdb_file=imdb_file_trn,
+                                image_feat_directories=image_feat_dirs,
+                                T_encoder=question_max_len,
+                                T_decoder=layout_max_len,
+                                assembler=None,
+                                vocab_question_file=vocab_question_f,
+                                vocab_answer_file=vocab_answer_file,
+                                prune_filter_module=prune_filter_mod,
+                                image_depth_first=image_depth_first,
+                                fast_read=image_fast_reader,
+                                verbose=verbose,
+                                test_mode=test_mode,
+                                dataset_type=dataset_type,
+                                image_max_loc=image_max_loc)
             datasets.append(train_dataset)
 
         dataset = VQAConcatDataset(datasets)

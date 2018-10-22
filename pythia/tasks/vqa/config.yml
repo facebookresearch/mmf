@@ -31,7 +31,7 @@ task_attributes:
         ndim: 2
 model_attributes:
   top_down_bottom_up:
-    data_root_dir: ../data
+    model_data_dir: ../data
     classifier:
       type: logit
       params:

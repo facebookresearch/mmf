@@ -27,12 +27,12 @@ class ImageEncoder(nn.Module):
 
 
 class FinetuneFasterRcnnFpnFc7(nn.Module):
-    def __init__(self, in_dim, weights_file, bias_file, data_root_dir):
+    def __init__(self, in_dim, weights_file, bias_file, model_data_dir):
         super(FinetuneFasterRcnnFpnFc7, self).__init__()
         if not os.path.isabs(weights_file):
-            weights_file = os.path.join(data_root_dir, weights_file)
+            weights_file = os.path.join(model_data_dir, weights_file)
         if not os.path.isabs(bias_file):
-            bias_file = os.path.join(data_root_dir, bias_file)
+            bias_file = os.path.join(model_data_dir, bias_file)
         with open(weights_file, 'rb') as w:
             weights = pickle.load(w)
         with open(bias_file, 'rb') as b:

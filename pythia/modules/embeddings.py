@@ -12,7 +12,7 @@ from pythia.modules.attention import AttentionLayer
 class TextEmbedding(nn.Module):
     def __init__(self, emb_type, **kwargs):
         super(TextEmbedding, self).__init__()
-        self.data_root_dir = kwargs.get('data_root_dir', None)
+        self.model_data_dir = kwargs.get('model_data_dir', None)
         self.embedding_dim = kwargs.get('embedding_dim', None)
         # Update kwargs here
         if emb_type == "default":
@@ -55,10 +55,10 @@ class TextEmbedding(nn.Module):
 
             return embedding
 
-        if embedding_init_file is not None and self.data_root_dir is not None:
+        if embedding_init_file is not None and self.model_data_dir is not None:
             embedding_file = embedding_init_file
             if not os.path.isabs(embedding_file):
-                embedding_file = os.path.join(self.data_root_dir,
+                embedding_file = os.path.join(self.model_data_dir,
                                               embedding_file)
             embedding_init = np.load(embedding_file)
             embedding.weight.data.copy_(torch.from_numpy(embedding_init))
