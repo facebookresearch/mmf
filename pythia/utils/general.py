@@ -68,7 +68,6 @@ def get_optimizer_parameters(model, config):
         parameters = model.get_optimizer_parameters(config)
 
     is_parallel = isinstance(model, nn.DataParallel)
-    parameters = model.module.get_optimizer_parameters(config)
 
     if is_parallel and hasattr(model.module, 'get_optimizer_parameters'):
         parameters = model.module.get_optimizer_parameters(config)

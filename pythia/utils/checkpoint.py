@@ -32,8 +32,9 @@ class Checkpoint:
         self.pth_filepath = os.path.join(self.save_loc, self.ckpt_foldername,
                                          self.ckpt_prefix + "final.pth")
 
-        if not os.path.exists(os.path.dirname(self.ckpt_foldername)):
-            os.makedirs(os.path.join(self.ckpt_foldername, "models"))
+        self.models_foldername = os.path.join(self.ckpt_foldername, "models")
+        if not os.path.exists(self.models_foldername):
+            os.makedirs(self.models_foldername)
 
         self.save_config()
 
@@ -65,6 +66,8 @@ class Checkpoint:
         self.trainer.optimizer.load_state_dict(ckpt['optimizer'])
         self.trainer.early_stopping.init_from_checkpoint(ckpt)
 
+        self.trainer.writer.write("Checkpoint loaded")
+
         if 'best_iteration' in ckpt:
             self.trainer.current_iteration = ckpt['best_iteration']
 
@@ -78,7 +81,7 @@ class Checkpoint:
             return torch.load(file, map_location=lambda storage, loc: storage)
 
     def save(self, iteration, update_best=False):
-        ckpt_filepath = os.path.join(self.ckpt_foldername, "models",
+        ckpt_filepath = os.path.join(self.models_foldername,
                                      "model_%d.ckpt" % iteration)
         best_ckpt_filepath = os.path.join(self.ckpt_foldername,
                                           self.ckpt_prefix + "best.ckpt")
