@@ -254,27 +254,34 @@ class NonLinearElementMultiply(nn.Module):
         image_fa = self.fa_image(image_feat)
         question_fa = self.fa_txt(question_embedding)
 
-        if history_embedding is None:
-            history_fa = question_fa.new_ones(size=question_fa.size())
-            history_fa = torch.autograd.Variable(history_fa)
-
-            if question_fa.is_cuda is True:
-                history_fa = history_fa.cuda()
-        else:
-            history_fa = self.fa_history(history_embedding)
+        # TODO: Rewrite in a better way or remove this
+        #     history_fa = question_fa.new_ones(size=question_fa.size())
+        #     history_fa = torch.autograd.Variable(history_fa)
+        #
+        #     if question_fa.is_cuda is True:
+        #         history_fa = history_fa.cuda()
+        # else:
 
         if len(image_feat.data.shape) == 3:
             num_location = image_feat.data.size(1)
             question_fa_expand = torch.unsqueeze(
                 question_fa, 1).expand(-1, num_location, -1)
-            history_fa_expand = torch.unsqueeze(
-                history_fa, 1).expand(-1, num_location, -1)
-
         else:
             question_fa_expand = question_fa
-            history_fa_expand = history_fa
 
-        joint_feature = image_fa * question_fa_expand * history_fa_expand
+        joint_feature = image_fa * question_fa_expand
+
+        if history_embedding is not None:
+            history_fa = self.fa_history(history_embedding)
+
+            if len(image_feat.data.shape) == 3:
+                history_fa_expand = torch.unsqueeze(
+                    history_fa, 1).expand(-1, num_location, -1)
+            else:
+                history_fa_expand = history_fa
+
+            joint_feature = question_fa_expand * history_fa_expand
+
         joint_feature = self.dropout(joint_feature)
 
         return joint_feature
