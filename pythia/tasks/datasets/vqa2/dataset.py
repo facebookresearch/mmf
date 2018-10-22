@@ -8,8 +8,9 @@
 
 import numpy as np
 
-from .utils import VocabDict
 from torch.utils.data import ConcatDataset
+
+from .utils import VocabDict
 from pythia.core.constants import imdb_version
 # TODO: Move in __all__ in __init__.py
 from pythia.tasks.datasets.coco.coco_features_dataset \
@@ -76,9 +77,6 @@ class VQA2Dataset(BaseDataset):
             self.prune_filter_module = (data_params['prune_filter_module']
                                         if 'prune_filter_module' in data_params
                                         else False)
-        else:
-            print('imdb does not contain ground-truth layout')
-            print('Loading model and config ...')
 
         self.features_db = COCOFeaturesDataset(
                             image_feature_dirs=self.image_feat_directories,
@@ -89,6 +87,21 @@ class VQA2Dataset(BaseDataset):
                             dataset_type=data_params['dataset_type'],
                             fast_read=data_params['fast_read'],
                             return_info=self.load_gt_layout)
+
+    def format_for_evalai(self, batch, answers):
+        answers = answers.argmax(dim=1)
+
+        predictions = []
+
+        for idx, question_id in enumerate(batch['question_id']):
+            answer = self.answer_dict.idx2word(answers[idx])
+
+            predictions.append({
+                'question_id': question_id.item(),
+                'answer': answer
+            })
+
+        return predictions
 
     def __len__(self):
         return len(self.imdb) - 1
@@ -146,7 +159,8 @@ class VQA2Dataset(BaseDataset):
                 gt_layout_tokens, self.T_decoder))
 
         sample = dict(texts=input_seq,
-                      texts_lens=seq_length)
+                      texts_lens=seq_length,
+                      question_id=iminfo.get('question_id', None))
 
         for idx in range(len(image_features.keys())):
             if ("image_feature_%d" % idx) in image_features:
@@ -184,6 +198,7 @@ class VQAConcatDataset(ConcatDataset):
     def __init__(self, datasets):
         super(VQAConcatDataset, self).__init__(datasets)
         self.vocab_dict = datasets[0].vocab_dict
+        self.name = self.datasets[0].name
         self.answer_dict = datasets[0].answer_dict
 
     def calculate_loss(self, output, expected_output):
@@ -197,3 +212,9 @@ class VQAConcatDataset(ConcatDataset):
 
     def reset_meters(self):
         self.datasets[0].reset_meters()
+
+    def prepare_batch(self, batch):
+        return self.datasets[0].prepare_batch(batch)
+
+    def format_for_evalai(self, batch, answers):
+        return self.datasets[0].format_for_evalai(batch, answers)

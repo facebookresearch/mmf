@@ -4,6 +4,7 @@ import yaml
 from torch.utils.data import DataLoader
 
 from pythia.core.tasks import MultiTask
+from pythia.core.tasks.test_reporter import TestReporter
 from pythia.utils.general import nested_dict_update
 
 
@@ -21,6 +22,10 @@ class TaskLoader:
             'dev': self.dev_task,
             'test': self.test_task
         }
+
+        self.test_reporter = None
+        if self.config['training_parameters']['evalai_predict'] is True:
+            self.test_reporter = TestReporter(self.test_task)
 
     def load_config(self):
 
@@ -44,8 +49,8 @@ class TaskLoader:
         task_config = {}
         if not os.path.exists(config_path):
             print("[Warning] No config present for task %s" %
-                  self.config['task'])
-            return
+                  task_name)
+            return {}
 
         with open(config_path, 'r') as f:
             try:
@@ -75,7 +80,7 @@ class TaskLoader:
 
         self.test_loader = DataLoader(dataset=self.test_task,
                                       batch_size=batch_size,
-                                      shuffle=True,
+                                      shuffle=False,
                                       num_workers=num_workers)
         self.test_loader.dataset_type = 'test'
 

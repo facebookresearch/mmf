@@ -1,3 +1,3 @@
-__all__ = ['QATask']
+__all__ = ['VQATask']
 
-from .qa_task import QATask
+from .vqa_task import VQATask

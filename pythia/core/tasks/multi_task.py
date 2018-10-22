@@ -1,10 +1,14 @@
 import numpy as np
 
+from torch.utils.data import Dataset
+
 from pythia.core.registry import Registry
 
 
-class MultiTask:
+class MultiTask(Dataset):
     def __init__(self, dataset_type, config):
+        super(MultiTask, self).__init__()
+
         self.config = config
         self.dataset_type = dataset_type
 
@@ -52,6 +56,9 @@ class MultiTask:
                                               p=self.task_probabilities)[0]
         self.chosen_task = self.tasks[self.selected_task]
         self.chosen_task.change_dataset()
+
+    def get_tasks(self):
+        return self.tasks
 
     def calculate_loss(self, output, expected_output):
         loss = self.chosen_task.calculate_loss(output, expected_output)

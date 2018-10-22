@@ -36,6 +36,10 @@ class Flags:
                                  type=str,
                                  required=True,
                                  help="Model for training")
+        self.parser.add_argument("--run_type",
+                                 type=str,
+                                 default=None,
+                                 help="Type of run. Default=train")
 
         self.parser.add_argument('--seed', type=int, default=1234,
                                  help="random seed, default 1234,"
@@ -84,10 +88,17 @@ class Flags:
                                  default=None,
                                  help="Use when you want to restore from "
                                  "automatic checkpoint")
+        self.parser.add_argument("--evalai_predict", type=bool,
+                                 default=None,
+                                 help="Whether predictions should be made"
+                                 " for EvalAI.")
         self.parser.add_argument("--lr_scheduler", type=bool,
                                  default=None,
                                  help="Use when you want to use lr scheduler")
         self.parser.add_argument("--clip_gradients", type=bool,
+                                 default=None,
+                                 help="Use when you want to clip gradients")
+        self.parser.add_argument("--no_data_parallel", type=bool,
                                  default=None,
                                  help="Use when you want to clip gradients")
         self.parser.add_argument("-cpu", "--no_cuda", action="store_true",

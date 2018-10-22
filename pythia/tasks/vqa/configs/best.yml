@@ -100,7 +100,7 @@ training_parameters:
   - 21000
   max_grad_l2_norm: 0.25
   max_iterations: 22000
-  report_interval: 100
+  log_interval: 100
   snapshot_interval: 1000
   wu_factor: 0.2
   wu_iters: 1000
@@ -108,4 +108,6 @@ training_parameters:
   batch_size: 512
   num_workers: 7
   task_size_proportional_sampling: true
-  run: train
+  run_type: train
+  monitored_metric: vqa_vqa_accuracy
+  metric_minimize: false

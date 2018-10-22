@@ -13,8 +13,10 @@ training_parameters:
   metric_minimize: true
   should_early_stop: false
   lr_scheduler: false
-  run: train
+  run_type: train
   logger_level: debug
+  no_data_parallel: false
+  evalai_predict: false
 optimizer_attributes:
   method: Adamax
   params:
