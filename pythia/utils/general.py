@@ -82,9 +82,9 @@ def dict_to_string(dictionary):
     for key, val in dictionary.items():
         if hasattr(val, 'item'):
             val = val.item()
-        if key.count('_') == 2:
-            key = key[key.find('_') + 1:]
-        logs.append('%s: %s' % (key, val))
+        # if key.count('_') == 2:
+        #     key = key[key.find('_') + 1:]
+        logs.append('%s: %.4f' % (key, val))
 
     return ", ".join(logs)
 

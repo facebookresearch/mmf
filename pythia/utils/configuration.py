@@ -8,11 +8,14 @@ import demjson
 import collections
 
 from .general import nested_dict_update
+from pythia.core.registry import Registry
 
 
 class Configuration:
     def __init__(self, config_yaml_file):
         self.config_path = config_yaml_file
+        self.writer = Registry.get('writer')
+
         self.default_config = self._get_default_config_path()
 
         self.config = {}
@@ -20,7 +23,8 @@ class Configuration:
             try:
                 self.config = yaml.load(f)
             except yaml.YAMLError as err:
-                print("[Error] Default config yaml error", err)
+                self.writer.write("Default config yaml error: " + err,
+                                  'error')
 
         user_config = {}
         self.user_config = user_config
@@ -34,7 +38,7 @@ class Configuration:
                 # and then update it with yaml config
                 user_config = yaml.load(f)
             except yaml.YAMLError as err:
-                print("Config yaml error", err)
+                self.writer.write("Config yaml error: " + err, 'error')
                 sys.exit(0)
         self.user_config = user_config
 
@@ -50,7 +54,6 @@ class Configuration:
         self._update_specific()
 
     def update_with_task_config(self, config):
-        # print(config)
         self.config = nested_dict_update(self.config, config)
         # At this point update with user's config
         self._update_with_user_config()
@@ -81,7 +84,21 @@ class Configuration:
         return dictionary
 
     def pretty_print(self):
-        print(json.dumps(self.config, indent=4, sort_keys=True))
+        self.writer.write("=====  Training Parameter =====")
+        self.writer.write(json.dumps(self.config['training_parameters'],
+                                     indent=4, sort_keys=True))
+
+        self.writer.write("======  Task Attributes  ======")
+        self.writer.write(json.dumps(self.config['task_attributes'],
+                                     indent=4, sort_keys=True))
+
+        self.writer.write("======  Optimizer Attributes  ======")
+        self.writer.write(json.dumps(self.config['optimizer'],
+                                     indent=4, sort_keys=True))
+
+        self.writer.write("======  Model Attributes  ======")
+        self.writer.write(json.dumps(self.config['model_attributes'],
+                                     indent=4, sort_keys=True))
 
     def _get_default_config_path(self):
         directory = os.path.dirname(os.path.abspath(__file__))
@@ -98,6 +115,6 @@ class Configuration:
                 self.config['optimizer']['params']['lr'] = lr
 
         if not torch.cuda.is_available() or self.config['no_cuda'] is True:
-            print("[Warning] CUDA option used but cuda is not present"
-                  ". Switching to CPU version")
+            self.writer.write("CUDA option used but cuda is not present"
+                              ". Switching to CPU version", 'warning')
             self.config['use_cuda'] = False

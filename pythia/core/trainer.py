@@ -153,7 +153,9 @@ class Trainer:
         should_clip_gradients = training_parameters['clip_gradients']
         max_epochs = self.config['max_epochs']
 
+        self.writer.write("===== Model =====")
         self.writer.write(self.model)
+
         should_check_on_epoch = False
 
         if max_epochs is not None:
@@ -225,7 +227,7 @@ class Trainer:
                     extra_info = ", time: %s" % time_taken
                     self.snapshot_timer.reset()
                     stop = self.early_stopping(self.current_iteration)
-                    extra_info += "\n %s" % self.early_stopping.get_info()
+                    extra_info += "\n, %s" % self.early_stopping.get_info()
 
                     self.task_loader.report_metrics('dev', avg_loss,
                                                     extra_info=extra_info)
@@ -250,8 +252,8 @@ class Trainer:
         self.model.train()
 
         # TODO: Do replace in log string function itself
-        return ", dev: " + dict_to_string(Registry.get('metrics.%s' %
-                                                       dataset_type))
+        return "dev: " + dict_to_string(Registry.get('metrics.%s' %
+                                                     dataset_type))
 
     def evaluate(self, dataset_type, loader):
         self.model.eval()

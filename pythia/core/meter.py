@@ -71,7 +71,8 @@ class Meter:
         for i in range(len(self.meter_types)):
             meter_type = self.meter_types[i]
             value = self.meter_values[i]
-            log_string.append("Average %s: %.4f" % (meter_type, value))
+            log_string.append("Average %s: %.4f" %
+                              (self.dataset_name + "_" + meter_type, value))
 
         max_iterations = self.config['training_parameters']['max_iterations']
         iteration = "%s: %s/%s: " % (self.dataset_type,
