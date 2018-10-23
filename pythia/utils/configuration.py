@@ -14,8 +14,6 @@ from pythia.core.registry import Registry
 class Configuration:
     def __init__(self, config_yaml_file):
         self.config_path = config_yaml_file
-        self.writer = Registry.get('writer')
-
         self.default_config = self._get_default_config_path()
 
         self.config = {}
@@ -84,21 +82,23 @@ class Configuration:
         return dictionary
 
     def pretty_print(self):
-        self.writer.write("=====  Training Parameter =====")
+        self.writer = Registry.get('writer')
+
+        self.writer.write("=====  Training Parameters    =====", "info")
         self.writer.write(json.dumps(self.config['training_parameters'],
-                                     indent=4, sort_keys=True))
+                                     indent=4, sort_keys=True), "info")
 
-        self.writer.write("======  Task Attributes  ======")
+        self.writer.write("======  Task Attributes  ======", "info")
         self.writer.write(json.dumps(self.config['task_attributes'],
-                                     indent=4, sort_keys=True))
+                                     indent=4, sort_keys=True), "info")
 
-        self.writer.write("======  Optimizer Attributes  ======")
+        self.writer.write("======  Optimizer Attributes  ======", "info")
         self.writer.write(json.dumps(self.config['optimizer'],
-                                     indent=4, sort_keys=True))
+                                     indent=4, sort_keys=True), "info")
 
-        self.writer.write("======  Model Attributes  ======")
+        self.writer.write("======  Model Attributes  ======", "info")
         self.writer.write(json.dumps(self.config['model_attributes'],
-                                     indent=4, sort_keys=True))
+                                     indent=4, sort_keys=True), "info")
 
     def _get_default_config_path(self):
         directory = os.path.dirname(os.path.abspath(__file__))

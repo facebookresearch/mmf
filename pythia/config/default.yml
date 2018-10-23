@@ -14,7 +14,7 @@ training_parameters:
   should_early_stop: false
   lr_scheduler: false
   run_type: train
-  logger_level: debug
+  logger_level: info
   no_data_parallel: false
   evalai_predict: false
 optimizer_attributes:

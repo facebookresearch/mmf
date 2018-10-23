@@ -4,6 +4,7 @@ import gc
 import sys
 
 from torch import optim
+from tqdm import tqdm
 
 from pythia.utils.flags import flags
 from pythia.utils.configuration import Configuration
@@ -32,6 +33,8 @@ class Trainer:
 
         self.writer = Logger(self.config)
         Registry.register('writer', self.writer)
+
+        self.configuration.pretty_print()
 
         self.load_task()
         self.load_model()
@@ -63,9 +66,9 @@ class Trainer:
 
         # Update with args once again as they are the most important
         self.configuration.update_with_args(self.args)
-        self.configuration.pretty_print()
 
     def load_task(self):
+        self.writer.write("Loading tasks and data", "info")
         self.task_loader.load_task()
 
         self.task_loader.make_dataloaders()
@@ -297,7 +300,7 @@ class Trainer:
         while self.test_reporter.next_dataset():
             dataloader = self.test_reporter.get_dataloader()
 
-            for batch in dataloader:
+            for batch in tqdm(dataloader):
                 data, _ = self.test_reporter.prepare_batch(batch)
                 output = self.model(**data)
                 self.test_reporter.add_to_report(batch, output)

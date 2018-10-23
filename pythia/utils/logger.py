@@ -47,7 +47,7 @@ class Logger:
         self.logger = logging.getLogger(__name__)
 
         # Set level
-        level = config['training_parameters'].get('logger_level', 'debug')
+        level = config['training_parameters'].get('logger_level', 'info')
         self.logger.setLevel(getattr(logging, level.upper()))
 
         formatter = logging.Formatter("%(levelname)s: %(message)s")
@@ -71,7 +71,7 @@ class Logger:
         if self.summary_writer is not None:
             self.summary_writer.close()
 
-    def write(self, x, level="debug"):
+    def write(self, x, level="info"):
         # if it should not log then just print it
         if self.should_log and self.logger is not None:
             if hasattr(self.logger, level):
