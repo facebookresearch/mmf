@@ -84,7 +84,7 @@ class CHWFeatureReader:
         feat = np.load(image_feat_path)
         assert (feat.shape[0] == 1), "batch is not 1"
         feat = feat.squeeze(0)
-        return feat
+        return feat, None
 
 
 class Dim3FeatureReader:
@@ -92,7 +92,7 @@ class Dim3FeatureReader:
         tmp = np.load(image_feat_path)
         _, _, c_dim = tmp.shape
         image_feature = np.reshape(tmp, (-1, c_dim))
-        return image_feature
+        return image_feature, None
 
 
 class HWCFeatureReader:
@@ -101,7 +101,7 @@ class HWCFeatureReader:
         assert (tmp.shape[0] == 1), "batch is not 1"
         _, _, _, c_dim = tmp.shape
         image_feature = np.reshape(tmp, (-1, c_dim))
-        return image_feature
+        return image_feature, None
 
 
 class PaddedFasterRCNNFeatureReader:
@@ -111,23 +111,35 @@ class PaddedFasterRCNNFeatureReader:
         self.take_item = False
 
     def read(self, image_feat_path):
-        image_feature = np.load(image_feat_path)
+        content = np.load(image_feat_path)
+        image_info = {}
 
-        if not self.first:
-            if self.take_item:
-                image_feature = image_feature.item()['image_feat']
-        else:
+        if self.first:
             self.first = False
-            if image_feature.size == 1 and \
-               'image_feat' in image_feature.item():
+            if content.size == 1 and \
+               'image_feat' in content.item():
                 self.take_item = True
-                image_feature = image_feature.item()['image_feat']
+
+        image_feature = content
+        if self.take_item:
+            item = content.item()
+            if 'image_text' in item:
+                image_info['image_text'] = item['image_text']
+                image_feature = item['image_feat']
+
+            if 'info' in item:
+                if 'image_text' in item['info']:
+                    image_info['image_text'] = item['info']['image_text']
+                image_feature = item['feature']
 
         image_loc, image_dim = image_feature.shape
         tmp_image_feat = np.zeros((self.max_loc, image_dim), dtype=np.float32)
         tmp_image_feat[0:image_loc, ] = image_feature
         image_feature = tmp_image_feat
-        return (image_feature, image_loc)
+
+        image_info['image_loc'] = image_loc
+
+        return image_feature, image_info
 
 
 class PaddedFeatureRCNNWithBBoxesFeatureReader:
@@ -145,4 +157,9 @@ class PaddedFeatureRCNNWithBBoxesFeatureReader:
         tmp_image_box = np.zeros((self.max_loc, 4), dtype=np.int32)
         tmp_image_box[0:image_loc] = image_boxes
 
-        return (tmp_image_feat_2, image_loc, tmp_image_box)
+        image_info = {
+            'image_bbox': tmp_image_box,
+            'image_loc': image_loc
+        }
+
+        return tmp_image_feat_2, image_info

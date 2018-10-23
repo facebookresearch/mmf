@@ -36,15 +36,9 @@ class COCOFeaturesDataset(FeaturesDataset):
         features = []
         infos = []
         for feature_reader in self.feature_readers:
-            feature_info = feature_reader.read(feat_file)
-
-            # TODO: Remove later after migration to standard features
-            if type(feature_info) == dict:
-                features.append(feature_info['features'])
-                infos.append(feature_info['info'])
-            else:
-                features.append(feature_info)
-                infos.append({})
+            feature, info = feature_reader.read(feat_file)
+            features.append(feature)
+            infos.append(info)
 
         if not self.should_return_info:
             infos = None
@@ -58,11 +52,7 @@ class COCOFeaturesDataset(FeaturesDataset):
 
         # TODO: Remove after standardization
         # https://github.com/facebookresearch/pythia/blob/master/dataset_utils/dataSet.py#L226
-        if isinstance(image_feats[0], tuple):
-            image_feats_final = [image_feats[0][0]] + image_feats[1:]
-        else:
-            image_feats_final = image_feats
-        return image_feats_final, info
+        return image_feats, info
 
     def __len__(self):
         return len(self.imdb)
