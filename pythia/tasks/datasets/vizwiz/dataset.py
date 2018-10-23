@@ -6,4 +6,11 @@ class VizWizDataset(VQA2Dataset):
                  **data_params):
         super(VizWizDataset, self).__init__(imdb_file, image_feat_directories,
                                             verbose, **data_params)
-        self.max_valid_answer_length = 11
+
+        self.name = 'vizwiz'
+        if data_params['copy_included']:
+            self.max_valid_answer_length = 11
+
+    def __getitem__(self, idx):
+        sample = super(VizWizDataset, self).__getitem__(idx)
+        return sample

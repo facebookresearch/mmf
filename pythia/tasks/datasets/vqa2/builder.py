@@ -106,6 +106,9 @@ class VQA2Builder(DatasetBuilder):
 
         datasets = []
         dataset_type = data_config.get('dataset_type', "train")
+
+        copy_included = data_config.get('copy_included', False)
+
         for imdb_file_trn_name, image_feat_dir in \
                 zip(imdb_files, image_feat_dirs):
             imdb_file_trn = os.path.join(data_root_dir, imdb_file_trn_name)
@@ -126,6 +129,7 @@ class VQA2Builder(DatasetBuilder):
                                 verbose=verbose,
                                 test_mode=test_mode,
                                 dataset_type=dataset_type,
+                                copy_included=copy_included,
                                 image_max_loc=image_max_loc)
             datasets.append(train_dataset)
 
