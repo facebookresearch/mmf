@@ -8,19 +8,22 @@ task_attributes:
         data_root_dir: /private/home/nvivek/VQA/training_data/
         image_feat_train:
         - rcnn_adaptive_vizwiz/vizwiz_ocr_only_att_ans,resnet_res5c_vizwiz/vizwiz/resnet152
-        - rcnn_adaptive_vizwiz/vizwiz_ocr_only_att_ans,resnet_res5c_vizwiz/vizwiz/resnet152
+        # - rcnn_adaptive_vizwiz/vizwiz_ocr_only_att_ans,resnet_res5c_vizwiz/vizwiz/resnet152
         image_feat_val:
         - rcnn_adaptive_vizwiz/vizwiz_ocr_only_att_ans,resnet_res5c_vizwiz/vizwiz/resnet152
         image_feat_test:
         - rcnn_adaptive_vizwiz/vizwiz_ocr_only_att_ans,resnet_res5c_vizwiz/vizwiz/resnet152
         image_max_loc: 137
         imdb_file_train:
-        - imdb/imdb_vizwiz_train_7k_ocr_only_att_5ans_ocr_only_copy.npy
-        - imdb/imdb_vizwiz_val_7k_ocr_only_att_5ans_ocr_only_copy.npy
+        # - imdb/imdb_vizwiz_train_7k_ocr_only_att_5ans_ocr_only_copy.npy
+        # - imdb/imdb_vizwiz_val_7k_ocr_only_att_5ans_ocr_only_copy.npy
+        - imdb/imdb_vizwiz_train_all_answers.npy
         imdb_file_val:
-        - imdb/imdb_vizwiz_val_7k_ocr_only_att_5ans_ocr_only_copy.npy
+        # - imdb/imdb_vizwiz_val_7k_ocr_only_att_5ans_ocr_only_copy.npy
+        - imdb/imdb_vizwiz_val_all_answers.npy
         imdb_file_test:
-        - imdb/imdb_vizwiz_test_7k_ocr_only_att_5ans_ocr_only_copy.npy
+        # - imdb/imdb_vizwiz_test_7k_ocr_only_att_5ans_ocr_only_copy.npy
+        - imdb/imdb_vizwiz_test_all_answers.npy
         vocab_question_file: vocabulary_100k.txt
         vocab_answer_file: answers_vizwiz_7k.txt
         image_depth_first: false
@@ -28,6 +31,7 @@ task_attributes:
         question_max_len: 14
         enforce_slow_reader: true
         metrics: vqa_accuracy
+        copy_included: false
         loss: logit_bce
         ndim: 2
 optimizer:
