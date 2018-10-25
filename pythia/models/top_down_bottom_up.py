@@ -2,48 +2,31 @@ import torch
 
 from torch import nn
 
-from pythia.modules.embeddings import TextEmbedding, ImageEmbedding
+from pythia.core.registry import Registry
+from pythia.core.models.base_model import BaseModel
+from pythia.modules.embeddings import ImageEmbedding
 from pythia.modules.encoders import ImageEncoder
 from pythia.modules.layers import ModalCombineLayer, ClassifierLayer, \
                                   ReLUWithWeightNormFC
 
 
-class VQAMultiModalModel(nn.Module):
+class VQAMultiModalModel(BaseModel):
     def __init__(self, config):
-        super(VQAMultiModalModel, self).__init__()
+        super(VQAMultiModalModel, self).__init__(config)
         self.config = config
 
     def build(self):
         self._init_text_embedding()
+        self._init_context_embedding()
         self._init_image_encoders()
         self._init_image_embeddings()
         self._init_combine_layer()
         self._init_classifier()
         self._init_extras()
 
-    def _init_text_embedding(self, attr='text_embeddings',
-                             bidirectional=False):
-        text_embeddings = []
-        text_embeddings_list_config = self.config['text_embeddings']
-
-        self.text_embeddings_out_dim = 0
-
-        for text_embedding in text_embeddings_list_config:
-            embedding_type = text_embedding['type']
-            embedding_kwargs = text_embedding['params']
-            embedding_kwargs['bidirectional'] = bidirectional
-            self._update_text_embedding_args(embedding_kwargs)
-
-            embedding = TextEmbedding(embedding_type, **embedding_kwargs)
-            text_embeddings.append(embedding)
-            self.text_embeddings_out_dim += embedding.text_out_dim
-
-        setattr(self, attr, nn.ModuleList(text_embeddings))
-
     def _update_text_embedding_args(self, args):
         # Add model_data_dir to kwargs
         args['model_data_dir'] = self.config['model_data_dir']
-        args['vocab_size'] = self.config['vocab_size']
 
     def _init_image_encoders(self):
         img_feat_encoders = []

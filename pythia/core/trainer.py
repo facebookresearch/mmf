@@ -17,6 +17,7 @@ from pythia.utils.timer import Timer
 from pythia.utils.early_stopping import EarlyStopping
 from pythia.core.task_loader import TaskLoader
 from pythia.core.registry import Registry
+from pythia.core.text.vocab import Vocab
 
 
 class Trainer:
@@ -36,6 +37,7 @@ class Trainer:
 
         self.configuration.pretty_print()
 
+        self.load_vocabs()
         self.load_task()
         self.load_model()
         self.load_optimizer()
@@ -80,6 +82,17 @@ class Trainer:
         self.dev_task = self.task_loader.dev_task
         self.test_task = self.task_loader.test_task
         self.test_reporter = self.task_loader.test_reporter
+
+    def load_vocabs(self):
+        training_parameters = self.config['training_parameters']
+        if 'text_vocab' in training_parameters:
+            self.text_vocab = Vocab.get(**training_parameters['text_vocab'])
+            Registry.register('vocabs.text_vocab', self.text_vocab)
+
+        if 'context_vocab' in training_parameters:
+            params = training_parameters['context_vocab']
+            self.context_vocab = Vocab.get(**params)
+            Registry.register('vocabs.context_vocab', self.context_vocab)
 
     def load_model(self):
         attributes = self.config['model_attributes'][self.config['model']]

@@ -93,7 +93,7 @@ class Configuration:
                                      indent=4, sort_keys=True), "info")
 
         self.writer.write("======  Optimizer Attributes  ======", "info")
-        self.writer.write(json.dumps(self.config['optimizer'],
+        self.writer.write(json.dumps(self.config['optimizer_attributes'],
                                      indent=4, sort_keys=True), "info")
 
         self.writer.write("======  Model Attributes  ======", "info")

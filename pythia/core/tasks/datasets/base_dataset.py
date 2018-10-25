@@ -15,6 +15,9 @@ class BaseDataset(Dataset):
         self.name = name
         self.use_cuda = Registry.get('config')['use_cuda']
 
+        self.text_vocab = Registry.get('vocabs.text_vocab')
+        self.context_vocab = Registry.get('vocabs.context_vocab')
+
     def init_loss_and_metrics(self, config):
         self.writer = Registry.get('writer')
         self.should_log = Registry.get('config').get('should_log', True)
@@ -114,7 +117,7 @@ class BaseDataset(Dataset):
             'image_dim': image_dim_variable,
             'image_features': image_feature_variables,
             'context': input_contexts,
-            'info': {}
+            'info': {'dataset_name': self.name}
         }
 
         return data, obs

@@ -9,12 +9,13 @@ class BaseTask(Dataset):
     def __init__(self, task_name):
         super(BaseTask, self).__init__()
         self.task_name = task_name
+        self.writer = Registry.get('writer')
 
     def _process_datasets(self):
         if 'datasets' not in self.opts:
-            writer = Registry.get('writer')
-            writer.write("No datasets attribute present for task: %s."
-                         " Defaulting to all" % (self.task_name))
+            self.writer.write("No datasets attribute present for task: %s."
+                              " Defaulting to all" % (self.task_name),
+                              'warning')
             datasets = "all"
         else:
             datasets = self.opts['datasets']
