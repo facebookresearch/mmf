@@ -7,12 +7,46 @@ from collections import defaultdict
 from torchtext import vocab
 
 EMBEDDING_NAME_CLASS_MAPPING = {
-    'embedding': 'GloVe',
+    'glove': 'GloVe',
     'fasttext': 'FastText'
 }
 
 
 class Vocab:
+    @classmethod
+    def get(cls, **params):
+        vocab_type = params.get('type', 'pretrained')
+        vocab_params = {}
+        vocab_params.update(params)
+        vocab_params.pop('type')
+        # Stores final parameters extracted from vocab_params
+
+        if vocab_type == 'random':
+            if vocab_params['vocab_file'] is None:
+                print("No vocab path passed for vocab")
+                sys.exit(0)
+            return BaseVocab(**vocab_params)
+
+        elif vocab_type == 'custom':
+            if vocab_params['vocab_file'] is None or \
+               vocab_params['embedding_file'] is None:
+                print("No vocab path or embedding_file passed for vocab")
+                sys.exit(0)
+            return CustomVocab(**vocab_params)
+
+        elif vocab_type == 'pretrained':
+            return PretrainedVocab(**vocab_params)
+
+        elif vocab_type == 'intersected':
+            if vocab_params['vocab_file'] is None or \
+               vocab_params['embedding_name'] is None:
+                print("No vocab path or embedding_name passed for vocab")
+                sys.exit(0)
+
+            return IntersectedVocab(**vocab_params)
+
+
+class BaseVocab:
     PAD_TOKEN = '<pad>'
     SOS_TOKEN = '<s>'
     EOS_TOKEN = '</s>'
@@ -23,7 +57,7 @@ class Vocab:
     EOS_INDEX = 2
     UNK_INDEX = None
 
-    def __init__(self, vocab_path, embedding_dim=300):
+    def __init__(self, vocab_file, embedding_dim=300):
         """Vocab class to be used when you want to train word embeddings from
         scratch based on a custom vocab. This will initialize the random
         vectors for the vocabulary you pass. Get the vectors using
@@ -33,14 +67,14 @@ class Vocab:
 
         Parameters
         ----------
-        vocab_path : str
+        vocab_file : str
             Path of the vocabulary file containing one word per line
         embedding_dim : int
             Size of the embedding
 
         """
-        if not os.path.exists(vocab_path):
-            print("Vocab not found at " + vocab_path)
+        if not os.path.exists(vocab_file):
+            print("Vocab not found at " + vocab_file)
             sys.exit(1)
 
         self.word_dict = {}
@@ -58,7 +92,7 @@ class Vocab:
 
         total_predefined = len(self.itos.keys())
 
-        with open(vocab_path, 'r') as f:
+        with open(vocab_file, 'r') as f:
             for line in f:
                 self.itos[index] = line.strip()
                 self.word_dict[line.strip()] = index
@@ -89,9 +123,35 @@ class Vocab:
     def get_vectors(self):
         return getattr(self, 'vectors', None)
 
+    def get_embedding(self, cls, **embedding_kwargs):
+        vector_dim = len(self.vectors[0])
+        embedding_kwargs['vocab_size'] = self.get_size()
 
-class CustomVocab(Vocab):
-    def __init__(self, vocab_path, embedding_file, data_dir=None):
+        embedding_dim = embedding_kwargs['embedding_dim']
+        embedding_kwargs['embedding_dim'] = vector_dim
+
+        embedding = None
+        if cls == torch.nn.Embedding:
+            embedding = torch.nn.Embedding(self.get_size(), vector_dim)
+        else:
+            embedding = cls(**embedding_kwargs)
+
+        if hasattr(embedding, 'embedding'):
+            embedding.embedding.from_pretrained(self.vectors)
+        else:
+            embedding.from_pretrained(self.vectors)
+
+        if vector_dim == embedding_dim:
+            return embedding
+        else:
+            return torch.nn.Sequential([
+                embedding,
+                torch.nn.Linear(vector_dim, embedding_dim)
+            ])
+
+
+class CustomVocab(BaseVocab):
+    def __init__(self, vocab_file, embedding_file, data_dir=None):
         """Use this vocab class when you have a custom vocab as well as a
         custom embeddings file.
 
@@ -103,7 +163,7 @@ class CustomVocab(Vocab):
 
         Parameters
         ----------
-        vocab_path : str
+        vocab_file : str
             Path of custom vocabulary
         embedding_file : str
             Path to custom embedding inititalization file
@@ -111,7 +171,7 @@ class CustomVocab(Vocab):
             Path to data directory if embedding file is not an absolute path.
             Default: None
         """
-        super(CustomVocab, self).__init__(vocab_path)
+        super(CustomVocab, self).__init__(vocab_file)
 
         if not os.path.isabs(embedding_file) and data_dir is not None:
             embedding_file = os.path.join(data_dir, embedding_file)
@@ -126,7 +186,7 @@ class CustomVocab(Vocab):
             else:
                 raise RuntimeError(error)
 
-        embedding_vectors = np.load(embedding_file)
+        embedding_vectors = torch.from_numpy(np.load(embedding_file))
 
         self.vectors = torch.FloatTensor(self.get_size(),
                                          len(embedding_vectors[0]))
@@ -142,7 +202,7 @@ class CustomVocab(Vocab):
             self.vectors[i] = embedding_vectors[i - 4]
 
 
-class IntersectedVocab(Vocab):
+class IntersectedVocab(BaseVocab):
     def __init__(self, vocab_file, embedding_name):
         """Use this vocab class when you have a custom vocabulary class but you
         want to use pretrained embedding vectos for it. This will only load
@@ -164,8 +224,9 @@ class IntersectedVocab(Vocab):
             mentioned above
         """
         super(IntersectedVocab, self).__init__(vocab_file)
-        name = embedding_name.split('.')[1]
+        name = embedding_name.split('.')[0]
         dim = embedding_name.split('.')[2][:-1]
+        middle = embedding_name.split('.')[1]
 
         class_name = EMBEDDING_NAME_CLASS_MAPPING[name]
 
@@ -179,7 +240,12 @@ class IntersectedVocab(Vocab):
             else:
                 raise RuntimeError(error)
 
-        embedding = getattr(vocab, class_name)(name, int(dim))
+        params = [middle]
+
+        if name == 'glove':
+            params.append(int(dim))
+
+        embedding = getattr(vocab, class_name)(*params)
 
         self.vectors = torch.FloatTensor(self.get_size(),
                                          len(embedding.vectors[0]))
@@ -197,7 +263,7 @@ class IntersectedVocab(Vocab):
                 self.vectors[i] = embedding.vectors[embedding_index]
 
 
-class PretrainedVocab(Vocab):
+class PretrainedVocab(BaseVocab):
     def __init__(self, embedding_name):
         """Use this if you want to use pretrained embedding. See description
         of IntersectedVocab to get a list of the embedding available from
@@ -208,8 +274,9 @@ class PretrainedVocab(Vocab):
         embedding_name : str
             Name of the pretrained alias for the embedding to used
         """
-        name = embedding_name.split('.')[1]
+        name = embedding_name.split('.')[0]
         dim = embedding_name.split('.')[2][:-1]
+        middle = embedding_name.split('.')[1]
 
         class_name = EMBEDDING_NAME_CLASS_MAPPING[name]
 
@@ -223,7 +290,11 @@ class PretrainedVocab(Vocab):
             else:
                 raise RuntimeError(error)
 
-        embedding = getattr(vocab, class_name)(name, int(dim))
+        params = [middle]
+
+        if name == 'glove':
+            params.append(int(dim))
+        embedding = getattr(vocab, class_name)(*params)
         self.stoi = embedding.stoi
         self.itos = embedding.itos
         self.vectors = embedding.vectors

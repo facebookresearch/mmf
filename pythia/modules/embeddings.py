@@ -1,8 +1,6 @@
 # TODO: Update kwargs with defaults
 import torch
-import os
 import pickle
-import numpy as np
 
 from torch import nn
 
@@ -10,60 +8,32 @@ from pythia.modules.attention import AttentionLayer
 
 
 class TextEmbedding(nn.Module):
-    def __init__(self, emb_type, **kwargs):
+    def __init__(self, vocab, emb_type, **kwargs):
         super(TextEmbedding, self).__init__()
         self.model_data_dir = kwargs.get('model_data_dir', None)
         self.embedding_dim = kwargs.get('embedding_dim', None)
+        self.vocab = vocab
+
         # Update kwargs here
         if emb_type == "default":
             params = {
                 'hidden_dim': kwargs['hidden_dim'],
                 'embedding_dim': kwargs['embedding_dim'],
-                'vocab_size': kwargs['vocab_size'],
                 'num_layers': kwargs['num_layers'],
-                'dropout': kwargs['dropout']
+                'dropout': kwargs['dropout'],
             }
-            embedding = DefaultTextEmbedding(**params)
-            self.init_embedding(embedding.embedding,
-                                kwargs.get('embedding_vectors', None),
-                                kwargs.get('embedding_init', None),
-                                kwargs.get('embedding_init_file', None))
-            self.module = embedding
-
+            self.module = self.vocab.get_embedding(DefaultTextEmbedding,
+                                                   **params)
         elif emb_type == "attention":
-            embedding = AttentionTextEmbedding(**kwargs)
-            self.init_embedding(embedding.embedding,
-                                kwargs.get('embedding_vectors', None),
-                                kwargs.get('embedding_init', None),
-                                kwargs.get('embedding_init_file', None))
-            self.module = embedding
+            self.module = self.vocab.get_embedding(AttentionTextEmbedding,
+                                                   **kwargs)
+        elif emb_type == "torch":
+            self.module = self.vocab.get_embedding(nn.Embedding, **kwargs)
         else:
             raise NotImplementedError("Unknown question embedding '%s'"
                                       % emb_type)
 
         self.text_out_dim = self.module.text_out_dim
-
-    def init_embedding(self, embedding, embedding_vectors, embedding_init,
-                       embedding_init_file):
-        if embedding_vectors is not None:
-            embedding.weight.data.copy_(embedding_vectors)
-            return embedding
-
-        if embedding_init is not None:
-            weights = torch.from_numpy(embedding_init)
-            embedding.weight.data.copy_(weights)
-
-            return embedding
-
-        if embedding_init_file is not None and self.model_data_dir is not None:
-            embedding_file = embedding_init_file
-            if not os.path.isabs(embedding_file):
-                embedding_file = os.path.join(self.model_data_dir,
-                                              embedding_file)
-            embedding_init = np.load(embedding_file)
-            embedding.weight.data.copy_(torch.from_numpy(embedding_init))
-
-            return embedding
 
     def forward(self, *args, **kwargs):
         return self.module(*args, **kwargs)
