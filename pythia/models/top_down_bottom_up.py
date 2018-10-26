@@ -2,7 +2,6 @@ import torch
 
 from torch import nn
 
-from pythia.core.registry import Registry
 from pythia.core.models.base_model import BaseModel
 from pythia.modules.embeddings import ImageEmbedding
 from pythia.modules.encoders import ImageEncoder
@@ -17,69 +16,85 @@ class VQAMultiModalModel(BaseModel):
 
     def build(self):
         self._init_text_embedding()
-        self._init_context_embedding()
-        self._init_image_encoders()
-        self._init_image_embeddings()
-        self._init_combine_layer()
-        self._init_classifier()
+        self._init_feature_encoders("image")
+        self._init_feature_embeddings("image")
+        self._init_combine_layer("image", "text")
+        self._init_classifier(self._get_classifier_input_dim())
         self._init_extras()
 
     def _update_text_embedding_args(self, args):
         # Add model_data_dir to kwargs
         args['model_data_dir'] = self.config['model_data_dir']
 
-    def _init_image_encoders(self):
-        img_feat_encoders = []
-        img_feat_encoders_list_config = self.config['image_feature_encodings']
-        self.img_feat_dim = self.config['image_feature_dim']
+    def _init_feature_encoders(self, attr):
+        feat_encoders = []
+        feat_encoders_list_config = self.config[attr + '_feature_encodings']
+        self.feat_dim = self.config[attr + '_feature_dim']
 
-        for img_feat_encoder in img_feat_encoders_list_config:
-            encoder_type = img_feat_encoder['type']
-            encoder_kwargs = img_feat_encoder['params']
+        for feat_encoder in feat_encoders_list_config:
+            encoder_type = feat_encoder['type']
+            encoder_kwargs = feat_encoder['params']
             encoder_kwargs['model_data_dir'] = self.config['model_data_dir']
-            img_feat_model = ImageEncoder(encoder_type, self.img_feat_dim,
-                                          **encoder_kwargs)
+            feat_model = ImageEncoder(encoder_type, self.feat_dim,
+                                      **encoder_kwargs)
 
-            img_feat_encoders.append(img_feat_model)
-            self.img_feat_dim = img_feat_model.out_dim
+            feat_encoders.append(feat_model)
+            setattr(self, attr + "_feature_dim", feat_model.out_dim)
 
-        self.img_feat_encoders = nn.ModuleList(img_feat_encoders)
+        setattr(self, attr + "_feature_encoders", nn.ModuleList(feat_encoders))
 
-    def _init_image_embeddings(self):
-        img_embeddings_list = []
-        num_img_feat = self.config['num_image_features']
+    def _init_feature_embeddings(self, attr):
+        feature_embeddings_list = []
+        num_feature_feat = self.config["num_" + attr + "_features"]
 
-        self.img_embeddings_out_dim = 0
+        self.feature_embeddings_out_dim = 0
 
-        for _ in range(num_img_feat):
-            img_embeddings = []
-            img_attn_model_list = self.config['image_embeddings']
+        for _ in range(num_feature_feat):
+            feature_embeddings = []
+            feature_attn_model_list = self.config[attr + "_feature_embeddings"]
 
-            for img_attn_model_params in img_attn_model_list:
-                img_embedding = ImageEmbedding(
-                    self.img_feat_dim,
+            for feature_attn_model_params in feature_attn_model_list:
+                feature_embedding = ImageEmbedding(
+                    getattr(self, attr + "_feature_dim"),
                     self.text_embeddings_out_dim,
-                    **img_attn_model_params
+                    **feature_attn_model_params
                 )
-                img_embeddings.append(img_embedding)
-                self.img_embeddings_out_dim += img_embedding.out_dim
+                feature_embeddings.append(feature_embedding)
+                self.feature_embeddings_out_dim += feature_embedding.out_dim
 
-            img_embeddings = nn.ModuleList(img_embeddings)
-            img_embeddings_list.append(img_embeddings)
+            feature_embeddings = nn.ModuleList(feature_embeddings)
+            feature_embeddings_list.append(feature_embeddings)
 
-        self.img_embeddings_out_dim *= self.img_feat_dim
-        self.img_embeddings_list = nn.ModuleList(img_embeddings_list)
+        self.feature_embeddings_out_dim *= getattr(self, attr + "_feature_dim")
 
-    def _init_combine_layer(self):
-        self.multi_modal_combine_layer = ModalCombineLayer(
-            self.config['modal_combine']['type'],
-            self.img_embeddings_out_dim,
-            self.text_embeddings_out_dim,
-            **self.config['modal_combine']['params']
+        setattr(self, attr + "_feature_embeddings_out_dim",
+                self.feature_embeddings_out_dim)
+        del self.feature_embeddings_out_dim
+        setattr(self, attr + "_feature_embeddings_list",
+                nn.ModuleList(feature_embeddings_list))
+
+    def _get_embeddings_attr(self, attr):
+        embedding_attr1 = attr
+        if hasattr(self, attr + "_embeddings_out_dim"):
+            embedding_attr1 = attr + "_embeddings_out_dim"
+        else:
+            embedding_attr1 = attr + "_feature_embeddings_out_dim"
+        return embedding_attr1
+
+    def _init_combine_layer(self, attr1, attr2):
+        config_attr = attr1 + "_" + attr2 + "_modal_combine"
+
+        multi_modal_combine_layer = ModalCombineLayer(
+            self.config[config_attr]['type'],
+            getattr(self, self._get_embeddings_attr(attr1)),
+            getattr(self, self._get_embeddings_attr(attr2)),
+            **self.config[config_attr]['params']
         )
 
-    def _init_classifier(self):
-        combined_embedding_dim = self.multi_modal_combine_layer.out_dim
+        setattr(self, attr1 + "_" + attr2 + "_multi_modal_combine_layer",
+                multi_modal_combine_layer)
+
+    def _init_classifier(self, combined_embedding_dim):
         num_choices = self.config['num_choices']
 
         self.classifier = ClassifierLayer(
@@ -93,15 +108,19 @@ class VQAMultiModalModel(BaseModel):
         self.inter_model = None
 
     def get_optimizer_parameters(self, config):
-        params = [{'params': self.img_embeddings_list.parameters()},
+        combine_layer = self.image_text_multi_modal_combine_layer
+        params = [{'params': self.image_feature_embeddings_list.parameters()},
                   {'params': self.text_embeddings.parameters()},
-                  {'params': self.multi_modal_combine_layer.parameters()},
+                  {'params': combine_layer.parameters()},
                   {'params': self.classifier.parameters()},
-                  {'params': self.img_feat_encoders.parameters(),
+                  {'params': self.image_feature_encoders.parameters(),
                    'lr': (config['optimizer_attributes']['params']['lr']
                           * 0.1)}]
 
         return params
+
+    def _get_classifier_input_dim(self):
+        return self.image_text_multi_modal_combine_layer.out_dim
 
     def process_text_embedding(self, texts, embedding_attr='text_embeddings'):
         text_embeddings = []
@@ -112,30 +131,33 @@ class VQAMultiModalModel(BaseModel):
         text_embeddding_total = torch.cat(text_embeddings, dim=1)
         return text_embeddding_total
 
-    def process_image_embedding(self, image_feature_variables,
-                                image_dim_variable, text_embedding_total):
-        image_embeddings = []
+    def process_feature_embedding(self, attr, feature_variables,
+                                  feature_dim_variable, text_embedding_total):
+        feature_embeddings = []
 
-        for i, image_feat_variable in enumerate(image_feature_variables):
-            image_dim_variable_use = None if i > 0 else image_dim_variable
-            image_feat_variable_ft = (
-                self.img_feat_encoders[i](image_feat_variable))
+        for i, feature_feat_variable in enumerate(feature_variables):
+            feature_dim_variable_use = None if i > 0 else feature_dim_variable
+            encoders_attr = attr + "_feature_encoders"
+            feature_feat_variable_ft = (
+                getattr(self, encoders_attr)[i](feature_feat_variable))
 
-            image_embedding_models_i = self.img_embeddings_list[i]
-            for i_model in image_embedding_models_i:
+            list_attr = attr + "_feature_embeddings_list"
+            feature_embedding_models_i = getattr(self, list_attr)[i]
+            for i_model in feature_embedding_models_i:
                 i_embedding = i_model(
-                    image_feat_variable_ft,
-                    text_embedding_total, image_dim_variable_use)
-                image_embeddings.append(i_embedding)
+                    feature_feat_variable_ft,
+                    text_embedding_total, feature_dim_variable_use)
+                feature_embeddings.append(i_embedding)
 
-        image_embedding_total = torch.cat(image_embeddings, dim=1)
-        return image_embedding_total
+        feature_embedding_total = torch.cat(feature_embeddings, dim=1)
+        return feature_embedding_total
 
     def combine_embeddings(self, *args):
-        image_embedding = args[0]
-        text_embedding = args[1]
+        feature_names = args[0]
+        feature_embeddings = args[1]
 
-        return self.multi_modal_combine_layer(image_embedding, text_embedding)
+        layer = "_".join(feature_names) + "_multi_modal_combine_layer"
+        return getattr(self, layer)(*feature_embeddings)
 
     def calculate_logits(self, joint_embedding, **kwargs):
         return self.classifier(joint_embedding)
@@ -143,20 +165,21 @@ class VQAMultiModalModel(BaseModel):
     def forward(self,
                 image_features,
                 texts,
-                image_dim,
+                info={},
                 input_answers=None, **kwargs):
 
         input_text_variable = texts
-        image_dim_variable = image_dim
+        image_dim_variable = info.get('image_dim', None)
         image_feature_variables = image_features
         text_embedding_total = self.process_text_embedding(input_text_variable)
 
         assert (len(image_feature_variables) ==
-                len(self.img_feat_encoders)), \
+                len(self.image_feature_encoders)), \
             "number of image feature model doesnot equal \
              to number of image features"
 
-        image_embedding_total = self.process_image_embedding(
+        image_embedding_total = self.process_feature_embedding(
+            "image",
             image_feature_variables,
             image_dim_variable,
             text_embedding_total
@@ -165,8 +188,9 @@ class VQAMultiModalModel(BaseModel):
         if self.inter_model is not None:
             image_embedding_total = self.inter_model(image_embedding_total)
 
-        joint_embedding = self.combine_embeddings(image_embedding_total,
-                                                  text_embedding_total)
+        joint_embedding = self.combine_embeddings(["image", "text"],
+                                                  [image_embedding_total,
+                                                  text_embedding_total])
 
         return self.calculate_logits(joint_embedding)
 

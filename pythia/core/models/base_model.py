@@ -37,9 +37,3 @@ class BaseModel(nn.Module):
         setattr(self, attr + '_out_dim', self.embeddings_out_dim)
         delattr(self, 'embeddings_out_dim')
         setattr(self, attr, nn.ModuleList(text_embeddings))
-
-    def _init_context_embedding(self, attr='context_embeddings',
-                                bidirectional=False):
-
-        if 'context_embeddings' in self.config:
-            self._init_text_embedding(attr, bidirectional)
