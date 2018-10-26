@@ -17,6 +17,7 @@ from pythia.core.registry import Registry
 class VQA2Builder(DatasetBuilder):
     def __init__(self):
         super(VQA2Builder, self).__init__('VQA2')
+        self.dataset_class = VQA2Dataset
 
     def _load(self, **opts):
         dataset_type = opts['dataset_type']
@@ -37,7 +38,6 @@ class VQA2Builder(DatasetBuilder):
                                       % dataset_type)
 
         self.dataset = dataset
-        self.dataset_class = VQA2Dataset
         return dataset
 
     def _build(self, **opts):
@@ -45,8 +45,8 @@ class VQA2Builder(DatasetBuilder):
         return
 
     def update_config_for_model(self, config):
-        config['num_vocab_txt'] = self.dataset.vocab_dict.num_vocab
-        config['vocab_size'] = self.dataset.vocab_dict.num_vocab
+        config['num_vocab_txt'] = self.dataset.text_vocab.get_size()
+        config['vocab_size'] = self.dataset.text_vocab.get_size()
         config['num_choices'] = self.dataset.answer_dict.num_vocab
         config['num_image_features'] = self.num_image_features
 
@@ -82,10 +82,6 @@ class VQA2Builder(DatasetBuilder):
         # get the potential shared data_config info
         # TODO: Update this and move default stuff to configuration
         data_root_dir = data_config['data_root_dir']
-        vocab_question_f = os.path.join(
-            data_root_dir, data_config['vocab_question_file'])
-        vocab_answer_file = os.path.join(
-            data_root_dir, data_config['vocab_answer_file'])
         question_max_len = data_config.get('question_max_len', 26)
 
         layout_max_len = 0
@@ -93,7 +89,6 @@ class VQA2Builder(DatasetBuilder):
             layout_max_len = data_config.get('layout_max_len', 13)
 
         prune_filter_mod = data_config.get('prune_filter_module', False)
-        image_depth_first = data_config['image_depth_first']
         image_fast_reader = data_config.get('image_fast_reader', False)
         verbose = data_config.get('verbose', False)
         test_mode = data_config.get('test_mode', False)
@@ -102,17 +97,17 @@ class VQA2Builder(DatasetBuilder):
         image_feat_dirs = data_config[image_dir_label]
         assert len(imdb_files) == len(image_feat_dirs), \
             image_dir_label + "has different length with " + image_dir_label
-        image_max_loc = data_config.get('image_max_loc', None)
 
         datasets = []
-        dataset_type = data_config.get('dataset_type', "train")
-
-        copy_included = data_config.get('copy_included', False)
-
         for imdb_file_trn_name, image_feat_dir in \
                 zip(imdb_files, image_feat_dirs):
-            imdb_file_trn = os.path.join(data_root_dir, imdb_file_trn_name)
+            if not os.path.isabs(imdb_file_trn_name):
+                imdb_file_trn = os.path.join(data_root_dir, imdb_file_trn_name)
+            else:
+                imdb_file_trn = imdb_file_trn_name
+
             image_feat_dirs = [os.path.join(data_root_dir, d)
+                               if not os.path.isabs(d) else d
                                for d in image_feat_dir.split(',')]
 
             cls = self.dataset_class
@@ -121,16 +116,11 @@ class VQA2Builder(DatasetBuilder):
                                 T_encoder=question_max_len,
                                 T_decoder=layout_max_len,
                                 assembler=None,
-                                vocab_question_file=vocab_question_f,
-                                vocab_answer_file=vocab_answer_file,
                                 prune_filter_module=prune_filter_mod,
-                                image_depth_first=image_depth_first,
                                 fast_read=image_fast_reader,
                                 verbose=verbose,
                                 test_mode=test_mode,
-                                dataset_type=dataset_type,
-                                copy_included=copy_included,
-                                image_max_loc=image_max_loc)
+                                **data_config)
             datasets.append(train_dataset)
 
         dataset = VQAConcatDataset(datasets)

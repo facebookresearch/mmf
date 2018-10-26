@@ -77,6 +77,8 @@ class BaseDataset(Dataset):
 
         # TODO: Figure out what will be the default value here, which will be
         # linked to max_context_len
+        #
+        # TODO: Find a better way to clean this mess
         input_contexts = batch.get('contexts', None)
 
         input_text_seqs = Variable(input_text_seqs.type(torch.LongTensor))
@@ -93,6 +95,7 @@ class BaseDataset(Dataset):
 
         image_feature_variables = [input_image_features]
         image_dim_variable = None
+        context_dim_variable = None
 
         if 'image_dim' in batch:
             image_dims = batch['image_dim']
@@ -101,6 +104,14 @@ class BaseDataset(Dataset):
 
             if self.use_cuda:
                 image_dim_variable = image_dim_variable.cuda()
+
+        if 'context_dim' in batch:
+            context_dims = batch['context_dim']
+            context_dim_variable = Variable(context_dims, requires_grad=False,
+                                            volatile=False)
+
+            if self.use_cuda:
+                context_dim_variable = context_dim_variable.cuda()
 
         # check if more than 1 image_feat_batch
         i = 1
@@ -114,10 +125,13 @@ class BaseDataset(Dataset):
 
         data = {
             'texts': input_text_seqs,
-            'image_dim': image_dim_variable,
             'image_features': image_feature_variables,
             'context': input_contexts,
-            'info': {'dataset_name': self.name}
+            'info': {
+                'dataset_name': self.name,
+                'image_dim': image_dim_variable,
+                'context_dim': context_dim_variable
+            }
         }
 
         return data, obs

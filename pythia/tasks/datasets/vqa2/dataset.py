@@ -1,11 +1,4 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-#
-
-
+import os
 import numpy as np
 
 from torch.utils.data import ConcatDataset
@@ -41,6 +34,7 @@ class VQA2Dataset(BaseDataset):
             raise TypeError('unknown imdb format.')
         self.verbose = verbose
         self.imdb = imdb
+
         self.image_feat_directories = image_feat_directories
         self.data_params = data_params
         self.channel_first = data_params['image_depth_first']
@@ -48,7 +42,6 @@ class VQA2Dataset(BaseDataset):
                            if 'image_max_loc' in data_params else None)
 
         self.max_valid_answer_length = 10
-        self.vocab_dict = VocabDict(data_params['vocab_question_file'])
 
         # TODO: Remove after shifting to proper features standard
         self.first_element_idx = 1
@@ -70,8 +63,13 @@ class VQA2Dataset(BaseDataset):
 
         if 'load_gt_layout' in data_params:
             self.load_gt_layout = data_params['load_gt_layout']
+
+        data_root_dir = data_params['data_root_dir']
+        vocab_answer_file = os.path.join(
+            data_root_dir, data_params['vocab_answer_file'])
+
         # the answer dict is always loaded, regardless of self.load_answer
-        self.answer_dict = VocabDict(data_params['vocab_answer_file'])
+        self.answer_dict = VocabDict(vocab_answer_file)
 
         if self.load_gt_layout:
             self.T_decoder = data_params['T_decoder']
@@ -88,7 +86,7 @@ class VQA2Dataset(BaseDataset):
                             ndim=data_params.get('ndim', None),
                             dataset_type=data_params['dataset_type'],
                             fast_read=data_params['fast_read'],
-                            return_info=self.load_gt_layout)
+                            return_info=self.config.get('return_info', False))
 
     def format_for_evalai(self, batch, answers):
         answers = answers.argmax(dim=1)
@@ -115,7 +113,7 @@ class VQA2Dataset(BaseDataset):
         # iminfo = self.imdb[idx]['info']
         iminfo = self.imdb[idx]
         question_inds = (
-            [self.vocab_dict.word2idx(w) for w in iminfo['question_tokens']])
+            [self.text_vocab.stoi[w] for w in iminfo['question_tokens']])
         seq_length = len(question_inds)
         read_len = min(seq_length, self.T_encoder)
         input_seq[:read_len] = question_inds[:read_len]
@@ -201,7 +199,11 @@ class VQA2Dataset(BaseDataset):
 class VQAConcatDataset(ConcatDataset):
     def __init__(self, datasets):
         super(VQAConcatDataset, self).__init__(datasets)
-        self.vocab_dict = datasets[0].vocab_dict
+        self.text_vocab = datasets[0].text_vocab
+
+        if hasattr(datasets[0], 'context_vocab'):
+            self.context_vocab = datasets[0].context_vocab
+
         self.name = self.datasets[0].name
         self.answer_dict = datasets[0].answer_dict
 

@@ -17,7 +17,6 @@ class COCOFeaturesDataset(FeaturesDataset):
                                     base_path=image_feature_dir,
                                     channel_first=kwargs['channel_first'],
                                     max_bboxes=kwargs.get('max_bboxes', None),
-                                    ndim=kwargs.get('ndim', None),
                                     image_feature=kwargs.get('image_feature',
                                                              None))
             self.feature_readers.append(feature_reader)
@@ -45,14 +44,14 @@ class COCOFeaturesDataset(FeaturesDataset):
         return features, infos
 
     def _get_image_features_and_info(self, feat_file):
-        image_feats, info = self.feature_dict.get(feat_file, (None, None))
+        image_feats, infos = self.feature_dict.get(feat_file, (None, None))
 
         if image_feats is None:
-            image_feats, info = self._read_features_and_info(feat_file)
+            image_feats, infos = self._read_features_and_info(feat_file)
 
         # TODO: Remove after standardization
         # https://github.com/facebookresearch/pythia/blob/master/dataset_utils/dataSet.py#L226
-        return image_feats, info
+        return image_feats, infos
 
     def __len__(self):
         return len(self.imdb)

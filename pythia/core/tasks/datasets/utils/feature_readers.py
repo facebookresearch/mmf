@@ -4,7 +4,7 @@ import numpy as np
 
 class FeatureReader:
     def __init__(self, base_path, channel_first,
-                 ndim=None, max_bboxes=None, image_feature=None):
+                 max_bboxes=None, image_feature=None):
         """Feature Reader class for reading features.
 
         Note: Deprecation: ndim and image_feature will be deprecated later
@@ -28,9 +28,9 @@ class FeatureReader:
 
         """
         self.base_path = base_path
-        if ndim is None:
-            if image_feature is not None:
-                ndim = image_feature.ndim
+        ndim = None
+        if image_feature is not None:
+            ndim = image_feature.ndim
         self.feat_reader = None
         self.channel_first = channel_first
         self.max_bboxes = max_bboxes
@@ -113,7 +113,6 @@ class PaddedFasterRCNNFeatureReader:
     def read(self, image_feat_path):
         content = np.load(image_feat_path)
         image_info = {}
-
         if self.first:
             self.first = False
             if content.size == 1 and \
@@ -125,11 +124,12 @@ class PaddedFasterRCNNFeatureReader:
             item = content.item()
             if 'image_text' in item:
                 image_info['image_text'] = item['image_text']
+                image_info['is_ocr'] = item['image_bbox_source']
                 image_feature = item['image_feat']
 
             if 'info' in item:
                 if 'image_text' in item['info']:
-                    image_info['image_text'] = item['info']['image_text']
+                    image_info.update(item['info'])
                 image_feature = item['feature']
 
         image_loc, image_dim = image_feature.shape
@@ -137,8 +137,7 @@ class PaddedFasterRCNNFeatureReader:
         tmp_image_feat[0:image_loc, ] = image_feature
         image_feature = tmp_image_feat
 
-        image_info['image_loc'] = image_loc
-
+        image_info['max_bboxes'] = image_loc
         return image_feature, image_info
 
 
@@ -159,7 +158,7 @@ class PaddedFeatureRCNNWithBBoxesFeatureReader:
 
         image_info = {
             'image_bbox': tmp_image_box,
-            'image_loc': image_loc
+            'max_bboxes': image_loc
         }
 
         return tmp_image_feat_2, image_info
