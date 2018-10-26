@@ -137,9 +137,9 @@ class BaseVocab:
             embedding = cls(**embedding_kwargs)
 
         if hasattr(embedding, 'embedding'):
-            embedding.embedding.from_pretrained(self.vectors)
+            embedding.embedding.from_pretrained(self.vectors, freeze=False)
         else:
-            embedding.from_pretrained(self.vectors)
+            embedding.from_pretrained(self.vectors, freeze=False)
 
         if vector_dim == embedding_dim:
             return embedding
