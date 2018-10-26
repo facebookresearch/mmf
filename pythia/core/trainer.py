@@ -182,6 +182,8 @@ class Trainer:
         self.train_timer = Timer()
         self.snapshot_timer = Timer()
 
+        self.profile("Setup Time")
+
         while self.current_iteration < max_iterations:
             self.current_epoch += 1
             Registry.register('current_epoch', self.current_epoch)
@@ -201,14 +203,20 @@ class Trainer:
 
                 self.optimizer.zero_grad()
 
+                self.profile("Batch load time")
+
                 data, y = self.task_loader.prepare_batch('train', batch)
+
+                self.profile("Batch prepare time")
 
                 # Arguments should be a dict at this point
                 output = self.model(**data)
+                self.profile("Forward time")
 
                 loss = self.task_loader.calculate_loss('train', output, y)
 
                 loss.backward()
+                self.profile("Backward time")
 
                 if should_clip_gradients:
                     clip_gradients(self.model, self.current_iteration,
@@ -221,11 +229,9 @@ class Trainer:
 
                 # TODO: Move in separate function
                 if should_print is True:
-                    sys.stdout.flush()
                     extra_info = self.single_batch_eval('dev', self.dev_loader)
                     time_taken = self.train_timer.get_time_since_start()
                     extra_info += ", time: %s" % time_taken
-                    gc.collect()
 
                 # Don't print train metrics if it is not log interval
                 # so as to escape clutter
@@ -247,6 +253,7 @@ class Trainer:
 
                     self.task_loader.report_metrics('dev', avg_loss,
                                                     extra_info=extra_info)
+                    gc.collect()
 
                     if stop is True:
                         self.writer.write("Early stopping activated")
@@ -305,6 +312,11 @@ class Trainer:
 
             avg_test_loss = self.evaluate('test', self.test_loader)
             self.task_loader.report_metrics('test', avg_test_loss)
+
+    def profile(self, text):
+        self.writer.write(text + ": " + self.profiler.get_time_since_start(),
+                          "debug")
+        self.profiler.reset()
 
     def predict_for_evalai(self):
         self.model.eval()
