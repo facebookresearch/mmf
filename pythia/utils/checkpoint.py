@@ -62,7 +62,7 @@ class Checkpoint:
         self.trainer.writer.write("Loading checkpoint")
         ckpt = self._torch_load(file)
 
-        self.trainer.model.load_state_dict(ckpt['model'])
+        self.trainer._load_state_dict_mapping(ckpt['model'])
         self.trainer.optimizer.load_state_dict(ckpt['optimizer'])
         self.trainer.early_stopping.init_from_checkpoint(ckpt)
 
@@ -73,6 +73,20 @@ class Checkpoint:
 
         if 'best_epoch' in ckpt:
             self.trainer.current_epoch = ckpt['best_epoch']
+
+    def _load_state_dict_mapping(self, ckpt_model):
+        model = self.trainer.model
+        attr_mapping = {
+            'image_feature_encoders': 'img_feat_encoders',
+            'image_feature_embeddings_list': 'img_embeddings_list',
+            'image_text_multi_modal_combine_layer':
+            'multi_modal_combine_layer',
+            'text_embeddings': 'text_embeddings',
+            'classifier': 'classifier'
+        }
+
+        for key in attr_mapping:
+            getattr(model, key).load_state_dict(attr_mapping[key])
 
     def _torch_load(self, file):
         if self.config['use_cuda']:
