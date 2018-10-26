@@ -13,6 +13,7 @@ class Registry:
         # one is used to keep a mapping for dataset to its builder class.
         # Use "register_builder" decorator to mapping a builder
         'builder_name_mapping': {},
+        'model_name_mapping': {},
         'metric_name_mapping': {},
         'state': {}
     }
@@ -39,6 +40,13 @@ class Registry:
         return wrap
 
     @classmethod
+    def register_model(cls, name):
+        def wrap(func):
+            cls.mapping['model_name_mapping'][name] = func
+            return func
+        return wrap
+
+    @classmethod
     def register(cls, name, obj):
         path = name.split('.')
         current = cls.mapping['state']
@@ -57,6 +65,10 @@ class Registry:
     @classmethod
     def get_builder_class(cls, name):
         return cls.mapping['builder_name_mapping'].get(name, None)
+
+    @classmethod
+    def get_model_class(cls, name):
+        return cls.mapping['model_name_mapping'].get(name, None)
 
     @classmethod
     def get_metric_func(cls, name):

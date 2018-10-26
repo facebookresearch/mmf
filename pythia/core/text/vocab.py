@@ -86,7 +86,7 @@ class BaseVocab:
 
         self.word_dict[self.SOS_TOKEN] = self.SOS_INDEX
         self.word_dict[self.EOS_TOKEN] = self.EOS_INDEX
-        self.word_dict[self.PAD_INDEX] = self.PAD_INDEX
+        self.word_dict[self.PAD_TOKEN] = self.PAD_INDEX
 
         index = len(self.itos.keys()) + 1
 
@@ -131,6 +131,7 @@ class BaseVocab:
         embedding_kwargs['embedding_dim'] = vector_dim
 
         embedding = None
+
         if cls == torch.nn.Embedding:
             embedding = torch.nn.Embedding(self.get_size(), vector_dim)
         else:
@@ -274,27 +275,42 @@ class PretrainedVocab(BaseVocab):
         embedding_name : str
             Name of the pretrained alias for the embedding to used
         """
-        name = embedding_name.split('.')[0]
-        dim = embedding_name.split('.')[2][:-1]
-        middle = embedding_name.split('.')[1]
-
-        class_name = EMBEDDING_NAME_CLASS_MAPPING[name]
-
-        if not hasattr(vocab, class_name):
+        if embedding_name not in vocab.pretrained_aliases:
             from pythia.core.registry import Registry
             writer = Registry.get('writer')
-            error = "Unknown embedding type: %s" % name, "error"
+            error = "Unknown embedding type: %s" % embedding_name, "error"
             if writer is not None:
                 writer.write(error, "error")
                 sys.exit(0)
             else:
                 raise RuntimeError(error)
+        embedding = vocab.pretrained_aliases[embedding_name]()
 
-        params = [middle]
+        self.UNK_INDEX = 3
+        self.stoi = defaultdict(lambda: self.UNK_INDEX)
+        self.itos = {}
 
-        if name == 'glove':
-            params.append(int(dim))
-        embedding = getattr(vocab, class_name)(*params)
-        self.stoi = embedding.stoi
-        self.itos = embedding.itos
-        self.vectors = embedding.vectors
+        self.itos[self.PAD_INDEX] = self.PAD_TOKEN
+        self.itos[self.SOS_INDEX] = self.SOS_TOKEN
+        self.itos[self.EOS_INDEX] = self.EOS_TOKEN
+        self.itos[self.UNK_INDEX] = self.UNK_TOKEN
+
+        self.stoi[self.SOS_TOKEN] = self.SOS_INDEX
+        self.stoi[self.EOS_TOKEN] = self.EOS_INDEX
+        self.stoi[self.PAD_TOKEN] = self.PAD_INDEX
+        self.stoi[self.UNK_TOKEN] = self.UNK_INDEX
+
+        self.vectors = torch.FloatTensor(len(self.itos.keys())
+                                         + len(embedding.itos),
+                                         len(embedding.vectors[0]))
+
+        for i in range(4):
+            self.vectors[i] = torch.ones_like(self.vectors[i]) * 0.1 * i
+
+        index = 4
+        for word in embedding.stoi:
+            self.itos[index] = word
+            self.stoi[word] = index
+            actual_index = embedding.stoi[word]
+            self.vectors[index] = embedding.vectors[actual_index]
+            index += 1

@@ -1,18 +1,14 @@
-import importlib
-
-MODEL_KEY_TO_CLASS_NAME_MAPPING = {
-    'top_down_bottom_up_modified': 'VQAMultiModalModel',
-    # TODO: top_down_bottom_up should be different
-    'top_down_bottom_up': 'VQAMultiModalModel',
-    'visdial_top_down_bottom_up': 'VisDialMultiModalModel'
-}
+from pythia.core.registry import Registry
 
 
 def build_model(config):
-    models_module_key = "pythia.models"
-    models_module = importlib.import_module(models_module_key)
-    model_name = MODEL_KEY_TO_CLASS_NAME_MAPPING[config['model']]
-    model_class = getattr(models_module, model_name)
+    model_name = config['model']
+
+    model_class = Registry.get_model_class(model_name)
+
+    if model_class is None:
+        Registry.get('writer').write("No model registered for name: %s" %
+                                     model_name)
     model = model_class(config)
 
     if hasattr(model, 'build'):

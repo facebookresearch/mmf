@@ -1,8 +1,10 @@
 import torch
 
 from pythia.models.top_down_bottom_up import VQAMultiModalModel
+from pythia.core.registry import Registry
 
 
+@Registry.register_model('vizwiz_top_down_bottom_up')
 class VizWizMultiModalModel(VQAMultiModalModel):
     def __init__(self, config):
         super(VizWizMultiModalModel, self).__init__(config)
@@ -14,9 +16,10 @@ class VizWizMultiModalModel(VQAMultiModalModel):
 
         # Initialize embeddings that take in feature embeddings from fasttext
         # for context
+        self._init_feature_encoders("image")
+        self._init_feature_encoders("context")
         self._init_feature_embeddings("context")
         self._init_feature_embeddings("image")
-        self._init_feature_encoders("image")
         self._init_combine_layer("image", "text")
         self._init_combine_layer("context", "text")
         self._init_classifier(self._get_classifier_input_dim())
@@ -44,7 +47,8 @@ class VizWizMultiModalModel(VQAMultiModalModel):
         image_feature_variables = image_features
         text_embedding_total = self.process_text_embedding(input_text_variable)
 
-        context_embeddings = self.context_embeddings(contexts)
+        context_embeddings = self.process_text_embedding(contexts,
+                                                         'context_embeddings')
         context_dim_variable = info.get('context_dim', None)
 
         assert (len(image_feature_variables) ==
@@ -80,6 +84,6 @@ class VizWizMultiModalModel(VQAMultiModalModel):
         )
 
         joint_embedding = torch.cat([image_text_embedding,
-                                     context_text_embedding])
+                                     context_text_embedding], dim=1)
 
         return self.calculate_logits(joint_embedding)

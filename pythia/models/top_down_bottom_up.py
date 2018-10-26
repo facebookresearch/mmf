@@ -3,12 +3,14 @@ import torch
 from torch import nn
 
 from pythia.core.models.base_model import BaseModel
+from pythia.core.registry import Registry
 from pythia.modules.embeddings import ImageEmbedding
 from pythia.modules.encoders import ImageEncoder
 from pythia.modules.layers import ModalCombineLayer, ClassifierLayer, \
                                   ReLUWithWeightNormFC
 
 
+@Registry.register_model("top_down_bottom_up")
 class VQAMultiModalModel(BaseModel):
     def __init__(self, config):
         super(VQAMultiModalModel, self).__init__(config)
@@ -30,6 +32,7 @@ class VQAMultiModalModel(BaseModel):
         feat_encoders = []
         feat_encoders_list_config = self.config[attr + '_feature_encodings']
         self.feat_dim = self.config[attr + '_feature_dim']
+        setattr(self, attr + "_feature_dim", self.feat_dim)
 
         for feat_encoder in feat_encoders_list_config:
             encoder_type = feat_encoder['type']
@@ -135,6 +138,8 @@ class VQAMultiModalModel(BaseModel):
                                   feature_dim_variable, text_embedding_total):
         feature_embeddings = []
 
+        if type(feature_variables) != list:
+            feature_variables = [feature_variables]
         for i, feature_feat_variable in enumerate(feature_variables):
             feature_dim_variable_use = None if i > 0 else feature_dim_variable
             encoders_attr = attr + "_feature_encoders"

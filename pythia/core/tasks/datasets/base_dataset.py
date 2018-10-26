@@ -84,13 +84,13 @@ class BaseDataset(Dataset):
         input_text_seqs = Variable(input_text_seqs.type(torch.LongTensor))
         input_image_features = Variable(input_image_features)
 
-        if input_contexts:
+        if input_contexts is not None:
             input_contexts = Variable(input_contexts.type(torch.LongTensor))
 
         if self.use_cuda:
             input_text_seqs = input_text_seqs.cuda()
             input_image_features = input_image_features.cuda()
-            if input_contexts:
+            if input_contexts is not None:
                 input_contexts = input_contexts.cuda()
 
         image_feature_variables = [input_image_features]
@@ -126,7 +126,7 @@ class BaseDataset(Dataset):
         data = {
             'texts': input_text_seqs,
             'image_features': image_feature_variables,
-            'context': input_contexts,
+            'contexts': input_contexts,
             'info': {
                 'dataset_name': self.name,
                 'image_dim': image_dim_variable,
