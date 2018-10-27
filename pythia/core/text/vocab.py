@@ -55,7 +55,7 @@ class BaseVocab:
     PAD_INDEX = 0
     SOS_INDEX = 1
     EOS_INDEX = 2
-    UNK_INDEX = None
+    UNK_INDEX = 3
 
     def __init__(self, vocab_file, embedding_dim=300):
         """Vocab class to be used when you want to train word embeddings from
@@ -83,14 +83,16 @@ class BaseVocab:
         self.itos[self.PAD_INDEX] = self.PAD_TOKEN
         self.itos[self.SOS_INDEX] = self.SOS_TOKEN
         self.itos[self.EOS_INDEX] = self.EOS_TOKEN
+        self.itos[self.UNK_INDEX] = self.UNK_TOKEN
 
         self.word_dict[self.SOS_TOKEN] = self.SOS_INDEX
         self.word_dict[self.EOS_TOKEN] = self.EOS_INDEX
         self.word_dict[self.PAD_TOKEN] = self.PAD_INDEX
+        self.word_dict[self.UNK_TOKEN] = self.UNK_INDEX
 
-        index = len(self.itos.keys()) + 1
+        index = len(self.itos.keys())
 
-        total_predefined = len(self.itos.keys())
+        self.total_predefined = len(self.itos.keys())
 
         with open(vocab_file, 'r') as f:
             for line in f:
@@ -98,13 +100,7 @@ class BaseVocab:
                 self.word_dict[line.strip()] = index
                 index += 1
 
-        self.UNK_INDEX = self.word_dict.get(self.UNK_TOKEN, None)
-
-        self.is_unk_in_vocab = self.UNK_INDEX is not None
-
-        if self.UNK_INDEX is None:
-            self.UNK_INDEX = total_predefined
-
+        self.word_dict[self.UNK_TOKEN] = self.UNK_INDEX
         # Return unk index by default
         self.stoi = defaultdict(lambda: self.UNK_INDEX)
         self.stoi.update(self.word_dict)
@@ -192,12 +188,8 @@ class CustomVocab(BaseVocab):
         self.vectors = torch.FloatTensor(self.get_size(),
                                          len(embedding_vectors[0]))
 
-        for i in range(0, 3):
+        for i in range(0, 4):
             self.vectors[i] = torch.ones_like(self.vectors[i]) * 0.1 * i
-
-        if not self.is_unk_in_vocab:
-            self.vectors[self.UNK_INDEX] = \
-                torch.ones_like(self.vectors[i]) * 0.1 * 3
 
         for i in range(4, self.get_size()):
             self.vectors[i] = embedding_vectors[i - 4]

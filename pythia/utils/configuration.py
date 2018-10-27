@@ -115,6 +115,7 @@ class Configuration:
                 self.config['optimizer']['params']['lr'] = lr
 
         if not torch.cuda.is_available() or self.config['no_cuda'] is True:
-            self.writer.write("CUDA option used but cuda is not present"
-                              ". Switching to CPU version", 'warning')
+            print("WARNING: Either passed no cuda or CUDA option used"
+                  " but cuda is not present"
+                  ". Switching to CPU version")
             self.config['use_cuda'] = False
