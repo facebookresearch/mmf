@@ -69,9 +69,6 @@ class BaseDataset(Dataset):
         obs = batch['answers']
         obs = Variable(obs.type(torch.FloatTensor))
 
-        if self.use_cuda:
-            obs = obs.cuda()
-
         input_text_seqs = batch['texts']
         input_image_features = batch['image_feature_0']
 
@@ -79,19 +76,18 @@ class BaseDataset(Dataset):
         # linked to max_context_len
         #
         # TODO: Find a better way to clean this mess
-        input_contexts = batch.get('contexts', None)
+        input_contexts = batch.get('contexts', torch.zeros(1))
 
         input_text_seqs = Variable(input_text_seqs.type(torch.LongTensor))
         input_image_features = Variable(input_image_features)
 
-        if input_contexts is not None:
-            input_contexts = Variable(input_contexts.type(torch.LongTensor))
+        input_contexts = Variable(input_contexts.type(torch.LongTensor))
 
         if self.use_cuda:
+            obs = obs.cuda()
             input_text_seqs = input_text_seqs.cuda()
             input_image_features = input_image_features.cuda()
-            if input_contexts is not None:
-                input_contexts = input_contexts.cuda()
+            input_contexts = input_contexts.cuda()
 
         image_feature_variables = [input_image_features]
         image_dim_variable = None

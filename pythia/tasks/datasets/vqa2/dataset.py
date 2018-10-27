@@ -112,11 +112,10 @@ class VQA2Dataset(BaseDataset):
         # TODO: Bring back commented out code when we reformat imdb
         # iminfo = self.imdb[idx]['info']
         iminfo = self.imdb[idx]
-        question_inds = (
-            [self.text_vocab.stoi[w] for w in iminfo['question_tokens']])
-        seq_length = len(question_inds)
+        seq_length = len(iminfo['question_tokens'])
         read_len = min(seq_length, self.T_encoder)
-        input_seq[:read_len] = question_inds[:read_len]
+        tokens = iminfo['question_tokens'][:read_len]
+        input_seq[:read_len] = ([self.text_vocab.stoi[w] for w in tokens])
 
         image_features = self.features_db[idx]
 
@@ -135,12 +134,12 @@ class VQA2Dataset(BaseDataset):
             elif 'valid_answers' in iminfo:
                 valid_answers_tokens = iminfo['valid_answers']
                 answer_tokens = np.random.choice(valid_answers_tokens)
-                valid_answers_idx[:len(valid_answers_tokens)] = (
-                    [self.answer_dict.word2idx(ans)
-                     for ans in valid_answers_tokens])
                 ans_idx = (
                     [self.answer_dict.word2idx(ans)
                      for ans in valid_answers_tokens])
+
+                valid_answers_idx[:len(valid_answers_tokens)] = \
+                    ans_idx
                 answer_scores = (
                     compute_answer_scores(ans_idx,
                                           self.answer_dict.num_vocab,
@@ -190,8 +189,8 @@ class VQA2Dataset(BaseDataset):
 
         # used for error analysis and debug,
         # output question_id, image_id, question, answer,valid_answers,
-        if self.verbose:
-            sample['verbose_info'] = iminfo
+        # if self.verbose:
+        #     sample['verbose_info'] = iminfo
 
         return sample
 

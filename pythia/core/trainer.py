@@ -108,6 +108,8 @@ class Trainer:
         data_parallel = no_data_parallel is None or no_data_parallel is False
 
         if use_cuda:
+            self.writer.write("CUDA Device is: "
+                              + torch.cuda.get_device_name(0))
             self.model = self.model.cuda()
 
         if use_cuda and torch.cuda.device_count() > 1 \
@@ -254,7 +256,6 @@ class Trainer:
                     self.task_loader.report_metrics('dev', avg_loss,
                                                     extra_info=extra_info)
                     gc.collect()
-
                     if stop is True:
                         self.writer.write("Early stopping activated")
                         break
