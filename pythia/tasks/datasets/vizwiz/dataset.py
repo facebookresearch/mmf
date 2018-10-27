@@ -21,11 +21,12 @@ class VizWizDataset(VQA2Dataset):
         sample = super(VizWizDataset, self).__getitem__(idx)
         idx = self.first_element_idx + idx
         image = self.imdb[idx]
+        features = self.features_db[idx]
         sample['image_id'] = image['image_name']
 
         if self.data_params['use_ocr']:
             context_seq = np.zeros((self.context_max_len), np.int32)
-            info = sample['image_info_0']
+            info = features['image_info_0']
 
             is_ocr = info['is_ocr']
             tokens = info['image_text']
@@ -35,12 +36,11 @@ class VizWizDataset(VQA2Dataset):
             for token, ocr in zip(tokens, is_ocr):
                 if ocr.item() > 0:
                     final_tokens.append(token)
-
             token_idxs = [self.context_vocab.stoi[w] for w in final_tokens]
             context_len = min(len(token_idxs), self.context_max_len)
             context_seq[:context_len] = token_idxs[:context_len]
 
-            sample['context'] = context_seq
+            sample['contexts'] = context_seq
             # Context dim is actually 'length' of the final context
             sample['context_dim'] = context_len
         return sample
