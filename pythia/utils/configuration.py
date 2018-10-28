@@ -15,14 +15,12 @@ class Configuration:
     def __init__(self, config_yaml_file):
         self.config_path = config_yaml_file
         self.default_config = self._get_default_config_path()
-
         self.config = {}
         with open(self.default_config, 'r') as f:
             try:
                 self.config = yaml.load(f)
             except yaml.YAMLError as err:
-                self.writer.write("Default config yaml error: " + err,
-                                  'error')
+                print("Default config yaml error: " + err)
 
         user_config = {}
         self.user_config = user_config
@@ -36,7 +34,7 @@ class Configuration:
                 # and then update it with yaml config
                 user_config = yaml.load(f)
             except yaml.YAMLError as err:
-                self.writer.write("Config yaml error: " + err, 'error')
+                print("Config yaml error: " + str(err))
                 sys.exit(0)
         self.user_config = user_config
 

@@ -1,7 +1,6 @@
 import math
 import torch
 import gc
-import sys
 
 from torch import optim
 from tqdm import tqdm
@@ -146,6 +145,8 @@ class Trainer:
 
         self.checkpoint.load_state_dict()
 
+        self.not_debug = self.config['logger_level'] != "debug"
+
         self.lr_scheduler = None
         if training_parameters['lr_scheduler'] is True:
             scheduler_class = optim.lr_scheduler.LambdaLR
@@ -251,11 +252,12 @@ class Trainer:
                     extra_info = ", time: %s" % time_taken
                     self.snapshot_timer.reset()
                     stop = self.early_stopping(self.current_iteration)
-                    extra_info += "\n, %s" % self.early_stopping.get_info()
+                    extra_info += "\n%s" % self.early_stopping.get_info()
 
                     self.task_loader.report_metrics('dev', avg_loss,
                                                     extra_info=extra_info)
                     gc.collect()
+                    torch.cuda.empty_cache()
                     if stop is True:
                         self.writer.write("Early stopping activated")
                         break
@@ -315,6 +317,8 @@ class Trainer:
             self.task_loader.report_metrics('test', avg_test_loss)
 
     def profile(self, text):
+        if self.not_debug:
+            return
         self.writer.write(text + ": " + self.profiler.get_time_since_start(),
                           "debug")
         self.profiler.reset()

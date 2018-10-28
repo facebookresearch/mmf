@@ -1,6 +1,7 @@
 import numpy as np
 
 from pythia.tasks.datasets.vqa2.dataset import VQA2Dataset
+from pythia.core.registry import Registry
 
 
 class VizWizDataset(VQA2Dataset):
@@ -11,10 +12,28 @@ class VizWizDataset(VQA2Dataset):
         self.data_params = data_params
         self.name = 'vizwiz'
 
-        if self.data_params['use_ocr']:
+        self.writer = Registry.get('writer')
+
+        if 'use_ocr' not in self.data_params:
+            self.writer.write("use_ocr configuration not present. "
+                              "Setting to False", 'warning')
+            self.use_ocr = False
+            self.data_params['use_ocr'] = False
+        else:
+            self.use_ocr = self.data_params['use_ocr']
+
+        if 'copy_included' not in self.data_params:
+            self.writer.write("copy_included configuration not present. "
+                              "Setting to False", 'warning')
+            self.copy_included = False
+            self.data_params['copy_included'] = False
+        else:
+            self.copy_included = self.data_params['copy_included']
+
+        if self.use_ocr:
             self.context_max_len = self.config['context_max_len']
 
-        if self.data_params['copy_included']:
+        if self.copy_included:
             self.max_valid_answer_length = 11
 
     def __getitem__(self, idx):
@@ -24,7 +43,7 @@ class VizWizDataset(VQA2Dataset):
         features = self.features_db[idx]
         sample['image_id'] = image['image_name']
 
-        if self.data_params['use_ocr']:
+        if self.use_ocr:
             context_seq = np.zeros((self.context_max_len), np.int32)
             info = features['image_info_0']
 

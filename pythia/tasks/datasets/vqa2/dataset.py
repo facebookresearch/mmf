@@ -133,6 +133,8 @@ class VQA2Dataset(BaseDataset):
             #     valid_answers_tokens = iminfo['valid_answers_tokens']
             elif 'valid_answers' in iminfo:
                 valid_answers_tokens = iminfo['valid_answers']
+                if valid_answers_tokens[-1] == '<copy>':
+                    valid_answers_tokens.pop()
                 answer_tokens = np.random.choice(valid_answers_tokens)
                 ans_idx = (
                     [self.answer_dict.word2idx(ans)

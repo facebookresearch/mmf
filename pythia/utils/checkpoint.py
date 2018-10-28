@@ -62,7 +62,7 @@ class Checkpoint:
         self.trainer.writer.write("Loading checkpoint")
         ckpt = self._torch_load(file)
 
-        self.trainer._load_state_dict_mapping(ckpt['model'])
+        self.trainer.model.load_state_dict(ckpt['model'])
         self.trainer.optimizer.load_state_dict(ckpt['optimizer'])
         self.trainer.early_stopping.init_from_checkpoint(ckpt)
 
