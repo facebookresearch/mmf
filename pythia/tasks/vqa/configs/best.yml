@@ -36,7 +36,7 @@ task_attributes:
         enforce_slow_reader: true
         metrics: vqa_accuracy
         loss: logit_bce
-        ndim: 2
+        return_info: false
 exp_name: baseline
 model_attributes:
   top_down_bottom_up:
@@ -46,7 +46,7 @@ model_attributes:
       params:
         img_hidden_dim: 5000
         text_hidden_dim: 300
-    image_embeddings:
+    image_feature_embeddings:
     - modal_combine:
         type: non_linear_element_multiply
         params:
@@ -65,7 +65,7 @@ model_attributes:
         weights_file: detec/detectron/fc6/fc7_w.pkl
     - type: default
       params: {}
-    modal_combine:
+    image_text_modal_combine:
       type: non_linear_element_multiply
       params:
         dropout: 0
@@ -79,7 +79,7 @@ model_attributes:
         conv2_out: 2
         dropout: 0
         embedding_dim: 300
-        embedding_init_file: vqa2.0_glove.6B.300d.txt.npy
+        # embedding_init_file: vqa2.0_glove.6B.300d.txt.npy
         kernel_size: 1
         padding: 0
 optimizer_attributes:
@@ -100,14 +100,18 @@ training_parameters:
   - 21000
   max_grad_l2_norm: 0.25
   max_iterations: 22000
-  log_interval: 100
-  snapshot_interval: 1000
+  log_interval: 1000
+  snapshot_interval: 6000
   wu_factor: 0.2
   wu_iters: 1000
-  patience: 2000
+  patience: 4000
   batch_size: 512
   num_workers: 7
   task_size_proportional_sampling: true
-  run_type: train
+  run_type: train+predict
   monitored_metric: vqa_vqa_accuracy
   metric_minimize: false
+  text_vocab:
+    type: intersected
+    embedding_name: glove.6B.300d
+    vocab_file: ../data/vocabulary_vqa.txt

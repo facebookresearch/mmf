@@ -7,23 +7,23 @@ task_attributes:
       vizwiz:
         data_root_dir: /private/home/nvivek/VQA/training_data/
         image_feat_train:
-        - rcnn_adaptive_vizwiz/vizwiz_ocr_only_att_ans,resnet_res5c_vizwiz/vizwiz/resnet152
+        - /checkpoint02/asg/data/vizwiz/features/detectron_23/fc6/train,resnet_res5c_vizwiz/vizwiz/resnet152
         # - rcnn_adaptive_vizwiz/vizwiz_ocr_only_att_ans,resnet_res5c_vizwiz/vizwiz/resnet152
         image_feat_val:
-        - rcnn_adaptive_vizwiz/vizwiz_ocr_only_att_ans,resnet_res5c_vizwiz/vizwiz/resnet152
+        - /checkpoint02/asg/data/vizwiz/features/detectron_23/fc6/val,resnet_res5c_vizwiz/vizwiz/resnet152
         image_feat_test:
-        - rcnn_adaptive_vizwiz/vizwiz_ocr_only_att_ans,resnet_res5c_vizwiz/vizwiz/resnet152
+        - /checkpoint02/asg/data/vizwiz/features/detectron_23/fc6/test,resnet_res5c_vizwiz/vizwiz/resnet152
         image_max_loc: 137
         imdb_file_train:
         # - imdb/imdb_vizwiz_train_7k_ocr_only_att_5ans_ocr_only_copy.npy
         # - imdb/imdb_vizwiz_val_7k_ocr_only_att_5ans_ocr_only_copy.npy
-        - imdb/imdb_vizwiz_train_all_answers.npy
+        - imdb/imdb_vizwiz_train_ocr.npy
         imdb_file_val:
         # - imdb/imdb_vizwiz_val_7k_ocr_only_att_5ans_ocr_only_copy.npy
-        - imdb/imdb_vizwiz_val_all_answers.npy
+        - imdb/imdb_vizwiz_val_ocr.npy
         imdb_file_test:
         # - imdb/imdb_vizwiz_test_7k_ocr_only_att_5ans_ocr_only_copy.npy
-        - imdb/imdb_vizwiz_test_all_answers.npy
+        - imdb/imdb_vizwiz_test_ocr.npy
         vocab_question_file: vocabulary_100k.txt
         vocab_answer_file: answers_vizwiz_7k.txt
         image_depth_first: false
@@ -33,20 +33,19 @@ task_attributes:
         metrics: vqa_accuracy
         copy_included: false
         loss: logit_bce
-        ndim: 2
 optimizer:
   type: Adamax
   params:
     lr: 0.005
 model_attributes:
   top_down_bottom_up:
-    model_data_dir: ../data
+    model_data_dir: /checkpoint02/asg/data/vizwiz/features/
     classifier:
       type: logit
       params:
         img_hidden_dim: 5000
         text_hidden_dim: 300
-    image_embeddings:
+    image_feature_embeddings:
     - modal_combine:
         type: non_linear_element_multiply
         params:
@@ -61,11 +60,11 @@ model_attributes:
     image_feature_encodings:
     - type: finetune_faster_rcnn_fpn_fc7
       params:
-        bias_file: detec/detectron/fc6/fc7_b.pkl
-        weights_file: detec/detectron/fc6/fc7_w.pkl
+        bias_file: detectron_23/fc6/fc7_b.pkl
+        weights_file: detectron_23/fc6/fc7_w.pkl
     - type: default
       params: {}
-    modal_combine:
+    image_text_modal_combine:
       type: non_linear_element_multiply
       params:
         dropout: 0
@@ -101,3 +100,7 @@ training_parameters:
     run_type: train
     monitored_metric: vizwiz_vqa_accuracy
     metric_minimize: false
+    text_vocab:
+      type: intersected
+      embedding_name: glove.6B.300d
+      vocab_file: /private/home/nvivek/VQA/training_data/vocabulary_100k.txt

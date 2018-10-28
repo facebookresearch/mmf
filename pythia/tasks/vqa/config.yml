@@ -28,7 +28,6 @@ task_attributes:
         enforce_slow_reader: false
         metrics: vqa_accuracy
         loss: logit_bce
-        ndim: 2
 model_attributes:
   top_down_bottom_up:
     model_data_dir: ../data
