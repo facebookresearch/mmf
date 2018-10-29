@@ -1,0 +1,117 @@
+task_attributes:
+  vqa:
+    datasets: all
+    dataset_size_proportional_sampling: true
+    dataset_attributes:
+      vqa2:
+        data_root_dir: /private/home/asg/pythia/data/
+        image_depth_first: false
+        image_fast_reader: false
+        image_feat_test:
+        - /checkpoint02/asg/data/detectron_fix_100/fc6/vqa/test2015,/checkpoint02/asg/data/resnet152/vqa/test2015
+        image_feat_train:
+        - /checkpoint02/asg/data/detectron_fix_100/fc6/vqa/train2014,/checkpoint02/asg/data/resnet152/vqa/train2014
+        - /checkpoint02/asg/data/detectron_fix_100/fc6/vqa/val2014,/checkpoint02/asg/data/resnet152/vqa/val2014
+        - /checkpoint02/asg/data/detectron_fix_100/fc6/genome,/checkpoint02/asg/data/resnet152/genome
+        - /checkpoint02/asg/data/detectron_fix_100/fc6/vqa_mirror/train2014,/checkpoint02/asg/data/resnet152/vqa_mirror/train2014
+        - /checkpoint02/asg/data/detectron_fix_100/fc6/vqa_mirror/val2014,/checkpoint02/asg/data/resnet152/vqa_mirror/val2014
+        - /checkpoint02/asg/data/detectron_fix_100/fc6/vqa/train2014,/checkpoint02/asg/data/resnet152/vqa/train2014
+        image_feat_val:
+        - /checkpoint02/asg/data/detectron_fix_100/fc6/vqa/val2014,/checkpoint02/asg/data/resnet152/vqa/val2014
+        image_max_loc: 100
+        imdb_file_test:
+        - imdb/imdb_test2015.npy
+        imdb_file_train:
+        - imdb/imdb_train2014.npy
+        - imdb/imdb_val2014.npy
+        - imdb/imdb_genome.npy
+        - imdb/imdb_mirror_train2014.npy
+        - imdb/imdb_mirror_val2014.npy
+        - imdb/imdb_vdtrain.npy
+        imdb_file_val:
+        - imdb/imdb_minival2014.npy
+        question_max_len: 14
+        vocab_answer_file: answers_vqa.txt
+        vocab_question_file: vocabulary_vqa.txt
+        enforce_slow_reader: true
+        metrics: vqa_accuracy
+        loss: logit_bce
+        return_info: false
+exp_name: baseline
+model_attributes:
+  top_down_bottom_up:
+    model_data_dir: /private/home/asg/pythia/data/
+    classifier:
+      type: logit
+      params:
+        img_hidden_dim: 5000
+        text_hidden_dim: 300
+    image_feature_embeddings:
+    - modal_combine:
+        type: non_linear_element_multiply
+        params:
+          dropout: 0
+          hidden_dim: 5000
+      normalization: softmax
+      transform:
+        type: linear
+        params:
+          out_dim: 1
+    image_feature_dim: 2048
+    image_feature_encodings:
+    - type: finetune_faster_rcnn_fpn_fc7
+      params:
+        bias_file: detec/detectron/fc6/fc7_b.pkl
+        weights_file: detec/detectron/fc6/fc7_w.pkl
+    - type: default
+      params: {}
+    image_text_modal_combine:
+      type: non_linear_element_multiply
+      params:
+        dropout: 0
+        hidden_dim: 5000
+    text_embeddings:
+    - type: attention
+      params:
+        hidden_dim: 1024
+        num_layers: 1
+        conv1_out: 512
+        conv2_out: 2
+        dropout: 0
+        embedding_dim: 300
+        # embedding_init_file: vqa2.0_glove.6B.300d.txt.npy
+        kernel_size: 1
+        padding: 0
+optimizer_attributes:
+  type: Adamax
+  params:
+    eps: 1.0e-08
+    lr: 0.01
+    weight_decay: 0
+training_parameters:
+  clip_norm_mode: all
+  clip_gradients: true
+  lr_ratio: 0.1
+  lr_scheduler: true
+  lr_steps:
+  - 15000
+  - 18000
+  - 20000
+  - 21000
+  max_grad_l2_norm: 0.25
+  max_iterations: 22000
+  log_interval: 1000
+  snapshot_interval: 6000
+  wu_factor: 0.2
+  wu_iters: 1000
+  patience: 4000
+  batch_size: 512
+  num_workers: 7
+  task_size_proportional_sampling: true
+  run_type: train+predict
+  monitored_metric: vqa_vqa_accuracy
+  metric_minimize: false
+  text_vocab:
+    type: intersected
+    embedding_name: glove.6B.300d
+    vocab_file:  /private/home/asg/pythia/data/vocabulary_vqa.txt
