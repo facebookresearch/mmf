@@ -120,6 +120,7 @@ class PaddedFasterRCNNFeatureReader:
                 self.take_item = True
 
         image_feature = content
+
         if self.take_item:
             item = content.item()
             if 'image_text' in item:

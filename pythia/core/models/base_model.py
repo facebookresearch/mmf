@@ -37,3 +37,7 @@ class BaseModel(nn.Module):
         setattr(self, attr + "_out_dim", self.embeddings_out_dim)
         delattr(self, "embeddings_out_dim")
         setattr(self, attr, nn.ModuleList(text_embeddings))
+
+    @classmethod
+    def init_args(cls, parser):
+        return parser

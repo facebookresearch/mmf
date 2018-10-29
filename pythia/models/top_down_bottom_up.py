@@ -82,6 +82,7 @@ class VQAMultiModalModel(BaseModel):
             embedding_attr1 = attr + "_embeddings_out_dim"
         else:
             embedding_attr1 = attr + "_feature_embeddings_out_dim"
+
         return embedding_attr1
 
     def _init_combine_layer(self, attr1, attr2):
@@ -91,6 +92,8 @@ class VQAMultiModalModel(BaseModel):
             self.config[config_attr]['type'],
             getattr(self, self._get_embeddings_attr(attr1)),
             getattr(self, self._get_embeddings_attr(attr2)),
+            context_dim=getattr(self, self._get_embeddings_attr('context'),
+                                None),
             **self.config[config_attr]['params']
         )
 
@@ -137,6 +140,7 @@ class VQAMultiModalModel(BaseModel):
     def process_feature_embedding(self, attr, feature_variables,
                                   feature_dim_variable, text_embedding_total):
         feature_embeddings = []
+        feature_attentions = []
 
         if type(feature_variables) != list:
             feature_variables = [feature_variables]
@@ -149,13 +153,14 @@ class VQAMultiModalModel(BaseModel):
             list_attr = attr + "_feature_embeddings_list"
             feature_embedding_models_i = getattr(self, list_attr)[i]
             for i_model in feature_embedding_models_i:
-                i_embedding = i_model(
+                i_embedding, att = i_model(
                     feature_feat_variable_ft,
                     text_embedding_total, feature_dim_variable_use)
                 feature_embeddings.append(i_embedding)
+                feature_attentions.append(att)
 
         feature_embedding_total = torch.cat(feature_embeddings, dim=1)
-        return feature_embedding_total
+        return feature_embedding_total, feature_attentions
 
     def combine_embeddings(self, *args):
         feature_names = args[0]
@@ -183,7 +188,7 @@ class VQAMultiModalModel(BaseModel):
             "number of image feature model doesnot equal \
              to number of image features"
 
-        image_embedding_total = self.process_feature_embedding(
+        image_embedding_total, _ = self.process_feature_embedding(
             "image",
             image_feature_variables,
             image_dim_variable,

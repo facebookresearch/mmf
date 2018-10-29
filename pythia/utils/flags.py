@@ -9,6 +9,7 @@ class Flags:
         self.parser = argparse.ArgumentParser()
         self.add_core_args()
         self.update_task_args()
+        self.update_model_args()
 
     def get_parser(self):
         return self.parser
@@ -112,7 +113,7 @@ class Flags:
 
     def update_task_args(self):
         args = sys.argv
-        task_name = None
+        task_names = None
         for index, item in enumerate(args):
             if item == '--tasks':
                 task_names = args[index + 1]
@@ -130,6 +131,22 @@ class Flags:
 
             task_object = task_class()
             task_object.init_args(self.parser)
+
+    def update_model_args(self):
+        args = sys.argv
+        model_name = None
+        for index, item in enumerate(args):
+            if item == '--model':
+                model_name = args[index + 1]
+
+        if model_name is None:
+            return
+
+        model_class = Registry.get_model_class(model_name)
+        if model_class is None:
+            return
+
+        model_class.init_args(self.parser)
 
 
 flags = Flags()

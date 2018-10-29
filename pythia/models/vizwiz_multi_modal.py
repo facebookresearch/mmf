@@ -22,6 +22,7 @@ class VizWizMultiModalModel(VQAMultiModalModel):
         self._init_feature_embeddings("image")
         self._init_combine_layer("image", "text")
         self._init_combine_layer("context", "text")
+
         self._init_classifier(self._get_classifier_input_dim())
         self._init_extras()
 
@@ -39,16 +40,25 @@ class VizWizMultiModalModel(VQAMultiModalModel):
 
         combine_layer = self.context_text_multi_modal_combine_layer
         params.append({'params': combine_layer.parameters()})
+
+        params.append({'params': self.context_embeddings.parameters()})
+
+        context_feat_embs = self.context_feature_embeddings_list
+        context_feat_encoders = self.context_feature_encoders
+        params.append({'params': context_feat_embs.parameters()})
+        params.append({'params': context_feat_encoders.parameters()})
+
         return params
 
     def forward(self, image_features, texts, contexts, info={}, **kwargs):
         input_text_variable = texts
         image_dim_variable = info.get('image_dim', None)
         image_feature_variables = image_features
-        text_embedding_total = self.process_text_embedding(input_text_variable)
 
+        text_embedding_total = self.process_text_embedding(input_text_variable)
         context_embeddings = self.process_text_embedding(contexts,
                                                          'context_embeddings')
+
         context_dim_variable = info.get('context_dim', None)
 
         assert (len(image_feature_variables) ==
@@ -56,34 +66,34 @@ class VizWizMultiModalModel(VQAMultiModalModel):
             "number of image feature model doesnot equal \
              to number of image features"
 
-        image_embedding_total = self.process_feature_embedding(
-            "image",
-            image_feature_variables,
-            image_dim_variable,
-            text_embedding_total
-        )
+        image_embedding_total, image_attentions = \
+            self.process_feature_embedding(
+                "image",
+                image_feature_variables,
+                image_dim_variable,
+                text_embedding_total
+            )
 
-        context_embedding_total = self.process_feature_embedding(
-            "context",
-            context_embeddings,
-            context_dim_variable,
-            text_embedding_total
-         )
+        context_embedding_total, context_attentions = \
+            self.process_feature_embedding(
+                "context",
+                context_embeddings,
+                context_dim_variable,
+                text_embedding_total
+             )
 
         if self.inter_model is not None:
             image_embedding_total = self.inter_model(image_embedding_total)
 
-        image_text_embedding = self.combine_embeddings(
+        joint_embedding = self.combine_embeddings(
             ["image", "text"],
-            [image_embedding_total, text_embedding_total]
+            [image_embedding_total, text_embedding_total,
+             context_embedding_total]
         )
 
-        context_text_embedding = self.combine_embeddings(
-            ["context", "text"],
-            [context_embedding_total, text_embedding_total]
-        )
+        info = {
+            'context_attentions': context_attentions,
+            'image_attentions': image_attentions
+        }
 
-        joint_embedding = torch.cat([image_text_embedding,
-                                     context_text_embedding], dim=1)
-
-        return self.calculate_logits(joint_embedding)
+        return self.calculate_logits(joint_embedding), info
