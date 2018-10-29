@@ -29,11 +29,17 @@ task_attributes:
         image_depth_first: false
         image_fast_reader: false
         question_max_len: 14
-        context_max_len: 14
+        context_max_len: 137
         enforce_slow_reader: true
         metrics: vqa_accuracy
         copy_included: false
-        loss: logit_bce
+        loss:
+          type: multi
+          params:
+            - type: logit_bce
+              weight: 0.7
+            - type: attention_supervision
+              weight: 0.3
         return_info: true
         use_ocr: true
 optimizer:
