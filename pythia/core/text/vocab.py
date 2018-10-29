@@ -134,9 +134,12 @@ class BaseVocab:
             embedding = cls(**embedding_kwargs)
 
         if hasattr(embedding, 'embedding'):
-            embedding.embedding.from_pretrained(self.vectors, freeze=False)
+            embedding.embedding = torch.nn.Embedding.from_pretrained(
+                self.vectors, freeze=False
+            )
         else:
-            embedding.from_pretrained(self.vectors, freeze=False)
+            embedding = torch.nn.Embedding.from_pretrained(self.vectors,
+                                                           freeze=False)
 
         if vector_dim == embedding_dim:
             return embedding

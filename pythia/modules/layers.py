@@ -245,12 +245,17 @@ class NonLinearElementMultiply(nn.Module):
         self.fa_image = ReLUWithWeightNormFC(image_feat_dim,
                                              kwargs['hidden_dim'])
         self.fa_txt = ReLUWithWeightNormFC(ques_emb_dim, kwargs['hidden_dim'])
-        self.fa_history = ReLUWithWeightNormFC(ques_emb_dim,
+
+        context_dim = kwargs.get('context_dim', None)
+        if context_dim is None:
+            context_dim = ques_emb_dim
+
+        self.fa_context = ReLUWithWeightNormFC(context_dim,
                                                kwargs['hidden_dim'])
         self.dropout = nn.Dropout(kwargs['dropout'])
         self.out_dim = kwargs['hidden_dim']
 
-    def forward(self, image_feat, question_embedding, history_embedding=None):
+    def forward(self, image_feat, question_embedding, context_embedding=None):
         image_fa = self.fa_image(image_feat)
         question_fa = self.fa_txt(question_embedding)
 
@@ -271,16 +276,12 @@ class NonLinearElementMultiply(nn.Module):
 
         joint_feature = image_fa * question_fa_expand
 
-        if history_embedding is not None:
-            history_fa = self.fa_history(history_embedding)
+        if context_embedding is not None:
+            context_fa = self.fa_context(context_embedding)
 
-            if len(image_feat.data.shape) == 3:
-                history_fa_expand = torch.unsqueeze(
-                    history_fa, 1).expand(-1, num_location, -1)
-            else:
-                history_fa_expand = history_fa
-
-            joint_feature = question_fa_expand * history_fa_expand
+            context_text_joint_feaure = context_fa * question_fa_expand
+            joint_feature = torch.cat([joint_feature,
+                                       context_text_joint_feaure], dim=1)
 
         joint_feature = self.dropout(joint_feature)
 
