@@ -214,9 +214,13 @@ class Trainer:
 
                 # Arguments should be a dict at this point
                 output = self.model(**data)
+                output, info = self._separate_out_output(output)
+
+                info['batch'] = data
                 self.profile("Forward time")
 
-                loss = self.task_loader.calculate_loss('train', output, y)
+                loss = self.task_loader.calculate_loss('train', output,
+                                                       y, info)
 
                 loss.backward()
                 self.profile("Backward time")
@@ -248,9 +252,11 @@ class Trainer:
                 if self.current_iteration % snapshot_interval == 0:
                     # Validation and Early stopping
                     avg_loss = self.evaluate('dev', self.dev_loader)
+
                     time_taken = self.snapshot_timer.get_time_since_start()
                     extra_info = ", time: %s" % time_taken
                     self.snapshot_timer.reset()
+
                     stop = self.early_stopping(self.current_iteration)
                     extra_info += "\n%s" % self.early_stopping.get_info()
 
@@ -272,8 +278,9 @@ class Trainer:
 
         data, y = self.task_loader.prepare_batch(loader.dataset_type, batch)
         output = self.model(**data)
-
-        self.task_loader.calculate_loss(dataset_type, output, y)
+        output, info = self._separate_out_output(output)
+        info['batch'] = data
+        self.task_loader.calculate_loss(dataset_type, output, y, info)
 
         self.model.train()
 
@@ -294,8 +301,11 @@ class Trainer:
             total_samples += y.size(0)
 
             output = self.model(**data)
+            output, info = self._separate_out_output(output)
+            info['batch'] = data
 
-            loss = self.task_loader.calculate_loss(dataset_type, output, y)
+            loss = self.task_loader.calculate_loss(dataset_type, output,
+                                                   y, info)
             if loss is not None:
                 total_loss += loss.data.item() * y.size(0)
 
@@ -333,7 +343,16 @@ class Trainer:
             for batch in tqdm(dataloader):
                 data, _ = self.test_reporter.prepare_batch(batch)
                 output = self.model(**data)
+                output, _ = self._separate_out_output(output)
+
                 self.test_reporter.add_to_report(batch, output)
 
         self.writer.write("Finished predicting")
         self.model.train()
+
+    def _separate_out_output(self, output):
+        info = {}
+        if type(output) == tuple or type(output) == list:
+            info = output[1]
+            output = output[0]
+        return output, info

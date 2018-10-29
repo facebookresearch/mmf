@@ -12,8 +12,12 @@ import torch.nn.functional as F
 
 
 class Loss(nn.Module):
-    def __init__(self, loss_type):
+    def __init__(self, params={}):
         super(Loss, self).__init__()
+        if type(params) == str:
+            loss_type = params
+        else:
+            loss_type = params['type']
         if loss_type == 'logit_bce':
             self.loss_criterion = LogitBinaryCrossEntropy()
         elif loss_type == 'softmax_kl':
@@ -24,6 +28,12 @@ class Loss(nn.Module):
             self.loss_criterion = CombinedLoss()
         elif loss_type == 'mse':
             self.loss_criterion = nn.MSELoss()
+        elif loss_type == 'attention_supervision':
+            self.loss_criterion = AttentionSupervisionLoss()
+        elif loss_type == 'multi':
+            self.loss_criterion = MultiLoss(params['params'])
+        elif hasattr(nn, loss_type):
+            self.loss_criterion = getattr(nn, loss_type)()
         else:
             raise NotImplementedError("Unknown loss type: %s" % loss_type)
 
@@ -35,7 +45,7 @@ class LogitBinaryCrossEntropy(nn.Module):
     def __init__(self):
         super(LogitBinaryCrossEntropy, self).__init__()
 
-    def forward(self, pred_score, target_score, weights=None):
+    def forward(self, pred_score, target_score, info={}, weights=None):
         loss = F.binary_cross_entropy_with_logits(pred_score,
                                                   target_score,
                                                   size_average=True)
@@ -53,11 +63,49 @@ def kl_div(log_x, y):
     return torch.sum(res, dim=1, keepdim=True)
 
 
+class MultiLoss(nn.Module):
+    def __init__(self, params):
+        super(MultiLoss, self).__init__()
+        self.losses = []
+        self.losses_weights = []
+
+        for loss_params in params:
+            loss_fn = Loss(loss_params)
+            loss_weight = loss_params.get('weight', {})
+            self.losses.append(loss_fn)
+            self.losses_weights.append(loss_weight)
+
+    def forward(self, pred_score, target_score, info={}):
+        loss = 0
+
+        for idx, loss_fn in enumerate(self.losses):
+            loss += self.losses_weights[idx] * loss_fn(pred_score,
+                                                       target_score, info)
+
+        return loss
+
+
+class AttentionSupervisionLoss(nn.Module):
+    def __init__(self):
+        super(AttentionSupervisionLoss, self).__init__()
+        self.loss_fn = nn.BCELoss()
+
+    def forward(self, pred_score, target_score, info):
+        # TODO: Create this an option so that this becomes zero
+        # when att sup is not passed. As in, don't pass in att sup
+        batch = info['batch']
+        attention_supervision = batch['info']['attention_supervision']
+        context_attentions = info['context_attentions']
+
+        return self.loss_fn(context_attentions[0],
+                            attention_supervision.float())
+
+
 class WeightedSoftmaxLoss(nn.Module):
     def __init__(self):
         super(WeightedSoftmaxLoss, self).__init__()
 
-    def forward(self, pred_score, target_score):
+    def forward(self, pred_score, target_score, info={}):
         tar_sum = torch.sum(target_score, dim=1, keepdim=True)
         tar_sum_is_0 = torch.eq(tar_sum, 0)
         tar_sum.masked_fill_(tar_sum_is_0, 1.0e-06)
@@ -74,7 +122,7 @@ class SoftmaxKlDivLoss(nn.Module):
     def __init__(self):
         super(SoftmaxKlDivLoss, self).__init__()
 
-    def forward(self, pred_score, target_score):
+    def forward(self, pred_score, target_score, info={}):
         tar_sum = torch.sum(target_score, dim=1, keepdim=True)
         tar_sum_is_0 = torch.eq(tar_sum, 0)
         tar_sum.masked_fill_(tar_sum_is_0, 1.0e-06)
@@ -90,7 +138,7 @@ class WrongLoss(nn.Module):
     def __init__(self):
         super(WrongLoss, self).__init__()
 
-    def forward(self, pred_score, target_score):
+    def forward(self, pred_score, target_score, info={}):
         tar_sum = torch.sum(target_score, dim=1, keepdim=True)
         tar_sum_is_0 = torch.eq(tar_sum, 0)
         tar_sum.masked_fill_(tar_sum_is_0, 1.0e-06)
@@ -107,7 +155,7 @@ class CombinedLoss(nn.Module):
         super(CombinedLoss, self).__init__()
         self.weight_softmax = weight_softmax
 
-    def forward(self, pred_score, target_score):
+    def forward(self, pred_score, target_score, info={}):
         tar_sum = torch.sum(target_score, dim=1, keepdim=True)
         tar_sum_is_0 = torch.eq(tar_sum, 0)
         tar_sum.masked_fill_(tar_sum_is_0, 1.0e-06)

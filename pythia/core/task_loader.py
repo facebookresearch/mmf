@@ -104,9 +104,11 @@ class TaskLoader:
         task = self.mapping[dataset_type]
         task.report_metrics(loss, extra_info, should_print)
 
-    def calculate_loss(self, dataset_type, output, expected_output):
+    def calculate_loss(self, dataset_type, output, expected_output,
+                       info={}):
         return self.mapping[dataset_type].calculate_loss(output,
-                                                         expected_output)
+                                                         expected_output,
+                                                         info)
 
     def prepare_batch(self, dataset_type, batch):
         return self.mapping[dataset_type].prepare_batch(batch)

@@ -29,10 +29,10 @@ class BaseDataset(Dataset):
         self.meter = Meter(self.name, config['dataset_type'], task_metrics)
         self.loss_fn = Loss(config['loss'])
 
-    def calculate_loss(self, output, expected_output):
+    def calculate_loss(self, output, expected_output, info):
         self.meter(output, expected_output)
 
-        self.last_loss = self.loss_fn(output, expected_output)
+        self.last_loss = self.loss_fn(output, expected_output, info)
 
         return self.last_loss
 
@@ -132,6 +132,14 @@ class BaseDataset(Dataset):
                 'context_dim': context_dim_variable
             }
         }
+
+        if 'attention_supervision' in batch:
+            att_sups = batch['attention_supervision']
+            att_sups = Variable(att_sups, requires_grad=False, volatile=False)
+
+            if self.use_cuda:
+                att_sups = att_sups.cuda()
+            data['info']['attention_supervision'] = att_sups
 
         return data, obs
 

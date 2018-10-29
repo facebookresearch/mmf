@@ -60,8 +60,8 @@ class MultiTask(Dataset):
     def get_tasks(self):
         return self.tasks
 
-    def calculate_loss(self, output, expected_output):
-        loss = self.chosen_task.calculate_loss(output, expected_output)
+    def calculate_loss(self, output, expected_output, info):
+        loss = self.chosen_task.calculate_loss(output, expected_output, info)
         Registry.register('metrics.%s.loss' % self.dataset_type, loss)
         return loss
 

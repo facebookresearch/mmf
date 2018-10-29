@@ -111,8 +111,9 @@ class BaseTask(Dataset):
                                                p=self.dataset_probablities)[0]
         self.chosen_dataset = self.datasets[self.dataset_choice]
 
-    def calculate_loss(self, output, expected_output):
-        return self.chosen_dataset.calculate_loss(output, expected_output)
+    def calculate_loss(self, output, expected_output, info):
+        return self.chosen_dataset.calculate_loss(output, expected_output,
+                                                  info)
 
     def report_metrics(self, loss, extra_info=None, should_print=True):
         self.chosen_dataset.report_metrics(loss, extra_info, should_print)
