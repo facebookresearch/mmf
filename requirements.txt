@@ -3,3 +3,5 @@ torchvision>0.2
 tensorboardX
 numpy
 tqdm
+demjson
+torchtext
