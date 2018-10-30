@@ -185,6 +185,8 @@ class Trainer:
         self.train_timer = Timer()
         self.snapshot_timer = Timer()
 
+        self.task_loader.reset_meters("train")
+
         self.profile("Setup Time")
 
         while self.current_iteration < max_iterations:
@@ -268,6 +270,7 @@ class Trainer:
                         self.writer.write("Early stopping activated")
                         break
 
+        self.checkpoint.restore()
         self.predict()
 
     def single_batch_eval(self, dataset_type, loader):

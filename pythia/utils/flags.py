@@ -41,6 +41,10 @@ class Flags:
                                  type=str,
                                  default=None,
                                  help="Type of run. Default=train")
+        self.parser.add_argument("-exp", "--experiment_name",
+                                 type=str,
+                                 default=None,
+                                 help="Name of the experiment")
 
         self.parser.add_argument('--seed', type=int, default=1234,
                                  help="random seed, default 1234,"

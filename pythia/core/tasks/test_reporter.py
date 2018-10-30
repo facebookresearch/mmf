@@ -19,6 +19,8 @@ class TestReporter(Dataset):
         self.training_parameters = self.config['training_parameters']
         self.num_workers = self.training_parameters['num_workers']
         self.batch_size = self.training_parameters['batch_size']
+        self.report_folder_arg = self.config.get('report_folder', None)
+        self.experiment_name = self.config.get('experiment_name', "")
 
         self.datasets = []
 
@@ -35,6 +37,9 @@ class TestReporter(Dataset):
 
         self.report_folder = os.path.join(self.save_loc, self.report_folder)
         self.report_folder = os.path.join(self.report_folder, "reports")
+
+        if self.report_folder_arg is not None:
+            self.report_folder = self.report_folder_arg
 
         if not os.path.exists(self.report_folder):
             os.makedirs(self.report_folder)
@@ -57,12 +62,14 @@ class TestReporter(Dataset):
         time_format = "%Y-%m-%dT%H:%M:%S"
         time = self.timer.get_time_hhmmss(None, time_format)
 
-        filename = name + "_" + time + ".json"
+        filename = name + "_" + self.experiment_name + "_" + time + ".json"
         filepath = os.path.join(self.report_folder, filename)
 
         with open(filepath, 'w') as f:
             json.dump(self.report, f)
 
+        self.writer.write("Wrote evalai predictions for %s to %s" %
+                          (name, os.path.abspath(filepath)))
         self.report = []
 
     def get_dataloader(self):

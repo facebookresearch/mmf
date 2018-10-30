@@ -82,7 +82,7 @@ class BaseDataset(Dataset):
         input_image_features = Variable(input_image_features)
 
         if input_contexts is not None:
-            input_contexts = Variable(input_contexts.type(torch.LongTensor))
+            input_contexts = Variable(input_contexts)
 
         if self.use_cuda:
             obs = obs.cuda()

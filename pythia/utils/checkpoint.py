@@ -4,6 +4,7 @@ import yaml
 
 from pythia.utils.general import ckpt_name_from_core_args, \
                                  foldername_from_config_override
+from pythia.core.registry import Registry
 
 
 class Checkpoint:
@@ -62,7 +63,16 @@ class Checkpoint:
         self.trainer.writer.write("Loading checkpoint")
         ckpt = self._torch_load(file)
 
-        self.trainer.model.load_state_dict(ckpt['model'])
+        ckpt_model = ckpt['model']
+        new_dict = {}
+        for attr in ckpt_model:
+            if 'fa_history' in attr:
+                new_dict[attr.replace('fa_history', 'fa_context')] = \
+                    ckpt_model[attr]
+            else:
+                new_dict[attr] = ckpt_model[attr]
+
+        self.trainer.model.load_state_dict(new_dict)
         self.trainer.optimizer.load_state_dict(ckpt['optimizer'])
         self.trainer.early_stopping.init_from_checkpoint(ckpt)
 
@@ -70,9 +80,13 @@ class Checkpoint:
 
         if 'best_iteration' in ckpt:
             self.trainer.current_iteration = ckpt['best_iteration']
+            Registry.register('current_iteration',
+                              self.trainer.current_iteration)
 
         if 'best_epoch' in ckpt:
             self.trainer.current_epoch = ckpt['best_epoch']
+            Registry.register('current_epoch',
+                              self.trainer.current_epoch)
 
     def _load_state_dict_mapping(self, ckpt_model):
         model = self.trainer.model
@@ -115,6 +129,7 @@ class Checkpoint:
             torch.save(ckpt, best_ckpt_filepath)
 
     def restore(self):
+        self.trainer.writer.write("Restoring checkpoint")
         best_path = os.path.join(self.ckpt_foldername,
                                  self.ckpt_prefix + "best.ckpt")
         if os.path.exists(best_path):

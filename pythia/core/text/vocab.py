@@ -44,6 +44,11 @@ class Vocab:
                 sys.exit(0)
 
             return IntersectedVocab(**vocab_params)
+        elif vocab_type == 'model':
+            if vocab_params['name'] == 'fasttext':
+                return ModelVocab(**vocab_params)
+        else:
+            raise RuntimeError("Unknown vocab type: %s" % vocab_type)
 
 
 class BaseVocab:
@@ -57,7 +62,7 @@ class BaseVocab:
     EOS_INDEX = 2
     UNK_INDEX = 3
 
-    def __init__(self, vocab_file, embedding_dim=300):
+    def __init__(self, vocab_file=None, embedding_dim=300):
         """Vocab class to be used when you want to train word embeddings from
         scratch based on a custom vocab. This will initialize the random
         vectors for the vocabulary you pass. Get the vectors using
@@ -73,10 +78,7 @@ class BaseVocab:
             Size of the embedding
 
         """
-        if not os.path.exists(vocab_file):
-            print("Vocab not found at " + vocab_file)
-            sys.exit(1)
-
+        self.type = "base"
         self.word_dict = {}
         self.itos = {}
 
@@ -94,11 +96,17 @@ class BaseVocab:
 
         self.total_predefined = len(self.itos.keys())
 
-        with open(vocab_file, 'r') as f:
-            for line in f:
-                self.itos[index] = line.strip()
-                self.word_dict[line.strip()] = index
-                index += 1
+        if vocab_file is not None:
+
+            if not os.path.exists(vocab_file):
+                print("Vocab not found at " + vocab_file)
+                sys.exit(1)
+
+            with open(vocab_file, 'r') as f:
+                for line in f:
+                    self.itos[index] = line.strip()
+                    self.word_dict[line.strip()] = index
+                    index += 1
 
         self.word_dict[self.UNK_TOKEN] = self.UNK_INDEX
         # Return unk index by default
@@ -172,6 +180,7 @@ class CustomVocab(BaseVocab):
             Default: None
         """
         super(CustomVocab, self).__init__(vocab_file)
+        self.type = "custom"
 
         if not os.path.isabs(embedding_file) and data_dir is not None:
             embedding_file = os.path.join(data_dir, embedding_file)
@@ -220,6 +229,9 @@ class IntersectedVocab(BaseVocab):
             mentioned above
         """
         super(IntersectedVocab, self).__init__(vocab_file)
+
+        self.type = "intersected"
+
         name = embedding_name.split('.')[0]
         dim = embedding_name.split('.')[2][:-1]
         middle = embedding_name.split('.')[1]
@@ -270,6 +282,8 @@ class PretrainedVocab(BaseVocab):
         embedding_name : str
             Name of the pretrained alias for the embedding to used
         """
+        self.type = "pretrained"
+
         if embedding_name not in vocab.pretrained_aliases:
             from pythia.core.registry import Registry
             writer = Registry.get('writer')
@@ -309,3 +323,51 @@ class PretrainedVocab(BaseVocab):
             actual_index = embedding.stoi[word]
             self.vectors[index] = embedding.vectors[actual_index]
             index += 1
+
+
+class WordToVectorDict:
+    def __init__(self, model):
+        self.model = model
+
+    def __getitem__(self, word):
+        return self.model.get_word_vector(word)
+
+
+class ModelVocab(BaseVocab):
+    def __init__(self, name, model_file):
+        """Special vocab which is not really vocabulary but instead a model
+        which returns embedding directly instead of vocabulary. This is just
+        an abstraction over a model which generates embeddings directly.
+        For e.g. for fasttext model we encapsulate it inside this and provide
+        it as a vocab so that the API of the vocab remains same.
+
+        NOTE: stoi's functionality will remain same but it is actually calling
+        a function to get word vectors. Currently, only fasttext is supported.
+
+        Parameters
+        ----------
+        name : str
+            Name of the embedding model which this vocab currently is loading
+        model_file : str
+            File from which model will be loaded. This API might need to be
+            changed in future.
+        """
+        super(ModelVocab, self).__init__()
+        self.type = "model"
+        if name != 'fasttext':
+            raise RuntimeError("Model vocab only supports fasttext as of now")
+        else:
+            self._load_fasttext_model(model_file)
+
+    def _load_fasttext_model(self, model_file):
+        from fastText import load_model
+        from pythia.core.registry import Registry
+
+        Registry.get('writer').write("Loading fasttext model now from %s"
+                                     % model_file)
+
+        self.model = load_model(model_file)
+        self.stoi = WordToVectorDict(self.model)
+
+    def get_dim(self):
+        return self.model.get_dimension()

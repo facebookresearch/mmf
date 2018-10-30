@@ -79,8 +79,8 @@ class MultiLoss(nn.Module):
         loss = 0
 
         for idx, loss_fn in enumerate(self.losses):
-            loss += self.losses_weights[idx] * loss_fn(pred_score,
-                                                       target_score, info)
+            value = loss_fn(pred_score, target_score, info)
+            loss += self.losses_weights[idx] * value
 
         return loss
 
@@ -88,7 +88,7 @@ class MultiLoss(nn.Module):
 class AttentionSupervisionLoss(nn.Module):
     def __init__(self):
         super(AttentionSupervisionLoss, self).__init__()
-        self.loss_fn = nn.BCELoss()
+        self.loss_fn = LogitBinaryCrossEntropy()
 
     def forward(self, pred_score, target_score, info):
         # TODO: Create this an option so that this becomes zero

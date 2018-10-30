@@ -75,12 +75,12 @@ class Registry:
         return cls.mapping['metric_name_mapping'].get(name, None)
 
     @classmethod
-    def get(cls, name):
+    def get(cls, name, default=None):
         name = name.split('.')
         value = cls.mapping['state']
         for subname in name:
-            value = value.get(subname, None)
-            if value is None:
+            value = value.get(subname, default)
+            if value is default:
                 break
         return value
 

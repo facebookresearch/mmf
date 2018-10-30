@@ -63,7 +63,10 @@ class Meter:
         for _ in self.meter_types:
             self.meter_values.append(0)
 
-        self.iteration_count = 0
+        if self.dataset_type == "train":
+            self.iteration_count = Registry.get('current_iteration', 0)
+        else:
+            self.iteration_count = 0
 
     def get_log_string(self, loss):
         log_string = ["Average loss: %.4f" % loss]

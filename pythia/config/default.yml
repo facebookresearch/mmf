@@ -1,4 +1,4 @@
-experiment_base_name: test
+experiment_name: test
 tasks: vqa
 training_parameters:
   max_iterations: 22000

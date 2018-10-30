@@ -2,6 +2,7 @@ from torch import nn
 
 from pythia.core.registry import Registry
 from pythia.modules.embeddings import TextEmbedding
+from pythia.modules.layers import Identity
 
 
 class BaseModel(nn.Module):
@@ -22,6 +23,15 @@ class BaseModel(nn.Module):
         self.embeddings_out_dim = 0
 
         text_vocab = Registry.get("vocabs." + attr.split("_")[0] + "_vocab")
+
+        if text_vocab.type == "model":
+            # If vocab type is model, it is probably a fasttext model
+            # which means we will get the embedding vectors directly
+            # no need to do anything and just pass them through identity
+            text_embeddings = nn.ModuleList([Identity()])
+            setattr(self, attr + "_out_dim", text_vocab.get_dim())
+            setattr(self, attr, text_embeddings)
+            return
 
         for text_embedding in text_embeddings_list_config:
             embedding_type = text_embedding['type']
