@@ -106,6 +106,8 @@ class Trainer:
         no_data_parallel = training_parameters.get('no_data_parallel', None)
         data_parallel = no_data_parallel is None or no_data_parallel is False
 
+        Registry.register('data_parallel', data_parallel)
+
         if use_cuda:
             self.writer.write("CUDA Device is: "
                               + torch.cuda.get_device_name(0))
@@ -189,6 +191,7 @@ class Trainer:
 
         self.profile("Setup Time")
 
+        torch.autograd.set_detect_anomaly(True)
         while self.current_iteration < max_iterations:
             self.current_epoch += 1
             Registry.register('current_epoch', self.current_epoch)
@@ -223,7 +226,6 @@ class Trainer:
 
                 loss = self.task_loader.calculate_loss('train', output,
                                                        y, info)
-
                 loss.backward()
                 self.profile("Backward time")
 
