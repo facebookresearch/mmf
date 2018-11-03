@@ -20,7 +20,8 @@ class TestReporter(Dataset):
         self.num_workers = self.training_parameters['num_workers']
         self.batch_size = self.training_parameters['batch_size']
         self.report_folder_arg = self.config.get('report_folder', None)
-        self.experiment_name = self.config.get('experiment_name', "")
+        self.experiment_name = self.training_parameters.get('experiment_name',
+                                                            "")
 
         self.datasets = []
 
@@ -62,7 +63,12 @@ class TestReporter(Dataset):
         time_format = "%Y-%m-%dT%H:%M:%S"
         time = self.timer.get_time_hhmmss(None, time_format)
 
-        filename = name + "_" + self.experiment_name + "_" + time + ".json"
+        filename = name + "_"
+
+        if len(self.experiment_name) > 0:
+            filename += self.experiment_name + "_"
+
+        filename += time + ".json"
         filepath = os.path.join(self.report_folder, filename)
 
         with open(filepath, 'w') as f:

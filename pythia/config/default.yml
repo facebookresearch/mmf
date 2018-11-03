@@ -1,6 +1,6 @@
-experiment_name: test
 tasks: vqa
 training_parameters:
+  experiment_name: ""
   max_iterations: 22000
   log_interval: 100
   snapshot_interval: 1000
