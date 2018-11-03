@@ -64,9 +64,9 @@ class VQA2Dataset(BaseDataset):
         if 'load_gt_layout' in data_params:
             self.load_gt_layout = data_params['load_gt_layout']
 
-        data_root_dir = data_params['data_root_dir']
+        self.data_root_dir = data_params['data_root_dir']
         vocab_answer_file = os.path.join(
-            data_root_dir, data_params['vocab_answer_file'])
+            self.data_root_dir, data_params['vocab_answer_file'])
 
         # the answer dict is always loaded, regardless of self.load_answer
         self.answer_dict = VocabDict(vocab_answer_file)

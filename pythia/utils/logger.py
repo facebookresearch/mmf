@@ -81,6 +81,11 @@ class Logger:
         else:
             print(str(x) + '\n')
 
+    def add_scalar(self, key, value, iteration):
+        if self.summary_writer is None:
+            return
+        self.summary_writer.add_scalar(key, value, iteration)
+
     def add_scalars(self, scalar_dict, iteration):
         if self.summary_writer is None:
             return
