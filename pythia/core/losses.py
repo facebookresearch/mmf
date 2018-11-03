@@ -10,6 +10,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from pythia.core.registry import Registry
+
 
 class Loss(nn.Module):
     def __init__(self, params={}):
@@ -68,8 +70,12 @@ class MultiLoss(nn.Module):
         super(MultiLoss, self).__init__()
         self.losses = []
         self.losses_weights = []
+        self.writer = Registry.get('writer')
+
+        self.loss_names = []
 
         for loss_params in params:
+            self.loss_names.append(loss_params['type'])
             loss_fn = Loss(loss_params)
             loss_weight = loss_params.get('weight', {})
             self.losses.append(loss_fn)
@@ -77,9 +83,11 @@ class MultiLoss(nn.Module):
 
     def forward(self, pred_score, target_score, info={}):
         loss = 0
+        iteration = Registry.get('current_iteration')
 
         for idx, loss_fn in enumerate(self.losses):
             value = loss_fn(pred_score, target_score, info)
+            self.writer.add_scalar(self.loss_names[idx], value, iteration)
             loss += self.losses_weights[idx] * value
 
         return loss
@@ -88,7 +96,8 @@ class MultiLoss(nn.Module):
 class AttentionSupervisionLoss(nn.Module):
     def __init__(self):
         super(AttentionSupervisionLoss, self).__init__()
-        self.loss_fn = LogitBinaryCrossEntropy()
+        self.loss_fn = lambda *args, **kwargs: \
+            nn.functional.binary_cross_entropy(*args, **kwargs)
 
     def forward(self, pred_score, target_score, info):
         # TODO: Create this an option so that this becomes zero
@@ -97,8 +106,11 @@ class AttentionSupervisionLoss(nn.Module):
         attention_supervision = batch['info']['attention_supervision']
         context_attentions = info['context_attentions']
 
-        return self.loss_fn(context_attentions[0],
-                            attention_supervision.float())
+        loss = self.loss_fn(context_attentions[0],
+                            attention_supervision.float(),
+                            weight=attention_supervision.float())
+
+        return loss * attention_supervision.size(1)
 
 
 class WeightedSoftmaxLoss(nn.Module):
