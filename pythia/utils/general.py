@@ -110,3 +110,34 @@ def nested_dict_update(dictionary, update):
         else:
             dictionary[k] = v
     return dictionary
+
+
+def get_overlap_score(candidate, target):
+    """Takes a candidate word and a target word and returns the overlap
+    score between the two.
+
+    Parameters
+    ----------
+    candidate : str
+        Candidate word whose overlap has to be detected.
+    target : str
+        Target word against which the overlap will be detected
+
+    Returns
+    -------
+    float
+        Overlap score betwen candidate and the target.
+
+    """
+    if len(candidate) < len(target):
+        temp = candidate
+        candidate = target
+        target = temp
+    overlap = 0.0
+    while len(target) >= 2:
+        if target in candidate:
+            overlap = len(target)
+            return overlap*1.0/len(candidate)
+        else:
+            target = target[:-1]
+    return 0.0

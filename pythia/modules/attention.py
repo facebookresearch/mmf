@@ -108,6 +108,8 @@ class DoubleProjectAttention(nn.Module):
 
 
 class TopDownAttention(nn.Module):
+    EPS = 1.0e-08
+
     def __init__(self, combination_layer, transform_module, normalization):
         super(TopDownAttention, self).__init__()
         self.combination_layer = combination_layer
@@ -134,13 +136,15 @@ class TopDownAttention(nn.Module):
         joint_feature = self.combination_layer(image_feat, question_embedding)
         # N x K x n_att
         raw_attn = self.transform(joint_feature)
+
         if self.normalization.lower() == 'softmax':
             attention = nn.functional.softmax(raw_attn, dim=1)
             if image_locs is not None:
                 masked_attention = self._mask_attentions(attention, image_locs)
                 masked_attention_sum = torch.sum(masked_attention,
                                                  dim=1, keepdim=True)
-                masked_attention_sum += masked_attention_sum.eq(0).float()
+                masked_attention_sum += masked_attention_sum.eq(0).float() \
+                    + self.EPS
                 masked_attention = masked_attention / masked_attention_sum
             else:
                 masked_attention = attention

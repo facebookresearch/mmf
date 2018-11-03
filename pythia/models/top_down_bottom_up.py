@@ -157,7 +157,7 @@ class VQAMultiModalModel(BaseModel):
                     feature_feat_variable_ft,
                     text_embedding_total, feature_dim_variable_use)
                 feature_embeddings.append(i_embedding)
-                feature_attentions.append(att)
+                feature_attentions.append(att.squeeze(-1))
 
         feature_embedding_total = torch.cat(feature_embeddings, dim=1)
         return feature_embedding_total, feature_attentions

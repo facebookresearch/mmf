@@ -51,6 +51,7 @@ class Checkpoint:
         if self.config['resume_file'] is not None and \
            os.path.exists(self.config['resume_file']):
             self._load(self.config['resume_file'])
+            return
 
         ckpt_filepath = os.path.join(self.ckpt_foldername,
                                      self.ckpt_prefix + "best.ckpt")
@@ -63,12 +64,19 @@ class Checkpoint:
         self.trainer.writer.write("Loading checkpoint")
         ckpt = self._torch_load(file)
 
+        data_parallel = Registry.get('data_parallel')
+
         ckpt_model = ckpt['model']
         new_dict = {}
+
         for attr in ckpt_model:
             if 'fa_history' in attr:
                 new_dict[attr.replace('fa_history', 'fa_context')] = \
                     ckpt_model[attr]
+            elif data_parallel is False:
+                # In case the ckpt was actually a data parallel model
+                # replace first module. from dataparallel with empty string
+                new_dict[attr.replace("module.", "", 1)] = ckpt_model[attr]
             else:
                 new_dict[attr] = ckpt_model[attr]
 
@@ -99,8 +107,15 @@ class Checkpoint:
             'classifier': 'classifier'
         }
 
+        data_parallel = Registry.get('data_parallel')
+
+        if not data_parallel:
+            for key in attr_mapping:
+                attr_mapping[key.replace("module.", "")] = attr_mapping[key]
+                attr_mapping.pop(key)
+
         for key in attr_mapping:
-            getattr(model, key).load_state_dict(attr_mapping[key])
+            getattr(model, key).load_state_dict(ckpt_model[attr_mapping[key]])
 
     def _torch_load(self, file):
         if self.config['use_cuda']:
@@ -135,7 +150,7 @@ class Checkpoint:
         if os.path.exists(best_path):
             ckpt = self._torch_load(best_path)
             self.trainer.model.load_state_dict(ckpt['model'])
-            self.trainer.optimizer.load_state_dict()
+            self.trainer.optimizer.load_state_dict(ckpt['optimizer'])
 
     def finalize(self):
         torch.save(self.trainer.model, self.pth_filepath)

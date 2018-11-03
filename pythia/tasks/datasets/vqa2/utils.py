@@ -11,13 +11,19 @@ import re
 SENTENCE_SPLIT_REGEX = re.compile(r'(\W+)')
 
 
-def tokenize(sentence):
+def tokenize(sentence, regex=SENTENCE_SPLIT_REGEX):
     sentence = sentence.lower()
     sentence = (
         sentence.replace(',', '').replace('?', '').replace('\'s', ' \'s'))
-    tokens = SENTENCE_SPLIT_REGEX.split(sentence)
+    tokens = regex.split(sentence)
     tokens = [t.strip() for t in tokens if len(t.strip()) > 0]
     return tokens
+
+
+def word_tokenize(word):
+    word = word.lower()
+    word = word.replace(',', '').replace('?', '').replace('\'s', ' \'s')
+    return word.strip()
 
 
 def load_str_list(fname):
