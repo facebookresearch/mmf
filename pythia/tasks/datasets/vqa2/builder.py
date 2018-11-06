@@ -20,6 +20,7 @@ class VQA2Builder(DatasetBuilder):
         self.dataset_class = VQA2Dataset
 
     def _load(self, **opts):
+        self.opts = opts
         dataset_type = opts['dataset_type']
 
         self.data_root_dir = opts['data_root_dir']

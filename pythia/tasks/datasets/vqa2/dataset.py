@@ -70,6 +70,7 @@ class VQA2Dataset(BaseDataset):
 
         # the answer dict is always loaded, regardless of self.load_answer
         self.answer_dict = VocabDict(vocab_answer_file)
+        self.answer_space_size = self.answer_dict.num_vocab
 
         if self.load_gt_layout:
             self.T_decoder = data_params['T_decoder']
