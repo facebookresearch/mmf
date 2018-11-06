@@ -29,6 +29,11 @@ class BaseDataset(Dataset):
         self.meter = Meter(self.name, config['dataset_type'], task_metrics)
         self.loss_fn = Loss(config['loss'])
 
+        if type(config['loss']) == dict:
+            self.loss_name = config['loss']['type']
+        else:
+            self.loss_name = config['loss']
+
     def calculate_loss(self, output, expected_output, info):
         self.meter(output, expected_output)
 
@@ -165,6 +170,9 @@ class BaseDataset(Dataset):
 
             key = "%s_%s_%s" % (self.name, dataset_type, meter_type)
             scalars[key] = value
+
+        scalars["%s_%s" % (self.name, self.loss_name)] = loss
+
         self.writer.add_scalars(scalars, Registry.get('current_iteration'))
 
     def format_for_evalai(self, batch, answers):

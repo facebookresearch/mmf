@@ -30,6 +30,10 @@ class Loss(nn.Module):
             self.loss_criterion = CombinedLoss()
         elif loss_type == 'mse':
             self.loss_criterion = nn.MSELoss()
+        elif loss_type == 'bce':
+            self.loss_criterion = BinaryCrossEntropyLoss()
+        elif loss_type == 'nll':
+            self.loss_criterion = NLLLoss()
         elif loss_type == 'attention_supervision':
             self.loss_criterion = AttentionSupervisionLoss()
         elif loss_type == 'multi':
@@ -51,6 +55,29 @@ class LogitBinaryCrossEntropy(nn.Module):
         loss = F.binary_cross_entropy_with_logits(pred_score,
                                                   target_score,
                                                   size_average=True)
+
+        return loss * target_score.size(1)
+
+
+class BinaryCrossEntropyLoss(nn.Module):
+    def __init__(self):
+        super(BinaryCrossEntropyLoss, self).__init__()
+
+    def forward(self, pred_score, target_score, info={}, weights=None):
+        loss = F.binary_cross_entropy(pred_score, target_score,
+                                      size_average=True)
+
+        return loss * target_score.size(1)
+
+
+class NLLLoss(nn.Module):
+    def __init__(self):
+        super(NLLLoss, self).__init__()
+
+    def forward(self, pred_score, target_score, info={}, weights=None):
+        _, idx = target_score.max(dim=1)
+        loss = F.nll_loss(pred_score, idx,
+                          size_average=True)
 
         return loss * target_score.size(1)
 
