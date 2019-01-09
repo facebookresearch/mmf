@@ -1,4 +1,6 @@
 import os
+import torch
+import tqdm
 
 from pythia.core.tasks.datasets.features_dataset import FeaturesDataset
 from pythia.core.tasks.datasets.utils.feature_readers import FeatureReader
@@ -27,7 +29,8 @@ class COCOFeaturesDataset(FeaturesDataset):
         self.should_return_info = kwargs.get('return_info', False)
 
         if self.fast_read:
-            for feat_file in os.listdir(image_feature_dir):
+            for data in tqdm.tqdm(self.imdb[1:]):
+                feat_file = data['feature_path']
                 features, info = self._read_features_and_info(feat_file)
                 self.feature_dict[feat_file] = (features, info)
 
@@ -36,6 +39,8 @@ class COCOFeaturesDataset(FeaturesDataset):
         infos = []
         for feature_reader in self.feature_readers:
             feature, info = feature_reader.read(feat_file)
+            # feature = torch.from_numpy(feature).share_memory_()
+
             features.append(feature)
             infos.append(info)
 

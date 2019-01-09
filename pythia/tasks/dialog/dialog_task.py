@@ -1,8 +1,8 @@
 from pythia.core.tasks import BaseTask
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 
 
-@Registry.register_task('dialog')
+@registry.register_task('dialog')
 class DialogTask(BaseTask):
     def __init__(self):
         super(DialogTask, self).__init__('dialog')

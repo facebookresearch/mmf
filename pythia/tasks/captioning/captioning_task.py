@@ -1,8 +1,8 @@
 from pythia.core.tasks import BaseTask
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 
 
-@Registry.register_task('captioning')
+@registry.register_task('captioning')
 class CaptioningTask(BaseTask):
     def __init__(self):
         super(CaptioningTask, self).__init__('dialog')
