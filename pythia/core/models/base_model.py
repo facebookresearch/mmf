@@ -1,6 +1,6 @@
 from torch import nn
 
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 from pythia.modules.embeddings import TextEmbedding
 from pythia.modules.layers import Identity
 
@@ -22,7 +22,7 @@ class BaseModel(nn.Module):
 
         self.embeddings_out_dim = 0
 
-        text_vocab = Registry.get("vocabs." + attr.split("_")[0] + "_vocab")
+        text_vocab = registry.get("vocabs." + attr.split("_")[0] + "_vocab")
 
         if text_vocab.type == "model":
             # If vocab type is model, it is probably a fasttext model

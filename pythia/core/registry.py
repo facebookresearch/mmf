@@ -87,3 +87,6 @@ class Registry:
     @classmethod
     def unregister(cls, name):
         cls.mapping['state'].pop(name, None)
+
+
+registry = Registry()

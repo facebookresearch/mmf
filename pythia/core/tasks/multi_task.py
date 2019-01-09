@@ -2,7 +2,7 @@ import numpy as np
 
 from torch.utils.data import Dataset
 
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 
 
 class MultiTask(Dataset):
@@ -19,7 +19,7 @@ class MultiTask(Dataset):
         self.tasks_lens = []
 
         for task_name in self.task_names:
-            task_class = Registry.get_task_class(task_name)
+            task_class = registry.get_task_class(task_name)
             if task_class is None:
                 print("[Error] %s not present in our mapping"
                       % task_name)
@@ -62,8 +62,11 @@ class MultiTask(Dataset):
 
     def calculate_loss(self, output, expected_output, info):
         loss = self.chosen_task.calculate_loss(output, expected_output, info)
-        Registry.register('metrics.%s.loss' % self.dataset_type, loss)
+        registry.register('metrics.%s.loss' % self.dataset_type, loss)
         return loss
+
+    def verbose_dump(self, *args):
+        self.chosen_task.verbose_dump(*args)
 
     def __len__(self):
         return sum(self.tasks_lens)

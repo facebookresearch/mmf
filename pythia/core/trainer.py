@@ -15,7 +15,7 @@ from pythia.utils.build import build_model
 from pythia.utils.timer import Timer
 from pythia.utils.early_stopping import EarlyStopping
 from pythia.core.task_loader import TaskLoader
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 from pythia.core.text.vocab import Vocab
 
 
@@ -32,7 +32,7 @@ class Trainer:
         self.init_task()
 
         self.writer = Logger(self.config)
-        Registry.register('writer', self.writer)
+        registry.register('writer', self.writer)
 
         self.configuration.pretty_print()
 
@@ -50,7 +50,7 @@ class Trainer:
         self.configuration.update_with_args(self.args, force=True)
 
         self.config = self.configuration.get_config()
-        Registry.register('config', self.config)
+        registry.register('config', self.config)
 
         self.config_based_setup()
 
@@ -86,15 +86,19 @@ class Trainer:
         training_parameters = self.config['training_parameters']
         if 'text_vocab' in training_parameters:
             self.text_vocab = Vocab.get(**training_parameters['text_vocab'])
-            Registry.register('vocabs.text_vocab', self.text_vocab)
+            registry.register('vocabs.text_vocab', self.text_vocab)
 
         if 'context_vocab' in training_parameters:
             params = training_parameters['context_vocab']
             self.context_vocab = Vocab.get(**params)
-            Registry.register('vocabs.context_vocab', self.context_vocab)
+            registry.register('vocabs.context_vocab', self.context_vocab)
 
     def load_model(self):
         attributes = self.config['model_attributes'][self.config['model']]
+
+        # Easy way to point to config for other model
+        if type(attributes) == str:
+            attributes = self.config['model_attributes'][attributes]
         attributes['model'] = self.config['model']
 
         self.task_loader.update_config_for_model(attributes)
@@ -106,7 +110,7 @@ class Trainer:
         no_data_parallel = training_parameters.get('no_data_parallel', None)
         data_parallel = no_data_parallel is None or no_data_parallel is False
 
-        Registry.register('data_parallel', data_parallel)
+        registry.register('data_parallel', data_parallel)
 
         if use_cuda:
             self.writer.write("CUDA Device is: "
@@ -194,14 +198,15 @@ class Trainer:
         torch.autograd.set_detect_anomaly(True)
         while self.current_iteration < max_iterations:
             self.current_epoch += 1
-            Registry.register('current_epoch', self.current_epoch)
+            registry.register('current_epoch', self.current_epoch)
 
             if should_check_on_epoch and self.current_epoch > max_epochs:
                 break
 
             for batch in self.train_loader:
                 self.current_iteration += 1
-                Registry.register('current_iteration', self.current_iteration)
+                self.writer.write(self.current_iteration, "debug")
+                registry.register('current_iteration', self.current_iteration)
 
                 if self.current_iteration > max_iterations:
                     break
@@ -222,8 +227,11 @@ class Trainer:
                 output, info = self._separate_out_output(output)
 
                 info['batch'] = data
+                info['original_batch'] = batch
+
                 self.profile("Forward time")
 
+                self.task_loader.verbose_dump('train', output, y, info)
                 loss = self.task_loader.calculate_loss('train', output,
                                                        y, info)
                 loss.backward()
@@ -290,7 +298,7 @@ class Trainer:
         self.model.train()
 
         # TODO: Do replace in log string function itself
-        return "dev: " + dict_to_string(Registry.get('metrics.%s' %
+        return "dev: " + dict_to_string(registry.get('metrics.%s' %
                                                      dataset_type))
 
     def evaluate(self, dataset_type, loader):
@@ -308,6 +316,7 @@ class Trainer:
             output = self.model(**data)
             output, info = self._separate_out_output(output)
             info['batch'] = data
+            info['original_batch'] = batch
 
             loss = self.task_loader.calculate_loss(dataset_type, output,
                                                    y, info)

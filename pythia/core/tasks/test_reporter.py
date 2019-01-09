@@ -5,15 +5,15 @@ from torch.utils.data import Dataset, DataLoader
 
 from pythia.utils.general import ckpt_name_from_core_args, \
                                  foldername_from_config_override
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 from pythia.utils.timer import Timer
 
 
 class TestReporter(Dataset):
     def __init__(self, multi_task_instance):
         self.test_task = multi_task_instance
-        self.config = Registry.get('config')
-        self.writer = Registry.get('writer')
+        self.config = registry.get('config')
+        self.writer = registry.get('writer')
         self.report = []
         self.timer = Timer()
         self.training_parameters = self.config['training_parameters']

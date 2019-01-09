@@ -1,11 +1,12 @@
 import torch
 
+from collections import Counter
 from torch.autograd import Variable
 from torch.utils.data.dataset import Dataset
 
 from pythia.core.losses import Loss
 from pythia.core.meter import Meter
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 
 
 class BaseDataset(Dataset):
@@ -13,14 +14,14 @@ class BaseDataset(Dataset):
         super(BaseDataset, self).__init__()
         self.config = config
         self.name = name
-        self.use_cuda = Registry.get('config')['use_cuda']
+        self.use_cuda = registry.get('config')['use_cuda']
 
-        self.text_vocab = Registry.get('vocabs.text_vocab')
-        self.context_vocab = Registry.get('vocabs.context_vocab')
+        self.text_vocab = registry.get('vocabs.text_vocab')
+        self.context_vocab = registry.get('vocabs.context_vocab')
 
     def init_loss_and_metrics(self, config):
-        self.writer = Registry.get('writer')
-        self.should_log = Registry.get('config').get('should_log', True)
+        self.writer = registry.get('writer')
+        self.should_log = registry.get('config').get('should_log', True)
 
         task_metrics = config.get('metrics', [])
         if isinstance(task_metrics, str):
@@ -35,10 +36,9 @@ class BaseDataset(Dataset):
             self.loss_name = config['loss']
 
     def calculate_loss(self, output, expected_output, info):
-        self.meter(output, expected_output)
+        self.meter(output, expected_output, info)
 
         self.last_loss = self.loss_fn(output, expected_output, info)
-
         return self.last_loss
 
     def reset_meters(self):
@@ -80,6 +80,7 @@ class BaseDataset(Dataset):
         # TODO: Figure out what will be the default value here, which will be
         # linked to max_context_len
         #
+        # NOTE: A good strategy would be based overriding based on dataset
         # TODO: Find a better way to clean this mess
         input_contexts = batch.get('contexts', None)
 
@@ -173,7 +174,10 @@ class BaseDataset(Dataset):
 
         scalars["%s_%s" % (self.name, self.loss_name)] = loss
 
-        self.writer.add_scalars(scalars, Registry.get('current_iteration'))
+        self.writer.add_scalars(scalars, registry.get('current_iteration'))
 
     def format_for_evalai(self, batch, answers):
         return []
+
+    def verbose_dump(self, output, expected_output, info):
+        return

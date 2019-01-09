@@ -1,15 +1,16 @@
 import numpy as np
+import sys
 
 from torch.utils.data import Dataset
 
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 
 
 class BaseTask(Dataset):
     def __init__(self, task_name):
         super(BaseTask, self).__init__()
         self.task_name = task_name
-        self.writer = Registry.get('writer')
+        self.writer = registry.get('writer')
 
     def _process_datasets(self):
         if 'datasets' not in self.opts:
@@ -34,7 +35,7 @@ class BaseTask(Dataset):
 
     def load(self, **opts):
         self.opts = opts
-        self.use_cuda = Registry.get('config')['use_cuda']
+        self.use_cuda = registry.get('config')['use_cuda']
         self._process_datasets()
 
         self.datasets = []
@@ -47,14 +48,21 @@ class BaseTask(Dataset):
 
         for dataset in self.given_datasets:
             if dataset in available_datasets:
-                builder_class = Registry.get_builder_class(dataset)
+                builder_class = registry.get_builder_class(dataset)
 
                 if builder_class is None:
                     print("No builder class found for %s." % dataset)
                     continue
                 builder_instance = builder_class()
 
-                attributes = self.opts['dataset_attributes'][dataset]
+                if dataset in self.opts['dataset_attributes']:
+                    attributes = self.opts['dataset_attributes'][dataset]
+                else:
+                    self.writer.write("Dataset %s is missing from "
+                                      "dataset_attributes in config."
+                                      % dataset, "error")
+                    sys.exit(1)
+
                 attributes['dataset_type'] = self.opts.get('dataset_type',
                                                            "train")
                 builder_instance.build(**attributes)
@@ -120,6 +128,9 @@ class BaseTask(Dataset):
 
     def reset_meters(self):
         self.chosen_dataset.reset_meters()
+
+    def verbose_dump(self, *args):
+        self.chosen_dataset.verbose_dump(*args)
 
     def prepare_batch(self, batch):
         return self.chosen_dataset.prepare_batch(batch)

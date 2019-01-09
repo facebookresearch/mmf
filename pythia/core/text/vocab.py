@@ -186,8 +186,8 @@ class CustomVocab(BaseVocab):
             embedding_file = os.path.join(data_dir, embedding_file)
 
         if not os.path.exists(embedding_file):
-            from pythia.core.registry import Registry
-            writer = Registry.get('writer')
+            from pythia.core.registry import registry
+            writer = registry.get('writer')
             error = "Embedding file path %s doesn't exist" % embedding_file
             if writer is not None:
                 writer.write(error, "error")
@@ -239,8 +239,8 @@ class IntersectedVocab(BaseVocab):
         class_name = EMBEDDING_NAME_CLASS_MAPPING[name]
 
         if not hasattr(vocab, class_name):
-            from pythia.core.registry import Registry
-            writer = Registry.get('writer')
+            from pythia.core.registry import registry
+            writer = registry.get('writer')
             error = "Unknown embedding type: %s" % name, "error"
             if writer is not None:
                 writer.write(error, "error")
@@ -285,8 +285,8 @@ class PretrainedVocab(BaseVocab):
         self.type = "pretrained"
 
         if embedding_name not in vocab.pretrained_aliases:
-            from pythia.core.registry import Registry
-            writer = Registry.get('writer')
+            from pythia.core.registry import registry
+            writer = registry.get('writer')
             error = "Unknown embedding type: %s" % embedding_name, "error"
             if writer is not None:
                 writer.write(error, "error")
@@ -361,9 +361,9 @@ class ModelVocab(BaseVocab):
 
     def _load_fasttext_model(self, model_file):
         from fastText import load_model
-        from pythia.core.registry import Registry
+        from pythia.core.registry import registry
 
-        Registry.get('writer').write("Loading fasttext model now from %s"
+        registry.get('writer').write("Loading fasttext model now from %s"
                                      % model_file)
 
         self.model = load_model(model_file)

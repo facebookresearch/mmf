@@ -115,3 +115,7 @@ class TaskLoader:
 
     def reset_meters(self, dataset_type):
         self.mapping[dataset_type].reset_meters()
+
+    def verbose_dump(self, dataset_type, *args):
+        if self.config['verbose_dump']:
+            self.mapping[dataset_type].verbose_dump(*args)
