@@ -8,7 +8,7 @@ import demjson
 import collections
 
 from .general import nested_dict_update
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 
 
 class Configuration:
@@ -80,7 +80,7 @@ class Configuration:
         return dictionary
 
     def pretty_print(self):
-        self.writer = Registry.get('writer')
+        self.writer = registry.get('writer')
 
         self.writer.write("=====  Training Parameters    =====", "info")
         self.writer.write(json.dumps(self.config['training_parameters'],

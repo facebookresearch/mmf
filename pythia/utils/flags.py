@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 
 
 class Flags:
@@ -97,6 +97,10 @@ class Flags:
                                  default=None,
                                  help="Whether predictions should be made"
                                  " for EvalAI.")
+        self.parser.add_argument("--verbose_dump", type=bool,
+                                 default=None,
+                                 help="Whether to do verbose dump of dataset"
+                                 " samples, predictions and other things.")
         self.parser.add_argument("--lr_scheduler", type=bool,
                                  default=None,
                                  help="Use when you want to use lr scheduler")
@@ -111,6 +115,15 @@ class Flags:
                                  " to use CUDA")
         self.parser.add_argument("-p", "--patience", type=int,
                                  default=None, help="Patience for early stop")
+
+        self.parser.add_argument("-pt", "--pretrained", type=int,
+                                 default=None,
+                                 help="If using a pretrained model. "
+                                 "Must be used with --resume_file parameter "
+                                 "to specify pretrained model checkpoint. "
+                                 "Will load only specific layers if "
+                                 "pretrained mapping is specified in config")
+
         self.parser.add_argument("-nw", "--num_workers", type=int,
                                  default=None,
                                  help="Number of workers for dataloaders")
@@ -129,7 +142,7 @@ class Flags:
                          task_names.split(","))
 
         for task_name in task_names:
-            task_class = Registry.get_task_class(task_name)
+            task_class = registry.get_task_class(task_name)
             if task_class is None:
                 return
 
@@ -146,7 +159,7 @@ class Flags:
         if model_name is None:
             return
 
-        model_class = Registry.get_model_class(model_name)
+        model_class = registry.get_model_class(model_name)
         if model_class is None:
             return
 

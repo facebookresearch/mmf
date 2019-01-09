@@ -1,6 +1,6 @@
 import numpy as np
 
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 
 
 class EarlyStopping:
@@ -35,7 +35,7 @@ class EarlyStopping:
         Returns:
             bool -- Tells whether early stopping occurred or not
         """
-        value = Registry.get('metrics.dev.%s' % self.monitored_metric)
+        value = registry.get('metrics.dev.%s' % self.monitored_metric)
         if hasattr(value, 'data'):
             value = value.data.item()
 

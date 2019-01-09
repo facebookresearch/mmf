@@ -4,7 +4,7 @@ import yaml
 
 from pythia.utils.general import ckpt_name_from_core_args, \
                                  foldername_from_config_override
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 
 
 class Checkpoint:
@@ -64,11 +64,19 @@ class Checkpoint:
         self.trainer.writer.write("Loading checkpoint")
         ckpt = self._torch_load(file)
 
-        data_parallel = Registry.get('data_parallel')
+        data_parallel = registry.get('data_parallel')
 
         ckpt_model = ckpt['model']
+
+        pretrained_mapping = self.config['training_parameters'].get(
+            'pretrained_mapping', {})
+
+        if self.config['pretrained'] is None:
+            pretrained_mapping = {}
+
         new_dict = {}
 
+        # TODO: Move to separate function
         for attr in ckpt_model:
             if 'fa_history' in attr:
                 new_dict[attr.replace('fa_history', 'fa_context')] = \
@@ -80,21 +88,43 @@ class Checkpoint:
             else:
                 new_dict[attr] = ckpt_model[attr]
 
-        self.trainer.model.load_state_dict(new_dict)
-        self.trainer.optimizer.load_state_dict(ckpt['optimizer'])
-        self.trainer.early_stopping.init_from_checkpoint(ckpt)
+        if len(pretrained_mapping.items()) == 0:
+            final_dict = new_dict
 
-        self.trainer.writer.write("Checkpoint loaded")
+            self.trainer.model.load_state_dict(final_dict)
+            self.trainer.optimizer.load_state_dict(ckpt['optimizer'])
+            self.trainer.early_stopping.init_from_checkpoint(ckpt)
 
-        if 'best_iteration' in ckpt:
-            self.trainer.current_iteration = ckpt['best_iteration']
-            Registry.register('current_iteration',
-                              self.trainer.current_iteration)
+            self.trainer.writer.write("Checkpoint loaded")
 
-        if 'best_epoch' in ckpt:
-            self.trainer.current_epoch = ckpt['best_epoch']
-            Registry.register('current_epoch',
-                              self.trainer.current_epoch)
+            if 'best_iteration' in ckpt:
+                self.trainer.current_iteration = ckpt['best_iteration']
+                registry.register('current_iteration',
+                                  self.trainer.current_iteration)
+
+            if 'best_epoch' in ckpt:
+                self.trainer.current_epoch = ckpt['best_epoch']
+                registry.register('current_epoch',
+                                  self.trainer.current_epoch)
+        else:
+            final_dict = {}
+            model = self.trainer.model
+            own_state = model.state_dict()
+            for key, value in pretrained_mapping.items():
+                key = "." + key + "."
+                value = "." + value + "."
+                for attr in new_dict:
+                    for own_attr in own_state:
+                        if 'fa_context' in own_attr:
+                            continue
+                        if key in attr and value in own_attr \
+                            and attr.replace(key, "") == \
+                                own_attr.replace(value, ""):
+                            print("Copying", attr, own_attr)
+                            own_state[own_attr].copy_(
+                                new_dict[attr]
+                            )
+            self.trainer.writer.write("Pretrained model loaded")
 
     def _load_state_dict_mapping(self, ckpt_model):
         model = self.trainer.model
@@ -107,7 +137,7 @@ class Checkpoint:
             'classifier': 'classifier'
         }
 
-        data_parallel = Registry.get('data_parallel')
+        data_parallel = registry.get('data_parallel')
 
         if not data_parallel:
             for key in attr_mapping:
