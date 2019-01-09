@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 
 
 class Loss(nn.Module):
@@ -54,7 +54,7 @@ class LogitBinaryCrossEntropy(nn.Module):
     def forward(self, pred_score, target_score, info={}, weights=None):
         loss = F.binary_cross_entropy_with_logits(pred_score,
                                                   target_score,
-                                                  size_average=True)
+                                                  reduction='mean')
 
         return loss * target_score.size(1)
 
@@ -65,7 +65,7 @@ class BinaryCrossEntropyLoss(nn.Module):
 
     def forward(self, pred_score, target_score, info={}, weights=None):
         loss = F.binary_cross_entropy(pred_score, target_score,
-                                      size_average=True)
+                                      reduction='mean')
 
         return loss * target_score.size(1)
 
@@ -77,7 +77,7 @@ class NLLLoss(nn.Module):
     def forward(self, pred_score, target_score, info={}, weights=None):
         _, idx = target_score.max(dim=1)
         loss = F.nll_loss(pred_score, idx,
-                          size_average=True)
+                          reduction='mean')
 
         return loss * target_score.size(1)
 
@@ -97,7 +97,7 @@ class MultiLoss(nn.Module):
         super(MultiLoss, self).__init__()
         self.losses = []
         self.losses_weights = []
-        self.writer = Registry.get('writer')
+        self.writer = registry.get('writer')
 
         self.loss_names = []
 
@@ -110,7 +110,7 @@ class MultiLoss(nn.Module):
 
     def forward(self, pred_score, target_score, info={}):
         loss = 0
-        iteration = Registry.get('current_iteration')
+        iteration = registry.get('current_iteration')
 
         for idx, loss_fn in enumerate(self.losses):
             value = loss_fn(pred_score, target_score, info)
@@ -137,6 +137,7 @@ class AttentionSupervisionLoss(nn.Module):
                             attention_supervision.float(),
                             weight=attention_supervision.float())
 
+        # Multiply average loss back with target size to get actual loss
         return loss * attention_supervision.size(1)
 
 
@@ -184,7 +185,7 @@ class WrongLoss(nn.Module):
         tar = target_score / tar_sum
 
         res = F.log_softmax(pred_score, dim=1)
-        loss = F.kl_div(res, tar, size_average=True)
+        loss = F.kl_div(res, tar, reduction='mean')
         loss *= target_score.size(1)
         return loss
 
@@ -206,7 +207,8 @@ class CombinedLoss(nn.Module):
 
         loss2 = F.binary_cross_entropy_with_logits(pred_score,
                                                    target_score,
-                                                   size_average=True)
+                                                   reduction='mean'
+                                                   )
         loss2 *= target_score.size(1)
 
         loss = self.weight_softmax * loss1 + loss2

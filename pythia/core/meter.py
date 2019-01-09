@@ -1,6 +1,6 @@
 import torch
 
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 
 
 class Meter:
@@ -22,28 +22,27 @@ class Meter:
         if not isinstance(meter_types, list):
             meter_types = [meter_types]
 
-        self.config = Registry.get('config')
+        self.config = registry.get('config')
         self.meter_types = meter_types
         self.reset()
         self.dataset_name = dataset_name
         self.top_level_key = "metrics.%s." % dataset_type
 
-    def __call__(self, output, expected):
+    def __call__(self, output, expected, info={}):
         values = []
         self.iteration_count += 1
-
         for i in range(len(self.meter_types)):
             meter_type = self.meter_types[i]
             # func = getattr(self, self.METRICS_TO_FUNC_MAPPING[meter_type])
-            func = Registry.get_metric_func(meter_type)
+            func = registry.get_metric_func(meter_type)
             # Maintain value in the function itself.
             # If you need to calculate average,
             # use 'iteration_count' to update the value
-            value = func(self, self.meter_values[i], output, expected)
+            value = func(self, self.meter_values[i], output, expected, info)
             values.append(value)
             key = self.top_level_key + "%s_%s" % (self.dataset_name,
                                                   meter_type)
-            Registry.register(key, value)
+            registry.register(key, value)
             self.meter_values[i] = value
 
         return values
@@ -64,7 +63,7 @@ class Meter:
             self.meter_values.append(0)
 
         if self.dataset_type == "train":
-            self.iteration_count = Registry.get('current_iteration', 0)
+            self.iteration_count = registry.get('current_iteration', 0)
         else:
             self.iteration_count = 0
 
@@ -94,8 +93,8 @@ class Meter:
         y = x1 / x1_sum
         return y
 
-    @Registry.register_metric('accuracy')
-    def accuracy(self, current, output, expected):
+    @registry.register_metric('accuracy')
+    def accuracy(self, current, output, expected, info={}):
         if self.config['use_cuda']:
             correct = (expected == output.squeeze()).data.cpu().numpy().sum()
         else:
@@ -105,11 +104,12 @@ class Meter:
 
         return correct / total
 
-    @Registry.register_metric('vqa_accuracy')
-    def average_vqa_accuracy(self, current, output, expected):
+    @registry.register_metric('vqa_accuracy')
+    def average_vqa_accuracy(self, current, output, expected, info={}):
         expected_data = expected.data
         output = self.masked_unk_softmax(output, 1, 0)
         output = torch.max(output, 1)[1].data  # argmax
+
         one_hots = torch.zeros(*expected_data.size())
         one_hots = one_hots.cuda() if output.is_cuda else one_hots
         one_hots.scatter_(1, output.view(-1, 1), 1)
@@ -132,20 +132,20 @@ class Meter:
         current /= self.iteration_count
         return current
 
-    @Registry.register_metric('r@1')
-    def recall_at_1(self, current, output, expected):
+    @registry.register_metric('r@1')
+    def recall_at_1(self, current, output, expected, info={}):
         return self.recall_at_k(current, output, expected, 1)
 
-    @Registry.register_metric('r@5')
-    def recall_at_5(self, current, output, expected):
+    @registry.register_metric('r@5')
+    def recall_at_5(self, current, output, expected, info={}):
         return self.recall_at_k(current, output, expected, 5)
 
-    @Registry.register_metric('r@10')
-    def recall_at_10(self, current, output, expected):
+    @registry.register_metric('r@10')
+    def recall_at_10(self, current, output, expected, info={}):
         return self.recall_at_k(current, output, expected, 10)
 
-    @Registry.register_metric('mean_r')
-    def mean_rank(self, current, output, expected):
+    @registry.register_metric('mean_r')
+    def mean_rank(self, current, output, expected, info={}):
         ranks = self.get_ranks(output, expected)
         current = current * (self.iteration_count - 1)
         current += torch.mean(ranks)
@@ -158,8 +158,8 @@ class Meter:
         ranks = self.process_ranks(gt_ranks)
         return ranks.float()
 
-    @Registry.register_metric('mean_rr')
-    def mean_reciprocal_rank(self, current, output, expected):
+    @registry.register_metric('mean_rr')
+    def mean_reciprocal_rank(self, current, output, expected, info={}):
         ranks = self.get_ranks(output, expected)
         current = current * (self.iteration_count - 1)
         current += torch.mean(ranks.reciprocal())
