@@ -1,10 +1,8 @@
-import torch
-
 from pythia.models.top_down_bottom_up import VQAMultiModalModel
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 
 
-@Registry.register_model('vizwiz_top_down_bottom_up')
+@registry.register_model('vizwiz_top_down_bottom_up')
 class VizWizMultiModalModel(VQAMultiModalModel):
     def __init__(self, config):
         super(VizWizMultiModalModel, self).__init__(config)
@@ -20,6 +18,13 @@ class VizWizMultiModalModel(VQAMultiModalModel):
         self._init_feature_encoders("context")
         self._init_feature_embeddings("context")
         self._init_feature_embeddings("image")
+        if hasattr(self, 'use_order_vectors') and \
+                self.use_order_vectors is True:
+            embedding_attr = self._get_embeddings_attr("context")
+            max_len = self.config['context_max_len']
+            original_attr = getattr(self, embedding_attr)
+            setattr(self, embedding_attr, original_attr + max_len)
+
         self._init_combine_layer("image", "text")
         self._init_combine_layer("context", "text")
 
@@ -80,6 +85,7 @@ class VizWizMultiModalModel(VQAMultiModalModel):
                 context_embeddings,
                 context_dim_variable,
                 text_embedding_total
+                # {'order_vectors': info.get('order_vectors')}
              )
 
         if self.inter_model is not None:

@@ -3,14 +3,14 @@ import torch
 from torch import nn
 
 from pythia.core.models.base_model import BaseModel
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 from pythia.modules.embeddings import ImageEmbedding
 from pythia.modules.encoders import ImageEncoder
 from pythia.modules.layers import ModalCombineLayer, ClassifierLayer, \
                                   ReLUWithWeightNormFC
 
 
-@Registry.register_model("top_down_bottom_up")
+@registry.register_model("top_down_bottom_up")
 class VQAMultiModalModel(BaseModel):
     def __init__(self, config):
         super(VQAMultiModalModel, self).__init__(config)
@@ -138,7 +138,8 @@ class VQAMultiModalModel(BaseModel):
         return text_embeddding_total
 
     def process_feature_embedding(self, attr, feature_variables,
-                                  feature_dim_variable, text_embedding_total):
+                                  feature_dim_variable, text_embedding_total,
+                                  extra=None):
         feature_embeddings = []
         feature_attentions = []
 
@@ -153,9 +154,13 @@ class VQAMultiModalModel(BaseModel):
             list_attr = attr + "_feature_embeddings_list"
             feature_embedding_models_i = getattr(self, list_attr)[i]
             for i_model in feature_embedding_models_i:
-                i_embedding, att = i_model(
-                    feature_feat_variable_ft,
-                    text_embedding_total, feature_dim_variable_use)
+                inp = (feature_feat_variable_ft, text_embedding_total,
+                       feature_dim_variable_use)
+
+                if extra is not None:
+                    inp = (*inp, extra)
+
+                i_embedding, att = i_model(*inp)
                 feature_embeddings.append(i_embedding)
                 feature_attentions.append(att.squeeze(-1))
 
@@ -201,6 +206,87 @@ class VQAMultiModalModel(BaseModel):
         joint_embedding = self.combine_embeddings(["image", "text"],
                                                   [image_embedding_total,
                                                   text_embedding_total])
+
+        return self.calculate_logits(joint_embedding)
+
+
+@registry.register_model("top_down_bottom_up_question_only")
+class VQAMultiModalModelQuestionOnly(VQAMultiModalModel):
+    def __init__(self, config):
+        super(VQAMultiModalModelQuestionOnly, self).__init__(config)
+
+    def forward(self, image_features, texts, info={},
+                input_answers=None, **kwargs):
+
+        input_text_variable = texts
+        image_dim_variable = info.get('image_dim', None)
+        image_feature_variables = image_features
+        text_embedding_total = self.process_text_embedding(input_text_variable)
+
+        assert (len(image_feature_variables) ==
+                len(self.image_feature_encoders)), \
+            "number of image feature model doesnot equal \
+             to number of image features"
+
+        image_embedding_total, _ = self.process_feature_embedding(
+            "image",
+            image_feature_variables,
+            image_dim_variable,
+            text_embedding_total
+        )
+
+        if self.inter_model is not None:
+            image_embedding_total = self.inter_model(image_embedding_total)
+
+        image_embedding_total.zero_()
+
+        text_fa = self.image_text_multi_modal_combine_layer.module.fa_txt(
+            text_embedding_total)
+        if len(image_embedding_total.data.shape) == 3:
+            num_location = image_embedding_total.data.size(1)
+            question_fa_expand = torch.unsqueeze(
+                text_fa, 1).expand(-1, num_location, -1)
+        else:
+            question_fa_expand = text_fa
+        dropout =  self.image_text_multi_modal_combine_layer.module.dropout
+        joint_embedding = dropout(question_fa_expand)
+
+        return self.calculate_logits(joint_embedding)
+
+
+@registry.register_model("top_down_bottom_up_image_only")
+class VQAMultiModalModelImageOnly(VQAMultiModalModel):
+    def __init__(self, config):
+        super(VQAMultiModalModelImageOnly, self).__init__(config)
+
+    def forward(self, image_features, texts, info={},
+                input_answers=None, **kwargs):
+
+        input_text_variable = texts
+        image_dim_variable = info.get('image_dim', None)
+        image_feature_variables = image_features
+        text_embedding_total = self.process_text_embedding(input_text_variable)
+
+        text_embedding_total.zero_()
+        assert (len(image_feature_variables) ==
+                len(self.image_feature_encoders)), \
+            "number of image feature model doesnot equal \
+             to number of image features"
+
+        image_embedding_total, _ = self.process_feature_embedding(
+            "image",
+            image_feature_variables,
+            image_dim_variable,
+            text_embedding_total
+        )
+
+        if self.inter_model is not None:
+            image_embedding_total = self.inter_model(image_embedding_total)
+
+        fa_image = self.image_text_multi_modal_combine_layer.module.fa_image
+        dropout = self.image_text_multi_modal_combine_layer.module.dropout
+        joint_embedding = fa_image(image_embedding_total)
+        joint_embedding = dropout(joint_embedding)
 
         return self.calculate_logits(joint_embedding)
 
