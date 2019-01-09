@@ -1,9 +1,9 @@
 from pythia.tasks.datasets.vqa2.builder import VQA2Builder
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 from .dataset import VizWizDataset
 
 
-@Registry.register_builder('vizwiz')
+@registry.register_builder('vizwiz')
 class VizWizBuilder(VQA2Builder):
     def __init__(self):
         super(VizWizBuilder, self).__init__()
