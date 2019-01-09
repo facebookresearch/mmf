@@ -10,10 +10,10 @@ import os
 
 from .dataset import VQA2Dataset, VQAConcatDataset
 from pythia.core.tasks.dataset_builder import DatasetBuilder
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 
 
-@Registry.register_builder('vqa2')
+@registry.register_builder('vqa2')
 class VQA2Builder(DatasetBuilder):
     def __init__(self):
         super(VQA2Builder, self).__init__('VQA2')
@@ -55,6 +55,10 @@ class VQA2Builder(DatasetBuilder):
         parser.add_argument_group("VQA2 task specific arguments")
         parser.add_argument('--data_root_dir', type=str, default="../data",
                             help="Root directory for data")
+        parser.add_argument("-nfr", "--slow_read", type=bool,
+                            default=None,
+                            help="Disable fast read and "
+                                 "load features on fly")
 
     def prepare_train_data_set(self, **data_config):
         return self.prepare_data_set('imdb_file_train',
@@ -63,15 +67,12 @@ class VQA2Builder(DatasetBuilder):
 
     def prepare_eval_data_set(self, **data_config):
         # TODO: Add enforce_slow_reader to task args
-        enforce_slow_reader = data_config['enforce_slow_reader']
-        if enforce_slow_reader is True:
-            data_config['image_fast_reader'] = False
-
         return self.prepare_data_set('imdb_file_val', 'image_feat_val',
                                      **data_config)
 
     def prepare_test_data_set(self, **data_config):
-        data_config['image_fast_reader'] = False
+        # NOTE: Don't fast load test
+        data_config['slow_read'] = True
         return self.prepare_data_set('imdb_file_test', 'image_feat_test',
                                      **data_config)
 
@@ -90,7 +91,7 @@ class VQA2Builder(DatasetBuilder):
             layout_max_len = data_config.get('layout_max_len', 13)
 
         prune_filter_mod = data_config.get('prune_filter_module', False)
-        image_fast_reader = data_config.get('image_fast_reader', False)
+        fast_read = not data_config.get('slow_read', False)
         verbose = data_config.get('verbose', False)
         test_mode = data_config.get('test_mode', False)
 
@@ -118,7 +119,7 @@ class VQA2Builder(DatasetBuilder):
                                 T_decoder=layout_max_len,
                                 assembler=None,
                                 prune_filter_module=prune_filter_mod,
-                                fast_read=image_fast_reader,
+                                fast_read=fast_read,
                                 verbose=verbose,
                                 test_mode=test_mode,
                                 **data_config)

@@ -31,3 +31,4 @@ task_attributes:
       vqa2:
         loss: logit_bce
         data_root_dir: data/
+        slow_read: false

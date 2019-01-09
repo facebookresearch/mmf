@@ -1,9 +1,12 @@
 import os
 import numpy as np
+import torch
+import tqdm
 
 from torch.utils.data import ConcatDataset
 
 from .utils import VocabDict
+from .utils import word_tokenize
 from pythia.core.constants import imdb_version
 # TODO: Move in __all__ in __init__.py
 from pythia.tasks.datasets.coco.coco_features_dataset \
@@ -26,7 +29,7 @@ def compute_answer_scores(answers, num_of_answers, unk_idx):
 class VQA2Dataset(BaseDataset):
     def __init__(self, imdb_file,
                  image_feat_directories, verbose=False, **data_params):
-        super(VQA2Dataset, self).__init__('vqa', data_params)
+        super(VQA2Dataset, self).__init__('vqa2', data_params)
 
         if imdb_file.endswith('.npy'):
             imdb = ImageDataset(imdb_file)
@@ -72,6 +75,7 @@ class VQA2Dataset(BaseDataset):
         self.answer_dict = VocabDict(vocab_answer_file)
         self.answer_space_size = self.answer_dict.num_vocab
 
+        # TODO: Clean later with info
         if self.load_gt_layout:
             self.T_decoder = data_params['T_decoder']
             self.assembler = data_params['assembler']
@@ -89,6 +93,13 @@ class VQA2Dataset(BaseDataset):
                             fast_read=data_params['fast_read'],
                             return_info=self.config.get('return_info', False))
 
+        self.fast_read = data_params['fast_read']
+
+        if self.fast_read is True:
+            self.cache = {}
+            for idx in tqdm.tqdm(range(len(self.imdb) - 1)):
+                self.cache[idx] = self.load_item(idx)
+
     def format_for_evalai(self, batch, answers):
         answers = answers.argmax(dim=1)
 
@@ -104,15 +115,38 @@ class VQA2Dataset(BaseDataset):
 
         return predictions
 
+    def verbose_dump(self, output, expected_output, info):
+        print(info['original_batch']['valid_answers'])
+        actual = torch.max(output, 1)[1].data
+
+        for idx, item in enumerate(actual):
+            item = item.item()
+            prediction = self.answer_dict.idx2word(item)
+            print("Prediction")
+            print(prediction)
+
+        print("")
+
     def __len__(self):
         return len(self.imdb) - 1
 
     def __getitem__(self, idx):
+        if self.fast_read is True:
+            return self.cache[idx]
+        else:
+            return self.load_item(idx)
+
+    def load_item(self, idx):
         input_seq = np.zeros((self.T_encoder), np.int32)
         idx += self.first_element_idx
         # TODO: Bring back commented out code when we reformat imdb
         # iminfo = self.imdb[idx]['info']
         iminfo = self.imdb[idx]
+
+        # print(iminfo['image_name'])
+        # print(iminfo['image_id'])
+        # print(iminfo['question_tokens'])
+
         seq_length = len(iminfo['question_tokens'])
         read_len = min(seq_length, self.T_encoder)
         tokens = iminfo['question_tokens'][:read_len]
@@ -138,7 +172,7 @@ class VQA2Dataset(BaseDataset):
                     valid_answers_tokens.pop()
                 answer_tokens = np.random.choice(valid_answers_tokens)
                 ans_idx = (
-                    [self.answer_dict.word2idx(ans)
+                    [self.answer_dict.word2idx(word_tokenize(ans))
                      for ans in valid_answers_tokens])
 
                 valid_answers_idx[:len(valid_answers_tokens)] = \
@@ -148,6 +182,26 @@ class VQA2Dataset(BaseDataset):
                                           self.answer_dict.num_vocab,
                                           self.answer_dict.UNK_idx))
 
+            elif 'all_answers' in iminfo:
+                all_answers_tokens = iminfo['all_answers']
+                if self.name == "textvqa":
+                    all_answers_tokens = all_answers_tokens[-6:]
+
+                answer_tokens = np.random.choice(all_answers_tokens)
+                num_tokens = self.max_valid_answer_length
+
+                valid_answers_tokens = np.random.choice(all_answers_tokens,
+                                                        num_tokens)
+                ans_idx = (
+                    [self.answer_dict.word2idx(word_tokenize(ans))
+                     for ans in valid_answers_tokens])
+
+                valid_answers_idx[:len(valid_answers_tokens)] = \
+                    ans_idx
+                answer_scores = (
+                    compute_answer_scores(ans_idx,
+                                          self.answer_dict.num_vocab,
+                                          self.answer_dict.UNK_idx))
             answer_idx = self.answer_dict.word2idx(answer_tokens)
 
         if self.load_gt_layout:
@@ -189,6 +243,8 @@ class VQA2Dataset(BaseDataset):
         if valid_answers_idx is not None:
             sample['valid_ans_labels'] = valid_answers_idx
             sample['answers'] = answer_scores
+        if 'all_answers' in iminfo:
+            sample['valid_answers'] = iminfo['all_answers']
 
         # used for error analysis and debug,
         # output question_id, image_id, question, answer,valid_answers,
@@ -223,6 +279,9 @@ class VQAConcatDataset(ConcatDataset):
 
     def prepare_batch(self, batch):
         return self.datasets[0].prepare_batch(batch)
+
+    def verbose_dump(self, *args):
+        return self.datasets[0].verbose_dump(*args)
 
     def format_for_evalai(self, batch, answers):
         return self.datasets[0].format_for_evalai(batch, answers)
