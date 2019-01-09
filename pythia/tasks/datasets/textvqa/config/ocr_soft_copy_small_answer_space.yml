@@ -1,30 +1,32 @@
+run: predict
 task_attributes:
   vqa:
     datasets: all
     dataset_size_proportional_sampling: true
     dataset_attributes:
-      vizwiz:
-        data_root_dir: ../data
+      textvqa:
+        data_root_dir: /private/home/asg/pythia/data
         image_feat_train:
-        - /checkpoint02/asg/data/vizwiz/features/detectron_23/fc6/train,/private/home/nvivek/VQA/training_data/resnet_res5c_vizwiz/vizwiz/resnet152
+        - /checkpoint/asg/old_checkpoint02/data/open_images/detectron/fc6/train,/checkpoint/asg/old_checkpoint02/data/open_images/resnet152
         # - rcnn_adaptive_vizwiz/vizwiz_ocr_only_att_ans,resnet_res5c_vizwiz/vizwiz/resnet152
         image_feat_val:
-        - /checkpoint02/asg/data/vizwiz/features/detectron_23/fc6/val,/private/home/nvivek/VQA/training_data/resnet_res5c_vizwiz/vizwiz/resnet152
+        - /checkpoint/asg/old_checkpoint02/data/open_images/detectron/fc6/train,/checkpoint/asg/old_checkpoint02/data/open_images/resnet152
         image_feat_test:
-        - /checkpoint02/asg/data/vizwiz/features/detectron_23/fc6/test,/private/home/nvivek/VQA/training_data/resnet_res5c_vizwiz/vizwiz/resnet152
+        - /checkpoint/asg/old_checkpoint02/data/open_images/detectron/fc6/train,/checkpoint/asg/old_checkpoint02/data/open_images/resnet152
         image_max_loc: 137
         imdb_file_train:
         # - imdb/imdb_vizwiz_train_7k_ocr_only_att_5ans_ocr_only_copy.npy
         # - imdb/imdb_vizwiz_val_7k_ocr_only_att_5ans_ocr_only_copy.npy
-        - imdb/imdb_vizwiz_train_ocr.npy
+        - imdb/imdb_textvqa_train.npy
         imdb_file_val:
         # - imdb/imdb_vizwiz_val_7k_ocr_only_att_5ans_ocr_only_copy.npy
-        - imdb/imdb_vizwiz_val_ocr.npy
+        - imdb/imdb_textvqa_val.npy
         imdb_file_test:
         # - imdb/imdb_vizwiz_test_7k_ocr_only_att_5ans_ocr_only_copy.npy
-        - imdb/imdb_vizwiz_test_ocr.npy
+        - imdb/imdb_textvqa_val.npy
         vocab_question_file: vocabulary_100k.txt
-        vocab_answer_file: answers_vizwiz_7k.txt
+        vocab_answer_file: answers_textvqa_more_than_1.txt
+        vocab_spell_checker: frequency_dictionary_en_82_765.txt
         image_depth_first: false
         image_fast_reader: false
         question_max_len: 14
@@ -32,6 +34,14 @@ task_attributes:
         enforce_slow_reader: true
         metrics: vqa_accuracy
         copy_included: false
+        copy_type: soft
+        # loss:
+        #   type: multi
+        #   params:
+        #     - type: nll
+        #       weight: 0.7
+        #     - type: attention_supervision
+        #       weight: 0.3
         loss: logit_bce
         return_info: true
         use_ocr: true
@@ -41,7 +51,7 @@ optimizer:
     lr: 0.005
 model_attributes:
   top_down_bottom_up:
-    model_data_dir: /checkpoint02/asg/data/vizwiz/features/
+    model_data_dir: /checkpoint/asg/old_checkpoint02/data/textvqa/features/
     num_context_features: 1
     image_feature_dim: 2048
     context_feature_dim: 300
@@ -97,12 +107,18 @@ model_attributes:
     - type: torch
       params:
         embedding_dim: 300
-  vizwiz_top_down_bottom_up:
-    model_data_dir: /checkpoint02/asg/data/vizwiz/features/
+  vizwiz_top_down_bottom_up_soft_copy:
+    model_data_dir: /checkpoint/asg/old_checkpoint02/data/textvqa/features/
     num_context_features: 1
     context_feature_dim: 300
     image_feature_dim: 2048
+    context_max_len: 50
     classifier:
+      type: logit
+      params:
+        img_hidden_dim: 5000
+        text_hidden_dim: 300
+    context_classifier:
       type: logit
       params:
         img_hidden_dim: 5000
@@ -158,7 +174,6 @@ model_attributes:
         conv2_out: 2
         dropout: 0
         embedding_dim: 300
-        embedding_init_file: /private/home/nvivek/VQA/training_data/100K_glove.6B.300d.txt.npy
         kernel_size: 1
         padding: 0
     context_embeddings:
@@ -168,7 +183,7 @@ model_attributes:
 training_parameters:
     log_interval : 100
     clip_norm_mode: all
-    clip_gradients: true
+    # clip_gradients: true
     max_grad_l2_norm: 0.25
     lr_scheduler: true
     lr_steps:
@@ -182,17 +197,17 @@ training_parameters:
     snapshot_interval: 1000
     task_size_proportional_sampling: true
     run_type: train
-    monitored_metric: vizwiz_vqa_accuracy
-    metric_minimize: false
+    monitored_metric: textvqa_vqa_accuracy
     pretrained_mapping:
       text_embeddings: text_embeddings
       image_feature_encoders: image_feature_encoders
       image_feature_embeddings_list: image_feature_embeddings_list
       image_text_multi_modal_combine_layer: image_text_multi_modal_combine_layer
+    metric_minimize: false
     text_vocab:
-        type: intersected
-        embedding_name: glove.6B.300d
-        vocab_file: /private/home/nvivek/VQA/training_data/vocabulary_vqa.txt
+      type: intersected
+      embedding_name: glove.6B.300d
+      vocab_file: ../data/vocabulary_100k.txt
     context_vocab:
       type: model
       name: fasttext

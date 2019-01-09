@@ -4,28 +4,29 @@ task_attributes:
     datasets: all
     dataset_size_proportional_sampling: true
     dataset_attributes:
-      vizwiz:
-        data_root_dir: /private/home/nvivek/VQA/training_data/
+      textvqa:
+        data_root_dir: /private/home/asg/pythia/data
         image_feat_train:
-        - /checkpoint02/asg/data/vizwiz/features/detectron_23/fc6/train,resnet_res5c_vizwiz/vizwiz/resnet152
+        - /checkpoint/asg/old_checkpoint02/data/open_images/detectron/fc6/train,/checkpoint/asg/old_checkpoint02/data/open_images/resnet152
         # - rcnn_adaptive_vizwiz/vizwiz_ocr_only_att_ans,resnet_res5c_vizwiz/vizwiz/resnet152
         image_feat_val:
-        - /checkpoint02/asg/data/vizwiz/features/detectron_23/fc6/val,resnet_res5c_vizwiz/vizwiz/resnet152
+        - /checkpoint/asg/old_checkpoint02/data/open_images/detectron/fc6/train,/checkpoint/asg/old_checkpoint02/data/open_images/resnet152
         image_feat_test:
-        - /checkpoint02/asg/data/vizwiz/features/detectron_23/fc6/test,resnet_res5c_vizwiz/vizwiz/resnet152
+        - /checkpoint/asg/old_checkpoint02/data/open_images/detectron/fc6/train,/checkpoint/asg/old_checkpoint02/data/open_images/resnet152
         image_max_loc: 137
         imdb_file_train:
         # - imdb/imdb_vizwiz_train_7k_ocr_only_att_5ans_ocr_only_copy.npy
         # - imdb/imdb_vizwiz_val_7k_ocr_only_att_5ans_ocr_only_copy.npy
-        - imdb/imdb_vizwiz_train_ocr.npy
+        - imdb/imdb_textvqa_train.npy
         imdb_file_val:
         # - imdb/imdb_vizwiz_val_7k_ocr_only_att_5ans_ocr_only_copy.npy
-        - imdb/imdb_vizwiz_val_ocr.npy
+        - imdb/imdb_textvqa_val.npy
         imdb_file_test:
         # - imdb/imdb_vizwiz_test_7k_ocr_only_att_5ans_ocr_only_copy.npy
-        - imdb/imdb_vizwiz_test_ocr.npy
+        # - imdb/imdb_textvqa_test_with_answers.npy
+        - imdb/imdb_textvqa_val.npy
         vocab_question_file: vocabulary_100k.txt
-        vocab_answer_file: answers_vizwiz_7k.txt
+        vocab_answer_file: answers_textvqa_8k.txt
         image_depth_first: false
         image_fast_reader: false
         question_max_len: 14
@@ -41,7 +42,7 @@ model_attributes:
   top_down_bottom_up_image_only: top_down_bottom_up
   top_down_bottom_up_question_only: top_down_bottom_up
   top_down_bottom_up:
-    model_data_dir: /checkpoint02/asg/data/vizwiz/features/
+    model_data_dir: /checkpoint/asg/old_checkpoint02/data/textvqa/features/
     classifier:
       type: logit
       params:
@@ -100,7 +101,7 @@ training_parameters:
     snapshot_interval: 1000
     task_size_proportional_sampling: true
     run_type: train
-    monitored_metric: vizwiz_vqa_accuracy
+    monitored_metric: textvqa_vqa_accuracy
     metric_minimize: false
     pretrained_mapping:
       text_embeddings: text_embeddings
@@ -110,4 +111,4 @@ training_parameters:
     text_vocab:
       type: intersected
       embedding_name: glove.6B.300d
-      vocab_file: ../data/vocabulary_vqa.txt
+      vocab_file: /private/home/asg/pythia/data/vocabulary_100k.txt

@@ -1,3 +1,4 @@
+run: predict
 task_attributes:
   vqa:
     datasets: all
@@ -25,6 +26,7 @@ task_attributes:
         - imdb/imdb_vizwiz_test_ocr.npy
         vocab_question_file: vocabulary_100k.txt
         vocab_answer_file: answers_vizwiz_7k.txt
+        vocab_spell_checker: frequency_dictionary_en_82_765.txt
         image_depth_first: false
         image_fast_reader: false
         question_max_len: 14
@@ -32,6 +34,14 @@ task_attributes:
         enforce_slow_reader: true
         metrics: vqa_accuracy
         copy_included: false
+        copy_type: soft
+        # loss:
+        #   type: multi
+        #   params:
+        #     - type: nll
+        #       weight: 0.7
+        #     - type: attention_supervision
+        #       weight: 0.3
         loss: logit_bce
         return_info: true
         use_ocr: true
@@ -97,12 +107,17 @@ model_attributes:
     - type: torch
       params:
         embedding_dim: 300
-  vizwiz_top_down_bottom_up:
+  vizwiz_top_down_bottom_up_soft_copy:
     model_data_dir: /checkpoint02/asg/data/vizwiz/features/
     num_context_features: 1
     context_feature_dim: 300
     image_feature_dim: 2048
     classifier:
+      type: logit
+      params:
+        img_hidden_dim: 5000
+        text_hidden_dim: 300
+    context_classifier:
       type: logit
       params:
         img_hidden_dim: 5000
@@ -168,7 +183,7 @@ model_attributes:
 training_parameters:
     log_interval : 100
     clip_norm_mode: all
-    clip_gradients: true
+    # clip_gradients: true
     max_grad_l2_norm: 0.25
     lr_scheduler: true
     lr_steps:
@@ -190,9 +205,9 @@ training_parameters:
       image_feature_embeddings_list: image_feature_embeddings_list
       image_text_multi_modal_combine_layer: image_text_multi_modal_combine_layer
     text_vocab:
-        type: intersected
-        embedding_name: glove.6B.300d
-        vocab_file: /private/home/nvivek/VQA/training_data/vocabulary_vqa.txt
+      type: intersected
+      embedding_name: glove.6B.300d
+      vocab_file: /private/home/nvivek/VQA/training_data/vocabulary_100k.txt
     context_vocab:
       type: model
       name: fasttext

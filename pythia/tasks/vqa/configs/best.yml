@@ -8,16 +8,16 @@ task_attributes:
         image_depth_first: false
         image_fast_reader: false
         image_feat_test:
-        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/vqa/test2015,../../../../../checkpoint02/asg/data/resnet152/vqa/test2015
+        - /checkpoint/asg/old_checkpoint02/data/detectron_fix_100/fc6/vqa/test2015,/checkpoint/asg/old_checkpoint02/data/resnet152/vqa/test2015
         image_feat_train:
-        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/vqa/train2014,../../../../../checkpoint02/asg/data/resnet152/vqa/train2014
-        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/vqa/val2014,../../../../../checkpoint02/asg/data/resnet152/vqa/val2014
-        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/genome,../../../../../checkpoint02/asg/data/resnet152/genome
-        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/vqa_mirror/train2014,../../../../../checkpoint02/asg/data/resnet152/vqa_mirror/train2014
-        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/vqa_mirror/val2014,../../../../../checkpoint02/asg/data/resnet152/vqa_mirror/val2014
-        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/vqa/train2014,../../../../../checkpoint02/asg/data/resnet152/vqa/train2014
+        - /checkpoint/asg/old_checkpoint02/data/detectron_fix_100/fc6/vqa/train2014,/checkpoint/asg/old_checkpoint02/data/resnet152/vqa/train2014
+        - /checkpoint/asg/old_checkpoint02/data/detectron_fix_100/fc6/vqa/val2014,/checkpoint/asg/old_checkpoint02/data/resnet152/vqa/val2014
+        - /checkpoint/asg/old_checkpoint02/data/detectron_fix_100/fc6/genome,/checkpoint/asg/old_checkpoint02/data/resnet152/genome
+        - /checkpoint/asg/old_checkpoint02/data/detectron_fix_100/fc6/vqa_mirror/train2014,/checkpoint/asg/old_checkpoint02/data/resnet152/vqa_mirror/train2014
+        - /checkpoint/asg/old_checkpoint02/data/detectron_fix_100/fc6/vqa_mirror/val2014,/checkpoint/asg/old_checkpoint02/data/resnet152/vqa_mirror/val2014
+        - /checkpoint/asg/old_checkpoint02/data/detectron_fix_100/fc6/vqa/train2014,/checkpoint/asg/old_checkpoint02/data/resnet152/vqa/train2014
         image_feat_val:
-        - ../../../../../checkpoint02/asg/data/detectron_fix_100/fc6/vqa/val2014,../../../../../checkpoint02/asg/data/resnet152/vqa/val2014
+        - /checkpoint/asg/old_checkpoint02/data/detectron_fix_100/fc6/vqa/val2014,/checkpoint/asg/old_checkpoint02/data/resnet152/vqa/val2014
         image_max_loc: 100
         imdb_file_test:
         - imdb/imdb_test2015.npy
@@ -114,4 +114,4 @@ training_parameters:
   text_vocab:
     type: intersected
     embedding_name: glove.6B.300d
-    vocab_file: ../data/vocabulary_vqa.txt
+    vocab_file: ../data/vocabulary_100k.txt
