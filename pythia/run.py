@@ -7,7 +7,7 @@ from pythia.core.trainer import Trainer
 def setup_imports():
     # Automatically load all of the modules, so that
     # they register with registry
-    root_folder = os.path.dirname(os.path.dirname(__file__))
+    root_folder = os.path.dirname(os.path.abspath(__file__))
     tasks_folder = os.path.join(root_folder, "tasks")
     tasks_pattern = os.path.join(tasks_folder, "**", "*.py")
     model_folder = os.path.join(root_folder, "models")
