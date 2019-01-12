@@ -1,9 +1,11 @@
 import os
+import git
 import torch
 import yaml
 
 from pythia.utils.general import ckpt_name_from_core_args, \
-                                 foldername_from_config_override
+                                 foldername_from_config_override, \
+                                 updir
 from pythia.core.registry import registry
 
 
@@ -38,6 +40,8 @@ class Checkpoint:
             os.makedirs(self.models_foldername)
 
         self.save_config()
+        self.repo_path = updir(os.path.abspath(__file__), n=3)
+        self.repo = git.Repo(self.repo_path)
 
     def save_config(self):
         cfg_file = os.path.join(self.ckpt_foldername, "config.yaml")
@@ -152,6 +156,15 @@ class Checkpoint:
             return torch.load(file)
         else:
             return torch.load(file, map_location=lambda storage, loc: storage)
+        
+    def _get_vcs_fields(self):
+        """Returns a dict with git fields of the current repository"""
+
+        return {'git/branch': self.repo.active_branch.name,
+                'git/commit_hash': self.repo.head.commit.name_rev,
+                'git/commit_author': self.repo.head.commit.author.name,
+                'git/commit_message': self.repo.head.commit.message,
+                'git/diff': self.repo.git.diff('--no-prefix')}
 
     def save(self, iteration, update_best=False):
         ckpt_filepath = os.path.join(self.models_foldername,
@@ -167,6 +180,9 @@ class Checkpoint:
             'best_iteration': best_iteration,
             'best_metric': best_metric
         }
+        
+        git_metadata_dict = self._get_vcs_fields()
+        ckpt.update(git_metadata_dict)
 
         torch.save(ckpt, ckpt_filepath)
 

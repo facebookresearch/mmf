@@ -1,3 +1,4 @@
+import os
 import yaml
 import collections
 
@@ -141,3 +142,11 @@ def get_overlap_score(candidate, target):
         else:
             target = target[:-1]
     return 0.0
+
+
+def updir(d, n):
+  """Given path d, go up n dirs from d and return that path"""
+  ret_val = d
+  for _ in range(n):
+    ret_val = os.path.dirname(ret_val)
+  return ret_val

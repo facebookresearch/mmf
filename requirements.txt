@@ -5,3 +5,4 @@ numpy
 tqdm
 demjson
 torchtext
+GitPython
