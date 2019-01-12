@@ -178,7 +178,8 @@ class Checkpoint:
             'model': self.trainer.model.state_dict(),
             'optimizer': self.trainer.optimizer.state_dict(),
             'best_iteration': best_iteration,
-            'best_metric': best_metric
+            'best_metric': best_metric,
+            'config': self.config
         }
         
         git_metadata_dict = self._get_vcs_fields()
