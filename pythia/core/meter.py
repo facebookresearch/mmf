@@ -95,6 +95,8 @@ class Meter:
 
     @registry.register_metric('accuracy')
     def accuracy(self, current, output, expected, info={}):
+        output = torch.max(output, 1)[1]
+
         if self.config['use_cuda']:
             correct = (expected == output.squeeze()).data.cpu().numpy().sum()
         else:
@@ -102,7 +104,11 @@ class Meter:
 
         total = len(expected)
 
-        return correct / total
+        current = current * (self.itearation_count - 1)
+        current += (correct / total)
+        current /= self.iteration_count
+
+        return current
 
     @registry.register_metric('vqa_accuracy')
     def average_vqa_accuracy(self, current, output, expected, info={}):
