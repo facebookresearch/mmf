@@ -55,6 +55,7 @@ class Flags:
                                  help="a json string to update"
                                  " yaml config file",
                                  default=None)
+
         self.parser.add_argument("--force_restart", action='store_true',
                                  help="flag to force clean previous"
                                  " result and restart training")

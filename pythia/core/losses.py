@@ -54,7 +54,7 @@ class LogitBinaryCrossEntropy(nn.Module):
     def forward(self, pred_score, target_score, info={}, weights=None):
         loss = F.binary_cross_entropy_with_logits(pred_score,
                                                   target_score,
-                                                  reduction='mean')
+                                                  reduction="mean")
 
         return loss * target_score.size(1)
 
@@ -65,7 +65,7 @@ class BinaryCrossEntropyLoss(nn.Module):
 
     def forward(self, pred_score, target_score, info={}, weights=None):
         loss = F.binary_cross_entropy(pred_score, target_score,
-                                      reduction='mean')
+                                      reduction="mean")
 
         return loss * target_score.size(1)
 
@@ -77,7 +77,7 @@ class NLLLoss(nn.Module):
     def forward(self, pred_score, target_score, info={}, weights=None):
         _, idx = target_score.max(dim=1)
         loss = F.nll_loss(pred_score, idx,
-                          reduction='mean')
+                          reduction="mean")
 
         return loss * target_score.size(1)
 
@@ -185,7 +185,7 @@ class WrongLoss(nn.Module):
         tar = target_score / tar_sum
 
         res = F.log_softmax(pred_score, dim=1)
-        loss = F.kl_div(res, tar, reduction='mean')
+        loss = F.kl_div(res, tar, reduction="mean")
         loss *= target_score.size(1)
         return loss
 
@@ -207,7 +207,7 @@ class CombinedLoss(nn.Module):
 
         loss2 = F.binary_cross_entropy_with_logits(pred_score,
                                                    target_score,
-                                                   reduction='mean'
+                                                   reduction="mean"
                                                    )
         loss2 *= target_score.size(1)
 

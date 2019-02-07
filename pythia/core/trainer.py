@@ -117,6 +117,8 @@ class Trainer:
                               + torch.cuda.get_device_name(0))
             self.model = self.model.cuda()
 
+        self.writer.write("Torch version is: " + torch.__version__)
+
         if use_cuda and torch.cuda.device_count() > 1 \
            and data_parallel is True:
             self.model = torch.nn.DataParallel(self.model)
@@ -301,12 +303,15 @@ class Trainer:
         return "dev: " + dict_to_string(registry.get('metrics.%s' %
                                                      dataset_type))
 
-    def evaluate(self, dataset_type, loader):
+    def evaluate(self, dataset_type, loader, use_tqdm=False):
         self.model.eval()
         self.task_loader.reset_meters(dataset_type)
 
         total_loss = 0
         total_samples = 0
+
+        if use_tqdm is True:
+            loader = tqdm(loader)
 
         for batch in loader:
             data, y = self.task_loader.prepare_batch(dataset_type,
@@ -317,6 +322,9 @@ class Trainer:
             output, info = self._separate_out_output(output)
             info['batch'] = data
             info['original_batch'] = batch
+
+            if dataset_type == 'test':
+                self.task_loader.verbose_dump(dataset_type, output, y, info)
 
             loss = self.task_loader.calculate_loss(dataset_type, output,
                                                    y, info)
@@ -337,7 +345,8 @@ class Trainer:
         else:
             self.writer.write("Starting predictions")
 
-            avg_test_loss = self.evaluate('test', self.test_loader)
+            avg_test_loss = self.evaluate('test', self.test_loader,
+                                          use_tqdm=True)
             self.task_loader.report_metrics('test', avg_test_loss)
 
     def profile(self, text):

@@ -95,11 +95,6 @@ class VQA2Dataset(BaseDataset):
 
         self.fast_read = data_params['fast_read']
 
-        if self.fast_read is True:
-            self.cache = {}
-            for idx in tqdm.tqdm(range(len(self.imdb) - 1)):
-                self.cache[idx] = self.load_item(idx)
-
     def format_for_evalai(self, batch, answers):
         answers = answers.argmax(dim=1)
 

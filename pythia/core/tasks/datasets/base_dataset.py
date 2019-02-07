@@ -1,6 +1,6 @@
 import torch
+import tqdm
 
-from collections import Counter
 from torch.autograd import Variable
 from torch.utils.data.dataset import Dataset
 
@@ -34,6 +34,15 @@ class BaseDataset(Dataset):
             self.loss_name = config['loss']['type']
         else:
             self.loss_name = config['loss']
+
+    def load_item(self, idx):
+        raise NotImplementedError
+
+    def try_fast_read(self):
+        if hasattr(self, 'fast_read') and self.fast_read is True:
+            self.cache = {}
+            for idx in tqdm.tqdm(range(len(self.imdb) - 1)):
+                self.cache[idx] = self.load_item(idx)
 
     def calculate_loss(self, output, expected_output, info):
         self.meter(output, expected_output, info)
