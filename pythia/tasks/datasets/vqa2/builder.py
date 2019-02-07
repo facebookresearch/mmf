@@ -92,6 +92,7 @@ class VQA2Builder(DatasetBuilder):
 
         prune_filter_mod = data_config.get('prune_filter_module', False)
         fast_read = not data_config.get('slow_read', False)
+
         verbose = data_config.get('verbose', False)
         test_mode = data_config.get('test_mode', False)
 
@@ -101,20 +102,22 @@ class VQA2Builder(DatasetBuilder):
             image_dir_label + "has different length with " + image_dir_label
 
         datasets = []
+
         for imdb_file_trn_name, image_feat_dir in \
                 zip(imdb_files, image_feat_dirs):
+
             if not os.path.isabs(imdb_file_trn_name):
                 imdb_file_trn = os.path.join(data_root_dir, imdb_file_trn_name)
             else:
                 imdb_file_trn = imdb_file_trn_name
 
-            image_feat_dirs = [os.path.join(data_root_dir, d)
-                               if not os.path.isabs(d) else d
-                               for d in image_feat_dir.split(',')]
+            feat_dirs = [os.path.join(data_root_dir, d)
+                         if not os.path.isabs(d) else d
+                         for d in image_feat_dir.split(',')]
 
             cls = self.dataset_class
             train_dataset = cls(imdb_file=imdb_file_trn,
-                                image_feat_directories=image_feat_dirs,
+                                image_feat_directories=feat_dirs,
                                 T_encoder=question_max_len,
                                 T_decoder=layout_max_len,
                                 assembler=None,
@@ -123,6 +126,7 @@ class VQA2Builder(DatasetBuilder):
                                 verbose=verbose,
                                 test_mode=test_mode,
                                 **data_config)
+            train_dataset.try_fast_read()
             datasets.append(train_dataset)
 
         dataset = VQAConcatDataset(datasets)

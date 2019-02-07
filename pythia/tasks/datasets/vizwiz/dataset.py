@@ -47,7 +47,7 @@ class VizWizDataset(VQA2Dataset):
             self.writer.write("copy_type configuration is not present. "
                               "Setting to False", "warning")
             self.copy_type = False
-            self.data_params['copy_type'] = True
+            self.data_params['copy_type'] = False
         else:
             self.copy_type = self.data_params['copy_type']
 
@@ -59,7 +59,13 @@ class VizWizDataset(VQA2Dataset):
         else:
             self.copy_included = self.data_params['copy_included']
 
+        self.use_ocr_info = self.data_params.get('use_ocr_info', False)
+        self.data_params['use_ocr_info'] = self.use_ocr_info
+
+        registry.register('use_ocr_info', self.use_ocr_info)
+
         self.use_ngrams = self.data_params.get('use_ngrams', False)
+
         if self.use_ocr:
             self.context_max_len = self.config['context_max_len']
             self.context_seq_shape = (self.context_max_len)
@@ -121,8 +127,8 @@ class VizWizDataset(VQA2Dataset):
 
         return data, obs
 
-    def __getitem__(self, idx):
-        sample = super(VizWizDataset, self).__getitem__(idx)
+    def load_item(self, idx):
+        sample = super(VizWizDataset, self).load_item(idx)
         idx = self.first_element_idx + idx
         image = self.imdb[idx]
         sample['image_id'] = image['image_name']
@@ -155,6 +161,8 @@ class VizWizDataset(VQA2Dataset):
             context_len = min(len(tokens), self.context_max_len)
             final_tokens = tokens[:context_len]
 
+            ocr_infos = np.zeros((self.context_max_len, 10), np.float32)
+
             token_idxs = [np.mean([self.context_vocab.stoi[w]
                                    for w in word.split(' ')], axis=0)
                           for word in final_tokens]
@@ -172,6 +180,21 @@ class VizWizDataset(VQA2Dataset):
             sample['ocr_tokens'][:context_len] = final_tokens
             # print(final_tokens)
             sample['contexts'] = context_seq
+
+            if self.use_ocr_info and 'ocr_info' in image:
+                for idx, info in enumerate(image['ocr_info']):
+                    if idx == self.context_max_len:
+                        break
+                    ocr_infos[idx][0] = info['bounding_box']['top_left_x']
+                    ocr_infos[idx][1] = info['bounding_box']['top_left_y']
+                    ocr_infos[idx][4] = info['bounding_box']['width']
+                    ocr_infos[idx][5] = info['bounding_box']['height']
+                    ocr_infos[idx][2] = ocr_infos[idx][0] + ocr_infos[idx][4]
+                    ocr_infos[idx][3] = ocr_infos[idx][1] + ocr_infos[idx][5]
+
+            if self.use_ocr_info:
+                sample['contexts'] = np.concatenate([sample['contexts'],
+                                                     ocr_infos], axis=-1)
             # Context dim is actually 'length' of the final context
             sample['context_dim'] = context_len
             sample['order_vectors'] = order_vectors

@@ -1,16 +1,17 @@
 import torch
 
 from pythia.models.vizwiz_multi_modal import VizWizMultiModalModel
-from pythia.core.registry import Registry
+from pythia.core.registry import registry
 from pythia.modules.layers import ClassifierLayer
 
 
-@Registry.register_model('vizwiz_top_down_bottom_up_soft_copy')
+@registry.register_model('vizwiz_top_down_bottom_up_soft_copy')
 class VizWizMultiModalModelSoftCopy(VizWizMultiModalModel):
     def __init__(self, config):
         super(VizWizMultiModalModelSoftCopy, self).__init__(config)
-        self.use_cuda = Registry.get('use_cuda')
+        self.use_cuda = registry.get('use_cuda')
         self.use_order_vectors = True
+        self.use_ocr_info = registry.get('use_ocr_info')
 
     def build(self):
         super(VizWizMultiModalModelSoftCopy, self).build()

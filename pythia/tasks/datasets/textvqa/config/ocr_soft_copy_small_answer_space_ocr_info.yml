@@ -23,9 +23,9 @@ task_attributes:
         - imdb/imdb_textvqa_val.npy
         imdb_file_test:
         # - imdb/imdb_vizwiz_test_7k_ocr_only_att_5ans_ocr_only_copy.npy
-        - imdb/imdb_textvqa_test_with_answers.npy
+        - imdb/imdb_textvqa_test.npy
         vocab_question_file: vocabulary_100k.txt
-        vocab_answer_file: answers_textvqa_8k.txt
+        vocab_answer_file: answers_textvqa_more_than_1.txt
         vocab_spell_checker: frequency_dictionary_en_82_765.txt
         image_depth_first: false
         image_fast_reader: false
@@ -35,6 +35,8 @@ task_attributes:
         metrics: vqa_accuracy
         copy_included: false
         copy_type: soft
+        use_ocr_info: true
+        slow_read: true
         # loss:
         #   type: multi
         #   params:
@@ -54,7 +56,7 @@ model_attributes:
     model_data_dir: /checkpoint/asg/old_checkpoint02/data/textvqa/features/
     num_context_features: 1
     image_feature_dim: 2048
-    context_feature_dim: 300
+    context_feature_dim: 310
     classifier:
       type: logit
       params:
@@ -110,7 +112,7 @@ model_attributes:
   vizwiz_top_down_bottom_up_soft_copy:
     model_data_dir: /checkpoint/asg/old_checkpoint02/data/textvqa/features/
     num_context_features: 1
-    context_feature_dim: 300
+    context_feature_dim: 310
     image_feature_dim: 2048
     context_max_len: 50
     classifier:
@@ -122,7 +124,7 @@ model_attributes:
       type: logit
       params:
         img_hidden_dim: 5000
-        text_hidden_dim: 300
+        text_hidden_dim: 310
     image_feature_embeddings:
     - modal_combine:
         type: non_linear_element_multiply
@@ -174,13 +176,12 @@ model_attributes:
         conv2_out: 2
         dropout: 0
         embedding_dim: 300
-        embedding_init_file: /private/home/nvivek/VQA/training_data/100K_glove.6B.300d.txt.npy
         kernel_size: 1
         padding: 0
     context_embeddings:
     - type: torch
       params:
-        embedding_dim: 300
+        embedding_dim: 310
 training_parameters:
     log_interval : 100
     clip_norm_mode: all
@@ -208,7 +209,7 @@ training_parameters:
     text_vocab:
       type: intersected
       embedding_name: glove.6B.300d
-      vocab_file: /private/home/asg/pythia/data/vocabulary_100k.txt
+      vocab_file: ../data/vocabulary_100k.txt
     context_vocab:
       type: model
       name: fasttext

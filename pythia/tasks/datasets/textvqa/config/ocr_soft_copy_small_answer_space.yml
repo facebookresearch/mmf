@@ -23,7 +23,7 @@ task_attributes:
         - imdb/imdb_textvqa_val.npy
         imdb_file_test:
         # - imdb/imdb_vizwiz_test_7k_ocr_only_att_5ans_ocr_only_copy.npy
-        - imdb/imdb_textvqa_val.npy
+        - imdb/imdb_textvqa_test_with_answers.npy
         vocab_question_file: vocabulary_100k.txt
         vocab_answer_file: answers_textvqa_more_than_1.txt
         vocab_spell_checker: frequency_dictionary_en_82_765.txt
@@ -35,6 +35,8 @@ task_attributes:
         metrics: vqa_accuracy
         copy_included: false
         copy_type: soft
+        use_ocr_info: false
+        slow_read: false
         # loss:
         #   type: multi
         #   params:

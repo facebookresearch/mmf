@@ -23,7 +23,14 @@ class VizWizMultiModalModel(VQAMultiModalModel):
             embedding_attr = self._get_embeddings_attr("context")
             max_len = self.config['context_max_len']
             original_attr = getattr(self, embedding_attr)
-            setattr(self, embedding_attr, original_attr + max_len)
+            final_dim = original_attr + max_len
+            setattr(self, embedding_attr, final_dim)
+
+        if hasattr(self, 'use_ocr_info') and \
+                self.use_ocr_info is True:
+            embedding_attr = self._get_embeddings_attr("context")
+            original_attr_val = getattr(self, embedding_attr)
+            setattr(self, embedding_attr, original_attr_val + 10)
 
         self._init_combine_layer("image", "text")
         self._init_combine_layer("context", "text")
