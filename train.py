@@ -41,15 +41,15 @@ def parse_args():
                         help="output directory, default is current directory")
     parser.add_argument('--seed', type=int, default=1234,
                         help="random seed, default 1234,"
-                        "set seed to -1 if need a random seed"
-                        "between 1 and 100000")
+                             "set seed to -1 if need a random seed"
+                             "between 1 and 100000")
     parser.add_argument('--config_overwrite',
                         type=str,
                         help="a json string to update yaml config file",
                         default=None)
     parser.add_argument("--force_restart", action='store_true',
                         help="flag to force clean previous"
-                        "result and restart training")
+                             "result and restart training")
 
     arguments = parser.parse_args()
     return arguments
@@ -184,8 +184,20 @@ if __name__ == '__main__':
               {'params': model.image_feature_encode_list.parameters(),
                'lr': cfg.optimizer.par.lr * 0.1}]
 
-    my_optim = getattr(optim, cfg.optimizer.method)(
-        params, **cfg.optimizer.par)
+    optim_list = [getattr(optim, cfg.optimizer.method)(
+        params, **cfg.optimizer.par)]
+
+    if cfg.use_complement_loss:
+        com_params = [
+            {'params': model.image_embedding_models_list.parameters()},
+            {'params': model.question_embedding_models.parameters()},
+            {'params': model.multi_modal_combine.parameters()},
+            {'params': model.classifier.parameters()},
+            {'params': model.image_feature_encode_list.parameters(),
+             'lr': cfg.complement_optimizer.par.lr * 0.1}]
+
+        optim_list.append(getattr(optim, cfg.complement_optimizer.method)(
+            com_params, **cfg.complement_optimizer.par))
 
     i_epoch = 0
     i_iter = 0
@@ -199,15 +211,24 @@ if __name__ == '__main__':
             i_epoch = info['epoch']
             i_iter = info['iter']
             sd = info['state_dict']
-            op_sd = info['optimizer']
+            pop_sd = info['optimizer']
             my_model.load_state_dict(sd)
-            my_optim.load_state_dict(op_sd)
+            optim_list[0].load_state_dict(pop_sd)
+            if 'complement_optimizer' in info and cfg.use_complement_loss:
+                sop_sd = info['complement_optimizer']
+                optim_list[1].load_state_dict(sop_sd)
             if 'best_val_accuracy' in info:
                 best_accuracy = info['best_val_accuracy']
 
-    scheduler = get_optim_scheduler(my_optim)
+    scheduler_list = [get_optim_scheduler(optim_list[0])]
 
-    my_loss = get_loss_criterion(cfg.loss)
+    cfg_loss_list = [cfg.loss]
+
+    if cfg.use_complement_loss:
+        scheduler_list.append(get_optim_scheduler(optim_list[1]))
+        cfg_loss_list.append(cfg.complement_loss)
+
+    loss_list = get_loss_criterion(cfg_loss_list)
 
     data_set_val = prepare_eval_data_set(**cfg['data'], **cfg['model'])
 
@@ -224,10 +245,11 @@ if __name__ == '__main__':
     print("BEGIN TRAINING...")
     one_stage_train(my_model,
                     data_reader_trn,
-                    my_optim, my_loss, data_reader_eval=data_reader_val,
+                    optim_list, loss_list, data_reader_eval=data_reader_val,
                     snapshot_dir=snapshot_dir, log_dir=boards_dir,
                     start_epoch=i_epoch, i_iter=i_iter,
-                    scheduler=scheduler,best_val_accuracy=best_accuracy)
+                    scheduler_list=scheduler_list,
+                    best_val_accuracy=best_accuracy)
 
     print("BEGIN PREDICTING ON TEST/VAL set...")
 

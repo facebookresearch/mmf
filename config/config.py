@@ -72,13 +72,14 @@ __C.training_parameters.lr_ratio = 0.1
 # loss options:
 # --------------------------------------------------------------------------- #
 __C.loss = 'logitBCE'
-
+__C.use_complement_loss = False
+__C.complement_loss = 'complementEntropy'
 
 # --------------------------------------------------------------------------- #
 # optimizer options:
 # --------------------------------------------------------------------------- #
 __C.optimizer = ModelParPair('Adamax')
-
+__C.complement_optimizer = ModelParPair('Adamax')
 
 # --------------------------------------------------------------------------- #
 # model options: Note default is our
