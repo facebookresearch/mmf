@@ -177,6 +177,9 @@ if __name__ == '__main__':
     if hasattr(my_model, 'module'):
         model = my_model.module
 
+    # --------------------------------------------------------------------------
+    # Separate optimizers and schedulers for primary and complement losses
+    # --------------------------------------------------------------------------
     params = [{'params': model.image_embedding_models_list.parameters()},
               {'params': model.question_embedding_models.parameters()},
               {'params': model.multi_modal_combine.parameters()},
@@ -222,12 +225,13 @@ if __name__ == '__main__':
 
     scheduler_list = [get_optim_scheduler(optim_list[0])]
 
+    # --------------------------------------------------------------------------
+    # Primary and Complement losses are stored in a list
+    # --------------------------------------------------------------------------
     cfg_loss_list = [cfg.loss]
-
     if cfg.use_complement_loss:
         scheduler_list.append(get_optim_scheduler(optim_list[1]))
         cfg_loss_list.append(cfg.complement_loss)
-
     loss_list = get_loss_criterion(cfg_loss_list)
 
     data_set_val = prepare_eval_data_set(**cfg['data'], **cfg['model'])

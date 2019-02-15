@@ -78,14 +78,14 @@ def save_a_report(i_iter,
         val_comp_loss = val_losses[1]
         train_comp_loss = train_losses[1]
 
-    print("iter:", i_iter, "train_loss: %.4f" % train_loss.data[0],
-          "train_comp_loss: %.4f" % train_comp_loss.data[0]
+    print("iter:", i_iter, "train_loss: %.4f" % train_loss.item(),
+          "train_comp_loss: %.4f" % train_comp_loss.item()
           if train_comp_loss is not None else "",
           " train_score: %.4f" % train_acc,
           " avg_train_score: %.4f" % train_avg_acc,
           "val_score: %.4f" % val_acc,
-          "val_loss: %.4f" % val_loss.data[0],
-          "val_comp_loss: %.4f" % val_comp_loss.data[0]
+          "val_loss: %.4f" % val_loss.item(),
+          "val_comp_loss: %.4f" % val_comp_loss.item()
           if val_comp_loss is not None else "",
           "time(s): % s" % report_timer.end())
 
@@ -96,7 +96,7 @@ def save_a_report(i_iter,
     writer.add_scalar('train_score', train_acc, i_iter)
     writer.add_scalar('train_score_avg', train_avg_acc, i_iter)
     writer.add_scalar('val_score', val_score, i_iter)
-    writer.add_scalar('val_loss', val_loss.data[0], i_iter)
+    writer.add_scalar('val_loss', val_loss.item(), i_iter)
 
     if train_comp_loss is not None:
         writer.add_scalar('train_comp_loss', train_comp_loss, i_iter)
@@ -179,7 +179,6 @@ def one_stage_train(myModel,
     snapshot_interval = cfg.training_parameters.snapshot_interval
     max_iter = cfg.training_parameters.max_iter
     use_complement_loss = cfg.use_complement_loss
-
     avg_accuracy = 0
     accuracy_decay = 0.99
     best_epoch = 0
@@ -213,6 +212,9 @@ def one_stage_train(myModel,
             optimizer_list[0].step()
             losses.append(total_loss)
 
+            # ------------------------------------------------------------------
+            # Perform the update with complement loss
+            # ------------------------------------------------------------------
             if use_complement_loss:
                 scheduler_list[1].step(i_iter)
                 optimizer_list[1].zero_grad()
@@ -259,6 +261,9 @@ def one_stage_train(myModel,
 
 
 def evaluate_a_batch(batch, myModel, loss_criterions):
+    """
+    loss_criterions: Could be either a list or single loss object.
+    """
     answer_scores = batch['ans_scores']
     n_sample = answer_scores.size(0)
 
@@ -284,6 +289,9 @@ def evaluate_a_batch(batch, myModel, loss_criterions):
 
 def compute_a_batch(batch, my_model, eval_mode, loss_criterions=None,
                     add_graph=False, log_dir=None):
+    """
+    loss_criterions: Could be either a list or single loss object.
+    """
     obs_res = batch['ans_scores']
     obs_res = Variable(obs_res.type(torch.FloatTensor))
     if use_cuda:
@@ -308,6 +316,9 @@ def compute_a_batch(batch, my_model, eval_mode, loss_criterions=None,
 
 
 def one_stage_eval_model(data_reader_eval, myModel, loss_criterions=None):
+    """
+    loss_criterions: Could be either a list or single loss object.
+    """
     score_tot = 0
     n_sample_tot = 0
     losses = [0, 0]
@@ -320,11 +331,11 @@ def one_stage_eval_model(data_reader_eval, myModel, loss_criterions=None):
         n_sample_tot += n_sample
         if temp_losses is not None:
             if isinstance(temp_losses, list):
-                losses[0] += temp_losses[0].data[0] * n_sample
+                losses[0] += temp_losses[0].item() * n_sample
                 if len(temp_losses) == 2:
-                    losses[1] = temp_losses[1].data[0] * n_sample
+                    losses[1] = temp_losses[1].item() * n_sample
             else:
-                losses[0] += temp_losses.data[0] * n_sample
+                losses[0] += temp_losses.item() * n_sample
 
     if isinstance(loss_criterions, nn.Module):
         losses = losses[0] / n_sample_tot  # send a single value not list

@@ -35,10 +35,10 @@ def get_loss_criterion(loss_list):
     loss_criterions = []
     if len(loss_list) == 2:
         if loss_list[0] is not 'softmaxKL':
-            print('Training with Complement Objective only supports softmaxKL\
-             as the primary loss, else secondary loss will be ignored.\
-             Current primary loss is: ', loss_list[0])
-            del loss_list[1]
+            print('Training with Complement Objective only supports softmaxKL'
+                  ' as the primary loss. Current primary loss is: ',
+                  loss_list[0])
+            raise NotImplementedError
     elif len(loss_list) > 2:
         raise NotImplementedError
 
@@ -52,7 +52,7 @@ def get_loss_criterion(loss_list):
         elif loss_config == 'combined':
             loss_criterion = CombinedLoss()
         elif loss_config == 'complementEntropy':
-            loss_criterion = ComplementCrossEntropy()
+            loss_criterion = ComplementEntropyLoss()
         else:
             raise NotImplementedError
         loss_criterions.append(loss_criterion)
@@ -81,16 +81,25 @@ def kl_div(log_x, y):
     return torch.sum(res, dim=1, keepdim=True)
 
 
-def complement_entropy(x, y):
+def complement_entropy_loss(x, y):
+    """Returns the complement entropy loss as proposed in the report.
+    """
+    # --------------------------------------------------------------------------
+    # Negated complement entropy (loss) for each label with zero target score
+    # --------------------------------------------------------------------------
     y_is_0 = torch.eq(y.data, 0)
-    x_remove_0 = x.clone()
-    x_remove_0.data.masked_fill_(y_is_0, 0)
-    x_remove_0_sum = torch.sum(x_remove_0, dim=1, keepdim=True)
-    x = x / (1 - x_remove_0_sum)  # Divide [N,K] tensor with [N,1] tensor
-    log_x = torch.log(x)
-    new_x = x * log_x  # [N,K] tensor with each element storing loss for each label
-    loss = torch.zeros(x.size())  # Remove non-zero labels loss
-    loss.data.masked_scatter(y_is_0, new_x.type(torch.FloatTensor))
+    x_remove_0 = x.clone().data.masked_fill_(y_is_0, 0)
+    xr_sum = torch.sum(x_remove_0, dim=1, keepdim=True)
+    one_min_xr_sum = 1-xr_sum
+    one_min_xr_sum.masked_fill_(one_min_xr_sum <= 0, 1e-7)  # Numerical issues
+    px = x / one_min_xr_sum
+    log_px = torch.log(px + 1e-10)  # Numerical issues
+    new_x = px * log_px
+    loss = new_x * (y_is_0.float())  # Remove non-zero labels loss
+
+    # --------------------------------------------------------------------------
+    # Normalize the loss to balance it with cross entropy loss
+    # --------------------------------------------------------------------------
     num_labels = y.size()[1]
     zero_labels = torch.sum(y_is_0, dim=1, keepdim=True).float()
     non_zero_labels = num_labels - zero_labels
@@ -118,7 +127,7 @@ class weighted_softmax_loss(nn.Module):
         return loss
 
 
-class ComplementCrossEntropy(nn.Module):
+class ComplementEntropyLoss(nn.Module):
     """ Complement Entropy that maximizes entropy of non-ground truth
         labels. It was proposed to complement the classification loss.
 
@@ -138,16 +147,15 @@ class ComplementCrossEntropy(nn.Module):
     """
 
     def __init__(self):
-        super(ComplementCrossEntropy, self).__init__()
+        super(ComplementEntropyLoss, self).__init__()
 
     def forward(self, pred_score, target_score):
         tar_sum = torch.sum(target_score, dim=1, keepdim=True)
         tar_sum_is_0 = torch.eq(tar_sum, 0)
         tar_sum.masked_fill_(tar_sum_is_0, 1.0e-06)
         tar = target_score / tar_sum
-
         res = F.softmax(pred_score, dim=1)
-        loss = complement_entropy(res, tar)
+        loss = complement_entropy_loss(res, tar)
         loss = torch.sum(loss) / loss.size(0)
         return loss
 
@@ -209,7 +217,7 @@ class CombinedLoss(nn.Module):
 
         if self.weight_complement is not None:
             res = F.softmax(pred_score, dim=1)
-            loss3 = complement_entropy(res, tar)
+            loss3 = complement_entropy_loss(res, tar)
             loss3 = torch.sum(loss3) / loss3.size(0)
             loss += self.weight_complement * loss3
 
