@@ -6,10 +6,12 @@
 #
 
 
-import unittest
-import torch
 import os
 import sys
+import unittest
+
+import torch
+
 sys.path.insert(1, os.path.join(sys.path[0], '..'))  # add parent for imports
 
 from config.collections import AttrDict
@@ -26,55 +28,54 @@ from top_down_bottom_up.image_feature_encoding import \
     build_image_feature_encoding
 from top_down_bottom_up.classifier import logit_classifier
 from top_down_bottom_up.top_down_bottom_up_model \
-    import top_down_bottom_up_model, vqa_multi_modal_model
+    import vqa_multi_modal_model
 import numpy as np
 import pickle
 from config.config import cfg
-from global_variables.global_variables import use_cuda
 
 
 class TestVqaModel(unittest.TestCase):
+    """ Unit tests for individual models in VQA model.
+    """
 
-    def test_classifier(self):
-        batch_size = 12
+    def test_classifier_logit(self):
+        """
+        Test the Classifier model (logit).
+
+        # input shape:  [n_batch, joint_embedding_dim]
+        # output shape:  [n_batch, num_ans_candidates]
+
+        """
+        n_batch = 12
         joint_embedding_dim = 10
         num_ans_candidates = 20
         text_embeding_dim = 64
         image_embedding_dim = 32
 
-        my_classifier = logit_classifier(joint_embedding_dim,
-                                         num_ans_candidates,
-                                         img_hidden_dim=image_embedding_dim,
-                                         txt_hidden_dim=text_embeding_dim)
-        joint_embedding = Variable(torch.randn(batch_size,
+        classifier_model = logit_classifier(joint_embedding_dim,
+                                            num_ans_candidates,
+                                            img_hidden_dim=image_embedding_dim,
+                                            txt_hidden_dim=text_embeding_dim)
+        joint_embedding = Variable(torch.randn(n_batch,
                                                joint_embedding_dim))
-        res = my_classifier(joint_embedding)
-        self.assertEqual((12, 20), res.shape)
-
-    def test_classifier_batch_size_1(self):
-        batch_size = 1
-        joint_embedding_dim = 10
-        num_ans_candidates = 20
-        text_embeding_dim = 64
-        image_embedding_dim = 32
-
-        my_classifier = logit_classifier(joint_embedding_dim,
-                                         num_ans_candidates,
-                                         img_hidden_dim=image_embedding_dim,
-                                         txt_hidden_dim=text_embeding_dim)
-        joint_embedding = Variable(torch.randn(batch_size,
-                                               joint_embedding_dim))
-        res = my_classifier(joint_embedding)
-        self.assertEqual((1, 20), res.shape)
+        res = classifier_model(joint_embedding)
+        self.assertEqual((n_batch, num_ans_candidates), res.shape)
 
     def test_question_embedding(self):
+        """
+        Test the QuestionEmbedding model.
+
+        # input shape:  [n_batch, question_len]
+        # output shape:  [n_batch, lstm_dim]
+
+        """
         num_vocab = 20
         embedding_dim = 300
         lstm_dim = 512
         lstm_layer = 1
         dropout = 0.1
         batch_first = True
-        batch_size = 32
+        n_batch = 32
         question_len = 10
         my_word_embedding_model = QuestionEmbeding(num_vocab=num_vocab,
                                                    embedding_dim=embedding_dim,
@@ -82,20 +83,27 @@ class TestVqaModel(unittest.TestCase):
                                                    lstm_layer=lstm_layer,
                                                    lstm_dropout=dropout,
                                                    batch_first=batch_first)
-        input_txt = Variable(torch.rand(batch_size,
+        input_txt = Variable(torch.rand(n_batch,
                                         question_len).type(
             torch.LongTensor) % num_vocab)
         embedding = my_word_embedding_model(input_txt)
-        self.assertEqual((32, 512), embedding.shape)
+        self.assertEqual((n_batch, lstm_dim), embedding.shape)
 
     def test_question_atten_embedding(self):
+        """
+        Test the AttQuestionEmbedding model.
+
+        # input shape:  [n_batch, question_len]
+        # output shape:  [n_batch, lstm_dim*conv2_out]
+
+        """
         num_vocab = 20
         embedding_dim = 300
         lstm_dim = 64
         lstm_layer = 1
         dropout = 0.1
         batch_first = True
-        batch_size = 4
+        n_batch = 4
         question_len = 10
         conv1_out = 512
         conv2_out = 2
@@ -114,13 +122,21 @@ class TestVqaModel(unittest.TestCase):
                                                     padding=padding,
                                                     kernel_size=kernel_size)
 
-        input_txt = Variable(torch.rand(batch_size,
+        input_txt = Variable(torch.rand(n_batch,
                                         question_len).type(
             torch.LongTensor) % num_vocab)
         embedding = word_embedding_model(input_txt)
-        self.assertEqual((4, 64 * 2), embedding.shape)
+        self.assertEqual((n_batch, lstm_dim * conv2_out), embedding.shape)
 
-    def test_image_feature_encoding(self):
+    def test_image_feature_encoding_finetune(self):
+        """
+        Test the Image Feature Encoding (fine-tune) model.
+
+        # input shape:  [n_batch, in_dim]
+        # output shape:  [n_batch, out_dim_img_enc]
+
+        """
+        n_batch = 12
         in_dim = 128
         out_dim = 256
         weights = np.random.rand(out_dim, in_dim) * 10
@@ -128,10 +144,13 @@ class TestVqaModel(unittest.TestCase):
         weights_file = 'test_weights.pkl'
         bias_file = 'test_biases.pkl'
         method = "finetune_faster_rcnn_fpn_fc7"
-        input = Variable(torch.randn(in_dim))
+        input = Variable(torch.randn(n_batch, in_dim))
         par = AttrDict()
         par.weights_file = weights_file
         par.bias_file = bias_file
+        # ----------------------------------------------------------------------
+        # Dump the dummy testing files
+        # ----------------------------------------------------------------------
         with open(os.path.join(cfg.data.data_root_dir, weights_file), 'wb') \
                 as file:
             pickle.dump(weights, file)
@@ -143,15 +162,27 @@ class TestVqaModel(unittest.TestCase):
                                                           par=par,
                                                           in_dim=in_dim)
         res = img_encoding_model(input)
+        # ----------------------------------------------------------------------
+        # Delete the dummy files
+        # ----------------------------------------------------------------------
         os.remove(os.path.join(cfg.data.data_root_dir, weights_file))
         os.remove(os.path.join(cfg.data.data_root_dir, bias_file))
 
-        self.assertEqual((256,), res.shape)
+        self.assertEqual((n_batch, out_dim), res.shape)
 
-    def test_multi_modal_combine(self):
+    def test_multi_modal_combine_nonlinear(self):
+        """
+        Test the Multi Modal Combine (non-linear) model.
+
+        # inputs:  image_embeds and ques_embeds
+        # image_embeds shape: [n_batch, num_img_feats, img_feat_dim]
+        # ques_embeds shape: [n_batch, ques_emb_dim]
+        # output shape:  [n_batch, out_dim_modal_combine]
+
+         """
         method = 'non_linear_elmt_multiply'
         par_pair = ModelParPair(method)
-        par_pair.par['hidden_size'] = 200
+        out_dim_modal_combine = par_pair.par['hidden_size']
         n_batch = 10
         num_img_feats = 100
         img_feat_dim = 128
@@ -163,11 +194,22 @@ class TestVqaModel(unittest.TestCase):
                                                          img_feat_dim,
                                                          ques_emb_dim)
         res = modal_combine_model(img_feats, ques_embeds)
-        self.assertEqual((n_batch, num_img_feats, 200), res.shape)
+        self.assertEqual((n_batch, num_img_feats, out_dim_modal_combine),
+                         res.shape)
 
-    def test_post_combine_transform(self):
+    def test_post_combine_transform_linear(self):
+        """
+        Test the Post Combine Transform (linear) model.
+
+        # inputs:  image_embeds and ques_embeds
+        # image_embeds shape: [n_batch, num_img_feats, img_feat_dim]
+        # ques_embeds shape: [n_batch, ques_emb_dim]
+        # output shape:  [n_batch, out_dim_modal_combine]
+
+         """
         method = 'linear_transform'
         par_pair = ModelParPair(method)
+        post_combine_out_dim = par_pair.par.out_dim
         n_batch = 10
         num_img_feats = 100
         in_dim = 64
@@ -176,10 +218,19 @@ class TestVqaModel(unittest.TestCase):
                                                               par_pair.par,
                                                               in_dim)
         res = post_combine_transform(joint_feats)
-        self.assertEqual((n_batch, num_img_feats, par_pair.par.out_dim),
+        self.assertEqual((n_batch, num_img_feats, post_combine_out_dim),
                          res.shape)
 
     def test_image_attention_module(self):
+        """
+        Test the Image Attention module.
+
+        # inputs:  image_embeds and ques_embeds
+        # image_embeds shape: [n_batch, num_img_feats, img_feat_dim]
+        # ques_embeds shape: [n_batch, ques_embed_dim]
+        # output shape:  [n_batch, out_dim_transform]
+
+         """
         multi_modal_method = 'non_linear_elmt_multiply'
         post_combine_method = 'linear_transform'
         normalization_method = 'softmax'
@@ -191,6 +242,7 @@ class TestVqaModel(unittest.TestCase):
         attr.modal_combine = ModelParPair(multi_modal_method)
         attr.transform = ModelParPair(post_combine_method)
         attr.normalization = normalization_method
+        out_dim_transform = attr.transform.par.out_dim
         image_feats = Variable(torch.randn(n_batch,
                                            num_img_feats,
                                            image_feat_dim))
@@ -201,10 +253,19 @@ class TestVqaModel(unittest.TestCase):
                                                        image_feat_dim,
                                                        ques_embed_dim)
         res = img_atten_model(image_feats, ques_embeds)
-        self.assertEqual((n_batch, num_img_feats, attr.transform.par.out_dim),
+        self.assertEqual((n_batch, num_img_feats, out_dim_transform),
                          res.shape)
 
     def test_image_embedding(self):
+        """
+        Test the Image Embedding model.
+
+        # inputs:  image_embeds and ques_embeds
+        # image_embeds shape: [n_batch, num_img_feats, img_feat_dim]
+        # ques_embeds shape: [n_batch, ques_embed_dim]
+        # output shape:  [n_batch, out_dim_transform*image_feat_dim]
+
+         """
         multi_modal_method = 'non_linear_elmt_multiply'
         post_combine_method = 'linear_transform'
         normalization_method = 'softmax'
@@ -216,6 +277,7 @@ class TestVqaModel(unittest.TestCase):
         attr.modal_combine = ModelParPair(multi_modal_method)
         attr.transform = ModelParPair(post_combine_method)
         attr.normalization = normalization_method
+        out_dim_transform = attr.transform.par.out_dim
         image_feats = Variable(torch.randn(n_batch,
                                            num_img_feats,
                                            image_feat_dim))
@@ -227,9 +289,19 @@ class TestVqaModel(unittest.TestCase):
                                                        ques_embed_dim)
         img_embedding_model = image_embedding(img_atten_model)
         res = img_embedding_model(image_feats, ques_embeds, None)
-        self.assertEqual((n_batch, image_feat_dim), res.shape)
+        self.assertEqual((n_batch, out_dim_transform * image_feat_dim),
+                         res.shape)
 
     def test_vqa_multi_modal_model(self):
+        """
+        Test the VQA model.
+
+        # inputs:  image features and questions
+        # image features shape: [n_batch, num_img_feats, in_dim]
+        # questions shape: [n_batch, question_len]
+        # output shape:  [n_batch, num_ans_candidates]
+
+         """
         num_vocab = 64
         num_ans_candidates = 128
         embedding_dim = 300
@@ -315,7 +387,7 @@ class TestVqaModel(unittest.TestCase):
         # output is [N, out_dim_modal_combine]
         joint_embedding_dim = out_dim_modal_combine
         text_embeding_dim = 64
-        image_embedding_dim  = 32
+        image_embedding_dim = 32
         # ----------------------------------------------------------------------
         # inputs:  joint_embeds
         # joint_embeds shape: [n_batch, joint_embedding_dim]
@@ -346,45 +418,6 @@ class TestVqaModel(unittest.TestCase):
                         image_feat_variables=[vqa_img_input],
                         image_dim_variable=None)
         self.assertEqual((n_batch, num_ans_candidates), res.shape)
-
-    # def test_model(self):
-    #     image_feat_dim = 40
-    #     txt_embedding_dim = 300
-    #     lstm_dim = 512
-    #     hidden_size = 30
-    #     num_of_loc = 5
-    #     batch_size = 16
-    #     num_vocab = 60
-    #     num_ans_candidates = 35
-    #     joint_embedding_dim = 500
-    #     question_len = 13
-    #     batch_first = True
-    #     image_embedding_model = image_embedding(image_feat_dim,
-    #                                             lstm_dim,
-    #                                             hidden_size)
-    #     question_embedding_model = QuestionEmbeding(num_vocab,
-    #                                                 txt_embedding_dim,
-    #                                                 lstm_dim,
-    #                                                 lstm_layer=2,
-    #                                                 dropout=0.1,
-    #                                                 batch_first=batch_first)
-    #     my_classifier = logit_classifier(joint_embedding_dim,
-    #                                      num_ans_candidates,
-    #                                      image_feat_dim,
-    #                                      txt_embedding_dim)
-    #     loss = torch.nn.CrossEntropyLoss()
-    #
-    #     my_model = top_down_bottom_up_model(image_embedding_model,
-    #                                         question_embedding_model,
-    #                                         my_classifier, loss)
-    #     image_feat = np.random.rand(batch_size,
-    #                                 num_of_loc,
-    #                                 image_feat_dim)
-    #     input_txt = Variable(torch.rand(batch_size,
-    #                                     question_len).type(
-    #         torch.LongTensor) % num_vocab)
-    #     res = my_model(image_feat, input_txt, batch_first)
-    #     self.assertEqual((batch_size, num_ans_candidates), res.shape)
 
 
 if __name__ == '__main__':
