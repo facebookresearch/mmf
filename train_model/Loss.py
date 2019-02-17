@@ -136,7 +136,8 @@ class ComplementEntropyLoss(nn.Module):
         The same approach can be extended to multi-label classification problems
         with Softmax KL divergence loss.
 
-        Report Link : TODO
+        Report Link :
+        https://drive.google.com/file/d/16NtLvZvBPq1cRVeCSq7sXXg0C8NkSi4l/view
 
         When using Softmax KL divergence loss predictions for ground truth zero
         labels do not directly contribute to the training, this complementary
