@@ -226,7 +226,7 @@ if __name__ == '__main__':
     scheduler_list = [get_optim_scheduler(optim_list[0])]
 
     # --------------------------------------------------------------------------
-    # Primary and Complement losses are stored in a list
+    # Primary and Complement losses are passed in a list
     # --------------------------------------------------------------------------
     cfg_loss_list = [cfg.loss]
     if cfg.use_complement_loss:
