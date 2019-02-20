@@ -82,7 +82,13 @@ def kl_div(log_x, y):
 
 
 def complement_entropy_loss(x, y):
-    """Returns the complement entropy loss as proposed in the report.
+    """ Returns the complement entropy loss as proposed in the report.
+
+        This implementation is faithful with Equation (6) in the report's
+        section (2.4).
+
+        Equation (6) talks about the complement entropy, we calculate the
+        negative of its value i.e. complement entropy loss.
     """
     # --------------------------------------------------------------------------
     # Negated complement entropy (loss) for each label with zero target score
@@ -103,7 +109,7 @@ def complement_entropy_loss(x, y):
     num_labels = y.size()[1]
     zero_labels = torch.sum(y_is_0, dim=1, keepdim=True).float()
     non_zero_labels = num_labels - zero_labels
-    zero_labels.masked_fill_(torch.eq(zero_labels.data, 0), 1e-7)
+    zero_labels.masked_fill_(torch.eq(zero_labels.data, 0), 1e-7)  # num. issues
     normalize = non_zero_labels / zero_labels
     zero_labels.masked_fill_(torch.eq(zero_labels.data, 0), 0)
     loss = loss * normalize
@@ -139,12 +145,21 @@ class ComplementEntropyLoss(nn.Module):
         Report Link :
         https://drive.google.com/file/d/16NtLvZvBPq1cRVeCSq7sXXg0C8NkSi4l/view
 
-        When using Softmax KL divergence loss predictions for ground truth zero
-        labels do not directly contribute to the training, this complementary
-        loss could be used.
+        This implementation is faithful with Equation (6) in the report's
+        section (2.4).
 
-        Instead of directly combining this loss, we alternate between the
-        primary and the complement objective while training.
+        All the target scores with non-zero values are treated as positive
+        labels while calculating the complement entropy.
+
+        When using Softmax KL divergence loss, predictions corresponding to
+        incorrect labels do not directly contribute to the training
+        (parameter updates).
+
+        This complementary loss could be used to add an explicit objective for
+        maximizing the entropy of the incorrect labels.
+
+        While training, we alternate between the primary and the complement
+        objective.
     """
 
     def __init__(self):
@@ -216,6 +231,9 @@ class CombinedLoss(nn.Module):
 
         loss = self.weight_softmax * loss1 + loss2
 
+        # ----------------------------------------------------------------------
+        # Combine complement entropy loss pre-multiplied with a weight
+        # ----------------------------------------------------------------------
         if self.weight_complement is not None:
             res = F.softmax(pred_score, dim=1)
             loss3 = complement_entropy_loss(res, tar)
