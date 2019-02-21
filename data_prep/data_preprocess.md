@@ -39,8 +39,8 @@ python data_prep/vqa_v2.0/build_vqa_2.0_imdb.py --data_dir ../orig_data/vqa_v2.0
 Download image features
 ```bash
 cd data/
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/rcnn_10_100.tar.gz
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/detectron.tar.gz
+wget https://dl.fbaipublicfiles.com/pythia/data/rcnn_10_100.tar.gz
+wget https://dl.fbaipublicfiles.com/pythia/data/detectron.tar.gz
 gunzip rcnn_10_100.tar.gz 
 tar -xvf rcnn_10_100.tar
 rm -f rcnn_10_100.tar
@@ -61,8 +61,8 @@ and #0dd3284 of [caffe2](https://github.com/caffe2/caffe2)
 
 download the pretrained detectron model
 ```bash
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/detectron/FAST_RCNN_MLP_DIM2048_FPN_DIM512.pkl
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/detectron/e2e_faster_rcnn_X-101-64x4d-FPN_1x_MLP_2048_FPN_512.yaml
+wget https://dl.fbaipublicfiles.com/pythia/detectron/FAST_RCNN_MLP_DIM2048_FPN_DIM512.pkl
+wget https://dl.fbaipublicfiles.com/pythia/detectron/e2e_faster_rcnn_X-101-64x4d-FPN_1x_MLP_2048_FPN_512.yaml
 
 python extract_features.py --cfg e2e_faster_rcnn_X-101-64x4d-FPN_1x_MLP_2048_FPN_512.yaml \
 --wts FAST_RCNN_MLP_DIM2048_FPN_DIM512.pkl \
