@@ -39,8 +39,8 @@ python data_prep/vqa_v2.0/build_vqa_2.0_imdb.py --data_dir ../orig_data/vqa_v2.0
 Download image features
 ```bash
 cd data/
-wget https://dl.fbaipublicfiles.com/pythia/data/rcnn_10_100.tar.gz
-wget https://dl.fbaipublicfiles.com/pythia/data/detectron.tar.gz
+wget https://dl.fbaipublicfiles.com/pythia/features/rcnn_10_100.tar.gz
+wget https://dl.fbaipublicfiles.com/pythia/features/detectron.tar.gz
 gunzip rcnn_10_100.tar.gz 
 tar -xvf rcnn_10_100.tar
 rm -f rcnn_10_100.tar

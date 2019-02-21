@@ -94,8 +94,8 @@ wget https://dl.fbaipublicfiles.com/pythia/data/vqa2.0_glove.6B.300d.txt.npy
 wget https://dl.fbaipublicfiles.com/pythia/data/vocabulary_vqa.txt
 wget https://dl.fbaipublicfiles.com/pythia/data/answers_vqa.txt
 wget https://dl.fbaipublicfiles.com/pythia/data/imdb.tar.gz
-wget https://dl.fbaipublicfiles.com/pythia/data/rcnn_10_100.tar.gz
-wget https://dl.fbaipublicfiles.com/pythia/data/detectron.tar.gz
+wget https://dl.fbaipublicfiles.com/pythia/features/rcnn_10_100.tar.gz
+wget https://dl.fbaipublicfiles.com/pythia/features/detectron_fix_100.tar.gz
 wget https://dl.fbaipublicfiles.com/pythia/data/large_vocabulary_vqa.txt
 wget https://dl.fbaipublicfiles.com/pythia/data/large_vqa2.0_glove.6B.300d.txt.npy
 gunzip imdb.tar.gz 
@@ -203,12 +203,12 @@ rm -f detectron_100_resnet_most_data.tar
 Get ResNet152 features and Detectron features with fixed 100 bounding boxes
 ```bash
 cd data
-wget https://dl.fbaipublicfiles.com/pythia/data/detectron_fix_100.tar.gz
+wget https://dl.fbaipublicfiles.com/pythia/features/detectron_fix_100.tar.gz
 gunzip detectron_fix_100.tar.gz
 tar -xf detectron_fix_100.tar
 rm -f detectron_fix_100.tar
 
-wget https://dl.fbaipublicfiles.com/pythia/data/resnet152.tar.gz
+wget https://dl.fbaipublicfiles.com/pythia/features/resnet152.tar.gz
 gunzip resnet152.tar.gz
 tar -xf resnet152.tar
 rm -f resnet152.tar
