@@ -61,8 +61,8 @@ and #0dd3284 of [caffe2](https://github.com/caffe2/caffe2)
 
 download the pretrained detectron model
 ```bash
-wget https://dl.fbaipublicfiles.com/pythia/detectron/FAST_RCNN_MLP_DIM2048_FPN_DIM512.pkl
-wget https://dl.fbaipublicfiles.com/pythia/detectron/e2e_faster_rcnn_X-101-64x4d-FPN_1x_MLP_2048_FPN_512.yaml
+wget https://dl.fbaipublicfiles.com/pythia/detectron_model/FAST_RCNN_MLP_DIM2048_FPN_DIM512.pkl
+wget https://dl.fbaipublicfiles.com/pythia/detectron_model/e2e_faster_rcnn_X-101-64x4d-FPN_1x_MLP_2048_FPN_512.yaml
 
 python extract_features.py --cfg e2e_faster_rcnn_X-101-64x4d-FPN_1x_MLP_2048_FPN_512.yaml \
 --wts FAST_RCNN_MLP_DIM2048_FPN_DIM512.pkl \
