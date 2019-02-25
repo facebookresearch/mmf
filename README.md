@@ -232,12 +232,6 @@ python ensemble.py --res_dirs pretrained_models/ --out ensemble_5.json
 ```
 Results will be saved in `ensemble_5.json`. This ensemble can get accuracy 71.65 on test-dev.
 
-#### Ensemble 30 models
-To run an ensemble of 30 pretrained models, download the models and image features as follows. This gets an accuracy of 72.18 on test-dev.
-
-```bash
-wget https://dl.fbaipublicfiles.com/pythia/ensembled.tar.gz
-```
 ### Customize config
 To change models or adjust hyper-parameters, see [config_help.md](config_help.md)
 
@@ -261,7 +255,6 @@ Here, we listed the size of some large files in our AWS S3 bucket.
 |data/detectron.tar.gz | 106.2 GB|
 |data/detectron_fix_100.tar.gz|162.6GB|
 |data/resnet152.tar.gz | 399.6GB|
-|ensembled.tar.gz| 462.1GB|
 
 ### Acknowledgements
 We would like to thank Peter Anderson, Abhishek Das, Stefan Lee, Jiasen Lu, Jianwei Yang, Licheng Yu, 
