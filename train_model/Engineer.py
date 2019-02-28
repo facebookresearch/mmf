@@ -6,14 +6,14 @@
 #
 
 
-import torch
-import torch.nn as nn
 import sys
 import os
+import torch
+import torch.nn as nn
 from torch.autograd import Variable
-from global_variables.global_variables import use_cuda
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
+from global_variables.global_variables import use_cuda
 from config.config import cfg
 from tools.timer import Timer
 

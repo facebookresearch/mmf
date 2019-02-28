@@ -6,27 +6,26 @@
 #
 
 
-import timeit
 import argparse
 import random
 import os
-import demjson
-import yaml
+import glob
+from bisect import bisect
 from torch import optim
 from torch.utils.data import DataLoader
+import torch
+from torch.optim.lr_scheduler import LambdaLR
+import yaml
+import demjson
+from tools.timer import Timer
+from global_variables.global_variables import use_cuda
 from config.config_utils import finalize_config, dump_config
 from config.config import cfg
-from global_variables.global_variables import use_cuda
 from train_model.dataset_utils import prepare_train_data_set, \
     prepare_eval_data_set, prepare_test_data_set
 from train_model.helper import build_model, run_model, print_result
 from train_model.Loss import get_loss_criterion
 from train_model.Engineer import one_stage_train
-import glob
-import torch
-from torch.optim.lr_scheduler import LambdaLR
-from bisect import bisect
-from tools.timer import Timer
 
 
 def parse_args():

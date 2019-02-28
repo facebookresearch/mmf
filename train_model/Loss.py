@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-""" Losses are enclosed within nn.Module sub-classes. 
+""" Losses are enclosed within nn.Module sub-classes.
 
     Parameters
     ----------
@@ -34,7 +34,7 @@ def get_loss_criterion(loss_list):
     """
     loss_criterions = []
     if len(loss_list) == 2:
-        if loss_list[0] is not 'softmaxKL':
+        if loss_list[0] == 'softmaxKL':
             print('Training with Complement Objective only supports softmaxKL'
                   ' as the primary loss. Current primary loss is: ',
                   loss_list[0])
