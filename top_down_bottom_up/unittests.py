@@ -9,18 +9,17 @@
 import os
 import sys
 import unittest
-
+import pickle
 import torch
+import numpy as np
+from torch.autograd import Variable
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))  # add parent for imports
 
-from config.collections import AttrDict
-from config.function_config_lib import ModelParPair
 from top_down_bottom_up.image_attention import build_image_attention_module
 from top_down_bottom_up.multi_modal_combine import build_modal_combine_module
 from top_down_bottom_up.post_combine_transform import \
     build_post_combine_transform
-from torch.autograd import Variable
 from top_down_bottom_up.question_embeding import QuestionEmbeding, \
     AttQuestionEmbedding
 from top_down_bottom_up.image_embedding import image_embedding
@@ -29,9 +28,9 @@ from top_down_bottom_up.image_feature_encoding import \
 from top_down_bottom_up.classifier import logit_classifier
 from top_down_bottom_up.top_down_bottom_up_model \
     import vqa_multi_modal_model
-import numpy as np
-import pickle
 from config.config import cfg
+from config.collections import AttrDict
+from config.function_config_lib import ModelParPair
 
 
 class TestVqaModel(unittest.TestCase):
@@ -83,8 +82,7 @@ class TestVqaModel(unittest.TestCase):
                                                    lstm_layer=lstm_layer,
                                                    lstm_dropout=dropout,
                                                    batch_first=batch_first)
-        input_txt = Variable(torch.rand(n_batch,
-                                        question_len).type(
+        input_txt = Variable(torch.rand(n_batch, question_len).type(
             torch.LongTensor) % num_vocab)
         embedding = my_word_embedding_model(input_txt)
         self.assertEqual((n_batch, lstm_dim), embedding.shape)
@@ -122,8 +120,7 @@ class TestVqaModel(unittest.TestCase):
                                                     padding=padding,
                                                     kernel_size=kernel_size)
 
-        input_txt = Variable(torch.rand(n_batch,
-                                        question_len).type(
+        input_txt = Variable(torch.rand(n_batch, question_len).type(
             torch.LongTensor) % num_vocab)
         embedding = word_embedding_model(input_txt)
         self.assertEqual((n_batch, lstm_dim * conv2_out), embedding.shape)
@@ -144,7 +141,7 @@ class TestVqaModel(unittest.TestCase):
         weights_file = 'test_weights.pkl'
         bias_file = 'test_biases.pkl'
         method = "finetune_faster_rcnn_fpn_fc7"
-        input = Variable(torch.randn(n_batch, in_dim))
+        inp = Variable(torch.randn(n_batch, in_dim))
         par = AttrDict()
         par.weights_file = weights_file
         par.bias_file = bias_file
@@ -161,7 +158,7 @@ class TestVqaModel(unittest.TestCase):
         img_encoding_model = build_image_feature_encoding(method,
                                                           par=par,
                                                           in_dim=in_dim)
-        res = img_encoding_model(input)
+        res = img_encoding_model(inp)
         # ----------------------------------------------------------------------
         # Delete the dummy files
         # ----------------------------------------------------------------------
