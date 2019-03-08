@@ -64,9 +64,11 @@ download the pretrained detectron model
 wget https://dl.fbaipublicfiles.com/pythia/detectron_model/FAST_RCNN_MLP_DIM2048_FPN_DIM512.pkl
 wget https://dl.fbaipublicfiles.com/pythia/detectron_model/e2e_faster_rcnn_X-101-64x4d-FPN_1x_MLP_2048_FPN_512.yaml
 
+$INPUT_DIR = /path/to/your/input/image or directory
+
 python extract_features.py --cfg e2e_faster_rcnn_X-101-64x4d-FPN_1x_MLP_2048_FPN_512.yaml \
 --wts FAST_RCNN_MLP_DIM2048_FPN_DIM512.pkl \
 --min_bboxes 100 --max_bboxes 100 \
 --feat_name gpu_0/fc6 \
---out_dir ~/temp_out $INPUT_DIR
+--output_dir ~/temp_out $INPUT_DIR
 ```
