@@ -130,7 +130,7 @@ class top_down_attention(nn.Module):
             dim=0).expand(batch_size, num_loc)
         tmp1 = tmp1.cuda() if use_cuda else tmp1
         tmp2 = torch.unsqueeze(image_locs.data, 1).expand(batch_size, num_loc)
-        mask = torch.ge(tmp1, tmp2)
+        mask = torch.ge(tmp1.long(), tmp2.long())
         mask = torch.unsqueeze(mask, 2).expand_as(attention)
         attention.data.masked_fill_(mask, 0)
         return attention
