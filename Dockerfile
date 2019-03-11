@@ -2,6 +2,7 @@ FROM nvidia/cuda:9.0-cudnn7-runtime-ubuntu16.04
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
+ENV PATH=/root/.local/bin:$PATH
 
 RUN apt-get update
 
@@ -45,7 +46,7 @@ RUN conda install -c mutirri demjson --yes
 RUN pip install pyyaml tensorboardX 
 
 # Install pytorch
-RUN conda install pytorch=0.3.0 torchvision cuda90 -c pytorch --yes
+RUN conda install pytorch=0.4.0 torchvision cuda90 -c pytorch --yes
 
 # Install Notebook
 RUN pip --no-cache-dir install jupyter
@@ -62,10 +63,9 @@ EXPOSE 8888 8888
 # Make Pythia workspace
 RUN mkdir Pythia 
 
-# Add local pythia clone inside container
-ADD ./ /Pythia
-
-# Make Pythia current workign dir
+# Make Pythia current working dir
 WORKDIR "/Pythia"
+
+RUN pwd
 
 ENTRYPOINT jupyter notebook --allow-root --ip=127.0.0.1 --no-browser
