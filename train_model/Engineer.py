@@ -238,7 +238,7 @@ def one_stage_run_model(batch, my_model, eval_mode, add_graph=False, log_dir=Non
     i = 1
     image_feat_key = "image_feat_batch_%s"
     while image_feat_key % str(i) in batch:
-        tmp_image_variable = Variable(batch[image_feat_key % str(i)])
+        tmp_image_variable = Variable(batch[image_feat_key % str(i)].data)
         if use_cuda:
             tmp_image_variable = tmp_image_variable.cuda()
         image_feat_variables.append(tmp_image_variable)
