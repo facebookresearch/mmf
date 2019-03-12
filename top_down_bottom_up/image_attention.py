@@ -147,7 +147,8 @@ class top_down_attention(nn.Module):
                 masked_attention = self._mask_attentions(attention, image_locs)
                 masked_attention_sum = torch.sum(masked_attention,
                                                  dim=1, keepdim=True)
-                masked_attention = masked_attention / masked_attention_sum
+                masked_attention = masked_attention \
+                                / (masked_attention_sum + 1e-7)  # num. issues
             else:
                 masked_attention = attention
 

@@ -36,19 +36,27 @@ def compute_score_with_logits(logits, labels):
     return scores
 
 
-def clip_gradients(model, i_iter, writer):
-    max_grad_l2_norm = cfg.training_parameters.max_grad_l2_norm
-    clip_norm_mode = cfg.training_parameters.clip_norm_mode
+def clip_gradients(model, i_iter, writer, grads_label):
+
+    if grads_label == 'primary':
+        max_grad_l2_norm = cfg.training_parameters.max_grad_l2_norm
+        clip_norm_mode = cfg.training_parameters.clip_norm_mode
+    elif grads_label == 'complement':
+        max_grad_l2_norm = cfg.training_parameters.complement_max_grad_l2_norm
+        clip_norm_mode = cfg.training_parameters.complement_clip_norm_mode
+    else:
+        raise NotImplementedError
+
     if max_grad_l2_norm is not None:
         if clip_norm_mode == 'all':
-            norm = nn.utils.clip_grad_norm(model.parameters(),
-                                           max_grad_l2_norm)
-            writer.add_scalar('grad_norm', norm, i_iter)
+            norm = nn.utils.clip_grad_norm_(model.parameters(),
+                                            max_grad_l2_norm)
+            writer.add_scalar('grad_norm_' + grads_label, norm, i_iter)
         elif clip_norm_mode == 'question':
-            norm = nn.utils.clip_grad_norm(
+            norm = nn.utils.clip_grad_norm_(
                 model.module.question_embedding_models.parameters(),
                 max_grad_l2_norm)
-            writer.add_scalar('question_grad_norm', norm, i_iter)
+            writer.add_scalar('question_grad_norm_' + grads_label, norm, i_iter)
         else:
             raise NotImplementedError
 
@@ -95,7 +103,7 @@ def save_a_report(i_iter,
     writer.add_scalar('train_loss', train_loss, i_iter)
     writer.add_scalar('train_score', train_acc, i_iter)
     writer.add_scalar('train_score_avg', train_avg_acc, i_iter)
-    writer.add_scalar('val_score', val_score, i_iter)
+    writer.add_scalar('val_score', val_acc, i_iter)
     writer.add_scalar('val_loss', val_loss.item(), i_iter)
 
     if train_comp_loss is not None:
@@ -232,15 +240,20 @@ def one_stage_train(model,
             if use_complement_loss:
                 scheduler_list[1].step(i_iter)
                 optimizer_list[1].zero_grad()
-                _, comp_loss, _ = compute_a_batch(batch,
-                                                  model,
-                                                  eval_mode=False,
-                                                  loss_criterions=
-                                                  loss_criterions[1],
-                                                  add_graph=add_graph,
-                                                  log_dir=log_dir)
-                comp_loss.backward()
-                clip_gradients(model, i_iter, writer)
+                # --------------------------------------------------------------
+                # Check gradient Anomaly (i.e. Nan gradients)
+                # --------------------------------------------------------------
+                with autograd.detect_anomaly():
+                    _, comp_loss, _ = compute_a_batch(batch,
+                                                      model,
+                                                      eval_mode=False,
+                                                      loss_criterions=
+                                                      loss_criterions[1],
+                                                      add_graph=add_graph,
+                                                      log_dir=log_dir,
+                                                      iter=i_iter)
+                    comp_loss.backward()
+                clip_gradients(model, i_iter, writer, 'complement')
                 optimizer_list[1].step()
                 losses.append(comp_loss)
 
@@ -360,7 +373,7 @@ def one_stage_eval_model(data_reader_eval, model, loss_criterions=None):
     if isinstance(loss_criterions, nn.Module):
         losses = losses[0] / n_sample_tot  # send a single value not list
     elif isinstance(loss_criterions, list):
-        losses = [loss/n_sample_tot for loss in losses]
+        losses = [loss / n_sample_tot for loss in losses]
     else:
         losses = None  # loss_criterions is none
 
