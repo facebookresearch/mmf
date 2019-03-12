@@ -105,7 +105,6 @@ def get_logits(model, resnet_model,
     preproc_text = preprocess_text(question, vocab_dict)
     preproc_image = preprocess_image(image, resnet_model)
     sample = {**preproc_text, **preproc_image}
-        #
     logit_res = one_stage_run_model(sample, model, eval_mode=True)
     return logit_res
 
@@ -113,3 +112,11 @@ def get_logits(model, resnet_model,
 def get_top_n_results(softmax_result, vocab, n=1):
     answer_idx = softmax_result[0].argsort()[-n:]
     return [vocab.idx2word(idx) for idx in answer_idx]
+
+
+def get_classes_and_scores(softmax_result, vocab, n=1):
+    answer_idx = softmax_result[0].argsort()[-n:]
+    classes = [vocab.idx2word(idx) for idx in answer_idx]
+    scores = sorted(softmax_result[0])[-n:]
+
+    return classes, scores
