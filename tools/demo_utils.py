@@ -38,7 +38,10 @@ def load_pretrained_model(model, filepath):
     state_dict = torch.load(filepath)['state_dict']
     new_state_dict = OrderedDict()
     for k, v in state_dict.items():
-        name = k.replace('module.', '')
+        if k not in model.state_dict().keys():
+            name = k.replace('module.', '')
+        else:
+            name = k
         if v.shape != model.state_dict()[name].shape:
             v = v.reshape(model.state_dict()[name].shape)
         new_state_dict[name] = v
