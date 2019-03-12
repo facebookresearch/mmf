@@ -76,6 +76,14 @@ __C.loss = 'logitBCE'
 __C.use_complement_loss = False
 __C.complement_loss = 'complementEntropy'
 
+# Use below only with 'combinedLoss'
+__C.weight_softmax = None
+__C.weight_complement = None
+__C.weight_complement_decay = False
+__C.weight_complement_decay_factor = None
+__C.weight_complement_decay_iters = None
+
+
 # --------------------------------------------------------------------------- #
 # optimizer options:
 # --------------------------------------------------------------------------- #

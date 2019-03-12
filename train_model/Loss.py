@@ -9,6 +9,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from config.config import cfg
 
 """ Losses are enclosed within nn.Module sub-classes.
 
@@ -45,7 +46,7 @@ def get_loss_criterion(loss_list):
             loss_criterion = SoftmaxKlDivLoss()
         elif loss_config == 'wrong':
             loss_criterion = wrong_loss()
-        elif loss_config == 'combined':
+        elif loss_config == 'combinedLoss':
             loss_criterion = CombinedLoss()
         elif loss_config == 'complementEntropy':
             loss_criterion = ComplementEntropyLoss()
@@ -205,27 +206,53 @@ class wrong_loss(nn.Module):
 
 
 class CombinedLoss(nn.Module):
-    def __init__(self, weight_softmax, weight_complement=None):
+    def __init__(self):
         super(CombinedLoss, self).__init__()
-        self.weight_softmax = weight_softmax
-        self.weight_complement = weight_complement
 
-    def forward(self, pred_score, target_score):
+        self.weight_softmax = None
+        self.weight_complement = None
+        self.weight_complement_decay_factor = None
+        self.weight_complement_decay_iters = None
+
+        if cfg.weight_softmax is not None:
+            self.weight_softmax = cfg.weight_softmax
+
+        if cfg.weight_complement is not None:
+            self.weight_complement = cfg.weight_complement
+
+        if cfg.weight_complement_decay:
+            self.weight_complement_decay_factor = cfg.weight_complement_decay_factor
+            self.weight_complement_decay_iters = cfg.weight_complement_decay_iters
+
+    def forward(self, pred_score, target_score, iter=None):
         tar_sum = torch.sum(target_score, dim=1, keepdim=True)
         tar_sum_is_0 = torch.eq(tar_sum, 0)
         tar_sum.masked_fill_(tar_sum_is_0, 1.0e-06)
         tar = target_score / tar_sum
 
+        # ----------------------------------------------------------------------
+        # Adds weight decay to complement loss
+        # ----------------------------------------------------------------------
+        if iter is not None and cfg.weight_complement_decay and\
+                ((iter+1) % self.weight_complement_decay_iters == 0):
+            self.weight_complement *= self.weight_complement_decay_factor
+            print("Decaying complement_weight at", iter, "to", self.weight_complement)
+
         res = F.log_softmax(pred_score, dim=1)
         loss1 = kl_div(res, tar)
-        loss1 = torch.sum(loss1) / loss1.size(0)
+        loss = torch.sum(loss1) / loss1.size(0)
 
-        loss2 = F.binary_cross_entropy_with_logits(pred_score,
-                                                   target_score,
-                                                   reduction='mean')
-        loss2 *= target_score.size(1)
-
-        loss = self.weight_softmax * loss1 + loss2
+        # ----------------------------------------------------------------------
+        # Balances 'softmaxKL' vs 'logitBCE' losses
+        # Set weight_softmax to None for using only 'softmaxKL'
+        # Set weight_softmax to 0.0 for using only 'logitBCE'
+        # ----------------------------------------------------------------------
+        if self.weight_softmax is not None:
+            loss2 = F.binary_cross_entropy_with_logits(pred_score,
+                                                       target_score,
+                                                       reduction='mean')
+            loss2 *= target_score.size(1)
+            loss = self.weight_softmax * loss1 + loss2
 
         # ----------------------------------------------------------------------
         # Combine complement entropy loss pre-multiplied with a weight
