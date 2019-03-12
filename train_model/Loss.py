@@ -103,14 +103,12 @@ def complement_entropy_loss(x, y):
     # --------------------------------------------------------------------------
     # Normalize the loss to balance it with cross entropy loss
     # --------------------------------------------------------------------------
-    num_labels = y.size()[1]
-    zero_labels = torch.sum(y_is_0, dim=1, keepdim=True).float()
-    non_zero_labels = num_labels - zero_labels
-    zero_labels.masked_fill_(torch.eq(zero_labels, 0), 1e-7)  # num. issues
-    normalize = non_zero_labels / zero_labels
-    zero_labels.masked_fill_(torch.eq(zero_labels, 0), 0)
-    loss = loss * normalize
-    return torch.sum(loss, dim=1, keepdim=True)  # Sum the loss over the labels
+    if cfg.normalize_complement_loss:
+        num_labels = y.size()[1]
+        normalize = 1 / num_labels
+        loss = loss * normalize
+    loss_return = torch.sum(loss, dim=1, keepdim=True)
+    return loss_return  # Sum the loss over the labels
 
 
 class weighted_softmax_loss(nn.Module):

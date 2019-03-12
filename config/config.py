@@ -75,6 +75,7 @@ __C.training_parameters.lr_ratio = 0.1
 __C.loss = 'logitBCE'
 __C.use_complement_loss = False
 __C.complement_loss = 'complementEntropy'
+__C.normalize_complement_loss = True
 
 # Use below only with 'combinedLoss'
 __C.weight_softmax = None
