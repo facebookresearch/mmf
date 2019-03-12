@@ -4,6 +4,8 @@
 .idea/*
 */__pycache__/*
 data/.DS_Store
+data/*
+orig_data/*
 results/*
 boards/*
 .DS_Store

@@ -34,11 +34,7 @@ def get_loss_criterion(loss_list):
     """
     loss_criterions = []
     if len(loss_list) == 2:
-        if loss_list[0] == 'softmaxKL':
-            print('Training with Complement Objective only supports softmaxKL'
-                  ' as the primary loss. Current primary loss is: ',
-                  loss_list[0])
-            raise NotImplementedError
+        print('Alternate Training with Complement Objective: ', loss_list[1])
     elif len(loss_list) > 2:
         raise NotImplementedError
 
@@ -93,8 +89,8 @@ def complement_entropy_loss(x, y):
     # --------------------------------------------------------------------------
     # Negated complement entropy (loss) for each label with zero target score
     # --------------------------------------------------------------------------
-    y_is_0 = torch.eq(y.data, 0)
-    x_remove_0 = x.clone().data.masked_fill_(y_is_0, 0)
+    y_is_0 = torch.eq(y, 0)
+    x_remove_0 = x.clone().masked_fill_(y_is_0, 0)
     xr_sum = torch.sum(x_remove_0, dim=1, keepdim=True)
     one_min_xr_sum = 1-xr_sum
     one_min_xr_sum.masked_fill_(one_min_xr_sum <= 0, 1e-7)  # Numerical issues
@@ -109,9 +105,9 @@ def complement_entropy_loss(x, y):
     num_labels = y.size()[1]
     zero_labels = torch.sum(y_is_0, dim=1, keepdim=True).float()
     non_zero_labels = num_labels - zero_labels
-    zero_labels.masked_fill_(torch.eq(zero_labels.data, 0), 1e-7)  # num. issues
+    zero_labels.masked_fill_(torch.eq(zero_labels, 0), 1e-7)  # num. issues
     normalize = non_zero_labels / zero_labels
-    zero_labels.masked_fill_(torch.eq(zero_labels.data, 0), 0)
+    zero_labels.masked_fill_(torch.eq(zero_labels, 0), 0)
     loss = loss * normalize
     return torch.sum(loss, dim=1, keepdim=True)  # Sum the loss over the labels
 
