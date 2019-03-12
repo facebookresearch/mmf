@@ -8,8 +8,8 @@
 
 import logging
 import os
-from config.collections import AttrDict
-from config.function_config_lib import ModelParPair
+from pythia.config.collections import AttrDict
+from pythia.config.function_config_lib import ModelParPair
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ __C.data.question_max_len = 14
 __C.data.image_fast_reader = True
 __C.data.image_max_loc = 100
 
-__C.data.data_root_dir = "data"
+__C.data.data_root_dir = "/aira-vqa/pythia/data"
 
 __C.data.vocab_question_file = "vocabulary_vqa.txt"
 __C.data.vocab_answer_file = "answers_vqa.txt"

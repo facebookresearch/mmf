@@ -6,8 +6,8 @@
 #
 
 
-from config.function_config_lib import ModelParPair
-from config.collections import AttrDict
+from pythia.config.function_config_lib import ModelParPair
+from pythia.config.collections import AttrDict
 import yaml
 import demjson
 
@@ -99,7 +99,7 @@ def finalize_config(cfg, cfg_file_path, cfg_cmd_string):
     if cfg_cmd_string is not None:
         __merge_config_from_cmdline(cfg, cfg_cmd_string)
 
-    cfg.immutable(True)
+    cfg.immutable(False)
 
 
 # ----------------extract config to simple dict------------------------------ #

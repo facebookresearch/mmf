@@ -6,7 +6,7 @@
 #
 
 
-from config.collections import AttrDict
+from pythia.config.collections import AttrDict
 
 # --------------------------------------------------------------------------- #
 # optimizer options:

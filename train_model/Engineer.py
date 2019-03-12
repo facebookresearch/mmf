@@ -11,11 +11,11 @@ import torch.nn as nn
 import sys
 import os
 from torch.autograd import Variable
-from global_variables.global_variables import use_cuda
+from pythia.global_variables.global_variables import use_cuda
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
-from config.config import cfg
-from tools.timer import Timer
+from pythia.config.config import cfg
+from pythia.tools.timer import Timer
 
 
 def masked_unk_softmax(x, dim, mask_idx):
