@@ -16,6 +16,7 @@ from tensorboardX import SummaryWriter
 from global_variables.global_variables import use_cuda
 from config.config import cfg
 from tools.timer import Timer
+from torch import autograd
 
 
 def masked_unk_softmax(x, dim, mask_idx):
@@ -228,9 +229,10 @@ def one_stage_train(model,
                                                            loss_criterions=
                                                            loss_criterions[0],
                                                            add_graph=add_graph,
-                                                           log_dir=log_dir)
+                                                           log_dir=log_dir,
+                                                           iter=i_iter)
             total_loss.backward()
-            clip_gradients(model, i_iter, writer)
+            clip_gradients(model, i_iter, writer, 'primary')
             optimizer_list[0].step()
             losses.append(total_loss)
 
@@ -317,7 +319,7 @@ def evaluate_a_batch(batch, model, loss_criterions):
 
 
 def compute_a_batch(batch, my_model, eval_mode, loss_criterions=None,
-                    add_graph=False, log_dir=None):
+                    add_graph=False, log_dir=None, iter=None):
     """
     Parameters
     ----------
@@ -339,9 +341,9 @@ def compute_a_batch(batch, my_model, eval_mode, loss_criterions=None,
         if isinstance(loss_criterions, list):
             losses = []
             for loss in loss_criterions:
-                losses.append(loss(logit_res, obs_res))
+                losses.append(loss(logit_res, obs_res, iter))
         elif isinstance(loss_criterions, nn.Module):
-            losses = loss_criterions(logit_res, obs_res)
+            losses = loss_criterions(logit_res, obs_res, iter)
 
     return predicted_scores, losses, n_sample
 
