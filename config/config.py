@@ -15,13 +15,11 @@ logger = logging.getLogger(__name__)
 __C = AttrDict()
 cfg = __C
 
-
 # --------------------------------------------------------------------------- #
 # running model options: string, options: train, train+predict
 # --------------------------------------------------------------------------- #
 __C.run = "train+predict"
 __C.exp_name = "baseline"
-
 
 # --------------------------------------------------------------------------- #
 # data options:
@@ -51,7 +49,6 @@ __C.data.image_feat_val = ["rcnn_10_100/vqa/val2014"]
 __C.data.imdb_file_test = ["imdb/imdb_test2015.npy"]
 __C.data.image_feat_test = ["rcnn_10_100/vqa/test2015"]
 
-
 # --------------------------------------------------------------------------- #
 # training_parameters options:
 # --------------------------------------------------------------------------- #
@@ -68,7 +65,6 @@ __C.training_parameters.max_iter = 12000
 __C.training_parameters.lr_steps = [5000, 7000, 9000, 11000]
 __C.training_parameters.lr_ratio = 0.1
 
-
 # --------------------------------------------------------------------------- #
 # loss options:
 # --------------------------------------------------------------------------- #
@@ -77,13 +73,23 @@ __C.use_complement_loss = False
 __C.complement_loss = 'complementEntropy'
 __C.normalize_complement_loss = True
 
-# Use below only with 'combinedLoss'
+# ----------------------------------------------------------------------
+# Use below configurations only with __C.loss = 'combinedLoss'
+#
+# weight_softmax (Float) : Combines 'softmaxKL' and 'logitBCE' losses
+# Set weight_softmax to None for using only 'softmaxKL' loss
+# Set weight_softmax to 0.0 for using only 'logitBCE' loss
+#
+# weight_complement (Float): Combines 'complementEntropy' with remaining loss
+# weight_complement_decay (Bool): Set to True to decay the weight_complement
+# weight_complement_decay_factor (Float): Decay factor that is multiplied
+# weight_complement_decay_iters (Integer): Iterations after which to apply decay
+# ----------------------------------------------------------------------
 __C.weight_softmax = None
 __C.weight_complement = None
 __C.weight_complement_decay = False
 __C.weight_complement_decay_factor = 0.5
 __C.weight_complement_decay_iters = 1500
-
 
 # --------------------------------------------------------------------------- #
 # optimizer options:

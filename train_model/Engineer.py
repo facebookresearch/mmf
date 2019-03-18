@@ -38,7 +38,10 @@ def compute_score_with_logits(logits, labels):
 
 
 def clip_gradients(model, i_iter, writer, grads_label):
-
+    """
+    grads_label: Label used to distinguish between complement and primary
+    gradients
+    """
     if grads_label == 'primary':
         max_grad_l2_norm = cfg.training_parameters.max_grad_l2_norm
         clip_norm_mode = cfg.training_parameters.clip_norm_mode
@@ -87,14 +90,14 @@ def save_a_report(i_iter,
         val_comp_loss = val_losses[1]
         train_comp_loss = train_losses[1]
 
-    print("iter:", i_iter, "train_loss: %.4f" % train_loss.item(),
-          "train_comp_loss: %.4f" % train_comp_loss.item()
+    print("iter:", i_iter, "train_loss: %.8f" % train_loss.item(),
+          "train_comp_loss: %.8f" % train_comp_loss.item()
           if train_comp_loss is not None else "",
-          " train_score: %.4f" % train_acc,
-          " avg_train_score: %.4f" % train_avg_acc,
-          "val_score: %.4f" % val_acc,
-          "val_loss: %.4f" % val_loss.item(),
-          "val_comp_loss: %.4f" % val_comp_loss.item()
+          " train_score: %.8f" % train_acc,
+          " avg_train_score: %.8f" % train_avg_acc,
+          "val_score: %.8f" % val_acc,
+          "val_loss: %.8f" % val_loss.item(),
+          "val_comp_loss: %.8f" % val_comp_loss.item()
           if val_comp_loss is not None else "",
           "time(s): % s" % report_timer.end())
 
@@ -324,6 +327,7 @@ def compute_a_batch(batch, my_model, eval_mode, loss_criterions=None,
     Parameters
     ----------
     loss_criterions: Could be either a list or single loss (nn.Module) object.
+    iter: Current iteration, used for complement weight decay. (Optional)
     """
     obs_res = batch['ans_scores']
     obs_res = Variable(obs_res.type(torch.FloatTensor))
