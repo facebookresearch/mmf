@@ -212,6 +212,19 @@ class CombinedLoss(nn.Module):
         self.weight_complement_decay_factor = cfg.weight_complement_decay_factor
         self.weight_complement_decay_iters = cfg.weight_complement_decay_iters
 
+        print("Combined Loss Formulation with ==> ", "Complement Weight:", self.weight_complement,
+              "| SoftmaxKL Weight:", 1.0 if self.weight_softmax is None else self.weight_softmax,
+              "| BCE Weight:", 0.0 if self.weight_softmax is None else 1.0)
+
+        if cfg.weight_complement_decay:
+            if self.weight_complement_decay_iters is not None and \
+                    self.weight_complement_decay_factor is not None:
+                print("Complement Weight decay ==> ", "Decay iters:",
+                      self.weight_complement_decay_iters, "| Decay factor:",
+                      self.weight_complement_decay_factor)
+            else:
+                raise ValueError
+
     def forward(self, pred_score, target_score, iter=None):
         tar_sum = torch.sum(target_score, dim=1, keepdim=True)
         tar_sum_is_0 = torch.eq(tar_sum, 0)
