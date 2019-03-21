@@ -69,11 +69,21 @@ __C.training_parameters.lr_ratio = 0.1
 # loss options:
 # --------------------------------------------------------------------------- #
 __C.loss = 'logitBCE'
+
+# --------------------------------------------------------------------------- #
+# use_complement_loss (Bool): Switch to control Complement Training (alternate)
+# complement_loss (String): Loss to use for COT, default: "complementEntropy"
+# --------------------------------------------------------------------------- #
 __C.use_complement_loss = False
 __C.complement_loss = 'complementEntropy'
+
+# --------------------------------------------------------------------------- #
+# normalize_complement_loss (Boolean): switch to control the normalization of
+# complement loss across label categories
+# --------------------------------------------------------------------------- #
 __C.normalize_complement_loss = True
 
-# ----------------------------------------------------------------------
+# --------------------------------------------------------------------------- #
 # Use below configurations only with __C.loss = 'combinedLoss'
 #
 # weight_softmax (Float) : Combines 'softmaxKL' and 'logitBCE' losses
@@ -84,7 +94,7 @@ __C.normalize_complement_loss = True
 # weight_complement_decay (Bool): Set to True to decay the weight_complement
 # weight_complement_decay_factor (Float): Decay factor that is multiplied
 # weight_complement_decay_iters (Integer): Iterations after which to apply decay
-# ----------------------------------------------------------------------
+# --------------------------------------------------------------------------- #
 __C.weight_softmax = None
 __C.weight_complement = None
 __C.weight_complement_decay = False
