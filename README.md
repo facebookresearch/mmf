@@ -90,14 +90,14 @@ cd Pythia
 
 mkdir data
 cd data
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/vqa2.0_glove.6B.300d.txt.npy
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/vocabulary_vqa.txt
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/answers_vqa.txt
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/imdb.tar.gz
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/rcnn_10_100.tar.gz
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/detectron.tar.gz
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/large_vocabulary_vqa.txt
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/large_vqa2.0_glove.6B.300d.txt.npy
+wget https://dl.fbaipublicfiles.com/pythia/data/vqa2.0_glove.6B.300d.txt.npy
+wget https://dl.fbaipublicfiles.com/pythia/data/vocabulary_vqa.txt
+wget https://dl.fbaipublicfiles.com/pythia/data/answers_vqa.txt
+wget https://dl.fbaipublicfiles.com/pythia/data/imdb.tar.gz
+wget https://dl.fbaipublicfiles.com/pythia/features/rcnn_10_100.tar.gz
+wget https://dl.fbaipublicfiles.com/pythia/features/detectron_fix_100.tar.gz
+wget https://dl.fbaipublicfiles.com/pythia/data/large_vocabulary_vqa.txt
+wget https://dl.fbaipublicfiles.com/pythia/data/large_vqa2.0_glove.6B.300d.txt.npy
 gunzip imdb.tar.gz 
 tar -xf imdb.tar
 
@@ -180,11 +180,11 @@ Note: all of these models below are trained with validation set included
 
 | Description | performance (test-dev) | Link |
 | --- | --- | --- |
-|detectron_100_resnet_most_data | 70.01 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_100_resnet_most_data.tar.gz
-| baseline | 68.05 | https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/baseline.tar.gz |
-| baseline +VG +VisDal +mirror | 68.98 |https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/most_data.tar.gz |
-| detectron_finetune | 68.49 | https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron.tar.gz|
-| detectron_finetune+VG +VisDal +mirror |69.24 | https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_most_data.tar.gz |
+|detectron_100_resnet_most_data | 70.01 |https://dl.fbaipublicfiles.com/pythia/pretrained_models/detectron_100_resnet_most_data.tar.gz
+| baseline | 68.05 | https://dl.fbaipublicfiles.com/pythia/pretrained_models/baseline.tar.gz |
+| baseline +VG +VisDal +mirror | 68.98 |https://dl.fbaipublicfiles.com/pythia/pretrained_models/most_data.tar.gz |
+| detectron_finetune | 68.49 | https://dl.fbaipublicfiles.com/pythia/pretrained_models/detectron.tar.gz|
+| detectron_finetune+VG +VisDal +mirror |69.24 | https://dl.fbaipublicfiles.com/pythia/pretrained_models/detectron_most_data.tar.gz |
 
 
 #### Best Pretrained Model
@@ -193,7 +193,7 @@ The best pretrained model can be downloaded as follows:
 ```bash
 mkdir pretrained_models/
 cd pretrained_models
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/pretrained_models/detectron_100_resnet_most_data.tar.gz
+wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/detectron_100_resnet_most_data.tar.gz
 gunzip detectron_100_resnet_most_data.tar.gz 
 tar -xf detectron_100_resnet_most_data.tar
 rm -f detectron_100_resnet_most_data.tar
@@ -203,12 +203,12 @@ rm -f detectron_100_resnet_most_data.tar
 Get ResNet152 features and Detectron features with fixed 100 bounding boxes
 ```bash
 cd data
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/detectron_fix_100.tar.gz
+wget https://dl.fbaipublicfiles.com/pythia/features/detectron_fix_100.tar.gz
 gunzip detectron_fix_100.tar.gz
 tar -xf detectron_fix_100.tar
 rm -f detectron_fix_100.tar
 
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/data/resnet152.tar.gz
+wget https://dl.fbaipublicfiles.com/pythia/features/resnet152.tar.gz
 gunzip resnet152.tar.gz
 tar -xf resnet152.tar
 rm -f resnet152.tar
@@ -232,12 +232,6 @@ python ensemble.py --res_dirs pretrained_models/ --out ensemble_5.json
 ```
 Results will be saved in `ensemble_5.json`. This ensemble can get accuracy 71.65 on test-dev.
 
-#### Ensemble 30 models
-To run an ensemble of 30 pretrained models, download the models and image features as follows. This gets an accuracy of 72.18 on test-dev.
-
-```bash
-wget https://s3-us-west-1.amazonaws.com/pythia-vqa/ensembled.tar.gz
-```
 ### Customize config
 To change models or adjust hyper-parameters, see [config_help.md](config_help.md)
 
@@ -261,7 +255,6 @@ Here, we listed the size of some large files in our AWS S3 bucket.
 |data/detectron.tar.gz | 106.2 GB|
 |data/detectron_fix_100.tar.gz|162.6GB|
 |data/resnet152.tar.gz | 399.6GB|
-|ensembled.tar.gz| 462.1GB|
 
 ### Acknowledgements
 We would like to thank Peter Anderson, Abhishek Das, Stefan Lee, Jiasen Lu, Jianwei Yang, Licheng Yu, 

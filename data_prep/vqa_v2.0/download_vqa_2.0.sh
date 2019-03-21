@@ -46,5 +46,5 @@ rm v2_Complementary_Pairs_Val_mscoco.zip
 
 
 ### get minival and val2train
-wget https://s3-us-west-1.amazonaws.com/vqa-suite/val_split/v2_OpenEnded_mscoco_minival2014_questions.json
-wget https://s3-us-west-1.amazonaws.com/vqa-suite/val_split/v2_OpenEnded_mscoco_val2train2014_questions.json
+wget https://dl.fbaipublicfiles.com/pythia/data/v2_OpenEnded_mscoco_minival2014_questions.json
+wget https://dl.fbaipublicfiles.com/pythia/data/v2_OpenEnded_mscoco_val2train2014_questions.json
