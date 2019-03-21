@@ -96,7 +96,7 @@ __C.normalize_complement_loss = True
 # weight_complement_decay_iters (Integer): Iterations after which to apply decay
 # --------------------------------------------------------------------------- #
 __C.weight_softmax = None
-__C.weight_complement = None
+__C.weight_complement = 1.0
 __C.weight_complement_decay = False
 __C.weight_complement_decay_factor = 0.5
 __C.weight_complement_decay_iters = 1500

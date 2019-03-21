@@ -138,7 +138,7 @@ class ComplementEntropyLoss(nn.Module):
         with Softmax KL divergence loss.
 
         Report Link :
-        https://drive.google.com/file/d/16NtLvZvBPq1cRVeCSq7sXXg0C8NkSi4l/view
+        https://drive.google.com/file/d/1glomNqP1TZNA7iub1RLUZPnMFfx8-XGf/view
 
         This implementation is faithful with Equation (6) in the report's
         section (2.4).
