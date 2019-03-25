@@ -380,3 +380,144 @@ class ConvTransform(nn.Module):
             iatt_conv3 = torch.squeeze(torch.squeeze(iatt_conv2, 3), 2)
 
         return iatt_conv3
+
+
+class BCNet(nn.Module):
+    """
+    Simple class for non-linear bilinear connect network
+    """
+    def __init__(self, v_dim, q_dim, h_dim, h_out,
+                 act='ReLU', dropout=[.2, .5], k=3):
+        super(BCNet, self).__init__()
+
+        self.c = 32
+        self.k = k
+        self.v_dim = v_dim
+        self.q_dim = q_dim
+        self.h_dim = h_dim
+        self.h_out = h_out
+
+        self.v_net = FCNet([v_dim, h_dim * self.k], act=act, dropout=dropout[0])
+        self.q_net = FCNet([q_dim, h_dim * self.k], act=act, dropout=dropout[0])
+        self.dropout = nn.Dropout(dropout[1])
+
+        if k > 1:
+            self.p_net = nn.AvgPool1d(self.k, stride=self.k)
+
+        if h_out is None:
+            pass
+
+        elif h_out <= self.c:
+            self.h_mat = nn.Parameter(torch.Tensor(1, h_out,
+                                                   1, h_dim * self.k).normal_())
+            self.h_bias = nn.Parameter(torch.Tensor(1, h_out, 1, 1).normal_())
+        else:
+            self.h_net = weight_norm(nn.Linear(h_dim * self.k, h_out), dim=None)
+
+    def forward(self, v, q):
+        if self.h_out is None:
+            v_ = self.v_net(v).transpose(1, 2).unsqueeze(3)
+            q_ = self.q_net(q).transpose(1, 2).unsqueeze(2)
+            d_ = torch.matmul(v_, q_)
+            logits = d_.transpose(1, 2).transpose(2, 3)
+            return logits
+
+        # broadcast Hadamard product, matrix-matrix production
+        # fast computation but memory inefficient
+        elif self.h_out <= self.c:
+            v_ = self.dropout(self.v_net(v)).unsqueeze(1)
+            q_ = self.q_net(q)
+            h_ = v_ * self.h_mat
+            logits = torch.matmul(h_, q_.unsqueeze(1).transpose(2, 3))
+            logits = logits + self.h_bias
+            return logits
+
+        # batch outer product, linear projection
+        # memory efficient but slow computation
+        else:
+            v_ = self.dropout(self.v_net(v)).transpose(1, 2).unsqueeze(3)
+            q_ = self.q_net(q).transpose(1, 2).unsqueeze(2)
+            d_ = torch.matmul(v_, q_)
+            logits = self.h_net(d_.transpose(1, 2).transpose(2, 3))
+            return logits.transpose(2, 3).transpose(1, 2)
+
+    def forward_with_weights(self, v, q, w):
+        v_ = self.v_net(v).transpose(1, 2).unsqueeze(2)
+        q_ = self.q_net(q).transpose(1, 2).unsqueeze(3)
+        logits = torch.matmul(torch.matmul(v_, w.unsqueeze(1)), q_)
+        logits = logits.squeeze(3).squeeze(2)
+
+        if self.k > 1:
+            logits = logits.unsqueeze(1)
+            logits = self.p_net(logits).squeeze(1) * self.k
+
+        return logits
+
+
+class FCNet(nn.Module):
+    """
+    Simple class for non-linear fully connect network
+    """
+    def __init__(self, dims, act='ReLU', dropout=0):
+        super(FCNet, self).__init__()
+
+        layers = []
+        for i in range(len(dims)-2):
+            in_dim = dims[i]
+            out_dim = dims[i+1]
+
+            if dropout > 0:
+                layers.append(nn.Dropout(dropout))
+
+            layers.append(weight_norm(nn.Linear(in_dim, out_dim), dim=None))
+
+            if act is not None:
+                layers.append(getattr(nn, act)())
+
+        if dropout > 0:
+            layers.append(nn.Dropout(dropout))
+
+        layers.append(weight_norm(nn.Linear(dims[-2], dims[-1]), dim=None))
+
+        if act is not None:
+            layers.append(getattr(nn, act)())
+
+        self.main = nn.Sequential(*layers)
+
+    def forward(self, x):
+        return self.main(x)
+
+
+class BiAttention(nn.Module):
+    def __init__(self, x_dim, y_dim, z_dim, glimpse, dropout=[.2, .5]):
+        super(BiAttention, self).__init__()
+
+        self.glimpse = glimpse
+        self.logits = weight_norm(BCNet(x_dim,
+                                        y_dim,
+                                        z_dim,
+                                        glimpse,
+                                        dropout=dropout,
+                                        k=3),
+                                  name='h_mat',
+                                  dim=None)
+
+    def forward(self, v, q, v_mask=True):
+        p, logits = self.forward_all(v, q, v_mask)
+        return p, logits
+
+    def forward_all(self, v, q, v_mask=True):
+        v_num = v.size(1)
+        q_num = q.size(1)
+        logits = self.logits(v, q)
+
+        if v_mask:
+            v_abs_sum = v.abs().sum(2)
+            mask = (v_abs_sum == 0).unsqueeze(1).unsqueeze(3)
+            mask = mask.expand(logits.size())
+            logits.data.masked_fill_(mask.data, -float('inf'))
+
+        expanded_logits = logits.view(-1, self.glimpse, v_num * q_num)
+        p = nn.functional.softmax(expanded_logits, 2)
+
+        return p.view(-1, self.glimpse, v_num, q_num), logits

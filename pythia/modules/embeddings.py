@@ -43,16 +43,24 @@ class TextEmbedding(nn.Module):
 
 class DefaultTextEmbedding(nn.Module):
     def __init__(self, hidden_dim, embedding_dim,
-                 vocab_size, num_layers, dropout):
+                 vocab_size, num_layers, dropout, bidirectional=False,
+                 rnn_type='GRU'):
         super(DefaultTextEmbedding, self).__init__()
         self.text_out_dim = hidden_dim
+        self.bidirectional = bidirectional
+
+        if rnn_type == 'LSTM':
+            rnn_cls = nn.LSTM
+        elif rnn_type == 'GRU':
+            rnn_cls = nn.GRU
 
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
-        self.recurrent_encoder = nn.GRU(
+        self.recurrent_encoder = rnn_cls(
             input_size=embedding_dim,
             hidden_size=hidden_dim,
             num_layers=num_layers,
             dropout=dropout,
+            bidirectional=bidirectional,
             batch_first=True
         )
 
@@ -60,7 +68,18 @@ class DefaultTextEmbedding(nn.Module):
         embedded_x = self.embedding(x)
         out, _ = self.recurrent_encoder(embedded_x)
         # Return last state
-        return out[:, -1]
+        if self.bidirectional:
+            return out[:, -1]
+
+        forward_ = out[:, -1, :self.num_hid]
+        backward = out[:, 0, self.num_hid:]
+        return torch.cat((forward_, backward), dim=1)
+
+    def forward_all(self, x):
+        embedded_x = self.embedding(x)
+        output, _ = self.recurrent_encoder(embedded_x)
+        return output
+
 
 
 class AttentionTextEmbedding(nn.Module):
