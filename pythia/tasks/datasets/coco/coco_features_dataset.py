@@ -1,4 +1,7 @@
 import tqdm
+import time
+
+from multiprocessing.pool import ThreadPool
 
 from pythia.core.tasks.datasets.features_dataset import FeaturesDataset
 from pythia.core.tasks.datasets.utils.feature_readers import FeatureReader
@@ -31,10 +34,19 @@ class COCOFeaturesDataset(FeaturesDataset):
         if self.fast_read:
             self.writer.write("Fast reading features from %s" %
                               (', '.join(kwargs['image_feature_dirs'])))
-            for data in tqdm.tqdm(self.imdb[1:]):
-                feat_file = data['feature_path']
-                features, info = self._read_features_and_info(feat_file)
-                self.feature_dict[feat_file] = (features, info)
+            self.writer.write("Hold tight, this may take a while...")
+            self._threaded_read()
+
+    def _threaded_read(self):
+        elements = [idx for idx in range(1, len(self.imdb))]
+        pool = ThreadPool(processes=4)
+        pool.map(self._fill_cache, elements)
+        pool.close()
+
+    def _fill_cache(self, idx):
+        feat_file = self.imdb[idx]['feature_path']
+        features, info = self._read_features_and_info(feat_file)
+        self.feature_dict[feat_file] = (features, info)
 
     def _read_features_and_info(self, feat_file):
         features = []
