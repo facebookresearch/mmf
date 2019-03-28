@@ -1,0 +1,95 @@
+# Configuration for training
+training_parameters:
+    # Name of the experiment, will be used while saving checkpoints
+    # and generating reports
+    experiment_name: run
+    # Maximum number of iterations the training will run 
+    max_iterations: 22000
+    # After `log_interval` iterations, current iteration's training loss and
+    # metrics will be reported. This will also report validation
+    # loss and metrics on a single batch from validation set
+    # to provide an estimate on validation side
+    log_interval: 100
+    # After `snapshot_interval` iterations, pythia will make a snapshot
+    # which will involve creating a checkpoint for current training scenarios
+    # This will also evaluate validation metrics on whole validation set
+    # TODO: Change this to checkpoint_interval and create a new 
+    # `validation_interval` for evaluating on validation set  
+    snapshot_interval: 1000
+    # Whether gradients should be clipped
+    clip_gradients: false
+    # Mode for clip norm
+    clip_norm_mode: all
+    # Device to be used, if cuda then GPUs will be used
+    device: cuda
+    # Size of each batch. If distributed or data_parallel 
+    # is used, this will be divided equally among GPUs
+    batch_size: 512
+    # Number of workers to be used in dataloaders
+    num_workers: 4
+    
+    # Whether to use early stopping, (Default: false) 
+    should_early_stop: false 
+    # Patience for early stopping
+    patience: 4000
+    # Metric to be monitored for early stopping
+    # loss will monitor combined loss from all of the tasks
+    # Usually, it will be of the form `dataset_metric` 
+    # for e.g. vqa2_vqa_accuracy
+    monitored_metric: loss
+    # Whether the monitored metric should be minimized for early stopping
+    # or not, for e.g. you would want to minimize loss but maximize accuracy
+    metric_minimize: true
+   
+    # Should a lr scheduler be used
+    lr_scheduler: false
+    # Steps for LR scheduler, will be an array of iteration count
+    # when lr should be decreased
+    lr_steps: []
+    # Ratio for each lr step
+    lr_ratio: 0.1
+
+    # Should use warmup for lr 
+    use_warmup: false
+    # Warmup factor learning rate warmup
+    warmup_factor: 0.2
+    # Iteration until which warnup should be done
+    warmup_iterations: 1000 
+    
+    # Type of run, train+predict by default means both training and prediction
+    # (test) stage will be run
+    run_type: train+predict
+    # Level of logging, only logs which are >= to current level will be logged
+    logger_level: info
+    # Whether to use distributed training, mutually exclusive with respected
+    # to `data_parallel` flag
+    distributed: false
+    # Whether to use data parallel, mutually exclusive with respect to 
+    # `distributed` flag
+    data_parallel: false
+    # Whether JSON files for evalai evaluation should be generated 
+    evalai_predict: false
+    # Use to load specific modules from checkpoint to your model, 
+    # this is helpful in finetuning. for e.g. you can specify
+    # text_embeddings: text_embedding_pythia
+    # for loading `text_embedding` module of your model 
+    # from `text_embedding_pythia`
+    pretrained_mapping: {}
+
+# Attributes for model, default configuration files for various models
+# included in pythia can be found under configs directory in root folder
+model_attributes: {}
+
+# Attributes for tasks which encapsulates datasets. Separate configuration
+# for different datasets included in pythia are included in tasks folder
+# which can be mixed and matched to train multiple datasets together
+# An example for mixing all vqa datasets is present under vqa folder
+task_attributes: {}
+
+# Defines which task to train for, can be used to train multiple tasks 
+# together
+tasks: []
+
+# Attributes for optimizer, examples can be found in models' configs in
+# configs folder
+optimizer_attributes: {}

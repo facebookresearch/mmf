@@ -1,6 +1,7 @@
 *.log
 *.err
 *.pyc
+*.swp
 .idea/*
 */__pycache__/*
 data/.DS_Store

@@ -1,0 +1,39 @@
+task_attributes:
+    vqa:
+        datasets:
+        - vizwiz
+        dataset_size_proportional_sampling: true
+        dataset_attributes:
+            vizwiz:
+                data_root_dir: ../data
+                image_depth_first: false
+                slow_read: false
+                image_features:
+                    train:
+                    - vizwiz/detectron_fix_100/fc6/train,vizwiz/resnet152/train
+                    val:
+                    - vizwiz/detectron_fix_100/fc6/val,vizwiz/resnet152/val
+                    test:
+                    - vizwiz/detectron_fix_100/fc6/test,vizwiz/resnet152/test
+                imdb_files:
+                    train:
+                    - imdb/imdb_vizwiz_train.npy
+                    val:
+                    - imdb/imdb_vizwiz_val.npy
+                    test:
+                    - imdb/imdb_vizwiz_test.npy
+                max_features: 100
+                question_max_len: 14
+                vocab_answer: answers_vizwiz_7k.txt
+                text_vocab:
+                    type: intersected
+                    embedding_name: glove.6B.300d
+                    vocab_file:  ../data/vocabulary_vqa_100k.txt
+                vocab_question: vocabulary_vqa_100k.txt
+                metrics:
+                - vqa_accuracy
+                loss: logit_bce
+                return_info: true
+training_parameters:
+    monitored_metric: vizwiz_vqa_accuracy
+    metric_minimize: false
