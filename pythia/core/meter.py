@@ -104,7 +104,7 @@ class Meter:
 
         total = len(expected)
 
-        current = current * (self.itearation_count - 1)
+        current = current * (self.iteration_count - 1)
         current += (correct / total)
         current /= self.iteration_count
 
@@ -112,15 +112,14 @@ class Meter:
 
     @registry.register_metric('vqa_accuracy')
     def average_vqa_accuracy(self, current, output, expected, info={}):
-        expected_data = expected.data
+        expected_data = expected
         output = self.masked_unk_softmax(output, 1, 0)
-        output = torch.max(output, 1)[1].data  # argmax
+        output = output.argmax(dim=1)  # argmax
 
         one_hots = torch.zeros(*expected_data.size())
         one_hots = one_hots.cuda() if output.is_cuda else one_hots
         one_hots.scatter_(1, output.view(-1, 1), 1)
         scores = (one_hots * expected_data)
-
         accuracy = torch.sum(scores) / expected_data.size(0)
 
         if self.dataset_type == 'train':
