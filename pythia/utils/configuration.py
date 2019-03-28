@@ -7,6 +7,8 @@ import json
 import demjson
 import collections
 
+from loadconfig import Config
+
 from .general import nested_dict_update
 from pythia.core.registry import registry
 
@@ -17,26 +19,16 @@ class Configuration:
         self.default_config = self._get_default_config_path()
         self.config = {}
         with open(self.default_config, 'r') as f:
-            try:
-                self.config = yaml.load(f)
-            except yaml.YAMLError as err:
-                print("Default config yaml error: " + err)
+            config_data = f.read()
 
         user_config = {}
         self.user_config = user_config
 
-        if self.config_path is None:
-            return
+        args = []
+        if self.config_path is not None:
+            args.append("-C={}".format(self.config_path))
 
-        with open(self.config_path, 'r') as f:
-            try:
-                # TODO: Create a default config here
-                # and then update it with yaml config
-                user_config = yaml.load(f)
-            except yaml.YAMLError as err:
-                print("Config yaml error: " + str(err))
-                sys.exit(0)
-        self.user_config = user_config
+        self.config = Config(config_data, args=args)
 
     def get_config(self):
         return self.config
@@ -63,6 +55,31 @@ class Configuration:
 
         cmd_config = demjson.decode(cmd_config)
         self.config = nested_dict_update(self.config, cmd_config)
+
+    def override_with_cmd_opts(self, opts):
+        writer = registry.get('writer')
+
+        for opt, value in zip(opts[0::2], opts[1::2]):
+            splits = opt.split(".")
+            current = self.config
+            for idx, field in enumerate(splits):
+                if field not in current:
+                    raise AttributeError("While updating configuration"
+                                         "option {} is missing from"
+                                         "configuration at field {}"
+                                         .format(opt, field))
+                if not isinstance(current[field], collections.Mapping):
+                    if idx == len(splits) - 1:
+                        writer.write("Overriding option {} to {}"
+                                     .format(opt, value), "warning")
+                        current[field] = value 
+                    else:
+                        raise AttributeError("While updating configuration",
+                                             "option {} is not present "
+                                             "after field {}"
+                                             .format(opt, field))
+                else:
+                    current = current[field]
 
     def _update_key(self, dictionary, update_dict):
         '''

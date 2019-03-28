@@ -1,4 +1,4 @@
-torch>0.4, <0.5
+torch>1.0
 torchvision>0.2
 tensorboardX
 numpy
@@ -6,3 +6,4 @@ tqdm
 demjson
 torchtext
 GitPython
+loadconfig==0.1.1

@@ -116,7 +116,8 @@ class Flags:
                                  " to use CUDA")
         self.parser.add_argument("-p", "--patience", type=int,
                                  default=None, help="Patience for early stop")
-
+        self.parser.add_argument("-sr", "--slow_read", type=bool, default=None,
+                                 help="If slow read should be activated")
         self.parser.add_argument("-pt", "--pretrained", type=int,
                                  default=None,
                                  help="If using a pretrained model. "
@@ -128,6 +129,9 @@ class Flags:
         self.parser.add_argument("-nw", "--num_workers", type=int,
                                  default=None,
                                  help="Number of workers for dataloaders")
+        self.parser.add_argument("opts",
+                                 help="Modify config options from "
+                                 "command line")
 
     def update_task_args(self):
         args = sys.argv

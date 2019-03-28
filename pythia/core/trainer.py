@@ -29,7 +29,7 @@ class Trainer:
         self.load_config()
         self.run_type = self.config['training_parameters'].get('run_type',
                                                                "train")
-        self.init_task()
+        self.task_loader = TaskLoader(self.config)
 
         self.writer = Logger(self.config)
         registry.register('writer', self.writer)
@@ -47,26 +47,18 @@ class Trainer:
         # (remember clip_gradients case)
         self.configuration = Configuration(self.args.config)
         self.args.use_cuda = not self.args.no_cuda
+
+        # Update with the config override if passed
+        self.configuration.override_with_cmd_config(self.args.config_override)
+
+        # Now, update with opts args that were passed
+        self.configuration.override_with_opts(self.args.opts)
         self.configuration.update_with_args(self.args, force=True)
 
         self.config = self.configuration.get_config()
         registry.register('config', self.config)
 
         self.config_based_setup()
-
-    def init_task(self):
-        self.task_loader = TaskLoader(self.config)
-        self.task_loader.load_config()
-
-        self.configuration.update_with_task_config(
-            self.task_loader.get_config()
-        )
-
-        # Update with the config override if passed
-        self.configuration.override_with_cmd_config(self.args.config_override)
-
-        # Update with args once again as they are the most important
-        self.configuration.update_with_args(self.args)
 
     def load_task(self):
         self.writer.write("Loading tasks and data", "info")

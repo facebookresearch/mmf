@@ -27,18 +27,6 @@ class TaskLoader:
         if self.config['training_parameters']['evalai_predict'] is True:
             self.test_reporter = TestReporter(self.test_task)
 
-    def load_config(self):
-
-        task_names = map(lambda x: x.strip(),
-                         self.config['tasks'].split(","))
-
-        self.task_config = {}
-
-        for task in task_names:
-            current_task_config = self._load_task_config(task)
-            self.task_config = nested_dict_update(self.task_config,
-                                                  current_task_config)
-
     def get_config(self):
         return self.task_config
 
