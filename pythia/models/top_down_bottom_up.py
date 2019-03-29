@@ -4,10 +4,11 @@ from torch import nn
 
 from pythia.core.models.base_model import BaseModel
 from pythia.core.registry import registry
-from pythia.modules.embeddings import ImageEmbedding
 from pythia.modules.encoders import ImageEncoder
+from pythia.modules.embeddings import ImageEmbedding, TextEmbedding, \
+                                  PreExtractedEmbedding
 from pythia.modules.layers import ModalCombineLayer, ClassifierLayer, \
-                                  ReLUWithWeightNormFC
+                                  ReLUWithWeightNormFC, Identity
 
 
 @registry.register_model("top_down_bottom_up")
@@ -23,6 +24,47 @@ class VQAMultiModalModel(BaseModel):
         self._init_combine_layer("image", "text")
         self._init_classifier(self._get_classifier_input_dim())
         self._init_extras()
+
+    def _init_text_embedding(self, attr='text_embeddings',
+                             bidirectional=False):
+        text_embeddings = []
+        text_embeddings_list_config = self.config[attr]
+
+        self.embeddings_out_dim = 0
+
+        text_vocab = registry.get("vocabs." + attr.split("_")[0] + "_vocab")
+
+        if text_vocab.type == "model":
+            # If vocab type is model, it is probably a fasttext model
+            # which means we will get the embedding vectors directly
+            # no need to do anything and just pass them through identity
+            text_embeddings = nn.ModuleList([Identity()])
+            setattr(self, attr + "_out_dim", text_vocab.get_dim())
+            setattr(self, attr, text_embeddings)
+            return
+
+        elif text_vocab.type == 'extracted':
+            base_path = text_vocab.base_path
+            text_embeddings = PreExtractedEmbedding(text_vocab.get_dim(),
+                                                    base_path=base_path)
+            setattr(self, attr + "_out_dim", text_vocab.get_dim())
+            setattr(self, attr, nn.ModuleList([text_embeddings]))
+            return
+
+        for text_embedding in text_embeddings_list_config:
+            embedding_type = text_embedding['type']
+            embedding_kwargs = text_embedding['params']
+            embedding_kwargs['bidirectional'] = bidirectional
+            self._update_text_embedding_args(embedding_kwargs)
+
+            embedding = TextEmbedding(text_vocab, embedding_type,
+                                      **embedding_kwargs)
+            text_embeddings.append(embedding)
+            self.embeddings_out_dim += embedding.text_out_dim
+
+        setattr(self, attr + "_out_dim", self.embeddings_out_dim)
+        delattr(self, "embeddings_out_dim")
+        setattr(self, attr, nn.ModuleList(text_embeddings))
 
     def _update_text_embedding_args(self, args):
         # Add model_data_dir to kwargs
@@ -128,11 +170,15 @@ class VQAMultiModalModel(BaseModel):
     def _get_classifier_input_dim(self):
         return self.image_text_multi_modal_combine_layer.out_dim
 
-    def process_text_embedding(self, texts, embedding_attr='text_embeddings'):
+    def process_text_embedding(self, texts, embedding_attr='text_embeddings',
+                               info=None):
         text_embeddings = []
 
         for t_model in getattr(self, embedding_attr):
-            text_embedding = t_model(texts)
+            if isinstance(t_model, PreExtractedEmbedding):
+                text_embedding = t_model(info['question_id'])
+            else:
+                text_embedding = t_model(texts)
             text_embeddings.append(text_embedding)
         text_embeddding_total = torch.cat(text_embeddings, dim=1)
         return text_embeddding_total
@@ -186,7 +232,8 @@ class VQAMultiModalModel(BaseModel):
         input_text_variable = texts
         image_dim_variable = info.get('image_dim', None)
         image_feature_variables = image_features
-        text_embedding_total = self.process_text_embedding(input_text_variable)
+        text_embedding_total = self.process_text_embedding(input_text_variable,
+                                                           info=info)
 
         assert (len(image_feature_variables) ==
                 len(self.image_feature_encoders)), \

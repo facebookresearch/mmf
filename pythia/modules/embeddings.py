@@ -1,6 +1,10 @@
 # TODO: Update kwargs with defaults
+import os
 import torch
 import pickle
+import numpy as np
+
+from functools import lru_cache
 
 from torch import nn
 
@@ -80,6 +84,24 @@ class DefaultTextEmbedding(nn.Module):
         output, _ = self.recurrent_encoder(embedded_x)
         return output
 
+
+
+class PreExtractedEmbedding(nn.Module):
+    def __init__(self, out_dim, base_path):
+        super(PreExtractedEmbedding, self).__init__()
+        self.text_out_dim = out_dim
+        self.base_path = base_path
+        self.cache = {}
+
+    def forward(self, qids):
+        embeddings = []
+        for qid in qids:
+            embeddings.append(self.get_item(qid))
+        return torch.stack(embeddings, dim=0)
+
+    @lru_cache(maxsize=5000)
+    def get_item(self, qid):
+        return np.load(os.path.join(self.base_path, str(qid.item()) + '.npy'))
 
 
 class AttentionTextEmbedding(nn.Module):

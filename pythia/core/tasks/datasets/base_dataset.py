@@ -144,7 +144,8 @@ class BaseDataset(Dataset):
             'info': {
                 'dataset_name': self.name,
                 'image_dim': image_dim_variable,
-                'context_dim': context_dim_variable
+                'context_dim': context_dim_variable,
+                'question_id': batch['question_id']
             }
         }
 

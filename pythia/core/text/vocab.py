@@ -44,6 +44,10 @@ class Vocab:
                 sys.exit(0)
 
             return IntersectedVocab(**vocab_params)
+
+        elif vocab_type == 'extracted':
+            return ExtractedVocab(**vocab_params)
+
         elif vocab_type == 'model':
             if vocab_params['name'] == 'fasttext':
                 return ModelVocab(**vocab_params)
@@ -371,3 +375,25 @@ class ModelVocab(BaseVocab):
 
     def get_dim(self):
         return self.model.get_dimension()
+
+
+class ExtractedVocab(BaseVocab):
+    def __init__(self, base_path, emb_dim):
+        """Special vocab which is not really vocabulary but instead a class 
+        which returns embedding pre-extracted from files. Can be used load
+        word embeddings from popular models like ELMo and BERT
+
+
+        Parameters
+        ----------
+        base_path: str
+            path containing saved files with embeddings one file per txt item
+        """
+        super(ExtractedVocab, self).__init__()
+        self.type = "extracted"
+        self.emb_dim = emb_dim
+        self.base_path = base_path
+
+    def get_dim(self):
+        return self.emb_dim
+
