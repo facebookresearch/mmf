@@ -1,6 +1,7 @@
 import torch
 
 from collections import Counter
+from pythia.tasks.datasets.vqa2.utils import word_tokenize
 
 from pythia.tasks.datasets.vizwiz.dataset import VizWizDataset
 
@@ -15,9 +16,27 @@ class TextVQADataset(VizWizDataset):
         self.ocr_count_greater_than_2 = 0
         self.ocr_predicted_when_count_greater_than_2 = 0
         self.ocr_correct_predicted_when_count_greater_than_2 = 0
+        self.answer_in_ocr = 0
 
     def format_for_evalai(self, batch, answers):
-        raise RuntimeError("TextVQA doesn't support EvalAI predict mode")
+        answers = answers.argmax(dim=1)
+
+        predictions = []
+        for idx, question_id in enumerate(batch['question_id']):
+            answer_id = answers[idx]
+
+            if answer_id >= self.answer_space_size:
+                answer_id -= self.answer_space_size
+                answer = word_tokenize(batch['ocr_tokens'][answer_id][idx])
+            else:
+                answer = self.answer_dict.idx2word(answer_id)
+
+            predictions.append({
+                'question_id': question_id.item(),
+                'answer': answer
+            })
+
+        return predictions
 
     def load_item(self, idx):
         sample = super(TextVQADataset, self).load_item(idx)
@@ -31,8 +50,6 @@ class TextVQADataset(VizWizDataset):
 
         # print("OCR Length")
         # print(info['original_batch']['context_dim'])
-        print("Valid Answers")
-        print(info['original_batch']['valid_answers'])
         # print("OCR Attentions")
         # print(info['context_attentions'])
 
@@ -40,6 +57,9 @@ class TextVQADataset(VizWizDataset):
         # print("Expected answers")
         # print(info['original_batch']['answers'])
         actual = torch.max(output, 1)[1].data  # argmax
+        #
+        # if self.use_ocr is False:
+        #     return
 
         for idx, item in enumerate(actual):
             answer_counter.clear()
@@ -48,15 +68,23 @@ class TextVQADataset(VizWizDataset):
 
             ocr_count = 0
 
-            for i in info['original_batch']['ocr_tokens']:
-                if i[idx] == 'unanswerable':
-                    break
-                ocr_count += 1
+            if self.use_ocr is True:
+                for i in info['original_batch']['ocr_tokens']:
+                    if i[idx] == 'unanswerable':
+                        break
+                    ocr_count += 1
 
             if ocr_count >= 2:
                 self.ocr_count_greater_than_2 += 1
             item = item.item()
             self.num_times_predicted += 1
+
+            tokens = info['original_batch']['ocr_tokens']
+
+            for token in tokens:
+                if answer_counter[token[idx]] >= 3:
+                    self.answer_in_ocr += 1
+                    break
             if item >= self.answer_space_size:
                 self.num_times_predicted_from_ocr += 1
                 if ocr_count >= 2:
@@ -86,22 +114,27 @@ class TextVQADataset(VizWizDataset):
                 if answer_counter[prediction] >= 3:
                     self.correct_predicted_from_as += 1
                 print(prediction)
-        print("OCR Count greater than 2", self.ocr_count_greater_than_2,
-              "/", self.num_times_predicted, ",",
-              self.ocr_count_greater_than_2 / self.num_times_predicted)
-        print("OCR Count greater than 2 Choose to Copy",
-              self.ocr_predicted_when_count_greater_than_2,
-              "/", self.ocr_count_greater_than_2, ",",
-              self.ocr_predicted_when_count_greater_than_2 /
-              self.ocr_count_greater_than_2)
-        print("OCR Count greater than 2 Correct Copy",
-              self.ocr_correct_predicted_when_count_greater_than_2,
-              "/", self.ocr_predicted_when_count_greater_than_2, ",",
-              self.ocr_correct_predicted_when_count_greater_than_2 /
-              self.ocr_predicted_when_count_greater_than_2)
+
+        if self.use_ocr and self.ocr_count_greater_than_2 > 0 \
+            and self.ocr_predicted_when_count_greater_than_2:
+            print("OCR Count greater than 2", self.ocr_count_greater_than_2,
+                  "/", self.num_times_predicted, ",",
+                  self.ocr_count_greater_than_2 / self.num_times_predicted)
+            print("OCR Count greater than 2 Choose to Copy",
+                  self.ocr_predicted_when_count_greater_than_2,
+                  "/", self.ocr_count_greater_than_2, ",",
+                  self.ocr_predicted_when_count_greater_than_2 /
+                  self.ocr_count_greater_than_2)
+            print("OCR Count greater than 2 Correct Copy",
+                  self.ocr_correct_predicted_when_count_greater_than_2,
+                  "/", self.ocr_predicted_when_count_greater_than_2, ",",
+                  self.ocr_correct_predicted_when_count_greater_than_2 /
+                  self.ocr_predicted_when_count_greater_than_2)
 
         print("% predicted from OCR: ",
               self.num_times_predicted_from_ocr / self.num_times_predicted)
+        print("% answer in OCR",
+              self.answer_in_ocr / self.num_times_predicted)
         print("% predicted from Answer space: ",
               self.num_times_predicted_from_as / self.num_times_predicted)
         if self.num_times_predicted_from_ocr > 0:

@@ -71,7 +71,7 @@ class VizWizDataset(VQA2Dataset):
             self.context_seq_shape = (self.context_max_len)
             self.context_type = np.int32
 
-            self.default_tokens = ["unanswerable" for _ in
+            self.default_tokens = ["<pad>" for _ in
                                    range(self.context_max_len)]
 
             if self.context_vocab.type == "model":
@@ -175,10 +175,8 @@ class VizWizDataset(VQA2Dataset):
 
             if context_len > 0:
                 context_seq[:context_len] = token_idxs
-
             sample['ocr_tokens'] = self.default_tokens[:]
             sample['ocr_tokens'][:context_len] = final_tokens
-            # print(final_tokens)
             sample['contexts'] = context_seq
 
             if self.use_ocr_info and 'ocr_info' in image:
@@ -218,31 +216,47 @@ class VizWizDataset(VQA2Dataset):
         scores = np.zeros((self.context_max_len), np.float32)
         answer_scores = sample['answers']
 
-        if self.load_answer and 'all_answers' in iminfo:
-            all_answers = iminfo['all_answers']
+        if self.load_answer and 'answers' in iminfo:
+            answers = iminfo['answers']
 
             if self.name == "textvqa":
-                all_answers = all_answers[-6:]
+                answers = answers[-6:]
 
-            if all_answers[-1] == '<copy>':
-                all_answers.pop()
+            if answers[-1] == '<copy>':
+                answers.pop()
 
             answer_counter = Counter()
 
-            for token in all_answers:
-                token = word_tokenize(token).strip()
+            gt_answers = []
+            for idx, token in enumerate(answers):
+                # token = word_tokenize(token).strip()
                 answer_counter[token] += 1
+                gt_answers.append({
+                    'id': idx,
+                    'answer': token
+                })
             # print("Possible OCR Answers")
             # Calculate scores for each of the OCR tokens and extend the answer
             # classification space
+
             for idx, token in enumerate(sample['ocr_tokens'][:context_len]):
-                token = word_tokenize(token)
+                # token = word_tokenize(token)
                 answer_count = answer_counter[token]
 
                 if answer_count == 0:
                     continue
                 # print(idx + self.answer_space_size)
-                scores[idx] = min(np.float32(answer_count) * 0.3, 1)
+                accs = []
+
+                for answer_gt in gt_answers:
+                    other_answers = [item for item in gt_answers
+                                     if item != answer_gt]
+                    matching_ans = [item for item in other_answers
+                                    if item['answer'] == token]
+                    acc = min(1, float(len(matching_ans) / 3))
+                    accs.append(acc)
+
+                scores[idx] = np.mean(accs)
                 answer_scores[self.answer_dict.UNK_idx] = 0
 
         answer_scores_expanded = np.zeros((

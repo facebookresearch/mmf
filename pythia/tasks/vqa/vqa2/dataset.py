@@ -17,14 +17,30 @@ from pythia.core.tasks.datasets.base_dataset import BaseDataset
 
 def compute_answer_scores(answers, num_of_answers, unk_idx):
     scores = np.zeros((num_of_answers), np.float32)
+    gt_answers = []
+
+    for idx, answer in enumerate(answers):
+        gt_answers.append({
+            'id': idx,
+            'answer': answer
+        })
+
     for answer in set(answers):
+        accs = []
+        for answer_gt in gt_answers:
+            other_answers = [item for item in gt_answers
+                             if item != answer_gt]
+            matching_ans = [item for item in other_answers
+                            if item['answer'] == answer]
+            acc = min(1, float(len(matching_ans) / 3))
+            accs.append(acc)
+        avg_acc = np.mean(accs)
         if answer == unk_idx:
             scores[answer] = 0
         else:
-            answer_count = answers.count(answer)
-            scores[answer] = min(np.float32(answer_count)*0.3, 1)
-    return scores
+            scores[answer] = avg_acc
 
+    return scores
 
 class VQA2Dataset(BaseDataset):
     def __init__(self, imdb_file,
@@ -69,7 +85,7 @@ class VQA2Dataset(BaseDataset):
 
         self.data_root_dir = data_params['data_root_dir']
         vocab_answer_file = os.path.join(
-            self.data_root_dir, data_params['vocab_answer_file'])
+            self.data_root_dir, data_params['vocab_answer'])
 
         # the answer dict is always loaded, regardless of self.load_answer
         self.answer_dict = VocabDict(vocab_answer_file)
@@ -111,7 +127,7 @@ class VQA2Dataset(BaseDataset):
         return predictions
 
     def verbose_dump(self, output, expected_output, info):
-        print(info['original_batch']['valid_answers'])
+        print(info['original_batch']['answers'])
         actual = torch.max(output, 1)[1].data
 
         for idx, item in enumerate(actual):
@@ -240,6 +256,10 @@ class VQA2Dataset(BaseDataset):
             sample['answers'] = answer_scores
         if 'all_answers' in iminfo:
             sample['valid_answers'] = iminfo['all_answers']
+        elif 'answers' in iminfo:
+            sample['valid_answers'] = iminfo['answers']
+        elif 'valid_answers' in iminfo:
+            sample['valid_answers'] = iminfo['valid_answers']
 
         # used for error analysis and debug,
         # output question_id, image_id, question, answer,valid_answers,

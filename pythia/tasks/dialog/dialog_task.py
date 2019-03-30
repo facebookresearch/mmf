@@ -1,5 +1,5 @@
-from pythia.core.tasks import BaseTask
-from pythia.core.registry import registry
+from pythia.common.tasks import BaseTask
+from pythia.common.registry import registry
 
 
 @registry.register_task('dialog')

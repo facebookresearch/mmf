@@ -24,7 +24,7 @@ class VQA2Builder(DatasetBuilder):
         dataset_type = opts['dataset_type']
 
         self.data_root_dir = opts['data_root_dir']
-        image_features = opts['image_feat_train'][0].split(',')
+        image_features = opts['image_features']['train'][0].split(',')
         self.num_image_features = len(image_features)
 
         dataset = None
@@ -61,19 +61,19 @@ class VQA2Builder(DatasetBuilder):
                                  "load features on fly")
 
     def prepare_train_data_set(self, **data_config):
-        return self.prepare_data_set('imdb_file_train',
-                                     'image_feat_train',
+        return self.prepare_data_set('train',
+                                     'train',
                                      **data_config)
 
     def prepare_eval_data_set(self, **data_config):
         # TODO: Add enforce_slow_reader to task args
-        return self.prepare_data_set('imdb_file_val', 'image_feat_val',
+        return self.prepare_data_set('val', 'val',
                                      **data_config)
 
     def prepare_test_data_set(self, **data_config):
         # NOTE: Don't fast load test
         data_config['slow_read'] = True
-        return self.prepare_data_set('imdb_file_test', 'image_feat_test',
+        return self.prepare_data_set('test', 'test',
                                      **data_config)
 
     def set_dataset_class(self, cls):
@@ -96,8 +96,8 @@ class VQA2Builder(DatasetBuilder):
         verbose = data_config.get('verbose', False)
         test_mode = data_config.get('test_mode', False)
 
-        imdb_files = data_config[imdb_file_label]
-        image_feat_dirs = data_config[image_dir_label]
+        imdb_files = data_config['imdb_files'][imdb_file_label]
+        image_feat_dirs = data_config['image_features'][image_dir_label]
         assert len(imdb_files) == len(image_feat_dirs), \
             image_dir_label + "has different length with " + image_dir_label
 

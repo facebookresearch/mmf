@@ -1,6 +1,5 @@
-__all__ = ['VQATask', 'DialogTask', 'CaptioningTask']
+from .base_task import BaseTask
+from .dataset_builder import DatasetBuilder
+from .multi_task import MultiTask
 
-
-from .vqa import VQATask
-from .dialog import DialogTask
-from .captioning import CaptioningTask
+__all__ = ['BaseTask', 'DatasetBuilder', 'MultiTask']

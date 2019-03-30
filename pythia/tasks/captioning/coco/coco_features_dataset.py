@@ -3,9 +3,9 @@ import time
 
 from multiprocessing.pool import ThreadPool
 
-from pythia.core.tasks.datasets.features_dataset import FeaturesDataset
-from pythia.core.tasks.datasets.utils.feature_readers import FeatureReader
-from pythia.core.registry import registry
+from pythia.common.tasks.datasets.features_dataset import FeaturesDataset
+from pythia.common.tasks.datasets.utils.feature_readers import FeatureReader
+from pythia.common.registry import registry
 
 
 class COCOFeaturesDataset(FeaturesDataset):
