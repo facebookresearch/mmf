@@ -1,20 +1,20 @@
 import torch
 
-from pythia.models.vizwiz_multi_modal import VizWizMultiModalModel
+from pythia.models.pythia import Pythia
 from pythia.core.registry import registry
 from pythia.modules.layers import ClassifierLayer
 
 
-@registry.register_model('vizwiz_top_down_bottom_up_soft_copy')
-class VizWizMultiModalModelSoftCopy(VizWizMultiModalModel):
+@registry.register_model("lorra")
+class LoRRA(Pythia):
     def __init__(self, config):
-        super(VizWizMultiModalModelSoftCopy, self).__init__(config)
+        super().__init__(config)
         self.use_cuda = registry.get('use_cuda')
         self.use_order_vectors = True
         self.use_ocr_info = registry.get('use_ocr_info')
 
     def build(self):
-        super(VizWizMultiModalModelSoftCopy, self).build()
+        super().build()
         self._build_context_classifier()
 
     def _build_context_classifier(self):
@@ -31,10 +31,7 @@ class VizWizMultiModalModelSoftCopy(VizWizMultiModalModel):
         )
 
     def get_optimizer_parameters(self, config):
-        params = super(VizWizMultiModalModelSoftCopy,
-                       self).get_optimizer_parameters(
-                    config
-                 )
+        params = super().get_optimizer_parameters(config)
 
         params.append({'params': self.context_classifier.parameters()})
 

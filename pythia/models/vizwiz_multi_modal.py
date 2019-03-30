@@ -1,11 +1,11 @@
-from pythia.models.top_down_bottom_up import VQAMultiModalModel
-from pythia.core.registry import registry
+from .pythia import Pythia
+from pythia.common.registry import registry
 
 
 @registry.register_model('vizwiz_top_down_bottom_up')
-class VizWizMultiModalModel(VQAMultiModalModel):
+class VizWizMultiModalModel(Pythia):
     def __init__(self, config):
-        super(VizWizMultiModalModel, self).__init__(config)
+        super().__init__(config)
 
     def build(self):
         self._init_text_embedding()

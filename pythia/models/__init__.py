@@ -1,5 +1,6 @@
-__all__ = ['VQAMultiModalModel', 'VisDialMultiModalModel', 'BAN']
+__all__ = ["TopDownBottomUp", "Pythia", "LoRRA", "BAN"]
 
-from .top_down_bottom_up import VQAMultiModalModel
-from .visdial_multi_modal import VisDialMultiModalModel
+from .top_down_bottom_up import TopDownBottomUp
 from .ban import BAN
+from .pythia import Pythia
+from .lorra import LoRRA

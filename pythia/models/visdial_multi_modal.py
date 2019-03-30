@@ -1,12 +1,12 @@
 import torch
 
-from .top_down_bottom_up import VQAMultiModalModel
+from .pythia import Pythia
 from pythia.modules.decoders import VisDialDiscriminator
 
 
-class VisDialMultiModalModel(VQAMultiModalModel):
+class VisDialMultiModalModel(Pythia):
     def __init__(self, config):
-        super(VisDialMultiModalModel, self).__init__(config)
+        super().__init__(config)
 
     def build(self):
         self._init_text_embedding()

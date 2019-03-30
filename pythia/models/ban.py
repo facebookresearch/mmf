@@ -2,8 +2,8 @@ import torch
 
 from torch import nn
 
-from pythia.core.models.base_model import BaseModel
-from pythia.core.registry import registry
+from pythia.common.models.base_model import BaseModel
+from pythia.common.registry import registry
 from pythia.modules.embeddings import DefaultTextEmbedding
 from pythia.modules.layers import (
         BCNet, FCNet, BiAttention, WeightNormClassifier
