@@ -1,5 +1,5 @@
-!include defaults/config/tasks/vqa/vqa2.yml
-
+includes:
+- core/defaults/configs/tasks/vqa/vqa2.yml
 model_attributes:
   top_down_bottom_up:
     model_data_dir: ../data/
@@ -61,11 +61,12 @@ training_parameters:
   - 21000
   max_grad_l2_norm: 0.25
   max_iterations: 22000
-  wu_factor: 0.2
-  wu_iters: 1000
+  warmup_factor: 0.2
+  warmup_iterations: 1000
   patience: 4000
   batch_size: 512
   num_workers: 7
   task_size_proportional_sampling: true
   monitored_metric: vqa2_vqa_accuracy
   metric_minimize: false
+
