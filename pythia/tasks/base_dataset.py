@@ -4,18 +4,21 @@ import tqdm
 from torch.autograd import Variable
 from torch.utils.data.dataset import Dataset
 
-from pythia.core.losses import Loss
-from pythia.core.meter import Meter
-from pythia.core.registry import registry
+from pythia.common.losses import Loss
+from pythia.common.meter import Meter
+from pythia.common.registry import registry
 
 
 class BaseDataset(Dataset):
-    def __init__(self, name, config={}):
+    def __init__(self, name, dataset_type, config={}):
         super(BaseDataset, self).__init__()
         self.config = config
         self.name = name
-        self.use_cuda = registry.get('config')['use_cuda']
-
+        self.dataset_type = dataset_type
+        self.writer = registry.get("writer")
+        self._global_config = registry.get("config")
+        self.device = self._global_config['training_parameters']['device']
+        self.use_cuda = "cuda" in self.device
         self.text_vocab = registry.get('vocabs.text_vocab')
         self.context_vocab = registry.get('vocabs.context_vocab')
 

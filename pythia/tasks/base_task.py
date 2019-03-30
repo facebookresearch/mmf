@@ -35,7 +35,6 @@ class BaseTask(Dataset):
 
     def load(self, **opts):
         self.opts = opts
-        self.use_cuda = registry.get('config')['use_cuda']
         self._process_datasets()
 
         self.datasets = []

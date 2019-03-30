@@ -3,7 +3,7 @@ training_parameters:
     # Name of the experiment, will be used while saving checkpoints
     # and generating reports
     experiment_name: run
-    # Maximum number of iterations the training will run 
+    # Maximum number of iterations the training will run
     max_iterations: 22000
     # After `log_interval` iterations, current iteration's training loss and
     # metrics will be reported. This will also report validation
@@ -13,8 +13,8 @@ training_parameters:
     # After `snapshot_interval` iterations, pythia will make a snapshot
     # which will involve creating a checkpoint for current training scenarios
     # This will also evaluate validation metrics on whole validation set
-    # TODO: Change this to checkpoint_interval and create a new 
-    # `validation_interval` for evaluating on validation set  
+    # TODO: Change this to checkpoint_interval and create a new
+    # `validation_interval` for evaluating on validation set
     snapshot_interval: 1000
     # Whether gradients should be clipped
     clip_gradients: false
@@ -22,25 +22,28 @@ training_parameters:
     clip_norm_mode: all
     # Device to be used, if cuda then GPUs will be used
     device: cuda
-    # Size of each batch. If distributed or data_parallel 
+    # Seed to be used for training. -1 means random seed.
+    # Either pass fixed through your config or command line arguments
+    seed: -1
+    # Size of each batch. If distributed or data_parallel
     # is used, this will be divided equally among GPUs
     batch_size: 512
     # Number of workers to be used in dataloaders
     num_workers: 4
-    
-    # Whether to use early stopping, (Default: false) 
-    should_early_stop: false 
+
+    # Whether to use early stopping, (Default: false)
+    should_early_stop: false
     # Patience for early stopping
     patience: 4000
     # Metric to be monitored for early stopping
     # loss will monitor combined loss from all of the tasks
-    # Usually, it will be of the form `dataset_metric` 
+    # Usually, it will be of the form `dataset_metric`
     # for e.g. vqa2_vqa_accuracy
     monitored_metric: loss
     # Whether the monitored metric should be minimized for early stopping
     # or not, for e.g. you would want to minimize loss but maximize accuracy
     metric_minimize: true
-   
+
     # Should a lr scheduler be used
     lr_scheduler: false
     # Steps for LR scheduler, will be an array of iteration count
@@ -49,13 +52,13 @@ training_parameters:
     # Ratio for each lr step
     lr_ratio: 0.1
 
-    # Should use warmup for lr 
+    # Should use warmup for lr
     use_warmup: false
     # Warmup factor learning rate warmup
     warmup_factor: 0.2
     # Iteration until which warnup should be done
-    warmup_iterations: 1000 
-    
+    warmup_iterations: 1000
+
     # Type of run, train+predict by default means both training and prediction
     # (test) stage will be run
     run_type: train+predict
@@ -64,17 +67,34 @@ training_parameters:
     # Whether to use distributed training, mutually exclusive with respected
     # to `data_parallel` flag
     distributed: false
-    # Whether to use data parallel, mutually exclusive with respect to 
+    # Whether to use data parallel, mutually exclusive with respect to
     # `distributed` flag
     data_parallel: false
-    # Whether JSON files for evalai evaluation should be generated 
+    # Whether JSON files for evalai evaluation should be generated
     evalai_predict: false
-    # Use to load specific modules from checkpoint to your model, 
+    # Use to load specific modules from checkpoint to your model,
     # this is helpful in finetuning. for e.g. you can specify
     # text_embeddings: text_embedding_pythia
-    # for loading `text_embedding` module of your model 
+    # for loading `text_embedding` module of your model
     # from `text_embedding_pythia`
     pretrained_mapping: {}
+
+    # Directory for saving checkpoints and other metadata
+    save_dir: "./save"
+    # Directory for saving logs
+    log_dir: "./logs"
+    # Whether Pythia should log or not, Default: False, which means
+    # pythia will log by default
+    should_not_log: false
+
+    # If verbose dump is active, pythia will dump dataset, model specific
+    # information which can be useful in debugging
+    verbose_dump: false
+    # If resume is true, pythia will try to load automatically load
+    # last of same parameters from save_dir
+    resume: false
+    # `resume_file` can be used to load a specific checkpoint from a file
+    resume_file: null
 
 # Attributes for model, default configuration files for various models
 # included in pythia can be found under configs directory in root folder
@@ -86,9 +106,15 @@ model_attributes: {}
 # An example for mixing all vqa datasets is present under vqa folder
 task_attributes: {}
 
-# Defines which task to train for, can be used to train multiple tasks 
+# Defines which task to train for, can be used to train multiple tasks
 # together
 tasks: []
+
+# Defines which datasets from the above tasks you want to train on
+datasets: []
+
+# Defines which model you want to train on
+model: null
 
 # Attributes for optimizer, examples can be found in models' configs in
 # configs folder

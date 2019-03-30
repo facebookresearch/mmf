@@ -5,7 +5,6 @@ from torch.utils.data import DataLoader
 
 from pythia.core.tasks import MultiTask
 from pythia.core.tasks.test_reporter import TestReporter
-from pythia.utils.general import nested_dict_update
 
 
 class TaskLoader:

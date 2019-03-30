@@ -14,9 +14,9 @@ from pythia.utils.general import lr_lambda_update, clip_gradients, \
 from pythia.utils.build import build_model
 from pythia.utils.timer import Timer
 from pythia.utils.early_stopping import EarlyStopping
-from pythia.core.task_loader import TaskLoader
-from pythia.core.registry import registry
-from pythia.core.text.vocab import Vocab
+from pythia.common.task_loader import TaskLoader
+from pythia.common.registry import registry
+from pythia.common.text.vocab import Vocab
 
 
 class Trainer:
@@ -46,18 +46,20 @@ class Trainer:
         # TODO: Review configuration update once again
         # (remember clip_gradients case)
         self.configuration = Configuration(self.args.config)
-        self.args.use_cuda = not self.args.no_cuda
 
         # Update with the config override if passed
         self.configuration.override_with_cmd_config(self.args.config_override)
 
         # Now, update with opts args that were passed
-        self.configuration.override_with_opts(self.args.opts)
-        self.configuration.update_with_args(self.args, force=True)
+        self.configuration.override_with_cmd_opts(self.args.opts)
+
+        # Finally, update with args that were specifically passed
+        # as arguments
+        self.configuration.update_with_args(self.args)
+        self.configuration.freeze()
 
         self.config = self.configuration.get_config()
         registry.register('config', self.config)
-
         self.config_based_setup()
 
     def load_task(self):
@@ -96,22 +98,22 @@ class Trainer:
         self.task_loader.update_config_for_model(attributes)
         self.model = build_model(attributes)
         self.task_loader.clean_config(attributes)
-
         training_parameters = self.config['training_parameters']
-        use_cuda = training_parameters['use_cuda']
-        no_data_parallel = training_parameters.get('no_data_parallel', None)
-        data_parallel = no_data_parallel is None or no_data_parallel is False
+
+        self.device = training_parameters['device']
+
+        data_parallel = training_parameters['data_parallel']
 
         registry.register('data_parallel', data_parallel)
 
-        if use_cuda:
+        if 'cuda' in self.config['training_parameters']['device']:
             self.writer.write("CUDA Device is: "
                               + torch.cuda.get_device_name(0))
-            self.model = self.model.cuda()
+        self.model = self.model.to(self.device)
 
         self.writer.write("Torch version is: " + torch.__version__)
 
-        if use_cuda and torch.cuda.device_count() > 1 \
+        if 'cuda' in self.device and torch.cuda.device_count() > 1 \
            and data_parallel is True:
             self.model = torch.nn.DataParallel(self.model)
 
@@ -155,10 +157,10 @@ class Trainer:
                                                 lr_lambda=scheduler_func)
 
     def config_based_setup(self):
-        torch.manual_seed(self.config['seed'])
+        torch.manual_seed(self.config['training_parameters']['seed'])
 
-        if self.config['training_parameters']['use_cuda']:
-            torch.cuda.manual_seed(self.config['seed'])
+        if 'cuda' in self.config['training_parameters']['device']:
+            torch.cuda.manual_seed(self.config['training_parameters']['seed'])
 
     def train(self):
         if "train" not in self.run_type:
@@ -269,7 +271,9 @@ class Trainer:
                     self.task_loader.report_metrics('dev', avg_loss,
                                                     extra_info=extra_info)
                     gc.collect()
-                    torch.cuda.empty_cache()
+
+                    if "cuda" in self.config['training_parameters']['device']:
+                        torch.cuda.empty_cache()
                     if stop is True:
                         self.writer.write("Early stopping activated")
                         break

@@ -24,8 +24,7 @@ task_attributes:
                     - imdb/imdb_minival2014.npy
                     test:
                     - imdb/imdb_test2015.npy
-
-                max_features: 100
+                features_max_len: 100
                 question_max_len: 14
                 vocab_answer: answers_vqa.txt
                 vocab_question: vocabulary_vqa.txt

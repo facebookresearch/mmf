@@ -32,11 +32,11 @@ class TestReporter(Dataset):
         self.current_dataset_idx = -1
         self.current_dataset = self.datasets[self.current_dataset_idx]
 
-        self.save_loc = self.config.get('save_loc', "./save")
+        self.save_dir = self.config.get('save_dir', "./save")
         self.report_folder = ckpt_name_from_core_args(self.config)
         self.report_folder += foldername_from_config_override(self.config)
 
-        self.report_folder = os.path.join(self.save_loc, self.report_folder)
+        self.report_folder = os.path.join(self.save_dir, self.report_folder)
         self.report_folder = os.path.join(self.report_folder, "reports")
 
         if self.report_folder_arg is not None:
