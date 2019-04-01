@@ -13,46 +13,66 @@ EMBEDDING_NAME_CLASS_MAPPING = {
 
 
 class Vocab:
-    @classmethod
-    def get(cls, **params):
+    def __init__(self, **params):
         vocab_type = params.get('type', 'pretrained')
         vocab_params = {}
-        vocab_params.update(params)
-        vocab_params.pop('type')
         # Stores final parameters extracted from vocab_params
 
         if vocab_type == 'random':
-            if vocab_params['vocab_file'] is None:
-                print("No vocab path passed for vocab")
-                sys.exit(0)
-            return BaseVocab(**vocab_params)
+            if params['vocab_file'] is None:
+                raise RuntimeError("No vocab path passed for vocab")
+
+            self.vocab = BaseVocab(params["vocab_file"])
 
         elif vocab_type == 'custom':
-            if vocab_params['vocab_file'] is None or \
-               vocab_params['embedding_file'] is None:
-                print("No vocab path or embedding_file passed for vocab")
-                sys.exit(0)
-            return CustomVocab(**vocab_params)
+            if params['vocab_file'] is None or \
+               params['embedding_file'] is None:
+                raise RuntimeError("No vocab path or embedding_file "
+                                   "passed for vocab")
+            self.vocab = CustomVocab(parmas["vocab_file"],
+                                     params["embedding_file"])
 
         elif vocab_type == 'pretrained':
-            return PretrainedVocab(**vocab_params)
+            self.vocab = PretrainedVocab(**vocab_params)
 
         elif vocab_type == 'intersected':
-            if vocab_params['vocab_file'] is None or \
-               vocab_params['embedding_name'] is None:
-                print("No vocab path or embedding_name passed for vocab")
-                sys.exit(0)
+            if params['vocab_file'] is None or \
+               params['embedding_name'] is None:
+                raise RuntimeError("No vocab path or embedding_name "
+                                   "passed for vocab")
 
-            return IntersectedVocab(**vocab_params)
+            self.vocab = IntersectedVocab(params["vocab_file"],
+                                          params["embedding_name"])
 
         elif vocab_type == 'extracted':
-            return ExtractedVocab(**vocab_params)
+            if params['base_path'] is None or \
+               params['embedding_dim'] is None:
+                raise RuntimeError("No base_path or embedding_dim "
+                                   "passed for vocab")
+            self.vocab = ExtractedVocab(params["base_path"],
+                                        params["embedding_dim"])
 
         elif vocab_type == 'model':
-            if vocab_params['name'] == 'fasttext':
-                return ModelVocab(**vocab_params)
+            if params['name'] is None or \
+               params['model_file'] is None:
+                raise RuntimeError("No name or model_file "
+                                   "passed for vocab")
+            if params['name'] == 'fasttext':
+                self.vocab = ModelVocab(params["name"], params["model_file"])
         else:
             raise RuntimeError("Unknown vocab type: %s" % vocab_type)
+
+    def __call__(self, *args, **kwargs):
+        return self.vocab(*args, **kwargs)
+
+    def __getattr__(self, name):
+        if hasattr(self, name):
+            return getattr(self, name)
+        elif hasattr(self.vocab, name):
+            return getattr(self.vocab, name)
+        else:
+            raise AttributeError("{} vocab type has no attribute {}."
+                                 .format(type(self.vocab, name)))
 
 
 class BaseVocab:
@@ -127,6 +147,12 @@ class BaseVocab:
 
     def get_size(self):
         return len(self.itos)
+
+    def get_pad_index(self):
+        return self.PAD_INDEX
+
+    def get_unk_index(self):
+        return self.UNK_INDEX
 
     def get_vectors(self):
         return getattr(self, 'vectors', None)
@@ -379,7 +405,7 @@ class ModelVocab(BaseVocab):
 
 class ExtractedVocab(BaseVocab):
     def __init__(self, base_path, emb_dim):
-        """Special vocab which is not really vocabulary but instead a class 
+        """Special vocab which is not really vocabulary but instead a class
         which returns embedding pre-extracted from files. Can be used load
         word embeddings from popular models like ELMo and BERT
 
@@ -396,4 +422,3 @@ class ExtractedVocab(BaseVocab):
 
     def get_dim(self):
         return self.emb_dim
-
