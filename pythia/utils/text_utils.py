@@ -1,4 +1,9 @@
+import re
+
 from itertools import chain
+
+
+SENTENCE_SPLIT_REGEX = re.compile(r'(\W+)')
 
 
 def generate_ngrams(tokens, n=1):
@@ -42,3 +47,50 @@ def generate_ngrams_range(tokens, ngram_range=(1, 3)):
     assert len(ngram_range) == 2, "'ngram_range' should be a tuple" \
                                   " of two elements which is range of numbers"
     return chain(*(generate_ngrams(tokens, i) for i in range(*ngram_range)))
+
+
+def tokenize(sentence, regex=SENTENCE_SPLIT_REGEX):
+    sentence = sentence.lower()
+    sentence = (
+        sentence.replace(',', '').replace('?', '').replace('\'s', ' \'s'))
+    tokens = regex.split(sentence)
+    tokens = [t.strip() for t in tokens if len(t.strip()) > 0]
+    return tokens
+
+
+def word_tokenize(word):
+    word = word.lower()
+    word = word.replace(',', '').replace('?', '').replace('\'s', ' \'s')
+    return word.strip()
+
+
+def load_str_list(fname):
+    with open(fname) as f:
+        lines = f.readlines()
+    lines = [l.strip() for l in lines]
+    return lines
+
+
+class VocabDict:
+    def __init__(self, vocab_file):
+        self.word_list = load_str_list(vocab_file)
+        self.word2idx_dict = {w: n_w for n_w, w in enumerate(self.word_list)}
+        self.num_vocab = len(self.word_list)
+        self.UNK_INDEX = (self.word2idx_dict['<unk>']
+                          if '<unk>' in self.word2idx_dict else None)
+
+    def idx2word(self, n_w):
+        return self.word_list[n_w]
+
+    def word2idx(self, w):
+        if w in self.word2idx_dict:
+            return self.word2idx_dict[w]
+        elif self.UNK_idx is not None:
+            return self.UNK_idx
+        else:
+            raise ValueError('word %s not in dictionary \
+                             (while dictionary does not contain <unk>)' % w)
+
+    def tokenize_and_index(self, sentence):
+        inds = [self.word2idx(w) for w in tokenize(sentence)]
+        return inds

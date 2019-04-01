@@ -15,6 +15,7 @@ class Registry:
         'builder_name_mapping': {},
         'model_name_mapping': {},
         'metric_name_mapping': {},
+        'processor_name_mapping': {},
         'state': {}
     }
 
@@ -47,6 +48,13 @@ class Registry:
         return wrap
 
     @classmethod
+    def register_processor(cls, name):
+        def wrap(func):
+            cls.mapping['processor_name_mapping'][name] = func
+            return func
+        return wrap
+
+    @classmethod
     def register(cls, name, obj):
         path = name.split('.')
         current = cls.mapping['state']
@@ -69,6 +77,10 @@ class Registry:
     @classmethod
     def get_model_class(cls, name):
         return cls.mapping['model_name_mapping'].get(name, None)
+
+    @classmethod
+    def get_processor_class(cls, name):
+        return cls.mapping['processor_name_mapping'].get(name, None)
 
     @classmethod
     def get_metric_func(cls, name):
