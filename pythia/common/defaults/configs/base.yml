@@ -5,6 +5,10 @@ training_parameters:
     experiment_name: run
     # Maximum number of iterations the training will run
     max_iterations: 22000
+    # Maximum epochs in case you don't want to use iterations
+    # Can be mixed with max iterations, so it will stop whichever is
+    # completed first. Default: null means epochs won't be used
+    max_epochs: null
     # After `log_interval` iterations, current iteration's training loss and
     # metrics will be reported. This will also report validation
     # loss and metrics on a single batch from validation set
@@ -78,6 +82,8 @@ training_parameters:
     # for loading `text_embedding` module of your model
     # from `text_embedding_pythia`
     pretrained_mapping: {}
+    # Whether the above mentioned pretrained mapping should be loaded or not
+    load_pretrained: false
 
     # Directory for saving checkpoints and other metadata
     save_dir: "./save"

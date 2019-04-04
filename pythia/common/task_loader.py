@@ -3,8 +3,9 @@ import yaml
 
 from torch.utils.data import DataLoader
 
-from pythia.core.tasks import MultiTask
-from pythia.core.tasks.test_reporter import TestReporter
+from pythia.tasks import MultiTask
+from .batch_collator import BatchCollator
+from .test_reporter import TestReporter
 
 
 class TaskLoader:
@@ -13,12 +14,12 @@ class TaskLoader:
 
     def load_task(self):
         self.train_task = MultiTask('train', self.config)
-        self.dev_task = MultiTask('dev', self.config)
+        self.val_task = MultiTask('val', self.config)
         self.test_task = MultiTask('test', self.config)
 
         self.mapping = {
             'train': self.train_task,
-            'dev': self.dev_task,
+            'val': self.val_task,
             'test': self.test_task
         }
 
@@ -56,31 +57,34 @@ class TaskLoader:
         self.train_loader = DataLoader(dataset=self.train_task,
                                        batch_size=batch_size,
                                        shuffle=True,
+                                       collate_fn=BatchCollator(),
                                        num_workers=num_workers)
         self.train_loader.dataset_type = 'train'
 
-        self.dev_loader = DataLoader(dataset=self.dev_task,
+        self.val_loader = DataLoader(dataset=self.val_task,
                                      batch_size=batch_size,
                                      shuffle=True,
+                                     collate_fn=BatchCollator(),
                                      num_workers=num_workers)
-        self.dev_loader.dataset_type = 'dev'
+        self.val_loader.dataset_type = 'val'
 
         self.test_loader = DataLoader(dataset=self.test_task,
                                       batch_size=batch_size,
                                       shuffle=False,
+                                      collate_fn=BatchCollator(),
                                       num_workers=num_workers)
         self.test_loader.dataset_type = 'test'
 
-        self.use_cuda = self.config['use_cuda']
+        self.use_cuda = "cuda" in self.config.training_parameters.device
 
-    def update_config_for_model(self, config):
-        self.train_task.update_config_for_model(config)
-        self.dev_task.update_config_for_model(config)
-        self.test_task.update_config_for_model(config)
+    def update_registry_for_model(self, config):
+        self.train_task.update_registry_for_model(config)
+        self.val_task.update_registry_for_model(config)
+        self.test_task.update_registry_for_model(config)
 
     def clean_config(self, config):
         self.train_task.clean_config(config)
-        self.dev_task.clean_config(config)
+        self.val_task.clean_config(config)
         self.test_task.clean_config(config)
 
     def report_metrics(self, dataset_type, loss, extra_info=None,

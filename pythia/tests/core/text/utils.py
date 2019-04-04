@@ -1,5 +1,5 @@
 import unittest
-import pythia.core.text.utils as text_utils
+import pythia.common.text.utils as text_utils
 
 
 class TestTextUtils(unittest.TestCase):

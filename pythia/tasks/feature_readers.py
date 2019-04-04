@@ -3,8 +3,8 @@ import numpy as np
 
 
 class FeatureReader:
-    def __init__(self, base_path, channel_first,
-                 max_bboxes=None, image_feature=None):
+    def __init__(self, base_path, depth_first,
+                 max_features=None):
         """Feature Reader class for reading features.
 
         Note: Deprecation: ndim and image_feature will be deprecated later
@@ -14,12 +14,10 @@ class FeatureReader:
         ----------
         ndim : int
             Number of expected dimensions in features
-        channel_first : bool
+        depth_first : bool
             CHW vs HWC
-        max_bboxes : int
+        max_features : int
             Number of maximum bboxes to keep
-        image_feature : np.ndarray
-            A sample feature used for figuring out type
 
         Returns
         -------
@@ -29,33 +27,30 @@ class FeatureReader:
         """
         self.base_path = base_path
         ndim = None
-        if image_feature is not None:
-            ndim = image_feature.ndim
         self.feat_reader = None
-        self.channel_first = channel_first
-        self.max_bboxes = max_bboxes
+        self.depth_first = depth_first
+        self.max_features = max_features
         self.ndim = ndim
-        self.image_feature = image_feature
 
     def _init_reader(self):
         if self.ndim == 2 or self.ndim == 0:
-            if self.max_bboxes is None:
+            if self.max_features is None:
                 self.feat_reader = FasterRCNNFeatureReader()
             else:
                 # TODO: Fix later when we move to proper standardized features
                 # if isinstance(self.image_feature.item(0), dict):
                 #     self.feat_reader = \
                 #         PaddedFeatureRCNNWithBBoxesFeatureReader(
-                #             self.max_bboxes
+                #             self.max_features
                 #         )
                 # else:
                 self.feat_reader = \
-                    PaddedFasterRCNNFeatureReader(self.max_bboxes)
-        elif self.ndim == 3 and not self.channel_first:
+                    PaddedFasterRCNNFeatureReader(self.max_features)
+        elif self.ndim == 3 and not self.depth_first:
             self.feat_reader = Dim3FeatureReader()
-        elif self.ndim == 4 and self.channel_first:
+        elif self.ndim == 4 and self.depth_first:
             self.feat_reader = CHWFeatureReader()
-        elif self.ndim == 4 and not self.channel_first:
+        elif self.ndim == 4 and not self.depth_first:
             self.feat_reader = HWCFeatureReader()
         else:
             raise TypeError("unkown image feature format")
@@ -138,7 +133,7 @@ class PaddedFasterRCNNFeatureReader:
         tmp_image_feat[0:image_loc, ] = image_feature
         image_feature = tmp_image_feat
 
-        image_info['max_bboxes'] = image_loc
+        image_info['max_features'] = image_loc
         return image_feature, image_info
 
 
@@ -159,7 +154,7 @@ class PaddedFeatureRCNNWithBBoxesFeatureReader:
 
         image_info = {
             'image_bbox': tmp_image_box,
-            'max_bboxes': image_loc
+            'max_features': image_loc
         }
 
         return tmp_image_feat_2, image_info

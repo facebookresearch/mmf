@@ -2,7 +2,7 @@ import numpy as np
 
 from torch.utils.data import Dataset
 
-from pythia.core.registry import registry
+from pythia.common.registry import registry
 
 
 class MultiTask(Dataset):
@@ -80,9 +80,9 @@ class MultiTask(Dataset):
     def report_metrics(self, loss, extra_info=None, should_print=True):
         self.chosen_task.report_metrics(loss, extra_info, should_print)
 
-    def update_config_for_model(self, config):
+    def update_registry_for_model(self, config):
         for task in self.tasks:
-            task.update_config_for_model(config)
+            task.update_registry_for_model(config)
 
     def prepare_batch(self, batch):
         return self.chosen_task.prepare_batch(batch)

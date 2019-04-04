@@ -1,4 +1,5 @@
 import re
+import os
 
 from itertools import chain
 
@@ -72,7 +73,14 @@ def load_str_list(fname):
 
 
 class VocabDict:
-    def __init__(self, vocab_file):
+    def __init__(self, vocab_file, data_root_dir=None):
+        if not os.path.isabs(vocab_file) and data_root_dir is not None:
+            vocab_file = os.path.abspath(os.path.join(data_root_dir, vocab_file))
+
+        if not os.path.exists(vocab_file):
+            raise RuntimeError("Vocab file {} for vocab dict doesn't exist"
+                               .format(vocab_file))
+
         self.word_list = load_str_list(vocab_file)
         self.word2idx_dict = {w: n_w for n_w, w in enumerate(self.word_list)}
         self.num_vocab = len(self.word_list)
@@ -85,8 +93,8 @@ class VocabDict:
     def word2idx(self, w):
         if w in self.word2idx_dict:
             return self.word2idx_dict[w]
-        elif self.UNK_idx is not None:
-            return self.UNK_idx
+        elif self.UNK_INDEX is not None:
+            return self.UNK_INDEX
         else:
             raise ValueError('word %s not in dictionary \
                              (while dictionary does not contain <unk>)' % w)

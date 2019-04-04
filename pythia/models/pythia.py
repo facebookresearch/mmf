@@ -2,12 +2,13 @@ import torch
 
 from torch import nn
 
-from pythia.core.models.base_model import BaseModel
-from pythia.core.registry import registry
-from pythia.modules.embeddings import ImageEmbedding
+from pythia.common.registry import registry
+from pythia.modules.embeddings import ImageEmbedding, TextEmbedding
 from pythia.modules.encoders import ImageEncoder
-from pythia.modules.layers import ModalCombineLayer, ClassifierLayer, \
-                                  ReLUWithWeightNormFC
+from pythia.modules.layers import (ModalCombineLayer, ClassifierLayer,
+                                   ReLUWithWeightNormFC)
+from pythia.utils.configuration import ConfigNode
+from .base_model import BaseModel
 
 
 @registry.register_model("pythia")
@@ -24,40 +25,20 @@ class Pythia(BaseModel):
         self._init_classifier(self._get_classifier_input_dim())
         self._init_extras()
 
-    def _init_text_embedding(self, attr='text_embeddings',
-                             bidirectional=False):
+    def _init_text_embedding(self, attr='text_embeddings'):
         text_embeddings = []
         text_embeddings_list_config = self.config[attr]
 
         self.embeddings_out_dim = 0
 
-        text_vocab = registry.get("vocabs." + attr.split("_")[0] + "_vocab")
-
-        if text_vocab.type == "model":
-            # If vocab type is model, it is probably a fasttext model
-            # which means we will get the embedding vectors directly
-            # no need to do anything and just pass them through identity
-            text_embeddings = nn.ModuleList([Identity()])
-            setattr(self, attr + "_out_dim", text_vocab.get_dim())
-            setattr(self, attr, text_embeddings)
-            return
-
-        elif text_vocab.type == 'extracted':
-            base_path = text_vocab.base_path
-            text_embeddings = PreExtractedEmbedding(text_vocab.get_dim(),
-                                                    base_path=base_path)
-            setattr(self, attr + "_out_dim", text_vocab.get_dim())
-            setattr(self, attr, nn.ModuleList([text_embeddings]))
-            return
-
         for text_embedding in text_embeddings_list_config:
-            embedding_type = text_embedding['type']
-            embedding_kwargs = text_embedding['params']
-            embedding_kwargs['bidirectional'] = bidirectional
+            embedding_type = text_embedding.type
+            embedding_kwargs = ConfigNode(text_embedding.params)
+
             self._update_text_embedding_args(embedding_kwargs)
 
-            embedding = TextEmbedding(text_vocab, embedding_type,
-                                      **embedding_kwargs)
+            embedding = TextEmbedding(embedding_type, **embedding_kwargs)
+
             text_embeddings.append(embedding)
             self.embeddings_out_dim += embedding.text_out_dim
 
@@ -89,7 +70,7 @@ class Pythia(BaseModel):
 
     def _init_feature_embeddings(self, attr):
         feature_embeddings_list = []
-        num_feature_feat = self.config["num_" + attr + "_features"]
+        num_feature_feat = len(self.config.image_feature_encodings)
 
         self.feature_embeddings_out_dim = 0
 
@@ -142,7 +123,7 @@ class Pythia(BaseModel):
                 multi_modal_combine_layer)
 
     def _init_classifier(self, combined_embedding_dim):
-        num_choices = self.config['num_choices']
+        num_choices = registry.get("vqa2_num_final_outputs")
 
         self.classifier = ClassifierLayer(
             self.config['classifier']['type'],

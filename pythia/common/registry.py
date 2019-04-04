@@ -2,7 +2,7 @@ class Registry:
     mapping = {
 
         # Mappings of task name to their respective classes
-        # Use decorator "register_task" in pythia.core.decorators to regiter a
+        # Use decorator "register_task" in pythia.common.decorators to regiter a
         # task class with a specific name
         # Further, use the name with the class is registered in the
         # command line or configuration to load that specific task

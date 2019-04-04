@@ -1,4 +1,4 @@
-from pythia.common.tasks import BaseTask
+from pythia.tasks import BaseTask
 from pythia.common.registry import registry
 
 

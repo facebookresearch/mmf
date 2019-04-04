@@ -16,7 +16,6 @@ from pythia.utils.timer import Timer
 from pythia.utils.early_stopping import EarlyStopping
 from pythia.common.task_loader import TaskLoader
 from pythia.common.registry import registry
-from pythia.common.text.vocab import Vocab
 
 
 class Trainer:
@@ -27,8 +26,8 @@ class Trainer:
 
     def load(self):
         self.load_config()
-        self.run_type = self.config['training_parameters'].get('run_type',
-                                                               "train")
+        self.run_type = self.config.training_parameters.get('run_type',
+                                                            "train")
         self.task_loader = TaskLoader(self.config)
 
         self.writer = Logger(self.config)
@@ -36,7 +35,6 @@ class Trainer:
 
         self.configuration.pretty_print()
 
-        self.load_vocabs()
         self.load_task()
         self.load_model()
         self.load_optimizer()
@@ -69,44 +67,34 @@ class Trainer:
         self.task_loader.make_dataloaders()
 
         self.train_loader = self.task_loader.train_loader
-        self.dev_loader = self.task_loader.dev_loader
+        self.val_loader = self.task_loader.val_loader
         self.test_loader = self.task_loader.test_loader
         self.train_task = self.task_loader.train_task
-        self.dev_task = self.task_loader.dev_task
+        self.val_task = self.task_loader.val_task
         self.test_task = self.task_loader.test_task
         self.test_reporter = self.task_loader.test_reporter
 
-    def load_vocabs(self):
-        training_parameters = self.config['training_parameters']
-        if 'text_vocab' in training_parameters:
-            self.text_vocab = Vocab.get(**training_parameters['text_vocab'])
-            registry.register('vocabs.text_vocab', self.text_vocab)
-
-        if 'context_vocab' in training_parameters:
-            params = training_parameters['context_vocab']
-            self.context_vocab = Vocab.get(**params)
-            registry.register('vocabs.context_vocab', self.context_vocab)
-
     def load_model(self):
-        attributes = self.config['model_attributes'][self.config['model']]
+        attributes = self.config.model_attributes[self.config.model]
 
         # Easy way to point to config for other model
         if type(attributes) == str:
-            attributes = self.config['model_attributes'][attributes]
-        attributes['model'] = self.config['model']
+            attributes = self.config.model_attributes[attributes]
 
-        self.task_loader.update_config_for_model(attributes)
+        attributes['model'] = self.config.model
+
+        self.task_loader.update_registry_for_model(attributes)
         self.model = build_model(attributes)
         self.task_loader.clean_config(attributes)
-        training_parameters = self.config['training_parameters']
+        training_parameters = self.config.training_parameters
 
-        self.device = training_parameters['device']
+        self.device = training_parameters.device
 
-        data_parallel = training_parameters['data_parallel']
+        data_parallel = training_parameters.data_parallel
 
         registry.register('data_parallel', data_parallel)
 
-        if 'cuda' in self.config['training_parameters']['device']:
+        if 'cuda' in self.config.training_parameters.device:
             self.writer.write("CUDA Device is: "
                               + torch.cuda.get_device_name(0))
         self.model = self.model.to(self.device)
@@ -118,22 +106,22 @@ class Trainer:
             self.model = torch.nn.DataParallel(self.model)
 
     def load_optimizer(self):
-        optimizer_method = self.config['optimizer_attributes']['type']
+        optimizer_method = self.config.optimizer_attributes.type
         optimizer_class = getattr(optim, optimizer_method)
 
         parameters = get_optimizer_parameters(self.model, self.config)
-        rest_optimizer_params = self.config['optimizer_attributes']['params']
+        rest_optimizer_params = self.config.optimizer_attributes.params
         self.optimizer = optimizer_class(parameters, **rest_optimizer_params)
 
     def load_extras(self):
         self.checkpoint = Checkpoint(self)
 
-        training_parameters = self.config['training_parameters']
+        training_parameters = self.config.training_parameters
 
-        monitored_metric = training_parameters['monitored_metric']
-        metric_minimize = training_parameters['metric_minimize']
-        should_early_stop = training_parameters['should_early_stop']
-        patience = training_parameters['patience']
+        monitored_metric = training_parameters.monitored_metric
+        metric_minimize = training_parameters.metric_minimize
+        should_early_stop = training_parameters.should_early_stop
+        patience = training_parameters.patience
 
         self.early_stopping = EarlyStopping(self.model,
                                             self.checkpoint,
@@ -147,32 +135,32 @@ class Trainer:
 
         self.checkpoint.load_state_dict()
 
-        self.not_debug = self.config['logger_level'] != "debug"
+        self.not_debug = training_parameters.logger_level != "debug"
 
         self.lr_scheduler = None
-        if training_parameters['lr_scheduler'] is True:
+        if training_parameters.lr_scheduler is True:
             scheduler_class = optim.lr_scheduler.LambdaLR
             scheduler_func = lambda x: lr_lambda_update(x, self.config)
             self.lr_scheduler = scheduler_class(self.optimizer,
                                                 lr_lambda=scheduler_func)
 
     def config_based_setup(self):
-        torch.manual_seed(self.config['training_parameters']['seed'])
+        torch.manual_seed(self.config.training_parameters.seed)
 
-        if 'cuda' in self.config['training_parameters']['device']:
-            torch.cuda.manual_seed(self.config['training_parameters']['seed'])
+        if 'cuda' in self.config.training_parameters.device:
+            torch.cuda.manual_seed(self.config.training_parameters.seed)
 
     def train(self):
         if "train" not in self.run_type:
             self.predict()
             return
 
-        training_parameters = self.config['training_parameters']
-        log_interval = training_parameters['log_interval']
-        snapshot_interval = training_parameters['snapshot_interval']
-        max_iterations = training_parameters['max_iterations']
-        should_clip_gradients = training_parameters['clip_gradients']
-        max_epochs = self.config['max_epochs']
+        training_parameters = self.config.training_parameters
+        log_interval = training_parameters.log_interval
+        snapshot_interval = training_parameters.snapshot_interval
+        max_iterations = training_parameters.max_iterations
+        should_clip_gradients = training_parameters.clip_gradients
+        max_epochs = training_parameters.max_epochs
 
         self.writer.write("===== Model =====")
         self.writer.write(self.model)
@@ -244,7 +232,7 @@ class Trainer:
 
                 # TODO: Move in separate function
                 if should_print is True:
-                    extra_info = self.single_batch_eval('dev', self.dev_loader)
+                    extra_info = self.single_batch_eval('val', self.val_loader)
                     time_taken = self.train_timer.get_time_since_start()
                     extra_info += ", time: %s" % time_taken
 
@@ -259,7 +247,7 @@ class Trainer:
 
                 if self.current_iteration % snapshot_interval == 0:
                     # Validation and Early stopping
-                    avg_loss = self.evaluate('dev', self.dev_loader)
+                    avg_loss = self.evaluate('val', self.val_loader)
 
                     time_taken = self.snapshot_timer.get_time_since_start()
                     extra_info = ", time: %s" % time_taken
@@ -268,11 +256,11 @@ class Trainer:
                     stop = self.early_stopping(self.current_iteration)
                     extra_info += "\n%s" % self.early_stopping.get_info()
 
-                    self.task_loader.report_metrics('dev', avg_loss,
+                    self.task_loader.report_metrics('val', avg_loss,
                                                     extra_info=extra_info)
                     gc.collect()
 
-                    if "cuda" in self.config['training_parameters']['device']:
+                    if "cuda" in self.config.training_parameters.device:
                         torch.cuda.empty_cache()
                     if stop is True:
                         self.writer.write("Early stopping activated")

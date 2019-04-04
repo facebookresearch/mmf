@@ -8,33 +8,33 @@ from functools import lru_cache
 
 from torch import nn
 
-from pythia.modules.attention import AttentionLayer
+from .attention import AttentionLayer
+from .layers import Identity
 
 
 class TextEmbedding(nn.Module):
-    def __init__(self, vocab, emb_type, **kwargs):
+    def __init__(self, emb_type, **kwargs):
         super(TextEmbedding, self).__init__()
         self.model_data_dir = kwargs.get('model_data_dir', None)
         self.embedding_dim = kwargs.get('embedding_dim', None)
-        self.vocab = vocab
 
         # Update kwargs here
-        if emb_type == "default":
-            params = {
-                'hidden_dim': kwargs['hidden_dim'],
-                'embedding_dim': kwargs['embedding_dim'],
-                'num_layers': kwargs['num_layers'],
-                'dropout': kwargs['dropout'],
-            }
-            self.module = self.vocab.get_embedding(DefaultTextEmbedding,
-                                                   **params)
+        if emb_type == "identity":
+            self.module = Identity()
+            self.module.text_out_dim = self.embedding_dim
+        elif emb_type == "vocab":
+            self.module = VocabEmbedding(**kwargs)
+            self.module.text_out_dim = self.embedding_dim
+        elif emb_type == "preextracted":
+            self.module = PreExtractedEmbedding(**kwargs)
+        elif emb_type == "bilstm":
+            self.module = BiLSTMTextEmbedding(**kwargs)
         elif emb_type == "attention":
-            self.module = self.vocab.get_embedding(AttentionTextEmbedding,
-                                                   **kwargs)
+            self.module = AttentionTextEmbedding(**kwargs)
         elif emb_type == "torch":
             # print(self.vocab.stoi)
-            self.module = self.vocab.get_embedding(nn.Embedding, **kwargs)
-            self.module.text_out_dim = self.module.embedding_dim
+            self.module = nn.Embedding(**kwargs)
+            self.module.text_out_dim = self.embedding_dim
         else:
             raise NotImplementedError("Unknown question embedding '%s'"
                                       % emb_type)
@@ -45,11 +45,20 @@ class TextEmbedding(nn.Module):
         return self.module(*args, **kwargs)
 
 
-class DefaultTextEmbedding(nn.Module):
-    def __init__(self, hidden_dim, embedding_dim,
-                 vocab_size, num_layers, dropout, bidirectional=False,
+class VocabEmbedding(nn.Module):
+    def __init__(self, embedding_dim, vocab_params):
+        self.vocab = Vocab(**vocab_params)
+        self.module = self.vocab.get_embedding(nn.Embedding, embedding_dim)
+
+    def forward(self, x):
+        return self.module(x)
+
+
+class BiLSTMTextEmbedding(nn.Module):
+    def __init__(self, hidden_dim, embedding_dim, num_layers,
+                 dropout, bidirectional=False,
                  rnn_type='GRU'):
-        super(DefaultTextEmbedding, self).__init__()
+        super(BiLSTMTextEmbedding, self).__init__()
         self.text_out_dim = hidden_dim
         self.bidirectional = bidirectional
 
@@ -58,7 +67,6 @@ class DefaultTextEmbedding(nn.Module):
         elif rnn_type == 'GRU':
             rnn_cls = nn.GRU
 
-        self.embedding = nn.Embedding(vocab_size, embedding_dim)
         self.recurrent_encoder = rnn_cls(
             input_size=embedding_dim,
             hidden_size=hidden_dim,
@@ -69,8 +77,7 @@ class DefaultTextEmbedding(nn.Module):
         )
 
     def forward(self, x):
-        embedded_x = self.embedding(x)
-        out, _ = self.recurrent_encoder(embedded_x)
+        out, _ = self.recurrent_encoder(x)
         # Return last state
         if self.bidirectional:
             return out[:, -1]
@@ -80,8 +87,7 @@ class DefaultTextEmbedding(nn.Module):
         return torch.cat((forward_, backward), dim=1)
 
     def forward_all(self, x):
-        embedded_x = self.embedding(x)
-        output, _ = self.recurrent_encoder(embedded_x)
+        output, _ = self.recurrent_encoder(x)
         return output
 
 
@@ -105,14 +111,14 @@ class PreExtractedEmbedding(nn.Module):
 
 
 class AttentionTextEmbedding(nn.Module):
-    def __init__(self, hidden_dim, embedding_dim,
-                 vocab_size, num_layers, dropout, **kwargs):
+    def __init__(self, hidden_dim, embedding_dim, num_layers,
+                 dropout, **kwargs):
         super(AttentionTextEmbedding, self).__init__()
 
         self.text_out_dim = hidden_dim * kwargs['conv2_out']
 
         bidirectional = kwargs.get('bidirectional', False)
-        self.embedding = nn.Embedding(vocab_size, embedding_dim)
+
         self.recurrent_unit = nn.LSTM(
             input_size=embedding_dim,
             hidden_size=hidden_dim // 2 if bidirectional else hidden_dim,
@@ -146,11 +152,10 @@ class AttentionTextEmbedding(nn.Module):
 
     def forward(self, x):
         batch_size, _ = x.data.shape
-        embedded_x = self.embedding(x)  # N * T * embedding_dim
 
         self.recurrent_unit.flatten_parameters()
         # self.recurrent_unit.flatten_parameters()
-        lstm_out, _ = self.recurrent_unit(embedded_x)  # N * T * hidden_dim
+        lstm_out, _ = self.recurrent_unit(x)  # N * T * hidden_dim
         lstm_drop = self.dropout(lstm_out)  # N * T * hidden_dim
         lstm_reshape = lstm_drop.permute(0, 2, 1)  # N * hidden_dim * T
 

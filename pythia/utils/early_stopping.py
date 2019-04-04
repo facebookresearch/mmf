@@ -1,6 +1,6 @@
 import numpy as np
 
-from pythia.core.registry import registry
+from pythia.common.registry import registry
 
 
 class EarlyStopping:

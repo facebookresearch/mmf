@@ -6,7 +6,7 @@ import yaml
 from pythia.utils.general import ckpt_name_from_core_args, \
                                  foldername_from_config_override, \
                                  updir
-from pythia.core.registry import registry
+from pythia.common.registry import registry
 
 
 class Checkpoint:
@@ -18,7 +18,7 @@ class Checkpoint:
         self.trainer = trainer
 
         self.config = self.trainer.config
-        self.save_loc = self.config['save_loc']
+        self.save_dir = self.config.training_parameters.save_dir
 
         self.ckpt_foldername = ckpt_name_from_core_args(self.config)
         self.ckpt_foldername += foldername_from_config_override(
@@ -30,9 +30,9 @@ class Checkpoint:
             self.ckpt_prefix = self.trainer.model.get_ckpt_name() + '_'
 
         self.config['log_foldername'] = self.ckpt_foldername
-        self.ckpt_foldername = os.path.join(self.save_loc,
+        self.ckpt_foldername = os.path.join(self.save_dir,
                                             self.ckpt_foldername)
-        self.pth_filepath = os.path.join(self.save_loc, self.ckpt_foldername,
+        self.pth_filepath = os.path.join(self.save_dir, self.ckpt_foldername,
                                          self.ckpt_prefix + "final.pth")
 
         self.models_foldername = os.path.join(self.ckpt_foldername, "models")
@@ -52,15 +52,16 @@ class Checkpoint:
             yaml.dump(self.config, f)
 
     def load_state_dict(self):
-        if self.config['resume_file'] is not None and \
-           os.path.exists(self.config['resume_file']):
-            self._load(self.config['resume_file'])
+        tp = self.config.training_parameters
+        if tp.resume_file is not None and \
+           os.path.exists(tp.resume_file):
+            self._load(tp.resume_file)
             return
 
         ckpt_filepath = os.path.join(self.ckpt_foldername,
                                      self.ckpt_prefix + "best.ckpt")
 
-        if self.config['resume'] is True \
+        if tp.resume is True \
            and os.path.exists(ckpt_filepath):
             self._load(ckpt_filepath)
 
@@ -72,10 +73,9 @@ class Checkpoint:
 
         ckpt_model = ckpt['model']
 
-        pretrained_mapping = self.config['training_parameters'].get(
-            'pretrained_mapping', {})
+        pretrained_mapping = self.config.training_parameters.pretrained_mapping
 
-        if self.config['pretrained'] is None:
+        if not self.config.training_parameters.load_pretrained:
             pretrained_mapping = {}
 
         new_dict = {}
@@ -152,22 +152,22 @@ class Checkpoint:
             getattr(model, key).load_state_dict(ckpt_model[attr_mapping[key]])
 
     def _torch_load(self, file):
-        if self.config['use_cuda']:
+        if "cuda" in self.config.training_parameters.device:
             return torch.load(file)
         else:
             return torch.load(file, map_location=lambda storage, loc: storage)
-        
+
     def _get_vcs_fields(self):
         """Returns a dict with git fields of the current repository
-        
+
            To reproduce an experiment directly from a checkpoint
 
            1) Export `config` key as a yaml
            2) Clone repository and checkout at given commit on given branch
            3) Any local change (diff) while running the experiment is stored
-              in the value with key `git/diff`, output the diff to a `path.diff` 
+              in the value with key `git/diff`, output the diff to a `path.diff`
               file and apply the patch to the current state by simply
-              
+
                            `patch -p0 < path.diff`
         """
 
@@ -192,7 +192,7 @@ class Checkpoint:
             'best_metric': best_metric,
             'config': self.config
         }
-        
+
         git_metadata_dict = self._get_vcs_fields()
         ckpt.update(git_metadata_dict)
 

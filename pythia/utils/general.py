@@ -7,9 +7,12 @@ from torch import nn
 
 
 def lr_lambda_update(i_iter, cfg):
-    if i_iter <= cfg['training_parameters']['wu_iters']:
-        alpha = float(i_iter) / float(cfg['training_parameters']['wu_iters'])
-        return cfg['training_parameters']['wu_factor'] * (1. - alpha) + alpha
+    if cfg['training_parameters']['use_warmup'] is True and \
+       i_iter <= cfg['training_parameters']['warmup_iterations']:
+        alpha = float(i_iter) / float(
+            cfg['training_parameters']['warmup_iterations'])
+        return cfg['training_parameters']['warmup_factor'] \
+                * (1. - alpha) + alpha
     else:
         idx = bisect(cfg['training_parameters']['lr_steps'], i_iter)
         return pow(cfg['training_parameters']['lr_ratio'], idx)
@@ -40,7 +43,8 @@ def clip_gradients(model, i_iter, writer, config):
 
 def ckpt_name_from_core_args(config):
     return ("%s_%s_%s_%d" % (config['tasks'], config['datasets'],
-                             config['model'], config['seed']))
+                             config['model'],
+                             config['training_parameters']['seed']))
 
 
 def foldername_from_config_override(args):
@@ -88,29 +92,6 @@ def dict_to_string(dictionary):
         logs.append('%s: %.4f' % (key, val))
 
     return ", ".join(logs)
-
-
-def nested_dict_update(dictionary, update):
-    """Updates a dictionary with other dictionary recursively.
-
-    Parameters
-    ----------
-    dictionary : dict
-        Dictionary to be updated.
-    update : dict
-        Dictionary which has to be added to original one.
-
-    Returns
-    -------
-    dict
-        Updated dictionary.
-    """
-    for k, v in update.items():
-        if isinstance(v, collections.Mapping):
-            dictionary[k] = nested_dict_update(dictionary.get(k, {}), v)
-        else:
-            dictionary[k] = v
-    return dictionary
 
 
 def get_overlap_score(candidate, target):

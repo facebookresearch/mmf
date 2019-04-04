@@ -60,6 +60,8 @@ import detectron.utils.c2 as c2_utils
 import detectron.utils.logging
 import detectron.utils.vis as vis_utils
 from detectron.utils.boxes import nms
+
+
 c2_utils.import_detectron_ops()
 # OpenCL may be enabled by default in OpenCV3; disable it because it's not
 # thread safe and causes unwanted GPU memory allocations.
@@ -67,9 +69,9 @@ cv2.ocl.setUseOpenCL(False)
 
 csv.field_size_limit(sys.maxsize)
 
-BOTTOM_UP_FIELDNAMES = ['image_id', 'image_w', 'image_h', 
+BOTTOM_UP_FIELDNAMES = ['image_id', 'image_w', 'image_h',
                         'num_boxes', 'boxes', 'features']
-FIELDNAMES = ['image_id', 'image_w', 'image_h', 'num_boxes', 
+FIELDNAMES = ['image_id', 'image_w', 'image_h', 'num_boxes',
             'boxes', 'features', 'object']
 
 def parse_args():
@@ -151,7 +153,7 @@ def get_detections_from_im(cfg, model, im, image_id, feat_blob_name,
                             MIN_BOXES, MAX_BOXES, conf_thresh=0.2, bboxes=None):
 
     with c2_utils.NamedCudaScope(0):
-        scores, cls_boxes, im_scale = infer_engine.im_detect_bbox(model, 
+        scores, cls_boxes, im_scale = infer_engine.im_detect_bbox(model,
                                                                 im,
                                                                 cfg.TEST.SCALE,
                                                                 cfg.TEST.MAX_SIZE,
@@ -194,7 +196,7 @@ def extract_bboxes(bottom_up_csv_file):
     image_bboxes = {}
 
     with open(bottom_up_csv_file, "r") as tsv_in_file:
-        reader = csv.DictReader(tsv_in_file, delimiter='\t', 
+        reader = csv.DictReader(tsv_in_file, delimiter='\t',
                                 fieldnames=BOTTOM_UP_FIELDNAMES)
         for item in reader:
             item['num_boxes'] = int(item['num_boxes'])
@@ -240,7 +242,7 @@ def main(args):
             bbox = image_bboxes[image_id] if image_id in image_bboxes else None
             im = cv2.imread(im_name)
             if im is not None:
-                outfile = os.path.join(args.output_dir, 
+                outfile = os.path.join(args.output_dir,
                                     im_base_name.replace('jpg', 'npy'))
                 lock_folder = outfile.replace('npy', 'lock')
                 if not os.path.exists(lock_folder) and os.path.exists(outfile):
@@ -248,10 +250,10 @@ def main(args):
                 if not os.path.exists(lock_folder):
                     os.makedirs(lock_folder)
 
-                result = get_detections_from_im(cfg, model, im, 
+                result = get_detections_from_im(cfg, model, im,
                                                 image_id,args.feat_name,
-                                                args.min_bboxes, 
-                                                args.max_bboxes, 
+                                                args.min_bboxes,
+                                                args.max_bboxes,
                                                 bboxes=bbox)
 
                 np.save(outfile, result)

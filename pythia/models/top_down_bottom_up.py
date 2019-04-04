@@ -2,7 +2,7 @@ import torch
 
 from torch import nn
 
-from pythia.common.models.base_model import BaseModel
+from .base_model import BaseModel
 from pythia.common.registry import registry
 from pythia.modules.encoders import ImageEncoder
 from pythia.modules.embeddings import ImageEmbedding, TextEmbedding, \

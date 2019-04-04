@@ -13,27 +13,25 @@ EMBEDDING_NAME_CLASS_MAPPING = {
 
 
 class Vocab:
-    def __init__(self, **params):
+    def __init__(self, *args, **params):
         vocab_type = params.get('type', 'pretrained')
-        vocab_params = {}
         # Stores final parameters extracted from vocab_params
 
         if vocab_type == 'random':
             if params['vocab_file'] is None:
                 raise RuntimeError("No vocab path passed for vocab")
 
-            self.vocab = BaseVocab(params["vocab_file"])
+            self.vocab = BaseVocab(*args, **params)
 
         elif vocab_type == 'custom':
             if params['vocab_file'] is None or \
                params['embedding_file'] is None:
                 raise RuntimeError("No vocab path or embedding_file "
                                    "passed for vocab")
-            self.vocab = CustomVocab(parmas["vocab_file"],
-                                     params["embedding_file"])
+            self.vocab = CustomVocab(*args, **params)
 
         elif vocab_type == 'pretrained':
-            self.vocab = PretrainedVocab(**vocab_params)
+            self.vocab = PretrainedVocab(*args, **params)
 
         elif vocab_type == 'intersected':
             if params['vocab_file'] is None or \
@@ -41,16 +39,14 @@ class Vocab:
                 raise RuntimeError("No vocab path or embedding_name "
                                    "passed for vocab")
 
-            self.vocab = IntersectedVocab(params["vocab_file"],
-                                          params["embedding_name"])
+            self.vocab = IntersectedVocab(*args, **params)
 
         elif vocab_type == 'extracted':
             if params['base_path'] is None or \
                params['embedding_dim'] is None:
                 raise RuntimeError("No base_path or embedding_dim "
                                    "passed for vocab")
-            self.vocab = ExtractedVocab(params["base_path"],
-                                        params["embedding_dim"])
+            self.vocab = ExtractedVocab(*args, **params)
 
         elif vocab_type == 'model':
             if params['name'] is None or \
@@ -58,15 +54,17 @@ class Vocab:
                 raise RuntimeError("No name or model_file "
                                    "passed for vocab")
             if params['name'] == 'fasttext':
-                self.vocab = ModelVocab(params["name"], params["model_file"])
+                self.vocab = ModelVocab(*args, **params)
         else:
             raise RuntimeError("Unknown vocab type: %s" % vocab_type)
+
+        self._dir_representation = dir(self)
 
     def __call__(self, *args, **kwargs):
         return self.vocab(*args, **kwargs)
 
     def __getattr__(self, name):
-        if hasattr(self, name):
+        if name in self._dir_representation:
             return getattr(self, name)
         elif hasattr(self.vocab, name):
             return getattr(self.vocab, name)
@@ -86,7 +84,8 @@ class BaseVocab:
     EOS_INDEX = 2
     UNK_INDEX = 3
 
-    def __init__(self, vocab_file=None, embedding_dim=300):
+    def __init__(self, vocab_file=None, embedding_dim=300, data_root_dir=None,
+                 *args, **kwargs):
         """Vocab class to be used when you want to train word embeddings from
         scratch based on a custom vocab. This will initialize the random
         vectors for the vocabulary you pass. Get the vectors using
@@ -121,10 +120,10 @@ class BaseVocab:
         self.total_predefined = len(self.itos.keys())
 
         if vocab_file is not None:
-
+            if not os.path.isabs(vocab_file) and data_root_dir is not None:
+                vocab_file = os.path.join(data_root_dir, vocab_file)
             if not os.path.exists(vocab_file):
-                print("Vocab not found at " + vocab_file)
-                sys.exit(1)
+                raise RuntimeError("Vocab not found at " + vocab_file)
 
             with open(vocab_file, 'r') as f:
                 for line in f:
@@ -189,7 +188,8 @@ class BaseVocab:
 
 
 class CustomVocab(BaseVocab):
-    def __init__(self, vocab_file, embedding_file, data_dir=None):
+    def __init__(self, vocab_file, embedding_file, data_root_dir=None,
+                 *args, **kwargs):
         """Use this vocab class when you have a custom vocab as well as a
         custom embeddings file.
 
@@ -205,18 +205,18 @@ class CustomVocab(BaseVocab):
             Path of custom vocabulary
         embedding_file : str
             Path to custom embedding inititalization file
-        data_dir : str
+        data_root_dir : str
             Path to data directory if embedding file is not an absolute path.
             Default: None
         """
         super(CustomVocab, self).__init__(vocab_file)
         self.type = "custom"
 
-        if not os.path.isabs(embedding_file) and data_dir is not None:
-            embedding_file = os.path.join(data_dir, embedding_file)
+        if not os.path.isabs(embedding_file) and data_root_dir is not None:
+            embedding_file = os.path.join(data_root_dir, embedding_file)
 
         if not os.path.exists(embedding_file):
-            from pythia.core.registry import registry
+            from pythia.common.registry import registry
             writer = registry.get('writer')
             error = "Embedding file path %s doesn't exist" % embedding_file
             if writer is not None:
@@ -238,7 +238,7 @@ class CustomVocab(BaseVocab):
 
 
 class IntersectedVocab(BaseVocab):
-    def __init__(self, vocab_file, embedding_name):
+    def __init__(self, vocab_file, embedding_name, *args, **kwargs):
         """Use this vocab class when you have a custom vocabulary class but you
         want to use pretrained embedding vectos for it. This will only load
         the vectors which intersect with your vocabulary. Use the
@@ -258,7 +258,7 @@ class IntersectedVocab(BaseVocab):
             Embedding name picked up from the list of the pretrained aliases
             mentioned above
         """
-        super(IntersectedVocab, self).__init__(vocab_file)
+        super(IntersectedVocab, self).__init__(vocab_file, *args, **kwargs)
 
         self.type = "intersected"
 
@@ -269,7 +269,7 @@ class IntersectedVocab(BaseVocab):
         class_name = EMBEDDING_NAME_CLASS_MAPPING[name]
 
         if not hasattr(vocab, class_name):
-            from pythia.core.registry import registry
+            from pythia.common.registry import registry
             writer = registry.get('writer')
             error = "Unknown embedding type: %s" % name, "error"
             if writer is not None:
@@ -285,8 +285,11 @@ class IntersectedVocab(BaseVocab):
 
         embedding = getattr(vocab, class_name)(*params)
 
-        self.vectors = torch.FloatTensor(self.get_size(),
-                                         len(embedding.vectors[0]))
+        self.vectors = torch.empty((self.get_size(),
+                                     len(embedding.vectors[0])),
+                                    dtype=torch.float)
+
+        self.embedding_dim = len(embedding.vectors[0])
 
         for i in range(0, 4):
             self.vectors[i] = torch.ones_like(self.vectors[i]) * 0.1 * i
@@ -300,9 +303,12 @@ class IntersectedVocab(BaseVocab):
             else:
                 self.vectors[i] = embedding.vectors[embedding_index]
 
+    def get_embedding_dim(self):
+        return self.embedding_dim
+
 
 class PretrainedVocab(BaseVocab):
-    def __init__(self, embedding_name):
+    def __init__(self, embedding_name, *args, **kwargs):
         """Use this if you want to use pretrained embedding. See description
         of IntersectedVocab to get a list of the embedding available from
         torchtext
@@ -315,7 +321,7 @@ class PretrainedVocab(BaseVocab):
         self.type = "pretrained"
 
         if embedding_name not in vocab.pretrained_aliases:
-            from pythia.core.registry import registry
+            from pythia.common.registry import registry
             writer = registry.get('writer')
             error = "Unknown embedding type: %s" % embedding_name, "error"
             if writer is not None:
@@ -364,7 +370,7 @@ class WordToVectorDict:
 
 
 class ModelVocab(BaseVocab):
-    def __init__(self, name, model_file):
+    def __init__(self, name, model_file, *args, **kwargs):
         """Special vocab which is not really vocabulary but instead a model
         which returns embedding directly instead of vocabulary. This is just
         an abstraction over a model which generates embeddings directly.
@@ -382,7 +388,7 @@ class ModelVocab(BaseVocab):
             File from which model will be loaded. This API might need to be
             changed in future.
         """
-        super(ModelVocab, self).__init__()
+        super(ModelVocab, self).__init__(*args, **kwargs)
         self.type = "model"
         if name != 'fasttext':
             raise RuntimeError("Model vocab only supports fasttext as of now")
@@ -391,7 +397,7 @@ class ModelVocab(BaseVocab):
 
     def _load_fasttext_model(self, model_file):
         from fastText import load_model
-        from pythia.core.registry import registry
+        from pythia.common.registry import registry
 
         registry.get('writer').write("Loading fasttext model now from %s"
                                      % model_file)
@@ -399,12 +405,12 @@ class ModelVocab(BaseVocab):
         self.model = load_model(model_file)
         self.stoi = WordToVectorDict(self.model)
 
-    def get_dim(self):
+    def get_embedding_dim(self):
         return self.model.get_dimension()
 
 
 class ExtractedVocab(BaseVocab):
-    def __init__(self, base_path, emb_dim):
+    def __init__(self, base_path, emb_dim, *args, **kwargs):
         """Special vocab which is not really vocabulary but instead a class
         which returns embedding pre-extracted from files. Can be used load
         word embeddings from popular models like ELMo and BERT
@@ -415,7 +421,7 @@ class ExtractedVocab(BaseVocab):
         base_path: str
             path containing saved files with embeddings one file per txt item
         """
-        super(ExtractedVocab, self).__init__()
+        super(ExtractedVocab, self).__init__(*args, **kwargs)
         self.type = "extracted"
         self.emb_dim = emb_dim
         self.base_path = base_path

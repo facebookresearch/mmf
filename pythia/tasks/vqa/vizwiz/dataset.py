@@ -5,10 +5,9 @@ import numpy as np
 from collections import Counter
 from torch.autograd import Variable
 
-from pythia.tasks.datasets.vqa2.dataset import VQA2Dataset
-from pythia.core.registry import registry
-from pythia.core.text.utils import generate_ngrams_range
-from pythia.tasks.datasets.vqa2.utils import word_tokenize
+from pythia.tasks.vqa.vqa2 import VQA2Dataset
+from pythia.common.registry import registry
+from pythia.utils.text_utils import generate_ngrams_range, word_tokenize
 
 
 class VizWizDataset(VQA2Dataset):

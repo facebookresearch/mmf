@@ -22,19 +22,30 @@ task_attributes:
                     - imdb/imdb_textvqa_val.npy
                     test:
                     - imdb/imdb_textvqa_test.npy
-                max_features: 137
+                features_max_len: 137
                 question_max_len: 14
                 context_max_len: 50
-                vocab_answer: answers_textvqa_8k.txt
-                vocab_question: vocabulary_vqa_100k.txt
-                text_vocab:
-                    type: intersected
-                    embedding_name: glove.6B.300d
-                    vocab_file:  ../data/vocabulary_vqa_100k.txt
-                context_vocab:
-                    type: model
-                    name: fasttext
-                    model_file: .vector_cache/wiki.en.bin
+                processors:
+                  text_processor:
+                    type: glove
+                    params:
+                      max_length: 14
+                      vocab:
+                        type: intersected
+                        embedding_name: glove.6B.300d
+                        vocab_file: vocabulary_vqa_100k.txt
+                  answer_processor:
+                    type: vqa_answer
+                    params:
+                      vocab_file: answers_textvqa_8k.txt
+                      preprocessor:
+                        type: simple_word
+                        params: {}
+                  context_processor:
+                    type: fasttext
+                    params:
+                      max_length: 50
+                      model_file: .vector_cache/wiki.en.bin
                 metrics:
                 - vqa_accuracy
                 loss: logit_bce

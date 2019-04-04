@@ -11,7 +11,7 @@ task_attributes:
                 image_features:
                     train:
                     - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
-                    - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+                    - coco/detectron_fix_100/fc6/val2014,coco/resnet152/val2014
                     val:
                     - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
                     test:
@@ -25,13 +25,22 @@ task_attributes:
                     test:
                     - imdb/imdb_test2015.npy
                 features_max_len: 100
-                question_max_len: 14
-                vocab_answer: answers_vqa.txt
-                vocab_question: vocabulary_vqa.txt
-                text_vocab:
-                    type: intersected
-                    embedding_name: glove.6B.300d
-                    vocab_file:  ../data/vocabulary_vqa.txt
+                processors:
+                  text_processor:
+                    type: glove
+                    params:
+                      max_length: 14
+                      vocab:
+                        type: intersected
+                        embedding_name: glove.6B.300d
+                        vocab_file:  vocabulary_vqa.txt
+                  answer_processor:
+                    type: vqa_answer
+                    params:
+                      vocab_file: answers_vqa.txt
+                      preprocessor:
+                        type: simple_word
+                        params: {}
                 metrics:
                 - vqa_accuracy
                 loss: logit_bce
@@ -39,4 +48,3 @@ task_attributes:
 training_parameters:
     monitored_metric: vqa2_vqa_accuracy
     metric_minimize: false
-

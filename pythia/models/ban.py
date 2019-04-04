@@ -2,9 +2,9 @@ import torch
 
 from torch import nn
 
-from pythia.common.models.base_model import BaseModel
+from .base_model import BaseModel
 from pythia.common.registry import registry
-from pythia.modules.embeddings import DefaultTextEmbedding
+from pythia.modules.embeddings import BiLSTMTextEmbedding
 from pythia.modules.layers import (
         BCNet, FCNet, BiAttention, WeightNormClassifier
 )
@@ -24,7 +24,7 @@ class BAN(BaseModel):
     def _init_text_embedding(self):
         module_config = self.config['text_embedding']
         vocab_size = registry.get('vocabs.text_vocab').get_size()
-        q_mod = DefaultTextEmbedding(module_config['num_hidden'],
+        q_mod = BiLSTMTextEmbedding(module_config['num_hidden'],
                                      module_config['emb_size'],
                                      vocab_size,
                                      module_config['num_layers'],

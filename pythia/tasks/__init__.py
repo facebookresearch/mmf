@@ -1,5 +1,5 @@
 from .base_task import BaseTask
-from .dataset_builder import DatasetBuilder
+from .base_dataset_builder import BaseDatasetBuilder
 from .multi_task import MultiTask
 
-__all__ = ['BaseTask', 'DatasetBuilder', 'MultiTask']
+__all__ = ['BaseTask', 'BaseDatasetBuilder', 'MultiTask']

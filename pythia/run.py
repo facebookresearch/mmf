@@ -1,7 +1,7 @@
 import os
 import importlib
 import glob
-from pythia.core.trainer import Trainer
+from pythia.common.trainer import Trainer
 
 
 def setup_imports():
@@ -13,7 +13,7 @@ def setup_imports():
     model_folder = os.path.join(root_folder, "models")
     model_pattern = os.path.join(model_folder, "**", "*.py")
 
-    importlib.import_module("pythia.core.meter")
+    importlib.import_module("pythia.common.meter")
 
     files = glob.glob(tasks_pattern, recursive=True) + \
         glob.glob(model_pattern, recursive=True)
@@ -22,6 +22,8 @@ def setup_imports():
         if f.endswith("task.py"):
             splits = f.split(os.sep)
             task_name = splits[-2]
+            if task_name == "tasks":
+                continue
             file_name = splits[-1]
             module_name = file_name[:file_name.find(".py")]
             importlib.import_module("pythia.tasks." + task_name + "."
@@ -33,11 +35,14 @@ def setup_imports():
             importlib.import_module("pythia.models." + module_name)
         elif f.endswith("builder.py"):
             splits = f.split(os.sep)
+            task_name = splits[-3]
             dataset_name = splits[-2]
+            if task_name == "tasks" or dataset_name == "tasks":
+                continue
             file_name = splits[-1]
             module_name = file_name[:file_name.find(".py")]
-            importlib.import_module("pythia.tasks.datasets." + dataset_name
-                                    + "." + module_name)
+            importlib.import_module("pythia.tasks." + task_name + "."
+                                    + dataset_name + "." + module_name)
 
 
 def run():

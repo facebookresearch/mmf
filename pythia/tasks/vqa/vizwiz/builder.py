@@ -1,5 +1,5 @@
-from pythia.tasks.datasets.vqa2.builder import VQA2Builder
-from pythia.core.registry import registry
+from pythia.tasks.vqa.vqa2 import VQA2Builder
+from pythia.common.registry import registry
 from .dataset import VizWizDataset
 
 
@@ -10,8 +10,8 @@ class VizWizBuilder(VQA2Builder):
         self.dataset_name = 'VizWiz'
         self.set_dataset_class(VizWizDataset)
 
-    def update_config_for_model(self, config):
-        super(VizWizBuilder, self).update_config_for_model(config)
+    def update_registry_for_model(self, config):
+        super(VizWizBuilder, self).update_registry_for_model(config)
 
         copy_type = False
 

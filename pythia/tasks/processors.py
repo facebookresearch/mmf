@@ -14,7 +14,7 @@ class BaseProcessor:
         return item
 
 class Processor:
-    def __init__(self, config):
+    def __init__(self, config, *args, **kwargs):
         self.writer = registry.get("writer")
 
         if not hasattr(config, "type"):
@@ -29,101 +29,117 @@ class Processor:
                               "specify parameters of the processor "
                               "of type {}. Setting to default \{\}"
                               .format(config.type))
+        else:
             params = config.params
-        self.processor = processor_class(params)
+
+        self.processor = processor_class(params, *args, **kwargs)
+
+        self._dir_representation = dir(self)
+
+    def __call__(self, item):
+        return self.processor(item)
 
     def __getattr__(self, name):
-        if name in self.__dict__:
+        if name in self._dir_representation:
             return getattr(self, name)
         elif hasattr(self.processor, name):
             return getattr(self.processor, name)
         else:
             raise AttributeError(name)
 
+
 @registry.register_processor("vocab")
 class VocabProcessor(BaseProcessor):
     MAX_LENGTH_DEFAULT = 50
     def __init__(self, config, *args, **kwargs):
-        self.vocab = Vocab(**config)
+        if not hasattr(config, "vocab"):
+            raise AttributeError("config passed to the processor has no "
+                                 "attribute vocab")
+
+        self.vocab = Vocab(*args, **config.vocab, **kwargs)
         self._init_extras(config)
 
-    def _init_extras(self, config):
+    def _init_extras(self, config, *args, **kwargs):
         self.writer = registry.get("writer")
-        self.text_processor = None
+        self.preprocessor = None
 
         if hasattr(config, "max_length"):
             self.max_length = config.max_length
         else:
-            self.writer.write("No 'max_length' parameter in Processor's"
-                              " configuration. Setting to {}."
+            self.writer.write("No 'max_length' parameter in Processor's "
+                              "configuration. Setting to {}."
                               .format(self.MAX_LENGTH_DEFAULT),
                               "warning")
             self.max_length = self.MAX_LENGTH_DEFAULT
 
-        if hasattr(config, "text_processor"):
-            self.text_processor = registry.get_processor_class(
-                config.text_processor
-            )
+        if hasattr(config, "preprocessor"):
+            self.preprocessor = Processor(config.preprocessor, *args,
+                                            **kwargs)
 
-            if self.text_processor is None:
+            if self.preprocessor is None:
                 raise RuntimeError("No text processor named {} is defined."
-                                   .format(config.text_processor))
+                                   .format(config.preprocessor))
 
     def __call__(self, item):
         indices = None
         if not isinstance(item, dict):
-            raise RuntimeError("Argument passed to the processor must be"
-                               " a dict with either 'text' or 'tokens' as"
-                               " keys")
+            raise RuntimeError("Argument passed to the processor must be "
+                               "a dict with either 'text' or 'tokens' as "
+                               "keys")
         if "tokens" in item:
             tokens = item["tokens"]
             indices = self._map_strings_to_indices(item["tokens"])
         elif "text" in item:
-            if self.text_processor is None:
-                raise RuntimeError("If tokens are not provided, a text"
-                                   " processor must be defined in"
-                                   " the config")
-            tokens = self.text_processor({"text": item["text"]})["text"]
+            if self.preprocessor is None:
+                raise RuntimeError("If tokens are not provided, a text "
+                                   "processor must be defined in "
+                                   "the config")
+            tokens = self.preprocessor({"text": item["text"]})["text"]
             indices = self._map_strings_to_indices(tokens)
         else:
-            raise RuntimeError("A dict with either 'text' or 'tokens' keys"
-                               " must be passed to the processor")
+            raise RuntimeError("A dict with either 'text' or 'tokens' keys "
+                               "must be passed to the processor")
 
         return {
             "text": indices
         }
 
+    def get_vocab_size(self):
+        return self.vocab.get_size()
+
     def _map_strings_to_indices(self, tokens):
         length = min(len(tokens), self.max_length)
         tokens = tokens[:length]
 
-        output = torch.full(self.max_length,
-                             fill_value=self.vocab.get_pad_index(),
-                                dtype=torch.int)
+        output = torch.zeros(self.max_length, dtype=torch.int)
+        output.fill_(self.vocab.get_pad_index())
 
-        for idx, token in tokens:
+        for idx, token in enumerate(tokens):
             output[idx] = self.vocab.stoi[token]
 
         return output
 
 
-@regsitry.register_processor("glove")
+@registry.register_processor("glove")
 class GloVeProcessor(VocabProcessor):
     def __init__(self, config, *args, **kwargs):
+        if not hasattr(config, "vocab"):
+            raise AttributeError("Config passed to the processor has no "
+                                 "attribute vocab")
         vocab_processor_config = ConfigNode(config)
         # GloVeProcessor needs vocab type to be "intersected"
-        vocab_processor_config.type = "intersected"
+        vocab_processor_config.vocab.type = "intersected"
 
-        if "vocab_file" not in vocab_processor_config:
-            registry.get("writer").write("'vocab_file' key is not present in"
-                                         " the config. Switching to"
-                                          " pretrained vocab.", "warning")
-            vocab_processor_config.type = "pretrained"
+        if "vocab_file" not in vocab_processor_config.vocab:
+            registry.get("writer").write("'vocab_file' key is not present in "
+                                         "the config. Switching to "
+                                          "pretrained vocab.", "warning")
+            vocab_processor_config.vocab.type = "pretrained"
 
-        super().__init__(vocab_processor_config)
+        super().__init__(vocab_processor_config, *args, **kwargs)
 
     def __call__(self, item):
-        indices = super().__call__(item)
+        indices = super().__call__(item)["text"]
         embeddings = torch.zeros((len(indices),
                                  self.vocab.get_embedding_dim()),
                                  dtype=torch.float)
@@ -135,14 +151,15 @@ class GloVeProcessor(VocabProcessor):
             "text": embeddings
         }
 
+
 @registry.register_processor("fasttext")
 class FastTextProcessor(VocabProcessor):
     def __init__(self, config, *args, **kwargs):
         self._init_extras(config)
 
         if not hasattr(config, "model_file"):
-            raise AttributeError("'model_file' key is required but missing from"
-                                 " FastTextProcessor's config.")
+            raise AttributeError("'model_file' key is required but missing "
+                                 "from FastTextProcessor's config.")
 
         self._load_fasttext_model(config.model_file)
 
@@ -163,7 +180,7 @@ class FastTextProcessor(VocabProcessor):
                             fill_value=self.vocab.get_pad_index(),
                             dtype=torch.float)
 
-        for idx, token in tokens:
+        for idx, token in enumerate(tokens):
             output[idx] = self.stov[token]
 
         return output
@@ -172,27 +189,27 @@ class FastTextProcessor(VocabProcessor):
 @registry.register_processor("vqa_answer")
 class VQAAnswerProcessor(BaseProcessor):
     DEFAULT_NUM_ANSWERS = 10
-    def __init__(self, config):
-        self.write = registry.get("writer")
+    def __init__(self, config, *args, **kwargs):
+        self.writer = registry.get("writer")
         if not hasattr(config, 'vocab_file'):
             raise AttributeError("'vocab_file' argument required, but not "
                                  "present in AnswerProcessor's config")
-        self.answer_vocab = VocabDict(config.vocab_file)
 
-        self.text_processor = None
+        self.answer_vocab = VocabDict(config.vocab_file, *args, **kwargs)
 
-        if hasattr(config, "text_processor"):
-            self.text_processor = registry.get_processor_class(
-                config.text_processor
-            )
+        self.preprocessor = None
 
-            if self.text_processor is None:
-                raise RuntimeError("No text processor named {} is defined."
-                                   .format(config.text_processor))
+        if hasattr(config, "preprocessor"):
+            self.preprocessor = Processor(config.preprocessor)
+
+            if self.preprocessor is None:
+                raise RuntimeError("No processor named {} is defined."
+                                   .format(config.preprocessor))
 
         if hasattr(config, "num_answers"):
             self.num_answers = config.num_answers
         else:
+            self.num_answers = self.DEFAULT_NUM_ANSWERS
             self.writer.write("'num_answers' not defined in the config. "
                               "Setting to default of {}"
                               .format(self.DEFAULT_NUM_ANSWERS), "warning")
@@ -203,38 +220,38 @@ class VQAAnswerProcessor(BaseProcessor):
         if not isinstance(item, dict):
             raise RuntimeError("'item' passed to processor must be a dict")
 
-        if hasattr(item, 'answer_tokens'):
-            tokens = answer_tokens
-        elif hasattr(item, 'answers'):
-            if self.text_processor is None:
-                raise RuntimeError("'text_processor' must be defined if you "
+        if "answer_tokens" in item:
+            tokens = item["answer_tokens"]
+        elif "answers" in item:
+            if self.preprocessor is None:
+                raise RuntimeError("'preprocessor' must be defined if you "
                                    "don't pass 'answer_tokens'")
 
-            tokens = [self.text_processor({'text': answer})["text"]
+            tokens = [self.preprocessor({'text': answer})["text"]
                       for answer in item['answers']]
         else:
             raise RuntimeError("'answers' or 'answer_tokens' must be passed"
                                " to answer processor in a dict")
 
-        answers_indices = torch.full(self.num_answers, fill_value=-1,
-                                     dtype=torch.int)
+        answers_indices = torch.zeros(self.num_answers, dtype=torch.int)
+        answers_indices.fill_(-1)
 
         for idx, token in enumerate(tokens):
-            answers_indices[idx] = self.answer_dict.word2idx(token)
+            answers_indices[idx] = self.answer_vocab.word2idx(token)
 
         answers_scores = self.compute_answers_scores(answers_indices)
 
         return {
-            "answers": answer_scores,
+            "answers": answers_indices,
             "answers_scores": answers_scores
         }
 
     def get_vocab_size(self):
-        return self.answer_dict.num_vocab
+        return self.answer_vocab.num_vocab
 
     def compute_answers_scores(self, answers_indices):
         scores = torch.zeros(self.get_vocab_size(), dtype=torch.float)
-        gt_answers = list(enumerate(answer_indices))
+        gt_answers = list(enumerate(answers_indices))
         unique_answers = set(answers_indices.tolist())
 
         for answer in unique_answers:
@@ -245,11 +262,11 @@ class VQAAnswerProcessor(BaseProcessor):
 
                 matching_answers = [item for item in other_answers
                                     if item[1] == answer]
-                acc = min(1, float(len(matching_ans)) / 3)
+                acc = min(1, float(len(matching_answers)) / 3)
                 accs.append(acc)
-            avg_acc = torch.mean(accs)
+            avg_acc = sum(accs) / len(accs)
 
-            if answer == self.answer_dict.UNK_INDEX:
+            if answer == self.answer_vocab.UNK_INDEX:
                 scores[answer] = 0
             else:
                 scores[answer] = avg_acc
@@ -257,7 +274,7 @@ class VQAAnswerProcessor(BaseProcessor):
         return scores
 
 
-@registry.register_class("simple_word")
+@registry.register_processor("simple_word")
 class SimpleWordProcessor(BaseProcessor):
     def __init__(self, *args, **kwargs):
         from pythia.utils.text_utils import word_tokenize
@@ -267,7 +284,7 @@ class SimpleWordProcessor(BaseProcessor):
         return {"text": self.tokenizer(item["text"])}
 
 
-@registry.register_class("simple_sentence")
+@registry.register_processor("simple_sentence")
 class SimpleSentenceProcessor(BaseProcessor):
     def __init__(self, *args, **kwargs):
         from pythia.utils.text_utils import tokenize

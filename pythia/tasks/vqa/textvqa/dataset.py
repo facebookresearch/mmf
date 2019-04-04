@@ -1,9 +1,9 @@
 import torch
 
 from collections import Counter
-from pythia.tasks.datasets.vqa2.utils import word_tokenize
+from pythia.utils.text_utils import word_tokenize
 
-from pythia.tasks.datasets.vizwiz.dataset import VizWizDataset
+from pythia.tasks.vqa.vizwiz import VizWizDataset
 
 
 class TextVQADataset(VizWizDataset):

@@ -7,6 +7,7 @@ from torch.utils.data.dataset import Dataset
 from pythia.common.losses import Loss
 from pythia.common.meter import Meter
 from pythia.common.registry import registry
+from pythia.tasks.processors import Processor
 
 
 class BaseDataset(Dataset):
@@ -19,8 +20,6 @@ class BaseDataset(Dataset):
         self._global_config = registry.get("config")
         self.device = self._global_config['training_parameters']['device']
         self.use_cuda = "cuda" in self.device
-        self.text_vocab = registry.get('vocabs.text_vocab')
-        self.context_vocab = registry.get('vocabs.context_vocab')
 
     def init_loss_and_metrics(self, config):
         self.writer = registry.get('writer')
@@ -30,7 +29,7 @@ class BaseDataset(Dataset):
         if isinstance(task_metrics, str):
             task_metrics = task_metrics.split(',')
 
-        self.meter = Meter(self.name, config['dataset_type'], task_metrics)
+        self.meter = Meter(self.name, self.dataset_type, task_metrics)
         self.loss_fn = Loss(config['loss'])
 
         if type(config['loss']) == dict:
@@ -41,12 +40,6 @@ class BaseDataset(Dataset):
     def load_item(self, idx):
         raise NotImplementedError
 
-    def try_fast_read(self):
-        if hasattr(self, 'fast_read') and self.fast_read is True:
-            self.cache = {}
-            for idx in tqdm.tqdm(range(len(self.imdb) - 1)):
-                self.cache[idx] = self.load_item(idx)
-
     def calculate_loss(self, output, expected_output, info):
         self.meter(output, expected_output, info)
 
@@ -55,6 +48,16 @@ class BaseDataset(Dataset):
 
     def reset_meters(self):
         self.meter.reset()
+
+    def init_processors(self):
+        if not hasattr(self.config, "processors"):
+            return
+        extra_params = {
+            'data_root_dir': self.config.data_root_dir
+        }
+        for processor_key, processor_params in self.config.processors.items():
+            setattr(self, processor_key,
+                    Processor(processor_params, **extra_params))
 
     def prepare_batch(self, batch):
         """

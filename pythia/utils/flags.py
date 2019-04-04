@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from pythia.core.registry import registry
+from pythia.common.registry import registry
 
 
 class Flags:
@@ -75,7 +75,7 @@ class Flags:
         self.parser.add_argument("--batch_size", type=int, default=None,
                                  help="Batch size to be used for training "
                                  "If not passed it will default to config one")
-        self.parser.add_argument("--save_loc", type=str, default="./save",
+        self.parser.add_argument("--save_dir", type=str, default="./save",
                                  help="Location for saving model checkpoint")
         self.parser.add_argument("--log_dir", type=str, default=None,
                                  help="Location for saving logs")
@@ -111,9 +111,9 @@ class Flags:
         self.parser.add_argument("--no_data_parallel", type=bool,
                                  default=None,
                                  help="Use when you want to clip gradients")
-        self.parser.add_argument("-cpu", "--no_cuda", action="store_true",
-                                 default=False, help="Use when you don't want"
-                                 " to use CUDA")
+        self.parser.add_argument("-dev", "--device", type=str,
+                                 default=None, help="Specify device to be"
+                                 " used for training")
         self.parser.add_argument("-p", "--patience", type=int,
                                  default=None, help="Patience for early stop")
         self.parser.add_argument("-sr", "--slow_read", type=bool, default=None,
@@ -130,6 +130,8 @@ class Flags:
                                  default=None,
                                  help="Number of workers for dataloaders")
         self.parser.add_argument("opts",
+                                 default=None,
+                                 nargs=argparse.REMAINDER,
                                  help="Modify config options from "
                                  "command line")
 

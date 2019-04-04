@@ -5,7 +5,7 @@ import torch
 
 from torch.utils.data import Dataset
 
-from pythia.core.text.vocab import GloVeIntersectedVocab
+from pythia.utils.vocab import GloVeIntersectedVocab
 from pythia.tasks.vqa2.dataset import get_image_feat_reader
 from pythia.tasks.vqa2.dataset import read_in_image_feats
 

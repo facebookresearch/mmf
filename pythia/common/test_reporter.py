@@ -5,8 +5,9 @@ from torch.utils.data import Dataset, DataLoader
 
 from pythia.utils.general import ckpt_name_from_core_args, \
                                  foldername_from_config_override
-from pythia.core.registry import registry
+from pythia.common.registry import registry
 from pythia.utils.timer import Timer
+from .batch_collator import BatchCollator
 
 
 class TestReporter(Dataset):
@@ -83,6 +84,7 @@ class TestReporter(Dataset):
             dataset=self.current_dataset,
             batch_size=self.batch_size,
             shuffle=False,
+            collate_fn=BatchCollator(),
             num_workers=self.num_workers
         )
 

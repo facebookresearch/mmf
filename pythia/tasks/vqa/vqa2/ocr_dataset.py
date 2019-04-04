@@ -1,6 +1,5 @@
-from pythia.tasks.datasets.vizwiz.dataset import VizWizDataset
-
-from .utils import word_tokenize
+from pythia.tasks.vqa.vizwiz import VizWizDataset
+from pythia.utils.text_utils import word_tokenize
 
 
 class VQA2OCRDataset(VizWizDataset):

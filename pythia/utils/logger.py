@@ -1,6 +1,7 @@
 import os
 import logging
 import sys
+import base64
 
 from tensorboardX import SummaryWriter
 
@@ -15,7 +16,7 @@ class Logger:
 
         self.config = config
 
-        self.save_loc = config.get('save_loc', "./save")
+        self.save_dir = config.get('save_dir', "./save")
         self.log_folder = ckpt_name_from_core_args(config)
         self.log_folder += foldername_from_config_override(config)
         time_format = "%Y-%m-%dT%H:%M:%S"
@@ -25,7 +26,7 @@ class Logger:
 
         self.summary_writer = None
 
-        self.log_folder = os.path.join(self.save_loc, self.log_folder, "logs")
+        self.log_folder = os.path.join(self.save_dir, self.log_folder, "logs")
 
         arg_log_dir = self.config.get('log_dir', None)
         if arg_log_dir:
@@ -64,11 +65,15 @@ class Logger:
 
         self.logger.addHandler(channel)
 
-        self.should_log = not self.config['should_not_log']
+        should_not_log = self.config['training_parameters']['should_not_log']
+        self.should_log = not should_not_log
         self.config['should_log'] = self.should_log
 
+        # Single log wrapper map
+        self._single_log_map = set()
+
     def __del__(self):
-        if self.summary_writer is not None:
+        if getattr(self, 'summary_writer', None) is not None:
             self.summary_writer.close()
 
     def write(self, x, level="info"):
@@ -80,6 +85,12 @@ class Logger:
                 self.logger.error("Unknown log level type: %s" % level)
         else:
             print(str(x) + '\n')
+
+    def single_write(self, x, level="info"):
+        if x + "_" + level in self._single_log_map:
+            return
+        else:
+            self.write(x, level)
 
     def add_scalar(self, key, value, iteration):
         if self.summary_writer is None:

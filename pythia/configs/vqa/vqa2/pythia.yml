@@ -1,7 +1,7 @@
 includes:
-- core/defaults/configs/tasks/vqa/vqa2.yml
+- common/defaults/configs/tasks/vqa/vqa2.yml
 model_attributes:
-  top_down_bottom_up:
+  pythia:
     model_data_dir: ../data/
     classifier:
       type: logit
@@ -69,4 +69,3 @@ training_parameters:
   task_size_proportional_sampling: true
   monitored_metric: vqa2_vqa_accuracy
   metric_minimize: false
-

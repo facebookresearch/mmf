@@ -1,7 +1,7 @@
 import torch
 
 from pythia.models.pythia import Pythia
-from pythia.core.registry import registry
+from pythia.common.registry import registry
 from pythia.modules.layers import ClassifierLayer
 
 

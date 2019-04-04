@@ -3,7 +3,7 @@ import sys
 
 from torch.utils.data import Dataset
 
-from pythia.core.registry import registry
+from pythia.common.registry import registry
 
 
 class BaseTask(Dataset):
@@ -62,10 +62,10 @@ class BaseTask(Dataset):
                                       % dataset, "error")
                     sys.exit(1)
 
-                attributes['dataset_type'] = self.opts.get('dataset_type',
-                                                           "train")
-                builder_instance.build(**attributes)
-                dataset_instance = builder_instance.load(**attributes)
+                dataset_type = self.opts.get('dataset_type', "train")
+                builder_instance.build(dataset_type, attributes)
+                dataset_instance = builder_instance.load(dataset_type,
+                                                         attributes)
 
                 self.builders.append(builder_instance)
                 self.datasets.append(dataset_instance)
@@ -152,13 +152,13 @@ class BaseTask(Dataset):
         raise NotImplementedError("This task doesn't implement preprocess_item"
                                   " method")
 
-    def update_config_for_model(self, config):
+    def update_registry_for_model(self, config):
         """
         Use this if there is some specific configuration required by model
         which must be inferred at runtime.
         """
         for builder in self.builders:
-            builder.update_config_for_model(config)
+            builder.update_registry_for_model(config)
 
     def init_args(self, parser):
         parser.add_argument_group('General Task Arguments')
@@ -193,6 +193,6 @@ class BaseTask(Dataset):
     def clean_config(self, config):
         """
         Override this in case you want to clean the config you updated earlier
-        in update_config_for_model
+        in update_registry_for_model
         """
         return config

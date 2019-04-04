@@ -7,10 +7,80 @@ import json
 import demjson
 import collections
 
-from loadconfig import Config
+from ast import literal_eval
 
-from .general import nested_dict_update
-from pythia.core.registry import registry
+from pythia.common.registry import registry
+
+
+class ConfigNode(collections.OrderedDict):
+    IMMUTABLE = "__is_frozen"
+
+    def __init__(self, init_dict={}):
+        self.__dict__[ConfigNode.IMMUTABLE] = False
+        super().__init__(init_dict)
+
+        for key in self:
+            if isinstance(self[key], collections.Mapping):
+                self[key] = ConfigNode(self[key])
+            elif isinstance(self[key], list):
+                for idx, item in enumerate(self[key]):
+                    if isinstance(item, collections.Mapping):
+                        self[key][idx] = ConfigNode(item)
+
+    def freeze(self):
+        for field in self.keys():
+            if isinstance(self[field], collections.Mapping):
+                self[field].freeze()
+            elif isinstance(self[field], list):
+                for item in self[field]:
+                    if isinstance(item, collections.Mapping):
+                        item.freeze()
+
+        self.__dict__[ConfigNode.IMMUTABLE]= True
+
+    def defrost(self):
+        for field in self.keys():
+            if isinstance(self[field], collections.Mapping):
+                self[field].defrost()
+            elif isinstance(self[field], list):
+                for item in self[field]:
+                    if isinstance(item, collections.Mapping):
+                        item.defrost()
+
+        self.__dict__[ConfigNode.IMMUTABLE]= False
+
+    def __getattr__(self, key):
+        if key not in self:
+            raise AttributeError(key)
+
+        return self[key]
+
+    def __setattr__(self, key, value):
+        if self.__dict__[ConfigNode.IMMUTABLE] is True:
+            raise AttributeError("ConfigNode has been frozen and can't"
+                                 " be updated")
+
+        self[key] = value
+
+    def _indent(self, st, num_spaces):
+        st = st.split("\n")
+        first = st.pop(0)
+        st = [(num_spaces * " ") + line for line in st]
+        st = [first] + st
+        st = "\n".join(st)
+        return st
+
+    def __str__(self):
+        strs = []
+        for key, value in sorted(self.items()):
+            seperator = "\n" if isinstance(value, ConfigNode) else " "
+            attr_str = "{}:{}{}".format(str(key), seperator, str(value))
+            attr_str = self._indent(attr_str, 2)
+            strs.append(attr_str)
+        return "\n".join(strs)
+
+    def __repr__(self):
+        return "{}({})".format(self.__class__.__name__, super().__repr__())
 
 
 class Configuration:
@@ -18,20 +88,49 @@ class Configuration:
         self.config_path = config_yaml_file
         self.default_config = self._get_default_config_path()
         self.config = {}
+
+        base_config = {}
         with open(self.default_config, 'r') as f:
-            config_data = f.read()
+            base_config = self.load_yaml(f)
 
         user_config = {}
-        self.user_config = user_config
 
-        args = []
         if self.config_path is not None:
-            args.append("-C={}".format(self.config_path))
+            with open(self.config_path, 'r') as f:
+                user_config = self.load_yaml(f)
 
-        self.config = Config(config_data, args=args)
+        self._base_config = base_config
+        self._user_config = user_config
+
+        self.config = self.nested_dict_update(base_config, user_config)
 
     def get_config(self):
         return self.config
+
+    def load_yaml(self, stream):
+        mapping = yaml.safe_load(stream)
+
+        includes = mapping.get("includes", [])
+
+        if not isinstance(includes, list):
+            raise AttributeError("Includes must be a list, {} provided"
+                                 .format(type(includes)))
+        include_mapping = {}
+
+        for include in includes:
+            with open(include, "r") as f:
+                current_include_mapping = self.load_yaml(f)
+                include_mapping = self.nested_dict_update(
+                    include_mapping,
+                    current_include_mapping
+                )
+
+        mapping.pop("includes", None)
+
+        mapping = self.nested_dict_update(include_mapping, mapping)
+
+        return mapping
+
 
     def update_with_args(self, args, force=False):
         args_dict = vars(args)
@@ -39,25 +138,50 @@ class Configuration:
         self._update_key(self.config, args_dict)
         if force is True:
             self.config.update(args_dict)
-        self._update_specific()
-
-    def update_with_task_config(self, config):
-        self.config = nested_dict_update(self.config, config)
-        # At this point update with user's config
-        self._update_with_user_config()
-
-    def _update_with_user_config(self):
-        self.config = nested_dict_update(self.config, self.user_config)
+        self._update_specific(args_dict)
 
     def override_with_cmd_config(self, cmd_config):
         if cmd_config is None:
             return
 
         cmd_config = demjson.decode(cmd_config)
-        self.config = nested_dict_update(self.config, cmd_config)
+        self.config = self.nested_dict_update(self.config, cmd_config)
 
-    def override_with_cmd_opts(self, opts):
+
+    def nested_dict_update(self, dictionary, update):
+        """Updates a dictionary with other dictionary recursively.
+
+        Parameters
+        ----------
+        dictionary : dict
+            Dictionary to be updated.
+        update : dict
+            Dictionary which has to be added to original one.
+
+        Returns
+        -------
+        dict
+            Updated dictionary.
+        """
+        for k, v in update.items():
+            if isinstance(v, collections.Mapping):
+                dictionary[k] = self.nested_dict_update(dictionary.get(k, {}), v)
+            else:
+                dictionary[k] = v
+        return dictionary
+
+    def freeze(self):
+        self.config = ConfigNode(self.config)
+        self.config.freeze()
+
+    def _merge_from_list(self, opts):
         writer = registry.get('writer')
+
+        if opts is None:
+            opts = []
+
+        if len(opts) % 2 != 0:
+            raise RuntimeError("Number of opts should be multiple of 2")
 
         for opt, value in zip(opts[0::2], opts[1::2]):
             splits = opt.split(".")
@@ -65,14 +189,13 @@ class Configuration:
             for idx, field in enumerate(splits):
                 if field not in current:
                     raise AttributeError("While updating configuration"
-                                         "option {} is missing from"
-                                         "configuration at field {}"
+                                         " option {} is missing from"
+                                         " configuration at field {}"
                                          .format(opt, field))
                 if not isinstance(current[field], collections.Mapping):
                     if idx == len(splits) - 1:
-                        writer.write("Overriding option {} to {}"
-                                     .format(opt, value), "warning")
-                        current[field] = value 
+                        print("Overriding option {} to {}".format(opt, value))
+                        current[field] = self._decode_value(value)
                     else:
                         raise AttributeError("While updating configuration",
                                              "option {} is not present "
@@ -80,6 +203,22 @@ class Configuration:
                                              .format(opt, field))
                 else:
                     current = current[field]
+
+    def override_with_cmd_opts(self, opts):
+        self._merge_from_list(opts)
+
+    def _decode_value(self, value):
+        # https://github.com/rbgirshick/yacs/blob/master/yacs/config.py#L400
+        if not isinstance(value, str):
+            return value
+
+        try:
+            value = literal_eval(value)
+        except ValueError:
+            pass
+        except SyntaxError:
+            pass
+        return value
 
     def _update_key(self, dictionary, update_dict):
         '''
@@ -117,20 +256,22 @@ class Configuration:
 
     def _get_default_config_path(self):
         directory = os.path.dirname(os.path.abspath(__file__))
-        return os.path.join(directory, '..', 'config', 'default.yml')
+        return os.path.join(directory, '..', 'common', 'defaults',
+                            'configs', 'base.yml')
 
-    def _update_specific(self):
-        if self.config['seed'] <= 0:
-            self.config['seed'] = random.randint(1, 1000000)
+    def _update_specific(self, args):
+        if args['seed'] <= 0:
+            self.config['training_parameters']['seed'] = \
+                    random.randint(1, 1000000)
 
-        if 'learning_rate' in self.config:
+        if 'learning_rate' in args:
             if 'optimizer' in self.config and \
                'params' in self.config['optimizer']:
-                lr = self.config['learning_rate']
-                self.config['optimizer']['params']['lr'] = lr
+                lr = args['learning_rate']
+                self.config['optimizer_attributes']['params']['lr'] = lr
 
-        if not torch.cuda.is_available() or self.config['no_cuda'] is True:
-            print("WARNING: Either passed no cuda or CUDA option used"
-                  " but cuda is not present"
+        if not torch.cuda.is_available() and \
+            "cuda" in self.config['training_parameters']['device']:
+            print("WARNING: Device specified is 'cuda' but cuda is not present"
                   ". Switching to CPU version")
-            self.config['use_cuda'] = False
+            self.config['training_parameters']['device'] = "cpu"

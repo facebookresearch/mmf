@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 
-class ImageDataset(torch.utils.data.Dataset):
+class ImageDatabase(torch.utils.data.Dataset):
     """
     Dataset for IMDB used in Pythia
     General format that we have standardize follows:
@@ -25,7 +25,10 @@ class ImageDataset(torch.utils.data.Dataset):
     }
     """
     def __init__(self, imdb_path):
-        super(ImageDataset, self).__init__()
+        super().__init__()
+
+        if not imdb_path.endswith(".npy"):
+            raise RuntimeError("Unknown file format for imdb")
 
         self.db = np.load(imdb_path)
 

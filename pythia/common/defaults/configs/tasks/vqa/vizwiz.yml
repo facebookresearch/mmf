@@ -22,14 +22,23 @@ task_attributes:
                     - imdb/imdb_vizwiz_val.npy
                     test:
                     - imdb/imdb_vizwiz_test.npy
-                max_features: 100
-                question_max_len: 14
-                vocab_answer: answers_vizwiz_7k.txt
-                text_vocab:
-                    type: intersected
-                    embedding_name: glove.6B.300d
-                    vocab_file:  ../data/vocabulary_vqa_100k.txt
-                vocab_question: vocabulary_vqa_100k.txt
+                features_max_len: 100
+                processors:
+                  text_processor:
+                    type: glove
+                    params:
+                      max_length: 14
+                      vocab:
+                        type: intersected
+                        embedding_name: glove.6B.300d
+                        vocab_file: vocabulary_vqa_100k.txt
+                  answer_processor:
+                    type: vqa_answer
+                    params:
+                      vocab_file: answers_vizwiz_7k.txt
+                      preprocessor:
+                        type: simple_word
+                        params: {}
                 metrics:
                 - vqa_accuracy
                 loss: logit_bce

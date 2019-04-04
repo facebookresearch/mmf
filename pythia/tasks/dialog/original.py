@@ -130,7 +130,7 @@ class VisualDialogTask(VQA2Task):
 
         return out, y
 
-    def update_config_for_model(self, config):
+    def update_registry_for_model(self, config):
         config['num_vocab_txt'] = self.dataset.vocab.get_size()
         config['vocab_size'] = self.dataset.vocab.get_size()
         config['num_image_features'] = self.num_image_features

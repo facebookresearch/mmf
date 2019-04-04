@@ -8,19 +8,6 @@ class Sample(OrderedDict):
     def __init__(self, init_dict={}):
         super().__init__(init_dict)
 
-    def __setitem__(self, key, value):
-        if key in self:
-            raise AttributeError("Trying to set already set key {} to value "
-                                 "{}".format(key, value))
-        else:
-            self[key] = value
-
-    def __getitem__(self, key):
-        if key not in self:
-            raise AttributeError("Key {} not found in the sample".format(key))
-        else:
-            return self[key]
-
     def __setattr__(self, key, value):
         self[key] = value
 
@@ -58,10 +45,6 @@ class SampleList(OrderedDict):
             raise AttributeError("Key {} not found in the list."
                                  "Valid choices are {}"
                                  .format(key, self.fields()))
-        else:
-            return self[key]
-
-    def __getitem__(self, item):
         fields = self.keys()
 
         if item in fields:
