@@ -25,6 +25,8 @@ class Checkpoint:
             self.trainer.args
         )
 
+        self.device = registry.get("current_device")
+
         self.ckpt_prefix = ""
         if hasattr(self.trainer.model, 'get_ckpt_name'):
             self.ckpt_prefix = self.trainer.model.get_ckpt_name() + '_'
@@ -152,7 +154,7 @@ class Checkpoint:
             getattr(model, key).load_state_dict(ckpt_model[attr_mapping[key]])
 
     def _torch_load(self, file):
-        if "cuda" in self.config.training_parameters.device:
+        if "cuda" in str(self.device):
             return torch.load(file)
         else:
             return torch.load(file, map_location=lambda storage, loc: storage)

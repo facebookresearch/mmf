@@ -119,16 +119,17 @@ class TopDownAttention(nn.Module):
 
     @staticmethod
     def _mask_attentions(attention, image_locs):
-        batch_size, num_loc, n_att = attention.data.shape
-        tmp1 = torch.unsqueeze(
-            torch.arange(0, num_loc).type(torch.LongTensor),
-            dim=0).expand(batch_size, num_loc)
-        use_cuda = attention.is_cuda
-        tmp1 = tmp1.cuda() if use_cuda else tmp1
-        tmp2 = torch.unsqueeze(image_locs.data, 1).expand(batch_size, num_loc)
+        batch_size, num_loc, n_att = attention.size()
+        tmp1 = attention.new_zeros(num_loc)
+        tmp1[:num_loc] = torch.arange(0, num_loc,
+                                      dtype=attention.dtype).unsqueeze(dim=0)
+
+        tmp1 = tmp1.expand(batch_size, num_loc)
+        tmp2 = image_locs.type(tmp1.type())
+        tmp2 = tmp2.unsqueeze(dim=1).expand(batch_size, num_loc)
         mask = torch.ge(tmp1, tmp2)
-        mask = torch.unsqueeze(mask, 2).expand_as(attention)
-        attention.data.masked_fill_(mask, 0)
+        mask = mask.unsqueeze(dim=2).expand_as(attention)
+        attention = attention.masked_fill(mask, 0)
         return attention
 
     def forward(self, image_feat, question_embedding, image_locs=None):

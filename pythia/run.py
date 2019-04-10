@@ -2,6 +2,7 @@ import os
 import importlib
 import glob
 from pythia.common.trainer import Trainer
+from pythia.utils.flags import flags
 
 
 def setup_imports():
@@ -47,9 +48,20 @@ def setup_imports():
 
 def run():
     setup_imports()
-    trainer = Trainer()
-    trainer.load()
-    trainer.train()
+    parser = flags.get_parser()
+    args = parser.parse_args()
+    trainer = Trainer(args)
+
+    # Log any errors that occur to log file
+    try:
+        trainer.load()
+        trainer.train()
+    except Exception as e:
+        writer = getattr(trainer, "writer", None)
+
+        if writer is not None:
+            writer.write(e, "error", donot_print=True)
+        raise
 
 
 if __name__ == '__main__':

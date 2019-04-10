@@ -16,12 +16,12 @@ from pythia.utils.timer import Timer
 from pythia.utils.early_stopping import EarlyStopping
 from pythia.common.task_loader import TaskLoader
 from pythia.common.registry import registry
+from pythia.common.report import Report
 
 
 class Trainer:
-    def __init__(self):
-        parser = flags.get_parser()
-        self.args = parser.parse_args()
+    def __init__(self, args, *rest, **kwargs):
+        self.args = args
         self.profiler = Timer()
 
     def load(self):
@@ -35,10 +35,31 @@ class Trainer:
 
         self.configuration.pretty_print()
 
+        self._init_process_group()
+        self.config_based_setup()
+
         self.load_task()
         self.load_model()
         self.load_optimizer()
         self.load_extras()
+
+    def _init_process_group(self):
+        training_parameters = self.config.training_parameters
+        self.local_rank = training_parameters.local_rank
+        self.device = training_parameters.device
+
+
+        if self.local_rank is not None and training_parameters.distributed:
+            if not torch.distributed.is_nccl_available():
+                raise RuntimeError("Unable to initialize process group: "
+                                   "NCCL is not available")
+            torch.distributed.init_process_group(backend="nccl")
+
+        if "cuda" in self.device and training_parameters.distributed \
+            and self.local_rank is not None:
+            self.device = torch.device("cuda", self.local_rank)
+
+        registry.register("current_device", self.device)
 
     def load_config(self):
         # TODO: Review configuration update once again
@@ -58,7 +79,6 @@ class Trainer:
 
         self.config = self.configuration.get_config()
         registry.register('config', self.config)
-        self.config_based_setup()
 
     def load_task(self):
         self.writer.write("Loading tasks and data", "info")
@@ -88,27 +108,37 @@ class Trainer:
         self.task_loader.clean_config(attributes)
         training_parameters = self.config.training_parameters
 
-        self.device = training_parameters.device
-
         data_parallel = training_parameters.data_parallel
+        distributed = training_parameters.distributed
 
         registry.register('data_parallel', data_parallel)
+        registry.register('distributed', distributed)
 
-        if 'cuda' in self.config.training_parameters.device:
+        if "cuda" in self.config.training_parameters.device:
             self.writer.write("CUDA Device is: "
-                              + torch.cuda.get_device_name(0))
+                              + torch.cuda.get_device_name(self.local_rank))
+
         self.model = self.model.to(self.device)
 
         self.writer.write("Torch version is: " + torch.__version__)
 
-        if 'cuda' in self.device and torch.cuda.device_count() > 1 \
+        if "cuda" in str(self.device) and torch.cuda.device_count() > 1 \
            and data_parallel is True:
             self.model = torch.nn.DataParallel(self.model)
+
+        if "cuda" in str(self.device) and self.local_rank is not None \
+            and distributed is True:
+            self.model = torch.nn.parallel.DistributedDataParallel(
+                self.model,
+                device_ids=[self.local_rank],
+                output_device=self.local_rank
+            )
 
     def load_optimizer(self):
         optimizer_method = self.config.optimizer_attributes.type
         optimizer_class = getattr(optim, optimizer_method)
 
+        # TODO: Allow custom optimizer making
         parameters = get_optimizer_parameters(self.model, self.config)
         rest_optimizer_params = self.config.optimizer_attributes.params
         self.optimizer = optimizer_class(parameters, **rest_optimizer_params)
@@ -116,12 +146,19 @@ class Trainer:
     def load_extras(self):
         self.checkpoint = Checkpoint(self)
 
-        training_parameters = self.config.training_parameters
+        self.training_parameters = self.config.training_parameters
 
-        monitored_metric = training_parameters.monitored_metric
-        metric_minimize = training_parameters.metric_minimize
-        should_early_stop = training_parameters.should_early_stop
-        patience = training_parameters.patience
+        monitored_metric = self.training_parameters.monitored_metric
+        metric_minimize = self.training_parameters.metric_minimize
+        should_early_stop = self.training_parameters.should_early_stop
+        patience = self.training_parameters.patience
+
+
+        self.log_interval = self.training_parameters.log_interval
+        self.snapshot_interval = self.training_parameters.snapshot_interval
+        self.max_iterations = self.training_parameters.max_iterations
+        self.should_clip_gradients = self.training_parameters.clip_gradients
+        self.max_epochs = self.training_parameters.max_epochs
 
         self.early_stopping = EarlyStopping(self.model,
                                             self.checkpoint,
@@ -129,47 +166,41 @@ class Trainer:
                                             patience=patience,
                                             minimize=metric_minimize,
                                             should_stop=should_early_stop)
-
         self.current_epoch = 0
         self.current_iteration = 0
 
         self.checkpoint.load_state_dict()
 
-        self.not_debug = training_parameters.logger_level != "debug"
+        self.not_debug = self.training_parameters.logger_level != "debug"
 
         self.lr_scheduler = None
-        if training_parameters.lr_scheduler is True:
+
+        # TODO: Allow custom scheduler
+        if self.training_parameters.lr_scheduler is True:
             scheduler_class = optim.lr_scheduler.LambdaLR
             scheduler_func = lambda x: lr_lambda_update(x, self.config)
             self.lr_scheduler = scheduler_class(self.optimizer,
                                                 lr_lambda=scheduler_func)
 
     def config_based_setup(self):
-        torch.manual_seed(self.config.training_parameters.seed)
-
-        if 'cuda' in self.config.training_parameters.device:
-            torch.cuda.manual_seed(self.config.training_parameters.seed)
+        seed = self.config.training_parameters.seed + self.local_rank
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
 
     def train(self):
         if "train" not in self.run_type:
             self.predict()
             return
 
-        training_parameters = self.config.training_parameters
-        log_interval = training_parameters.log_interval
-        snapshot_interval = training_parameters.snapshot_interval
-        max_iterations = training_parameters.max_iterations
-        should_clip_gradients = training_parameters.clip_gradients
-        max_epochs = training_parameters.max_epochs
-
         self.writer.write("===== Model =====")
         self.writer.write(self.model)
 
-        should_check_on_epoch = False
+        should_break = False
 
-        if max_epochs is not None:
-            should_check_on_epoch = True
-            max_iterations = math.inf
+        if self.max_epochs is None:
+            self.max_epochs = math.inf
+        else:
+            self.max_iterations = math.inf
 
         self.model.train()
         self.train_timer = Timer()
@@ -180,94 +211,107 @@ class Trainer:
         self.profile("Setup Time")
 
         torch.autograd.set_detect_anomaly(True)
-        while self.current_iteration < max_iterations:
+
+        self.writer.write("Starting training...")
+        while self.current_iteration < self.max_iterations and not should_break:
             self.current_epoch += 1
             registry.register('current_epoch', self.current_epoch)
 
-            if should_check_on_epoch and self.current_epoch > max_epochs:
+            if self.current_epoch > self.max_epochs:
                 break
 
             for batch in self.train_loader:
+                self.profile("Batch load time")
                 self.current_iteration += 1
                 self.writer.write(self.current_iteration, "debug")
+
                 registry.register('current_iteration', self.current_iteration)
 
-                if self.current_iteration > max_iterations:
+                if self.current_iteration > self.max_iterations:
                     break
 
-                if self.lr_scheduler is not None:
-                    self.lr_scheduler.step(self.current_iteration)
+                report = self._forward_pass(batch)
+                should_break = self._logistics(report)
 
-                self.optimizer.zero_grad()
-
-                self.profile("Batch load time")
-
-                data, y = self.task_loader.prepare_batch('train', batch)
-
-                self.profile("Batch prepare time")
-
-                # Arguments should be a dict at this point
-                output = self.model(**data)
-                output, info = self._separate_out_output(output)
-
-                info['batch'] = data
-                info['original_batch'] = batch
-
-                self.profile("Forward time")
-
-                self.task_loader.verbose_dump('train', output, y, info)
-                loss = self.task_loader.calculate_loss('train', output,
-                                                       y, info)
-                loss.backward()
-                self.profile("Backward time")
-
-                if should_clip_gradients:
-                    clip_gradients(self.model, self.current_iteration,
-                                   self.writer, self.config)
-
-                self.optimizer.step()
-
-                extra_info = None
-                should_print = self.current_iteration % log_interval == 0
-
-                # TODO: Move in separate function
-                if should_print is True:
-                    extra_info = self.single_batch_eval('val', self.val_loader)
-                    time_taken = self.train_timer.get_time_since_start()
-                    extra_info += ", time: %s" % time_taken
-
-                # Don't print train metrics if it is not log interval
-                # so as to escape clutter
-                self.task_loader.report_metrics('train', loss.data.item(),
-                                                extra_info=extra_info,
-                                                should_print=should_print)
-
-                if should_print is True:
-                    self.train_timer.reset()
-
-                if self.current_iteration % snapshot_interval == 0:
-                    # Validation and Early stopping
-                    avg_loss = self.evaluate('val', self.val_loader)
-
-                    time_taken = self.snapshot_timer.get_time_since_start()
-                    extra_info = ", time: %s" % time_taken
-                    self.snapshot_timer.reset()
-
-                    stop = self.early_stopping(self.current_iteration)
-                    extra_info += "\n%s" % self.early_stopping.get_info()
-
-                    self.task_loader.report_metrics('val', avg_loss,
-                                                    extra_info=extra_info)
-                    gc.collect()
-
-                    if "cuda" in self.config.training_parameters.device:
-                        torch.cuda.empty_cache()
-                    if stop is True:
-                        self.writer.write("Early stopping activated")
-                        break
+                if should_break:
+                    break
 
         self.checkpoint.restore()
         self.predict()
+
+    def _forward_pass(self, batch):
+        if self.lr_scheduler is not None:
+            self.lr_scheduler.step(self.current_iteration)
+
+        self.optimizer.zero_grad()
+
+        prepared_batch = self.task_loader.prepare_batch('train', batch)
+        self.profile("Batch prepare time")
+
+        # Arguments should be a dict at this point
+        model_output = self.model(prepared_batch)
+        report = Report(batch, prepared_batch, model_output)
+
+
+        self.task_loader.verbose_dump('train', report)
+        loss = self.task_loader.calculate_loss_and_metrics('train', report)
+
+        self.profile("Forward time")
+        loss.backward()
+        self.profile("Backward time")
+
+        report.loss = loss
+
+        if self.should_clip_gradients:
+            clip_gradients(self.model, self.current_iteration,
+                           self.writer, self.config)
+
+        self.optimizer.step()
+
+        return report
+
+    def _logistics(self, report):
+        extra_info = None
+        should_print = self.current_iteration % self.log_interval == 0
+        should_break = False
+
+        if should_print is True:
+            extra_info = self.single_batch_eval('val', self.val_loader)
+            time_taken = self.train_timer.get_time_since_start()
+            extra_info += ", time: %s" % time_taken
+
+        # Don't print train metrics if it is not log interval
+        # so as to escape clutter
+        self.task_loader.report_metrics(
+            'train', report, report.loss.item(),
+            extra_info=extra_info, should_print=should_print
+        )
+
+        if should_print is True:
+            self.train_timer.reset()
+
+        if self.current_iteration % self.snapshot_interval == 0:
+            # Validation and Early stopping
+            avg_loss = self.evaluate('val', self.val_loader)
+
+            time_taken = self.snapshot_timer.get_time_since_start()
+            extra_info = ", time: %s" % time_taken
+            self.snapshot_timer.reset()
+
+            stop = self.early_stopping(self.current_iteration)
+            extra_info += "\n%s" % self.early_stopping.get_info()
+
+            self.task_loader.report_metrics('val', None, avg_loss,
+                                            extra_info=extra_info)
+            gc.collect()
+
+            if "cuda" in str(self.device):
+                torch.cuda.empty_cache()
+            if stop is True:
+                self.writer.write("Early stopping activated")
+                should_break = True
+
+        return should_break
 
     def single_batch_eval(self, dataset_type, loader):
         self.model.eval()
@@ -275,16 +319,17 @@ class Trainer:
         batch = next(iter(loader))
         self.task_loader.reset_meters(dataset_type)
 
-        data, y = self.task_loader.prepare_batch(loader.dataset_type, batch)
-        output = self.model(**data)
-        output, info = self._separate_out_output(output)
-        info['batch'] = data
-        self.task_loader.calculate_loss(dataset_type, output, y, info)
+        prepared_batch = self.task_loader.prepare_batch(loader.dataset_type,
+                                                        batch)
+        model_output = self.model(prepared_batch)
+        report = Report(batch, prepared_batch, model_output)
+
+        self.task_loader.calculate_loss_and_metrics(dataset_type, report)
 
         self.model.train()
 
         # TODO: Do replace in log string function itself
-        return "dev: " + dict_to_string(registry.get('metrics.%s' %
+        return "val: " + dict_to_string(registry.get('metrics.%s' %
                                                      dataset_type))
 
     def evaluate(self, dataset_type, loader, use_tqdm=False):
@@ -298,22 +343,26 @@ class Trainer:
             loader = tqdm(loader)
 
         for batch in loader:
-            data, y = self.task_loader.prepare_batch(dataset_type,
-                                                     batch)
-            total_samples += y.size(0)
+            prepared_batch = self.task_loader.prepare_batch(
+                dataset_type,
+                batch
+            )
 
-            output = self.model(**data)
-            output, info = self._separate_out_output(output)
-            info['batch'] = data
-            info['original_batch'] = batch
+            model_output = self.model(prepared_batch)
+            report = Report(batch, prepared_batch, model_output)
+
+            total_samples += prepared_batch.get_batch_size()
 
             if dataset_type == 'test':
-                self.task_loader.verbose_dump(dataset_type, output, y, info)
+                self.task_loader.verbose_dump(dataset_type, )
 
-            loss = self.task_loader.calculate_loss(dataset_type, output,
-                                                   y, info)
+            loss = self.task_loader.calculate_loss_and_metrics(
+                dataset_type,
+                report
+            )
+
             if loss is not None:
-                total_loss += loss.data.item() * y.size(0)
+                total_loss += loss.item() * prepared_batch.get_batch_size()
 
         self.model.train()
         return total_loss / total_samples
@@ -331,7 +380,7 @@ class Trainer:
 
             avg_test_loss = self.evaluate('test', self.test_loader,
                                           use_tqdm=True)
-            self.task_loader.report_metrics('test', avg_test_loss)
+            self.task_loader.report_metrics('test', None, avg_test_loss)
 
     def profile(self, text):
         if self.not_debug:
@@ -348,18 +397,11 @@ class Trainer:
             dataloader = self.test_reporter.get_dataloader()
 
             for batch in tqdm(dataloader):
-                data, _ = self.test_reporter.prepare_batch(batch)
-                output = self.model(**data)
-                output, _ = self._separate_out_output(output)
+                prepared_batch = self.test_reporter.prepare_batch(batch)
+                model_output = self.model(prepared_batch)
+                report = Report(batch, prepared_batch, model_output)
 
-                self.test_reporter.add_to_report(batch, output)
+                self.test_reporter.add_to_report(batch, report)
 
         self.writer.write("Finished predicting")
         self.model.train()
-
-    def _separate_out_output(self, output):
-        info = {}
-        if type(output) == tuple or type(output) == list:
-            info = output[1]
-            output = output[0]
-        return output, info

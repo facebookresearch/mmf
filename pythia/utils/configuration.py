@@ -180,8 +180,7 @@ class Configuration:
         if opts is None:
             opts = []
 
-        if len(opts) % 2 != 0:
-            raise RuntimeError("Number of opts should be multiple of 2")
+        assert len(opts) % 2 == 0, "Number of opts should be multiple of 2"
 
         for opt, value in zip(opts[0::2], opts[1::2]):
             splits = opt.split(".")
@@ -275,3 +274,11 @@ class Configuration:
             print("WARNING: Device specified is 'cuda' but cuda is not present"
                   ". Switching to CPU version")
             self.config['training_parameters']['device'] = "cpu"
+
+        tp = self.config['training_parameters']
+        if tp['distributed'] is True and tp['data_parallel'] is True:
+            self.writer.write("training_parameters.distributed and "
+                              "training_parameters.data_parallel are "
+                              "mutually exclusive. Setting "
+                              "training_parameters.distributed to False")
+            tp['distributed'] = False

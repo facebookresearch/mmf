@@ -2,6 +2,7 @@ import os
 import yaml
 
 from torch.utils.data import DataLoader
+from torch.utils.data.distributed import DistributedSampler
 
 from pythia.tasks import MultiTask
 from .batch_collator import BatchCollator
@@ -50,32 +51,55 @@ class TaskLoader:
         return task_config
 
     def make_dataloaders(self):
-        training_parameters = self.config['training_parameters']
-        batch_size = training_parameters['batch_size']
-        num_workers = training_parameters['num_workers']
+        training_parameters = self.config.training_parameters
+        batch_size = training_parameters.batch_size
+        num_workers = training_parameters.num_workers
+        pin_memory = training_parameters.pin_memory
 
+        other_args = {}
+
+        self._add_extra_args_for_dataloader(self.train_task, other_args)
         self.train_loader = DataLoader(dataset=self.train_task,
                                        batch_size=batch_size,
-                                       shuffle=True,
+                                       pin_memory=pin_memory,
                                        collate_fn=BatchCollator(),
-                                       num_workers=num_workers)
+                                       num_workers=num_workers,
+                                       **other_args)
+
         self.train_loader.dataset_type = 'train'
 
+        self._add_extra_args_for_dataloader(self.val_task, other_args)
         self.val_loader = DataLoader(dataset=self.val_task,
                                      batch_size=batch_size,
-                                     shuffle=True,
+                                     pin_memory=pin_memory,
                                      collate_fn=BatchCollator(),
-                                     num_workers=num_workers)
+                                     num_workers=num_workers,
+                                     **other_args)
         self.val_loader.dataset_type = 'val'
 
+        self._add_extra_args_for_dataloader(self.test_task, other_args)
         self.test_loader = DataLoader(dataset=self.test_task,
                                       batch_size=batch_size,
-                                      shuffle=False,
+                                      pin_memory=pin_memory,
                                       collate_fn=BatchCollator(),
-                                      num_workers=num_workers)
+                                      num_workers=num_workers,
+                                      **other_args)
         self.test_loader.dataset_type = 'test'
 
         self.use_cuda = "cuda" in self.config.training_parameters.device
+
+    def _add_extra_args_for_dataloader(self, task, other_args={}):
+        training_parameters = self.config.training_parameters
+
+        if training_parameters.local_rank is not None \
+            and training_parameters.distributed:
+            other_args["sampler"] = DistributedSampler(task)
+        else:
+            other_args["shuffle"] = False
+            if task.dataset_type != "test":
+                other_args["shuffle"] = True
+
+        return other_args
 
     def update_registry_for_model(self, config):
         self.train_task.update_registry_for_model(config)

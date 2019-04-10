@@ -8,14 +8,19 @@ from tensorboardX import SummaryWriter
 from pythia.utils.general import ckpt_name_from_core_args, \
                                  foldername_from_config_override
 from pythia.utils.timer import Timer
+from pythia.utils.distributed_utils import is_main_process
 
 
 class Logger:
     def __init__(self, config):
+        self.logger = None
+        self.summary_writer = None
+
+        if not is_main_process():
+            return
+
         self.timer = Timer()
-
         self.config = config
-
         self.save_dir = config.get('save_dir', "./save")
         self.log_folder = ckpt_name_from_core_args(config)
         self.log_folder += foldername_from_config_override(config)
@@ -24,7 +29,6 @@ class Logger:
         self.log_filename += self.timer.get_time_hhmmss(None, time_format)
         self.log_filename += ".log"
 
-        self.summary_writer = None
 
         self.log_folder = os.path.join(self.save_dir, self.log_folder, "logs")
 
@@ -43,21 +47,23 @@ class Logger:
 
         print("Logging to:", self.log_filename)
 
-        logging.basicConfig(filename=self.log_filename, level=logging.DEBUG,
-                            filemode='a', format="%(levelname)s: %(message)s")
         self.logger = logging.getLogger(__name__)
+        self._file_only_logger = logging.getLogger(__name__)
 
         # Set level
         level = config['training_parameters'].get('logger_level', 'info')
         self.logger.setLevel(getattr(logging, level.upper()))
+        self._file_only_logger.setLevel(getattr(logging, level.upper()))
 
-        formatter = logging.Formatter("%(levelname)s: %(message)s")
+        formatter = logging.Formatter("%(asctime)s %(name)s "
+                                      "%(levelname)s: %(message)s")
 
         # Add handler to file
         channel = logging.FileHandler(filename=self.log_filename, mode='a')
         channel.setFormatter(formatter)
 
         self.logger.addHandler(channel)
+        self._file_only_logger.addHandler(channel)
 
         # Add handler to stdout
         channel = logging.StreamHandler(sys.stdout)
@@ -76,11 +82,16 @@ class Logger:
         if getattr(self, 'summary_writer', None) is not None:
             self.summary_writer.close()
 
-    def write(self, x, level="info"):
+    def write(self, x, level="info", donot_print=False):
+        if self.logger is None:
+            return
         # if it should not log then just print it
-        if self.should_log and self.logger is not None:
+        if self.should_log:
             if hasattr(self.logger, level):
-                getattr(self.logger, level)(str(x))
+                if donot_print:
+                    getattr(self._file_only_logger, level)(str(x))
+                else:
+                    getattr(self.logger, level)(str(x))
             else:
                 self.logger.error("Unknown log level type: %s" % level)
         else:

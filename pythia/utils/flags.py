@@ -129,6 +129,9 @@ class Flags:
         self.parser.add_argument("-nw", "--num_workers", type=int,
                                  default=None,
                                  help="Number of workers for dataloaders")
+        self.parser.add_argument("-lr", "--local_rank", type=int,
+                                 default=None,
+                                 help="Local rank of the current node")
         self.parser.add_argument("opts",
                                  default=None,
                                  nargs=argparse.REMAINDER,
