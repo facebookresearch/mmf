@@ -71,6 +71,9 @@ training_parameters:
     # Whether to use distributed training, mutually exclusive with respected
     # to `data_parallel` flag
     distributed: false
+    # Local rank of the GPU device
+    local_rank: null
+
     # Whether to use data parallel, mutually exclusive with respect to
     # `distributed` flag
     data_parallel: false
@@ -101,6 +104,8 @@ training_parameters:
     resume: false
     # `resume_file` can be used to load a specific checkpoint from a file
     resume_file: null
+    # Whether to pin memory in dataloader
+    pin_memory: false
 
 # Attributes for model, default configuration files for various models
 # included in pythia can be found under configs directory in root folder

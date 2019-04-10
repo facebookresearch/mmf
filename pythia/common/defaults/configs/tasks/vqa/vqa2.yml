@@ -11,7 +11,7 @@ task_attributes:
                 image_features:
                     train:
                     - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
-                    - coco/detectron_fix_100/fc6/val2014,coco/resnet152/val2014
+                    - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
                     val:
                     - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
                     test:
@@ -20,6 +20,7 @@ task_attributes:
                     train:
                     - imdb/imdb_train2014.npy
                     - imdb/imdb_val2014.npy
+                    # - imdb/imdb_minival2014.npy
                     val:
                     - imdb/imdb_minival2014.npy
                     test:
