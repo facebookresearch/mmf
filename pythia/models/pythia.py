@@ -3,7 +3,8 @@ import torch
 from torch import nn
 
 from pythia.common.registry import registry
-from pythia.modules.embeddings import ImageEmbedding, TextEmbedding
+from pythia.modules.embeddings import (ImageEmbedding, TextEmbedding,
+                                       PreExtractedEmbedding)
 from pythia.modules.encoders import ImageEncoder
 from pythia.modules.layers import (ModalCombineLayer, ClassifierLayer,
                                    ReLUWithWeightNormFC)
@@ -29,7 +30,7 @@ class Pythia(BaseModel):
         text_embeddings = []
         text_embeddings_list_config = self.config[attr]
 
-        self.embeddings_out_dim = 0
+        embeddings_out_dim = 0
 
         for text_embedding in text_embeddings_list_config:
             embedding_type = text_embedding.type
@@ -40,10 +41,9 @@ class Pythia(BaseModel):
             embedding = TextEmbedding(embedding_type, **embedding_kwargs)
 
             text_embeddings.append(embedding)
-            self.embeddings_out_dim += embedding.text_out_dim
+            embeddings_out_dim += embedding.text_out_dim
 
-        setattr(self, attr + "_out_dim", self.embeddings_out_dim)
-        delattr(self, "embeddings_out_dim")
+        setattr(self, attr + "_out_dim", embeddings_out_dim)
         setattr(self, attr, nn.ModuleList(text_embeddings))
 
     def _update_text_embedding_args(self, args):
@@ -53,14 +53,15 @@ class Pythia(BaseModel):
     def _init_feature_encoders(self, attr):
         feat_encoders = []
         feat_encoders_list_config = self.config[attr + '_feature_encodings']
-        self.feat_dim = self.config[attr + '_feature_dim']
-        setattr(self, attr + "_feature_dim", self.feat_dim)
+        feature_dim = self.config[attr + '_feature_dim']
+        setattr(self, attr + "_feature_dim", feature_dim)
 
         for feat_encoder in feat_encoders_list_config:
             encoder_type = feat_encoder['type']
             encoder_kwargs = feat_encoder['params']
             encoder_kwargs['model_data_dir'] = self.config['model_data_dir']
-            feat_model = ImageEncoder(encoder_type, self.feat_dim,
+
+            feat_model = ImageEncoder(encoder_type, feature_dim,
                                       **encoder_kwargs)
 
             feat_encoders.append(feat_model)
@@ -150,46 +151,82 @@ class Pythia(BaseModel):
     def _get_classifier_input_dim(self):
         return self.image_text_multi_modal_combine_layer.out_dim
 
-    def process_text_embedding(self, texts, embedding_attr='text_embeddings',
-                               info=None):
+    def process_text_embedding(self, sample_list,
+                               embedding_attr='text_embeddings', info=None):
         text_embeddings = []
+        texts = sample_list.text
+        text_embedding_models = getattr(self, embedding_attr)
 
-        for t_model in getattr(self, embedding_attr):
-            if isinstance(t_model, PreExtractedEmbedding):
-                text_embedding = t_model(info['question_id'])
+        for text_embedding_model in text_embedding_models:
+            if isinstance(text_embedding_model, PreExtractedEmbedding):
+                embedding = text_embedding_model(sample_list.question_id)
             else:
-                text_embedding = t_model(texts)
-            text_embeddings.append(text_embedding)
+                embedding = text_embedding_model(texts)
+            text_embeddings.append(embedding)
+
         text_embeddding_total = torch.cat(text_embeddings, dim=1)
+
         return text_embeddding_total
 
-    def process_feature_embedding(self, attr, feature_variables,
-                                  feature_dim_variable, text_embedding_total,
-                                  extra=None):
+    def process_feature_embedding(self, attr, sample_list,
+                                  text_embedding_total, extra=[]):
         feature_embeddings = []
         feature_attentions = []
+        features = []
 
-        if type(feature_variables) != list:
-            feature_variables = [feature_variables]
-        for i, feature_feat_variable in enumerate(feature_variables):
-            feature_dim_variable_use = None if i > 0 else feature_dim_variable
+        # Convert list of keys to the actual values
+        extra = sample_list.get_fields(extra)
+
+        feature_idx = 0
+
+        # Get all of the features, which are in the form, "image_feature_0"
+        # "image_feature_1" ...
+        while True:
+            feature = getattr(sample_list, "{}_feature_{:d}"
+                              .format(attr, feature_idx), None)
+            if feature is None:
+                break
+            feature_idx += 1
+            features.append(feature)
+
+        # Each feature should have a separate image feature encoders
+        assert (len(features) ==
+                len(self.image_feature_encoders)), \
+            "Number of image feature encoder not equal \
+             to number of image features"
+
+        # Now, iterate to get final attended image features
+        for i, feature in enumerate(features):
+            # Get info related to the current feature. info is generally
+            # in key of format "image_info_0" for 0th feature
+            feature_info = getattr(sample_list, "{}_info_{:d}"
+                                   .format(attr, i), {})
+            # For Pythia, we need max_features to mask attention
+            feature_dim = getattr(feature_info, "max_features", None)
+
+            # Attribute in which encoders are saved, for "image" it
+            # will be "image_feature_encoders", other example is
+            # "context_feature_encoders"
             encoders_attr = attr + "_feature_encoders"
-            feature_feat_variable_ft = (
-                getattr(self, encoders_attr)[i](feature_feat_variable))
+            feature_encoder = getattr(self, encoders_attr)[i]
 
+            # Encode the features
+            encoded_feature = feature_encoder(feature)
+
+            # Get all of the feature embeddings
             list_attr = attr + "_feature_embeddings_list"
-            feature_embedding_models_i = getattr(self, list_attr)[i]
-            for i_model in feature_embedding_models_i:
-                inp = (feature_feat_variable_ft, text_embedding_total,
-                       feature_dim_variable_use)
+            feature_embedding_models = getattr(self, list_attr)[i]
 
-                if extra is not None:
-                    inp = (*inp, extra)
+            # Forward through these embeddings one by one
+            for feature_embedding_model in feature_embedding_models:
+                inp = (encoded_feature, text_embedding_total, feature_dim,
+                       extra)
 
-                i_embedding, att = i_model(*inp)
-                feature_embeddings.append(i_embedding)
-                feature_attentions.append(att.squeeze(-1))
+                embedding, attention = feature_embedding_model(*inp)
+                feature_embeddings.append(embedding)
+                feature_attentions.append(attention.squeeze(-1))
 
+        # Concatenate all features embeddings and return along with attention
         feature_embedding_total = torch.cat(feature_embeddings, dim=1)
         return feature_embedding_total, feature_attentions
 
@@ -203,27 +240,12 @@ class Pythia(BaseModel):
     def calculate_logits(self, joint_embedding, **kwargs):
         return self.classifier(joint_embedding)
 
-    def forward(self,
-                image_features,
-                texts,
-                info={},
-                input_answers=None, **kwargs):
-
-        input_text_variable = texts
-        image_dim_variable = info.get('image_dim', None)
-        image_feature_variables = image_features
-        text_embedding_total = self.process_text_embedding(input_text_variable,
-                                                           info=info)
-
-        assert (len(image_feature_variables) ==
-                len(self.image_feature_encoders)), \
-            "number of image feature model doesnot equal \
-             to number of image features"
+    def forward(self, sample_list):
+        text_embedding_total = self.process_text_embedding(sample_list)
 
         image_embedding_total, _ = self.process_feature_embedding(
             "image",
-            image_feature_variables,
-            image_dim_variable,
+            sample_list,
             text_embedding_total
         )
 
@@ -234,8 +256,14 @@ class Pythia(BaseModel):
                                                   [image_embedding_total,
                                                   text_embedding_total])
 
-        return self.calculate_logits(joint_embedding)
+        model_output = {
+            "scores": self.calculate_logits(joint_embedding)
+        }
 
+        return model_output
+
+
+# TODO: Update
 @registry.register_model("pythia_question_only")
 class PythiaQuestionOnly(Pythia):
     def __init__(self, config):
@@ -269,8 +297,8 @@ class PythiaQuestionOnly(Pythia):
 
         text_fa = self.image_text_multi_modal_combine_layer.module.fa_txt(
             text_embedding_total)
-        if len(image_embedding_total.data.shape) == 3:
-            num_location = image_embedding_total.data.size(1)
+        if len(image_embedding_total.size()) == 3:
+            num_location = image_embedding_total.size(1)
             question_fa_expand = torch.unsqueeze(
                 text_fa, 1).expand(-1, num_location, -1)
         else:
@@ -278,9 +306,13 @@ class PythiaQuestionOnly(Pythia):
         dropout =  self.image_text_multi_modal_combine_layer.module.dropout
         joint_embedding = dropout(question_fa_expand)
 
-        return self.calculate_logits(joint_embedding)
+        model_output = {
+            "scores": self.calculate_logits(joint_embedding)
+        }
 
+        return model_output
 
+# TODO: Update
 @registry.register_model("pythia_image_only")
 class PythiaImageOnly(Pythia):
     def __init__(self, config):
