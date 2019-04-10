@@ -21,6 +21,7 @@ class BaseDatasetBuilder:
         dataset = self._load(dataset_type, config, *args, **kwargs)
         dataset.init_processors()
         dataset.init_loss_and_metrics(config)
+        dataset.try_fast_read()
         return dataset
 
     def _load(self, dataset_type, config, *args, **kwargs):

@@ -19,15 +19,15 @@ class Vocab:
 
         if vocab_type == 'random':
             if params['vocab_file'] is None:
-                raise RuntimeError("No vocab path passed for vocab")
+                raise ValueError("No vocab path passed for vocab")
 
             self.vocab = BaseVocab(*args, **params)
 
         elif vocab_type == 'custom':
             if params['vocab_file'] is None or \
                params['embedding_file'] is None:
-                raise RuntimeError("No vocab path or embedding_file "
-                                   "passed for vocab")
+                raise ValueError("No vocab path or embedding_file "
+                                 "passed for vocab")
             self.vocab = CustomVocab(*args, **params)
 
         elif vocab_type == 'pretrained':
@@ -36,27 +36,27 @@ class Vocab:
         elif vocab_type == 'intersected':
             if params['vocab_file'] is None or \
                params['embedding_name'] is None:
-                raise RuntimeError("No vocab path or embedding_name "
-                                   "passed for vocab")
+                raise ValueError("No vocab path or embedding_name "
+                                 "passed for vocab")
 
             self.vocab = IntersectedVocab(*args, **params)
 
         elif vocab_type == 'extracted':
             if params['base_path'] is None or \
                params['embedding_dim'] is None:
-                raise RuntimeError("No base_path or embedding_dim "
-                                   "passed for vocab")
+                raise ValueError("No base_path or embedding_dim "
+                                 "passed for vocab")
             self.vocab = ExtractedVocab(*args, **params)
 
         elif vocab_type == 'model':
             if params['name'] is None or \
                params['model_file'] is None:
-                raise RuntimeError("No name or model_file "
-                                   "passed for vocab")
+                raise ValueError("No name or model_file "
+                                 "passed for vocab")
             if params['name'] == 'fasttext':
                 self.vocab = ModelVocab(*args, **params)
         else:
-            raise RuntimeError("Unknown vocab type: %s" % vocab_type)
+            raise ValueError("Unknown vocab type: %s" % vocab_type)
 
         self._dir_representation = dir(self)
 
@@ -221,9 +221,7 @@ class CustomVocab(BaseVocab):
             error = "Embedding file path %s doesn't exist" % embedding_file
             if writer is not None:
                 writer.write(error, "error")
-                sys.exit(0)
-            else:
-                raise RuntimeError(error)
+            raise RuntimeError(error)
 
         embedding_vectors = torch.from_numpy(np.load(embedding_file))
 
@@ -274,9 +272,7 @@ class IntersectedVocab(BaseVocab):
             error = "Unknown embedding type: %s" % name, "error"
             if writer is not None:
                 writer.write(error, "error")
-                sys.exit(0)
-            else:
-                raise RuntimeError(error)
+            raise RuntimeError(error)
 
         params = [middle]
 
@@ -326,9 +322,8 @@ class PretrainedVocab(BaseVocab):
             error = "Unknown embedding type: %s" % embedding_name, "error"
             if writer is not None:
                 writer.write(error, "error")
-                sys.exit(0)
-            else:
-                raise RuntimeError(error)
+            raise RuntimeError(error)
+
         embedding = vocab.pretrained_aliases[embedding_name]()
 
         self.UNK_INDEX = 3
@@ -391,7 +386,7 @@ class ModelVocab(BaseVocab):
         super(ModelVocab, self).__init__(*args, **kwargs)
         self.type = "model"
         if name != 'fasttext':
-            raise RuntimeError("Model vocab only supports fasttext as of now")
+            raise ValueError("Model vocab only supports fasttext as of now")
         else:
             self._load_fasttext_model(model_file)
 

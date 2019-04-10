@@ -56,9 +56,9 @@ class VQA2Builder(BaseDatasetBuilder):
 
     def prepare_data_set(self, dataset_type, config):
         if dataset_type not in config.imdb_files:
-            raise RuntimeError("Dataset type {} is not present in "
-                               "imdb_files of dataset config"
-                               .format(dataset_type))
+            raise ValueError("Dataset type {} is not present in "
+                             "imdb_files of dataset config"
+                             .format(dataset_type))
 
         imdb_files = config['imdb_files'][dataset_type]
 

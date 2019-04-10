@@ -13,8 +13,7 @@ class FeaturesDataset:
         if features_type == "coco":
             self.features_db = COCOFeaturesDataset(*args, **kwargs)
         else:
-            raise RuntimeError("Unknown features' type {}"
-                               .format(features_type))
+            raise ValueError("Unknown features' type {}".format(features_type))
 
     def __getattr__(self, name):
         if hasattr(self.features_db, name):

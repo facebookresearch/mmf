@@ -151,7 +151,7 @@ class AttentionTextEmbedding(nn.Module):
         self.relu = nn.ReLU()
 
     def forward(self, x):
-        batch_size, _ = x.data.shape
+        batch_size = x.size(0)
 
         self.recurrent_unit.flatten_parameters()
         # self.recurrent_unit.flatten_parameters()
@@ -199,14 +199,15 @@ class ImageEmbedding(nn.Module):
         self.out_dim = self.image_attention_model.out_dim
 
     def forward(self, image_feat_variable, question_embedding, image_dims,
-                extra=None):
+                extra={}):
         # N x K x n_att
         attention = self.image_attention_model(
             image_feat_variable, question_embedding, image_dims)
         att_reshape = attention.permute(0, 2, 1)
 
-        if extra is not None:
-            order_vectors = extra['order_vectors']
+        order_vectors = getattr(extra, "order_vectors", None)
+
+        if order_vectors is not None:
             image_feat_variable = torch.cat([image_feat_variable,
                                              order_vectors], dim=-1)
         tmp_embedding = torch.bmm(

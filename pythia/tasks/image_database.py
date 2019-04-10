@@ -28,9 +28,10 @@ class ImageDatabase(torch.utils.data.Dataset):
         super().__init__()
 
         if not imdb_path.endswith(".npy"):
-            raise RuntimeError("Unknown file format for imdb")
+            raise ValueError("Unknown file format for imdb")
 
         self.db = np.load(imdb_path)
+        self.start_idx = 0
 
         if type(self.db) == dict:
             self.metadata = self.db.get('metadata', {})
@@ -39,15 +40,18 @@ class ImageDatabase(torch.utils.data.Dataset):
             # TODO: Deprecate support for this
             self.metadata = {'version': 1}
             self.data = self.db
+            # Handle old imdb support
+            if "image_id" not in self.data[0]:
+                self.start_idx = 1
 
         if len(self.data) == 0:
             self.data = self.db
 
     def __len__(self):
-        return len(self.data)
+        return len(self.data) - self.start_idx
 
     def __getitem__(self, idx):
-        return self.data[idx]
+        return self.data[idx + self.start_idx]
 
     def get_version(self):
         return self.metadata.get('version', None)

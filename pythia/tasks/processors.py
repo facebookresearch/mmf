@@ -77,13 +77,13 @@ class VocabProcessor(BaseProcessor):
                                             **kwargs)
 
             if self.preprocessor is None:
-                raise RuntimeError("No text processor named {} is defined."
-                                   .format(config.preprocessor))
+                raise ValueError("No text processor named {} is defined."
+                                 .format(config.preprocessor))
 
     def __call__(self, item):
         indices = None
         if not isinstance(item, dict):
-            raise RuntimeError("Argument passed to the processor must be "
+            raise TypeError("Argument passed to the processor must be "
                                "a dict with either 'text' or 'tokens' as "
                                "keys")
         if "tokens" in item:
@@ -91,14 +91,14 @@ class VocabProcessor(BaseProcessor):
             indices = self._map_strings_to_indices(item["tokens"])
         elif "text" in item:
             if self.preprocessor is None:
-                raise RuntimeError("If tokens are not provided, a text "
-                                   "processor must be defined in "
-                                   "the config")
+                raise AssertionError("If tokens are not provided, a text "
+                                     "processor must be defined in the config")
+
             tokens = self.preprocessor({"text": item["text"]})["text"]
             indices = self._map_strings_to_indices(tokens)
         else:
-            raise RuntimeError("A dict with either 'text' or 'tokens' keys "
-                               "must be passed to the processor")
+            raise AssertionError("A dict with either 'text' or 'tokens' keys "
+                                 "must be passed to the processor")
 
         return {
             "text": indices
@@ -203,8 +203,8 @@ class VQAAnswerProcessor(BaseProcessor):
             self.preprocessor = Processor(config.preprocessor)
 
             if self.preprocessor is None:
-                raise RuntimeError("No processor named {} is defined."
-                                   .format(config.preprocessor))
+                raise ValueError("No processor named {} is defined."
+                                 .format(config.preprocessor))
 
         if hasattr(config, "num_answers"):
             self.num_answers = config.num_answers
@@ -218,20 +218,20 @@ class VQAAnswerProcessor(BaseProcessor):
         tokens = None
 
         if not isinstance(item, dict):
-            raise RuntimeError("'item' passed to processor must be a dict")
+            raise TypeError("'item' passed to processor must be a dict")
 
         if "answer_tokens" in item:
             tokens = item["answer_tokens"]
         elif "answers" in item:
             if self.preprocessor is None:
-                raise RuntimeError("'preprocessor' must be defined if you "
-                                   "don't pass 'answer_tokens'")
+                raise AssertionError("'preprocessor' must be defined if you "
+                                     "don't pass 'answer_tokens'")
 
             tokens = [self.preprocessor({'text': answer})["text"]
                       for answer in item['answers']]
         else:
-            raise RuntimeError("'answers' or 'answer_tokens' must be passed"
-                               " to answer processor in a dict")
+            raise AssertionError("'answers' or 'answer_tokens' must be passed"
+                                 " to answer processor in a dict")
 
         answers_indices = torch.zeros(self.num_answers, dtype=torch.int)
         answers_indices.fill_(-1)

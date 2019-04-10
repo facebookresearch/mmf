@@ -267,8 +267,8 @@ class NonLinearElementMultiply(nn.Module):
         #         history_fa = history_fa.cuda()
         # else:
 
-        if len(image_feat.data.shape) == 3:
-            num_location = image_feat.data.size(1)
+        if len(image_feat.size()) == 3:
+            num_location = image_feat.size(1)
             question_fa_expand = torch.unsqueeze(
                 question_fa, 1).expand(-1, num_location, -1)
         else:
@@ -308,8 +308,8 @@ class TwoLayerElementMultiply(nn.Module):
         image_fa = self.fa_image2(self.fa_image1(image_feat))
         question_fa = self.fa_txt2(self.fa_txt1(question_embedding))
 
-        if len(image_feat.data.shape) == 3:
-            num_location = image_feat.data.size(1)
+        if len(image_feat.size()) == 3:
+            num_location = image_feat.size(1)
             question_fa_expand = torch.unsqueeze(
                 question_fa, 1).expand(-1, num_location, -1)
         else:
@@ -515,7 +515,7 @@ class BiAttention(nn.Module):
             v_abs_sum = v.abs().sum(2)
             mask = (v_abs_sum == 0).unsqueeze(1).unsqueeze(3)
             mask = mask.expand(logits.size())
-            logits.data.masked_fill_(mask.data, -float('inf'))
+            logits.masked_fill_(mask, -float('inf'))
 
         expanded_logits = logits.view(-1, self.glimpse, v_num * q_num)
         p = nn.functional.softmax(expanded_logits, 2)

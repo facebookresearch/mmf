@@ -1,9 +1,11 @@
+import collections
+
 from torch import nn
 
 
 class BaseModel(nn.Module):
     def __init__(self, config):
-        super(BaseModel, self).__init__()
+        super().__init__()
 
     def register_vocab(self):
         raise NotImplementedError("register_vocab function not defined by this"
@@ -14,3 +16,11 @@ class BaseModel(nn.Module):
     @classmethod
     def init_args(cls, parser):
         return parser
+
+    def __call__(self, *args, **kwargs):
+        result = super().__call__(*args, **kwargs)
+
+        # Make sure theat the output from the model is a Mapping
+        assert isinstance(result, collections.Mapping), "A dict must be \
+            returned from forward of the model"
+        return result

@@ -1,6 +1,6 @@
 import torch
 import os
-
+import tqdm
 
 from pythia.tasks.image_database import ImageDatabase
 from pythia.tasks.features_dataset import FeaturesDataset
@@ -15,9 +15,9 @@ class VQA2Dataset(BaseDataset):
         imdb_files = self.config.imdb_files
 
         if dataset_type not in imdb_files:
-            raise RuntimeError("Dataset type {} is not present in "
-                               "imdb_files of dataset config"
-                               .format(dataset_type))
+            raise ValueError("Dataset type {} is not present in "
+                             "imdb_files of dataset config"
+                             .format(dataset_type))
 
         self.imdb_file = imdb_files[dataset_type][imdb_file_index]
         self.imdb_file = self._get_absolute_path(self.imdb_file)
@@ -49,9 +49,6 @@ class VQA2Dataset(BaseDataset):
             )
 
 
-        if self._should_fast_read is True:
-            self.try_fast_read()
-
     def _get_absolute_path(self, paths):
         if isinstance(paths, list):
             return [self._get_absolute_path(path) for path in paths]
@@ -60,15 +57,15 @@ class VQA2Dataset(BaseDataset):
                 paths = os.path.join(self.config.data_root_dir, paths)
             return paths
         else:
-            raise RuntimeError("Paths passed to dataset should either be "
-                               "string or list")
+            raise TypeError("Paths passed to dataset should either be "
+                            "string or list")
 
     def __len__(self):
         return len(self.imdb)
 
     def try_fast_read(self):
         # Don't fast read in case of test set.
-        if self.dataset_type == "test":
+        if self._dataset_type == "test":
             return
 
         if hasattr(self, '_should_fast_read') and \
@@ -85,7 +82,6 @@ class VQA2Dataset(BaseDataset):
 
     def load_item(self, idx):
         sample_info = self.imdb[idx]
-
         current_sample = Sample()
 
         text_processor_argument = {
@@ -97,7 +93,9 @@ class VQA2Dataset(BaseDataset):
         current_sample.text = processed_question["text"]
         current_sample.text_id = sample_info["question_id"]
         current_sample.image_id = sample_info["image_id"]
-        current_sample.text_len = len(sample_info["question_tokens"])
+        current_sample.text_len = torch.tensor(
+            len(sample_info["question_tokens"]), dtype=torch.int
+        )
 
         if self._use_features is True:
             features = self.features_db[idx]
@@ -111,7 +109,7 @@ class VQA2Dataset(BaseDataset):
 
         processed_answer = self.answer_processor(answer_processor_argument)
         current_sample.answers = processed_answer["answers"]
-        current_sample.answers_scores = processed_answer["answers_scores"]
+        current_sample.targets = processed_answer["answers_scores"]
 
         return current_sample
 

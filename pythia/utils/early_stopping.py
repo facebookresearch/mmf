@@ -35,9 +35,9 @@ class EarlyStopping:
         Returns:
             bool -- Tells whether early stopping occurred or not
         """
-        value = registry.get('metrics.dev.%s' % self.monitored_metric)
+        value = registry.get('metrics.val.%s' % self.monitored_metric)
         if hasattr(value, 'data'):
-            value = value.data.item()
+            value = value.item()
 
         if (self.minimize and value < self.best_monitored_metric) or \
                 (not self.minimize and value > self.best_monitored_metric):

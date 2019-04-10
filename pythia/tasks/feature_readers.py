@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import torch
 
 
 class FeatureReader:
@@ -71,14 +72,14 @@ class FeatureReader:
 
 class FasterRCNNFeatureReader:
     def read(self, image_feat_path):
-        return np.load(image_feat_path)
+        return torch.from_numpy(np.load(image_feat_path)), None
 
 
 class CHWFeatureReader:
     def read(self, image_feat_path):
         feat = np.load(image_feat_path)
         assert (feat.shape[0] == 1), "batch is not 1"
-        feat = feat.squeeze(0)
+        feat = torch.from_numpy(feat.squeeze(0))
         return feat, None
 
 
@@ -86,7 +87,7 @@ class Dim3FeatureReader:
     def read(self, image_feat_path):
         tmp = np.load(image_feat_path)
         _, _, c_dim = tmp.shape
-        image_feature = np.reshape(tmp, (-1, c_dim))
+        image_feature = torch.from_numpy(np.reshape(tmp, (-1, c_dim)))
         return image_feature, None
 
 
@@ -95,7 +96,7 @@ class HWCFeatureReader:
         tmp = np.load(image_feat_path)
         assert (tmp.shape[0] == 1), "batch is not 1"
         _, _, _, c_dim = tmp.shape
-        image_feature = np.reshape(tmp, (-1, c_dim))
+        image_feature = torch.from_numpy(np.reshape(tmp, (-1, c_dim)))
         return image_feature, None
 
 
@@ -131,9 +132,9 @@ class PaddedFasterRCNNFeatureReader:
         image_loc, image_dim = image_feature.shape
         tmp_image_feat = np.zeros((self.max_loc, image_dim), dtype=np.float32)
         tmp_image_feat[0:image_loc, ] = image_feature
-        image_feature = tmp_image_feat
+        image_feature = torch.from_numpy(tmp_image_feat)
 
-        image_info['max_features'] = image_loc
+        image_info['max_features'] = torch.tensor(image_loc, dtype=torch.long)
         return image_feature, image_info
 
 
@@ -149,12 +150,13 @@ class PaddedFeatureRCNNWithBBoxesFeatureReader:
         tmp_image_feat_2 = np.zeros((self.max_loc, image_dim),
                                     dtype=np.float32)
         tmp_image_feat_2[0:image_loc, ] = tmp_image_feat
+        tmp_image_feat_2 = torch.from_numpy(tmp_image_feat_2)
         tmp_image_box = np.zeros((self.max_loc, 4), dtype=np.int32)
         tmp_image_box[0:image_loc] = image_boxes
-
+        tmp_image_box = torch.from_numpy(tmp_image_box)
         image_info = {
             'image_bbox': tmp_image_box,
-            'max_features': image_loc
+            'max_features': torch.tensor(image_loc, dtype=torch.int)
         }
 
         return tmp_image_feat_2, image_info
