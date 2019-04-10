@@ -28,7 +28,7 @@ class Meter:
         self.dataset_name = dataset_name
         self.top_level_key = "metrics.%s." % dataset_type
 
-    def __call__(self, output, expected, info={}):
+    def __call__(self, report, *args, **kwargs):
         values = []
         self.iteration_count += 1
         for i in range(len(self.meter_types)):
@@ -38,7 +38,7 @@ class Meter:
             # Maintain value in the function itself.
             # If you need to calculate average,
             # use 'iteration_count' to update the value
-            value = func(self, self.meter_values[i], output, expected, info)
+            value = func(self, self.meter_values[i], report, *args, **kwargs)
             values.append(value)
             key = self.top_level_key + "%s_%s" % (self.dataset_name,
                                                   meter_type)
@@ -94,7 +94,9 @@ class Meter:
         return y
 
     @registry.register_metric('accuracy')
-    def accuracy(self, current, output, expected, info={}):
+    def accuracy(self, current, report):
+        output = report.scores
+        expected = report.targets
         output = torch.max(output, 1)[1]
 
         if self.config['use_cuda']:
@@ -110,14 +112,15 @@ class Meter:
 
         return current
 
+    # TODO: Fix for incomplete batches
     @registry.register_metric('vqa_accuracy')
-    def average_vqa_accuracy(self, current, output, expected, info={}):
-        expected_data = expected
+    def average_vqa_accuracy(self, current, report):
+        output = report.scores
+        expected_data = report.targets
         output = self.masked_unk_softmax(output, 1, 0)
         output = output.argmax(dim=1)  # argmax
 
-        one_hots = torch.zeros(*expected_data.size())
-        one_hots = one_hots.cuda() if output.is_cuda else one_hots
+        one_hots = expected_data.new_zeros(*expected_data.size())
         one_hots.scatter_(1, output.view(-1, 1), 1)
         scores = (one_hots * expected_data)
         accuracy = torch.sum(scores) / expected_data.size(0)
@@ -130,7 +133,7 @@ class Meter:
             current /= self.iteration_count
         return current
 
-    def recall_at_k(self, current, output, expected, k):
+    def recall_at_k(self, current, report, k):
         ranks = self.get_ranks(output, expected)
         current = current * (self.iteration_count - 1)
         current += float(torch.sum(torch.le(ranks, k))) / ranks.size(0)
@@ -138,25 +141,27 @@ class Meter:
         return current
 
     @registry.register_metric('r@1')
-    def recall_at_1(self, current, output, expected, info={}):
-        return self.recall_at_k(current, output, expected, 1)
+    def recall_at_1(self, current, report):
+        return self.recall_at_k(current, report, 1)
 
     @registry.register_metric('r@5')
-    def recall_at_5(self, current, output, expected, info={}):
-        return self.recall_at_k(current, output, expected, 5)
+    def recall_at_5(self, current, report):
+        return self.recall_at_k(current, report, 5)
 
     @registry.register_metric('r@10')
-    def recall_at_10(self, current, output, expected, info={}):
-        return self.recall_at_k(current, output, expected, 10)
+    def recall_at_10(self, current, report):
+        return self.recall_at_k(current, report, 10)
 
     @registry.register_metric('mean_r')
-    def mean_rank(self, current, output, expected, info={}):
-        ranks = self.get_ranks(output, expected)
+    def mean_rank(self, current, report, info={}):
+        ranks = self.get_ranks(report)
         current = current * (self.iteration_count - 1)
         current += torch.mean(ranks)
         return current / self.iteration_count
 
-    def get_ranks(self, output, expected):
+    def get_ranks(self, report):
+        output = report.scores
+        expected = report.targets
         ranks = self.score_to_ranks(output)
         gt_ranks = self.get_gt_ranks(ranks, expected)
 
@@ -164,8 +169,8 @@ class Meter:
         return ranks.float()
 
     @registry.register_metric('mean_rr')
-    def mean_reciprocal_rank(self, current, output, expected, info={}):
-        ranks = self.get_ranks(output, expected)
+    def mean_reciprocal_rank(self, current, report, info={}):
+        ranks = self.get_ranks(report)
         current = current * (self.iteration_count - 1)
         current += torch.mean(ranks.reciprocal())
         current /= self.iteration_count

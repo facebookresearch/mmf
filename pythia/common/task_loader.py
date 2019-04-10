@@ -24,7 +24,7 @@ class TaskLoader:
         }
 
         self.test_reporter = None
-        if self.config['training_parameters']['evalai_predict'] is True:
+        if self.config.training_parameters.evalai_predict is True:
             self.test_reporter = TestReporter(self.test_task)
 
     def get_config(self):
@@ -87,19 +87,16 @@ class TaskLoader:
         self.val_task.clean_config(config)
         self.test_task.clean_config(config)
 
-    def report_metrics(self, dataset_type, loss, extra_info=None,
-                       should_print=True):
-        if not self.config['should_log']:
+    def report_metrics(self, dataset_type, *args, **kwargs):
+        if not self.config.should_log:
             return
         # TODO: Complete this by calling child report metrics
         task = self.mapping[dataset_type]
-        task.report_metrics(loss, extra_info, should_print)
+        task.report_metrics(*args, **kwargs)
 
-    def calculate_loss(self, dataset_type, output, expected_output,
-                       info={}):
-        return self.mapping[dataset_type].calculate_loss(output,
-                                                         expected_output,
-                                                         info)
+    def calculate_loss_and_metrics(self, dataset_type, *args, **kwargs):
+        task = self.mapping[dataset_type]
+        return task.calculate_loss_and_metrics(*args, **kwargs)
 
     def prepare_batch(self, dataset_type, batch):
         return self.mapping[dataset_type].prepare_batch(batch)
@@ -107,6 +104,6 @@ class TaskLoader:
     def reset_meters(self, dataset_type):
         self.mapping[dataset_type].reset_meters()
 
-    def verbose_dump(self, dataset_type, *args):
-        if self.config['verbose_dump']:
-            self.mapping[dataset_type].verbose_dump(*args)
+    def verbose_dump(self, dataset_type, *args, **kwargs):
+        if self.config.training_parameters.verbose_dump:
+            self.mapping[dataset_type].verbose_dump(*args, **kwargs)

@@ -118,18 +118,17 @@ class BaseTask(Dataset):
                                                p=self.dataset_probablities)[0]
         self.chosen_dataset = self.datasets[self.dataset_choice]
 
-    def calculate_loss(self, output, expected_output, info):
-        return self.chosen_dataset.calculate_loss(output, expected_output,
-                                                  info)
+    def calculate_loss_and_metrics(self, *args, **kwargs):
+        return self.chosen_dataset.calculate_loss_and_metrics(*args, **kwargs)
 
-    def report_metrics(self, loss, extra_info=None, should_print=True):
-        self.chosen_dataset.report_metrics(loss, extra_info, should_print)
+    def report_metrics(self, *args, **kwargs):
+        self.chosen_dataset.report_metrics(*args, **kwargs)
 
     def reset_meters(self):
         self.chosen_dataset.reset_meters()
 
-    def verbose_dump(self, *args):
-        self.chosen_dataset.verbose_dump(*args)
+    def verbose_dump(self, *args, **kwargs):
+        self.chosen_dataset.verbose_dump(*args, **kwargs)
 
     def prepare_batch(self, batch):
         return self.chosen_dataset.prepare_batch(batch)

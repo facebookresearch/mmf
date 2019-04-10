@@ -6,6 +6,7 @@ from torch.utils.data.dataset import Dataset
 
 from pythia.common.losses import Loss
 from pythia.common.meter import Meter
+from pythia.common.sample import SampleList
 from pythia.common.registry import registry
 from pythia.tasks.processors import Processor
 
@@ -14,12 +15,12 @@ class BaseDataset(Dataset):
     def __init__(self, name, dataset_type, config={}):
         super(BaseDataset, self).__init__()
         self.config = config
-        self.name = name
-        self.dataset_type = dataset_type
+        self._name = name
+        self._dataset_type = dataset_type
         self.writer = registry.get("writer")
         self._global_config = registry.get("config")
-        self.device = self._global_config['training_parameters']['device']
-        self.use_cuda = "cuda" in self.device
+        self._device = registry.get("current_device")
+        self.use_cuda = "cuda" in str(self._device)
 
     def init_loss_and_metrics(self, config):
         self.writer = registry.get('writer')
@@ -29,7 +30,7 @@ class BaseDataset(Dataset):
         if isinstance(task_metrics, str):
             task_metrics = task_metrics.split(',')
 
-        self.meter = Meter(self.name, self.dataset_type, task_metrics)
+        self.meter = Meter(self._name, self._dataset_type, task_metrics)
         self.loss_fn = Loss(config['loss'])
 
         if type(config['loss']) == dict:
@@ -40,10 +41,15 @@ class BaseDataset(Dataset):
     def load_item(self, idx):
         raise NotImplementedError
 
-    def calculate_loss(self, output, expected_output, info):
-        self.meter(output, expected_output, info)
+    def calculate_loss_and_metrics(self, *args, **kwargs):
+        self._calculate_metrics(*args, **kwargs)
+        return self._calculate_loss(*args, **kwargs)
 
-        self.last_loss = self.loss_fn(output, expected_output, info)
+    def _calculate_metrics(self, *args, **kwargs):
+        self.meter(*args, **kwargs)
+
+    def _calculate_loss(self, *args, **kwargs):
+        self.last_loss = self.loss_fn(*args, **kwargs)
         return self.last_loss
 
     def reset_meters(self):
@@ -58,6 +64,9 @@ class BaseDataset(Dataset):
         for processor_key, processor_params in self.config.processors.items():
             setattr(self, processor_key,
                     Processor(processor_params, **extra_params))
+
+    def try_fast_read(self):
+        return
 
     def prepare_batch(self, batch):
         """
@@ -86,86 +95,17 @@ class BaseDataset(Dataset):
         obs: tensor
             Tensor containing observations for the current batch
         """
-        obs = batch['answers']
-        obs = Variable(obs.type(torch.FloatTensor))
+        # Should be a SampleList
+        if not isinstance(batch, SampleList):
+            # Try converting to SampleList
+            batch = SampleList(batch)
+        batch = batch.to(self._device)
+        return batch
 
-        input_text_seqs = batch['texts']
-        input_image_features = batch['image_feature_0']
+    def get_single_call_funcs(self):
+        return ["report_metrics"]
 
-        # TODO: Figure out what will be the default value here, which will be
-        # linked to max_context_len
-        #
-        # NOTE: A good strategy would be based overriding based on dataset
-        # TODO: Find a better way to clean this mess
-        input_contexts = batch.get('contexts', None)
-
-        input_text_seqs = Variable(input_text_seqs.type(torch.LongTensor))
-        input_image_features = Variable(input_image_features)
-
-        if input_contexts is not None:
-            input_contexts = Variable(input_contexts)
-
-        if self.use_cuda:
-            obs = obs.cuda()
-            input_text_seqs = input_text_seqs.cuda()
-            input_image_features = input_image_features.cuda()
-
-            if input_contexts is not None:
-                input_contexts = input_contexts.cuda()
-
-        image_feature_variables = [input_image_features]
-        image_dim_variable = None
-        context_dim_variable = None
-
-        if 'image_dim' in batch:
-            image_dims = batch['image_dim']
-            image_dim_variable = Variable(image_dims, requires_grad=False,
-                                          volatile=False)
-
-            if self.use_cuda:
-                image_dim_variable = image_dim_variable.cuda()
-
-        if 'context_dim' in batch:
-            context_dims = batch['context_dim']
-            context_dim_variable = Variable(context_dims, requires_grad=False,
-                                            volatile=False)
-
-            if self.use_cuda:
-                context_dim_variable = context_dim_variable.cuda()
-
-        # check if more than 1 image_feat_batch
-        i = 1
-        image_feat_key = "image_feature_%s"
-        while image_feat_key % str(i) in batch:
-            tmp_image_variable = Variable(batch[image_feat_key % str(i)])
-            if self.use_cuda:
-                tmp_image_variable = tmp_image_variable.cuda()
-            image_feature_variables.append(tmp_image_variable)
-            i += 1
-
-        data = {
-            'texts': input_text_seqs,
-            'image_features': image_feature_variables,
-            'contexts': input_contexts,
-            'info': {
-                'dataset_name': self.name,
-                'image_dim': image_dim_variable,
-                'context_dim': context_dim_variable,
-                'question_id': batch['question_id']
-            }
-        }
-
-        if 'attention_supervision' in batch:
-            att_sups = batch['attention_supervision']
-            att_sups = Variable(att_sups, requires_grad=False, volatile=False)
-
-            if self.use_cuda:
-                att_sups = att_sups.cuda()
-            data['info']['attention_supervision'] = att_sups
-
-        return data, obs
-
-    def report_metrics(self, loss=None, extra_info=None,
+    def report_metrics(self, report, loss=None, extra_info=None,
                        should_print=True):
         if not self.should_log:
             return
@@ -185,15 +125,15 @@ class BaseDataset(Dataset):
             meter_type = self.meter.meter_types[i]
             value = self.meter.meter_values[i]
 
-            key = "%s_%s_%s" % (self.name, dataset_type, meter_type)
+            key = "%s_%s_%s" % (self._name, dataset_type, meter_type)
             scalars[key] = value
 
-        scalars["%s_%s" % (self.name, self.loss_name)] = loss
+        scalars["%s_%s" % (self._name, self.loss_name)] = loss
 
         self.writer.add_scalars(scalars, registry.get('current_iteration'))
 
     def format_for_evalai(self, batch, answers):
         return []
 
-    def verbose_dump(self, output, expected_output, info):
+    def verbose_dump(self, *args, **kwargs):
         return

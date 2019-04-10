@@ -51,35 +51,34 @@ class LogitBinaryCrossEntropy(nn.Module):
     def __init__(self):
         super(LogitBinaryCrossEntropy, self).__init__()
 
-    def forward(self, pred_score, target_score, info={}, weights=None):
-        loss = F.binary_cross_entropy_with_logits(pred_score,
-                                                  target_score,
+    def forward(self, report):
+        loss = F.binary_cross_entropy_with_logits(report.scores,
+                                                  report.targets,
                                                   reduction="mean")
 
-        return loss * target_score.size(1)
+        return loss * report.targets.size(1)
 
 
 class BinaryCrossEntropyLoss(nn.Module):
     def __init__(self):
         super(BinaryCrossEntropyLoss, self).__init__()
 
-    def forward(self, pred_score, target_score, info={}, weights=None):
-        loss = F.binary_cross_entropy(pred_score, target_score,
+    def forward(self, report, weights=None):
+        loss = F.binary_cross_entropy(report.scores, report.targets,
                                       reduction="mean")
 
-        return loss * target_score.size(1)
+        return loss * report.targets.size(1)
 
 
 class NLLLoss(nn.Module):
     def __init__(self):
         super(NLLLoss, self).__init__()
 
-    def forward(self, pred_score, target_score, info={}, weights=None):
-        _, idx = target_score.max(dim=1)
-        loss = F.nll_loss(pred_score, idx,
-                          reduction="mean")
+    def forward(self, report, weights=None):
+        _, idx = report.targets.max(dim=1)
+        loss = F.nll_loss(report.scores, idx, reduction="mean")
 
-        return loss * target_score.size(1)
+        return loss * report.targets.size(1)
 
 
 def kl_div(log_x, y):
@@ -108,12 +107,12 @@ class MultiLoss(nn.Module):
             self.losses.append(loss_fn)
             self.losses_weights.append(loss_weight)
 
-    def forward(self, pred_score, target_score, info={}):
+    def forward(self, report, *args, **kwargs):
         loss = 0
         iteration = registry.get('current_iteration')
 
         for idx, loss_fn in enumerate(self.losses):
-            value = loss_fn(pred_score, target_score, info)
+            value = loss_fn(report, *args, **kwargs)
             self.writer.add_scalar(self.loss_names[idx], value, iteration)
             loss += self.losses_weights[idx] * value
 
@@ -126,12 +125,11 @@ class AttentionSupervisionLoss(nn.Module):
         self.loss_fn = lambda *args, **kwargs: \
             nn.functional.binary_cross_entropy(*args, **kwargs)
 
-    def forward(self, pred_score, target_score, info):
+    def forward(self, report):
         # TODO: Create this an option so that this becomes zero
         # when att sup is not passed. As in, don't pass in att sup
-        batch = info['batch']
-        attention_supervision = batch['info']['attention_supervision']
-        context_attentions = info['context_attentions']
+        attention_supervision = report.info.attention_supervision
+        context_attentions = report.context_attentions
 
         loss = self.loss_fn(context_attentions[0],
                             attention_supervision.float(),
@@ -145,7 +143,10 @@ class WeightedSoftmaxLoss(nn.Module):
     def __init__(self):
         super(WeightedSoftmaxLoss, self).__init__()
 
-    def forward(self, pred_score, target_score, info={}):
+    def forward(self, report):
+        target_score = report.targets
+        pred_score = report.scores
+
         tar_sum = torch.sum(target_score, dim=1, keepdim=True)
         tar_sum_is_0 = torch.eq(tar_sum, 0)
         tar_sum.masked_fill_(tar_sum_is_0, 1.0e-06)
@@ -162,7 +163,10 @@ class SoftmaxKlDivLoss(nn.Module):
     def __init__(self):
         super(SoftmaxKlDivLoss, self).__init__()
 
-    def forward(self, pred_score, target_score, info={}):
+    def forward(self, report):
+        target_score = report.targets
+        pred_score = report.scores
+
         tar_sum = torch.sum(target_score, dim=1, keepdim=True)
         tar_sum_is_0 = torch.eq(tar_sum, 0)
         tar_sum.masked_fill_(tar_sum_is_0, 1.0e-06)
@@ -178,7 +182,10 @@ class WrongLoss(nn.Module):
     def __init__(self):
         super(WrongLoss, self).__init__()
 
-    def forward(self, pred_score, target_score, info={}):
+    def forward(self, report):
+        target_score = report.targets
+        pred_score = report.scores
+
         tar_sum = torch.sum(target_score, dim=1, keepdim=True)
         tar_sum_is_0 = torch.eq(tar_sum, 0)
         tar_sum.masked_fill_(tar_sum_is_0, 1.0e-06)
@@ -195,7 +202,10 @@ class CombinedLoss(nn.Module):
         super(CombinedLoss, self).__init__()
         self.weight_softmax = weight_softmax
 
-    def forward(self, pred_score, target_score, info={}):
+    def forward(self, report):
+        target_score = report.targets
+        pred_score = report.scores
+
         tar_sum = torch.sum(target_score, dim=1, keepdim=True)
         tar_sum_is_0 = torch.eq(tar_sum, 0)
         tar_sum.masked_fill_(tar_sum_is_0, 1.0e-06)
@@ -207,8 +217,7 @@ class CombinedLoss(nn.Module):
 
         loss2 = F.binary_cross_entropy_with_logits(pred_score,
                                                    target_score,
-                                                   reduction="mean"
-                                                   )
+                                                   reduction="mean")
         loss2 *= target_score.size(1)
 
         loss = self.weight_softmax * loss1 + loss2

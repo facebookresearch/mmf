@@ -60,8 +60,8 @@ class MultiTask(Dataset):
     def get_tasks(self):
         return self.tasks
 
-    def calculate_loss(self, output, expected_output, info):
-        loss = self.chosen_task.calculate_loss(output, expected_output, info)
+    def calculate_loss_and_metrics(self, *args, **kwargs):
+        loss = self.chosen_task.calculate_loss_and_metrics(*args, **kwargs)
         registry.register('metrics.%s.loss' % self.dataset_type, loss)
         return loss
 
@@ -77,8 +77,8 @@ class MultiTask(Dataset):
 
         return item
 
-    def report_metrics(self, loss, extra_info=None, should_print=True):
-        self.chosen_task.report_metrics(loss, extra_info, should_print)
+    def report_metrics(self, *args, **kwargs):
+        self.chosen_task.report_metrics(*args, **kwargs)
 
     def update_registry_for_model(self, config):
         for task in self.tasks:
