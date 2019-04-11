@@ -13,6 +13,13 @@ class TextVQADataset(VizWizDataset):
                                              verbose, **data_params)
 
         self.name = "textvqa"
+
+        self.num_times_predicted = 0
+        self.num_times_predicted_from_ocr = 0
+        self.num_times_predicted_from_as = 0
+        self.correct_predicted_from_ocr = 0
+        self.correct_predicted_from_as = 0
+        self.partial_predicted_from_ocr = 0
         self.ocr_count_greater_than_2 = 0
         self.ocr_predicted_when_count_greater_than_2 = 0
         self.ocr_correct_predicted_when_count_greater_than_2 = 0
