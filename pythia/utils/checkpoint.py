@@ -36,6 +36,8 @@ class Checkpoint:
                                             self.ckpt_foldername)
         self.pth_filepath = os.path.join(self.save_dir, self.ckpt_foldername,
                                          self.ckpt_prefix + "final.pth")
+        self.params_filepath = os.path.join(self.save_dir, self.ckpt_foldername,
+                                            self.ckpt_prefix + "params.pth")
 
         self.models_foldername = os.path.join(self.ckpt_foldername, "models")
         if not os.path.exists(self.models_foldername):
@@ -214,3 +216,4 @@ class Checkpoint:
 
     def finalize(self):
         torch.save(self.trainer.model, self.pth_filepath)
+        torch.save(self.trainer.model.state_dict(), self.params_filepath)
