@@ -257,8 +257,7 @@ class Pythia(BaseModel):
 
         joint_embedding = self.combine_embeddings(["image", "text"],
                                                   [image_embedding_total,
-                                                  text_embedding_total])
-
+                                                   text_embedding_total])
         model_output = {
             "scores": self.calculate_logits(joint_embedding)
         }
@@ -272,46 +271,23 @@ class PythiaQuestionOnly(Pythia):
     def __init__(self, config):
         super().__init__(config)
 
-    def forward(self, image_features, texts, info={},
-                input_answers=None, **kwargs):
-
-        input_text_variable = texts
-        image_dim_variable = info.get('image_dim', None)
-        image_feature_variables = image_features
-
-        text_embedding_total = self.process_text_embedding(input_text_variable,
-                                                           info)
-
-        assert (len(image_feature_variables) ==
-                len(self.image_feature_encoders)), \
-            "number of image feature model doesnot equal \
-             to number of image features"
-
-        image_embedding_total, _ = self.process_feature_embedding(
-            "image",
-            image_feature_variables,
-            image_dim_variable,
-            text_embedding_total
+    def forward(self, sample_list):
+        text_embedding_total = self.process_text_embedding(sample_list)
+        text_embedding_total = text_embedding_total.new_zeros(
+            text_embedding_total.size()
         )
 
-        if self.inter_model is not None:
-            image_embedding_total = self.inter_model(image_embedding_total)
+        fa_txt = self.image_text_multi_modal_combine_layer.module.fa_txt
+        dropout = self.image_text_multi_modal_combine_layer.module.dropout
 
-        image_embedding_total.zero_()
+        joint_embedding = dropout(fa_txt(text_embedding_total))
 
-        text_fa = self.image_text_multi_modal_combine_layer.module.fa_txt(
-            text_embedding_total)
-        if len(image_embedding_total.size()) == 3:
-            num_location = image_embedding_total.size(1)
-            question_fa_expand = torch.unsqueeze(
-                text_fa, 1).expand(-1, num_location, -1)
-        else:
-            question_fa_expand = text_fa
-        dropout =  self.image_text_multi_modal_combine_layer.module.dropout
-        joint_embedding = dropout(question_fa_expand)
+        linear_text = self.classifier.module.linear_text
+        f_o_text = self.classifier.module.f_o_text
+        scores = linear_text(f_o_text(joint_embedding))
 
         model_output = {
-            "scores": self.calculate_logits(joint_embedding)
+            "scores": scores
         }
 
         return model_output
@@ -322,25 +298,15 @@ class PythiaImageOnly(Pythia):
     def __init__(self, config):
         super().__init__(config)
 
-    def forward(self, image_features, texts, info={},
-                input_answers=None, **kwargs):
-
-        input_text_variable = texts
-        image_dim_variable = info.get('image_dim', None)
-        image_feature_variables = image_features
-        text_embedding_total = self.process_text_embedding(input_text_variable,
-                                                           info)
-
-        text_embedding_total.zero_()
-        assert (len(image_feature_variables) ==
-                len(self.image_feature_encoders)), \
-            "number of image feature model doesnot equal \
-             to number of image features"
+    def forward(self, sample_list):
+        text_embedding_total = self.process_text_embedding(sample_list)
+        text_embedding_total = text_embedding_total.new_zeros(
+            text_embedding_total.size()
+        )
 
         image_embedding_total, _ = self.process_feature_embedding(
             "image",
-            image_feature_variables,
-            image_dim_variable,
+            sample_list,
             text_embedding_total
         )
 
@@ -349,7 +315,11 @@ class PythiaImageOnly(Pythia):
 
         fa_image = self.image_text_multi_modal_combine_layer.module.fa_image
         dropout = self.image_text_multi_modal_combine_layer.module.dropout
-        joint_embedding = fa_image(image_embedding_total)
-        joint_embedding = dropout(joint_embedding)
 
-        return self.calculate_logits(joint_embedding)
+        joint_embedding = dropout(fa_image(image_embedding_total))
+
+        model_output = {
+            "scores": self.calculate_logits(joint_embedding)
+        }
+
+        return model_output

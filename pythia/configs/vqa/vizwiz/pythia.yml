@@ -1,7 +1,7 @@
 includes:
 - common/defaults/configs/tasks/vqa/vizwiz.yml
 model_attributes:
-  pythia:
+  pythia: &pythia
     model_data_dir: ../data/
     classifier:
       type: logit
@@ -43,6 +43,8 @@ model_attributes:
         embedding_dim: 300
         kernel_size: 1
         padding: 0
+  pythia_image_only: *pythia
+  pythia_question_only: *pythia
 optimizer_attributes:
   type: Adamax
   params:

@@ -69,10 +69,10 @@ class VQA2Dataset(BaseDataset):
         if self._dataset_type == "test":
             return
 
-        self.writer.write("Starting to fast read {} {} dataset"
-                          .format(self._name, self._dataset_type))
         if hasattr(self, '_should_fast_read') and \
             self._should_fast_read is True:
+            self.writer.write("Starting to fast read {} {} dataset"
+                              .format(self._name, self._dataset_type))
             self.cache = {}
             for idx in tqdm.tqdm(range(len(self.imdb)), miniters=100,
                                  disable=not is_main_process()):

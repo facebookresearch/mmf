@@ -66,13 +66,13 @@ class LogitClassifier(nn.Module):
         super(LogitClassifier, self).__init__()
         input_dim = in_dim
         num_ans_candidates = out_dim
-        txt_nonLinear_dim = kwargs['text_hidden_dim']
-        image_nonLinear_dim = kwargs['img_hidden_dim']
+        text_non_linear_dim = kwargs['text_hidden_dim']
+        image_non_linear_dim = kwargs['img_hidden_dim']
 
-        self.f_o_text = ReLUWithWeightNormFC(input_dim, txt_nonLinear_dim)
-        self.f_o_image = ReLUWithWeightNormFC(input_dim, image_nonLinear_dim)
-        self.linear_text = nn.Linear(txt_nonLinear_dim, num_ans_candidates)
-        self.linear_image = nn.Linear(image_nonLinear_dim, num_ans_candidates)
+        self.f_o_text = ReLUWithWeightNormFC(input_dim, text_non_linear_dim)
+        self.f_o_image = ReLUWithWeightNormFC(input_dim, image_non_linear_dim)
+        self.linear_text = nn.Linear(text_non_linear_dim, num_ans_candidates)
+        self.linear_image = nn.Linear(image_non_linear_dim, num_ans_candidates)
 
         if 'pretrained_image' in kwargs and \
                 kwargs['pretrained_text'] is not None:
