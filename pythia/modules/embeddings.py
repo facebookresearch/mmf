@@ -32,8 +32,9 @@ class TextEmbedding(nn.Module):
         elif emb_type == "attention":
             self.module = AttentionTextEmbedding(**kwargs)
         elif emb_type == "torch":
-            # print(self.vocab.stoi)
-            self.module = nn.Embedding(**kwargs)
+            vocab_size = kwargs["vocab_size"]
+            embedding_dim = kwargs["embedding_dim"]
+            self.module = nn.Embedding(vocab_size, embedding_dim)
             self.module.text_out_dim = self.embedding_dim
         else:
             raise NotImplementedError("Unknown question embedding '%s'"

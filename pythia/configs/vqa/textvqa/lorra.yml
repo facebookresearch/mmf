@@ -1,5 +1,14 @@
-!include defaults/config/tasks/vqa/textvqa.yml
-
+includes:
+- common/defaults/configs/tasks/vqa/textvqa.yml
+# Use soft copy
+task_attributes:
+  vqa:
+    dataset_attributes:
+      textvqa:
+        processors:
+          answer_processor:
+            params:
+              use_soft_copy: true
 model_attributes:
   lorra:
     model_data_dir: ../data
@@ -8,11 +17,6 @@ model_attributes:
     image_feature_dim: 2048
     context_max_len: 50
     classifier:
-      type: logit
-      params:
-        img_hidden_dim: 5000
-        text_hidden_dim: 300
-    context_classifier:
       type: logit
       params:
         img_hidden_dim: 5000
@@ -54,11 +58,8 @@ model_attributes:
       params:
         dropout: 0
         hidden_dim: 5000
-    context_text_modal_combine:
-      type: non_linear_element_multiply
-      params:
-        dropout: 0
-        hidden_dim: 5000
+        # 300 for FastText and 50 for order vectors
+        context_dim: 350
     text_embeddings:
     - type: attention
       params:
@@ -71,11 +72,14 @@ model_attributes:
         kernel_size: 1
         padding: 0
     context_embeddings:
-    - type: torch
+    - type: identity
       params:
-        embedding_dim: 300
+        embedding_dim: 350
+optimizer_attributes:
+  type: Adamax
+  params:
+    lr: 0.005
 training_parameters:
-    log_interval : 100
     clip_norm_mode: all
     clip_gradients: false
     max_grad_l2_norm: 0.25
@@ -83,14 +87,13 @@ training_parameters:
     lr_steps:
     - 14000
     lr_ratio: 0.01
+    use_warmup: true
     warmup_factor: 0.2
     warmup_iterations: 1000
     max_iterations: 24000
     batch_size: 128
     num_workers: 7
-    snapshot_interval: 1000
     task_size_proportional_sampling: true
-    run_type: train
     monitored_metric: textvqa_vqa_accuracy
     pretrained_mapping:
       text_embeddings: text_embeddings

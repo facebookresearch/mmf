@@ -361,6 +361,14 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
         if hasattr(config, "context_preprocessor"):
             self.context_preprocessor = Processor(config.context_preprocessor)
 
+    def get_vocab_size(self):
+        answer_vocab_nums = self.answer_vocab.num_vocab
+
+        if self.use_soft_copy is True:
+            answer_vocab_nums += self.max_length
+
+        return answer_vocab_nums
+
     def __call__(self, item):
         answers = item["answers"]
         scores = super().__call__({"answers": answers})
@@ -403,8 +411,10 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
                     tokens_scores[idx] = 0
                 else:
                     tokens_scores[idx] = sum(accs) / len(accs)
-        scores = torch.cat([scores, tokens_scores], dim=-1)
 
+        # Scores are already proper size, see L314. Now,
+        # fix scores for soft copy candidates
+        scores[-len(tokens_scores):] = tokens_scores
         return {
             "answers": indices,
             "answers_scores": scores

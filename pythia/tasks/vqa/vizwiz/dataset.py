@@ -31,6 +31,7 @@ class VizWizDataset(VQA2Dataset):
             })
             sample.context = context["text"]
             sample.context_tokens = context["tokens"]
+            sample.context_feature_0 = sample.context
 
         if self.use_ocr_info and "ocr_info" in sample_info:
             sample.ocr_bbox = self.bbox_processor({

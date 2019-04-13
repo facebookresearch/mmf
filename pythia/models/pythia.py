@@ -21,14 +21,17 @@ class Pythia(BaseModel):
         self._datasets = self._global_config.datasets.split(",")
 
     def build(self):
-        self._init_text_embedding()
+        self._init_text_embeddings("text")
         self._init_feature_encoders("image")
         self._init_feature_embeddings("image")
         self._init_combine_layer("image", "text")
         self._init_classifier(self._get_classifier_input_dim())
         self._init_extras()
 
-    def _init_text_embedding(self, attr='text_embeddings'):
+    def _init_text_embeddings(self, attr='text'):
+        if "embeddings" not in attr:
+            attr += "_embeddings"
+
         text_embeddings = []
         text_embeddings_list_config = self.config[attr]
 
@@ -73,7 +76,9 @@ class Pythia(BaseModel):
 
     def _init_feature_embeddings(self, attr):
         feature_embeddings_list = []
-        num_feature_feat = len(self.config.image_feature_encodings)
+        num_feature_feat = len(getattr(
+            self.config, "{}_feature_encodings".format(attr)
+        ))
 
         self.feature_embeddings_out_dim = 0
 
@@ -117,8 +122,6 @@ class Pythia(BaseModel):
             self.config[config_attr]['type'],
             getattr(self, self._get_embeddings_attr(attr1)),
             getattr(self, self._get_embeddings_attr(attr2)),
-            context_dim=getattr(self, self._get_embeddings_attr('context'),
-                                None),
             **self.config[config_attr]['params']
         )
 
@@ -157,10 +160,16 @@ class Pythia(BaseModel):
     def process_text_embedding(self, sample_list,
                                embedding_attr='text_embeddings', info=None):
         text_embeddings = []
-        texts = sample_list.text
+
+        # Get "text" attribute in case of "text_embeddings" case
+        # and "context" attribute in case of "context_embeddings"
+        texts = getattr(sample_list, embedding_attr.split("_")[0])
+
+        # Get embedding models
         text_embedding_models = getattr(self, embedding_attr)
 
         for text_embedding_model in text_embedding_models:
+            # TODO: Move this logic inside
             if isinstance(text_embedding_model, PreExtractedEmbedding):
                 embedding = text_embedding_model(sample_list.question_id)
             else:
@@ -192,11 +201,13 @@ class Pythia(BaseModel):
             feature_idx += 1
             features.append(feature)
 
+        feature_encoders = getattr(self, attr + "_feature_encoders")
         # Each feature should have a separate image feature encoders
         assert (len(features) ==
-                len(self.image_feature_encoders)), \
-            "Number of image feature encoder not equal \
-             to number of image features"
+                len(feature_encoders)), \
+            ("Number of feature encoders, {} are not equal "
+             "to number of features, {}."
+             .format(len(feature_encoders), len(features)))
 
         # Now, iterate to get final attended image features
         for i, feature in enumerate(features):
@@ -247,17 +258,16 @@ class Pythia(BaseModel):
         text_embedding_total = self.process_text_embedding(sample_list)
 
         image_embedding_total, _ = self.process_feature_embedding(
-            "image",
-            sample_list,
-            text_embedding_total
+            "image", sample_list, text_embedding_total
         )
 
         if self.inter_model is not None:
             image_embedding_total = self.inter_model(image_embedding_total)
 
-        joint_embedding = self.combine_embeddings(["image", "text"],
-                                                  [image_embedding_total,
-                                                   text_embedding_total])
+        joint_embedding = self.combine_embeddings(
+            ["image", "text"], [image_embedding_total, text_embedding_total]
+        )
+
         model_output = {
             "scores": self.calculate_logits(joint_embedding)
         }

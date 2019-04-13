@@ -90,6 +90,12 @@ class VocabDict:
     def idx2word(self, n_w):
         return self.word_list[n_w]
 
+    def get_unk_index(self):
+        return self.UNK_INDEX
+
+    def get_unk_token(self):
+        return '<unk>'
+
     def word2idx(self, w):
         if w in self.word2idx_dict:
             return self.word2idx_dict[w]

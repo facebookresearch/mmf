@@ -379,6 +379,7 @@ class WordToVectorDict:
         self.model = model
 
     def __getitem__(self, word):
+        # Check if mean for word split needs to be done here
         return self.model.get_word_vector(word)
 
 

@@ -122,8 +122,6 @@ class Trainer:
                 rank, torch.cuda.get_device_name(self.local_rank)
             ))
 
-        if isinstance(self.device, torch.device):
-            torch.cuda.set_device(self.device)
         self.model = self.model.to(self.device)
 
         self.writer.write("Torch version is: " + torch.__version__)
