@@ -12,19 +12,17 @@ task_attributes:
                     train:
                     - open_images/detectron_fix_100/fc6/train,open_images/resnet152/train
                     val:
-                    - open_images/detectron_fix_100/fc6/val,open_images/resnet152/val
+                    - open_images/detectron_fix_100/fc6/train,open_images/resnet152/train
                     test:
                     - open_images/detectron_fix_100/fc6/test,open_images/resnet152/test
                 imdb_files:
                     train:
-                    - imdb/imdb_textvqa_train.npy
+                    - imdb/textvqa_0.5/imdb_textvqa_train.npy
                     val:
-                    - imdb/imdb_textvqa_val.npy
+                    - imdb/textvqa_0.5/imdb_textvqa_val.npy
                     test:
-                    - imdb/imdb_textvqa_test.npy
-                features_max_len: 137
-                question_max_len: 14
-                context_max_len: 50
+                    - imdb/textvqa_0.5/imdb_textvqa_test.npy
+                features_max_len: 100
                 processors:
                   text_processor:
                     type: glove
@@ -33,23 +31,40 @@ task_attributes:
                       vocab:
                         type: intersected
                         embedding_name: glove.6B.300d
-                        vocab_file: vocabulary_vqa_100k.txt
+                        vocab_file: vocabs/vocabulary_100k.txt
                   answer_processor:
-                    type: vqa_answer
+                    type: soft_copy_answer
                     params:
-                      vocab_file: answers_textvqa_8k.txt
+                      vocab_file: vocabs/answers_textvqa_8k.txt
                       preprocessor:
                         type: simple_word
                         params: {}
+                      context_preprocessor:
+                        type: simple_word
+                        params: {}
+                      max_length: 50
+                      num_answers: 10
+                      use_soft_copy: false
                   context_processor:
                     type: fasttext
                     params:
                       max_length: 50
                       model_file: .vector_cache/wiki.en.bin
+                  ocr_token_processor:
+                    type: simple_word
+                    params: {}
+                  bbox_processor:
+                    type: bbox
+                    params:
+                      max_length: 50
                 metrics:
                 - vqa_accuracy
                 loss: logit_bce
                 return_info: true
+                # Return OCR information
+                use_ocr: true
+                # Return spatial information of OCR tokens if present
+                use_ocr_info: false
 training_parameters:
     monitored_metric: textvqa_vqa_accuracy
     metric_minimize: false

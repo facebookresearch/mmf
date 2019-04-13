@@ -34,11 +34,12 @@ task_attributes:
                       vocab:
                         type: intersected
                         embedding_name: glove.6B.300d
-                        vocab_file:  vocabulary_vqa.txt
+                        vocab_file: vocabs/vocabulary_vqa.txt
                   answer_processor:
                     type: vqa_answer
                     params:
-                      vocab_file: answers_vqa.txt
+                      num_answers: 10
+                      vocab_file: vocabs/answers_vqa.txt
                       preprocessor:
                         type: simple_word
                         params: {}

@@ -1,11 +1,7 @@
-!include defaults/config/tasks/vqa/vizwiz.yml
-
-optimizer:
-  type: Adamax
-  params:
-    lr: 0.005
+includes:
+- common/defaults/configs/tasks/vqa/vizwiz.yml
 model_attributes:
-  top_down_bottom_up:
+  pythia:
     model_data_dir: ../data/
     classifier:
       type: logit
@@ -47,6 +43,10 @@ model_attributes:
         embedding_dim: 300
         kernel_size: 1
         padding: 0
+optimizer_attributes:
+  type: Adamax
+  params:
+    lr: 0.005
 training_parameters:
     clip_norm_mode: all
     clip_gradients: true
@@ -55,8 +55,9 @@ training_parameters:
     lr_steps:
     - 14000
     lr_ratio: 0.01
-    wu_factor: 0.2
-    wu_iters: 1000
+    use_warmup: true
+    warmup_factor: 0.2
+    warmup_iterations: 1000
     max_iterations: 24000
     batch_size: 128
     num_workers: 7
