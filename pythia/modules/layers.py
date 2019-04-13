@@ -259,18 +259,8 @@ class NonLinearElementMultiply(nn.Module):
         image_fa = self.fa_image(image_feat)
         question_fa = self.fa_txt(question_embedding)
 
-        # TODO: Rewrite in a better way or remove this
-        #     history_fa = question_fa.new_ones(size=question_fa.size())
-        #     history_fa = torch.autograd.Variable(history_fa)
-        #
-        #     if question_fa.is_cuda is True:
-        #         history_fa = history_fa.cuda()
-        # else:
-
         if len(image_feat.size()) == 3:
-            num_location = image_feat.size(1)
-            question_fa_expand = torch.unsqueeze(
-                question_fa, 1).expand(-1, num_location, -1)
+            question_fa_expand = question_fa.unsqueeze(1)
         else:
             question_fa_expand = question_fa
 

@@ -17,6 +17,8 @@ class Pythia(BaseModel):
     def __init__(self, config):
         super().__init__(config)
         self.config = config
+        self._global_config = registry.get("config")
+        self._datasets = self._global_config.datasets.split(",")
 
     def build(self):
         self._init_text_embedding()
@@ -124,7 +126,8 @@ class Pythia(BaseModel):
                 multi_modal_combine_layer)
 
     def _init_classifier(self, combined_embedding_dim):
-        num_choices = registry.get("vqa2_num_final_outputs")
+        # TODO: Later support multihead
+        num_choices = registry.get(self._datasets[0] + "_num_final_outputs")
 
         self.classifier = ClassifierLayer(
             self.config['classifier']['type'],
@@ -275,6 +278,7 @@ class PythiaQuestionOnly(Pythia):
         input_text_variable = texts
         image_dim_variable = info.get('image_dim', None)
         image_feature_variables = image_features
+
         text_embedding_total = self.process_text_embedding(input_text_variable,
                                                            info)
 
