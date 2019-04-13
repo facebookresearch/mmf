@@ -2,9 +2,12 @@ import os
 import json
 
 from torch.utils.data import Dataset, DataLoader
+from torch.utils.data.distributed import DistributedSampler
 
 from pythia.utils.general import ckpt_name_from_core_args, \
                                  foldername_from_config_override
+from pythia.utils.distributed_utils import (gather_tensor,
+        is_main_process, get_world_size)
 from pythia.common.registry import registry
 from pythia.utils.timer import Timer
 from .batch_collator import BatchCollator
@@ -56,11 +59,14 @@ class TestReporter(Dataset):
             return False
         else:
             self.current_dataset = self.datasets[self.current_dataset_idx]
-            self.writer.write("Predicting for " + self.current_dataset.name)
+            self.writer.write("Predicting for " + self.current_dataset._name)
             return True
 
     def flush_report(self):
-        name = self.current_dataset.name
+        if not is_main_process():
+            return
+
+        name = self.current_dataset._name
         time_format = "%Y-%m-%dT%H:%M:%S"
         time = self.timer.get_time_hhmmss(None, time_format)
 
@@ -80,13 +86,36 @@ class TestReporter(Dataset):
         self.report = []
 
     def get_dataloader(self):
+        other_args = self._add_extra_args_for_dataloader()
         return DataLoader(
             dataset=self.current_dataset,
-            batch_size=self.batch_size,
-            shuffle=False,
             collate_fn=BatchCollator(),
-            num_workers=self.num_workers
+            num_workers=self.num_workers,
+            pin_memory=self.config.training_parameters.pin_memory,
+            **other_args
         )
+
+    def _add_extra_args_for_dataloader(self, other_args={}):
+        training_parameters = self.config.training_parameters
+
+        if training_parameters.local_rank is not None \
+            and training_parameters.distributed:
+            other_args["sampler"] = DistributedSampler(self.current_dataset)
+        else:
+            other_args["shuffle"] = True
+
+        batch_size = training_parameters.batch_size
+
+        world_size = get_world_size()
+
+        if batch_size % world_size != 0:
+            raise RuntimeError("Batch size {} must be divisible by number "
+                               "of GPUs {} used."
+                               .format(batch_size, world_size))
+
+        other_args["batch_size"] = batch_size // world_size
+
+        return other_args
 
     def prepare_batch(self, batch):
         return self.current_dataset.prepare_batch(batch)
@@ -97,7 +126,16 @@ class TestReporter(Dataset):
     def __getitem__(self, idx):
         return self.current_dataset[idx]
 
-    def add_to_report(self, batch, answers):
-        results = self.current_dataset.format_for_evalai(batch, answers)
+    def add_to_report(self, report):
+        # TODO: Later gather whole report for no opinions
+        report.scores = gather_tensor(report.scores).view(
+            -1, report.scores.size(-1)
+        )
+        report.question_id = gather_tensor(report.question_id).view(-1)
+
+        if not is_main_process():
+            return
+
+        results = self.current_dataset.format_for_evalai(report)
 
         self.report = self.report + results

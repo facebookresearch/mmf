@@ -1,8 +1,10 @@
 import os
 import importlib
 import glob
+
 from pythia.common.trainer import Trainer
 from pythia.utils.flags import flags
+from pythia.utils.distributed_utils import is_main_process
 
 
 def setup_imports():
@@ -61,7 +63,8 @@ def run():
 
         if writer is not None:
             writer.write(e, "error", donot_print=True)
-        raise
+        if is_main_process():
+            raise
 
 
 if __name__ == '__main__':

@@ -87,13 +87,21 @@ class Registry:
         return cls.mapping['metric_name_mapping'].get(name, None)
 
     @classmethod
-    def get(cls, name, default=None):
+    def get(cls, name, default=None, no_warning=False):
+        original_name = name
         name = name.split('.')
         value = cls.mapping['state']
         for subname in name:
             value = value.get(subname, default)
             if value is default:
                 break
+
+        if "writer" in cls.mapping["state"] and value == default \
+            and no_warning is False:
+            cls.mapping["state"]["writer"].write(
+                "Key {} is not present in registry, returning default value "
+                "of {}".format(original_name, default)
+            )
         return value
 
     @classmethod

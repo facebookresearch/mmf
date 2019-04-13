@@ -16,6 +16,8 @@ class Report(OrderedDict):
         super().__init__(batch)
 
         self.update(prepared_batch)
+        self["batch_size"] = prepared_batch.get_batch_size()
+
         self.writer = registry.get("writer")
 
         self.warning_string = "Updating forward report with key {}" \
