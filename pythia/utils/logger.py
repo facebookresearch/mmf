@@ -55,8 +55,8 @@ class Logger:
         self.logger.setLevel(getattr(logging, level.upper()))
         self._file_only_logger.setLevel(getattr(logging, level.upper()))
 
-        formatter = logging.Formatter("%(asctime)s %(name)s "
-                                      "%(levelname)s: %(message)s")
+        formatter = logging.Formatter("%(asctime)s %(levelname)s: %(message)s",
+                                      datefmt="%Y-%m-%dT%H:%M:%S")
 
         # Add handler to file
         channel = logging.FileHandler(filename=self.log_filename, mode='a')
@@ -73,7 +73,6 @@ class Logger:
 
         should_not_log = self.config['training_parameters']['should_not_log']
         self.should_log = not should_not_log
-        self.config['should_log'] = self.should_log
 
         # Single log wrapper map
         self._single_log_map = set()
