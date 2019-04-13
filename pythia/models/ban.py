@@ -15,6 +15,8 @@ class BAN(BaseModel):
     def __init__(self, config):
         super(BAN, self).__init__(config)
         self.config = config
+        self._global_config = registry.get("config")
+        self._datasets = self._global_config.datasets.split(",")
 
     def build(self):
         self._init_text_embedding()
@@ -23,10 +25,8 @@ class BAN(BaseModel):
 
     def _init_text_embedding(self):
         module_config = self.config['text_embedding']
-        vocab_size = registry.get('vocabs.text_vocab').get_size()
         q_mod = BiLSTMTextEmbedding(module_config['num_hidden'],
                                      module_config['emb_size'],
-                                     vocab_size,
                                      module_config['num_layers'],
                                      module_config['dropout'],
                                      module_config['bidirectional'],
@@ -63,17 +63,15 @@ class BAN(BaseModel):
 
     def _init_classifier(self):
         num_hidden = self.config['text_embedding']['num_hidden']
-        out_dim = self.config['classifier']['out_dim']
+        num_choices = registry.get(self._datasets[0] + "_num_final_outputs")
         dropout = self.config['classifier']['dropout']
-        self.classifier = WeightNormClassifier(num_hidden,
-                                               out_dim,
-                                               num_hidden * 2,
-                                               dropout)
+        self.classifier = WeightNormClassifier(num_hidden, num_choices,
+                                               num_hidden * 2, dropout)
 
-    def forward(self, image_features, texts, info={}, input_answers=None,
-                **kwargs):
-        v = image_features[0]
-        q = texts
+    def forward(self, sample_list):
+
+        v = sample_list.image_feature_0
+        q = sample_list.text
 
         q_emb = self.q_emb.forward_all(q)
 
@@ -87,4 +85,6 @@ class BAN(BaseModel):
 
         logits = self.classifier(q_emb.sum(1))
 
-        return logits
+        return {
+            "scores": logits
+        }
