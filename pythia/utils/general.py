@@ -1,6 +1,8 @@
 import os
 import yaml
 import collections
+import torch
+import gc
 
 from bisect import bisect
 from torch import nn
@@ -126,8 +128,23 @@ def get_overlap_score(candidate, target):
 
 
 def updir(d, n):
-  """Given path d, go up n dirs from d and return that path"""
-  ret_val = d
-  for _ in range(n):
-    ret_val = os.path.dirname(ret_val)
-  return ret_val
+    """Given path d, go up n dirs from d and return that path"""
+    ret_val = d
+    for _ in range(n):
+        ret_val = os.path.dirname(ret_val)
+    return ret_val
+
+
+def print_cuda_usage():
+    print("Memory Allocated:", torch.cuda.memory_allocated() / (1024 * 1024))
+    print("Max Memory Allocated:", torch.cuda.max_memory_allocated() / (1024 * 1024))
+    print("Memory Cached:", torch.cuda.memory_cached() / (1024 * 1024))
+    print("Max Memory Cached:", torch.cuda.max_memory_cached() / (1024 * 1024))
+
+
+def get_current_tensors():
+    for obj in gc.get_objects():
+        try:
+            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                print(type(obj), obj.size())
+        except: pass

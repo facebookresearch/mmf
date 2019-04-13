@@ -10,8 +10,9 @@ from pythia.utils.configuration import Configuration
 from pythia.utils.checkpoint import Checkpoint
 from pythia.utils.logger import Logger
 from pythia.utils.general import lr_lambda_update, clip_gradients, \
-                get_optimizer_parameters, dict_to_string
+                get_optimizer_parameters, dict_to_string, get_current_tensors
 from pythia.utils.build import build_model
+from pythia.utils.distributed_utils import reduce_tensor, synchronize
 from pythia.utils.timer import Timer
 from pythia.utils.early_stopping import EarlyStopping
 from pythia.common.task_loader import TaskLoader
@@ -26,6 +27,8 @@ class Trainer:
 
     def load(self):
         self.load_config()
+        self._init_process_group()
+
         self.run_type = self.config.training_parameters.get('run_type',
                                                             "train")
         self.task_loader = TaskLoader(self.config)
@@ -35,7 +38,6 @@ class Trainer:
 
         self.configuration.pretty_print()
 
-        self._init_process_group()
         self.config_based_setup()
 
         self.load_task()
@@ -54,6 +56,7 @@ class Trainer:
                 raise RuntimeError("Unable to initialize process group: "
                                    "NCCL is not available")
             torch.distributed.init_process_group(backend="nccl")
+            synchronize()
 
         if "cuda" in self.device and training_parameters.distributed \
             and self.local_rank is not None:
@@ -96,7 +99,6 @@ class Trainer:
 
     def load_model(self):
         attributes = self.config.model_attributes[self.config.model]
-
         # Easy way to point to config for other model
         if type(attributes) == str:
             attributes = self.config.model_attributes[attributes]
@@ -114,10 +116,14 @@ class Trainer:
         registry.register('data_parallel', data_parallel)
         registry.register('distributed', distributed)
 
-        if "cuda" in self.config.training_parameters.device:
-            self.writer.write("CUDA Device is: "
-                              + torch.cuda.get_device_name(self.local_rank))
+        if "cuda" in str(self.config.training_parameters.device):
+            rank = self.local_rank if self.local_rank is not None else 0
+            self.writer.write("CUDA Device {} is: {}".format(
+                rank, torch.cuda.get_device_name(self.local_rank)
+            ))
 
+        if isinstance(self.device, torch.device):
+            torch.cuda.set_device(self.device)
         self.model = self.model.to(self.device)
 
         self.writer.write("Torch version is: " + torch.__version__)
@@ -183,7 +189,10 @@ class Trainer:
                                                 lr_lambda=scheduler_func)
 
     def config_based_setup(self):
-        seed = self.config.training_parameters.seed + self.local_rank
+        seed = self.config.training_parameters.seed
+        if self.local_rank is not None:
+            seed += self.local_rank
+
         torch.manual_seed(seed)
         torch.cuda.manual_seed(seed)
 
@@ -239,13 +248,8 @@ class Trainer:
         self.checkpoint.restore()
         self.predict()
 
-    def _forward_pass(self, batch):
-        if self.lr_scheduler is not None:
-            self.lr_scheduler.step(self.current_iteration)
-
-        self.optimizer.zero_grad()
-
-        prepared_batch = self.task_loader.prepare_batch('train', batch)
+    def _forward_pass(self, batch, eval_mode=False):
+        prepared_batch = self.task_loader.prepare_batch(batch)
         self.profile("Batch prepare time")
 
         # Arguments should be a dict at this point
@@ -253,30 +257,37 @@ class Trainer:
         report = Report(batch, prepared_batch, model_output)
 
 
-        self.task_loader.verbose_dump('train', report)
-        loss = self.task_loader.calculate_loss_and_metrics('train', report)
-
+        self.task_loader.verbose_dump(report)
+        loss = self.task_loader.calculate_loss_and_metrics(report)
         self.profile("Forward time")
-        loss.backward()
-        self.profile("Backward time")
 
-        report.loss = loss
+        reduced_loss = reduce_tensor(loss)
 
-        if self.should_clip_gradients:
-            clip_gradients(self.model, self.current_iteration,
-                           self.writer, self.config)
+        if not eval_mode:
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
+            self.profile("Backward time")
 
-        self.optimizer.step()
+        report.loss = reduced_loss
 
         return report
 
     def _logistics(self, report):
         extra_info = None
+
+        if self.lr_scheduler is not None:
+            self.lr_scheduler.step(self.current_iteration)
+
+        if self.should_clip_gradients:
+            clip_gradients(self.model, self.current_iteration,
+                           self.writer, self.config)
+
         should_print = self.current_iteration % self.log_interval == 0
         should_break = False
-
         if should_print is True:
-            extra_info = self.single_batch_eval('val', self.val_loader)
+            self.evaluate('val', self.val_loader, single_batch=True)
+            extra_info = "val: " + dict_to_string(registry.get('metrics.val'))
             time_taken = self.train_timer.get_time_since_start()
             extra_info += ", time: %s" % time_taken
 
@@ -290,6 +301,7 @@ class Trainer:
         if should_print is True:
             self.train_timer.reset()
 
+        # TODO: Move to separate function
         if self.current_iteration % self.snapshot_interval == 0:
             # Validation and Early stopping
             avg_loss = self.evaluate('val', self.val_loader)
@@ -301,70 +313,42 @@ class Trainer:
             stop = self.early_stopping(self.current_iteration)
             extra_info += "\n%s" % self.early_stopping.get_info()
 
-            self.task_loader.report_metrics('val', None, avg_loss,
-                                            extra_info=extra_info)
+            self.task_loader.report_metrics(
+                'val', None, avg_loss, extra_info=extra_info
+            )
             gc.collect()
 
             if "cuda" in str(self.device):
                 torch.cuda.empty_cache()
+
             if stop is True:
                 self.writer.write("Early stopping activated")
                 should_break = True
 
         return should_break
 
-    def single_batch_eval(self, dataset_type, loader):
-        self.model.eval()
-
-        batch = next(iter(loader))
-        self.task_loader.reset_meters(dataset_type)
-
-        prepared_batch = self.task_loader.prepare_batch(loader.dataset_type,
-                                                        batch)
-        model_output = self.model(prepared_batch)
-        report = Report(batch, prepared_batch, model_output)
-
-        self.task_loader.calculate_loss_and_metrics(dataset_type, report)
-
-        self.model.train()
-
-        # TODO: Do replace in log string function itself
-        return "val: " + dict_to_string(registry.get('metrics.%s' %
-                                                     dataset_type))
-
-    def evaluate(self, dataset_type, loader, use_tqdm=False):
-        self.model.eval()
+    def evaluate(self, dataset_type, loader, use_tqdm=False,
+                 single_batch=False):
         self.task_loader.reset_meters(dataset_type)
 
         total_loss = 0
         total_samples = 0
 
-        if use_tqdm is True:
-            loader = tqdm(loader)
+        with torch.no_grad():
+            self.model.eval()
+            for batch in tqdm(loader, disable=not use_tqdm):
+                report = self._forward_pass(batch, eval_mode=True)
+                if report.loss is not None:
+                    total_loss += report.loss.item() * \
+                        report.batch_size
 
-        for batch in loader:
-            prepared_batch = self.task_loader.prepare_batch(
-                dataset_type,
-                batch
-            )
+                total_samples += report.batch_size
 
-            model_output = self.model(prepared_batch)
-            report = Report(batch, prepared_batch, model_output)
+                if single_batch is True:
+                    break
 
-            total_samples += prepared_batch.get_batch_size()
+            self.model.train()
 
-            if dataset_type == 'test':
-                self.task_loader.verbose_dump(dataset_type, )
-
-            loss = self.task_loader.calculate_loss_and_metrics(
-                dataset_type,
-                report
-            )
-
-            if loss is not None:
-                total_loss += loss.item() * prepared_batch.get_batch_size()
-
-        self.model.train()
         return total_loss / total_samples
 
     def predict(self):
@@ -390,18 +374,19 @@ class Trainer:
         self.profiler.reset()
 
     def predict_for_evalai(self):
-        self.model.eval()
-        self.writer.write("Starting prediction for evalai")
+        with torch.no_grad():
+            self.model.eval()
+            self.writer.write("Starting prediction for evalai")
 
-        while self.test_reporter.next_dataset():
-            dataloader = self.test_reporter.get_dataloader()
+            while self.test_reporter.next_dataset():
+                dataloader = self.test_reporter.get_dataloader()
 
-            for batch in tqdm(dataloader):
-                prepared_batch = self.test_reporter.prepare_batch(batch)
-                model_output = self.model(prepared_batch)
-                report = Report(batch, prepared_batch, model_output)
+                for batch in tqdm(dataloader):
+                    prepared_batch = self.test_reporter.prepare_batch(batch)
+                    model_output = self.model(prepared_batch)
+                    report = Report(batch, prepared_batch, model_output)
 
-                self.test_reporter.add_to_report(batch, report)
+                    self.test_reporter.add_to_report(report)
 
-        self.writer.write("Finished predicting")
-        self.model.train()
+            self.writer.write("Finished predicting")
+            self.model.train()

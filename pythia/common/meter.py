@@ -63,7 +63,8 @@ class Meter:
             self.meter_values.append(0)
 
         if self.dataset_type == "train":
-            self.iteration_count = registry.get('current_iteration', 0)
+            self.iteration_count = registry.get('current_iteration', 0,
+                                                no_warning=True)
         else:
             self.iteration_count = 0
 
@@ -99,11 +100,9 @@ class Meter:
         expected = report.targets
         output = torch.max(output, 1)[1]
 
-        if self.config['use_cuda']:
-            correct = (expected == output.squeeze()).data.cpu().numpy().sum()
-        else:
-            correct = (expected == output.squeeze()).data.sum()
+        correct = (expected == output.squeeze()).sum()
 
+        correct = correct.item()
         total = len(expected)
 
         current = current * (self.iteration_count - 1)
@@ -126,13 +125,14 @@ class Meter:
         accuracy = torch.sum(scores) / expected_data.size(0)
 
         if self.dataset_type == 'train':
-            current += (1 - self.ACCURACY_DECAY) * (accuracy - current)
+            current += (1 - self.ACCURACY_DECAY) * (accuracy.item() - current)
         else:
             current = current * (self.iteration_count - 1)
-            current += accuracy
+            current += accuracy.item()
             current /= self.iteration_count
         return current
 
+    # TODO: Fix memory leaks from Tensors
     def recall_at_k(self, current, report, k):
         ranks = self.get_ranks(output, expected)
         current = current * (self.iteration_count - 1)

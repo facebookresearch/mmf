@@ -9,6 +9,7 @@ import collections
 
 from ast import literal_eval
 
+from pythia.utils.distributed_utils import is_main_process
 from pythia.common.registry import registry
 
 
@@ -193,7 +194,10 @@ class Configuration:
                                          .format(opt, field))
                 if not isinstance(current[field], collections.Mapping):
                     if idx == len(splits) - 1:
-                        print("Overriding option {} to {}".format(opt, value))
+                        if is_main_process():
+                            print("Overriding option {} to {}"
+                                  .format(opt, value))
+
                         current[field] = self._decode_value(value)
                     else:
                         raise AttributeError("While updating configuration",
@@ -271,8 +275,9 @@ class Configuration:
 
         if not torch.cuda.is_available() and \
             "cuda" in self.config['training_parameters']['device']:
-            print("WARNING: Device specified is 'cuda' but cuda is not present"
-                  ". Switching to CPU version")
+            if is_main_process():
+                print("WARNING: Device specified is 'cuda' but cuda is "
+                      "not present. Switching to CPU version")
             self.config['training_parameters']['device'] = "cpu"
 
         tp = self.config['training_parameters']
