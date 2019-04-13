@@ -5,6 +5,7 @@ from multiprocessing.pool import ThreadPool
 
 from pythia.tasks.feature_readers import FeatureReader
 from pythia.common.registry import registry
+from pythia.utils.distributed_utils import is_main_process
 
 
 class FeaturesDataset:
@@ -65,7 +66,14 @@ class COCOFeaturesDataset(BaseFeaturesDataset):
     def _threaded_read(self):
         elements = [idx for idx in range(1, len(self.imdb))]
         pool = ThreadPool(processes=4)
-        pool.map(self._fill_cache, elements)
+        is_main = is_main_process()
+        with tqdm.tqdm(total=len(elements),
+                       disable=not is_main_process()) as pbar:
+            for i, _ in enumerate(
+                pool.imap_unordered(self._fill_cache, elements)
+            ):
+                if i % 100 == 0:
+                    pbar.update(100)
         pool.close()
 
     def _fill_cache(self, idx):
