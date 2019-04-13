@@ -24,7 +24,9 @@ class BaseDataset(Dataset):
 
     def init_loss_and_metrics(self, config):
         self.writer = registry.get('writer')
-        self.should_log = registry.get('config').get('should_log', True)
+
+        tp = self._global_config.training_parameters
+        self.should_log = not tp.should_not_log
 
         task_metrics = config.get('metrics', [])
         if isinstance(task_metrics, str):
@@ -33,12 +35,17 @@ class BaseDataset(Dataset):
         self.meter = Meter(self._name, self._dataset_type, task_metrics)
         self.loss_fn = Loss(config['loss'])
 
+        self.loss_fn = self.loss_fn.to(self._device)
+
         if type(config['loss']) == dict:
             self.loss_name = config['loss']['type']
         else:
             self.loss_name = config['loss']
 
     def load_item(self, idx):
+        raise NotImplementedError
+
+    def get_item(self, idx):
         raise NotImplementedError
 
     def calculate_loss_and_metrics(self, *args, **kwargs):
@@ -49,8 +56,9 @@ class BaseDataset(Dataset):
         self.meter(*args, **kwargs)
 
     def _calculate_loss(self, *args, **kwargs):
-        self.last_loss = self.loss_fn(*args, **kwargs)
-        return self.last_loss
+        loss = self.loss_fn(*args, **kwargs)
+        self.last_loss = loss.item()
+        return loss
 
     def reset_meters(self):
         self.meter.reset()
@@ -62,11 +70,25 @@ class BaseDataset(Dataset):
             'data_root_dir': self.config.data_root_dir
         }
         for processor_key, processor_params in self.config.processors.items():
-            setattr(self, processor_key,
-                    Processor(processor_params, **extra_params))
+            reg_key = "{}_{}".format(self._name, processor_key)
+            reg_check = registry.get(reg_key, no_warning=True)
+
+            if reg_check is None:
+                processor_object = Processor(processor_params, **extra_params)
+                setattr(self, processor_key, processor_object)
+                registry.register(reg_key, processor_object)
+            else:
+                setattr(self, processor_key, reg_check)
 
     def try_fast_read(self):
         return
+
+    def __getitem__(self, idx):
+        # TODO: Add warning about overriding
+        sample = self.get_item(idx)
+        sample.dataset_type = self._dataset_type
+        sample.dataset_name = self._name
+        return sample
 
     def prepare_batch(self, batch):
         """
@@ -132,7 +154,7 @@ class BaseDataset(Dataset):
 
         self.writer.add_scalars(scalars, registry.get('current_iteration'))
 
-    def format_for_evalai(self, batch, answers):
+    def format_for_evalai(self, report):
         return []
 
     def verbose_dump(self, *args, **kwargs):

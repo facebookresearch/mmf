@@ -6,6 +6,7 @@ from pythia.tasks.image_database import ImageDatabase
 from pythia.tasks.features_dataset import FeaturesDataset
 from pythia.common.sample import Sample
 from pythia.tasks.base_dataset import BaseDataset
+from pythia.utils.distributed_utils import is_main_process
 
 
 class VQA2Dataset(BaseDataset):
@@ -68,13 +69,16 @@ class VQA2Dataset(BaseDataset):
         if self._dataset_type == "test":
             return
 
+        self.writer.write("Starting to fast read {} {} dataset"
+                          .format(self._name, self._dataset_type))
         if hasattr(self, '_should_fast_read') and \
             self._should_fast_read is True:
             self.cache = {}
-            for idx in tqdm.tqdm(range(len(self.imdb) - 1)):
+            for idx in tqdm.tqdm(range(len(self.imdb)), miniters=100,
+                                 disable=not is_main_process()):
                 self.cache[idx] = self.load_item(idx)
 
-    def __getitem__(self, idx):
+    def get_item(self, idx):
         if self._should_fast_read is True:
             return self.cache[idx]
         else:
@@ -91,8 +95,17 @@ class VQA2Dataset(BaseDataset):
         processed_question = self.text_processor(text_processor_argument)
 
         current_sample.text = processed_question["text"]
-        current_sample.text_id = sample_info["question_id"]
-        current_sample.image_id = sample_info["image_id"]
+        current_sample.question_id = torch.tensor(
+            sample_info["question_id"], dtype=torch.int
+        )
+
+        if isinstance(sample_info["image_id"], int):
+            current_sample.image_id = torch.tensor(
+                sample_info["image_id"], dtype=torch.int
+            )
+        else:
+            current_sample.image_id = sample_info["image_id"]
+
         current_sample.text_len = torch.tensor(
             len(sample_info["question_tokens"]), dtype=torch.int
         )
@@ -101,29 +114,31 @@ class VQA2Dataset(BaseDataset):
             features = self.features_db[idx]
             current_sample.update(features)
 
-        # TODO: Fix IMDB
-        sample_info["answers"] = sample_info["valid_answers"]
-        answer_processor_argument = {
-            "answers": sample_info["answers"]
-        }
 
-        processed_answer = self.answer_processor(answer_processor_argument)
-        current_sample.answers = processed_answer["answers"]
-        current_sample.targets = processed_answer["answers_scores"]
-
+        current_sample = self.add_answer_info(sample_info, current_sample)
         return current_sample
+
+    def add_answer_info(self, sample_info, sample):
+        if "answers" in sample_info:
+            answer_processor_argument = {
+                "answers": sample_info["answers"]
+            }
+
+            processed_answer = self.answer_processor(answer_processor_argument)
+            sample.answers = processed_answer["answers"]
+            sample.targets = processed_answer["answers_scores"]
+        return sample
 
     def idx_to_answer(self, idx):
         return self.answer_processor.convert_idx_to_answer(idx)
 
-    def format_for_evalai(self, batch, answers):
-        answers = answers.argmax(dim=1)
+    def format_for_evalai(self, report):
+        answers = report.scores.argmax(dim=1)
 
         predictions = []
 
-        for idx, question_id in enumerate(batch['question_id']):
-            answer = self.answer_dict.idx2word(answers[idx])
-
+        for idx, question_id in enumerate(report.question_id):
+            answer = self.answer_processor.idx2word(answers[idx])
             predictions.append({
                 'question_id': question_id.item(),
                 'answer': answer

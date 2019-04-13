@@ -280,8 +280,8 @@ class VQAConcatDataset(ConcatDataset):
         self.name = self.datasets[0].name
         self.answer_dict = datasets[0].answer_dict
 
-    def calculate_loss(self, output, expected_output, info):
-        return self.datasets[0].calculate_loss(output, expected_output, info)
+    def calculate_loss_and_metrics(self, output, expected_output, info):
+        return self.datasets[0].calculate_loss_and_metrics(output, expected_output, info)
 
     def init_loss_and_metrics(self, config):
         self.datasets[0].init_loss_and_metrics(config)

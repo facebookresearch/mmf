@@ -51,7 +51,20 @@ class ImageDatabase(torch.utils.data.Dataset):
         return len(self.data) - self.start_idx
 
     def __getitem__(self, idx):
-        return self.data[idx + self.start_idx]
+        data = self.data[idx + self.start_idx]
+
+        # Hacks for older IMDBs
+        if "answers" not in data:
+            if "all_answers" in data and "valid_answers" not in data:
+                data["answers"] = data["answers"]
+            if "valid_answers" in data:
+                data["answers"] = data["valid_answers"]
+
+        # TODO: Later clean up VizWIz IMDB from copy tokens
+        if "answers" in data and data["answers"][-1] == "<copy>":
+            data["answers"] = data["answers"][:-1]
+
+        return data
 
     def get_version(self):
         return self.metadata.get('version', None)

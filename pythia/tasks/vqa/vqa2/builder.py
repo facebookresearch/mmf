@@ -67,7 +67,6 @@ class VQA2Builder(BaseDatasetBuilder):
         for imdb_idx in range(len(imdb_files)):
             cls = self.dataset_class
             dataset = cls(dataset_type, imdb_idx, config)
-            dataset.try_fast_read()
             datasets.append(dataset)
 
         dataset = PythiaConcatDataset(datasets)

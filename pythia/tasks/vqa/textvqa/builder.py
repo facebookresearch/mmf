@@ -7,5 +7,5 @@ from .dataset import TextVQADataset
 class TextVQABuilder(VizWizBuilder):
     def __init__(self):
         super().__init__()
-        self.dataset_name = 'TextVQA'
+        self.dataset_name = 'textvqa'
         self.set_dataset_class(TextVQADataset)

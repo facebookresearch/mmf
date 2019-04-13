@@ -5,11 +5,12 @@ from torch.utils.data import ConcatDataset
 
 
 class PythiaConcatDataset(ConcatDataset):
-    # This functions should only be called once even if they return nothing
+    # These functions should only be called once even if they return nothing
     _SINGLE_CALL_FUNCS = []
     def __init__(self, datasets):
         super().__init__(datasets)
         self._dir_representation = dir(self)
+
     def __getattr__(self, name):
         if name in self._dir_representation:
             return getattr(self, name)
