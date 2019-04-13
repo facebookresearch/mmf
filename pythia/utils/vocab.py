@@ -150,8 +150,26 @@ class BaseVocab:
     def get_pad_index(self):
         return self.PAD_INDEX
 
+    def get_pad_token(self):
+        return self.PAD_TOKEN
+
+    def get_start_index(self):
+        return self.SOS_INDEX
+
+    def get_start_token(self):
+        return self.SOS_TOKEN
+
+    def get_end_index(self):
+        return self.EOS_INDEX
+
+    def get_end_token(self):
+        return self.EOS_TOKEN
+
     def get_unk_index(self):
         return self.UNK_INDEX
+
+    def get_unk_token(self):
+        return self.UNK_TOKEN
 
     def get_vectors(self):
         return getattr(self, 'vectors', None)

@@ -1,9 +1,13 @@
 import torch
+import os
+
+from collections import Counter
 
 from pythia.common.registry import registry
 from pythia.utils.vocab import Vocab, WordToVectorDict
 from pythia.utils.configuration import ConfigNode
 from pythia.utils.text_utils import VocabDict
+from pythia.utils.distributed_utils import is_main_process, synchronize
 
 
 class BaseProcessor:
@@ -51,6 +55,8 @@ class Processor:
 @registry.register_processor("vocab")
 class VocabProcessor(BaseProcessor):
     MAX_LENGTH_DEFAULT = 50
+    PAD_TOKEN = "<pad>"
+    PAD_INDEX = 0
     def __init__(self, config, *args, **kwargs):
         if not hasattr(config, "vocab"):
             raise AttributeError("config passed to the processor has no "
@@ -100,9 +106,22 @@ class VocabProcessor(BaseProcessor):
             raise AssertionError("A dict with either 'text' or 'tokens' keys "
                                  "must be passed to the processor")
 
+        tokens, length = self._pad_tokens(tokens)
+
         return {
-            "text": indices
+            "text": indices,
+            "tokens": tokens,
+            "length": length
         }
+
+    def _pad_tokens(self, tokens):
+        padded_tokens = [self.PAD_TOKEN] * self.max_length
+        token_length = min(len(tokens), self.max_length)
+        padded_tokens[:token_length] = tokens[:token_length]
+        return padded_tokens, token_length
+
+    def get_pad_index(self):
+        return self.vocab.get_pad_index()
 
     def get_vocab_size(self):
         return self.vocab.get_size()
@@ -157,11 +176,45 @@ class FastTextProcessor(VocabProcessor):
     def __init__(self, config, *args, **kwargs):
         self._init_extras(config)
 
-        if not hasattr(config, "model_file"):
-            raise AttributeError("'model_file' key is required but missing "
-                                 "from FastTextProcessor's config.")
+        needs_download = False
 
-        self._load_fasttext_model(config.model_file)
+        if not hasattr(config, "model_file"):
+            self.writer.write("'model_file' key is required but missing "
+                              "from FastTextProcessor's config.", "warning")
+            needs_download = True
+        elif not os.path.exists(config.model_file):
+            self.writer.write("No model file present at {}."
+                              .format(config.model_file), "warning")
+            needs_download = True
+
+        if needs_download:
+            self.writer.write("Downloading FastText vectors", "info")
+            model_file = self._download_model()
+        else:
+            model_file = config.model_file
+
+        synchronize()
+
+        self._load_fasttext_model(model_file)
+
+    def _download_model(self):
+        model_file_path = os.path.join(".vector_cache", "wiki.en.bin")
+
+        if not is_main_process():
+            return model_file_path
+
+        if os.path.exists(model_file_path):
+            self.writer.write("Vectors already present at {}."
+                              .format(model_file_path), "info")
+            return model_file_path
+
+        import torchtext
+        torchtext.vocab.FastText('en')
+
+        self.writer.write("Vectors downloaded at {}."
+                          .format(model_file_path), "info")
+
+        return model_file_path
 
     def _load_fasttext_model(self, model_file):
         from fastText import load_model
@@ -171,17 +224,18 @@ class FastTextProcessor(VocabProcessor):
         self.model = load_model(model_file)
         # String to Vector
         self.stov = WordToVectorDict(self.model)
+        self.writer.write("Finished loading fasttext model")
 
     def _map_strings_to_indices(self, tokens):
         length = min(len(tokens), self.max_length)
         tokens = tokens[:length]
 
         output = torch.full((self.max_length, self.model.get_dimension()),
-                            fill_value=self.vocab.get_pad_index(),
+                            fill_value=self.PAD_INDEX,
                             dtype=torch.float)
 
         for idx, token in enumerate(tokens):
-            output[idx] = self.stov[token]
+            output[idx] = torch.from_numpy(self.stov[token])
 
         return output
 
@@ -205,6 +259,7 @@ class VQAAnswerProcessor(BaseProcessor):
             if self.preprocessor is None:
                 raise ValueError("No processor named {} is defined."
                                  .format(config.preprocessor))
+
 
         if hasattr(config, "num_answers"):
             self.num_answers = config.num_answers
@@ -249,6 +304,12 @@ class VQAAnswerProcessor(BaseProcessor):
     def get_vocab_size(self):
         return self.answer_vocab.num_vocab
 
+    def word2idx(self, word):
+        return self.answer_vocab.word2idx(word)
+
+    def idx2word(self, idx):
+        return self.answer_vocab.idx2word(idx)
+
     def compute_answers_scores(self, answers_indices):
         scores = torch.zeros(self.get_vocab_size(), dtype=torch.float)
         gt_answers = list(enumerate(answers_indices))
@@ -274,6 +335,81 @@ class VQAAnswerProcessor(BaseProcessor):
         return scores
 
 
+@registry.register_processor("soft_copy_answer")
+class SoftCopyAnswerProcessor(VQAAnswerProcessor):
+    DEFAULT_MAX_LENGTH = 50
+    def __init__(self, config, *args, **kwargs):
+        super().__init__(config, *args, **kwargs)
+
+        if not hasattr(config, "use_soft_copy"):
+            self.writer.warning("SoftCopyAnswerProcessor's config doesn't "
+                                "have field 'use_soft_copy'. Setting to "
+                                "default of False", "warning")
+            self.use_soft_copy = False
+        else:
+            self.use_soft_copy = config.use_soft_copy
+
+        if hasattr(config, "max_length"):
+            self.max_length = config.max_length
+        else:
+            self.max_length = self.DEFAULT_MAX_LENGTH
+            self.writer.write("'max_length' not defined in the config. "
+                              "Setting to default of {}"
+                              .format(self.DEFAULT_MAX_LENGTH), "warning")
+
+        self.context_preprocessor = None
+        if hasattr(config, "context_preprocessor"):
+            self.context_preprocessor = Processor(config.context_preprocessor)
+
+    def __call__(self, item):
+        answers = item["answers"]
+        scores = super().__call__({"answers": answers})
+
+        if self.use_soft_copy is False:
+            return scores
+
+        indices = scores["answers"]
+        scores = scores["answers_scores"]
+
+        tokens_scores = scores.new_zeros(self.max_length)
+        tokens = item["tokens"]
+        length = min(len(tokens), self.max_length)
+
+        gt_answers = list(enumerate(indices))
+        unique_answers = set(indices.tolist())
+
+        if self.context_preprocessor is not None:
+            tokens = [self.context_preprocessor({"text": token})["text"]
+                      for token in tokens]
+
+        answer_counter = Counter(tokens)
+
+        for idx, token in enumerate(tokens[:length]):
+            token_idx = self.answer_vocab.word2idx(token)
+
+            if answer_counter[token] == 0:
+                continue
+            accs = []
+
+            for gt_answer in gt_answers:
+                other_answers = [item for item in gt_answers
+                                 if item != gt_answer]
+                matching_answers = [item for item in other_answers
+                                    if item[1] == token_idx]
+                acc = min(1, float(len(matching_answers)) / 3)
+                accs.append(acc)
+
+                if token_idx == self.answer_vocab.get_unk_index():
+                    tokens_scores[idx] = 0
+                else:
+                    tokens_scores[idx] = sum(accs) / len(accs)
+        scores = torch.cat([scores, tokens_scores], dim=-1)
+
+        return {
+            "answers": indices,
+            "answers_scores": scores
+        }
+
 @registry.register_processor("simple_word")
 class SimpleWordProcessor(BaseProcessor):
     def __init__(self, *args, **kwargs):
@@ -292,3 +428,18 @@ class SimpleSentenceProcessor(BaseProcessor):
 
     def __call__(self, item):
         return {"text": self.tokenizer(item["text"])}
+
+
+@registry.register_processor("bbox")
+class BBoxProcessor(VocabProcessor):
+    def __init__(self, config, *args, **kwargs):
+        from pythia.utils.dataset_utils import build_bbox_tensors
+        self.lambda_fn = build_bbox_tensors
+        self._init_extras(config)
+
+    def __call__(self, item):
+        info = item["info"]
+        if self.preprocessor is not None:
+            info = self.preprocessor(info)
+
+        return {"bbox": self.lambda_fn(info)}
