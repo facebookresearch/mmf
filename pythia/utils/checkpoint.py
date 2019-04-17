@@ -188,12 +188,13 @@ class Checkpoint:
                                           self.ckpt_prefix + "best.ckpt")
 
         best_iteration = self.trainer.early_stopping.best_monitored_iteration
-        best_metric = self.trainer.early_stopping.best_monitored_metric
+        best_metric = self.trainer.early_stopping.best_monitored_value
+
         ckpt = {
             'model': self.trainer.model.state_dict(),
             'optimizer': self.trainer.optimizer.state_dict(),
             'best_iteration': best_iteration,
-            'best_metric': best_metric,
+            'best_metric_value': best_metric,
             'config': self.config
         }
 
