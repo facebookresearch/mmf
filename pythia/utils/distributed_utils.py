@@ -38,6 +38,21 @@ def get_world_size():
     return dist.get_world_size()
 
 
+def broadcast_tensor(tensor, src=0):
+    world_size = get_world_size()
+    if world_size < 2:
+        return tensor
+
+    with torch.no_grad():
+        dist.broadcast(tensor, src=0)
+
+    return tensor
+
+def broadcast_scalar(scalar, src=0, device='cpu'):
+    scalar_tensor = torch.tensor(scalar).to(device)
+    scalar_tensor = broadcast_tensor(scalar_tensor, src)
+    return scalar_tensor.item()
+
 def reduce_tensor(tensor):
     world_size = get_world_size()
 
@@ -67,3 +82,22 @@ def gather_tensor(tensor):
         dist.all_gather(tensor_list, tensor)
         tensor_list = torch.stack(tensor_list, dim=0)
     return tensor_list
+
+
+def reduce_dict(dictionary):
+    world_size = get_world_size()
+    if world_size < 2:
+        return dictionary
+
+    with torch.no_grad():
+        keys, values = zip(*sorted(dictionary.items()))
+        values = torch.stack(values, dim=0)
+
+        dist.reduce(values, dst=0)
+
+        if dist.get_rank() == 0:
+            # only main process gets accumulated, so only divide by
+            # world_size in this case
+            values /= world_size
+        reduced_dict = {k: v for k, v in zip(keys, values)}
+    return reduced_dict

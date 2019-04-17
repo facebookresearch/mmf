@@ -2,6 +2,10 @@ includes:
 - configs/vqa/textvqa/pythia.yml
 model_attributes:
   ban:
+    metrics:
+    - type: vqa_accuracy
+    losses:
+    - type: logit_bce
     text_embedding:
       num_hidden: 1280
       vocab_size: 1280

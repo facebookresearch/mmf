@@ -17,19 +17,23 @@ class Timer:
     def get_time_since_start(self, format=None):
         return self.get_time_hhmmss(self.start, format)
 
-    def get_time_hhmmss(self, start=None, format=None):
+    def get_time_hhmmss(self, start=None, end=None, gap=None, format=None):
         """
         Calculates time since `start` and formats as a string.
         """
-        if start is None:
+        if start is None and gap is None:
 
             if format is None:
                 format = self.DEFAULT_TIME_FORMAT_DATE_TIME
 
             return time.strftime(format)
 
-        end = time.time() * 1000
-        s, ms = divmod(end - start, 1000)
+        if end is None:
+            end = time.time() * 1000
+        if gap is None:
+            gap = end - start
+
+        s, ms = divmod(gap, 1000)
         m, s = divmod(s, 60)
         h, m = divmod(m, 60)
 
@@ -45,4 +49,4 @@ class Timer:
             if item != 0:
                 time_str = format[idx] % item + " " + time_str
 
-        return time_str
+        return time_str.strip()

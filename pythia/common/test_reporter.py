@@ -68,7 +68,7 @@ class TestReporter(Dataset):
 
         name = self.current_dataset._name
         time_format = "%Y-%m-%dT%H:%M:%S"
-        time = self.timer.get_time_hhmmss(None, time_format)
+        time = self.timer.get_time_hhmmss(None, format=time_format)
 
         filename = name + "_"
 

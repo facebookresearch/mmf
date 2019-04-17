@@ -60,11 +60,6 @@ class MultiTask(Dataset):
     def get_tasks(self):
         return self.tasks
 
-    def calculate_loss_and_metrics(self, *args, **kwargs):
-        loss = self.chosen_task.calculate_loss_and_metrics(*args, **kwargs)
-        registry.register('metrics.%s.loss' % self.dataset_type, loss)
-        return loss
-
     def verbose_dump(self, *args):
         self.chosen_task.verbose_dump(*args)
 
@@ -77,18 +72,12 @@ class MultiTask(Dataset):
 
         return item
 
-    def report_metrics(self, *args, **kwargs):
-        self.chosen_task.report_metrics(*args, **kwargs)
-
     def update_registry_for_model(self, config):
         for task in self.tasks:
             task.update_registry_for_model(config)
 
     def prepare_batch(self, batch):
         return self.chosen_task.prepare_batch(batch)
-
-    def reset_meters(self):
-        self.chosen_task.reset_meters()
 
     def init_args(self, parser):
         for task in self.tasks:

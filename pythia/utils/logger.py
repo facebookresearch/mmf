@@ -26,7 +26,8 @@ class Logger:
         self.log_folder += foldername_from_config_override(config)
         time_format = "%Y-%m-%dT%H:%M:%S"
         self.log_filename = ckpt_name_from_core_args(config) + '_'
-        self.log_filename += self.timer.get_time_hhmmss(None, time_format)
+        self.log_filename += self.timer.get_time_hhmmss(None,
+                                                        format=time_format)
         self.log_filename += ".log"
 
 
@@ -46,6 +47,8 @@ class Logger:
                                          self.log_filename)
 
         print("Logging to:", self.log_filename)
+
+        logging.captureWarnings(True)
 
         self.logger = logging.getLogger(__name__)
         self._file_only_logger = logging.getLogger(__name__)

@@ -1,4 +1,5 @@
 import collections
+import warnings
 
 from collections import OrderedDict
 
@@ -6,51 +7,53 @@ from pythia.common.registry import registry
 
 
 class Report(OrderedDict):
-    def __init__(self, batch, prepared_batch, model_output, *args):
-        all_args = [batch, prepared_batch, model_output] + [*args]
+    def __init__(self, batch, model_output={}, *args):
+        super().__init__(self)
+        if self._check_and_load_tuple(batch):
+            return
+
+        all_args = [batch, model_output] + [*args]
         for idx, arg in enumerate(all_args):
             if not isinstance(arg, collections.Mapping):
                 raise TypeError("Argument {:d}, {} must be of instance of "
                                 "collections.Mapping".format(idx, arg))
 
-        super().__init__(batch)
-
-        self.update(prepared_batch)
-        self["batch_size"] = prepared_batch.get_batch_size()
 
         self.writer = registry.get("writer")
 
         self.warning_string = "Updating forward report with key {}" \
-                         "{}, but it already exists " \
-                         "in {}. " \
-                         "Please consider using a different key, " \
-                         "as this can cause issues during loss and " \
-                         "metric calculations."
+                              "{}, but it already exists in {}. "\
+                              "Please consider using a different key, " \
+                              "as this can cause issues during loss and " \
+                              "metric calculations."
 
-        for key, item in model_output.items():
-            if key in self:
-                log = self.warning_string.format(
-                        key, " from model output",
-                        "sample list returned from the dataset"
-                )
-                self.writer.single_write(log, "warning")
-            self[key] = item
-
-        for arg in args:
+        for arg in all_args:
             for key, item in arg.items():
                 if key in self:
                     log = self.warning_string.format(
-                        key, "", "sample list and model output"
+                        key, "", "in previous arguments to report"
                     )
-                    self.writer.single_write(log, "warning")
+                    warnings.warn(log)
                 self[key] = item
+
+    def _check_and_load_tuple(self, batch):
+        if isinstance(batch, collections.Mapping):
+            return False
+
+        if isinstance(batch[0], (tuple, list)) \
+            and isinstance(batch[0][0], str):
+            for kv_pair in batch:
+                self[kv_pair[0]] = kv_pair[1]
+            return True
+        else:
+            return False
 
     def __setattr__(self, key, value):
         if key in self:
             log = self.warning_string.format(
                 key, "", "sample list and model output"
             )
-            self.writer.single_write(log, "warning")
+            warnings.warn(log)
         self[key] = value
 
     def __getattr__(self, key):

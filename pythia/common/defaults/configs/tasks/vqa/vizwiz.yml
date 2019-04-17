@@ -57,9 +57,6 @@ task_attributes:
                     type: bbox
                     params:
                       max_length: 50
-                metrics:
-                - vqa_accuracy
-                loss: logit_bce
                 return_info: true
                 # Return OCR information
                 use_ocr: true

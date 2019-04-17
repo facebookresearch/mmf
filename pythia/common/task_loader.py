@@ -120,22 +120,8 @@ class TaskLoader:
         self.val_task.clean_config(config)
         self.test_task.clean_config(config)
 
-    def report_metrics(self, dataset_type, report, *args, **kwargs):
-        if self.should_not_log:
-            return
-        # TODO: Complete this by calling child report metrics
-        task = self.mapping[dataset_type]
-        task.report_metrics(report, *args, **kwargs)
-
-    def calculate_loss_and_metrics(self, report, *args, **kwargs):
-        task = self.mapping[report.dataset_type]
-        return task.calculate_loss_and_metrics(report, *args, **kwargs)
-
     def prepare_batch(self, batch, *args, **kwargs):
         return self.mapping[batch.dataset_type].prepare_batch(batch)
-
-    def reset_meters(self, dataset_type):
-        self.mapping[dataset_type].reset_meters()
 
     def verbose_dump(self, report, *args, **kwargs):
         if self.config.training_parameters.verbose_dump:

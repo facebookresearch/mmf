@@ -1,6 +1,8 @@
+import torch
 import numpy as np
 
 from pythia.common.registry import registry
+from pythia.utils.distributed_utils import is_main_process
 
 
 class EarlyStopping:
@@ -8,25 +10,25 @@ class EarlyStopping:
     Provides early stopping functionality. Keeps track of model metrics,
     and if it doesn't improve over time restores last best performing
     parameters.
-
-    Use monitored_metric = -1 for monitoring based on loss otherwise use
-    array index of your metric in metrics section of your config
     """
 
-    def __init__(self, model, checkpoint_instance, monitored_metric=-1,
-                 patience=1000, minimize=False, should_stop=True):
+    def __init__(self, model, checkpoint_instance,
+                 monitored_metric="total_loss", patience=1000,
+                 minimize=False, should_stop=True):
         self.minimize = minimize
         self.patience = patience
         self.model = model
         self.checkpoint = checkpoint_instance
         self.monitored_metric = monitored_metric
-        self.best_monitored_metric = -np.inf if not minimize else np.inf
+        if "val" not in self.monitored_metric:
+            self.monitored_metric = "val/{}".format(self.monitored_metric)
+        self.best_monitored_value = -np.inf if not minimize else np.inf
         self.best_monitored_iteration = 0
         self.should_stop = should_stop
         self.activated = False
         self.metric = self.monitored_metric
 
-    def __call__(self, iteration):
+    def __call__(self, iteration, meter):
         """
         Method to be called everytime you need to check whether to
         early stop or not
@@ -35,13 +37,21 @@ class EarlyStopping:
         Returns:
             bool -- Tells whether early stopping occurred or not
         """
-        value = registry.get('metrics.val.%s' % self.monitored_metric)
-        if hasattr(value, 'data'):
+        if not is_main_process():
+            return False
+
+        value = meter.meters.get(self.monitored_metric, None).global_avg
+
+        if value is None:
+            raise ValueError("Metric used for early stopping ({}) is not "
+                             "present in meter.".format(self.monitored_metric))
+
+        if isinstance(value, torch.Tensor):
             value = value.item()
 
-        if (self.minimize and value < self.best_monitored_metric) or \
-                (not self.minimize and value > self.best_monitored_metric):
-            self.best_monitored_metric = value
+        if (self.minimize and value < self.best_monitored_value) or \
+                (not self.minimize and value > self.best_monitored_value):
+            self.best_monitored_value = value
             self.best_monitored_iteration = iteration
             self.checkpoint.save(iteration, update_best=True)
 
@@ -63,9 +73,12 @@ class EarlyStopping:
 
     def init_from_checkpoint(self, load):
         self.best_monitored_iteration = load['best_iteration']
-        self.best_monitored_metric = load['best_metric']
+        self.best_monitored_value = load['best_metric_value']
 
     def get_info(self):
-        return "Best %s: %0.6f, Best iteration: %d" % \
-                (self.metric, self.best_monitored_metric,
-                 self.best_monitored_iteration)
+        return {
+            "best iteration": self.best_monitored_iteration,
+            "best {}".format(self.metric): "{:.6f}".format(
+                self.best_monitored_value
+            )
+        }

@@ -15,6 +15,7 @@ class Registry:
         'builder_name_mapping': {},
         'model_name_mapping': {},
         'metric_name_mapping': {},
+        'loss_name_mapping': {},
         'processor_name_mapping': {},
         'state': {}
     }
@@ -37,6 +38,13 @@ class Registry:
     def register_metric(cls, name):
         def wrap(func):
             cls.mapping['metric_name_mapping'][name] = func
+            return func
+        return wrap
+
+    @classmethod
+    def register_loss(cls, name):
+        def wrap(func):
+            cls.mapping['loss_name_mapping'][name] = func
             return func
         return wrap
 
@@ -83,8 +91,12 @@ class Registry:
         return cls.mapping['processor_name_mapping'].get(name, None)
 
     @classmethod
-    def get_metric_func(cls, name):
+    def get_metric_class(cls, name):
         return cls.mapping['metric_name_mapping'].get(name, None)
+
+    @classmethod
+    def get_loss_class(cls, name):
+        return cls.mapping['loss_name_mapping'].get(name, None)
 
     @classmethod
     def get(cls, name, default=None, no_warning=False):

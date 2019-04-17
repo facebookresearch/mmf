@@ -18,13 +18,12 @@ task_attributes:
                     - coco/detectron_fix_100/fc6/test2015,coco/resnet152/test2015
                 imdb_files:
                     train:
-                    - imdb/imdb_train2014.npy
-                    - imdb/imdb_val2014.npy
-                    # - imdb/imdb_minival2014.npy
+                    - imdb/vqa/imdb_train2014.npy
+                    - imdb/vqa/imdb_val2014.npy
                     val:
-                    - imdb/imdb_minival2014.npy
+                    - imdb/vqa/imdb_minival2014.npy
                     test:
-                    - imdb/imdb_test2015.npy
+                    - imdb/vqa/imdb_test2015.npy
                 features_max_len: 100
                 processors:
                   text_processor:
@@ -43,9 +42,6 @@ task_attributes:
                       preprocessor:
                         type: simple_word
                         params: {}
-                metrics:
-                - vqa_accuracy
-                loss: logit_bce
                 return_info: true
 training_parameters:
     monitored_metric: vqa2_vqa_accuracy

@@ -3,6 +3,10 @@ includes:
 model_attributes:
   pythia: &pythia
     model_data_dir: ../data
+    metrics:
+    - type: vqa_accuracy
+    losses:
+    - type: logit_bce
     num_context_features: 1
     context_feature_dim: 300
     image_feature_dim: 2048
@@ -70,7 +74,7 @@ training_parameters:
     batch_size: 128
     num_workers: 7
     task_size_proportional_sampling: true
-    monitored_metric: textvqa_vqa_accuracy
+    monitored_metric: vqa_accuracy
     pretrained_mapping:
       text_embeddings: text_embeddings
       image_feature_encoders: image_feature_encoders

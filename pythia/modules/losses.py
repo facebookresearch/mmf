@@ -1,11 +1,3 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-#
-
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -13,72 +5,97 @@ import torch.nn.functional as F
 from pythia.common.registry import registry
 
 
+class Losses(nn.Module):
+    def __init__(self, loss_list):
+        super().__init__()
+        self.losses = []
+        for loss in loss_list:
+            self.losses.append(Loss(loss))
+
+    def forward(self, sample_list, model_output, *args, **kwargs):
+        output = {}
+
+        if not hasattr(sample_list, "targets"):
+            return output
+
+        for loss in self.losses:
+            output.update(loss(sample_list, model_output, *args, **kwargs))
+
+        return output
+
 class Loss(nn.Module):
     def __init__(self, params={}):
-        super(Loss, self).__init__()
-        if type(params) == str:
-            loss_type = params
+        super().__init__()
+        self.writer = registry.get("writer")
+        if "type" not in params:
+            raise ValueError("Parameters to loss must have 'type' field to"
+                             "specify type of loss to instantiate")
+
+        loss_name = params["type"]
+        self.name = loss_name
+
+        loss_class = registry.get_loss_class(loss_name)
+
+        if loss_class is None:
+            raise ValueError("No loss named {} is registered to registry"
+                             .format(loss_name))
+        # Special case of multi as it requires an array
+        if loss_name == "multi":
+            self.loss_criterion = loss_class(params)
         else:
-            loss_type = params['type']
-        if loss_type == 'logit_bce':
-            self.loss_criterion = LogitBinaryCrossEntropy()
-        elif loss_type == 'softmax_kl':
-            self.loss_criterion = SoftmaxKlDivLoss()
-        elif loss_type == 'wrong':
-            self.loss_criterion = WrongLoss()
-        elif loss_type == 'combined':
-            self.loss_criterion = CombinedLoss()
-        elif loss_type == 'mse':
-            self.loss_criterion = nn.MSELoss()
-        elif loss_type == 'bce':
-            self.loss_criterion = BinaryCrossEntropyLoss()
-        elif loss_type == 'nll':
-            self.loss_criterion = NLLLoss()
-        elif loss_type == 'attention_supervision':
-            self.loss_criterion = AttentionSupervisionLoss()
-        elif loss_type == 'multi':
-            self.loss_criterion = MultiLoss(params['params'])
-        elif hasattr(nn, loss_type):
-            self.loss_criterion = getattr(nn, loss_type)()
-        else:
-            raise NotImplementedError("Unknown loss type: %s" % loss_type)
+            loss_params = params.get("params", {})
+            self.loss_criterion = loss_class(**loss_params)
 
-    def forward(self, *args, **kwargs):
-        return self.loss_criterion(*args, **kwargs)
+    def forward(self, sample_list, model_output, *args, **kwargs):
+        loss = self.loss_criterion(sample_list, model_output, *args, **kwargs)
+
+        if loss.dim() == 0:
+            loss = loss.view(1)
+        return {
+            "{}/{}".format(sample_list.dataset_type, self.name): loss
+        }
 
 
+@registry.register_loss("logit_bce")
 class LogitBinaryCrossEntropy(nn.Module):
     def __init__(self):
-        super(LogitBinaryCrossEntropy, self).__init__()
+        super().__init__()
 
-    def forward(self, report):
-        loss = F.binary_cross_entropy_with_logits(report.scores,
-                                                  report.targets,
+    def forward(self, sample_list, model_output):
+        scores = model_output["scores"]
+        targets = sample_list["targets"]
+        loss = F.binary_cross_entropy_with_logits(scores, targets,
                                                   reduction="mean")
 
-        return loss * report.targets.size(1)
+        return loss * targets.size(1)
 
 
+@registry.register_loss("bce")
 class BinaryCrossEntropyLoss(nn.Module):
     def __init__(self):
-        super(BinaryCrossEntropyLoss, self).__init__()
+        super().__init__()
 
-    def forward(self, report, weights=None):
-        loss = F.binary_cross_entropy(report.scores, report.targets,
+    def forward(self, sample_list, model_output):
+        scores = model_output["scores"]
+        targets = sample_list["targets"]
+        loss = F.binary_cross_entropy(scores, targets,
                                       reduction="mean")
 
-        return loss * report.targets.size(1)
+        return loss * targets.size(1)
 
 
+@registry.register_loss("nll_loss")
 class NLLLoss(nn.Module):
     def __init__(self):
-        super(NLLLoss, self).__init__()
+        super().__init__()
 
-    def forward(self, report, weights=None):
-        _, idx = report.targets.max(dim=1)
-        loss = F.nll_loss(report.scores, idx, reduction="mean")
+    def forward(self, sample_list, model_output):
+        scores = model_output["scores"]
+        targets = sample_list["targets"]
+        _, idx = targets.max(dim=1)
+        loss = F.nll_loss(scores, idx, reduction="mean")
 
-        return loss * report.targets.size(1)
+        return loss * targets.size(1)
 
 
 def kl_div(log_x, y):
@@ -91,45 +108,45 @@ def kl_div(log_x, y):
     return torch.sum(res, dim=1, keepdim=True)
 
 
+@registry.register_loss("multi")
 class MultiLoss(nn.Module):
     def __init__(self, params):
-        super(MultiLoss, self).__init__()
+        super().__init__()
         self.losses = []
         self.losses_weights = []
         self.writer = registry.get('writer')
 
         self.loss_names = []
 
-        for loss_params in params:
+        for loss_params in params["params"]:
             self.loss_names.append(loss_params['type'])
             loss_fn = Loss(loss_params)
             loss_weight = loss_params.get('weight', {})
             self.losses.append(loss_fn)
             self.losses_weights.append(loss_weight)
 
-    def forward(self, report, *args, **kwargs):
+    def forward(self, sample_list, model_output, *args, **kwargs):
         loss = 0
         iteration = registry.get('current_iteration')
 
         for idx, loss_fn in enumerate(self.losses):
-            value = loss_fn(report, *args, **kwargs)
+            value = loss_fn(sample_list, model_output, *args, **kwargs)
             self.writer.add_scalar(self.loss_names[idx], value, iteration)
             loss += self.losses_weights[idx] * value
 
         return loss
 
 
+@registry.register_loss("attention_supervision")
 class AttentionSupervisionLoss(nn.Module):
     def __init__(self):
-        super(AttentionSupervisionLoss, self).__init__()
+        super().__init__()
         self.loss_fn = lambda *args, **kwargs: \
             nn.functional.binary_cross_entropy(*args, **kwargs)
 
-    def forward(self, report):
-        # TODO: Create this an option so that this becomes zero
-        # when att sup is not passed. As in, don't pass in att sup
-        attention_supervision = report.info.attention_supervision
-        context_attentions = report.context_attentions
+    def forward(self, sample_list, model_output):
+        context_attentions = model_output["context_attentions"]
+        attention_supervision = sample_list["info"]["attention_supervision"]
 
         loss = self.loss_fn(context_attentions[0],
                             attention_supervision.float(),
@@ -139,13 +156,14 @@ class AttentionSupervisionLoss(nn.Module):
         return loss * attention_supervision.size(1)
 
 
+@registry.register_loss("weighted_softmax")
 class WeightedSoftmaxLoss(nn.Module):
     def __init__(self):
-        super(WeightedSoftmaxLoss, self).__init__()
+        super().__init__()
 
-    def forward(self, report):
-        target_score = report.targets
-        pred_score = report.scores
+    def forward(self, sample_list, model_output):
+        pred_score = model_output["scores"]
+        target_score = sample_list["targets"]
 
         tar_sum = torch.sum(target_score, dim=1, keepdim=True)
         tar_sum_is_0 = torch.eq(tar_sum, 0)
@@ -159,13 +177,14 @@ class WeightedSoftmaxLoss(nn.Module):
         return loss
 
 
+@registry.register_loss("softmax_kldiv")
 class SoftmaxKlDivLoss(nn.Module):
     def __init__(self):
-        super(SoftmaxKlDivLoss, self).__init__()
+        super().__init__()
 
-    def forward(self, report):
-        target_score = report.targets
-        pred_score = report.scores
+    def forward(self, sample_list, model_output):
+        pred_score = model_output["scores"]
+        target_score = sample_list["targets"]
 
         tar_sum = torch.sum(target_score, dim=1, keepdim=True)
         tar_sum_is_0 = torch.eq(tar_sum, 0)
@@ -178,13 +197,14 @@ class SoftmaxKlDivLoss(nn.Module):
         return loss
 
 
+@registry.register_loss("wrong")
 class WrongLoss(nn.Module):
     def __init__(self):
-        super(WrongLoss, self).__init__()
+        super().__init__()
 
-    def forward(self, report):
-        target_score = report.targets
-        pred_score = report.scores
+    def forward(self, sample_list, model_output):
+        pred_score = model_output["scores"]
+        target_score = sample_list["targets"]
 
         tar_sum = torch.sum(target_score, dim=1, keepdim=True)
         tar_sum_is_0 = torch.eq(tar_sum, 0)
@@ -197,14 +217,15 @@ class WrongLoss(nn.Module):
         return loss
 
 
+@registry.register_loss("bce_kl_combined")
 class CombinedLoss(nn.Module):
     def __init__(self, weight_softmax):
-        super(CombinedLoss, self).__init__()
+        super().__init__()
         self.weight_softmax = weight_softmax
 
-    def forward(self, report):
-        target_score = report.targets
-        pred_score = report.scores
+    def forward(self, sample_list, model_output):
+        pred_score = model_output["scores"]
+        target_score = sample_list["targets"]
 
         tar_sum = torch.sum(target_score, dim=1, keepdim=True)
         tar_sum_is_0 = torch.eq(tar_sum, 0)

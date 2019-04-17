@@ -4,8 +4,6 @@ import tqdm
 from torch.autograd import Variable
 from torch.utils.data.dataset import Dataset
 
-from pythia.common.losses import Loss
-from pythia.common.meter import Meter
 from pythia.common.sample import SampleList
 from pythia.common.registry import registry
 from pythia.tasks.processors import Processor
@@ -22,46 +20,11 @@ class BaseDataset(Dataset):
         self._device = registry.get("current_device")
         self.use_cuda = "cuda" in str(self._device)
 
-    def init_loss_and_metrics(self, config):
-        self.writer = registry.get('writer')
-
-        tp = self._global_config.training_parameters
-        self.should_log = not tp.should_not_log
-
-        task_metrics = config.get('metrics', [])
-        if isinstance(task_metrics, str):
-            task_metrics = task_metrics.split(',')
-
-        self.meter = Meter(self._name, self._dataset_type, task_metrics)
-        self.loss_fn = Loss(config['loss'])
-
-        self.loss_fn = self.loss_fn.to(self._device)
-
-        if type(config['loss']) == dict:
-            self.loss_name = config['loss']['type']
-        else:
-            self.loss_name = config['loss']
-
     def load_item(self, idx):
         raise NotImplementedError
 
     def get_item(self, idx):
         raise NotImplementedError
-
-    def calculate_loss_and_metrics(self, *args, **kwargs):
-        self._calculate_metrics(*args, **kwargs)
-        return self._calculate_loss(*args, **kwargs)
-
-    def _calculate_metrics(self, *args, **kwargs):
-        self.meter(*args, **kwargs)
-
-    def _calculate_loss(self, *args, **kwargs):
-        loss = self.loss_fn(*args, **kwargs)
-        self.last_loss = loss.item()
-        return loss
-
-    def reset_meters(self):
-        self.meter.reset()
 
     def init_processors(self):
         if not hasattr(self.config, "processors"):
@@ -123,36 +86,6 @@ class BaseDataset(Dataset):
             batch = SampleList(batch)
         batch = batch.to(self._device)
         return batch
-
-    def get_single_call_funcs(self):
-        return ["report_metrics"]
-
-    def report_metrics(self, report, loss=None, extra_info=None,
-                       should_print=True):
-        if not self.should_log:
-            return
-
-        if loss is None:
-            loss = self.last_loss
-        if should_print:
-            log_string = self.meter.get_log_string(loss)
-            if extra_info is not None:
-                log_string += " " + extra_info
-            self.writer.write(log_string)
-
-        dataset_type = self.meter.get_dataset_type()
-
-        scalars = {}
-        for i in range(len(self.meter.meter_types)):
-            meter_type = self.meter.meter_types[i]
-            value = self.meter.meter_values[i]
-
-            key = "%s_%s_%s" % (self._name, dataset_type, meter_type)
-            scalars[key] = value
-
-        scalars["%s_%s" % (self._name, self.loss_name)] = loss
-
-        self.writer.add_scalars(scalars, registry.get('current_iteration'))
 
     def format_for_evalai(self, report):
         return []

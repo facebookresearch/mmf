@@ -3,6 +3,10 @@ includes:
 model_attributes:
   pythia: &pythia
     model_data_dir: ../data/
+    metrics:
+    - type: vqa_accuracy
+    losses:
+    - type: logit_bce
     classifier:
       type: logit
       params:
@@ -70,5 +74,5 @@ training_parameters:
   batch_size: 512
   num_workers: 7
   task_size_proportional_sampling: true
-  monitored_metric: vqa2_vqa_accuracy
+  monitored_metric: vqa_accuracy
   metric_minimize: false

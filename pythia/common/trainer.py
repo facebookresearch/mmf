@@ -1,6 +1,7 @@
 import math
 import torch
 import gc
+import time
 
 from torch import optim
 from tqdm import tqdm
@@ -9,15 +10,17 @@ from pythia.utils.flags import flags
 from pythia.utils.configuration import Configuration
 from pythia.utils.checkpoint import Checkpoint
 from pythia.utils.logger import Logger
-from pythia.utils.general import lr_lambda_update, clip_gradients, \
-                get_optimizer_parameters, dict_to_string, get_current_tensors
-from pythia.utils.build import build_model
-from pythia.utils.distributed_utils import reduce_tensor, synchronize
+from pythia.utils.general import (lr_lambda_update, clip_gradients,
+                                  get_optimizer_parameters, dict_to_string)
+from pythia.utils.model_utils import build_model
+from pythia.utils.distributed_utils import (reduce_dict, synchronize,
+                                            is_main_process, broadcast_scalar)
 from pythia.utils.timer import Timer
 from pythia.utils.early_stopping import EarlyStopping
 from pythia.common.task_loader import TaskLoader
 from pythia.common.registry import registry
 from pythia.common.report import Report
+from pythia.common.meter import Meter
 
 
 class Trainer:
@@ -50,7 +53,6 @@ class Trainer:
         self.local_rank = training_parameters.local_rank
         self.device = training_parameters.device
 
-
         if self.local_rank is not None and training_parameters.distributed:
             if not torch.distributed.is_nccl_available():
                 raise RuntimeError("Unable to initialize process group: "
@@ -59,7 +61,7 @@ class Trainer:
             synchronize()
 
         if "cuda" in self.device and training_parameters.distributed \
-            and self.local_rank is not None:
+                and self.local_rank is not None:
             self.device = torch.device("cuda", self.local_rank)
 
         registry.register("current_device", self.device)
@@ -94,13 +96,18 @@ class Trainer:
         self.test_loader = self.task_loader.test_loader
         self.train_task = self.task_loader.train_task
         self.val_task = self.task_loader.val_task
+
+        # Total iterations for snapshot
+        self.snapshot_iterations = len(self.val_task)
+        self.snapshot_iterations //= self.config.training_parameters.batch_size
+
         self.test_task = self.task_loader.test_task
         self.test_reporter = self.task_loader.test_reporter
 
     def load_model(self):
         attributes = self.config.model_attributes[self.config.model]
         # Easy way to point to config for other model
-        if type(attributes) == str:
+        if isinstance(attributes, str):
             attributes = self.config.model_attributes[attributes]
 
         attributes['model'] = self.config.model
@@ -149,6 +156,7 @@ class Trainer:
 
     def load_extras(self):
         self.checkpoint = Checkpoint(self)
+        self.meter = Meter()
 
         self.training_parameters = self.config.training_parameters
 
@@ -188,8 +196,6 @@ class Trainer:
 
     def config_based_setup(self):
         seed = self.config.training_parameters.seed
-        if self.local_rank is not None:
-            seed += self.local_rank
 
         torch.manual_seed(seed)
         torch.cuda.manual_seed(seed)
@@ -213,14 +219,13 @@ class Trainer:
         self.train_timer = Timer()
         self.snapshot_timer = Timer()
 
-        self.task_loader.reset_meters("train")
-
         self.profile("Setup Time")
 
         torch.autograd.set_detect_anomaly(True)
 
         self.writer.write("Starting training...")
-        while self.current_iteration < self.max_iterations and not should_break:
+        while self.current_iteration < self.max_iterations \
+                and not should_break:
             self.current_epoch += 1
             registry.register('current_epoch', self.current_epoch)
 
@@ -238,6 +243,9 @@ class Trainer:
                     break
 
                 report = self._forward_pass(batch)
+                self._update_meter(report, self.meter)
+                loss = self._extract_loss(report)
+                self._backward(loss)
                 should_break = self._logistics(report)
 
                 if should_break:
@@ -246,34 +254,51 @@ class Trainer:
         self.checkpoint.restore()
         self.predict()
 
-    def _forward_pass(self, batch, eval_mode=False):
+    def _forward_pass(self, batch):
         prepared_batch = self.task_loader.prepare_batch(batch)
         self.profile("Batch prepare time")
 
         # Arguments should be a dict at this point
         model_output = self.model(prepared_batch)
-        report = Report(batch, prepared_batch, model_output)
-
-
-        self.task_loader.verbose_dump(report)
-        loss = self.task_loader.calculate_loss_and_metrics(report)
+        report = Report(prepared_batch, model_output)
         self.profile("Forward time")
-
-        reduced_loss = reduce_tensor(loss)
-
-        if not eval_mode:
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
-            self.profile("Backward time")
-
-        report.loss = reduced_loss
 
         return report
 
-    def _logistics(self, report):
-        extra_info = None
+    def _backward(self, loss):
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+        self.profile("Backward time")
 
+    def _extract_loss(self, report):
+        loss_dict = report.losses
+        loss = sum([loss.mean() for loss in loss_dict.values()])
+        return loss
+
+    def _update_meter(self, report, meter=None, eval_mode=False):
+        if meter is None:
+            meter = self.meter
+
+        loss_dict = report.losses
+        metrics_dict = report.metrics
+
+        reduced_loss_dict = reduce_dict(loss_dict)
+        reduced_metrics_dict = reduce_dict(metrics_dict)
+
+        loss_key = "train/total_loss" if not eval_mode else "val/total_loss"
+
+        with torch.no_grad():
+            reduced_loss = sum([loss.mean()
+                                for loss in reduced_loss_dict.values()])
+
+            meter_update_dict = {loss_key: reduced_loss.item()}
+            meter_update_dict.update(reduced_loss_dict)
+            meter_update_dict.update(reduced_metrics_dict)
+
+            meter.update(meter_update_dict)
+
+    def _logistics(self, report):
         if self.lr_scheduler is not None:
             self.lr_scheduler.step(self.current_iteration)
 
@@ -283,37 +308,55 @@ class Trainer:
 
         should_print = self.current_iteration % self.log_interval == 0
         should_break = False
+        extra = {}
+
         if should_print is True:
-            self.evaluate('val', self.val_loader, single_batch=True)
-            extra_info = "val: " + dict_to_string(registry.get('metrics.val'))
-            time_taken = self.train_timer.get_time_since_start()
-            extra_info += ", time: %s" % time_taken
+            if "cuda" in str(self.device):
+                extra["max mem"] = torch.cuda.max_memory_allocated() / 1024
+                extra["max mem"] //= 1024
+
+            extra.update({
+                "lr": "{:.5f}".format(
+                    self.optimizer.param_groups[0]["lr"]
+                ).rstrip('0'),
+                "time": self.train_timer.get_time_since_start(),
+                "eta": self._calculate_time_left(),
+            })
+
+            self.train_timer.reset()
+
+            _, meter = self.evaluate(self.val_loader, single_batch=True)
+            self.meter.update_from_meter(meter)
 
         # Don't print train metrics if it is not log interval
         # so as to escape clutter
-        self.task_loader.report_metrics(
-            'train', report, report.loss.item(),
-            extra_info=extra_info, should_print=should_print
-        )
+        self._summarize_report(self.meter, should_print=should_print,
+                               extra=extra, prefix=report.dataset_name)
+        self._try_full_validation()
 
-        if should_print is True:
-            self.train_timer.reset()
+        return should_break
 
-        # TODO: Move to separate function
+    def _try_full_validation(self):
         if self.current_iteration % self.snapshot_interval == 0:
+            self.writer.write("Evaluation time. Running on full "
+                              "validation set...")
             # Validation and Early stopping
-            avg_loss = self.evaluate('val', self.val_loader)
+            # Create a new meter for this case
+            report, meter = self.evaluate(self.val_loader)
 
-            time_taken = self.snapshot_timer.get_time_since_start()
-            extra_info = ", time: %s" % time_taken
+            extra = {
+                "validation time": self.snapshot_timer.get_time_since_start()
+            }
+
+            stop = self.early_stopping(self.current_iteration, meter)
+            stop = bool(broadcast_scalar(stop, src=0, device=self.device))
+
+            extra.update(self.early_stopping.get_info())
+
+            prefix = "{}: full val".format(report.dataset_name)
+
+            self._summarize_report(meter, prefix=prefix, extra=extra)
             self.snapshot_timer.reset()
-
-            stop = self.early_stopping(self.current_iteration)
-            extra_info += "\n%s" % self.early_stopping.get_info()
-
-            self.task_loader.report_metrics(
-                'val', None, avg_loss, extra_info=extra_info
-            )
             gc.collect()
 
             if "cuda" in str(self.device):
@@ -323,31 +366,41 @@ class Trainer:
                 self.writer.write("Early stopping activated")
                 should_break = True
 
-        return should_break
-
-    def evaluate(self, dataset_type, loader, use_tqdm=False,
-                 single_batch=False):
-        self.task_loader.reset_meters(dataset_type)
-
-        total_loss = 0
-        total_samples = 0
+    def evaluate(self, loader, use_tqdm=False, single_batch=False):
+        meter = Meter()
 
         with torch.no_grad():
             self.model.eval()
             for batch in tqdm(loader, disable=not use_tqdm):
-                report = self._forward_pass(batch, eval_mode=True)
-                if report.loss is not None:
-                    total_loss += report.loss.item() * \
-                        report.batch_size
-
-                total_samples += report.batch_size
+                report = self._forward_pass(batch)
+                self._update_meter(report, meter, eval_mode=True)
 
                 if single_batch is True:
                     break
-
             self.model.train()
 
-        return total_loss / total_samples
+        return report, meter
+
+    def _summarize_report(self, meter, prefix="", should_print=True, extra={}):
+        if not is_main_process():
+            return
+
+        scalar_dict = meter.get_scalar_dict()
+        self.writer.add_scalars(scalar_dict, registry.get('current_iteration'))
+
+        if not should_print:
+            return
+
+        print_str = []
+        if len(prefix):
+            print_str += [prefix + ":"]
+
+        print_str += ["{}/{}".format(self.current_iteration, self.max_iterations)]
+        print_str += [str(meter)]
+        print_str += ["{}: {}".format(key, value)
+                      for key, value in extra.items()]
+
+        self.writer.write(meter.delimiter.join(print_str))
 
     def predict(self):
         if "predict" not in self.run_type:
@@ -360,9 +413,22 @@ class Trainer:
         else:
             self.writer.write("Starting predictions")
 
-            avg_test_loss = self.evaluate('test', self.test_loader,
-                                          use_tqdm=True)
-            self.task_loader.report_metrics('test', None, avg_test_loss)
+            report, meter = self.evaluate(self.test_loader, use_tqdm=True)
+            prefix = "{}: full test".format(report.dataset_name)
+
+            self._summarize_report(meter, prefix)
+
+    def _calculate_time_left(self):
+        time_taken_for_log = time.time() * 1000 - self.train_timer.start
+        iterations_left = (self.max_iterations - self.current_iteration)
+        num_logs_left = iterations_left / self.log_interval
+        time_left = num_logs_left * time_taken_for_log
+
+        snapshot_iteration = self.snapshot_iterations / self.log_interval
+        snapshot_iteration *= (iterations_left / self.snapshot_interval)
+        time_left += snapshot_iteration * time_taken_for_log
+
+        return self.train_timer.get_time_hhmmss(gap=time_left)
 
     def profile(self, text):
         if self.not_debug:
@@ -382,8 +448,7 @@ class Trainer:
                 for batch in tqdm(dataloader):
                     prepared_batch = self.test_reporter.prepare_batch(batch)
                     model_output = self.model(prepared_batch)
-                    report = Report(batch, prepared_batch, model_output)
-
+                    report = Report(prepared_batch, model_output)
                     self.test_reporter.add_to_report(report)
 
             self.writer.write("Finished predicting")

@@ -56,7 +56,7 @@ class ImageDatabase(torch.utils.data.Dataset):
         # Hacks for older IMDBs
         if "answers" not in data:
             if "all_answers" in data and "valid_answers" not in data:
-                data["answers"] = data["answers"]
+                data["answers"] = data["all_answers"]
             if "valid_answers" in data:
                 data["answers"] = data["valid_answers"]
 

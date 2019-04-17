@@ -14,15 +14,15 @@ task_attributes:
                     val:
                     - open_images/detectron_fix_100/fc6/train,open_images/resnet152/train
                     test:
-                    - open_images/detectron_fix_100/fc6/test,open_images/resnet152/test
+                    - open_images/detectron_fix_100/fc6/train,open_images/resnet152/train
                 imdb_files:
                     train:
                     - imdb/textvqa_0.5/imdb_textvqa_train.npy
                     val:
                     - imdb/textvqa_0.5/imdb_textvqa_val.npy
                     test:
-                    - imdb/textvqa_0.5/imdb_textvqa_test.npy
-                features_max_len: 100
+                    - imdb/textvqa_0.5/imdb_textvqa_val.npy
+                features_max_len: 137
                 processors:
                   text_processor:
                     type: glove
@@ -35,7 +35,7 @@ task_attributes:
                   answer_processor:
                     type: soft_copy_answer
                     params:
-                      vocab_file: vocabs/answers_textvqa_8k.txt
+                      vocab_file: vocabs/answers_textvqa_more_than_1.txt
                       preprocessor:
                         type: simple_word
                         params: {}
@@ -57,9 +57,6 @@ task_attributes:
                     type: bbox
                     params:
                       max_length: 50
-                metrics:
-                - vqa_accuracy
-                loss: logit_bce
                 return_info: true
                 # Return OCR information
                 use_ocr: true
