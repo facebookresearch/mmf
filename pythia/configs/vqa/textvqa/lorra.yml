@@ -10,8 +10,12 @@ task_attributes:
             params:
               use_soft_copy: true
 model_attributes:
-  lorra:
+  lorra: &lorra
     model_data_dir: ../data
+    metrics:
+    - type: vqa_accuracy
+    losses:
+    - type: logit_bce
     num_context_features: 1
     context_feature_dim: 300
     image_feature_dim: 2048
@@ -75,13 +79,16 @@ model_attributes:
     - type: identity
       params:
         embedding_dim: 350
+  lorra_with_glove: *lorra
 optimizer_attributes:
-  type: Adamax
   params:
-    lr: 0.005
+    eps: 1.0e-08
+    lr: 0.01
+    weight_decay: 0
+  type: Adamax
 training_parameters:
     clip_norm_mode: all
-    clip_gradients: false
+    clip_gradients: true
     max_grad_l2_norm: 0.25
     lr_scheduler: true
     lr_steps:
@@ -94,7 +101,7 @@ training_parameters:
     batch_size: 128
     num_workers: 7
     task_size_proportional_sampling: true
-    monitored_metric: textvqa_vqa_accuracy
+    monitored_metric: vqa_accuracy
     pretrained_mapping:
       text_embeddings: text_embeddings
       image_feature_encoders: image_feature_encoders

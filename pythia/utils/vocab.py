@@ -380,7 +380,8 @@ class WordToVectorDict:
 
     def __getitem__(self, word):
         # Check if mean for word split needs to be done here
-        return self.model.get_word_vector(word)
+        return np.mean([self.model.get_word_vector(w)
+                        for w in word.split(' ')], axis=0)
 
 
 class ModelVocab(BaseVocab):
