@@ -13,7 +13,10 @@ class Sample(OrderedDict):
         self[key] = value
 
     def __getattr__(self, key):
-        return self[key]
+        try:
+            return self[key]
+        except KeyError:
+            raise AttributeError(key)
 
     def fields(self):
         return list(self.keys())
