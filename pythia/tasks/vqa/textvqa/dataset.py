@@ -1,4 +1,5 @@
 from pythia.tasks.vqa.vizwiz import VizWizDataset
+from pythia.utils.text_utils import word_tokenize
 
 
 class TextVQADataset(VizWizDataset):
@@ -6,21 +7,19 @@ class TextVQADataset(VizWizDataset):
                  **kwargs):
         super().__init__(dataset_type, imdb_file_index, config, *args,
                          **kwargs)
-
         self._name = "textvqa"
 
     def format_for_evalai(self, report):
         answers = report.scores.argmax(dim=1)
 
         predictions = []
-        answer_space_size = self.answer_processor.get_vocab_size()
+        answer_space_size = self.answer_processor.get_true_vocab_size()
 
         for idx, question_id in enumerate(report.question_id):
-            answer_id = answers[idx]
-
+            answer_id = answers[idx].item()
             if answer_id >= answer_space_size:
                 answer_id -= answer_space_size
-                answer = report.context_tokens[answer_id][idx]
+                answer = word_tokenize(report.context_tokens[idx][answer_id])
             else:
                 answer = self.answer_processor.idx2word(answer_id)
 
@@ -28,5 +27,4 @@ class TextVQADataset(VizWizDataset):
                 'question_id': question_id.item(),
                 'answer': answer
             })
-
         return predictions

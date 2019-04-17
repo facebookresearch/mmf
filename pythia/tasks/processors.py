@@ -1,5 +1,6 @@
 import torch
 import os
+import warnings
 
 from collections import Counter
 
@@ -72,10 +73,9 @@ class VocabProcessor(BaseProcessor):
         if hasattr(config, "max_length"):
             self.max_length = config.max_length
         else:
-            self.writer.write("No 'max_length' parameter in Processor's "
-                              "configuration. Setting to {}."
-                              .format(self.MAX_LENGTH_DEFAULT),
-                              "warning")
+            warnings.warn("No 'max_length' parameter in Processor's "
+                          "configuration. Setting to {}."
+                          .format(self.MAX_LENGTH_DEFAULT))
             self.max_length = self.MAX_LENGTH_DEFAULT
 
         if hasattr(config, "preprocessor"):
@@ -118,6 +118,7 @@ class VocabProcessor(BaseProcessor):
         padded_tokens = [self.PAD_TOKEN] * self.max_length
         token_length = min(len(tokens), self.max_length)
         padded_tokens[:token_length] = tokens[:token_length]
+        token_length = torch.tensor(token_length, dtype=torch.long)
         return padded_tokens, token_length
 
     def get_pad_index(self):
@@ -130,7 +131,7 @@ class VocabProcessor(BaseProcessor):
         length = min(len(tokens), self.max_length)
         tokens = tokens[:length]
 
-        output = torch.zeros(self.max_length, dtype=torch.int)
+        output = torch.zeros(self.max_length, dtype=torch.long)
         output.fill_(self.vocab.get_pad_index())
 
         for idx, token in enumerate(tokens):
@@ -150,9 +151,9 @@ class GloVeProcessor(VocabProcessor):
         vocab_processor_config.vocab.type = "intersected"
 
         if "vocab_file" not in vocab_processor_config.vocab:
-            registry.get("writer").write("'vocab_file' key is not present in "
-                                         "the config. Switching to "
-                                          "pretrained vocab.", "warning")
+            warnings.warn("'vocab_file' key is not present in the config."
+                          " Switching to pretrained vocab.")
+
             vocab_processor_config.vocab.type = "pretrained"
 
         super().__init__(vocab_processor_config, *args, **kwargs)
@@ -179,12 +180,12 @@ class FastTextProcessor(VocabProcessor):
         needs_download = False
 
         if not hasattr(config, "model_file"):
-            self.writer.write("'model_file' key is required but missing "
-                              "from FastTextProcessor's config.", "warning")
+            warnings.warn("'model_file' key is required but missing "
+                          "from FastTextProcessor's config.")
             needs_download = True
         elif not os.path.exists(config.model_file):
-            self.writer.write("No model file present at {}."
-                              .format(config.model_file), "warning")
+            warnings.warn("No model file present at {}."
+                          .format(config.model_file))
             needs_download = True
 
         if needs_download:
@@ -265,9 +266,9 @@ class VQAAnswerProcessor(BaseProcessor):
             self.num_answers = config.num_answers
         else:
             self.num_answers = self.DEFAULT_NUM_ANSWERS
-            self.writer.write("'num_answers' not defined in the config. "
-                              "Setting to default of {}"
-                              .format(self.DEFAULT_NUM_ANSWERS), "warning")
+            warnings.warn("'num_answers' not defined in the config. "
+                          "Setting to default of {}"
+                          .format(self.DEFAULT_NUM_ANSWERS))
 
     def __call__(self, item):
         tokens = None
@@ -297,11 +298,15 @@ class VQAAnswerProcessor(BaseProcessor):
         answers_scores = self.compute_answers_scores(answers_indices)
 
         return {
-            "answers": answers_indices,
+            "answers": tokens,
+            "answers_indices": answers_indices,
             "answers_scores": answers_scores
         }
 
     def get_vocab_size(self):
+        return self.answer_vocab.num_vocab
+
+    def get_true_vocab_size(self):
         return self.answer_vocab.num_vocab
 
     def word2idx(self, word):
@@ -342,9 +347,8 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
         super().__init__(config, *args, **kwargs)
 
         if not hasattr(config, "use_soft_copy"):
-            self.writer.warning("SoftCopyAnswerProcessor's config doesn't "
-                                "have field 'use_soft_copy'. Setting to "
-                                "default of False", "warning")
+            warnings.warn("SoftCopyAnswerProcessor's config doesn't have field"
+                          " 'use_soft_copy'. Setting to default of False")
             self.use_soft_copy = False
         else:
             self.use_soft_copy = config.use_soft_copy
@@ -353,9 +357,9 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
             self.max_length = config.max_length
         else:
             self.max_length = self.DEFAULT_MAX_LENGTH
-            self.writer.write("'max_length' not defined in the config. "
+            warnings.warn("'max_length' not defined in the config. "
                               "Setting to default of {}"
-                              .format(self.DEFAULT_MAX_LENGTH), "warning")
+                              .format(self.DEFAULT_MAX_LENGTH))
 
         self.context_preprocessor = None
         if hasattr(config, "context_preprocessor"):
@@ -369,6 +373,9 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
 
         return answer_vocab_nums
 
+    def get_true_vocab_size(self):
+        return self.answer_vocab.num_vocab
+
     def __call__(self, item):
         answers = item["answers"]
         scores = super().__call__({"answers": answers})
@@ -376,25 +383,24 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
         if self.use_soft_copy is False:
             return scores
 
-        indices = scores["answers"]
+        indices = scores["answers_indices"]
+        answers = scores["answers"]
         scores = scores["answers_scores"]
 
         tokens_scores = scores.new_zeros(self.max_length)
         tokens = item["tokens"]
         length = min(len(tokens), self.max_length)
 
-        gt_answers = list(enumerate(indices))
-        unique_answers = set(indices.tolist())
+        gt_answers = list(enumerate(answers))
+        unique_answers = set(answers)
 
         if self.context_preprocessor is not None:
             tokens = [self.context_preprocessor({"text": token})["text"]
                       for token in tokens]
 
-        answer_counter = Counter(tokens)
+        answer_counter = Counter(answers)
 
         for idx, token in enumerate(tokens[:length]):
-            token_idx = self.answer_vocab.word2idx(token)
-
             if answer_counter[token] == 0:
                 continue
             accs = []
@@ -403,20 +409,18 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
                 other_answers = [item for item in gt_answers
                                  if item != gt_answer]
                 matching_answers = [item for item in other_answers
-                                    if item[1] == token_idx]
+                                    if item[1] == token]
                 acc = min(1, float(len(matching_answers)) / 3)
                 accs.append(acc)
 
-                if token_idx == self.answer_vocab.get_unk_index():
-                    tokens_scores[idx] = 0
-                else:
-                    tokens_scores[idx] = sum(accs) / len(accs)
+            tokens_scores[idx] = sum(accs) / len(accs)
 
         # Scores are already proper size, see L314. Now,
         # fix scores for soft copy candidates
         scores[-len(tokens_scores):] = tokens_scores
         return {
-            "answers": indices,
+            "answers": answers,
+            "answers_indices": indices,
             "answers_scores": scores
         }
 

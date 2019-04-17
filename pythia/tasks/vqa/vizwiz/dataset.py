@@ -1,4 +1,7 @@
+import torch
+
 from pythia.tasks.vqa.vqa2 import VQA2Dataset
+from pythia.common.sample import Sample
 
 
 class VizWizDataset(VQA2Dataset):
@@ -31,7 +34,13 @@ class VizWizDataset(VQA2Dataset):
             })
             sample.context = context["text"]
             sample.context_tokens = context["tokens"]
-            sample.context_feature_0 = sample.context
+            sample.context_feature_0 = context["text"]
+            sample.context_info_0 = Sample()
+            sample.context_info_0.max_features = context["length"]
+
+            order_vectors = torch.eye(len(sample.context_tokens))
+            order_vectors[context["length"]:] = 0
+            sample.order_vectors = order_vectors
 
         if self.use_ocr_info and "ocr_info" in sample_info:
             sample.ocr_bbox = self.bbox_processor({
@@ -57,14 +66,14 @@ class VizWizDataset(VQA2Dataset):
         answers = report.scores.argmax(dim=1)
 
         predictions = []
-        answer_space_size = self.answer_processor.get_vocab_size()
+        answer_space_size = self.answer_processor.get_true_vocab_size()
 
         for idx, image_id in enumerate(report.image_id):
-            answer_id = answers[idx]
+            answer_id = answers[idx].item()
 
             if answer_id >= answer_space_size:
                 answer_id -= answer_space_size
-                answer = report.context_tokens[answer_id][idx]
+                answer = report.context_tokens[idx][answer_id]
             else:
                 answer = self.answer_processor.idx2word(answer_id)
             if answer == self.context_processor.PAD_TOKEN:
