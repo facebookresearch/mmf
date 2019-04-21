@@ -25,7 +25,7 @@ task_attributes:
                 features_max_len: 100
                 processors:
                   text_processor:
-                    type: glove
+                    type: vocab
                     params:
                       max_length: 14
                       vocab:

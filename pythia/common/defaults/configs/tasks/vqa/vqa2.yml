@@ -11,7 +11,6 @@ task_attributes:
                 image_features:
                     train:
                     - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
-                    - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
                     val:
                     - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
                     test:
@@ -19,21 +18,20 @@ task_attributes:
                 imdb_files:
                     train:
                     - imdb/vqa/imdb_train2014.npy
-                    - imdb/vqa/imdb_val2014.npy
                     val:
-                    - imdb/vqa/imdb_minival2014.npy
+                    - imdb/vqa/imdb_val2014.npy
                     test:
                     - imdb/vqa/imdb_test2015.npy
                 features_max_len: 100
                 processors:
                   text_processor:
-                    type: glove
+                    type: vocab
                     params:
                       max_length: 14
                       vocab:
                         type: intersected
                         embedding_name: glove.6B.300d
-                        vocab_file: vocabs/vocabulary_vqa.txt
+                        vocab_file: vocabs/vocabulary_100k.txt
                   answer_processor:
                     type: vqa_answer
                     params:
