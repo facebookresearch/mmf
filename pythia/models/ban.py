@@ -19,9 +19,16 @@ class BAN(BaseModel):
         self._datasets = self._global_config.datasets.split(",")
 
     def build(self):
+        self._build_word_embedding()
         self._init_text_embedding()
         self._init_classifier()
         self._init_bilinear_attention()
+
+    def _build_word_embedding(self):
+        text_processor = registry.get(self._datasets[0] + "_text_processor")
+        vocab = text_processor.vocab
+        self.word_embedding = vocab.get_embedding(torch.nn.Embedding,
+                                                  embedding_dim=300)
 
     def _init_text_embedding(self):
         module_config = self.config['text_embedding']
@@ -71,7 +78,7 @@ class BAN(BaseModel):
     def forward(self, sample_list):
 
         v = sample_list.image_feature_0
-        q = sample_list.text
+        q = self.word_embedding(sample_list.text)
 
         q_emb = self.q_emb.forward_all(q)
 

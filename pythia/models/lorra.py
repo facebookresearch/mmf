@@ -21,7 +21,6 @@ class LoRRA(Pythia):
         self._init_feature_embeddings("context")
         super().build()
 
-
     def get_optimizer_parameters(self, config):
         params = super().get_optimizer_parameters(config)
         params += [
@@ -46,7 +45,7 @@ class LoRRA(Pythia):
         return 2 * super()._get_classifier_input_dim()
 
     def forward(self, sample_list):
-        # sample_list = self._add_model_specific_info(sample_list)
+        sample_list.text = self.word_embedding(sample_list.text)
         text_embedding_total = self.process_text_embedding(sample_list)
         context_embeddings = self.process_text_embedding(sample_list,
                                                          'context_embeddings')
@@ -73,31 +72,3 @@ class LoRRA(Pythia):
         return {
             "scores": scores
         }
-
-
-@registry.register_model("lorra_with_glove")
-class LoRRAWithGloVe(LoRRA):
-    def __init__(self, config):
-        super().__init__(config)
-
-    def build(self):
-        super().build()
-        self._build_word_embedding()
-
-    def _build_word_embedding(self):
-        text_processor = registry.get(self._datasets[0] + "_text_processor")
-        vocab = text_processor.vocab
-        self.word_embedding = vocab.get_embedding(torch.nn.Embedding,
-                                                  embedding_dim=300)
-
-    def get_optimizer_parameters(self, config):
-        params = super().get_optimizer_parameters(config)
-        params += [
-            {"params": self.word_embedding.parameters()}
-        ]
-        return params
-
-    def forward(self, sample_list):
-        sample_list.text = self.word_embedding(sample_list.text)
-
-        return super().forward(sample_list)

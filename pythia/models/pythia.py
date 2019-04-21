@@ -21,12 +21,19 @@ class Pythia(BaseModel):
         self._datasets = self._global_config.datasets.split(",")
 
     def build(self):
+        self._build_word_embedding()
         self._init_text_embeddings("text")
         self._init_feature_encoders("image")
         self._init_feature_embeddings("image")
         self._init_combine_layer("image", "text")
         self._init_classifier(self._get_classifier_input_dim())
         self._init_extras()
+
+    def _build_word_embedding(self):
+        text_processor = registry.get(self._datasets[0] + "_text_processor")
+        vocab = text_processor.vocab
+        self.word_embedding = vocab.get_embedding(torch.nn.Embedding,
+                                                  embedding_dim=300)
 
     def _init_text_embeddings(self, attr='text'):
         if "embeddings" not in attr:
@@ -144,7 +151,8 @@ class Pythia(BaseModel):
 
     def get_optimizer_parameters(self, config):
         combine_layer = self.image_text_multi_modal_combine_layer
-        params = [{'params': self.image_feature_embeddings_list.parameters()},
+        params = [{'params': self.word_embedding.parameters()},
+                  {'params': self.image_feature_embeddings_list.parameters()},
                   {'params': self.text_embeddings.parameters()},
                   {'params': combine_layer.parameters()},
                   {'params': self.classifier.parameters()},
@@ -255,6 +263,7 @@ class Pythia(BaseModel):
         return self.classifier(joint_embedding)
 
     def forward(self, sample_list):
+        sample_list.text = self.word_embedding(sample_list.text)
         text_embedding_total = self.process_text_embedding(sample_list)
 
         image_embedding_total, _ = self.process_feature_embedding(
