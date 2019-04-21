@@ -3,7 +3,8 @@ import pickle
 import os
 
 from torch import nn
-from .layers import Identity
+from pythia.modules.layers import Identity
+from pythia.utils.general import get_pythia_root
 
 
 class ImageEncoder(nn.Module):
@@ -29,6 +30,9 @@ class ImageEncoder(nn.Module):
 class FinetuneFasterRcnnFpnFc7(nn.Module):
     def __init__(self, in_dim, weights_file, bias_file, model_data_dir):
         super(FinetuneFasterRcnnFpnFc7, self).__init__()
+        pythia_root = get_pythia_root()
+        model_data_dir = os.path.join(pythia_root, model_data_dir)
+
         if not os.path.isabs(weights_file):
             weights_file = os.path.join(model_data_dir, weights_file)
         if not os.path.isabs(bias_file):

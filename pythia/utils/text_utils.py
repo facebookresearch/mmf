@@ -2,6 +2,7 @@ import re
 import os
 
 from itertools import chain
+from pythia.utils.general import get_pythia_root
 
 
 SENTENCE_SPLIT_REGEX = re.compile(r'(\W+)')
@@ -75,7 +76,10 @@ def load_str_list(fname):
 class VocabDict:
     def __init__(self, vocab_file, data_root_dir=None):
         if not os.path.isabs(vocab_file) and data_root_dir is not None:
-            vocab_file = os.path.abspath(os.path.join(data_root_dir, vocab_file))
+            pythia_root = get_pythia_root()
+            vocab_file = os.path.abspath(
+                os.path.join(pythia_root, data_root_dir, vocab_file)
+            )
 
         if not os.path.exists(vocab_file):
             raise RuntimeError("Vocab file {} for vocab dict doesn't exist"

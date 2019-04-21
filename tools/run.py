@@ -3,6 +3,7 @@ import importlib
 import glob
 
 from pythia.common.trainer import Trainer
+from pythia.common.registry import registry
 from pythia.utils.flags import flags
 from pythia.utils.distributed_utils import is_main_process
 
@@ -10,7 +11,20 @@ from pythia.utils.distributed_utils import is_main_process
 def setup_imports():
     # Automatically load all of the modules, so that
     # they register with registry
-    root_folder = os.path.dirname(os.path.abspath(__file__))
+    root_folder = registry.get("pythia_root", no_warning=True)
+
+    if root_folder is None:
+        root_folder = os.path.dirname(os.path.abspath(__file__))
+        root_folder = os.path.join(root_folder, "..")
+
+        environment_pythia_path = os.environ.get('PYTHIA_PATH')
+
+        if environment_pythia_path is not None:
+            root_folder = environment_pythia_path
+
+        root_folder = os.path.join(root_folder, "pythia")
+        registry.register("pythia_path", root_folder)
+
     tasks_folder = os.path.join(root_folder, "tasks")
     tasks_pattern = os.path.join(tasks_folder, "**", "*.py")
     model_folder = os.path.join(root_folder, "models")

@@ -6,6 +6,7 @@ from collections import Counter
 
 from pythia.common.registry import registry
 from pythia.utils.vocab import Vocab, WordToVectorDict
+from pythia.utils.general import get_pythia_root
 from pythia.utils.configuration import ConfigNode
 from pythia.utils.text_utils import VocabDict
 from pythia.utils.distributed_utils import is_main_process, synchronize
@@ -178,28 +179,29 @@ class FastTextProcessor(VocabProcessor):
         self._init_extras(config)
 
         needs_download = False
+        model_file = config.model_file
+        model_file = os.path.join(get_pythia_root(), config.model_file)
 
         if not hasattr(config, "model_file"):
             warnings.warn("'model_file' key is required but missing "
                           "from FastTextProcessor's config.")
             needs_download = True
-        elif not os.path.exists(config.model_file):
+        elif not os.path.exists(model_file):
             warnings.warn("No model file present at {}."
-                          .format(config.model_file))
+                          .format(model_file))
             needs_download = True
 
         if needs_download:
             self.writer.write("Downloading FastText vectors", "info")
             model_file = self._download_model()
-        else:
-            model_file = config.model_file
 
         synchronize()
 
         self._load_fasttext_model(model_file)
 
     def _download_model(self):
-        model_file_path = os.path.join(".vector_cache", "wiki.en.bin")
+        model_file_path = os.path.join(get_pythia_root(), ".vector_cache",
+                                       "wiki.en.bin")
 
         if not is_main_process():
             return model_file_path
@@ -210,7 +212,7 @@ class FastTextProcessor(VocabProcessor):
             return model_file_path
 
         import torchtext
-        torchtext.vocab.FastText('en')
+        torchtext.vocab.FastText('en', cache=os.path.dirname(model_file_path))
 
         self.writer.write("Vectors downloaded at {}."
                           .format(model_file_path), "info")

@@ -67,6 +67,17 @@ def foldername_from_config_override(args):
     return folder_name
 
 
+def get_pythia_root():
+    from pythia.common.registry import registry
+    pythia_root = registry.get("pythia_root", no_warning=True)
+    if pythia_root is None:
+        pythia_root = os.path.dirname(os.path.abspath(__file__))
+        pythia_root = os.path.abspath(os.path.join(pythia_root, ".."))
+        registry.register("pythia_root", pythia_root)
+    return pythia_root
+
+
+
 def get_optimizer_parameters(model, config):
     parameters = model.parameters()
 

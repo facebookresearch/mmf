@@ -91,14 +91,13 @@ class Configuration:
         self.config = {}
 
         base_config = {}
-        with open(self.default_config, 'r') as f:
-            base_config = self.load_yaml(f)
+
+        base_config = self.load_yaml(self.default_config)
 
         user_config = {}
 
         if self.config_path is not None:
-            with open(self.config_path, 'r') as f:
-                user_config = self.load_yaml(f)
+            user_config = self.load_yaml(self.config_path)
 
         self._base_config = base_config
         self._user_config = user_config
@@ -108,29 +107,33 @@ class Configuration:
     def get_config(self):
         return self.config
 
-    def load_yaml(self, stream):
-        mapping = yaml.safe_load(stream)
+    def load_yaml(self, file):
+        with open(file, 'r') as stream:
+            mapping = yaml.safe_load(stream)
 
-        includes = mapping.get("includes", [])
+            includes = mapping.get("includes", [])
 
-        if not isinstance(includes, list):
-            raise AttributeError("Includes must be a list, {} provided"
-                                 .format(type(includes)))
-        include_mapping = {}
+            if not isinstance(includes, list):
+                raise AttributeError("Includes must be a list, {} provided"
+                                     .format(type(includes)))
+            include_mapping = {}
 
-        for include in includes:
-            with open(include, "r") as f:
-                current_include_mapping = self.load_yaml(f)
+            utils_dir = os.path.dirname(os.path.abspath(__file__))
+            pythia_root_dir = os.path.join(utils_dir, "..")
+
+            for include in includes:
+                include = os.path.join(pythia_root_dir, include)
+                current_include_mapping = self.load_yaml(include)
                 include_mapping = self.nested_dict_update(
                     include_mapping,
                     current_include_mapping
                 )
 
-        mapping.pop("includes", None)
+            mapping.pop("includes", None)
 
-        mapping = self.nested_dict_update(include_mapping, mapping)
+            mapping = self.nested_dict_update(include_mapping, mapping)
 
-        return mapping
+            return mapping
 
 
     def update_with_args(self, args, force=False):

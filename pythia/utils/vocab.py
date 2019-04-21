@@ -3,8 +3,10 @@ import sys
 import torch
 import numpy as np
 
+from pythia.utils.general import get_pythia_root
 from collections import defaultdict
 from torchtext import vocab
+
 
 EMBEDDING_NAME_CLASS_MAPPING = {
     'glove': 'GloVe',
@@ -121,7 +123,8 @@ class BaseVocab:
 
         if vocab_file is not None:
             if not os.path.isabs(vocab_file) and data_root_dir is not None:
-                vocab_file = os.path.join(data_root_dir, vocab_file)
+                pythia_root = get_pythia_root()
+                vocab_file = os.path.join(pythia_root, data_root_dir, vocab_file)
             if not os.path.exists(vocab_file):
                 raise RuntimeError("Vocab not found at " + vocab_file)
 
@@ -231,7 +234,9 @@ class CustomVocab(BaseVocab):
         self.type = "custom"
 
         if not os.path.isabs(embedding_file) and data_root_dir is not None:
-            embedding_file = os.path.join(data_root_dir, embedding_file)
+            pythia_root = get_pythia_root()
+            embedding_file = os.path.join(pythia_root, data_root_dir,
+                                          embedding_file)
 
         if not os.path.exists(embedding_file):
             from pythia.common.registry import registry
@@ -297,10 +302,11 @@ class IntersectedVocab(BaseVocab):
         if name == 'glove':
             params.append(int(dim))
 
-        embedding = getattr(vocab, class_name)(*params)
+        vector_cache = os.path.join(get_pythia_root(), ".vector_cache")
+        embedding = getattr(vocab, class_name)(*params, cache=vector_cache)
 
         self.vectors = torch.empty((self.get_size(),
-                                     len(embedding.vectors[0])),
+                                    len(embedding.vectors[0])),
                                     dtype=torch.float)
 
         self.embedding_dim = len(embedding.vectors[0])
@@ -342,7 +348,11 @@ class PretrainedVocab(BaseVocab):
                 writer.write(error, "error")
             raise RuntimeError(error)
 
-        embedding = vocab.pretrained_aliases[embedding_name]()
+        vector_cache = os.path.join(get_pythia_root(), ".vector_cache")
+
+        embedding = vocab.pretrained_aliases[embedding_name](
+            cache=vector_cache
+        )
 
         self.UNK_INDEX = 3
         self.stoi = defaultdict(lambda: self.UNK_INDEX)
@@ -413,6 +423,9 @@ class ModelVocab(BaseVocab):
     def _load_fasttext_model(self, model_file):
         from fastText import load_model
         from pythia.common.registry import registry
+
+        pythia_root = get_pythia_root()
+        model_file = os.path.join(pythia_root, model_file)
 
         registry.get('writer').write("Loading fasttext model now from %s"
                                      % model_file)

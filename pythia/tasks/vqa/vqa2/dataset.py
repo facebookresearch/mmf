@@ -7,6 +7,7 @@ from pythia.tasks.features_dataset import FeaturesDataset
 from pythia.common.sample import Sample
 from pythia.tasks.base_dataset import BaseDataset
 from pythia.utils.distributed_utils import is_main_process
+from pythia.utils.general import get_pythia_root
 
 
 class VQA2Dataset(BaseDataset):
@@ -55,7 +56,9 @@ class VQA2Dataset(BaseDataset):
             return [self._get_absolute_path(path) for path in paths]
         elif isinstance(paths, str):
             if not os.path.isabs(paths):
-                paths = os.path.join(self.config.data_root_dir, paths)
+                pythia_root = get_pythia_root()
+                paths = os.path.join(pythia_root, self.config.data_root_dir,
+                                     paths)
             return paths
         else:
             raise TypeError("Paths passed to dataset should either be "
