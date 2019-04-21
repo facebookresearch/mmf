@@ -242,6 +242,7 @@ class Trainer:
                 if self.current_iteration > self.max_iterations:
                     break
 
+                self._run_scheduler()
                 report = self._forward_pass(batch)
                 self._update_meter(report, self.meter)
                 loss = self._extract_loss(report)
@@ -253,6 +254,11 @@ class Trainer:
 
         self.checkpoint.restore()
         self.predict()
+
+    def _run_scheduler(self):
+        if self.lr_scheduler is not None:
+            self.lr_scheduler.step(self.current_iteration)
+
 
     def _forward_pass(self, batch):
         prepared_batch = self.task_loader.prepare_batch(batch)
@@ -268,6 +274,11 @@ class Trainer:
     def _backward(self, loss):
         self.optimizer.zero_grad()
         loss.backward()
+
+        if self.should_clip_gradients:
+            clip_gradients(self.model, self.current_iteration,
+                           self.writer, self.config)
+
         self.optimizer.step()
         self.profile("Backward time")
 
@@ -299,13 +310,6 @@ class Trainer:
             meter.update(meter_update_dict)
 
     def _logistics(self, report):
-        if self.lr_scheduler is not None:
-            self.lr_scheduler.step(self.current_iteration)
-
-        if self.should_clip_gradients:
-            clip_gradients(self.model, self.current_iteration,
-                           self.writer, self.config)
-
         should_print = self.current_iteration % self.log_interval == 0
         should_break = False
         extra = {}
