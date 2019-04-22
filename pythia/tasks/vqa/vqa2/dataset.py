@@ -82,7 +82,7 @@ class VQA2Dataset(BaseDataset):
                 self.cache[idx] = self.load_item(idx)
 
     def get_item(self, idx):
-        if self._should_fast_read is True:
+        if self._should_fast_read is True and self._dataset_type != "test":
             return self.cache[idx]
         else:
             return self.load_item(idx)
