@@ -6,10 +6,10 @@
 #
 
 
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.weight_norm import weight_norm
-import torch
 
 
 def build_post_combine_transform(method, par, in_dim):
@@ -18,17 +18,16 @@ def build_post_combine_transform(method, par, in_dim):
     elif method == "conv_transform":
         return ConvTransform(in_dim, **par)
     else:
-        raise NotImplementedError(
-            "unkown post combime transform type %s" % method)
+        raise NotImplementedError("unkown post combime transform type %s" % method)
 
 
 class LinearTransform(nn.Module):
     def __init__(self, in_dim, **kwargs):
         super(LinearTransform, self).__init__()
         self.lc = weight_norm(
-            nn.Linear(in_features=in_dim,
-                      out_features=kwargs['out_dim']), dim=None)
-        self.out_dim = kwargs['out_dim']
+            nn.Linear(in_features=in_dim, out_features=kwargs["out_dim"]), dim=None
+        )
+        self.out_dim = kwargs["out_dim"]
 
     def forward(self, x):
         return self.lc(x)
@@ -37,13 +36,15 @@ class LinearTransform(nn.Module):
 class ConvTransform(nn.Module):
     def __init__(self, in_dim, **kwargs):
         super(ConvTransform, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=in_dim,
-                               out_channels=kwargs['hidden_dim'],
-                               kernel_size=1)
-        self.conv2 = nn.Conv2d(in_channels=kwargs['hidden_dim'],
-                               out_channels=kwargs['out_dim'],
-                               kernel_size=1)
-        self.out_dim = kwargs['out_dim']
+        self.conv1 = nn.Conv2d(
+            in_channels=in_dim, out_channels=kwargs["hidden_dim"], kernel_size=1
+        )
+        self.conv2 = nn.Conv2d(
+            in_channels=kwargs["hidden_dim"],
+            out_channels=kwargs["out_dim"],
+            kernel_size=1,
+        )
+        self.out_dim = kwargs["out_dim"]
 
     def forward(self, x):
         if len(x.size()) == 3:  # N x k xdim

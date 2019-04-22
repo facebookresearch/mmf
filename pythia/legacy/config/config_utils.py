@@ -6,17 +6,18 @@
 #
 
 
-from config.function_config_lib import ModelParPair
-from config.collections import AttrDict
-import yaml
 import demjson
+import yaml
+
+from config.collections import AttrDict
+from config.function_config_lib import ModelParPair
 
 
 def object_2_attributes(vals):
     if isinstance(vals, dict):
-        if 'type' in vals and 'par' in vals and len(vals) == 2:
-            v1 = ModelParPair(vals['type'])
-            update_config(v1, vals['par'])
+        if "type" in vals and "par" in vals and len(vals) == 2:
+            v1 = ModelParPair(vals["type"])
+            update_config(v1, vals["par"])
             return v1
         else:
             v2 = AttrDict()
@@ -35,14 +36,16 @@ def object_2_attributes(vals):
 def update_config(orig, other):
     if isinstance(other, dict):
         if isinstance(orig, ModelParPair):
-            if 'method' not in other and 'par' not in other:
-                exit("could not update a model_par_pair when \
-                     neither type or par exist")
+            if "method" not in other and "par" not in other:
+                exit(
+                    "could not update a model_par_pair when \
+                     neither type or par exist"
+                )
             else:
-                if 'method' in other:
-                    orig.update_type(other['method'])
-                if 'par' in other:
-                    update_config(orig['par'], other['par'])
+                if "method" in other:
+                    orig.update_type(other["method"])
+                if "par" in other:
+                    update_config(orig["par"], other["par"])
 
         for key, value in other.items():
             if key not in orig:
@@ -60,9 +63,9 @@ def update_config(orig, other):
         for i, other_i in enumerate(other):
             if i >= len(orig):
                 orig.append(object_2_attributes(other_i))
-            if other_i == '.':
+            if other_i == ".":
                 pass
-            elif other_i == '-':
+            elif other_i == "-":
                 elm_to_remove.append(i)
             elif isinstance(other_i, dict):
                 update_config(orig[i], other_i)
@@ -70,7 +73,7 @@ def update_config(orig, other):
                 orig[i] = other_i
 
         if len(orig) > len(other):
-            elm_to_remove += range(len(other),len(orig))
+            elm_to_remove += range(len(other), len(orig))
 
         final_attr = [i for j, i in enumerate(orig) if j not in elm_to_remove]
         orig.clear()
@@ -81,8 +84,9 @@ def update_config(orig, other):
 
 # -----------------Merge configuration from config file---------------------- #
 
+
 def __merge_config_from_file(cfg, file_path):
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         updates = yaml.load(f)
     update_config(cfg, updates)
 
@@ -104,6 +108,7 @@ def finalize_config(cfg, cfg_file_path, cfg_cmd_string):
 
 # ----------------extract config to simple dict------------------------------ #
 
+
 def convert_cfg_to_dict(cfg):
     if isinstance(cfg, AttrDict):
         cfg_dict = {}
@@ -115,7 +120,7 @@ def convert_cfg_to_dict(cfg):
                 cfg_dict[key] = convert_cfg_to_dict(val)
         return cfg_dict
     elif isinstance(cfg, ModelParPair):
-        cfg_dict = {'method': cfg.method, 'par': convert_cfg_to_dict(cfg.par)}
+        cfg_dict = {"method": cfg.method, "par": convert_cfg_to_dict(cfg.par)}
         return cfg_dict
     else:
         return cfg
@@ -123,9 +128,9 @@ def convert_cfg_to_dict(cfg):
 
 # --------------------dump config ------------------------------------------- #
 
+
 def dump_config(cfg, config_file):
-    with open(config_file, 'w') as outfile:
-        yaml.dump(convert_cfg_to_dict(cfg),
-                  outfile,
-                  default_flow_style=False,
-                  encoding=None)
+    with open(config_file, "w") as outfile:
+        yaml.dump(
+            convert_cfg_to_dict(cfg), outfile, default_flow_style=False, encoding=None
+        )

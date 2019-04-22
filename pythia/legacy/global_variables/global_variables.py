@@ -8,7 +8,6 @@
 
 import torch
 
-
 imdb_version = 1
 use_cuda = torch.cuda.is_available()
 

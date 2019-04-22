@@ -8,15 +8,17 @@
 
 import argparse
 import os
+
 import numpy as np
+
 from dataset_utils.text_processing import VocabDict
 
 
 def subset_weights(glove_file, vocabulary_file):
-    with open(glove_file, 'r') as f:
+    with open(glove_file, "r") as f:
         entries = f.readlines()
-    emb_dim = len(entries[0].split(' ')) - 1
-    print('embedding dim is %d' % emb_dim)
+    emb_dim = len(entries[0].split(" ")) - 1
+    print("embedding dim is %d" % emb_dim)
 
     vocabulary = VocabDict(vocab_file=vocabulary_file)
 
@@ -24,7 +26,7 @@ def subset_weights(glove_file, vocabulary_file):
 
     word2emb = {}
     for entry in entries:
-        vals = entry.split(' ')
+        vals = entry.split(" ")
         word = vals[0]
         vals = np.array(list(map(float, vals[1:])))
         word2emb[word] = np.array(vals)
@@ -37,20 +39,26 @@ def subset_weights(glove_file, vocabulary_file):
     return weights
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--vocabulary_file",
-                        type=str,
-                        required=True,
-                        help="input train annotationjson file")
-    parser.add_argument("--glove_file",
-                        type=str,
-                        required=True,
-                        help="glove files with the corresponding dim")
-    parser.add_argument("--out_dir",
-                        type=str,
-                        default="./",
-                        help="output directory, default is current directory")
+    parser.add_argument(
+        "--vocabulary_file",
+        type=str,
+        required=True,
+        help="input train annotationjson file",
+    )
+    parser.add_argument(
+        "--glove_file",
+        type=str,
+        required=True,
+        help="glove files with the corresponding dim",
+    )
+    parser.add_argument(
+        "--out_dir",
+        type=str,
+        default="./",
+        help="output directory, default is current directory",
+    )
 
     args = parser.parse_args()
 
@@ -59,7 +67,7 @@ if __name__ == '__main__':
     out_dir = args.out_dir
 
     os.makedirs(out_dir, exist_ok=True)
-    emb_file_name = "vqa2.0_"+os.path.basename(glove_file)+".npy"
+    emb_file_name = "vqa2.0_" + os.path.basename(glove_file) + ".npy"
 
     weights = subset_weights(glove_file, vocabulary_file)
 

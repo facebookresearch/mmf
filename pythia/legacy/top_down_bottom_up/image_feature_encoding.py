@@ -6,11 +6,13 @@
 #
 
 
+import os
+import pickle
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import pickle
-import os
+
 from config.config import cfg
 
 
@@ -40,9 +42,9 @@ class FinetuneFasterRcnnFpnFc7(nn.Module):
             weights_file = os.path.join(cfg.data.data_root_dir, weights_file)
         if not os.path.isabs(bias_file):
             bias_file = os.path.join(cfg.data.data_root_dir, bias_file)
-        with open(weights_file, 'rb') as w:
+        with open(weights_file, "rb") as w:
             weights = pickle.load(w)
-        with open(bias_file, 'rb') as b:
+        with open(bias_file, "rb") as b:
             bias = pickle.load(b)
         out_dim = bias.shape[0]
 

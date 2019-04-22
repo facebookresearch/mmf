@@ -7,23 +7,25 @@
 
 
 import argparse
-import numpy as np
-import json
-import _pickle as pickle
 import glob
+import json
+
+import numpy as np
+
+import _pickle as pickle
 from train_model.helper import print_result
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--out",
-                        type=str,
-                        required=True,
-                        help="output file name")
-    parser.add_argument("--res_dirs", nargs='+',
-                        help="directories for results, NOTE:"
-                        "all *.pkl file under these dirs will be ensembled",
-                        default=None)
+    parser.add_argument("--out", type=str, required=True, help="output file name")
+    parser.add_argument(
+        "--res_dirs",
+        nargs="+",
+        help="directories for results, NOTE:"
+        "all *.pkl file under these dirs will be ensembled",
+        default=None,
+    )
     argments = parser.parse_args()
 
     return argments
@@ -34,14 +36,11 @@ class answer_json:
         self.answers = []
 
     def add(self, ques_id, ans):
-        res = {
-            "question_id": ques_id,
-            "answer": ans
-        }
+        res = {"question_id": ques_id, "answer": ans}
         self.answers.append(res)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     args = parse_args()
     result_dirs = args.res_dirs
@@ -52,7 +51,7 @@ if __name__ == '__main__':
     cnt = 0
     for res_dir in result_dirs:
         for file in glob.glob(res_dir + "/**/*.pkl", recursive=True):
-            with open(file, 'rb') as f:
+            with open(file, "rb") as f:
                 cnt += 1
                 sm = pickle.load(f)
                 if soft_max_result is None:
@@ -66,13 +65,8 @@ if __name__ == '__main__':
 
     predicted_answers = np.argmax(soft_max_result, axis=1)
 
-    pkl_file = out_file+".pkl"
+    pkl_file = out_file + ".pkl"
 
-    print_result(question_ids,
-                 soft_max_result,
-                 ans_dic,
-                 out_file,
-                 False,
-                 pkl_file)
+    print_result(question_ids, soft_max_result, ans_dic, out_file, False, pkl_file)
 
     print("Done")

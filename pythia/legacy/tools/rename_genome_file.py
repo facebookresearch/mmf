@@ -6,9 +6,9 @@
 #
 
 
+import os
 import shutil
 import sys
-import os
 
 if len(sys.argv) != 3:
     exit("Usage: python tools/rename_genome_file.py [inDir] [outDir]")
@@ -27,7 +27,7 @@ for file in os.listdir(inDir):
         n += 1
         if n % 5000 == 0:
             print("process %d files" % n)
-        image_id = int(file.split('.')[0])
+        image_id = int(file.split(".")[0])
         out_name = OUT_NAME % image_id
         in_file = os.path.join(inDir, file)
         out_file = os.path.join(outDir, out_name)

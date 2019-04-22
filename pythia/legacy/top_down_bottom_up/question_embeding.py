@@ -6,11 +6,13 @@
 #
 
 
+import os
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-import os
+
 from config.config import cfg
 
 
@@ -20,29 +22,27 @@ def build_question_encoding_module(method, par, num_vocab):
     elif method == "att_que_embed":
         return AttQuestionEmbedding(num_vocab, **par)
     else:
-        raise NotImplementedError(
-            "unknown question encoding model %s" % method)
+        raise NotImplementedError("unknown question encoding model %s" % method)
 
 
 class QuestionEmbeding(nn.Module):
     def __init__(self, **kwargs):
         super(QuestionEmbeding, self).__init__()
-        self.text_out_dim = kwargs['LSTM_hidden_size']
-        self.num_vocab = kwargs['num_vocab']
-        self.embedding_dim = kwargs['embedding_dim']
-        self.embedding = nn.Embedding(
-            kwargs['num_vocab'], kwargs['embedding_dim'])
+        self.text_out_dim = kwargs["LSTM_hidden_size"]
+        self.num_vocab = kwargs["num_vocab"]
+        self.embedding_dim = kwargs["embedding_dim"]
+        self.embedding = nn.Embedding(kwargs["num_vocab"], kwargs["embedding_dim"])
         self.gru = nn.GRU(
-            input_size=kwargs['embedding_dim'],
-            hidden_size=kwargs['LSTM_hidden_size'],
-            num_layers=kwargs['lstm_layer'],
-            dropout=kwargs['lstm_dropout'],
-            batch_first=True)
+            input_size=kwargs["embedding_dim"],
+            hidden_size=kwargs["LSTM_hidden_size"],
+            num_layers=kwargs["lstm_layer"],
+            dropout=kwargs["lstm_dropout"],
+            batch_first=True,
+        )
         self.batch_first = True
 
-        if 'embedding_init' in kwargs and kwargs['embedding_init'] is not None:
-            self.embedding.weight.data.copy_(
-                torch.from_numpy(kwargs['embedding_init']))
+        if "embedding_init" in kwargs and kwargs["embedding_init"] is not None:
+            self.embedding.weight.data.copy_(torch.from_numpy(kwargs["embedding_init"]))
 
     def forward(self, input_text):
         embeded_txt = self.embedding(input_text)
@@ -54,37 +54,44 @@ class QuestionEmbeding(nn.Module):
 class AttQuestionEmbedding(nn.Module):
     def __init__(self, num_vocab, **kwargs):
         super(AttQuestionEmbedding, self).__init__()
-        self.embedding = nn.Embedding(num_vocab, kwargs['embedding_dim'])
-        self.LSTM = nn.LSTM(input_size=kwargs['embedding_dim'],
-                            hidden_size=kwargs['LSTM_hidden_size'],
-                            num_layers=kwargs['LSTM_layer'],
-                            batch_first=True)
-        self.Dropout = nn.Dropout(p=kwargs['dropout'])
+        self.embedding = nn.Embedding(num_vocab, kwargs["embedding_dim"])
+        self.LSTM = nn.LSTM(
+            input_size=kwargs["embedding_dim"],
+            hidden_size=kwargs["LSTM_hidden_size"],
+            num_layers=kwargs["LSTM_layer"],
+            batch_first=True,
+        )
+        self.Dropout = nn.Dropout(p=kwargs["dropout"])
         self.conv1 = nn.Conv1d(
-            in_channels=kwargs['LSTM_hidden_size'],
-            out_channels=kwargs['conv1_out'],
-            kernel_size=kwargs['kernel_size'],
-            padding=kwargs['padding'])
+            in_channels=kwargs["LSTM_hidden_size"],
+            out_channels=kwargs["conv1_out"],
+            kernel_size=kwargs["kernel_size"],
+            padding=kwargs["padding"],
+        )
         self.conv2 = nn.Conv1d(
-            in_channels=kwargs['conv1_out'],
-            out_channels=kwargs['conv2_out'],
-            kernel_size=kwargs['kernel_size'],
-            padding=kwargs['padding'])
-        self.text_out_dim = kwargs['LSTM_hidden_size'] * kwargs['conv2_out']
+            in_channels=kwargs["conv1_out"],
+            out_channels=kwargs["conv2_out"],
+            kernel_size=kwargs["kernel_size"],
+            padding=kwargs["padding"],
+        )
+        self.text_out_dim = kwargs["LSTM_hidden_size"] * kwargs["conv2_out"]
 
-        if 'embedding_init_file' in kwargs \
-                and kwargs['embedding_init_file'] is not None:
-            if os.path.isabs(kwargs['embedding_init_file']):
-                embedding_file = kwargs['embedding_init_file']
+        if (
+            "embedding_init_file" in kwargs
+            and kwargs["embedding_init_file"] is not None
+        ):
+            if os.path.isabs(kwargs["embedding_init_file"]):
+                embedding_file = kwargs["embedding_init_file"]
             else:
                 embedding_file = os.path.join(
-                    cfg.data.data_root_dir, kwargs['embedding_init_file'])
+                    cfg.data.data_root_dir, kwargs["embedding_init_file"]
+                )
             embedding_init = np.load(embedding_file)
             self.embedding.weight.data.copy_(torch.from_numpy(embedding_init))
 
     def forward(self, input_text):
         batch_size, _ = input_text.data.shape
-        embed_txt = self.embedding(input_text)          # N * T * embedding_dim
+        embed_txt = self.embedding(input_text)  # N * T * embedding_dim
 
         # self.LSTM.flatten_parameters()
         lstm_out, _ = self.LSTM(embed_txt)  # N * T * LSTM_hidden_size

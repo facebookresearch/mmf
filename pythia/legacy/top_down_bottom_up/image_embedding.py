@@ -6,12 +6,14 @@
 #
 
 
+import pickle
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import pickle
 
-'''
+
+"""
     parameters:
 
     input:
@@ -24,7 +26,7 @@ import pickle
         image_embedding:[batch_size, image_feat_dim]
 
 
-'''
+"""
 
 
 class image_embedding(nn.Module):
@@ -36,10 +38,12 @@ class image_embedding(nn.Module):
     def forward(self, image_feat_variable, question_embedding, image_dims):
         # N x K x n_att
         attention = self.image_attention_model(
-            image_feat_variable, question_embedding, image_dims)
+            image_feat_variable, question_embedding, image_dims
+        )
         att_reshape = attention.permute(0, 2, 1)
         tmp_embedding = torch.bmm(
-            att_reshape, image_feat_variable)  # N x n_att x image_dim
+            att_reshape, image_feat_variable
+        )  # N x n_att x image_dim
         batch_size = att_reshape.size(0)
         image_embedding = tmp_embedding.view(batch_size, -1)
 
@@ -49,9 +53,9 @@ class image_embedding(nn.Module):
 class image_finetune(nn.Module):
     def __init__(self, in_dim, weights_file, bias_file):
         super(image_finetune, self).__init__()
-        with open(weights_file, 'rb') as w:
+        with open(weights_file, "rb") as w:
             weights = pickle.load(w)
-        with open(bias_file, 'rb') as b:
+        with open(bias_file, "rb") as b:
             bias = pickle.load(b)
         out_dim = bias.shape[0]
 

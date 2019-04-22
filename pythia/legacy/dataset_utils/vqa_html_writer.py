@@ -36,9 +36,9 @@ element_header = """
 """
 
 
-class vqa_html_writer():
+class vqa_html_writer:
     def __init__(self, file_path, elements_per_row=4):
-        self._writer = open(file_path, 'w')
+        self._writer = open(file_path, "w")
         self._writer.write(html_header)
         self.count = 0
         self.elements_per_row = elements_per_row
@@ -47,7 +47,7 @@ class vqa_html_writer():
         if self.count % self.elements_per_row == 0:
             self._writer.write(row_header + "\n")
         self._writer.write(element_header)
-        self._writer.write("<img src=\" "+image + "\" width = 100%\">")
+        self._writer.write('<img src=" ' + image + '" width = 100%">')
         for key, value in kwarg.items():
             self._writer.write("<p>%s : %s</p>" % (key, value))
         self._writer.write("</div>")
@@ -62,16 +62,15 @@ class vqa_html_writer():
         self._writer.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     html_writer = vqa_html_writer("/Users/tinayujiang/temp/test.html", 4)
     n = 10
     for i in range(10):
-        image_path = ("/Users/tinayujiang/work/VQA/data_analysis/val2014/" +
-                      "COCO_val2014_000000290951.jpg")
-        info = {
-            "question": "abcfs efc?",
-            "answers": " wdds cdsde"
-        }
+        image_path = (
+            "/Users/tinayujiang/work/VQA/data_analysis/val2014/"
+            + "COCO_val2014_000000290951.jpg"
+        )
+        info = {"question": "abcfs efc?", "answers": " wdds cdsde"}
         html_writer.write_element(image_path, **info)
 
     html_writer.close()

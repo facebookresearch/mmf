@@ -7,16 +7,21 @@
 
 
 import os
+
 import torch
 from torch.utils.data import DataLoader
 
 
 def get_final_validation(data_set_val, batch_size, snapshot_dir, eval_model):
-    final_val_data_reader = DataLoader(data_set_val, shuffle=False,
-                                       batch_size=batch_size)
+    final_val_data_reader = DataLoader(
+        data_set_val, shuffle=False, batch_size=batch_size
+    )
 
-    files = [os.path.join(snapshot_dir, file)
-             for file in os.listdir(snapshot_dir) if file.startswith('model')]
+    files = [
+        os.path.join(snapshot_dir, file)
+        for file in os.listdir(snapshot_dir)
+        if file.startswith("model")
+    ]
 
     for model_file in sorted(files, key=os.path.getctime, reverse=True):
         current_model = torch.load(model_file)

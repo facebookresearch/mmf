@@ -9,6 +9,7 @@
 import torch
 import torch.nn as nn
 from torch.nn.utils.weight_norm import weight_norm
+
 from top_down_bottom_up.nonlinear_layer import nonlinear_layer
 
 
@@ -29,20 +30,20 @@ class logit_classifier(nn.Module):
         super(logit_classifier, self).__init__()
         input_dim = in_dim
         num_ans_candidates = out_dim
-        txt_nonLinear_dim = kwargs['txt_hidden_dim']
-        image_nonLinear_dim = kwargs['img_hidden_dim']
+        txt_nonLinear_dim = kwargs["txt_hidden_dim"]
+        image_nonLinear_dim = kwargs["img_hidden_dim"]
         self.f_o_text = nonlinear_layer(input_dim, txt_nonLinear_dim)
         self.f_o_image = nonlinear_layer(input_dim, image_nonLinear_dim)
         self.linear_text = nn.Linear(txt_nonLinear_dim, num_ans_candidates)
         self.linear_image = nn.Linear(image_nonLinear_dim, num_ans_candidates)
-        if 'pretrained_image' in kwargs and \
-                kwargs['pretrained_text'] is not None:
+        if "pretrained_image" in kwargs and kwargs["pretrained_text"] is not None:
             self.linear_text.weight.data.copy_(
-                torch.from_numpy(kwargs['pretrained_text']))
-        if 'pretrained_image' in kwargs and \
-                kwargs['pretrained_image'] is not None:
+                torch.from_numpy(kwargs["pretrained_text"])
+            )
+        if "pretrained_image" in kwargs and kwargs["pretrained_image"] is not None:
             self.linear_image.weight.data.copy_(
-                torch.from_numpy(kwargs['pretrained_image']))
+                torch.from_numpy(kwargs["pretrained_image"])
+            )
 
     def forward(self, joint_embedding):
         text_val = self.linear_text(self.f_o_text(joint_embedding))
@@ -56,10 +57,10 @@ class WeightNormClassifier(nn.Module):
     def __init__(self, in_dim, out_dim, **kwargs):
         super(WeightNormClassifier, self).__init__()
         layers = [
-            weight_norm(nn.Linear(in_dim, kwargs['hidden_dim']), dim=None),
+            weight_norm(nn.Linear(in_dim, kwargs["hidden_dim"]), dim=None),
             nn.ReLU(),
-            nn.Dropout(kwargs['dropout'], inplace=True),
-            weight_norm(nn.Linear(kwargs['hidden_dim'], out_dim), dim=None)
+            nn.Dropout(kwargs["dropout"], inplace=True),
+            weight_norm(nn.Linear(kwargs["hidden_dim"], out_dim), dim=None),
         ]
         self.main = nn.Sequential(*layers)
 

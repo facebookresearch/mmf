@@ -8,22 +8,42 @@
 
 import json
 import os
+
 import _pickle
 
-COMMON_ATTRIBUTES = set(['white', 'black', 'blue', 'green', 'red', 'brown',
-                         'yellow', 'small', 'large', 'silver', 'wooden',
-                         'orange', 'gray', 'grey', 'metal', 'pink', 'tall',
-                         'long', 'dark'])
+COMMON_ATTRIBUTES = set(
+    [
+        "white",
+        "black",
+        "blue",
+        "green",
+        "red",
+        "brown",
+        "yellow",
+        "small",
+        "large",
+        "silver",
+        "wooden",
+        "orange",
+        "gray",
+        "grey",
+        "metal",
+        "pink",
+        "tall",
+        "long",
+        "dark",
+    ]
+)
 
 
 def extract_category_map(objects_list_file):
-    with open(objects_list_file, 'r') as f:
+    with open(objects_list_file, "r") as f:
         lines = f.readlines()
     obj_list = [line.strip() for line in lines]
     id_map = {}
 
     for i, line in enumerate(obj_list):
-        objects = line.split(',')
+        objects = line.split(",")
         for obj in objects:
             id_map[obj] = i
     return id_map
@@ -42,7 +62,7 @@ def get_segmantation(bbox):
     y = bbox[1]
     w = bbox[2]
     h = bbox[3]
-    return([x, y, x, y+h, x+w, y+h, x+w, y])
+    return [x, y, x, y + h, x + w, y + h, x + w, y]
 
 
 def get_area(bbox):
@@ -51,13 +71,13 @@ def get_area(bbox):
 
 def clean_string(string):
     string = string.lower().strip()
-    if len(string) >= 1 and string[-1] == '.':
+    if len(string) >= 1 and string[-1] == ".":
         return string[:-1].strip()
     return string
 
 
 def clean_objects(string, common_attributes):
-    ''' Return object and attribute lists '''
+    """ Return object and attribute lists """
     string = clean_string(string)
     words = string.split()
     if len(words) > 1:
@@ -74,7 +94,7 @@ def clean_objects(string, common_attributes):
 
 
 def clean_attributes(string):
-    ''' Return attribute list '''
+    """ Return attribute list """
     string = clean_string(string)
     if string == "black and white":
         return [string]
@@ -83,72 +103,75 @@ def clean_attributes(string):
 
 
 class COCO_annotation:
-        def __init__(self, obj_cat_id_map,att_cat_id_map):
-            self.annotations = []
-            self.number_of_object = 0
+    def __init__(self, obj_cat_id_map, att_cat_id_map):
+        self.annotations = []
+        self.number_of_object = 0
 
-            self.obj_cat_id_map = obj_cat_id_map
-            self.att_cat_id_map = att_cat_id_map
-            print("total number of objects is %d, total number of attributes is %d" % (len(self.obj_cat_id_map), len(self.att_cat_id_map)))
+        self.obj_cat_id_map = obj_cat_id_map
+        self.att_cat_id_map = att_cat_id_map
+        print(
+            "total number of objects is %d, total number of attributes is %d"
+            % (len(self.obj_cat_id_map), len(self.att_cat_id_map))
+        )
 
-        def add_annotation(self,obj_id, image_id, bbox, att_ids):
-            segmentation = [get_segmantation(bbox)]
-            area = get_area(bbox)
-            self.number_of_object += 1
-            annotation = {
-                "id": self.number_of_object,
-                "category_id": obj_id,
-                "segmentation": segmentation,
-                "area": area,
-                "iscrowd": 0,
-                "image_id": image_id,
-                'bbox': bbox,
-                "ignore": 0
+    def add_annotation(self, obj_id, image_id, bbox, att_ids):
+        segmentation = [get_segmantation(bbox)]
+        area = get_area(bbox)
+        self.number_of_object += 1
+        annotation = {
+            "id": self.number_of_object,
+            "category_id": obj_id,
+            "segmentation": segmentation,
+            "area": area,
+            "iscrowd": 0,
+            "image_id": image_id,
+            "bbox": bbox,
+            "ignore": 0,
+        }
+        if len(att_ids) > 0:
+            annotation["attribute_ids"] = att_ids
+        self.annotations.append(annotation)
+
+    def summary(self):
+        obj_clean_map = clean_category(self.obj_cat_id_map)
+        self.categories = [
+            {"supercategory": "obj", "id": cat_id, "name": cat_name}
+            for cat_id, cat_name in obj_clean_map.items()
+        ]
+        att_clean_map = clean_category(self.att_cat_id_map)
+        self.att_categories = [
+            {"supercategory": "att", "id": cat_id, "name": cat_name}
+            for cat_id, cat_name in att_clean_map.items()
+        ]
+
+    def add_images(self, images, image_group):
+        self.images = []
+        for image in images:
+            image_name = os.path.basename(image["url"])
+            if image_name not in image_group:
+                continue
+
+            new_image = {
+                "file_name": image_name,
+                "id": image["image_id"],
+                "height": image["height"],
+                "width": image["width"],
             }
-            if len(att_ids) >0 :
-                annotation["attribute_ids"]= att_ids
-            self.annotations.append(annotation)
+            self.images.append(new_image)
 
-        def summary(self):
-            obj_clean_map = clean_category(self.obj_cat_id_map)
-            self.categories = [{"supercategory": "obj",
-                                "id": cat_id,
-                                "name": cat_name}
-                               for cat_id, cat_name in obj_clean_map.items()]
-            att_clean_map = clean_category(self.att_cat_id_map)
-            self.att_categories = [{"supercategory": "att",
-                                    "id": cat_id,
-                                    "name": cat_name}
-                                   for cat_id, cat_name
-                                   in att_clean_map.items()]
-
-        def add_images(self, images, image_group):
-            self.images = []
-            for image in images:
-                image_name = os.path.basename(image['url'])
-                if image_name not in image_group:
-                    continue
-
-                new_image = {
-                    "file_name": image_name,
-                    "id": image['image_id'],
-                    "height": image['height'],
-                    "width": image['width']
-                }
-                self.images.append(new_image)
-
-        def print(self, writer):
-            tmp = {"images": self.images,
-                   "annotations": self.annotations,
-                   "categories": self.categories,
-                   "attCategories": self.att_categories}
-            return json.dump(tmp, writer)
+    def print(self, writer):
+        tmp = {
+            "images": self.images,
+            "annotations": self.annotations,
+            "categories": self.categories,
+            "attCategories": self.att_categories,
+        }
+        return json.dump(tmp, writer)
 
 
-def convert_2_object_and_att(VG_attributes,
-                             image_group,
-                             category_id_map,
-                             att_cat_id_maps):
+def convert_2_object_and_att(
+    VG_attributes, image_group, category_id_map, att_cat_id_maps
+):
     cocoAnnotation = COCO_annotation(category_id_map, att_cat_id_maps)
 
     count = 0
@@ -156,18 +179,18 @@ def convert_2_object_and_att(VG_attributes,
 
         count += 1
 
-        if(count % 10000 == 0):
+        if count % 10000 == 0:
             print("process %d images" % count)
 
-        image_id = image['image_id']
+        image_id = image["image_id"]
         image_name = str(image_id) + ".jpg"
         if image_name not in image_group:
             continue
 
-        for att in image['attributes']:
-            atts = [] if 'attributes' not in att else att['attributes']
-            bbox = [att['x'], att['y'], att['w'], att['h']]
-            object_names = att['names']
+        for att in image["attributes"]:
+            atts = [] if "attributes" not in att else att["attributes"]
+            bbox = [att["x"], att["y"], att["w"], att["h"]]
+            object_names = att["names"]
 
             obj = object_names[0]
             objs, atts_from_name = clean_objects(obj, COMMON_ATTRIBUTES)
@@ -194,9 +217,7 @@ def convert_2_object_and_att(VG_attributes,
     return cocoAnnotation
 
 
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     VG_attributes_file = "attributes.json"
     VG_image_file = "image_data.json"
     VG_object_and_atrributes_in_COCO_file = "object_and_attributes_%s.json"
@@ -205,7 +226,7 @@ if __name__ == '__main__':
     attributes_list_file = "attributes_vocab.txt"
     objects_list_file = "objects_vocab.txt"
 
-    with open(VG_attributes_file, 'r') as f:
+    with open(VG_attributes_file, "r") as f:
         VG_attributes = json.load(f)
 
     obj_cat_id_maps = extract_category_map(objects_list_file)
@@ -217,14 +238,16 @@ if __name__ == '__main__':
         with open(image_id_file % label, "rb") as f:
             image_ids = _pickle.load(f)
 
-        VG_object_and_atrributes_in_COCO = convert_2_object_and_att(VG_attributes, image_ids, obj_cat_id_maps,att_cat_id_maps)
+        VG_object_and_atrributes_in_COCO = convert_2_object_and_att(
+            VG_attributes, image_ids, obj_cat_id_maps, att_cat_id_maps
+        )
 
         # extract image meta data
-        with open(VG_image_file, 'r') as f:
+        with open(VG_image_file, "r") as f:
             VG_image = json.load(f)
 
         VG_object_and_atrributes_in_COCO.summary()
         VG_object_and_atrributes_in_COCO.add_images(VG_image, image_ids)
 
-        with open(VG_object_and_atrributes_in_COCO_file % label, 'w') as w:
+        with open(VG_object_and_atrributes_in_COCO_file % label, "w") as w:
             VG_object_and_atrributes_in_COCO.print(w)

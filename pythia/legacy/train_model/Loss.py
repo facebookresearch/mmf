@@ -12,13 +12,13 @@ import torch.nn.functional as F
 
 
 def get_loss_criterion(loss_config):
-    if loss_config == 'logitBCE':
+    if loss_config == "logitBCE":
         loss_criterion = LogitBinaryCrossEntropy()
-    elif loss_config == 'softmaxKL':
+    elif loss_config == "softmaxKL":
         loss_criterion = SoftmaxKlDivLoss()
-    elif loss_config == 'wrong':
+    elif loss_config == "wrong":
         loss_criterion = wrong_loss()
-    elif loss_config == 'combined':
+    elif loss_config == "combined":
         loss_criterion = CombinedLoss()
     else:
         raise NotImplementedError
@@ -31,9 +31,9 @@ class LogitBinaryCrossEntropy(nn.Module):
         super(LogitBinaryCrossEntropy, self).__init__()
 
     def forward(self, pred_score, target_score, weights=None):
-        loss = F.binary_cross_entropy_with_logits(pred_score,
-                                                  target_score,
-                                                  size_average=True)
+        loss = F.binary_cross_entropy_with_logits(
+            pred_score, target_score, size_average=True
+        )
         loss = loss * target_score.size(1)
         return loss
 
@@ -112,9 +112,9 @@ class CombinedLoss(nn.Module):
         loss1 = kl_div(res, tar)
         loss1 = torch.sum(loss1) / loss1.size(0)
 
-        loss2 = F.binary_cross_entropy_with_logits(pred_score,
-                                                   target_score,
-                                                   size_average=True)
+        loss2 = F.binary_cross_entropy_with_logits(
+            pred_score, target_score, size_average=True
+        )
         loss2 *= target_score.size(1)
 
         loss = self.weight_softmax * loss1 + loss2
