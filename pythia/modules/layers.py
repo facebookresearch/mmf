@@ -1,12 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import torch
-
 from torch import nn
 from torch.nn.utils.weight_norm import weight_norm
 
 
 class GatedTanh(nn.Module):
-    '''
+    """
     From: https://arxiv.org/pdf/1707.07998.pdf
     nonlinear_layer (f_a) : x\in R^m => y \in R^n
     \tilda{y} = tanh(Wx + b)
@@ -14,7 +13,8 @@ class GatedTanh(nn.Module):
     y = \tilda(y) \circ g
     input: (N, *, in_dim)
     output: (N, *, out_dim)
-    '''
+    """
+
     def __init__(self, in_dim, out_dim):
         super(GatedTanh, self).__init__()
         self.fc = nn.Linear(in_dim, out_dim)
@@ -55,8 +55,7 @@ class ClassifierLayer(nn.Module):
         elif classifier_type == "linear":
             self.module = nn.Linear(in_dim, out_dim)
         else:
-            raise NotImplementedError("Unknown classifier type: %s"
-                                      % classifier_type)
+            raise NotImplementedError("Unknown classifier type: %s" % classifier_type)
 
     def forward(self, *args, **kwargs):
         return self.module(*args, **kwargs)
@@ -67,23 +66,23 @@ class LogitClassifier(nn.Module):
         super(LogitClassifier, self).__init__()
         input_dim = in_dim
         num_ans_candidates = out_dim
-        text_non_linear_dim = kwargs['text_hidden_dim']
-        image_non_linear_dim = kwargs['img_hidden_dim']
+        text_non_linear_dim = kwargs["text_hidden_dim"]
+        image_non_linear_dim = kwargs["img_hidden_dim"]
 
         self.f_o_text = ReLUWithWeightNormFC(input_dim, text_non_linear_dim)
         self.f_o_image = ReLUWithWeightNormFC(input_dim, image_non_linear_dim)
         self.linear_text = nn.Linear(text_non_linear_dim, num_ans_candidates)
         self.linear_image = nn.Linear(image_non_linear_dim, num_ans_candidates)
 
-        if 'pretrained_image' in kwargs and \
-                kwargs['pretrained_text'] is not None:
+        if "pretrained_image" in kwargs and kwargs["pretrained_text"] is not None:
             self.linear_text.weight.data.copy_(
-                torch.from_numpy(kwargs['pretrained_text']))
+                torch.from_numpy(kwargs["pretrained_text"])
+            )
 
-        if 'pretrained_image' in kwargs and \
-                kwargs['pretrained_image'] is not None:
+        if "pretrained_image" in kwargs and kwargs["pretrained_image"] is not None:
             self.linear_image.weight.data.copy_(
-                torch.from_numpy(kwargs['pretrained_image']))
+                torch.from_numpy(kwargs["pretrained_image"])
+            )
 
     def forward(self, joint_embedding):
         text_val = self.linear_text(self.f_o_text(joint_embedding))
@@ -100,7 +99,7 @@ class WeightNormClassifier(nn.Module):
             weight_norm(nn.Linear(in_dim, hidden_dim), dim=None),
             nn.ReLU(),
             nn.Dropout(dropout, inplace=True),
-            weight_norm(nn.Linear(hidden_dim, out_dim), dim=None)
+            weight_norm(nn.Linear(hidden_dim, out_dim), dim=None),
         ]
         self.main = nn.Sequential(*layers)
 
@@ -123,14 +122,11 @@ class ModalCombineLayer(nn.Module):
         if combine_type == "MFH":
             self.module = MFH(img_feat_dim, txt_emb_dim, **kwargs)
         elif combine_type == "non_linear_element_multiply":
-            self.module = NonLinearElementMultiply(img_feat_dim, txt_emb_dim,
-                                                   **kwargs)
+            self.module = NonLinearElementMultiply(img_feat_dim, txt_emb_dim, **kwargs)
         elif combine_type == "two_layer_element_multiply":
-            self.module = TwoLayerElementMultiply(img_feat_dim, txt_emb_dim,
-                                                  **kwargs)
+            self.module = TwoLayerElementMultiply(img_feat_dim, txt_emb_dim, **kwargs)
         else:
-            raise NotImplementedError("Not implemented combine type: %s"
-                                      % combine_type)
+            raise NotImplementedError("Not implemented combine type: %s" % combine_type)
 
         self.out_dim = self.module.out_dim
 
@@ -141,12 +137,8 @@ class ModalCombineLayer(nn.Module):
 class MfbExpand(nn.Module):
     def __init__(self, img_feat_dim, txt_emb_dim, hidden_dim, dropout):
         super(MfbExpand, self).__init__()
-        self.lc_image = nn.Linear(
-            in_features=img_feat_dim,
-            out_features=hidden_dim)
-        self.lc_ques = nn.Linear(
-            in_features=txt_emb_dim,
-            out_features=hidden_dim)
+        self.lc_image = nn.Linear(in_features=img_feat_dim, out_features=hidden_dim)
+        self.lc_ques = nn.Linear(in_features=txt_emb_dim, out_features=hidden_dim)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, image_feat, question_embed):
@@ -154,8 +146,7 @@ class MfbExpand(nn.Module):
         ques1 = self.lc_ques(question_embed)
         if len(image_feat.data.shape) == 3:
             num_location = image_feat.data.size(1)
-            ques1_expand = (
-                torch.unsqueeze(ques1, 1).expand(-1, num_location, -1))
+            ques1_expand = torch.unsqueeze(ques1, 1).expand(-1, num_location, -1)
         else:
             ques1_expand = ques1
         joint_feature = image1 * ques1_expand
@@ -170,17 +161,19 @@ class MFH(nn.Module):
         self.mfb_sqz_list = nn.ModuleList()
         self.relu = nn.ReLU()
 
-        hidden_sizes = kwargs['hidden_sizes']
-        self.out_dim = int(sum(hidden_sizes) / kwargs['pool_size'])
+        hidden_sizes = kwargs["hidden_sizes"]
+        self.out_dim = int(sum(hidden_sizes) / kwargs["pool_size"])
 
-        self.order = kwargs['order']
-        self.pool_size = kwargs['pool_size']
+        self.order = kwargs["order"]
+        self.pool_size = kwargs["pool_size"]
 
         for i in range(self.order):
-            mfb_exp_i = MfbExpand(img_feat_dim=image_feat_dim,
-                                  txt_emb_dim=ques_emb_dim,
-                                  hidden_dim=hidden_sizes[i],
-                                  dropout=kwargs['dropout'])
+            mfb_exp_i = MfbExpand(
+                img_feat_dim=image_feat_dim,
+                txt_emb_dim=ques_emb_dim,
+                hidden_dim=hidden_sizes[i],
+                dropout=kwargs["dropout"],
+            )
             self.mfb_expand_list.append(mfb_exp_i)
             self.mfb_sqz_list.append(self.mfb_squeeze)
 
@@ -214,22 +207,26 @@ class MFH(nn.Module):
         batch_size, num_loc, dim = joint_feature.size()
 
         if dim % self.pool_size != 0:
-            exit("the dim %d is not multiply of \
-             pool_size %d" % (dim, self.pool_size))
+            exit(
+                "the dim %d is not multiply of \
+             pool_size %d"
+                % (dim, self.pool_size)
+            )
 
         joint_feature_reshape = joint_feature.view(
-            batch_size, num_loc, int(dim / self.pool_size), self.pool_size)
+            batch_size, num_loc, int(dim / self.pool_size), self.pool_size
+        )
 
         # N x 100 x 1000 x 1
         iatt_iq_sumpool = torch.sum(joint_feature_reshape, 3)
 
-        iatt_iq_sqrt = (torch.sqrt(self.relu(iatt_iq_sumpool))
-                        - torch.sqrt(self.relu(-iatt_iq_sumpool)))
+        iatt_iq_sqrt = torch.sqrt(self.relu(iatt_iq_sumpool)) - torch.sqrt(
+            self.relu(-iatt_iq_sumpool)
+        )
 
         iatt_iq_sqrt = iatt_iq_sqrt.view(batch_size, -1)  # N x 100000
         iatt_iq_l2 = nn.functional.normalize(iatt_iq_sqrt)
-        iatt_iq_l2 = iatt_iq_l2.view(
-            batch_size, num_loc, int(dim / self.pool_size))
+        iatt_iq_l2 = iatt_iq_l2.view(batch_size, num_loc, int(dim / self.pool_size))
 
         if orig_feature_size == 2:
             iatt_iq_l2 = torch.squeeze(iatt_iq_l2, dim=1)
@@ -243,18 +240,16 @@ class MFH(nn.Module):
 class NonLinearElementMultiply(nn.Module):
     def __init__(self, image_feat_dim, ques_emb_dim, **kwargs):
         super(NonLinearElementMultiply, self).__init__()
-        self.fa_image = ReLUWithWeightNormFC(image_feat_dim,
-                                             kwargs['hidden_dim'])
-        self.fa_txt = ReLUWithWeightNormFC(ques_emb_dim, kwargs['hidden_dim'])
+        self.fa_image = ReLUWithWeightNormFC(image_feat_dim, kwargs["hidden_dim"])
+        self.fa_txt = ReLUWithWeightNormFC(ques_emb_dim, kwargs["hidden_dim"])
 
-        context_dim = kwargs.get('context_dim', None)
+        context_dim = kwargs.get("context_dim", None)
         if context_dim is None:
             context_dim = ques_emb_dim
 
-        self.fa_context = ReLUWithWeightNormFC(context_dim,
-                                               kwargs['hidden_dim'])
-        self.dropout = nn.Dropout(kwargs['dropout'])
-        self.out_dim = kwargs['hidden_dim']
+        self.fa_context = ReLUWithWeightNormFC(context_dim, kwargs["hidden_dim"])
+        self.dropout = nn.Dropout(kwargs["dropout"])
+        self.out_dim = kwargs["hidden_dim"]
 
     def forward(self, image_feat, question_embedding, context_embedding=None):
         image_fa = self.fa_image(image_feat)
@@ -271,8 +266,7 @@ class NonLinearElementMultiply(nn.Module):
             context_fa = self.fa_context(context_embedding)
 
             context_text_joint_feaure = context_fa * question_fa_expand
-            joint_feature = torch.cat([joint_feature,
-                                       context_text_joint_feaure], dim=1)
+            joint_feature = torch.cat([joint_feature, context_text_joint_feaure], dim=1)
 
         joint_feature = self.dropout(joint_feature)
 
@@ -283,17 +277,16 @@ class TwoLayerElementMultiply(nn.Module):
     def __init__(self, image_feat_dim, ques_emb_dim, **kwargs):
         super(TwoLayerElementMultiply, self).__init__()
 
-        self.fa_image1 = ReLUWithWeightNormFC(image_feat_dim,
-                                              kwargs['hidden_dim'])
+        self.fa_image1 = ReLUWithWeightNormFC(image_feat_dim, kwargs["hidden_dim"])
         self.fa_image2 = ReLUWithWeightNormFC(
-            kwargs['hidden_dim'], kwargs['hidden_dim'])
-        self.fa_txt1 = ReLUWithWeightNormFC(ques_emb_dim, kwargs['hidden_dim'])
-        self.fa_txt2 = ReLUWithWeightNormFC(
-            kwargs['hidden_dim'], kwargs['hidden_dim'])
+            kwargs["hidden_dim"], kwargs["hidden_dim"]
+        )
+        self.fa_txt1 = ReLUWithWeightNormFC(ques_emb_dim, kwargs["hidden_dim"])
+        self.fa_txt2 = ReLUWithWeightNormFC(kwargs["hidden_dim"], kwargs["hidden_dim"])
 
-        self.dropout = nn.Dropout(kwargs['dropout'])
+        self.dropout = nn.Dropout(kwargs["dropout"])
 
-        self.out_dim = kwargs['hidden_dim']
+        self.out_dim = kwargs["hidden_dim"]
 
     def forward(self, image_feat, question_embedding):
         image_fa = self.fa_image2(self.fa_image1(image_feat))
@@ -301,8 +294,9 @@ class TwoLayerElementMultiply(nn.Module):
 
         if len(image_feat.size()) == 3:
             num_location = image_feat.size(1)
-            question_fa_expand = torch.unsqueeze(
-                question_fa, 1).expand(-1, num_location, -1)
+            question_fa_expand = torch.unsqueeze(question_fa, 1).expand(
+                -1, num_location, -1
+            )
         else:
             question_fa_expand = question_fa
 
@@ -334,8 +328,8 @@ class LinearTransform(nn.Module):
     def __init__(self, in_dim, out_dim):
         super(LinearTransform, self).__init__()
         self.lc = weight_norm(
-            nn.Linear(in_features=in_dim,
-                      out_features=out_dim), dim=None)
+            nn.Linear(in_features=in_dim, out_features=out_dim), dim=None
+        )
         self.out_dim = out_dim
 
     def forward(self, x):
@@ -345,12 +339,12 @@ class LinearTransform(nn.Module):
 class ConvTransform(nn.Module):
     def __init__(self, in_dim, out_dim, hidden_dim):
         super(ConvTransform, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=in_dim,
-                               out_channels=hidden_dim,
-                               kernel_size=1)
-        self.conv2 = nn.Conv2d(in_channels=hidden_dim,
-                               out_channels=out_dim,
-                               kernel_size=1)
+        self.conv1 = nn.Conv2d(
+            in_channels=in_dim, out_channels=hidden_dim, kernel_size=1
+        )
+        self.conv2 = nn.Conv2d(
+            in_channels=hidden_dim, out_channels=out_dim, kernel_size=1
+        )
         self.out_dim = out_dim
 
     def forward(self, x):
@@ -377,8 +371,8 @@ class BCNet(nn.Module):
     """
     Simple class for non-linear bilinear connect network
     """
-    def __init__(self, v_dim, q_dim, h_dim, h_out,
-                 act='ReLU', dropout=[.2, .5], k=3):
+
+    def __init__(self, v_dim, q_dim, h_dim, h_out, act="ReLU", dropout=[0.2, 0.5], k=3):
         super(BCNet, self).__init__()
 
         self.c = 32
@@ -399,8 +393,9 @@ class BCNet(nn.Module):
             pass
 
         elif h_out <= self.c:
-            self.h_mat = nn.Parameter(torch.Tensor(1, h_out,
-                                                   1, h_dim * self.k).normal_())
+            self.h_mat = nn.Parameter(
+                torch.Tensor(1, h_out, 1, h_dim * self.k).normal_()
+            )
             self.h_bias = nn.Parameter(torch.Tensor(1, h_out, 1, 1).normal_())
         else:
             self.h_net = weight_norm(nn.Linear(h_dim * self.k, h_out), dim=None)
@@ -449,13 +444,14 @@ class FCNet(nn.Module):
     """
     Simple class for non-linear fully connect network
     """
-    def __init__(self, dims, act='ReLU', dropout=0):
+
+    def __init__(self, dims, act="ReLU", dropout=0):
         super(FCNet, self).__init__()
 
         layers = []
-        for i in range(len(dims)-2):
+        for i in range(len(dims) - 2):
             in_dim = dims[i]
-            out_dim = dims[i+1]
+            out_dim = dims[i + 1]
 
             if dropout > 0:
                 layers.append(nn.Dropout(dropout))
@@ -480,18 +476,15 @@ class FCNet(nn.Module):
 
 
 class BiAttention(nn.Module):
-    def __init__(self, x_dim, y_dim, z_dim, glimpse, dropout=[.2, .5]):
+    def __init__(self, x_dim, y_dim, z_dim, glimpse, dropout=[0.2, 0.5]):
         super(BiAttention, self).__init__()
 
         self.glimpse = glimpse
-        self.logits = weight_norm(BCNet(x_dim,
-                                        y_dim,
-                                        z_dim,
-                                        glimpse,
-                                        dropout=dropout,
-                                        k=3),
-                                  name='h_mat',
-                                  dim=None)
+        self.logits = weight_norm(
+            BCNet(x_dim, y_dim, z_dim, glimpse, dropout=dropout, k=3),
+            name="h_mat",
+            dim=None,
+        )
 
     def forward(self, v, q, v_mask=True):
         p, logits = self.forward_all(v, q, v_mask)
@@ -506,7 +499,7 @@ class BiAttention(nn.Module):
             v_abs_sum = v.abs().sum(2)
             mask = (v_abs_sum == 0).unsqueeze(1).unsqueeze(3)
             mask = mask.expand(logits.size())
-            logits.masked_fill_(mask, -float('inf'))
+            logits.masked_fill_(mask, -float("inf"))
 
         expanded_logits = logits.view(-1, self.glimpse, v_num * q_num)
         p = nn.functional.softmax(expanded_logits, 2)

@@ -1,12 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os
+
 import numpy as np
 import torch
 
 
 class FeatureReader:
-    def __init__(self, base_path, depth_first,
-                 max_features=None):
+    def __init__(self, base_path, depth_first, max_features=None):
         """Feature Reader class for reading features.
 
         Note: Deprecation: ndim and image_feature will be deprecated later
@@ -46,8 +46,7 @@ class FeatureReader:
                 #             self.max_features
                 #         )
                 # else:
-                self.feat_reader = \
-                    PaddedFasterRCNNFeatureReader(self.max_features)
+                self.feat_reader = PaddedFasterRCNNFeatureReader(self.max_features)
         elif self.ndim == 3 and not self.depth_first:
             self.feat_reader = Dim3FeatureReader()
         elif self.ndim == 4 and self.depth_first:
@@ -79,7 +78,7 @@ class FasterRCNNFeatureReader:
 class CHWFeatureReader:
     def read(self, image_feat_path):
         feat = np.load(image_feat_path)
-        assert (feat.shape[0] == 1), "batch is not 1"
+        assert feat.shape[0] == 1, "batch is not 1"
         feat = torch.from_numpy(feat.squeeze(0))
         return feat, None
 
@@ -95,7 +94,7 @@ class Dim3FeatureReader:
 class HWCFeatureReader:
     def read(self, image_feat_path):
         tmp = np.load(image_feat_path)
-        assert (tmp.shape[0] == 1), "batch is not 1"
+        assert tmp.shape[0] == 1, "batch is not 1"
         _, _, _, c_dim = tmp.shape
         image_feature = torch.from_numpy(np.reshape(tmp, (-1, c_dim)))
         return image_feature, None
@@ -112,30 +111,29 @@ class PaddedFasterRCNNFeatureReader:
         image_info = {}
         if self.first:
             self.first = False
-            if content.size == 1 and \
-               'image_feat' in content.item():
+            if content.size == 1 and "image_feat" in content.item():
                 self.take_item = True
 
         image_feature = content
 
         if self.take_item:
             item = content.item()
-            if 'image_text' in item:
-                image_info['image_text'] = item['image_text']
-                image_info['is_ocr'] = item['image_bbox_source']
-                image_feature = item['image_feat']
+            if "image_text" in item:
+                image_info["image_text"] = item["image_text"]
+                image_info["is_ocr"] = item["image_bbox_source"]
+                image_feature = item["image_feat"]
 
-            if 'info' in item:
-                if 'image_text' in item['info']:
-                    image_info.update(item['info'])
-                image_feature = item['feature']
+            if "info" in item:
+                if "image_text" in item["info"]:
+                    image_info.update(item["info"])
+                image_feature = item["feature"]
 
         image_loc, image_dim = image_feature.shape
         tmp_image_feat = np.zeros((self.max_loc, image_dim), dtype=np.float32)
-        tmp_image_feat[0:image_loc, ] = image_feature
+        tmp_image_feat[0:image_loc,] = image_feature
         image_feature = torch.from_numpy(tmp_image_feat)
 
-        image_info['max_features'] = torch.tensor(image_loc, dtype=torch.long)
+        image_info["max_features"] = torch.tensor(image_loc, dtype=torch.long)
         return image_feature, image_info
 
 
@@ -145,19 +143,18 @@ class PaddedFeatureRCNNWithBBoxesFeatureReader:
 
     def read(self, image_feat_path):
         image_feat_bbox = np.load(image_feat_path)
-        image_boxes = image_feat_bbox.item().get('image_bboxes')
-        tmp_image_feat = image_feat_bbox.item().get('image_feature')
+        image_boxes = image_feat_bbox.item().get("image_bboxes")
+        tmp_image_feat = image_feat_bbox.item().get("image_feature")
         image_loc, image_dim = tmp_image_feat.shape
-        tmp_image_feat_2 = np.zeros((self.max_loc, image_dim),
-                                    dtype=np.float32)
-        tmp_image_feat_2[0:image_loc, ] = tmp_image_feat
+        tmp_image_feat_2 = np.zeros((self.max_loc, image_dim), dtype=np.float32)
+        tmp_image_feat_2[0:image_loc,] = tmp_image_feat
         tmp_image_feat_2 = torch.from_numpy(tmp_image_feat_2)
         tmp_image_box = np.zeros((self.max_loc, 4), dtype=np.int32)
         tmp_image_box[0:image_loc] = image_boxes
         tmp_image_box = torch.from_numpy(tmp_image_box)
         image_info = {
-            'image_bbox': tmp_image_box,
-            'max_features': torch.tensor(image_loc, dtype=torch.int)
+            "image_bbox": tmp_image_box,
+            "max_features": torch.tensor(image_loc, dtype=torch.int),
         }
 
         return tmp_image_feat_2, image_info

@@ -5,6 +5,7 @@ from .sample import SampleList
 class BatchCollator:
     # TODO: Think more if there is a better way to do this
     _IDENTICAL_VALUE_KEYS = ["dataset_type", "dataset_name"]
+
     def __call__(self, batch):
         sample_list = SampleList(batch)
 

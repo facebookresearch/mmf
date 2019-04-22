@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import torch
 import numpy as np
+import torch
 
 
 class ImageDatabase(torch.utils.data.Dataset):
@@ -25,6 +25,7 @@ class ImageDatabase(torch.utils.data.Dataset):
         ]
     }
     """
+
     def __init__(self, imdb_path):
         super().__init__()
 
@@ -35,11 +36,11 @@ class ImageDatabase(torch.utils.data.Dataset):
         self.start_idx = 0
 
         if type(self.db) == dict:
-            self.metadata = self.db.get('metadata', {})
-            self.data = self.db.get('data', [])
+            self.metadata = self.db.get("metadata", {})
+            self.data = self.db.get("data", [])
         else:
             # TODO: Deprecate support for this
-            self.metadata = {'version': 1}
+            self.metadata = {"version": 1}
             self.data = self.db
             # Handle old imdb support
             if "image_id" not in self.data[0]:
@@ -68,4 +69,4 @@ class ImageDatabase(torch.utils.data.Dataset):
         return data
 
     def get_version(self):
-        return self.metadata.get('version', None)
+        return self.metadata.get("version", None)

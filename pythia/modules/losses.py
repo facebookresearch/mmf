@@ -24,13 +24,16 @@ class Losses(nn.Module):
 
         return output
 
+
 class Loss(nn.Module):
     def __init__(self, params={}):
         super().__init__()
         self.writer = registry.get("writer")
         if "type" not in params:
-            raise ValueError("Parameters to loss must have 'type' field to"
-                             "specify type of loss to instantiate")
+            raise ValueError(
+                "Parameters to loss must have 'type' field to"
+                "specify type of loss to instantiate"
+            )
 
         loss_name = params["type"]
         self.name = loss_name
@@ -38,8 +41,9 @@ class Loss(nn.Module):
         loss_class = registry.get_loss_class(loss_name)
 
         if loss_class is None:
-            raise ValueError("No loss named {} is registered to registry"
-                             .format(loss_name))
+            raise ValueError(
+                "No loss named {} is registered to registry".format(loss_name)
+            )
         # Special case of multi as it requires an array
         if loss_name == "multi":
             self.loss_criterion = loss_class(params)
@@ -52,9 +56,7 @@ class Loss(nn.Module):
 
         if loss.dim() == 0:
             loss = loss.view(1)
-        return {
-            "{}/{}".format(sample_list.dataset_type, self.name): loss
-        }
+        return {"{}/{}".format(sample_list.dataset_type, self.name): loss}
 
 
 @registry.register_loss("logit_bce")
@@ -65,8 +67,7 @@ class LogitBinaryCrossEntropy(nn.Module):
     def forward(self, sample_list, model_output):
         scores = model_output["scores"]
         targets = sample_list["targets"]
-        loss = F.binary_cross_entropy_with_logits(scores, targets,
-                                                  reduction="mean")
+        loss = F.binary_cross_entropy_with_logits(scores, targets, reduction="mean")
 
         return loss * targets.size(1)
 
@@ -79,8 +80,7 @@ class BinaryCrossEntropyLoss(nn.Module):
     def forward(self, sample_list, model_output):
         scores = model_output["scores"]
         targets = sample_list["targets"]
-        loss = F.binary_cross_entropy(scores, targets,
-                                      reduction="mean")
+        loss = F.binary_cross_entropy(scores, targets, reduction="mean")
 
         return loss * targets.size(1)
 
@@ -115,20 +115,20 @@ class MultiLoss(nn.Module):
         super().__init__()
         self.losses = []
         self.losses_weights = []
-        self.writer = registry.get('writer')
+        self.writer = registry.get("writer")
 
         self.loss_names = []
 
         for loss_params in params["params"]:
-            self.loss_names.append(loss_params['type'])
+            self.loss_names.append(loss_params["type"])
             loss_fn = Loss(loss_params)
-            loss_weight = loss_params.get('weight', {})
+            loss_weight = loss_params.get("weight", {})
             self.losses.append(loss_fn)
             self.losses_weights.append(loss_weight)
 
     def forward(self, sample_list, model_output, *args, **kwargs):
         loss = 0
-        iteration = registry.get('current_iteration')
+        iteration = registry.get("current_iteration")
 
         for idx, loss_fn in enumerate(self.losses):
             value = loss_fn(sample_list, model_output, *args, **kwargs)
@@ -142,16 +142,19 @@ class MultiLoss(nn.Module):
 class AttentionSupervisionLoss(nn.Module):
     def __init__(self):
         super().__init__()
-        self.loss_fn = lambda *args, **kwargs: \
-            nn.functional.binary_cross_entropy(*args, **kwargs)
+        self.loss_fn = lambda *args, **kwargs: nn.functional.binary_cross_entropy(
+            *args, **kwargs
+        )
 
     def forward(self, sample_list, model_output):
         context_attentions = model_output["context_attentions"]
         attention_supervision = sample_list["info"]["attention_supervision"]
 
-        loss = self.loss_fn(context_attentions[0],
-                            attention_supervision.float(),
-                            weight=attention_supervision.float())
+        loss = self.loss_fn(
+            context_attentions[0],
+            attention_supervision.float(),
+            weight=attention_supervision.float(),
+        )
 
         # Multiply average loss back with target size to get actual loss
         return loss * attention_supervision.size(1)
@@ -237,9 +240,9 @@ class CombinedLoss(nn.Module):
         loss1 = kl_div(res, tar)
         loss1 = torch.sum(loss1) / loss1.size(0)
 
-        loss2 = F.binary_cross_entropy_with_logits(pred_score,
-                                                   target_score,
-                                                   reduction="mean")
+        loss2 = F.binary_cross_entropy_with_logits(
+            pred_score, target_score, reduction="mean"
+        )
         loss2 *= target_score.size(1)
 
         loss = self.weight_softmax * loss1 + loss2

@@ -1,9 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import torch
-import pickle
 import os
+import pickle
 
+import torch
 from torch import nn
+
 from pythia.modules.layers import Identity
 from pythia.utils.general import get_pythia_root
 
@@ -19,8 +20,7 @@ class ImageEncoder(nn.Module):
         elif encoder_type == "finetune_faster_rcnn_fpn_fc7":
             self.module = FinetuneFasterRcnnFpnFc7(in_dim, **kwargs)
         else:
-            raise NotImplementedError("Unknown Image Encoder: %s"
-                                      % encoder_type)
+            raise NotImplementedError("Unknown Image Encoder: %s" % encoder_type)
 
         self.out_dim = self.module.out_dim
 
@@ -38,9 +38,9 @@ class FinetuneFasterRcnnFpnFc7(nn.Module):
             weights_file = os.path.join(model_data_dir, weights_file)
         if not os.path.isabs(bias_file):
             bias_file = os.path.join(model_data_dir, bias_file)
-        with open(weights_file, 'rb') as w:
+        with open(weights_file, "rb") as w:
             weights = pickle.load(w)
-        with open(bias_file, 'rb') as b:
+        with open(bias_file, "rb") as b:
             bias = pickle.load(b)
         out_dim = bias.shape[0]
 

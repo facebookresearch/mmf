@@ -1,45 +1,44 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os
+import warnings
+
 import git
 import torch
 import yaml
-import warnings
 
-from pythia.utils.general import ckpt_name_from_core_args, \
-                                 foldername_from_config_override, \
-                                 updir
 from pythia.common.registry import registry
+from pythia.utils.general import (ckpt_name_from_core_args,
+                                  foldername_from_config_override, updir)
 
 
 class Checkpoint:
     def __init__(self, trainer):
-        '''
+        """
         Generates a path for saving model which can also be used for resuming
         from a checkpoint.
-        '''
+        """
         self.trainer = trainer
 
         self.config = self.trainer.config
         self.save_dir = self.config.training_parameters.save_dir
 
         self.ckpt_foldername = ckpt_name_from_core_args(self.config)
-        self.ckpt_foldername += foldername_from_config_override(
-            self.trainer.args
-        )
+        self.ckpt_foldername += foldername_from_config_override(self.trainer.args)
 
         self.device = registry.get("current_device")
 
         self.ckpt_prefix = ""
-        if hasattr(self.trainer.model, 'get_ckpt_name'):
-            self.ckpt_prefix = self.trainer.model.get_ckpt_name() + '_'
+        if hasattr(self.trainer.model, "get_ckpt_name"):
+            self.ckpt_prefix = self.trainer.model.get_ckpt_name() + "_"
 
-        self.config['log_foldername'] = self.ckpt_foldername
-        self.ckpt_foldername = os.path.join(self.save_dir,
-                                            self.ckpt_foldername)
-        self.pth_filepath = os.path.join(self.save_dir, self.ckpt_foldername,
-                                         self.ckpt_prefix + "final.pth")
-        self.params_filepath = os.path.join(self.save_dir, self.ckpt_foldername,
-                                            self.ckpt_prefix + "params.pth")
+        self.config["log_foldername"] = self.ckpt_foldername
+        self.ckpt_foldername = os.path.join(self.save_dir, self.ckpt_foldername)
+        self.pth_filepath = os.path.join(
+            self.save_dir, self.ckpt_foldername, self.ckpt_prefix + "final.pth"
+        )
+        self.params_filepath = os.path.join(
+            self.save_dir, self.ckpt_foldername, self.ckpt_prefix + "params.pth"
+        )
 
         self.models_foldername = os.path.join(self.ckpt_foldername, "models")
         if not os.path.exists(self.models_foldername):
@@ -51,34 +50,33 @@ class Checkpoint:
 
     def save_config(self):
         cfg_file = os.path.join(self.ckpt_foldername, "config.yaml")
-        with open(cfg_file, 'w') as f:
+        with open(cfg_file, "w") as f:
             # Pop out config_override if present to remove clutter in
             # saved configuration yaml file
-            self.config.pop('config_override', None)
+            self.config.pop("config_override", None)
             yaml.dump(self.config, f)
 
     def load_state_dict(self):
         tp = self.config.training_parameters
-        if tp.resume_file is not None and \
-           os.path.exists(tp.resume_file):
+        if tp.resume_file is not None and os.path.exists(tp.resume_file):
             self._load(tp.resume_file)
             return
 
-        ckpt_filepath = os.path.join(self.ckpt_foldername,
-                                     self.ckpt_prefix + "best.ckpt")
+        ckpt_filepath = os.path.join(
+            self.ckpt_foldername, self.ckpt_prefix + "best.ckpt"
+        )
 
-        if tp.resume is True \
-           and os.path.exists(ckpt_filepath):
+        if tp.resume is True and os.path.exists(ckpt_filepath):
             self._load(ckpt_filepath)
 
     def _load(self, file):
         self.trainer.writer.write("Loading checkpoint")
         ckpt = self._torch_load(file)
 
-        data_parallel = registry.get('data_parallel')
+        data_parallel = registry.get("data_parallel")
 
-        if 'model' in ckpt:
-            ckpt_model = ckpt['model']
+        if "model" in ckpt:
+            ckpt_model = ckpt["model"]
         else:
             ckpt_model = ckpt
 
@@ -91,9 +89,8 @@ class Checkpoint:
 
         # TODO: Move to separate function
         for attr in ckpt_model:
-            if 'fa_history' in attr:
-                new_dict[attr.replace('fa_history', 'fa_context')] = \
-                    ckpt_model[attr]
+            if "fa_history" in attr:
+                new_dict[attr.replace("fa_history", "fa_context")] = ckpt_model[attr]
             elif data_parallel is False:
                 # In case the ckpt was actually a data parallel model
                 # replace first module. from dataparallel with empty string
@@ -106,26 +103,25 @@ class Checkpoint:
 
             self.trainer.model.load_state_dict(final_dict)
 
-            if 'optimizer' in ckpt:
-                self.trainer.optimizer.load_state_dict(ckpt['optimizer'])
+            if "optimizer" in ckpt:
+                self.trainer.optimizer.load_state_dict(ckpt["optimizer"])
             else:
-                warnings.warn("'optimizer' key is not present in the "
-                              "checkpoint asked to be loaded. Skipping.")
-
+                warnings.warn(
+                    "'optimizer' key is not present in the "
+                    "checkpoint asked to be loaded. Skipping."
+                )
 
             self.trainer.early_stopping.init_from_checkpoint(ckpt)
 
             self.trainer.writer.write("Checkpoint loaded")
 
-            if 'best_iteration' in ckpt:
-                self.trainer.current_iteration = ckpt['best_iteration']
-                registry.register('current_iteration',
-                                  self.trainer.current_iteration)
+            if "best_iteration" in ckpt:
+                self.trainer.current_iteration = ckpt["best_iteration"]
+                registry.register("current_iteration", self.trainer.current_iteration)
 
-            if 'best_epoch' in ckpt:
-                self.trainer.current_epoch = ckpt['best_epoch']
-                registry.register('current_epoch',
-                                  self.trainer.current_epoch)
+            if "best_epoch" in ckpt:
+                self.trainer.current_epoch = ckpt["best_epoch"]
+                registry.register("current_epoch", self.trainer.current_epoch)
         else:
             final_dict = {}
             model = self.trainer.model
@@ -135,29 +131,28 @@ class Checkpoint:
                 value = "." + value + "."
                 for attr in new_dict:
                     for own_attr in own_state:
-                        if 'fa_context' in own_attr:
+                        if "fa_context" in own_attr:
                             continue
-                        if key in attr and value in own_attr \
-                            and attr.replace(key, "") == \
-                                own_attr.replace(value, ""):
+                        if (
+                            key in attr
+                            and value in own_attr
+                            and attr.replace(key, "") == own_attr.replace(value, "")
+                        ):
                             print("Copying", attr, own_attr)
-                            own_state[own_attr].copy_(
-                                new_dict[attr]
-                            )
+                            own_state[own_attr].copy_(new_dict[attr])
             self.trainer.writer.write("Pretrained model loaded")
 
     def _load_state_dict_mapping(self, ckpt_model):
         model = self.trainer.model
         attr_mapping = {
-            'image_feature_encoders': 'img_feat_encoders',
-            'image_feature_embeddings_list': 'img_embeddings_list',
-            'image_text_multi_modal_combine_layer':
-            'multi_modal_combine_layer',
-            'text_embeddings': 'text_embeddings',
-            'classifier': 'classifier'
+            "image_feature_encoders": "img_feat_encoders",
+            "image_feature_embeddings_list": "img_embeddings_list",
+            "image_text_multi_modal_combine_layer": "multi_modal_combine_layer",
+            "text_embeddings": "text_embeddings",
+            "classifier": "classifier",
         }
 
-        data_parallel = registry.get('data_parallel')
+        data_parallel = registry.get("data_parallel")
 
         if not data_parallel:
             for key in attr_mapping:
@@ -187,27 +182,31 @@ class Checkpoint:
                            `patch -p0 < path.diff`
         """
 
-        return {'git/branch': self.repo.active_branch.name,
-                'git/commit_hash': self.repo.head.commit.name_rev,
-                'git/commit_author': self.repo.head.commit.author.name,
-                'git/commit_message': self.repo.head.commit.message,
-                'git/diff': self.repo.git.diff('--no-prefix')}
+        return {
+            "git/branch": self.repo.active_branch.name,
+            "git/commit_hash": self.repo.head.commit.name_rev,
+            "git/commit_author": self.repo.head.commit.author.name,
+            "git/commit_message": self.repo.head.commit.message,
+            "git/diff": self.repo.git.diff("--no-prefix"),
+        }
 
     def save(self, iteration, update_best=False):
-        ckpt_filepath = os.path.join(self.models_foldername,
-                                     "model_%d.ckpt" % iteration)
-        best_ckpt_filepath = os.path.join(self.ckpt_foldername,
-                                          self.ckpt_prefix + "best.ckpt")
+        ckpt_filepath = os.path.join(
+            self.models_foldername, "model_%d.ckpt" % iteration
+        )
+        best_ckpt_filepath = os.path.join(
+            self.ckpt_foldername, self.ckpt_prefix + "best.ckpt"
+        )
 
         best_iteration = self.trainer.early_stopping.best_monitored_iteration
         best_metric = self.trainer.early_stopping.best_monitored_value
 
         ckpt = {
-            'model': self.trainer.model.state_dict(),
-            'optimizer': self.trainer.optimizer.state_dict(),
-            'best_iteration': best_iteration,
-            'best_metric_value': best_metric,
-            'config': self.config
+            "model": self.trainer.model.state_dict(),
+            "optimizer": self.trainer.optimizer.state_dict(),
+            "best_iteration": best_iteration,
+            "best_metric_value": best_metric,
+            "config": self.config,
         }
 
         git_metadata_dict = self._get_vcs_fields()
@@ -220,12 +219,11 @@ class Checkpoint:
 
     def restore(self):
         self.trainer.writer.write("Restoring checkpoint")
-        best_path = os.path.join(self.ckpt_foldername,
-                                 self.ckpt_prefix + "best.ckpt")
+        best_path = os.path.join(self.ckpt_foldername, self.ckpt_prefix + "best.ckpt")
         if os.path.exists(best_path):
             ckpt = self._torch_load(best_path)
-            self.trainer.model.load_state_dict(ckpt['model'])
-            self.trainer.optimizer.load_state_dict(ckpt['optimizer'])
+            self.trainer.model.load_state_dict(ckpt["model"])
+            self.trainer.optimizer.load_state_dict(ckpt["optimizer"])
 
     def finalize(self):
         torch.save(self.trainer.model, self.pth_filepath)

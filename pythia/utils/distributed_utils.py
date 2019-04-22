@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # Inspired from maskrcnn_benchmark
 import torch
-
 from torch import distributed as dist
 
 
@@ -49,10 +48,12 @@ def broadcast_tensor(tensor, src=0):
 
     return tensor
 
-def broadcast_scalar(scalar, src=0, device='cpu'):
+
+def broadcast_scalar(scalar, src=0, device="cpu"):
     scalar_tensor = torch.tensor(scalar).to(device)
     scalar_tensor = broadcast_tensor(scalar_tensor, src)
     return scalar_tensor.item()
+
 
 def reduce_tensor(tensor):
     world_size = get_world_size()

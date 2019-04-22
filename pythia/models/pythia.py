@@ -1,15 +1,15 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import torch
-
 from torch import nn
 
 from pythia.common.registry import registry
-from pythia.modules.embeddings import (ImageEmbedding, TextEmbedding,
-                                       PreExtractedEmbedding)
+from pythia.modules.embeddings import (ImageEmbedding, PreExtractedEmbedding,
+                                       TextEmbedding)
 from pythia.modules.encoders import ImageEncoder
-from pythia.modules.layers import (ModalCombineLayer, ClassifierLayer,
+from pythia.modules.layers import (ClassifierLayer, ModalCombineLayer,
                                    ReLUWithWeightNormFC)
 from pythia.utils.configuration import ConfigNode
+
 from .base_model import BaseModel
 
 
@@ -33,10 +33,9 @@ class Pythia(BaseModel):
     def _build_word_embedding(self):
         text_processor = registry.get(self._datasets[0] + "_text_processor")
         vocab = text_processor.vocab
-        self.word_embedding = vocab.get_embedding(torch.nn.Embedding,
-                                                  embedding_dim=300)
+        self.word_embedding = vocab.get_embedding(torch.nn.Embedding, embedding_dim=300)
 
-    def _init_text_embeddings(self, attr='text'):
+    def _init_text_embeddings(self, attr="text"):
         if "embeddings" not in attr:
             attr += "_embeddings"
 
@@ -61,21 +60,20 @@ class Pythia(BaseModel):
 
     def _update_text_embedding_args(self, args):
         # Add model_data_dir to kwargs
-        args['model_data_dir'] = self.config['model_data_dir']
+        args["model_data_dir"] = self.config["model_data_dir"]
 
     def _init_feature_encoders(self, attr):
         feat_encoders = []
-        feat_encoders_list_config = self.config[attr + '_feature_encodings']
-        feature_dim = self.config[attr + '_feature_dim']
+        feat_encoders_list_config = self.config[attr + "_feature_encodings"]
+        feature_dim = self.config[attr + "_feature_dim"]
         setattr(self, attr + "_feature_dim", feature_dim)
 
         for feat_encoder in feat_encoders_list_config:
-            encoder_type = feat_encoder['type']
-            encoder_kwargs = feat_encoder['params']
-            encoder_kwargs['model_data_dir'] = self.config['model_data_dir']
+            encoder_type = feat_encoder["type"]
+            encoder_kwargs = feat_encoder["params"]
+            encoder_kwargs["model_data_dir"] = self.config["model_data_dir"]
 
-            feat_model = ImageEncoder(encoder_type, feature_dim,
-                                      **encoder_kwargs)
+            feat_model = ImageEncoder(encoder_type, feature_dim, **encoder_kwargs)
 
             feat_encoders.append(feat_model)
             setattr(self, attr + "_feature_dim", feat_model.out_dim)
@@ -84,9 +82,9 @@ class Pythia(BaseModel):
 
     def _init_feature_embeddings(self, attr):
         feature_embeddings_list = []
-        num_feature_feat = len(getattr(
-            self.config, "{}_feature_encodings".format(attr)
-        ))
+        num_feature_feat = len(
+            getattr(self.config, "{}_feature_encodings".format(attr))
+        )
 
         self.feature_embeddings_out_dim = 0
 
@@ -108,11 +106,15 @@ class Pythia(BaseModel):
 
         self.feature_embeddings_out_dim *= getattr(self, attr + "_feature_dim")
 
-        setattr(self, attr + "_feature_embeddings_out_dim",
-                self.feature_embeddings_out_dim)
+        setattr(
+            self, attr + "_feature_embeddings_out_dim", self.feature_embeddings_out_dim
+        )
         del self.feature_embeddings_out_dim
-        setattr(self, attr + "_feature_embeddings_list",
-                nn.ModuleList(feature_embeddings_list))
+        setattr(
+            self,
+            attr + "_feature_embeddings_list",
+            nn.ModuleList(feature_embeddings_list),
+        )
 
     def _get_embeddings_attr(self, attr):
         embedding_attr1 = attr
@@ -127,24 +129,27 @@ class Pythia(BaseModel):
         config_attr = attr1 + "_" + attr2 + "_modal_combine"
 
         multi_modal_combine_layer = ModalCombineLayer(
-            self.config[config_attr]['type'],
+            self.config[config_attr]["type"],
             getattr(self, self._get_embeddings_attr(attr1)),
             getattr(self, self._get_embeddings_attr(attr2)),
-            **self.config[config_attr]['params']
+            **self.config[config_attr]["params"]
         )
 
-        setattr(self, attr1 + "_" + attr2 + "_multi_modal_combine_layer",
-                multi_modal_combine_layer)
+        setattr(
+            self,
+            attr1 + "_" + attr2 + "_multi_modal_combine_layer",
+            multi_modal_combine_layer,
+        )
 
     def _init_classifier(self, combined_embedding_dim):
         # TODO: Later support multihead
         num_choices = registry.get(self._datasets[0] + "_num_final_outputs")
 
         self.classifier = ClassifierLayer(
-            self.config['classifier']['type'],
+            self.config["classifier"]["type"],
             in_dim=combined_embedding_dim,
             out_dim=num_choices,
-            **self.config['classifier']['params']
+            **self.config["classifier"]["params"]
         )
 
     def _init_extras(self):
@@ -152,22 +157,26 @@ class Pythia(BaseModel):
 
     def get_optimizer_parameters(self, config):
         combine_layer = self.image_text_multi_modal_combine_layer
-        params = [{'params': self.word_embedding.parameters()},
-                  {'params': self.image_feature_embeddings_list.parameters()},
-                  {'params': self.text_embeddings.parameters()},
-                  {'params': combine_layer.parameters()},
-                  {'params': self.classifier.parameters()},
-                  {'params': self.image_feature_encoders.parameters(),
-                   'lr': (config['optimizer_attributes']['params']['lr']
-                          * 0.1)}]
+        params = [
+            {"params": self.word_embedding.parameters()},
+            {"params": self.image_feature_embeddings_list.parameters()},
+            {"params": self.text_embeddings.parameters()},
+            {"params": combine_layer.parameters()},
+            {"params": self.classifier.parameters()},
+            {
+                "params": self.image_feature_encoders.parameters(),
+                "lr": (config["optimizer_attributes"]["params"]["lr"] * 0.1),
+            },
+        ]
 
         return params
 
     def _get_classifier_input_dim(self):
         return self.image_text_multi_modal_combine_layer.out_dim
 
-    def process_text_embedding(self, sample_list,
-                               embedding_attr='text_embeddings', info=None):
+    def process_text_embedding(
+        self, sample_list, embedding_attr="text_embeddings", info=None
+    ):
         text_embeddings = []
 
         # Get "text" attribute in case of "text_embeddings" case
@@ -189,8 +198,9 @@ class Pythia(BaseModel):
 
         return text_embeddding_total
 
-    def process_feature_embedding(self, attr, sample_list,
-                                  text_embedding_total, extra=[]):
+    def process_feature_embedding(
+        self, attr, sample_list, text_embedding_total, extra=[]
+    ):
         feature_embeddings = []
         feature_attentions = []
         features = []
@@ -203,8 +213,9 @@ class Pythia(BaseModel):
         # Get all of the features, which are in the form, "image_feature_0"
         # "image_feature_1" ...
         while True:
-            feature = getattr(sample_list, "{}_feature_{:d}"
-                              .format(attr, feature_idx), None)
+            feature = getattr(
+                sample_list, "{}_feature_{:d}".format(attr, feature_idx), None
+            )
             if feature is None:
                 break
             feature_idx += 1
@@ -212,18 +223,16 @@ class Pythia(BaseModel):
 
         feature_encoders = getattr(self, attr + "_feature_encoders")
         # Each feature should have a separate image feature encoders
-        assert (len(features) ==
-                len(feature_encoders)), \
-            ("Number of feature encoders, {} are not equal "
-             "to number of features, {}."
-             .format(len(feature_encoders), len(features)))
+        assert len(features) == len(feature_encoders), (
+            "Number of feature encoders, {} are not equal "
+            "to number of features, {}.".format(len(feature_encoders), len(features))
+        )
 
         # Now, iterate to get final attended image features
         for i, feature in enumerate(features):
             # Get info related to the current feature. info is generally
             # in key of format "image_info_0" for 0th feature
-            feature_info = getattr(sample_list, "{}_info_{:d}"
-                                   .format(attr, i), {})
+            feature_info = getattr(sample_list, "{}_info_{:d}".format(attr, i), {})
             # For Pythia, we need max_features to mask attention
             feature_dim = getattr(feature_info, "max_features", None)
 
@@ -242,8 +251,7 @@ class Pythia(BaseModel):
 
             # Forward through these embeddings one by one
             for feature_embedding_model in feature_embedding_models:
-                inp = (encoded_feature, text_embedding_total, feature_dim,
-                       extra)
+                inp = (encoded_feature, text_embedding_total, feature_dim, extra)
 
                 embedding, attention = feature_embedding_model(*inp)
                 feature_embeddings.append(embedding)
@@ -278,9 +286,7 @@ class Pythia(BaseModel):
             ["image", "text"], [image_embedding_total, text_embedding_total]
         )
 
-        model_output = {
-            "scores": self.calculate_logits(joint_embedding)
-        }
+        model_output = {"scores": self.calculate_logits(joint_embedding)}
 
         return model_output
 
@@ -306,11 +312,10 @@ class PythiaQuestionOnly(Pythia):
         f_o_text = self.classifier.module.f_o_text
         scores = linear_text(f_o_text(joint_embedding))
 
-        model_output = {
-            "scores": scores
-        }
+        model_output = {"scores": scores}
 
         return model_output
+
 
 # TODO: Update
 @registry.register_model("pythia_image_only")
@@ -325,9 +330,7 @@ class PythiaImageOnly(Pythia):
         )
 
         image_embedding_total, _ = self.process_feature_embedding(
-            "image",
-            sample_list,
-            text_embedding_total
+            "image", sample_list, text_embedding_total
         )
 
         if self.inter_model is not None:
@@ -338,8 +341,6 @@ class PythiaImageOnly(Pythia):
 
         joint_embedding = dropout(fa_image(image_embedding_total))
 
-        model_output = {
-            "scores": self.calculate_logits(joint_embedding)
-        }
+        model_output = {"scores": self.calculate_logits(joint_embedding)}
 
         return model_output

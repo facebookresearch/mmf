@@ -1,6 +1,6 @@
-__all__ = ['utils', 'modules', 'models', 'tasks', 'core']
+__all__ = ["utils", "modules", "models", "tasks", "core"]
 
-__version__ = '0.3.0'
+__version__ = "0.3.0"
 
 from . import utils
 from . import modules

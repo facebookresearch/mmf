@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import collections
 import warnings
-
 from collections import OrderedDict
 
 from pythia.common.registry import registry
@@ -16,17 +15,20 @@ class Report(OrderedDict):
         all_args = [batch, model_output] + [*args]
         for idx, arg in enumerate(all_args):
             if not isinstance(arg, collections.Mapping):
-                raise TypeError("Argument {:d}, {} must be of instance of "
-                                "collections.Mapping".format(idx, arg))
-
+                raise TypeError(
+                    "Argument {:d}, {} must be of instance of "
+                    "collections.Mapping".format(idx, arg)
+                )
 
         self.writer = registry.get("writer")
 
-        self.warning_string = "Updating forward report with key {}" \
-                              "{}, but it already exists in {}. "\
-                              "Please consider using a different key, " \
-                              "as this can cause issues during loss and " \
-                              "metric calculations."
+        self.warning_string = (
+            "Updating forward report with key {}"
+            "{}, but it already exists in {}. "
+            "Please consider using a different key, "
+            "as this can cause issues during loss and "
+            "metric calculations."
+        )
 
         for arg in all_args:
             for key, item in arg.items():
@@ -41,8 +43,7 @@ class Report(OrderedDict):
         if isinstance(batch, collections.Mapping):
             return False
 
-        if isinstance(batch[0], (tuple, list)) \
-            and isinstance(batch[0][0], str):
+        if isinstance(batch[0], (tuple, list)) and isinstance(batch[0][0], str):
             for kv_pair in batch:
                 self[kv_pair[0]] = kv_pair[1]
             return True
@@ -51,9 +52,7 @@ class Report(OrderedDict):
 
     def __setattr__(self, key, value):
         if key in self:
-            log = self.warning_string.format(
-                key, "", "sample list and model output"
-            )
+            log = self.warning_string.format(key, "", "sample list and model output")
             warnings.warn(log)
         self[key] = value
 

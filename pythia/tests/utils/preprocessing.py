@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
+
 from pythia.utils.preprocessing import text_tokenize
 
 

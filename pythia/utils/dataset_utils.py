@@ -15,11 +15,11 @@ def build_bbox_tensors(infos, max_length):
     sample = Sample()
 
     for idx, info in enumerate(infos):
-        bbox = info['bounding_box']
-        x = bbox['top_left_x']
-        y = bbox['top_left_y']
-        width = bbox['width']
-        height = bbox['height']
+        bbox = info["bounding_box"]
+        x = bbox["top_left_x"]
+        y = bbox["top_left_y"]
+        width = bbox["width"]
+        height = bbox["height"]
 
         coord_tensor[idx][0] = x
         coord_tensor[idx][1] = y

@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
-
 from torch.utils.data import Dataset
 
 from pythia.common.registry import registry
@@ -13,8 +12,7 @@ class MultiTask(Dataset):
         self.config = config
         self.dataset_type = dataset_type
 
-        self.task_names = map(lambda x: x.strip(),
-                              self.config['tasks'].split(","))
+        self.task_names = map(lambda x: x.strip(), self.config["tasks"].split(","))
 
         self.tasks = []
         self.tasks_lens = []
@@ -22,16 +20,17 @@ class MultiTask(Dataset):
         for task_name in self.task_names:
             task_class = registry.get_task_class(task_name)
             if task_class is None:
-                print("[Error] %s not present in our mapping"
-                      % task_name)
+                print("[Error] %s not present in our mapping" % task_name)
                 return
 
-            if task_name not in self.config['task_attributes']:
-                print("[Error] No attributes present for task %s in config."
-                      " Skipping" % task_name)
+            if task_name not in self.config["task_attributes"]:
+                print(
+                    "[Error] No attributes present for task %s in config."
+                    " Skipping" % task_name
+                )
 
-            task_attributes = self.config['task_attributes'][task_name]
-            task_attributes['dataset_type'] = self.dataset_type
+            task_attributes = self.config["task_attributes"][task_name]
+            task_attributes["dataset_type"] = self.dataset_type
 
             task = task_class()
             task.load(**task_attributes)
@@ -43,18 +42,20 @@ class MultiTask(Dataset):
 
         self.num_tasks = len(self.tasks)
 
-        training_parameters = self.config['training_parameters']
-        if training_parameters['task_size_proportional_sampling']:
+        training_parameters = self.config["training_parameters"]
+        if training_parameters["task_size_proportional_sampling"]:
             self.task_probabilities = self.tasks_lens[:]
             len_sum = sum(self.tasks_lens)
-            self.task_probabilities = [prob / len_sum
-                                       for prob in self.task_probabilities]
+            self.task_probabilities = [
+                prob / len_sum for prob in self.task_probabilities
+            ]
 
         self.change_task()
 
     def change_task(self):
-        self.selected_task = np.random.choice(self.num_tasks, 1,
-                                              p=self.task_probabilities)[0]
+        self.selected_task = np.random.choice(
+            self.num_tasks, 1, p=self.task_probabilities
+        )[0]
         self.chosen_task = self.tasks[self.selected_task]
         self.chosen_task.change_dataset()
 

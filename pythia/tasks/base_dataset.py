@@ -1,12 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import torch
 import tqdm
-
 from torch.autograd import Variable
 from torch.utils.data.dataset import Dataset
 
-from pythia.common.sample import SampleList
 from pythia.common.registry import registry
+from pythia.common.sample import SampleList
 from pythia.tasks.processors import Processor
 
 
@@ -30,9 +29,7 @@ class BaseDataset(Dataset):
     def init_processors(self):
         if not hasattr(self.config, "processors"):
             return
-        extra_params = {
-            'data_root_dir': self.config.data_root_dir
-        }
+        extra_params = {"data_root_dir": self.config.data_root_dir}
         for processor_key, processor_params in self.config.processors.items():
             reg_key = "{}_{}".format(self._name, processor_key)
             reg_check = registry.get(reg_key, no_warning=True)

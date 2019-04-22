@@ -1,25 +1,29 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import argparse
+import os
 from glob import glob
+
 import numpy as np
 import torch
-import torchvision.models as models
 import torch.nn as nn
-from torch.autograd import Variable
-from PIL import Image
+import torchvision.models as models
 import torchvision.transforms as transforms
-import os
-
+from PIL import Image
+from torch.autograd import Variable
 
 TARGET_IMAGE_SIZE = [448, 448]
 CHANNEL_MEAN = [0.485, 0.456, 0.406]
 CHANNEL_STD = [0.229, 0.224, 0.225]
-data_transforms = transforms.Compose([transforms.Resize(TARGET_IMAGE_SIZE),
-                                      transforms.ToTensor(),
-                                      transforms.Normalize(CHANNEL_MEAN,
-                                                           CHANNEL_STD)])
+data_transforms = transforms.Compose(
+    [
+        transforms.Resize(TARGET_IMAGE_SIZE),
+        transforms.ToTensor(),
+        transforms.Normalize(CHANNEL_MEAN, CHANNEL_STD),
+    ]
+)
 
 use_cuda = torch.cuda.is_available()
 
@@ -47,7 +51,7 @@ if use_cuda:
 
 
 def extract_image_feat(img_file):
-    img = Image.open(img_file).convert('RGB')
+    img = Image.open(img_file).convert("RGB")
     img_transform = data_transforms(img)
     # make sure grey scale image is processed correctly
     if img_transform.shape[0] == 1:
@@ -61,16 +65,16 @@ def extract_image_feat(img_file):
 
 
 def extract_dataset_pool5(image_dir, save_dir, prefix, ext_filter):
-    image_list = glob(image_dir + '/*.' + ext_filter)
+    image_list = glob(image_dir + "/*." + ext_filter)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
     for n_im, impath in enumerate(image_list):
         if (n_im + 1) % 100 == 0:
-            print('processing %d / %d' % (n_im + 1, len(image_list)))
+            print("processing %d / %d" % (n_im + 1, len(image_list)))
         image_name = os.path.basename(impath)
 
-        feat_name = image_name.replace(ext_filter, 'npy')
+        feat_name = image_name.replace(ext_filter, "npy")
         feat_name = prefix + feat_name
         save_path = os.path.join(save_dir, feat_name)
         tmp_lock = save_path + ".lock"
@@ -92,14 +96,13 @@ def extract_dataset_pool5(image_dir, save_dir, prefix, ext_filter):
         os.rmdir(tmp_lock)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--prefix', type=str, default="")
+    parser.add_argument("--prefix", type=str, default="")
     parser.add_argument("--data_dir", type=str, required=True)
     parser.add_argument("--out_dir", type=str, required=True)
     parser.add_argument("--image_ext", type=str, default="jpg")
 
     args = parser.parse_args()
 
-    extract_dataset_pool5(args.data_dir, args.out_dir, args.prefix,
-                          args.image_ext)
+    extract_dataset_pool5(args.data_dir, args.out_dir, args.prefix, args.image_ext)

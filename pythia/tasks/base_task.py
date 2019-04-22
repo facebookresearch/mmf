@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import numpy as np
 import sys
 
+import numpy as np
 from torch.utils.data import Dataset
 
 from pythia.common.registry import registry
@@ -11,23 +11,24 @@ class BaseTask(Dataset):
     def __init__(self, task_name):
         super(BaseTask, self).__init__()
         self.task_name = task_name
-        self.writer = registry.get('writer')
+        self.writer = registry.get("writer")
 
     def _process_datasets(self):
-        if 'datasets' not in self.opts:
-            self.writer.write("No datasets attribute present for task: %s."
-                              " Defaulting to all" % (self.task_name),
-                              'warning')
+        if "datasets" not in self.opts:
+            self.writer.write(
+                "No datasets attribute present for task: %s."
+                " Defaulting to all" % (self.task_name),
+                "warning",
+            )
             datasets = "all"
         else:
-            datasets = self.opts['datasets']
+            datasets = self.opts["datasets"]
 
         if datasets is None or datasets == "all":
             datasets = self._get_available_datasets()
 
         if type(datasets) == str:
-            datasets = list(map(lambda x: x.strip(),
-                            datasets.split(",")))
+            datasets = list(map(lambda x: x.strip(), datasets.split(",")))
 
         if len(datasets) == 0 and datasets[0] == "all":
             datasets = self._get_available_datasets()
@@ -55,36 +56,39 @@ class BaseTask(Dataset):
                     continue
                 builder_instance = builder_class()
 
-                if dataset in self.opts['dataset_attributes']:
-                    attributes = self.opts['dataset_attributes'][dataset]
+                if dataset in self.opts["dataset_attributes"]:
+                    attributes = self.opts["dataset_attributes"][dataset]
                 else:
-                    self.writer.write("Dataset %s is missing from "
-                                      "dataset_attributes in config."
-                                      % dataset, "error")
+                    self.writer.write(
+                        "Dataset %s is missing from "
+                        "dataset_attributes in config." % dataset,
+                        "error",
+                    )
                     sys.exit(1)
 
-                dataset_type = self.opts.get('dataset_type', "train")
+                dataset_type = self.opts.get("dataset_type", "train")
                 builder_instance.build(dataset_type, attributes)
-                dataset_instance = builder_instance.load(dataset_type,
-                                                         attributes)
+                dataset_instance = builder_instance.load(dataset_type, attributes)
 
                 self.builders.append(builder_instance)
                 self.datasets.append(dataset_instance)
                 self.per_dataset_lengths.append(len(dataset_instance))
                 self.total_length += len(dataset_instance)
             else:
-                print("Dataset %s is not a valid dataset for task %s. Skipping"
-                      % (dataset, self.task_name))
+                print(
+                    "Dataset %s is not a valid dataset for task %s. Skipping"
+                    % (dataset, self.task_name)
+                )
 
         self.num_datasets = len(self.datasets)
         self.dataset_probablities = [1 for _ in range(self.num_datasets)]
-        sampling = self.opts.get('dataset_size_proportional_sampling', None)
+        sampling = self.opts.get("dataset_size_proportional_sampling", None)
 
         if sampling is True:
             self.dataset_probablities = self.per_dataset_lengths[:]
-            self.dataset_probablities = [prob / self.total_length
-                                         for prob in
-                                         self.dataset_probablities]
+            self.dataset_probablities = [
+                prob / self.total_length for prob in self.dataset_probablities
+            ]
 
         self.change_dataset()
 
@@ -115,8 +119,9 @@ class BaseTask(Dataset):
         return self._preprocess_item(item)
 
     def change_dataset(self):
-        self.dataset_choice = np.random.choice(self.num_datasets, 1,
-                                               p=self.dataset_probablities)[0]
+        self.dataset_choice = np.random.choice(
+            self.num_datasets, 1, p=self.dataset_probablities
+        )[0]
         self.chosen_dataset = self.datasets[self.dataset_choice]
 
     def verbose_dump(self, *args, **kwargs):
@@ -140,8 +145,9 @@ class BaseTask(Dataset):
         Object:
             Preprocessed item
         """
-        raise NotImplementedError("This task doesn't implement preprocess_item"
-                                  " method")
+        raise NotImplementedError(
+            "This task doesn't implement preprocess_item" " method"
+        )
 
     def update_registry_for_model(self, config):
         """
@@ -152,12 +158,16 @@ class BaseTask(Dataset):
             builder.update_registry_for_model(config)
 
     def init_args(self, parser):
-        parser.add_argument_group('General Task Arguments')
-        parser.add_argument('-dsp', '--dataset_size_proportional_sampling',
-                            type=bool, default=0,
-                            help="Pass if you want to sample from"
-                            " dataset according to its size. Default: Equal "
-                            " weighted sampling")
+        parser.add_argument_group("General Task Arguments")
+        parser.add_argument(
+            "-dsp",
+            "--dataset_size_proportional_sampling",
+            type=bool,
+            default=0,
+            help="Pass if you want to sample from"
+            " dataset according to its size. Default: Equal "
+            " weighted sampling",
+        )
 
         # TODO: Figure out later if we want to init args from datasets
         # self._init_args(parser)

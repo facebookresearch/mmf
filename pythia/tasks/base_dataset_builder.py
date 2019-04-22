@@ -29,8 +29,9 @@ class BaseDatasetBuilder:
         This is used to prepare the dataset and load it from a path.
         Override this method in your child dataset builder class.
         """
-        raise NotImplementedError("This dataset builder doesn't implement a "
-                                  "load method")
+        raise NotImplementedError(
+            "This dataset builder doesn't implement a " "load method"
+        )
 
     def build(self, dataset_type, config, *args, **kwargs):
         """WARNING: DO NOT OVERRIDE in child class. Instead override '_build'.
@@ -53,5 +54,6 @@ class BaseDatasetBuilder:
         This is used to build a dataset first time.
         Override this method in your child dataset builder class.
         """
-        raise NotImplementedError("This dataset builder doesn't implement a "
-                                  "build method")
+        raise NotImplementedError(
+            "This dataset builder doesn't implement a " "build method"
+        )

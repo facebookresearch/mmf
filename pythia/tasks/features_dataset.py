@@ -1,11 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+from multiprocessing.pool import ThreadPool
+
 import torch
 import tqdm
 
-from multiprocessing.pool import ThreadPool
-
-from pythia.tasks.feature_readers import FeatureReader
 from pythia.common.registry import registry
+from pythia.tasks.feature_readers import FeatureReader
 from pythia.utils.distributed_utils import is_main_process
 
 
@@ -43,24 +43,25 @@ class COCOFeaturesDataset(BaseFeaturesDataset):
         self.feature_readers = []
         self.feature_dict = {}
 
-        self.fast_read = kwargs['fast_read']
-        self.writer = registry.get('writer')
+        self.fast_read = kwargs["fast_read"]
+        self.writer = registry.get("writer")
 
-        for image_feature_dir in kwargs['directories']:
+        for image_feature_dir in kwargs["directories"]:
             feature_reader = FeatureReader(
                 base_path=image_feature_dir,
-                depth_first=kwargs['depth_first'],
-                max_features=kwargs['max_features']
+                depth_first=kwargs["depth_first"],
+                max_features=kwargs["max_features"],
             )
             self.feature_readers.append(feature_reader)
 
-        self.imdb = kwargs['imdb']
+        self.imdb = kwargs["imdb"]
         self.kwargs = kwargs
-        self.should_return_info = kwargs.get('return_info', True)
+        self.should_return_info = kwargs.get("return_info", True)
 
         if self.fast_read:
-            self.writer.write("Fast reading features from %s" %
-                              (', '.join(kwargs['directories'])))
+            self.writer.write(
+                "Fast reading features from %s" % (", ".join(kwargs["directories"]))
+            )
             self.writer.write("Hold tight, this may take a while...")
             self._threaded_read()
 
@@ -68,17 +69,14 @@ class COCOFeaturesDataset(BaseFeaturesDataset):
         elements = [idx for idx in range(1, len(self.imdb))]
         pool = ThreadPool(processes=4)
         is_main = is_main_process()
-        with tqdm.tqdm(total=len(elements),
-                       disable=not is_main_process()) as pbar:
-            for i, _ in enumerate(
-                pool.imap_unordered(self._fill_cache, elements)
-            ):
+        with tqdm.tqdm(total=len(elements), disable=not is_main_process()) as pbar:
+            for i, _ in enumerate(pool.imap_unordered(self._fill_cache, elements)):
                 if i % 100 == 0:
                     pbar.update(100)
         pool.close()
 
     def _fill_cache(self, idx):
-        feat_file = self.imdb[idx]['feature_path']
+        feat_file = self.imdb[idx]["feature_path"]
         features, info = self._read_features_and_info(feat_file)
         self.feature_dict[feat_file] = (features, info)
 
@@ -111,10 +109,9 @@ class COCOFeaturesDataset(BaseFeaturesDataset):
 
     def __getitem__(self, idx):
         image_info = self.imdb[idx]
-        image_file_name = image_info['feature_path']
+        image_file_name = image_info["feature_path"]
 
-        image_features, infos = \
-            self._get_image_features_and_info(image_file_name)
+        image_features, infos = self._get_image_features_and_info(image_file_name)
 
         item = {}
         for idx, image_feature in enumerate(image_features):

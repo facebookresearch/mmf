@@ -1,32 +1,32 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import os
 import json
+import os
 
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.distributed import DistributedSampler
 
-from pythia.utils.general import ckpt_name_from_core_args, \
-                                 foldername_from_config_override
-from pythia.utils.distributed_utils import (gather_tensor,
-        is_main_process, get_world_size)
 from pythia.common.registry import registry
+from pythia.utils.distributed_utils import (gather_tensor, get_world_size,
+                                            is_main_process)
+from pythia.utils.general import (ckpt_name_from_core_args,
+                                  foldername_from_config_override)
 from pythia.utils.timer import Timer
+
 from .batch_collator import BatchCollator
 
 
 class TestReporter(Dataset):
     def __init__(self, multi_task_instance):
         self.test_task = multi_task_instance
-        self.config = registry.get('config')
-        self.writer = registry.get('writer')
+        self.config = registry.get("config")
+        self.writer = registry.get("writer")
         self.report = []
         self.timer = Timer()
-        self.training_parameters = self.config['training_parameters']
-        self.num_workers = self.training_parameters['num_workers']
-        self.batch_size = self.training_parameters['batch_size']
-        self.report_folder_arg = self.config.get('report_folder', None)
-        self.experiment_name = self.training_parameters.get('experiment_name',
-                                                            "")
+        self.training_parameters = self.config["training_parameters"]
+        self.num_workers = self.training_parameters["num_workers"]
+        self.batch_size = self.training_parameters["batch_size"]
+        self.report_folder_arg = self.config.get("report_folder", None)
+        self.experiment_name = self.training_parameters.get("experiment_name", "")
 
         self.datasets = []
 
@@ -37,7 +37,7 @@ class TestReporter(Dataset):
         self.current_dataset_idx = -1
         self.current_dataset = self.datasets[self.current_dataset_idx]
 
-        self.save_dir = self.config.get('save_dir', "./save")
+        self.save_dir = self.config.get("save_dir", "./save")
         self.report_folder = ckpt_name_from_core_args(self.config)
         self.report_folder += foldername_from_config_override(self.config)
 
@@ -79,11 +79,12 @@ class TestReporter(Dataset):
         filename += time + ".json"
         filepath = os.path.join(self.report_folder, filename)
 
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             json.dump(self.report, f)
 
-        self.writer.write("Wrote evalai predictions for %s to %s" %
-                          (name, os.path.abspath(filepath)))
+        self.writer.write(
+            "Wrote evalai predictions for %s to %s" % (name, os.path.abspath(filepath))
+        )
         self.report = []
 
     def get_dataloader(self):
@@ -99,8 +100,10 @@ class TestReporter(Dataset):
     def _add_extra_args_for_dataloader(self, other_args={}):
         training_parameters = self.config.training_parameters
 
-        if training_parameters.local_rank is not None \
-            and training_parameters.distributed:
+        if (
+            training_parameters.local_rank is not None
+            and training_parameters.distributed
+        ):
             other_args["sampler"] = DistributedSampler(self.current_dataset)
         else:
             other_args["shuffle"] = True
@@ -110,9 +113,10 @@ class TestReporter(Dataset):
         world_size = get_world_size()
 
         if batch_size % world_size != 0:
-            raise RuntimeError("Batch size {} must be divisible by number "
-                               "of GPUs {} used."
-                               .format(batch_size, world_size))
+            raise RuntimeError(
+                "Batch size {} must be divisible by number "
+                "of GPUs {} used.".format(batch_size, world_size)
+            )
 
         other_args["batch_size"] = batch_size // world_size
 
@@ -129,9 +133,7 @@ class TestReporter(Dataset):
 
     def add_to_report(self, report):
         # TODO: Later gather whole report for no opinions
-        report.scores = gather_tensor(report.scores).view(
-            -1, report.scores.size(-1)
-        )
+        report.scores = gather_tensor(report.scores).view(-1, report.scores.size(-1))
         report.question_id = gather_tensor(report.question_id).view(-1)
 
         if not is_main_process():

@@ -1,17 +1,17 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import yaml
-import sys
-import random
-import torch
-import os
-import json
-import demjson
 import collections
-
+import json
+import os
+import random
+import sys
 from ast import literal_eval
 
-from pythia.utils.distributed_utils import is_main_process
+import demjson
+import torch
+import yaml
+
 from pythia.common.registry import registry
+from pythia.utils.distributed_utils import is_main_process
 
 
 class ConfigNode(collections.OrderedDict):
@@ -38,7 +38,7 @@ class ConfigNode(collections.OrderedDict):
                     if isinstance(item, collections.Mapping):
                         item.freeze()
 
-        self.__dict__[ConfigNode.IMMUTABLE]= True
+        self.__dict__[ConfigNode.IMMUTABLE] = True
 
     def defrost(self):
         for field in self.keys():
@@ -49,7 +49,7 @@ class ConfigNode(collections.OrderedDict):
                     if isinstance(item, collections.Mapping):
                         item.defrost()
 
-        self.__dict__[ConfigNode.IMMUTABLE]= False
+        self.__dict__[ConfigNode.IMMUTABLE] = False
 
     def __getattr__(self, key):
         if key not in self:
@@ -59,8 +59,7 @@ class ConfigNode(collections.OrderedDict):
 
     def __setattr__(self, key, value):
         if self.__dict__[ConfigNode.IMMUTABLE] is True:
-            raise AttributeError("ConfigNode has been frozen and can't"
-                                 " be updated")
+            raise AttributeError("ConfigNode has been frozen and can't" " be updated")
 
         self[key] = value
 
@@ -109,14 +108,15 @@ class Configuration:
         return self.config
 
     def load_yaml(self, file):
-        with open(file, 'r') as stream:
+        with open(file, "r") as stream:
             mapping = yaml.safe_load(stream)
 
             includes = mapping.get("includes", [])
 
             if not isinstance(includes, list):
-                raise AttributeError("Includes must be a list, {} provided"
-                                     .format(type(includes)))
+                raise AttributeError(
+                    "Includes must be a list, {} provided".format(type(includes))
+                )
             include_mapping = {}
 
             utils_dir = os.path.dirname(os.path.abspath(__file__))
@@ -126,8 +126,7 @@ class Configuration:
                 include = os.path.join(pythia_root_dir, include)
                 current_include_mapping = self.load_yaml(include)
                 include_mapping = self.nested_dict_update(
-                    include_mapping,
-                    current_include_mapping
+                    include_mapping, current_include_mapping
                 )
 
             mapping.pop("includes", None)
@@ -135,7 +134,6 @@ class Configuration:
             mapping = self.nested_dict_update(include_mapping, mapping)
 
             return mapping
-
 
     def update_with_args(self, args, force=False):
         args_dict = vars(args)
@@ -151,7 +149,6 @@ class Configuration:
 
         cmd_config = demjson.decode(cmd_config)
         self.config = self.nested_dict_update(self.config, cmd_config)
-
 
     def nested_dict_update(self, dictionary, update):
         """Updates a dictionary with other dictionary recursively.
@@ -180,7 +177,7 @@ class Configuration:
         self.config.freeze()
 
     def _merge_from_list(self, opts):
-        writer = registry.get('writer')
+        writer = registry.get("writer")
 
         if opts is None:
             opts = []
@@ -192,22 +189,23 @@ class Configuration:
             current = self.config
             for idx, field in enumerate(splits):
                 if field not in current:
-                    raise AttributeError("While updating configuration"
-                                         " option {} is missing from"
-                                         " configuration at field {}"
-                                         .format(opt, field))
+                    raise AttributeError(
+                        "While updating configuration"
+                        " option {} is missing from"
+                        " configuration at field {}".format(opt, field)
+                    )
                 if not isinstance(current[field], collections.Mapping):
                     if idx == len(splits) - 1:
                         if is_main_process():
-                            print("Overriding option {} to {}"
-                                  .format(opt, value))
+                            print("Overriding option {} to {}".format(opt, value))
 
                         current[field] = self._decode_value(value)
                     else:
-                        raise AttributeError("While updating configuration",
-                                             "option {} is not present "
-                                             "after field {}"
-                                             .format(opt, field))
+                        raise AttributeError(
+                            "While updating configuration",
+                            "option {} is not present "
+                            "after field {}".format(opt, field),
+                        )
                 else:
                     current = current[field]
 
@@ -228,11 +226,11 @@ class Configuration:
         return value
 
     def _update_key(self, dictionary, update_dict):
-        '''
+        """
         Takes a single depth dictionary update_dict and uses it to
         update 'dictionary' whenever key in 'update_dict' is found at
         any level in 'dictionary'
-        '''
+        """
         for key, value in dictionary.items():
             if not isinstance(value, collections.Mapping):
                 if key in update_dict and update_dict[key] is not None:
@@ -243,51 +241,63 @@ class Configuration:
         return dictionary
 
     def pretty_print(self):
-        self.writer = registry.get('writer')
+        self.writer = registry.get("writer")
 
         self.writer.write("=====  Training Parameters    =====", "info")
-        self.writer.write(json.dumps(self.config['training_parameters'],
-                                     indent=4, sort_keys=True), "info")
+        self.writer.write(
+            json.dumps(self.config["training_parameters"], indent=4, sort_keys=True),
+            "info",
+        )
 
         self.writer.write("======  Task Attributes  ======", "info")
-        self.writer.write(json.dumps(self.config['task_attributes'],
-                                     indent=4, sort_keys=True), "info")
+        self.writer.write(
+            json.dumps(self.config["task_attributes"], indent=4, sort_keys=True), "info"
+        )
 
         self.writer.write("======  Optimizer Attributes  ======", "info")
-        self.writer.write(json.dumps(self.config['optimizer_attributes'],
-                                     indent=4, sort_keys=True), "info")
+        self.writer.write(
+            json.dumps(self.config["optimizer_attributes"], indent=4, sort_keys=True),
+            "info",
+        )
 
         self.writer.write("======  Model Attributes  ======", "info")
-        self.writer.write(json.dumps(self.config['model_attributes'],
-                                     indent=4, sort_keys=True), "info")
+        self.writer.write(
+            json.dumps(self.config["model_attributes"], indent=4, sort_keys=True),
+            "info",
+        )
 
     def _get_default_config_path(self):
         directory = os.path.dirname(os.path.abspath(__file__))
-        return os.path.join(directory, '..', 'common', 'defaults',
-                            'configs', 'base.yml')
+        return os.path.join(
+            directory, "..", "common", "defaults", "configs", "base.yml"
+        )
 
     def _update_specific(self, args):
-        if args['seed'] <= 0:
-            self.config['training_parameters']['seed'] = \
-                    random.randint(1, 1000000)
+        if args["seed"] <= 0:
+            self.config["training_parameters"]["seed"] = random.randint(1, 1000000)
 
-        if 'learning_rate' in args:
-            if 'optimizer' in self.config and \
-               'params' in self.config['optimizer']:
-                lr = args['learning_rate']
-                self.config['optimizer_attributes']['params']['lr'] = lr
+        if "learning_rate" in args:
+            if "optimizer" in self.config and "params" in self.config["optimizer"]:
+                lr = args["learning_rate"]
+                self.config["optimizer_attributes"]["params"]["lr"] = lr
 
-        if not torch.cuda.is_available() and \
-            "cuda" in self.config['training_parameters']['device']:
+        if (
+            not torch.cuda.is_available()
+            and "cuda" in self.config["training_parameters"]["device"]
+        ):
             if is_main_process():
-                print("WARNING: Device specified is 'cuda' but cuda is "
-                      "not present. Switching to CPU version")
-            self.config['training_parameters']['device'] = "cpu"
+                print(
+                    "WARNING: Device specified is 'cuda' but cuda is "
+                    "not present. Switching to CPU version"
+                )
+            self.config["training_parameters"]["device"] = "cpu"
 
-        tp = self.config['training_parameters']
-        if tp['distributed'] is True and tp['data_parallel'] is True:
-            self.writer.write("training_parameters.distributed and "
-                              "training_parameters.data_parallel are "
-                              "mutually exclusive. Setting "
-                              "training_parameters.distributed to False")
-            tp['distributed'] = False
+        tp = self.config["training_parameters"]
+        if tp["distributed"] is True and tp["data_parallel"] is True:
+            self.writer.write(
+                "training_parameters.distributed and "
+                "training_parameters.data_parallel are "
+                "mutually exclusive. Setting "
+                "training_parameters.distributed to False"
+            )
+            tp["distributed"] = False

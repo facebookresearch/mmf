@@ -6,10 +6,11 @@
 #
 
 
-import json
 import argparse
+import json
 import os
 from collections import Counter
+
 from pythia.utils.preprocessing import text_tokenize
 
 
@@ -35,8 +36,7 @@ class ExtractVocabulary:
             word_count.update(words)
 
         # UNK token will added on fly if you use Vocab class in core/text
-        vocabulary = [w[0] for w in word_count.items()
-                      if w[1] >= self.min_freq]
+        vocabulary = [w[0] for w in word_count.items() if w[1] >= self.min_freq]
         vocabulary.sort()
 
         self.save_vocabulary(vocabulary)
@@ -46,49 +46,56 @@ class ExtractVocabulary:
 
     def save_vocabulary(self, vocabulary):
         vocab_file = os.path.join(self.out_dir, self.vocab_file_name)
-        with open(vocab_file, 'w') as f:
-            f.writelines([w+'\n' for w in vocabulary])
+        with open(vocab_file, "w") as f:
+            f.writelines([w + "\n" for w in vocabulary])
 
     def get_text(self):
-        '''
+        """
         Override this in your child class to extract custom text
         Default for VQA. Make sure to return a list of all possible text
-        '''
+        """
         text = []
 
         for input_file in self.input_files:
-            with open(input_file, 'r') as f:
-                text += json.load(f)['questions']
+            with open(input_file, "r") as f:
+                text += json.load(f)["questions"]
 
         return text
 
     def get_args(self):
         parser = argparse.ArgumentParser()
-        parser.add_argument("--input_files",
-                            nargs='+',
-                            required=True,
-                            help="input question json files, \
-                                 if more than 1, split by space")
-        parser.add_argument("--out_dir",
-                            type=str,
-                            default="./",
-                            help="output directory, default is "
-                                 "current directory")
-        parser.add_argument("--min_freq",
-                            type=int,
-                            default=0,
-                            help="the minimum times of word occurrence \
-                                  to be included in vocabulary, default 0")
-        parser.add_argument("--vocab_file_name", type=str,
-                            default="vocabulary.txt",
-                            help="Name of the file in "
-                            "vocabulary will be stored")
+        parser.add_argument(
+            "--input_files",
+            nargs="+",
+            required=True,
+            help="input question json files, \
+                                 if more than 1, split by space",
+        )
+        parser.add_argument(
+            "--out_dir",
+            type=str,
+            default="./",
+            help="output directory, default is " "current directory",
+        )
+        parser.add_argument(
+            "--min_freq",
+            type=int,
+            default=0,
+            help="the minimum times of word occurrence \
+                                  to be included in vocabulary, default 0",
+        )
+        parser.add_argument(
+            "--vocab_file_name",
+            type=str,
+            default="vocabulary.txt",
+            help="Name of the file in " "vocabulary will be stored",
+        )
 
         args = parser.parse_args()
 
         return args
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     extractor = ExtractVocabulary()
     extractor.extract()

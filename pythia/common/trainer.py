@@ -1,27 +1,27 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import math
-import torch
 import gc
+import math
 import time
 
+import torch
 from torch import optim
 from tqdm import tqdm
 
-from pythia.utils.flags import flags
-from pythia.utils.configuration import Configuration
-from pythia.utils.checkpoint import Checkpoint
-from pythia.utils.logger import Logger
-from pythia.utils.general import (lr_lambda_update, clip_gradients,
-                                  get_optimizer_parameters, dict_to_string)
-from pythia.utils.model_utils import build_model
-from pythia.utils.distributed_utils import (reduce_dict, synchronize,
-                                            is_main_process, broadcast_scalar)
-from pythia.utils.timer import Timer
-from pythia.utils.early_stopping import EarlyStopping
-from pythia.common.task_loader import TaskLoader
+from pythia.common.meter import Meter
 from pythia.common.registry import registry
 from pythia.common.report import Report
-from pythia.common.meter import Meter
+from pythia.common.task_loader import TaskLoader
+from pythia.utils.checkpoint import Checkpoint
+from pythia.utils.configuration import Configuration
+from pythia.utils.distributed_utils import (broadcast_scalar, is_main_process,
+                                            reduce_dict, synchronize)
+from pythia.utils.early_stopping import EarlyStopping
+from pythia.utils.flags import flags
+from pythia.utils.general import (clip_gradients, dict_to_string,
+                                  get_optimizer_parameters, lr_lambda_update)
+from pythia.utils.logger import Logger
+from pythia.utils.model_utils import build_model
+from pythia.utils.timer import Timer
 
 
 class Trainer:
@@ -33,12 +33,11 @@ class Trainer:
         self.load_config()
         self._init_process_group()
 
-        self.run_type = self.config.training_parameters.get('run_type',
-                                                            "train")
+        self.run_type = self.config.training_parameters.get("run_type", "train")
         self.task_loader = TaskLoader(self.config)
 
         self.writer = Logger(self.config)
-        registry.register('writer', self.writer)
+        registry.register("writer", self.writer)
 
         self.configuration.pretty_print()
 
@@ -56,13 +55,17 @@ class Trainer:
 
         if self.local_rank is not None and training_parameters.distributed:
             if not torch.distributed.is_nccl_available():
-                raise RuntimeError("Unable to initialize process group: "
-                                   "NCCL is not available")
+                raise RuntimeError(
+                    "Unable to initialize process group: " "NCCL is not available"
+                )
             torch.distributed.init_process_group(backend="nccl")
             synchronize()
 
-        if "cuda" in self.device and training_parameters.distributed \
-                and self.local_rank is not None:
+        if (
+            "cuda" in self.device
+            and training_parameters.distributed
+            and self.local_rank is not None
+        ):
             self.device = torch.device("cuda", self.local_rank)
 
         registry.register("current_device", self.device)
@@ -84,7 +87,7 @@ class Trainer:
         self.configuration.freeze()
 
         self.config = self.configuration.get_config()
-        registry.register('config', self.config)
+        registry.register("config", self.config)
 
     def load_task(self):
         self.writer.write("Loading tasks and data", "info")
@@ -111,7 +114,7 @@ class Trainer:
         if isinstance(attributes, str):
             attributes = self.config.model_attributes[attributes]
 
-        attributes['model'] = self.config.model
+        attributes["model"] = self.config.model
 
         self.task_loader.update_registry_for_model(attributes)
         self.model = build_model(attributes)
@@ -121,29 +124,35 @@ class Trainer:
         data_parallel = training_parameters.data_parallel
         distributed = training_parameters.distributed
 
-        registry.register('data_parallel', data_parallel)
-        registry.register('distributed', distributed)
+        registry.register("data_parallel", data_parallel)
+        registry.register("distributed", distributed)
 
         if "cuda" in str(self.config.training_parameters.device):
             rank = self.local_rank if self.local_rank is not None else 0
-            self.writer.write("CUDA Device {} is: {}".format(
-                rank, torch.cuda.get_device_name(self.local_rank)
-            ))
+            self.writer.write(
+                "CUDA Device {} is: {}".format(
+                    rank, torch.cuda.get_device_name(self.local_rank)
+                )
+            )
 
         self.model = self.model.to(self.device)
 
         self.writer.write("Torch version is: " + torch.__version__)
 
-        if "cuda" in str(self.device) and torch.cuda.device_count() > 1 \
-           and data_parallel is True:
+        if (
+            "cuda" in str(self.device)
+            and torch.cuda.device_count() > 1
+            and data_parallel is True
+        ):
             self.model = torch.nn.DataParallel(self.model)
 
-        if "cuda" in str(self.device) and self.local_rank is not None \
-            and distributed is True:
+        if (
+            "cuda" in str(self.device)
+            and self.local_rank is not None
+            and distributed is True
+        ):
             self.model = torch.nn.parallel.DistributedDataParallel(
-                self.model,
-                device_ids=[self.local_rank],
-                output_device=self.local_rank
+                self.model, device_ids=[self.local_rank], output_device=self.local_rank
             )
 
     def load_optimizer(self):
@@ -166,19 +175,20 @@ class Trainer:
         should_early_stop = self.training_parameters.should_early_stop
         patience = self.training_parameters.patience
 
-
         self.log_interval = self.training_parameters.log_interval
         self.snapshot_interval = self.training_parameters.snapshot_interval
         self.max_iterations = self.training_parameters.max_iterations
         self.should_clip_gradients = self.training_parameters.clip_gradients
         self.max_epochs = self.training_parameters.max_epochs
 
-        self.early_stopping = EarlyStopping(self.model,
-                                            self.checkpoint,
-                                            monitored_metric,
-                                            patience=patience,
-                                            minimize=metric_minimize,
-                                            should_stop=should_early_stop)
+        self.early_stopping = EarlyStopping(
+            self.model,
+            self.checkpoint,
+            monitored_metric,
+            patience=patience,
+            minimize=metric_minimize,
+            should_stop=should_early_stop,
+        )
         self.current_epoch = 0
         self.current_iteration = 0
 
@@ -192,8 +202,9 @@ class Trainer:
         if self.training_parameters.lr_scheduler is True:
             scheduler_class = optim.lr_scheduler.LambdaLR
             scheduler_func = lambda x: lr_lambda_update(x, self.config)
-            self.lr_scheduler = scheduler_class(self.optimizer,
-                                                lr_lambda=scheduler_func)
+            self.lr_scheduler = scheduler_class(
+                self.optimizer, lr_lambda=scheduler_func
+            )
 
     def config_based_setup(self):
         seed = self.config.training_parameters.seed
@@ -225,10 +236,9 @@ class Trainer:
         torch.autograd.set_detect_anomaly(True)
 
         self.writer.write("Starting training...")
-        while self.current_iteration < self.max_iterations \
-                and not should_break:
+        while self.current_iteration < self.max_iterations and not should_break:
             self.current_epoch += 1
-            registry.register('current_epoch', self.current_epoch)
+            registry.register("current_epoch", self.current_epoch)
 
             if self.current_epoch > self.max_epochs:
                 break
@@ -238,7 +248,7 @@ class Trainer:
                 self.current_iteration += 1
                 self.writer.write(self.current_iteration, "debug")
 
-                registry.register('current_iteration', self.current_iteration)
+                registry.register("current_iteration", self.current_iteration)
 
                 if self.current_iteration > self.max_iterations:
                     break
@@ -260,7 +270,6 @@ class Trainer:
         if self.lr_scheduler is not None:
             self.lr_scheduler.step(self.current_iteration)
 
-
     def _forward_pass(self, batch):
         prepared_batch = self.task_loader.prepare_batch(batch)
         self.profile("Batch prepare time")
@@ -277,8 +286,7 @@ class Trainer:
         loss.backward()
 
         if self.should_clip_gradients:
-            clip_gradients(self.model, self.current_iteration,
-                           self.writer, self.config)
+            clip_gradients(self.model, self.current_iteration, self.writer, self.config)
 
         self.optimizer.step()
         self.profile("Backward time")
@@ -301,8 +309,7 @@ class Trainer:
         loss_key = "train/total_loss" if not eval_mode else "val/total_loss"
 
         with torch.no_grad():
-            reduced_loss = sum([loss.mean()
-                                for loss in reduced_loss_dict.values()])
+            reduced_loss = sum([loss.mean() for loss in reduced_loss_dict.values()])
 
             meter_update_dict = {loss_key: reduced_loss.item()}
             meter_update_dict.update(reduced_loss_dict)
@@ -320,13 +327,15 @@ class Trainer:
                 extra["max mem"] = torch.cuda.max_memory_allocated() / 1024
                 extra["max mem"] //= 1024
 
-            extra.update({
-                "lr": "{:.5f}".format(
-                    self.optimizer.param_groups[0]["lr"]
-                ).rstrip('0'),
-                "time": self.train_timer.get_time_since_start(),
-                "eta": self._calculate_time_left(),
-            })
+            extra.update(
+                {
+                    "lr": "{:.5f}".format(self.optimizer.param_groups[0]["lr"]).rstrip(
+                        "0"
+                    ),
+                    "time": self.train_timer.get_time_since_start(),
+                    "eta": self._calculate_time_left(),
+                }
+            )
 
             self.train_timer.reset()
 
@@ -335,23 +344,24 @@ class Trainer:
 
         # Don't print train metrics if it is not log interval
         # so as to escape clutter
-        self._summarize_report(self.meter, should_print=should_print,
-                               extra=extra, prefix=report.dataset_name)
+        self._summarize_report(
+            self.meter,
+            should_print=should_print,
+            extra=extra,
+            prefix=report.dataset_name,
+        )
         self._try_full_validation()
 
         return should_break
 
     def _try_full_validation(self):
         if self.current_iteration % self.snapshot_interval == 0:
-            self.writer.write("Evaluation time. Running on full "
-                              "validation set...")
+            self.writer.write("Evaluation time. Running on full " "validation set...")
             # Validation and Early stopping
             # Create a new meter for this case
             report, meter = self.evaluate(self.val_loader)
 
-            extra = {
-                "validation time": self.snapshot_timer.get_time_since_start()
-            }
+            extra = {"validation time": self.snapshot_timer.get_time_since_start()}
 
             stop = self.early_stopping(self.current_iteration, meter)
             stop = bool(broadcast_scalar(stop, src=0, device=self.device))
@@ -391,7 +401,7 @@ class Trainer:
             return
 
         scalar_dict = meter.get_scalar_dict()
-        self.writer.add_scalars(scalar_dict, registry.get('current_iteration'))
+        self.writer.add_scalars(scalar_dict, registry.get("current_iteration"))
 
         if not should_print:
             return
@@ -402,8 +412,7 @@ class Trainer:
 
         print_str += ["{}/{}".format(self.current_iteration, self.max_iterations)]
         print_str += [str(meter)]
-        print_str += ["{}: {}".format(key, value)
-                      for key, value in extra.items()]
+        print_str += ["{}: {}".format(key, value) for key, value in extra.items()]
 
         self.writer.write(meter.delimiter.join(print_str))
 
@@ -425,12 +434,12 @@ class Trainer:
 
     def _calculate_time_left(self):
         time_taken_for_log = time.time() * 1000 - self.train_timer.start
-        iterations_left = (self.max_iterations - self.current_iteration)
+        iterations_left = self.max_iterations - self.current_iteration
         num_logs_left = iterations_left / self.log_interval
         time_left = num_logs_left * time_taken_for_log
 
         snapshot_iteration = self.snapshot_iterations / self.log_interval
-        snapshot_iteration *= (iterations_left / self.snapshot_interval)
+        snapshot_iteration *= iterations_left / self.snapshot_interval
         time_left += snapshot_iteration * time_taken_for_log
 
         return self.train_timer.get_time_hhmmss(gap=time_left)
@@ -438,8 +447,7 @@ class Trainer:
     def profile(self, text):
         if self.not_debug:
             return
-        self.writer.write(text + ": " + self.profiler.get_time_since_start(),
-                          "debug")
+        self.writer.write(text + ": " + self.profiler.get_time_since_start(), "debug")
         self.profiler.reset()
 
     def predict_for_evalai(self):

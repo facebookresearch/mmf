@@ -1,9 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import torch
 import collections
-
 from collections import OrderedDict
 from copy import deepcopy
+
+import torch
 
 
 class Sample(OrderedDict):
@@ -52,11 +52,14 @@ class SampleList(OrderedDict):
 
             for idx, sample in enumerate(samples):
                 # it should be a tensor but not a 0-d tensor
-                if isinstance(sample[field], torch.Tensor) and \
-                    len(sample[field].size()) != 0 and \
-                    sample[field].size(0) != samples[0][field].size(0):
-                    raise AssertionError("Fields for all samples must be"
-                                         " equally sized.")
+                if (
+                    isinstance(sample[field], torch.Tensor)
+                    and len(sample[field].size()) != 0
+                    and sample[field].size(0) != samples[0][field].size(0)
+                ):
+                    raise AssertionError(
+                        "Fields for all samples must be" " equally sized."
+                    )
 
                 self[field][idx] = self._get_data_copy(sample[field])
 
@@ -64,8 +67,7 @@ class SampleList(OrderedDict):
                 self[field] = SampleList(self[field])
 
     def _check_and_load_tuple(self, samples):
-        if isinstance(samples[0], (tuple, list)) \
-            and isinstance(samples[0][0], str):
+        if isinstance(samples[0], (tuple, list)) and isinstance(samples[0][0], str):
             for kv_pair in samples:
                 self.add_field(kv_pair[0], kv_pair[1])
             return True
@@ -90,9 +92,10 @@ class SampleList(OrderedDict):
 
     def __getattr__(self, key):
         if key not in self:
-            raise AttributeError("Key {} not found in the SampleList. "
-                                 "Valid choices are {}"
-                                 .format(key, self.fields()))
+            raise AttributeError(
+                "Key {} not found in the SampleList. "
+                "Valid choices are {}".format(key, self.fields())
+            )
         fields = self.keys()
 
         if key in fields:
@@ -130,9 +133,10 @@ class SampleList(OrderedDict):
 
         for field in fields:
             if field not in current_fields:
-                raise AttributeError("{} not present in SampleList. "
-                                     "Valid choices are {}"
-                                     .format(field, current_fields))
+                raise AttributeError(
+                    "{} not present in SampleList. "
+                    "Valid choices are {}".format(field, current_fields)
+                )
             return_list.add_field(field, self[field])
 
         return return_list
@@ -166,15 +170,20 @@ class SampleList(OrderedDict):
         if len(fields) == 0:
             self[field] = self._get_data_copy(data)
         else:
-            if isinstance(data, torch.Tensor) and \
-                len(data.size()) != 0 and \
-                tensor_field is not None and \
-                data.size(0) != self[tensor_field].size(0):
-                raise AssertionError("A tensor field to be added must "
-                                     "have same size as existing tensor "
-                                     "fields in SampleList. "
-                                     "Passed size: {}, Required size: {}"
-                                     .format(len(data), len(self[fields[0]])))
+            if (
+                isinstance(data, torch.Tensor)
+                and len(data.size()) != 0
+                and tensor_field is not None
+                and data.size(0) != self[tensor_field].size(0)
+            ):
+                raise AssertionError(
+                    "A tensor field to be added must "
+                    "have same size as existing tensor "
+                    "fields in SampleList. "
+                    "Passed size: {}, Required size: {}".format(
+                        len(data), len(self[fields[0]])
+                    )
+                )
             self[field] = self._get_data_copy(data)
 
         if isinstance(self[field], torch.Tensor) and tensor_field is None:
@@ -185,15 +194,14 @@ class SampleList(OrderedDict):
         sample_list = self.copy()
         if not isinstance(device, torch.device):
             if not isinstance(device, str):
-                raise TypeError("device must be either 'str' or "
-                                "'torch.device' type, {} found"
-                                .format(type(device)))
+                raise TypeError(
+                    "device must be either 'str' or "
+                    "'torch.device' type, {} found".format(type(device))
+                )
             device = torch.device(device)
 
         for field in fields:
             if hasattr(sample_list[field], "to"):
-                sample_list[field] = sample_list[field].to(
-                    device, non_blocking=True
-                )
+                sample_list[field] = sample_list[field].to(device, non_blocking=True)
 
         return sample_list

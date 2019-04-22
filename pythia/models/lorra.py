@@ -1,8 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import torch
 
-from pythia.models.pythia import Pythia
 from pythia.common.registry import registry
+from pythia.models.pythia import Pythia
 from pythia.modules.layers import ClassifierLayer
 
 
@@ -27,7 +27,7 @@ class LoRRA(Pythia):
         params += [
             {"params": self.context_feature_embeddings_list.parameters()},
             {"params": self.context_embeddings.parameters()},
-            {"params": self.context_feature_encoders.parameters()}
+            {"params": self.context_feature_encoders.parameters()},
         ]
 
         return params
@@ -48,8 +48,9 @@ class LoRRA(Pythia):
     def forward(self, sample_list):
         sample_list.text = self.word_embedding(sample_list.text)
         text_embedding_total = self.process_text_embedding(sample_list)
-        context_embeddings = self.process_text_embedding(sample_list,
-                                                         'context_embeddings')
+        context_embeddings = self.process_text_embedding(
+            sample_list, "context_embeddings"
+        )
 
         image_embedding_total, _ = self.process_feature_embedding(
             "image", sample_list, text_embedding_total
@@ -64,12 +65,9 @@ class LoRRA(Pythia):
 
         joint_embedding = self.combine_embeddings(
             ["image", "text"],
-            [image_embedding_total, text_embedding_total,
-             context_embedding_total]
+            [image_embedding_total, text_embedding_total, context_embedding_total],
         )
 
         scores = self.calculate_logits(joint_embedding)
 
-        return {
-            "scores": scores
-        }
+        return {"scores": scores}

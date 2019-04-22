@@ -1,8 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
-from pythia.utils.general import dict_to_string, get_overlap_score, \
-                                 nested_dict_update
+from pythia.utils.general import (dict_to_string, get_overlap_score,
+                                  nested_dict_update)
 
 
 class TestUtilsGeneral(unittest.TestCase):

@@ -1,12 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os
-import yaml
 
+import yaml
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
 from pythia.tasks import MultiTask
 from pythia.utils.distributed_utils import get_world_size
+
 from .batch_collator import BatchCollator
 from .test_reporter import TestReporter
 
@@ -16,14 +17,14 @@ class TaskLoader:
         self.config = config
 
     def load_task(self):
-        self.train_task = MultiTask('train', self.config)
-        self.val_task = MultiTask('val', self.config)
-        self.test_task = MultiTask('test', self.config)
+        self.train_task = MultiTask("train", self.config)
+        self.val_task = MultiTask("val", self.config)
+        self.test_task = MultiTask("test", self.config)
 
         self.mapping = {
-            'train': self.train_task,
-            'val': self.val_task,
-            'test': self.test_task
+            "train": self.train_task,
+            "val": self.val_task,
+            "test": self.test_task,
         }
 
         self.test_reporter = None
@@ -36,20 +37,17 @@ class TaskLoader:
 
     def _load_task_config(self, task_name):
         directory = os.path.dirname(os.path.abspath(__file__))
-        config_path = os.path.join(directory, '..', 'tasks',
-                                   task_name, 'config.yml')
+        config_path = os.path.join(directory, "..", "tasks", task_name, "config.yml")
         task_config = {}
         if not os.path.exists(config_path):
-            print("[Warning] No config present for task %s" %
-                  task_name)
+            print("[Warning] No config present for task %s" % task_name)
             return {}
 
-        with open(config_path, 'r') as f:
+        with open(config_path, "r") as f:
             try:
                 task_config = yaml.load(f)
             except yaml.YAMLError as err:
-                print("[Error] Task %s's config yaml error" % self.task_name,
-                      err)
+                print("[Error] Task %s's config yaml error" % self.task_name, err)
 
         return task_config
 
@@ -61,37 +59,45 @@ class TaskLoader:
         other_args = {}
 
         self._add_extra_args_for_dataloader(self.train_task, other_args)
-        self.train_loader = DataLoader(dataset=self.train_task,
-                                       pin_memory=pin_memory,
-                                       collate_fn=BatchCollator(),
-                                       num_workers=num_workers,
-                                       **other_args)
+        self.train_loader = DataLoader(
+            dataset=self.train_task,
+            pin_memory=pin_memory,
+            collate_fn=BatchCollator(),
+            num_workers=num_workers,
+            **other_args
+        )
 
-        self.train_loader.dataset_type = 'train'
+        self.train_loader.dataset_type = "train"
 
         self._add_extra_args_for_dataloader(self.val_task, other_args)
-        self.val_loader = DataLoader(dataset=self.val_task,
-                                     pin_memory=pin_memory,
-                                     collate_fn=BatchCollator(),
-                                     num_workers=num_workers,
-                                     **other_args)
-        self.val_loader.dataset_type = 'val'
+        self.val_loader = DataLoader(
+            dataset=self.val_task,
+            pin_memory=pin_memory,
+            collate_fn=BatchCollator(),
+            num_workers=num_workers,
+            **other_args
+        )
+        self.val_loader.dataset_type = "val"
 
         self._add_extra_args_for_dataloader(self.test_task, other_args)
-        self.test_loader = DataLoader(dataset=self.test_task,
-                                      pin_memory=pin_memory,
-                                      collate_fn=BatchCollator(),
-                                      num_workers=num_workers,
-                                      **other_args)
-        self.test_loader.dataset_type = 'test'
+        self.test_loader = DataLoader(
+            dataset=self.test_task,
+            pin_memory=pin_memory,
+            collate_fn=BatchCollator(),
+            num_workers=num_workers,
+            **other_args
+        )
+        self.test_loader.dataset_type = "test"
 
         self.use_cuda = "cuda" in self.config.training_parameters.device
 
     def _add_extra_args_for_dataloader(self, task, other_args={}):
         training_parameters = self.config.training_parameters
 
-        if training_parameters.local_rank is not None \
-            and training_parameters.distributed:
+        if (
+            training_parameters.local_rank is not None
+            and training_parameters.distributed
+        ):
             other_args["sampler"] = DistributedSampler(task)
         else:
             other_args["shuffle"] = False
@@ -103,9 +109,10 @@ class TaskLoader:
         world_size = get_world_size()
 
         if batch_size % world_size != 0:
-            raise RuntimeError("Batch size {} must be divisible by number "
-                               "of GPUs {} used."
-                               .format(batch_size, world_size))
+            raise RuntimeError(
+                "Batch size {} must be divisible by number "
+                "of GPUs {} used.".format(batch_size, world_size)
+            )
 
         other_args["batch_size"] = batch_size // world_size
 

@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import torch
 import collections
+
+import torch
 
 from pythia.common.registry import registry
 
@@ -19,19 +20,23 @@ class Metrics:
             params = {}
             if isinstance(metric, collections.Mapping):
                 if not hasattr(metric, "type"):
-                    raise ValueError("Metric {} needs to have 'type' "
-                                     "attribute".format(metric))
+                    raise ValueError(
+                        "Metric {} needs to have 'type' " "attribute".format(metric)
+                    )
                 metric = metric.type
                 params = getattr(metric, "params", {})
             else:
                 if not isinstance(metric, str):
-                    raise TypeError("Metric {} has inappropriate type"
-                                    "'dict' or 'str' allowed".format(metric))
+                    raise TypeError(
+                        "Metric {} has inappropriate type"
+                        "'dict' or 'str' allowed".format(metric)
+                    )
 
             metric_cls = registry.get_metric_class(metric)
             if metric_cls is None:
-                raise ValueError("No metric named {} registered to registry"
-                                  .format(metric))
+                raise ValueError(
+                    "No metric named {} registered to registry".format(metric)
+                )
             metrics[metric] = metric_cls(**params)
 
         return metrics
@@ -50,9 +55,9 @@ class Metrics:
                     sample_list, model_output, *args, **kwargs
                 )
 
-        registry.register("{}.{}.{}".format(
-            "metrics", sample_list.dataset_name, dataset_type
-        ), values)
+        registry.register(
+            "{}.{}.{}".format("metrics", sample_list.dataset_name, dataset_type), values
+        )
 
         return values
 
@@ -88,7 +93,7 @@ class Accuracy(BaseMetric):
         correct = correct
         total = len(expected)
 
-        value = (correct / total)
+        value = correct / total
         return value
 
 
@@ -113,7 +118,7 @@ class VQAAccuracy(BaseMetric):
 
         one_hots = expected.new_zeros(*expected.size())
         one_hots.scatter_(1, output.view(-1, 1), 1)
-        scores = (one_hots * expected)
+        scores = one_hots * expected
         accuracy = torch.sum(scores) / expected.size(0)
 
         return accuracy

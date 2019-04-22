@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import torch
 import numpy as np
+import torch
 
 from pythia.common.registry import registry
 from pythia.utils.distributed_utils import is_main_process
@@ -13,9 +13,15 @@ class EarlyStopping:
     parameters.
     """
 
-    def __init__(self, model, checkpoint_instance,
-                 monitored_metric="total_loss", patience=1000,
-                 minimize=False, should_stop=True):
+    def __init__(
+        self,
+        model,
+        checkpoint_instance,
+        monitored_metric="total_loss",
+        patience=1000,
+        minimize=False,
+        should_stop=True,
+    ):
         self.minimize = minimize
         self.patience = patience
         self.model = model
@@ -44,14 +50,17 @@ class EarlyStopping:
         value = meter.meters.get(self.monitored_metric, None).global_avg
 
         if value is None:
-            raise ValueError("Metric used for early stopping ({}) is not "
-                             "present in meter.".format(self.monitored_metric))
+            raise ValueError(
+                "Metric used for early stopping ({}) is not "
+                "present in meter.".format(self.monitored_metric)
+            )
 
         if isinstance(value, torch.Tensor):
             value = value.item()
 
-        if (self.minimize and value < self.best_monitored_value) or \
-                (not self.minimize and value > self.best_monitored_value):
+        if (self.minimize and value < self.best_monitored_value) or (
+            not self.minimize and value > self.best_monitored_value
+        ):
             self.best_monitored_value = value
             self.best_monitored_iteration = iteration
             self.checkpoint.save(iteration, update_best=True)
@@ -73,13 +82,11 @@ class EarlyStopping:
         return self.activated
 
     def init_from_checkpoint(self, load):
-        self.best_monitored_iteration = load['best_iteration']
-        self.best_monitored_value = load['best_metric_value']
+        self.best_monitored_iteration = load["best_iteration"]
+        self.best_monitored_value = load["best_metric_value"]
 
     def get_info(self):
         return {
             "best iteration": self.best_monitored_iteration,
-            "best {}".format(self.metric): "{:.6f}".format(
-                self.best_monitored_value
-            )
+            "best {}".format(self.metric): "{:.6f}".format(self.best_monitored_value),
         }

@@ -1,11 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import unittest
 import time
+import unittest
+
 from pythia.utils.timer import Timer
 
 
 class TestUtilsTimer(unittest.TestCase):
-
     def test_get_current(self):
         timer = Timer()
         expected = "00:00:00"

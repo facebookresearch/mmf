@@ -1,62 +1,51 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import sys
-import torch
-import numpy as np
-
-from pythia.utils.general import get_pythia_root
 from collections import defaultdict
+
+import numpy as np
+import torch
 from torchtext import vocab
 
+from pythia.utils.general import get_pythia_root
 
-EMBEDDING_NAME_CLASS_MAPPING = {
-    'glove': 'GloVe',
-    'fasttext': 'FastText'
-}
+EMBEDDING_NAME_CLASS_MAPPING = {"glove": "GloVe", "fasttext": "FastText"}
 
 
 class Vocab:
     def __init__(self, *args, **params):
-        vocab_type = params.get('type', 'pretrained')
+        vocab_type = params.get("type", "pretrained")
         # Stores final parameters extracted from vocab_params
 
-        if vocab_type == 'random':
-            if params['vocab_file'] is None:
+        if vocab_type == "random":
+            if params["vocab_file"] is None:
                 raise ValueError("No vocab path passed for vocab")
 
             self.vocab = BaseVocab(*args, **params)
 
-        elif vocab_type == 'custom':
-            if params['vocab_file'] is None or \
-               params['embedding_file'] is None:
-                raise ValueError("No vocab path or embedding_file "
-                                 "passed for vocab")
+        elif vocab_type == "custom":
+            if params["vocab_file"] is None or params["embedding_file"] is None:
+                raise ValueError("No vocab path or embedding_file " "passed for vocab")
             self.vocab = CustomVocab(*args, **params)
 
-        elif vocab_type == 'pretrained':
+        elif vocab_type == "pretrained":
             self.vocab = PretrainedVocab(*args, **params)
 
-        elif vocab_type == 'intersected':
-            if params['vocab_file'] is None or \
-               params['embedding_name'] is None:
-                raise ValueError("No vocab path or embedding_name "
-                                 "passed for vocab")
+        elif vocab_type == "intersected":
+            if params["vocab_file"] is None or params["embedding_name"] is None:
+                raise ValueError("No vocab path or embedding_name " "passed for vocab")
 
             self.vocab = IntersectedVocab(*args, **params)
 
-        elif vocab_type == 'extracted':
-            if params['base_path'] is None or \
-               params['embedding_dim'] is None:
-                raise ValueError("No base_path or embedding_dim "
-                                 "passed for vocab")
+        elif vocab_type == "extracted":
+            if params["base_path"] is None or params["embedding_dim"] is None:
+                raise ValueError("No base_path or embedding_dim " "passed for vocab")
             self.vocab = ExtractedVocab(*args, **params)
 
-        elif vocab_type == 'model':
-            if params['name'] is None or \
-               params['model_file'] is None:
-                raise ValueError("No name or model_file "
-                                 "passed for vocab")
-            if params['name'] == 'fasttext':
+        elif vocab_type == "model":
+            if params["name"] is None or params["model_file"] is None:
+                raise ValueError("No name or model_file " "passed for vocab")
+            if params["name"] == "fasttext":
                 self.vocab = ModelVocab(*args, **params)
         else:
             raise ValueError("Unknown vocab type: %s" % vocab_type)
@@ -72,23 +61,25 @@ class Vocab:
         elif hasattr(self.vocab, name):
             return getattr(self.vocab, name)
         else:
-            raise AttributeError("{} vocab type has no attribute {}."
-                                 .format(type(self.vocab, name)))
+            raise AttributeError(
+                "{} vocab type has no attribute {}.".format(type(self.vocab, name))
+            )
 
 
 class BaseVocab:
-    PAD_TOKEN = '<pad>'
-    SOS_TOKEN = '<s>'
-    EOS_TOKEN = '</s>'
-    UNK_TOKEN = '<unk>'
+    PAD_TOKEN = "<pad>"
+    SOS_TOKEN = "<s>"
+    EOS_TOKEN = "</s>"
+    UNK_TOKEN = "<unk>"
 
     PAD_INDEX = 0
     SOS_INDEX = 1
     EOS_INDEX = 2
     UNK_INDEX = 3
 
-    def __init__(self, vocab_file=None, embedding_dim=300, data_root_dir=None,
-                 *args, **kwargs):
+    def __init__(
+        self, vocab_file=None, embedding_dim=300, data_root_dir=None, *args, **kwargs
+    ):
         """Vocab class to be used when you want to train word embeddings from
         scratch based on a custom vocab. This will initialize the random
         vectors for the vocabulary you pass. Get the vectors using
@@ -129,7 +120,7 @@ class BaseVocab:
             if not os.path.exists(vocab_file):
                 raise RuntimeError("Vocab not found at " + vocab_file)
 
-            with open(vocab_file, 'r') as f:
+            with open(vocab_file, "r") as f:
                 for line in f:
                     self.itos[index] = line.strip()
                     self.word_dict[line.strip()] = index
@@ -176,14 +167,14 @@ class BaseVocab:
         return self.UNK_TOKEN
 
     def get_vectors(self):
-        return getattr(self, 'vectors', None)
+        return getattr(self, "vectors", None)
 
     def get_embedding(self, cls, **embedding_kwargs):
         vector_dim = len(self.vectors[0])
-        embedding_kwargs['vocab_size'] = self.get_size()
+        embedding_kwargs["vocab_size"] = self.get_size()
 
-        embedding_dim = embedding_kwargs['embedding_dim']
-        embedding_kwargs['embedding_dim'] = vector_dim
+        embedding_dim = embedding_kwargs["embedding_dim"]
+        embedding_kwargs["embedding_dim"] = vector_dim
 
         embedding = None
 
@@ -192,26 +183,23 @@ class BaseVocab:
         else:
             embedding = cls(**embedding_kwargs)
 
-        if hasattr(embedding, 'embedding'):
+        if hasattr(embedding, "embedding"):
             embedding.embedding = torch.nn.Embedding.from_pretrained(
                 self.vectors, freeze=False
             )
         else:
-            embedding = torch.nn.Embedding.from_pretrained(self.vectors,
-                                                           freeze=False)
+            embedding = torch.nn.Embedding.from_pretrained(self.vectors, freeze=False)
 
         if vector_dim == embedding_dim:
             return embedding
         else:
-            return torch.nn.Sequential([
-                embedding,
-                torch.nn.Linear(vector_dim, embedding_dim)
-            ])
+            return torch.nn.Sequential(
+                [embedding, torch.nn.Linear(vector_dim, embedding_dim)]
+            )
 
 
 class CustomVocab(BaseVocab):
-    def __init__(self, vocab_file, embedding_file, data_root_dir=None,
-                 *args, **kwargs):
+    def __init__(self, vocab_file, embedding_file, data_root_dir=None, *args, **kwargs):
         """Use this vocab class when you have a custom vocab as well as a
         custom embeddings file.
 
@@ -236,12 +224,12 @@ class CustomVocab(BaseVocab):
 
         if not os.path.isabs(embedding_file) and data_root_dir is not None:
             pythia_root = get_pythia_root()
-            embedding_file = os.path.join(pythia_root, data_root_dir,
-                                          embedding_file)
+            embedding_file = os.path.join(pythia_root, data_root_dir, embedding_file)
 
         if not os.path.exists(embedding_file):
             from pythia.common.registry import registry
-            writer = registry.get('writer')
+
+            writer = registry.get("writer")
             error = "Embedding file path %s doesn't exist" % embedding_file
             if writer is not None:
                 writer.write(error, "error")
@@ -249,8 +237,7 @@ class CustomVocab(BaseVocab):
 
         embedding_vectors = torch.from_numpy(np.load(embedding_file))
 
-        self.vectors = torch.FloatTensor(self.get_size(),
-                                         len(embedding_vectors[0]))
+        self.vectors = torch.FloatTensor(self.get_size(), len(embedding_vectors[0]))
 
         for i in range(0, 4):
             self.vectors[i] = torch.ones_like(self.vectors[i]) * 0.1 * i
@@ -284,15 +271,16 @@ class IntersectedVocab(BaseVocab):
 
         self.type = "intersected"
 
-        name = embedding_name.split('.')[0]
-        dim = embedding_name.split('.')[2][:-1]
-        middle = embedding_name.split('.')[1]
+        name = embedding_name.split(".")[0]
+        dim = embedding_name.split(".")[2][:-1]
+        middle = embedding_name.split(".")[1]
 
         class_name = EMBEDDING_NAME_CLASS_MAPPING[name]
 
         if not hasattr(vocab, class_name):
             from pythia.common.registry import registry
-            writer = registry.get('writer')
+
+            writer = registry.get("writer")
             error = "Unknown embedding type: %s" % name, "error"
             if writer is not None:
                 writer.write(error, "error")
@@ -300,15 +288,15 @@ class IntersectedVocab(BaseVocab):
 
         params = [middle]
 
-        if name == 'glove':
+        if name == "glove":
             params.append(int(dim))
 
         vector_cache = os.path.join(get_pythia_root(), ".vector_cache")
         embedding = getattr(vocab, class_name)(*params, cache=vector_cache)
 
-        self.vectors = torch.empty((self.get_size(),
-                                    len(embedding.vectors[0])),
-                                    dtype=torch.float)
+        self.vectors = torch.empty(
+            (self.get_size(), len(embedding.vectors[0])), dtype=torch.float
+        )
 
         self.embedding_dim = len(embedding.vectors[0])
 
@@ -343,7 +331,8 @@ class PretrainedVocab(BaseVocab):
 
         if embedding_name not in vocab.pretrained_aliases:
             from pythia.common.registry import registry
-            writer = registry.get('writer')
+
+            writer = registry.get("writer")
             error = "Unknown embedding type: %s" % embedding_name, "error"
             if writer is not None:
                 writer.write(error, "error")
@@ -351,9 +340,7 @@ class PretrainedVocab(BaseVocab):
 
         vector_cache = os.path.join(get_pythia_root(), ".vector_cache")
 
-        embedding = vocab.pretrained_aliases[embedding_name](
-            cache=vector_cache
-        )
+        embedding = vocab.pretrained_aliases[embedding_name](cache=vector_cache)
 
         self.UNK_INDEX = 3
         self.stoi = defaultdict(lambda: self.UNK_INDEX)
@@ -369,9 +356,9 @@ class PretrainedVocab(BaseVocab):
         self.stoi[self.PAD_TOKEN] = self.PAD_INDEX
         self.stoi[self.UNK_TOKEN] = self.UNK_INDEX
 
-        self.vectors = torch.FloatTensor(len(self.itos.keys())
-                                         + len(embedding.itos),
-                                         len(embedding.vectors[0]))
+        self.vectors = torch.FloatTensor(
+            len(self.itos.keys()) + len(embedding.itos), len(embedding.vectors[0])
+        )
 
         for i in range(4):
             self.vectors[i] = torch.ones_like(self.vectors[i]) * 0.1 * i
@@ -391,8 +378,7 @@ class WordToVectorDict:
 
     def __getitem__(self, word):
         # Check if mean for word split needs to be done here
-        return np.mean([self.model.get_word_vector(w)
-                        for w in word.split(' ')], axis=0)
+        return np.mean([self.model.get_word_vector(w) for w in word.split(" ")], axis=0)
 
 
 class ModelVocab(BaseVocab):
@@ -416,7 +402,7 @@ class ModelVocab(BaseVocab):
         """
         super(ModelVocab, self).__init__(*args, **kwargs)
         self.type = "model"
-        if name != 'fasttext':
+        if name != "fasttext":
             raise ValueError("Model vocab only supports fasttext as of now")
         else:
             self._load_fasttext_model(model_file)
@@ -428,8 +414,7 @@ class ModelVocab(BaseVocab):
         pythia_root = get_pythia_root()
         model_file = os.path.join(pythia_root, model_file)
 
-        registry.get('writer').write("Loading fasttext model now from %s"
-                                     % model_file)
+        registry.get("writer").write("Loading fasttext model now from %s" % model_file)
 
         self.model = load_model(model_file)
         self.stoi = WordToVectorDict(self.model)

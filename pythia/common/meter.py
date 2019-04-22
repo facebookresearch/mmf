@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # Inspired from maskrcnn benchmark
-from collections import defaultdict
-from collections import deque
+from collections import defaultdict, deque
 
 import torch
 
@@ -69,8 +68,9 @@ class Meter:
             return self.meters[attr]
         if attr in self.__dict__:
             return self.__dict__[attr]
-        raise AttributeError("'{}' object has no attribute '{}'".format(
-                    type(self).__name__, attr))
+        raise AttributeError(
+            "'{}' object has no attribute '{}'".format(type(self).__name__, attr)
+        )
 
     def get_scalar_dict(self):
         scalar_dict = {}
@@ -84,8 +84,7 @@ class Meter:
         for name, meter in self.meters.items():
             if "train" in name:
                 loss_str.append(
-                    "{}: {:.4f} ({:.4f})".format(name, meter.median,
-                                                 meter.global_avg)
+                    "{}: {:.4f} ({:.4f})".format(name, meter.median, meter.global_avg)
                 )
             else:
                 # In case of val print global avg

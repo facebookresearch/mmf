@@ -28,22 +28,29 @@ class BaseModel(nn.Module):
         model_output = super().__call__(sample_list, *args, **kwargs)
 
         # Make sure theat the output from the model is a Mapping
-        assert isinstance(model_output, collections.Mapping), "A dict must "\
-            "be returned from the forward of the model."
+        assert isinstance(model_output, collections.Mapping), (
+            "A dict must " "be returned from the forward of the model."
+        )
 
         if "losses" in model_output:
-            warnings.warn("'losses' already present in model output. "
-                          "No calculation will be done in base model.")
-            assert isinstance(model_output["losses"], collections.Mapping), \
-                "'losses' must be a dict."
+            warnings.warn(
+                "'losses' already present in model output. "
+                "No calculation will be done in base model."
+            )
+            assert isinstance(
+                model_output["losses"], collections.Mapping
+            ), "'losses' must be a dict."
         else:
             model_output["losses"] = self.loss(sample_list, model_output)
 
         if "metrics" in model_output:
-            warnings.warn("'metrics' already present in model output. "
-                          "No calculation will be done in base model.")
-            assert isinstance(model_output["metrics"], collections.Mapping), \
-                "'metrics' must be a dict."
+            warnings.warn(
+                "'metrics' already present in model output. "
+                "No calculation will be done in base model."
+            )
+            assert isinstance(
+                model_output["metrics"], collections.Mapping
+            ), "'metrics' must be a dict."
         else:
             model_output["metrics"] = self.metrics(sample_list, model_output)
 

@@ -4,10 +4,8 @@ from pythia.utils.text_utils import word_tokenize
 
 
 class TextVQADataset(VizWizDataset):
-    def __init__(self, dataset_type, imdb_file_index, config, *args,
-                 **kwargs):
-        super().__init__(dataset_type, imdb_file_index, config, *args,
-                         **kwargs)
+    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
+        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
         self._name = "textvqa"
 
     def format_for_evalai(self, report):
@@ -24,8 +22,5 @@ class TextVQADataset(VizWizDataset):
             else:
                 answer = self.answer_processor.idx2word(answer_id)
 
-            predictions.append({
-                'question_id': question_id.item(),
-                'answer': answer
-            })
+            predictions.append({"question_id": question_id.item(), "answer": answer})
         return predictions

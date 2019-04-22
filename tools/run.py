@@ -1,12 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import os
-import importlib
 import glob
+import importlib
+import os
 
-from pythia.common.trainer import Trainer
 from pythia.common.registry import registry
-from pythia.utils.flags import flags
+from pythia.common.trainer import Trainer
 from pythia.utils.distributed_utils import is_main_process
+from pythia.utils.flags import flags
 
 
 def setup_imports():
@@ -18,7 +18,7 @@ def setup_imports():
         root_folder = os.path.dirname(os.path.abspath(__file__))
         root_folder = os.path.join(root_folder, "..")
 
-        environment_pythia_path = os.environ.get('PYTHIA_PATH')
+        environment_pythia_path = os.environ.get("PYTHIA_PATH")
 
         if environment_pythia_path is not None:
             root_folder = environment_pythia_path
@@ -33,8 +33,9 @@ def setup_imports():
 
     importlib.import_module("pythia.common.meter")
 
-    files = glob.glob(tasks_pattern, recursive=True) + \
-        glob.glob(model_pattern, recursive=True)
+    files = glob.glob(tasks_pattern, recursive=True) + glob.glob(
+        model_pattern, recursive=True
+    )
 
     for f in files:
         if f.endswith("task.py"):
@@ -43,13 +44,12 @@ def setup_imports():
             if task_name == "tasks":
                 continue
             file_name = splits[-1]
-            module_name = file_name[:file_name.find(".py")]
-            importlib.import_module("pythia.tasks." + task_name + "."
-                                    + module_name)
+            module_name = file_name[: file_name.find(".py")]
+            importlib.import_module("pythia.tasks." + task_name + "." + module_name)
         elif f.find("models") != -1:
             splits = f.split(os.sep)
             file_name = splits[-1]
-            module_name = file_name[:file_name.find(".py")]
+            module_name = file_name[: file_name.find(".py")]
             importlib.import_module("pythia.models." + module_name)
         elif f.endswith("builder.py"):
             splits = f.split(os.sep)
@@ -58,9 +58,10 @@ def setup_imports():
             if task_name == "tasks" or dataset_name == "tasks":
                 continue
             file_name = splits[-1]
-            module_name = file_name[:file_name.find(".py")]
-            importlib.import_module("pythia.tasks." + task_name + "."
-                                    + dataset_name + "." + module_name)
+            module_name = file_name[: file_name.find(".py")]
+            importlib.import_module(
+                "pythia.tasks." + task_name + "." + dataset_name + "." + module_name
+            )
 
 
 def run():
@@ -82,5 +83,5 @@ def run():
             raise
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run()
