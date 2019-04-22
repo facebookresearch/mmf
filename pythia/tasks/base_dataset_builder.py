@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 class BaseDatasetBuilder:
     def __init__(self, dataset_name):
         self.dataset_name = dataset_name

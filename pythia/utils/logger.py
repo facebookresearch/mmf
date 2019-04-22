@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import logging
 import sys
@@ -21,7 +22,7 @@ class Logger:
 
         self.timer = Timer()
         self.config = config
-        self.save_dir = config.get('save_dir', "./save")
+        self.save_dir = config.training_parameters.save_dir
         self.log_folder = ckpt_name_from_core_args(config)
         self.log_folder += foldername_from_config_override(config)
         time_format = "%Y-%m-%dT%H:%M:%S"

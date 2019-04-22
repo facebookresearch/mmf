@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
 from pythia.utils.general import dict_to_string, get_overlap_score, \

@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 from pythia.tasks.vqa.vizwiz import VizWizBuilder
 from pythia.common.registry import Registry
 from .ocr_dataset import VQA2OCRDataset

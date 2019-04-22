@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 import pythia.common.text.utils as text_utils
 

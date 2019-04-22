@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 from pythia.tasks.vqa.vizwiz import VizWizDataset
 from pythia.utils.text_utils import word_tokenize
 

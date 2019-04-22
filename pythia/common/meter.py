@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 # Inspired from maskrcnn benchmark
 from collections import defaultdict
 from collections import deque

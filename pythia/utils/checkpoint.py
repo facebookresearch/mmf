@@ -1,7 +1,9 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import git
 import torch
 import yaml
+import warnings
 
 from pythia.utils.general import ckpt_name_from_core_args, \
                                  foldername_from_config_override, \
@@ -75,7 +77,10 @@ class Checkpoint:
 
         data_parallel = registry.get('data_parallel')
 
-        ckpt_model = ckpt['model']
+        if 'model' in ckpt:
+            ckpt_model = ckpt['model']
+        else:
+            ckpt_model = ckpt
 
         pretrained_mapping = self.config.training_parameters.pretrained_mapping
 
@@ -100,7 +105,14 @@ class Checkpoint:
             final_dict = new_dict
 
             self.trainer.model.load_state_dict(final_dict)
-            self.trainer.optimizer.load_state_dict(ckpt['optimizer'])
+
+            if 'optimizer' in ckpt:
+                self.trainer.optimizer.load_state_dict(ckpt['optimizer'])
+            else:
+                warnings.warn("'optimizer' key is not present in the "
+                              "checkpoint asked to be loaded. Skipping.")
+
+
             self.trainer.early_stopping.init_from_checkpoint(ckpt)
 
             self.trainer.writer.write("Checkpoint loaded")

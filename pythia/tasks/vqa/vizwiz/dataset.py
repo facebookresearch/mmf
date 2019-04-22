@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import torch
 
 from pythia.tasks.vqa.vqa2 import VQA2Dataset
