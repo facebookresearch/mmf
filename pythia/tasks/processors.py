@@ -292,7 +292,7 @@ class VQAAnswerProcessor(BaseProcessor):
                                  " to answer processor in a dict")
 
         answers_indices = torch.zeros(self.num_answers, dtype=torch.int)
-        answers_indices.fill_(-1)
+        answers_indices.fill_(self.answer_vocab.get_unk_index())
 
         for idx, token in enumerate(tokens):
             answers_indices[idx] = self.answer_vocab.word2idx(token)
@@ -334,9 +334,7 @@ class VQAAnswerProcessor(BaseProcessor):
                 accs.append(acc)
             avg_acc = sum(accs) / len(accs)
 
-            if answer == self.answer_vocab.UNK_INDEX:
-                scores[answer] = 0
-            else:
+            if answer != self.answer_vocab.UNK_INDEX:
                 scores[answer] = avg_acc
 
         return scores
