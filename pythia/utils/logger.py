@@ -50,6 +50,7 @@ class Logger:
 
         self.logger = logging.getLogger(__name__)
         self._file_only_logger = logging.getLogger(__name__)
+        warnings_logger = logging.getLogger("py.warnings")
 
         # Set level
         level = config["training_parameters"].get("logger_level", "info")
@@ -66,12 +67,14 @@ class Logger:
 
         self.logger.addHandler(channel)
         self._file_only_logger.addHandler(channel)
+        warnings_logger.addHandler(channel)
 
         # Add handler to stdout
         channel = logging.StreamHandler(sys.stdout)
         channel.setFormatter(formatter)
 
         self.logger.addHandler(channel)
+        warnings_logger.addHandler(channel)
 
         should_not_log = self.config["training_parameters"]["should_not_log"]
         self.should_log = not should_not_log

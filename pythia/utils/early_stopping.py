@@ -82,8 +82,11 @@ class EarlyStopping:
         return self.activated
 
     def init_from_checkpoint(self, load):
-        self.best_monitored_iteration = load["best_iteration"]
-        self.best_monitored_value = load["best_metric_value"]
+        if "best_iteration" in load:
+            self.best_monitored_iteration = load["best_iteration"]
+
+        if "best_metric_value" in load:
+            self.best_monitored_value = load["best_metric_value"]
 
     def get_info(self):
         return {

@@ -2,6 +2,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import warnings
 
 from pythia.common.registry import registry
 
@@ -11,12 +12,14 @@ class Losses(nn.Module):
         super().__init__()
         self.losses = []
         for loss in loss_list:
-            self.losses.append(Loss(loss))
+            self.losses.append(PythiaLoss(loss))
 
     def forward(self, sample_list, model_output, *args, **kwargs):
         output = {}
-
         if not hasattr(sample_list, "targets"):
+            warnings.warn("Sample list has not field 'targets', are you "
+                          "sure that your ImDB has labels? you may have "
+                          "wanted to run with --evalai_predict 1")
             return output
 
         for loss in self.losses:
@@ -25,7 +28,7 @@ class Losses(nn.Module):
         return output
 
 
-class Loss(nn.Module):
+class PythiaLoss(nn.Module):
     def __init__(self, params={}):
         super().__init__()
         self.writer = registry.get("writer")
@@ -121,7 +124,7 @@ class MultiLoss(nn.Module):
 
         for loss_params in params["params"]:
             self.loss_names.append(loss_params["type"])
-            loss_fn = Loss(loss_params)
+            loss_fn = PythiaLoss(loss_params)
             loss_weight = loss_params.get("weight", {})
             self.losses.append(loss_fn)
             self.losses_weights.append(loss_weight)

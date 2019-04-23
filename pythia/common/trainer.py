@@ -207,12 +207,13 @@ class Trainer:
         torch.cuda.manual_seed(seed)
 
     def train(self):
+        self.writer.write("===== Model =====")
+        self.writer.write(self.model)
+
         if "train" not in self.run_type:
             self.predict()
             return
 
-        self.writer.write("===== Model =====")
-        self.writer.write(self.model)
 
         should_break = False
 
@@ -300,12 +301,13 @@ class Trainer:
         reduced_loss_dict = reduce_dict(loss_dict)
         reduced_metrics_dict = reduce_dict(metrics_dict)
 
-        loss_key = "train/total_loss" if not eval_mode else "val/total_loss"
+        loss_key = report.dataset_type + "/total_loss"
 
         with torch.no_grad():
             reduced_loss = sum([loss.mean() for loss in reduced_loss_dict.values()])
-
-            meter_update_dict = {loss_key: reduced_loss.item()}
+            if hasattr(reduced_loss, "item"):
+                reduced_loss = reduced_loss.item()
+            meter_update_dict = {loss_key: reduced_loss}
             meter_update_dict.update(reduced_loss_dict)
             meter_update_dict.update(reduced_metrics_dict)
 
@@ -401,6 +403,7 @@ class Trainer:
             return
 
         print_str = []
+
         if len(prefix):
             print_str += [prefix + ":"]
 
