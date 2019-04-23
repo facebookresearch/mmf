@@ -78,8 +78,8 @@ class Checkpoint:
         if "model" in ckpt:
             ckpt_model = ckpt["model"]
         else:
-            ckpt = {"model": ckpt}
             ckpt_model = ckpt
+            ckpt = {"model": ckpt}
 
         pretrained_mapping = self.config.training_parameters.pretrained_mapping
 

@@ -23,10 +23,10 @@ language datasets (TextVQA challenge, VQA challenge)
 First install the repo using
 
 ```
-git clone https://github.com/facebookresearch/pythia
+git clone https://github.com/facebookresearch/pythia ~/pythia
 
 # You can also create your own conda environment and then enter this step
-cd pythia && pip install -r requirements.txt
+cd ~/pythia && pip install -r requirements.txt
 python setup.py develop
 ```
 
@@ -44,9 +44,7 @@ reference models. Example below shows the sample commands to be run, once you ha
 the feature (feature_link) and imdb (imdb_link) data links.
 
 ```
-# Check if we are in the correct folder
-# This should show pythia root folder
-pwd
+cd ~/pythia
 mkdir -p data && cd data
 wget http://dl.fbaipublicfiles.com/pythia/data/vocab.tar.gz
 
@@ -84,14 +82,34 @@ supported by the models in Pythia's model zoo.
 | Model  | Key | Supported Datasets    | Pretrained Models | Notes                                                     |
 |--------|-----------|-----------------------|-------------------|-----------------------------------------------------------|
 | Pythia | pythia    | vqa2, vizwiz, textvqa | Coming soon!      |                                                           |
-| LoRRA  | lorra     | vizwiz, textvqa       | Coming soon!      | vqa2 support is coming soon!                              |
+| LoRRA  | lorra     | vizwiz, textvqa       | [textvqa](dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth)      | vqa2 support is coming soon!                              |
 | BAN    | ban       | vqa2, vizwiz, textvqa | Coming soon!      | Support is preliminary and haven't been tested throughly. |
 
 For running `LoRRA` on `TextVQA`, run the following command from root directory of your pythia clone:
 
 ```
+cd ~/pythia
 pythia tools/run.py --tasks vqa --datasets vqa2 --model lorra --config configs/vqa/textvqa/lorra.yml
 ```
+
+## Pretrained Models
+
+We are including some of the pretrained models as described in the table above.
+For e.g. to run the inference using LoRRA for TextVQA for EvalAI use following commands:
+
+```
+# Download the model first
+cd ~/pythia/data
+mkdir -p models && cd models;
+# Get link from the table above and extract if needed
+wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth
+
+cd ..
+# Replace tasks, datasets and model with corresponding key for other pretrained models
+pythia tools/run.py --tasks vqa --datasets vqa2 --model lorra --config configs/vqa/textvqa/lorra.yml \
+--run_type predict --resume_file data/models/lorra_best.pth
+```
+
 
 ## Documentation
 

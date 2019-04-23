@@ -11,15 +11,18 @@ class Losses(nn.Module):
     def __init__(self, loss_list):
         super().__init__()
         self.losses = []
+        tp = registry.get("config").training_parameters
+        self._evalai_predict = tp.evalai_predict
         for loss in loss_list:
             self.losses.append(PythiaLoss(loss))
 
     def forward(self, sample_list, model_output, *args, **kwargs):
         output = {}
         if not hasattr(sample_list, "targets"):
-            warnings.warn("Sample list has not field 'targets', are you "
-                          "sure that your ImDB has labels? you may have "
-                          "wanted to run with --evalai_predict 1")
+            if not self._evalai_predict:
+                warnings.warn("Sample list has not field 'targets', are you "
+                              "sure that your ImDB has labels? you may have "
+                              "wanted to run with --evalai_predict 1")
             return output
 
         for loss in self.losses:
