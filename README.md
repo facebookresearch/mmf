@@ -82,7 +82,7 @@ supported by the models in Pythia's model zoo.
 | Model  | Key | Supported Datasets    | Pretrained Models | Notes                                                     |
 |--------|-----------|-----------------------|-------------------|-----------------------------------------------------------|
 | Pythia | pythia    | vqa2, vizwiz, textvqa | Coming soon!      |                                                           |
-| LoRRA  | lorra     | vizwiz, textvqa       | [textvqa](dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth)      | vqa2 support is coming soon!                              |
+| LoRRA  | lorra     | vizwiz, textvqa       | [textvqa](https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth)      | vqa2 support is coming soon!                              |
 | BAN    | ban       | vqa2, vizwiz, textvqa | Coming soon!      | Support is preliminary and haven't been tested throughly. |
 
 For running `LoRRA` on `TextVQA`, run the following command from root directory of your pythia clone:
@@ -104,7 +104,7 @@ mkdir -p models && cd models;
 # Get link from the table above and extract if needed
 wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth
 
-cd ..
+cd ../..
 # Replace tasks, datasets and model with corresponding key for other pretrained models
 pythia tools/run.py --tasks vqa --datasets vqa2 --model lorra --config configs/vqa/textvqa/lorra.yml \
 --run_type predict --resume_file data/models/lorra_best.pth
