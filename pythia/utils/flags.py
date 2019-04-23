@@ -20,7 +20,8 @@ class Flags:
         self.parser.add_argument_group("Core Arguments")
 
         self.parser.add_argument(
-            "--config", type=str, default=None, required=False, help="config yaml file"
+            "--config", type=str, default=None, required=False,
+            help="config yaml file"
         )
 
         self.parser.add_argument(
@@ -37,7 +38,8 @@ class Flags:
             "--model", type=str, required=True, help="Model for training"
         )
         self.parser.add_argument(
-            "--run_type", type=str, default=None, help="Type of run. Default=train"
+            "--run_type", type=str, default=None,
+            help="Type of run. Default=train+predict"
         )
         self.parser.add_argument(
             "-exp",
@@ -164,27 +166,34 @@ class Flags:
             help="Use when you want to clip gradients",
         )
         self.parser.add_argument(
-            "--no_data_parallel",
+            "--data_parallel",
             type=bool,
             default=None,
-            help="Use when you want to clip gradients",
+            help="Use when you want to use DataParallel",
+        )
+        self.parser.add_argument(
+            "--distributed",
+            type=bool,
+            default=None,
+            help="Use when you want to use DistributedDataParallel for "
+            "training",
         )
         self.parser.add_argument(
             "-dev",
             "--device",
             type=str,
             default=None,
-            help="Specify device to be" " used for training",
+            help="Specify device to be used for training",
         )
         self.parser.add_argument(
             "-p", "--patience", type=int, default=None, help="Patience for early stop"
         )
         self.parser.add_argument(
-            "-sr",
-            "--slow_read",
+            "-fr",
+            "--fast_read",
             type=bool,
             default=None,
-            help="If slow read should be activated",
+            help="If fast read should be activated",
         )
         self.parser.add_argument(
             "-pt",

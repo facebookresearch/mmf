@@ -35,7 +35,7 @@ task_attributes:
         vocab_question_file: vocabulary_vqa.txt
         enforce_slow_reader: true
         metrics: vqa_accuracy
-        slow_read: true
+        fast_read: true
         loss: logit_bce
         return_info: false
 exp_name: baseline

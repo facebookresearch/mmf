@@ -7,7 +7,7 @@ task_attributes:
             textvqa:
                 data_root_dir: ../data
                 image_depth_first: false
-                slow_read: false
+                fast_read: false
                 image_features:
                     train:
                     - open_images/detectron_fix_100/fc6/train,open_images/resnet152/train

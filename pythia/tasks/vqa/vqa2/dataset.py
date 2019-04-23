@@ -29,7 +29,7 @@ class VQA2Dataset(BaseDataset):
 
         self.kwargs = kwargs
         self.image_depth_first = self.config.image_depth_first
-        self._should_fast_read = not self.config.slow_read
+        self._should_fast_read = self.config.fast_read
 
         self._use_features = False
         if hasattr(self.config, "image_features"):

@@ -36,7 +36,7 @@ task_attributes:
         copy_included: false
         copy_type: soft
         use_ocr_info: true
-        slow_read: true
+        fast_read: true
         # loss:
         #   type: multi
         #   params:

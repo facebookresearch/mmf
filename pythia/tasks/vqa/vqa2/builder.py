@@ -57,7 +57,7 @@ class VQA2Builder(BaseDatasetBuilder):
         )
         parser.add_argument(
             "-nfr",
-            "--slow_read",
+            "--fast_read",
             type=bool,
             default=None,
             help="Disable fast read and " "load features on fly",

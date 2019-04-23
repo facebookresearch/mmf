@@ -35,7 +35,7 @@ task_attributes:
         metrics: vqa_accuracy
         copy_included: false
         copy_type: soft
-        slow_read: false
+        fast_read: false
         # loss:
         #   type: multi
         #   params:

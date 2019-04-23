@@ -33,7 +33,7 @@ task_attributes:
         enforce_slow_reader: true
         metrics: vqa_accuracy
         copy_included: false
-        slow_read: false
+        fast_read: false
         loss: logit_bce
         return_info: true
         use_ocr: true

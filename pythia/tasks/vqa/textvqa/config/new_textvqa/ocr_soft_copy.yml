@@ -34,7 +34,7 @@ task_attributes:
         enforce_slow_reader: true
         metrics: vqa_accuracy
         copy_included: false
-        slow_read: false
+        fast_read: false
         copy_type: soft
         # loss:
         #   type: multi

@@ -7,7 +7,7 @@ task_attributes:
             vqa2:
                 data_root_dir: ../data
                 image_depth_first: false
-                slow_read: false
+                fast_read: false
                 image_features:
                     train:
                     - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
