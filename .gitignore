@@ -5,6 +5,7 @@
 .idea/*
 */__pycache__/*
 data/.DS_Store
+docs/build
 results/*
 boards/*
 .DS_Store
