@@ -14,6 +14,8 @@ class Registry:
         "model_name_mapping": {},
         "metric_name_mapping": {},
         "loss_name_mapping": {},
+        "optimizer_name_mapping": {},
+        "scheduler_name_mapping": {},
         "processor_name_mapping": {},
         "state": {},
     }
@@ -67,6 +69,22 @@ class Registry:
         return wrap
 
     @classmethod
+    def register_optimizer(cls, name):
+        def wrap(func):
+            cls.mapping["optimizer_name_mapping"][name] = func
+            return func
+
+        return wrap
+
+    @classmethod
+    def register_scheduler(cls, name):
+        def wrap(func):
+            cls.mapping["scheduler_name_mapping"][name] = func
+            return func
+
+        return wrap
+
+    @classmethod
     def register(cls, name, obj):
         path = name.split(".")
         current = cls.mapping["state"]
@@ -101,6 +119,14 @@ class Registry:
     @classmethod
     def get_loss_class(cls, name):
         return cls.mapping["loss_name_mapping"].get(name, None)
+
+    @classmethod
+    def get_optimizer_class(cls, name):
+        return cls.mapping["optimizer_name_mapping"].get(name, None)
+
+    @classmethod
+    def get_scheduler_class(cls, name):
+        return cls.mapping["scheduler_name_mapping"].get(name, None)
 
     @classmethod
     def get(cls, name, default=None, no_warning=False):

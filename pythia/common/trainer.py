@@ -18,9 +18,9 @@ from pythia.utils.distributed_utils import (broadcast_scalar, is_main_process,
 from pythia.utils.early_stopping import EarlyStopping
 from pythia.utils.flags import flags
 from pythia.utils.general import (clip_gradients, dict_to_string,
-                                  get_optimizer_parameters, lr_lambda_update)
+                                  lr_lambda_update)
 from pythia.utils.logger import Logger
-from pythia.utils.model_utils import build_model
+from pythia.utils.build_utils import build_model, build_optimizer
 from pythia.utils.timer import Timer
 
 
@@ -156,13 +156,7 @@ class Trainer:
             )
 
     def load_optimizer(self):
-        optimizer_method = self.config.optimizer_attributes.type
-        optimizer_class = getattr(optim, optimizer_method)
-
-        # TODO: Allow custom optimizer making
-        parameters = get_optimizer_parameters(self.model, self.config)
-        rest_optimizer_params = self.config.optimizer_attributes.params
-        self.optimizer = optimizer_class(parameters, **rest_optimizer_params)
+        self.optimizer = build_optimizer(self.model, self.config)
 
     def load_extras(self):
         self.checkpoint = Checkpoint(self)
