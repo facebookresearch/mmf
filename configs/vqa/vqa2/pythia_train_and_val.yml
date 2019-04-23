@@ -1,5 +1,5 @@
 includes:
-- configs/vqa/vqa2/pythia.yml
+- ../configs/vqa/vqa2/pythia.yml
 task_attributes:
   vqa:
     dataset_attributes:

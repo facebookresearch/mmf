@@ -1,5 +1,5 @@
 includes:
-- configs/vqa/vizwiz/pythia.yml
+- ../configs/vqa/vizwiz/pythia.yml
 model_attributes:
   ban:
     metrics:

@@ -1,5 +1,5 @@
 includes:
-- configs/vqa/textvqa/pythia.yml
+- ../configs/vqa/textvqa/pythia.yml
 model_attributes:
   ban:
     metrics:
