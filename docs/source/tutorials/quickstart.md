@@ -71,10 +71,17 @@ a corresponding pretrained model and then run the following commands:
 
 ```bash
 cd ~/pythia/data
-wget [pretrained_model_link_here]
-tar xf []
-cd ..
+mkdir -p models && cd models;
+wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth
+cd ../..
 python tools/run.py --tasks vqa --datasets vqa2 --model lorra --config \
-configs/vqa/textvqa/lorra.yml --resume_file [pretrained_model_link_here] \
+configs/vqa/textvqa/lorra.yml --resume_file data/models/lorra_best.pth \
 --evalai_predict 1 --run_type predict
 ```
+
+These commands should be enough to get you started with training and performing inference using
+Pythia.
+
+## Next steps
+
+To dive deep into world of Pythia, you can move on the following next topics:
