@@ -258,8 +258,7 @@ class Trainer:
                 if should_break:
                     break
 
-        self.checkpoint.restore()
-        self.predict()
+        self.finalize()
 
     def _run_scheduler(self):
         if self.lr_scheduler is not None:
@@ -290,6 +289,13 @@ class Trainer:
         loss_dict = report.losses
         loss = sum([loss.mean() for loss in loss_dict.values()])
         return loss
+
+    def finalize(self):
+        self.writer.write("Stepping into final validation check")
+        self._try_full_validation(force=True)
+        self.checkpoint.restore()
+        self.predict()
+
 
     def _update_meter(self, report, meter=None, eval_mode=False):
         if meter is None:
@@ -350,9 +356,10 @@ class Trainer:
 
         return should_break
 
-    def _try_full_validation(self):
-        if self.current_iteration % self.snapshot_interval == 0:
-            self.writer.write("Evaluation time. Running on full " "validation set...")
+    def _try_full_validation(self, force=False):
+        if self.current_iteration % self.snapshot_interval == 0 or force:
+            self.writer.write("Evaluation time. Running on full "
+                              "validation set...")
             # Validation and Early stopping
             # Create a new meter for this case
             report, meter = self.evaluate(self.val_loader)
