@@ -13,10 +13,16 @@ research built on top of PyTorch.
 
 .. toctree::
    :maxdepth: 1
-   :caption: Tutorials:
+   :caption: Tutorials
 
    tutorials/quickstart
+   tutorials/concepts
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Library
+
+   common/registry
 
 Indices and tables
 ==================
