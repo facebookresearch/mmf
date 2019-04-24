@@ -1,5 +1,31 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+"""
+Registry is central source of truth in Pythia. Inspired from Redux's
+concept of global store, Registry maintains mappings of various information
+to unique keys. Special functions in registry can be used as decorators to
+register different kind of classes.
+
+Import the global registry object using
+
+``from pythia.common.registry import registry``
+
+Various decorators for registry different kind of classes with unique keys
+
+- Register a task: ``@registry.register_task``
+- Register a dataset builder: ``@registry.register_builder``
+- Register a metric: ``@registry.register_metric``
+- Register a loss: ``@registry.register_loss``
+- Register a model: ``@registry.register_model``
+- Register a processor: ``@registry.register_processor``
+- Register a optimizer: ``@registry.register_optimizer``
+- Register a scheduler: ``@registry.register_scheduler``
+"""
+
+
 class Registry:
+    r"""Class for registry object which acts as central source of truth
+    for Pythia
+    """
     mapping = {
         # Mappings of task name to their respective classes
         # Use decorator "register_task" in pythia.common.decorators to regiter a
@@ -22,6 +48,22 @@ class Registry:
 
     @classmethod
     def register_task(cls, name):
+        r"""Register a task to registry with key 'name'
+
+        Args:
+            name: Key with which the task will be registered.
+
+        Usage::
+
+            from pythia.common.registry import registry
+            from pythia.tasks.base_task import BaseTask
+
+
+            @registry.register_task("vqa")
+            class VQATask(BaseTask):
+                ...
+
+        """
         def wrap(task_cls):
             cls.mapping["task_name_mapping"][name] = task_cls
             return task_cls
@@ -30,6 +72,23 @@ class Registry:
 
     @classmethod
     def register_builder(cls, name):
+        r"""Register a dataset builder to registry with key 'name'
+
+        Args:
+            name: Key with which the metric will be registered.
+
+        Usage::
+
+            from pythia.common.registry import registry
+            from pythia.tasks.base_dataset_builder import BaseDatasetBuilder
+
+
+            @registry.register_builder("vqa2")
+            class VQA2Builder(BaseDatasetBuilder):
+                ...
+
+        """
+
         def wrap(builder_cls):
             cls.mapping["builder_name_mapping"][name] = builder_cls
             return builder_cls
@@ -38,6 +97,22 @@ class Registry:
 
     @classmethod
     def register_metric(cls, name):
+        r"""Register a metric to registry with key 'name'
+
+        Args:
+            name: Key with which the metric will be registered.
+
+        Usage::
+
+            from pythia.common.registry import registry
+            from pythia.modules.metrics import BaseMetric
+
+
+            @registry.register_metric("r@1")
+            class RecallAt1(BaseMetric):
+                ...
+
+        """
         def wrap(func):
             cls.mapping["metric_name_mapping"][name] = func
             return func
@@ -46,6 +121,21 @@ class Registry:
 
     @classmethod
     def register_loss(cls, name):
+        r"""Register a loss to registry with key 'name'
+
+        Args:
+            name: Key with which the loss will be registered.
+
+        Usage::
+
+            from pythia.common.registry import registry
+            from torch import nn
+
+            @registry.register_task("logit_bce")
+            class LogitBCE(nn.Module):
+                ...
+
+        """
         def wrap(func):
             cls.mapping["loss_name_mapping"][name] = func
             return func
@@ -54,6 +144,20 @@ class Registry:
 
     @classmethod
     def register_model(cls, name):
+        r"""Register a model to registry with key 'name'
+
+        Args:
+            name: Key with which the model will be registered.
+
+        Usage::
+
+            from pythia.common.registry import registry
+            from pythia.models.base_model import BaseModel
+
+            @registry.register_task("pythia")
+            class Pythia(BaseModel):
+                ...
+        """
         def wrap(func):
             cls.mapping["model_name_mapping"][name] = func
             return func
@@ -62,6 +166,21 @@ class Registry:
 
     @classmethod
     def register_processor(cls, name):
+        r"""Register a processor to registry with key 'name'
+
+        Args:
+            name: Key with which the processor will be registered.
+
+        Usage::
+
+            from pythia.common.registry import registry
+            from pythia.tasks.processors import BaseProcessor
+
+            @registry.register_task("glove")
+            class GloVe(BaseProcessor):
+                ...
+
+        """
         def wrap(func):
             cls.mapping["processor_name_mapping"][name] = func
             return func
@@ -86,6 +205,17 @@ class Registry:
 
     @classmethod
     def register(cls, name, obj):
+        r"""Register an item to registry with key 'name'
+
+        Args:
+            name: Key with which the item will be registered.
+
+        Usage::
+
+            from pythia.common.registry import registry
+
+            registry.register("config", {})
+        """
         path = name.split(".")
         current = cls.mapping["state"]
 
@@ -130,6 +260,21 @@ class Registry:
 
     @classmethod
     def get(cls, name, default=None, no_warning=False):
+        r"""Get an item from registry with key 'name'
+
+        Args:
+            name (string): Key whose value needs to be retreived.
+            default: If passed and key is not in registry, default value will
+                     be returned with a warning. Default: None
+            no_warning (bool): If passed as True, warning when key doesn't exist
+                               will not be generated. Useful for Pythia's
+                               internal operations. Default: False
+        Usage::
+
+            from pythia.common.registry import registry
+
+            config = registry.get("config")
+        """
         original_name = name
         name = name.split(".")
         value = cls.mapping["state"]
@@ -150,8 +295,19 @@ class Registry:
         return value
 
     @classmethod
+
     def unregister(cls, name):
-        cls.mapping["state"].pop(name, None)
+        r"""Remove an item from registry with key 'name'
+
+        Args:
+            name: Key which needs to be removed.
+        Usage::
+
+            from pythia.common.registry import registry
+
+            config = registry.unregister("config")
+        """
+        return cls.mapping["state"].pop(name, None)
 
 
 registry = Registry()
