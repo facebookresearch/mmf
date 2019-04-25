@@ -30,9 +30,9 @@ class Report(OrderedDict):
             "metric calculations."
         )
 
-        for arg in all_args:
+        for idx, arg in enumerate(all_args):
             for key, item in arg.items():
-                if key in self:
+                if key in self and idx >= 2:
                     log = self.warning_string.format(
                         key, "", "in previous arguments to report"
                     )
@@ -51,9 +51,6 @@ class Report(OrderedDict):
             return False
 
     def __setattr__(self, key, value):
-        if key in self:
-            log = self.warning_string.format(key, "", "sample list and model output")
-            warnings.warn(log)
         self[key] = value
 
     def __getattr__(self, key):

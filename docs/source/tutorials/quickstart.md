@@ -76,7 +76,7 @@ wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.
 cd ../..
 python tools/run.py --tasks vqa --datasets vqa2 --model lorra --config \
 configs/vqa/textvqa/lorra.yml --resume_file data/models/lorra_best.pth \
---evalai_predict 1 --run_type predict
+--evalai_inference 1 --run_type inference
 ```
 
 These commands should be enough to get you started with training and performing inference using

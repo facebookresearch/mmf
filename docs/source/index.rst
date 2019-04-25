@@ -24,6 +24,7 @@ research built on top of PyTorch.
 
    common/registry
    common/sample
+   modules/losses
 
 Indices and tables
 ==================

@@ -1,4 +1,30 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+"""
+Losses module contains implementations for various losses used generally
+in vision and language space. One can register custom losses to be detected by
+pythia using the following example.
+
+.. code::
+
+   from pythia.common.registry import registry
+   from torch import nn
+
+
+   @registry.register_loss("custom")
+   class CustomLoss(nn.Module):
+       ...
+
+Then in your model's config you can specify ``losses`` attribute to use this loss
+in the following way:
+
+.. code::
+
+   model_attributes:
+       some_model:
+           losses:
+               - type: custom
+               - params: {}
+"""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -17,15 +43,11 @@ class Losses(nn.Module):
     Args:
         loss_list (List[ConfigNode]): Description of parameter `loss_list`.
 
-    Attributes:
-        losses (List[PythiaLoss]): List containing instanttions of each loss
-                                   passed in config
-
     Example::
 
         # losses:
         # - type: logit_bce
-        # Can also contain `params` to specify that particular class's init params
+        # Can also contain `params` to specify that particular loss's init params
         # - type: combined
         config = [{"type": "logit_bce"}, {"type": "combined"}]
         losses = Losses(config)
@@ -35,6 +57,9 @@ class Losses(nn.Module):
         Since, ``Losses`` is instantiated in the ``BaseModel``, normal end user
         mostly doesn't need to use this class.
 
+    Attributes:
+        losses: List containing instanttions of each loss
+                                   passed in config
     """
     def __init__(self, loss_list):
         super().__init__()
@@ -72,6 +97,22 @@ class Losses(nn.Module):
 
 
 class PythiaLoss(nn.Module):
+    """Internal Pythia helper and wrapper class for all Loss classes.
+    It makes sure that the value returned from a Loss class is a dict and
+    contain proper dataset type in keys, so that it is easy to figure out
+    which one is the val loss and which one is train loss.
+
+    For example: it will return ``{"val/logit_bce": 27.4}``, in case
+    `logit_bce` is used and SampleList is from `val` set.
+
+    Args:
+        params (type): Description of parameter `params`.
+
+    .. note::
+
+        Since, ``PythiaLoss`` is used by the ``Losses`` class, end user
+        doesn't need to worry about it.
+    """
     def __init__(self, params={}):
         super().__init__()
         self.writer = registry.get("writer")
@@ -107,10 +148,25 @@ class PythiaLoss(nn.Module):
 
 @registry.register_loss("logit_bce")
 class LogitBinaryCrossEntropy(nn.Module):
+    """Returns Binary Cross Entropy for logits.
+
+    Attention:
+        `Key`: logit_bce
+    """
     def __init__(self):
         super().__init__()
 
     def forward(self, sample_list, model_output):
+        """Calculates and returns the binary cross entropy for logits
+
+        Args:
+            sample_list (SampleList): SampleList containing `targets` attribute.
+            model_output (Dict): Model output containing `scores` attribute.
+
+        Returns:
+            torch.FloatTensor: Float value for loss.
+
+        """
         scores = model_output["scores"]
         targets = sample_list["targets"]
         loss = F.binary_cross_entropy_with_logits(scores, targets, reduction="mean")
@@ -124,6 +180,16 @@ class BinaryCrossEntropyLoss(nn.Module):
         super().__init__()
 
     def forward(self, sample_list, model_output):
+        """Calculates and returns the binary cross entropy.
+
+        Args:
+            sample_list (SampleList): SampleList containing `targets` attribute.
+            model_output (Dict): Model output containing `scores` attribute.
+
+        Returns:
+            torch.FloatTensor: Float value for loss.
+
+        """
         scores = model_output["scores"]
         targets = sample_list["targets"]
         loss = F.binary_cross_entropy(scores, targets, reduction="mean")
@@ -133,10 +199,22 @@ class BinaryCrossEntropyLoss(nn.Module):
 
 @registry.register_loss("nll_loss")
 class NLLLoss(nn.Module):
+    """Negative log likelikehood loss.
+    """
     def __init__(self):
         super().__init__()
 
     def forward(self, sample_list, model_output):
+        """Calculates and returns the negative log likelihood.
+
+        Args:
+            sample_list (SampleList): SampleList containing `targets` attribute.
+            model_output (Dict): Model output containing `scores` attribute.
+
+        Returns:
+            torch.FloatTensor: Float value for loss.
+
+        """
         scores = model_output["scores"]
         targets = sample_list["targets"]
         _, idx = targets.max(dim=1)
@@ -157,6 +235,27 @@ def kl_div(log_x, y):
 
 @registry.register_loss("multi")
 class MultiLoss(nn.Module):
+    """A loss for combining multiple losses with weights.
+
+    Args:
+        params (List(Dict)): A list containing parameters for each different loss
+                             and their weights.
+
+    Example::
+
+        # MultiLoss works with config like below where each loss's params and
+        # weights are defined
+        losses:
+        - type: multi
+          params:
+          - type: logit_bce
+            weight: 0.3
+            params: {}
+          - type: attention_supervision
+            weight: 0.7
+            params: {}
+
+    """
     def __init__(self, params):
         super().__init__()
         self.losses = []
@@ -173,19 +272,29 @@ class MultiLoss(nn.Module):
             self.losses_weights.append(loss_weight)
 
     def forward(self, sample_list, model_output, *args, **kwargs):
-        loss = 0
-        iteration = registry.get("current_iteration")
+        """Calculates and returns the multi loss.
 
+        Args:
+            sample_list (SampleList): SampleList containing `attentions` attribute.
+            model_output (Dict): Model output containing `attention_supervision`
+                                 attribute.
+
+        Returns:
+            torch.FloatTensor: Float value for loss.
+
+        """
+        loss = 0
         for idx, loss_fn in enumerate(self.losses):
             value = loss_fn(sample_list, model_output, *args, **kwargs)
-            self.writer.add_scalar(self.loss_names[idx], value, iteration)
             loss += self.losses_weights[idx] * value
-
         return loss
 
 
 @registry.register_loss("attention_supervision")
 class AttentionSupervisionLoss(nn.Module):
+    """Loss for attention supervision. Used in case you want to make attentions
+    similar to some particular values.
+    """
     def __init__(self):
         super().__init__()
         self.loss_fn = lambda *args, **kwargs: nn.functional.binary_cross_entropy(
@@ -193,7 +302,17 @@ class AttentionSupervisionLoss(nn.Module):
         )
 
     def forward(self, sample_list, model_output):
-        context_attentions = model_output["context_attentions"]
+        """Calculates and returns the multi loss.
+
+        Args:
+            sample_list (SampleList): SampleList containing `targets` attribute.
+            model_output (Dict): Model output containing `scores` attribute.
+
+        Returns:
+            torch.FloatTensor: Float value for loss.
+
+        """
+        context_attentions = model_output["attentions"]
         attention_supervision = sample_list["info"]["attention_supervision"]
 
         loss = self.loss_fn(
