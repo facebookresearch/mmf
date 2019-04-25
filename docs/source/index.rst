@@ -23,6 +23,7 @@ research built on top of PyTorch.
    :caption: Library
 
    common/registry
+   common/sample
 
 Indices and tables
 ==================

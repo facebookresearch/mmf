@@ -180,6 +180,7 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
+github_doc_root = "https://github.com/facebookresearch/pythia/blob/v0.3/"
 
 # At the bottom of conf.py
 def setup(app):
