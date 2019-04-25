@@ -166,10 +166,25 @@ class BaseMetric:
 
 @registry.register_metric("accuracy")
 class Accuracy(BaseMetric):
+    """Metric for calculating accuracy.
+
+    **Key:** ``accuracy``
+    """
     def __init__(self):
         super().__init__("accuracy")
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate accuracy and return it back.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration
+            model_output (Dict): Dict returned by model.
+
+        Returns:
+            torch.FloatTensor: accuracy.
+
+        """
         output = model_output["scores"]
         expected = sample_list["targets"]
         output = torch.max(output, 1)[1]
@@ -185,6 +200,13 @@ class Accuracy(BaseMetric):
 
 @registry.register_metric("vqa_accuracy")
 class VQAAccuracy(BaseMetric):
+    """
+    Calculate VQAAccuracy. Find more information here_
+
+    **Key**: ``vqa_accuracy``.
+
+    .. _here: https://visualqa.org/evaluation.html
+    """
     def __init__(self):
         super().__init__("vqa_accuracy")
 
@@ -196,6 +218,17 @@ class VQAAccuracy(BaseMetric):
         return y
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate vqa accuracy and return it back.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration
+            model_output (Dict): Dict returned by model.
+
+        Returns:
+            torch.FloatTensor: VQA Accuracy
+
+        """
         output = model_output["scores"]
         expected = sample_list["targets"]
 
@@ -253,46 +286,130 @@ class RecallAtK(BaseMetric):
 
 @registry.register_metric("r@1")
 class RecallAt1(RecallAtK):
+    """
+    Calculate Recall@1 which specifies how many time the chosen candidate
+    was rank 1.
+
+    **Key**: ``r@1``.
+    """
     def __init__(self):
         super().__init__("r@1")
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate Recall@1 and return it back.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration
+            model_output (Dict): Dict returned by model.
+
+        Returns:
+            torch.FloatTensor: Recall@1
+
+        """
         return self.calculate(sample_list, model_output, k=1)
 
 
 @registry.register_metric("r@5")
 class RecallAt5(RecallAtK):
+    """
+    Calculate Recall@5 which specifies how many time the chosen candidate
+    was among first 5 rank.
+
+    **Key**: ``r@5``.
+    """
     def __init__(self):
         super().__init__("r@5")
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate Recall@5 and return it back.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration
+            model_output (Dict): Dict returned by model.
+
+        Returns:
+            torch.FloatTensor: Recall@5
+
+        """
         return self.calculate(sample_list, model_output, k=5)
 
 
 @registry.register_metric("r@10")
 class RecallAt10(RecallAtK):
+    """
+    Calculate Recall@10 which specifies how many time the chosen candidate
+    was among first 10 ranks.
+
+    **Key**: ``r@10``.
+    """
     def __init__(self):
         super().__init__("r@10")
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate Recall@10 and return it back.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration
+            model_output (Dict): Dict returned by model.
+
+        Returns:
+            torch.FloatTensor: Recall@10
+
+        """
         return self.calculate(sample_list, model_output, k=10)
 
 
 @registry.register_metric("mean_r")
 class MeanRank(RecallAtK):
+    """
+    Calculate MeanRank which specifies what was the average rank of the chosen
+    candidate.
+
+    **Key**: ``mean_r``.
+    """
     def __init__(self):
         super().__init__("mean_r")
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate Mean Rank and return it back.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration
+            model_output (Dict): Dict returned by model.
+
+        Returns:
+            torch.FloatTensor: mean rank
+
+        """
         ranks = self.get_ranks(sample_list, model_output)
         return torch.mean(ranks)
 
 
 @registry.register_metric("mean_rr")
 class MeanReciprocalRank(RecallAtK):
+    """
+    Calculate reciprocal of mean rank..
+
+    **Key**: ``mean_rr``.
+    """
     def __init__(self):
         super().__init__("mean_rr")
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate Mean Reciprocal Rank and return it back.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration
+            model_output (Dict): Dict returned by model.
+
+        Returns:
+            torch.FloatTensor: Mean Reciprocal Rank
+
+        """
         ranks = self.get_ranks(sample_list, model_output)
         return torch.mean(ranks.reciprocal())
