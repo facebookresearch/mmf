@@ -16,7 +16,7 @@ git clone https://github.com/facebookresearch/pythia ~/pythia
 2. Install dependencies and setup
 
 ```bash
-cd ~/pythia; pip install -r requirements.txt
+cd ~/pythia
 python setup.py develop
 ```
 

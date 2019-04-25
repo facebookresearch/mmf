@@ -26,7 +26,7 @@ First install the repo using
 git clone https://github.com/facebookresearch/pythia ~/pythia
 
 # You can also create your own conda environment and then enter this step
-cd ~/pythia && pip install -r requirements.txt
+cd ~/pythia
 python setup.py develop
 ```
 

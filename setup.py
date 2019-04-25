@@ -30,6 +30,9 @@ if __name__ == "__main__":
         name=DISTNAME,
         install_requires=REQUIREMENTS,
         packages=setuptools.find_packages(),
+        dependency_links=[
+            "git://github.com/facebookresearch/fastText.git#egg=fastText"
+        ],
         version="0.3",
         description=DESCRIPTION,
         long_description=LONG_DESCRIPTION,
