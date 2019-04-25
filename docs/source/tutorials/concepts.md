@@ -150,7 +150,7 @@ you can override the default value of `False` by passing arguments `training_par
 - DemJSON based override: The above option gets clunky when you are trying to run the
 hyperparameters sweeps over model parameters. To avoid this, you can update a whole block
 using a demjson string. For e.g. to use early stopping as well update the patience, you
-can pass `--config_override {training_parameters: {should_early_stop: True, patience: 5000}}`. This demjson string is easier to generate programmatically than the individual
+can pass `--config_override "{training_parameters: {should_early_stop: True, patience: 5000}}"`. This demjson string is easier to generate programmatically than the individual
 override.  
 
 ```eval_rst

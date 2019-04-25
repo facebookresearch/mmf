@@ -32,7 +32,7 @@ class ImageDatabase(torch.utils.data.Dataset):
         if not imdb_path.endswith(".npy"):
             raise ValueError("Unknown file format for imdb")
 
-        self.db = np.load(imdb_path)
+        self.db = np.load(imdb_path, allow_pickle=True)
         self.start_idx = 0
 
         if type(self.db) == dict:

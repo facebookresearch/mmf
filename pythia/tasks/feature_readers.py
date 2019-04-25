@@ -107,7 +107,7 @@ class PaddedFasterRCNNFeatureReader:
         self.take_item = False
 
     def read(self, image_feat_path):
-        content = np.load(image_feat_path)
+        content = np.load(image_feat_path, allow_pickle=True)
         image_info = {}
         if self.first:
             self.first = False
