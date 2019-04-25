@@ -3,9 +3,15 @@
 *.pyc
 *.swp
 .idea/*
-*/__pycache__/*
+**/__pycache__/*
 data/.DS_Store
 docs/build
 results/*
 boards/*
+*.egg_info/*
+pythia.egg_info
+*_cache
+data
+save
+.eggs
 .DS_Store
