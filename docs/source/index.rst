@@ -27,6 +27,8 @@ research built on top of PyTorch.
    models/base_model
    modules/losses
    modules/metrics
+   tasks/base_dataset_builder
+   tasks/base_task
 
 Indices and tables
 ==================

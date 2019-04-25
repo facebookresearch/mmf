@@ -1,4 +1,34 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+"""
+Tasks come above datasets in hierarchy level. In case you want to
+implement a new task, you need to inherit ``BaseTask`` class. You need
+to implement ``_get_available_datasets`` and ``_preprocess_item`` functions
+to complete the implementation. You can check the source to see if you need
+to override any other methods like ``prepare_batch``.
+
+Check example of ``VQATask`` here_.
+
+Example::
+
+    from pythia.tasks.base_task import BaseTask
+    from pythia.common.registry import registry
+
+
+    @registry.register_task("my")
+    class MyTask(BaseTask):
+        def __init__(self):
+            super().__init__("my")
+
+        def _get_available_datasets(self):
+            return ["my"]
+
+        def _preprocess_item(self):
+            item.text = None
+            return item
+
+.. _here: https://github.com/facebookresearch/pythia/blob/v0.3/pythia/tasks/vqa/vqa_task.py
+"""
+
 import sys
 
 import numpy as np
@@ -8,6 +38,15 @@ from pythia.common.registry import registry
 
 
 class BaseTask(Dataset):
+    """
+    BaseTask that task classes need to inherit in order to create a new task.
+
+    Users must implement ``_get_available_datasets`` and ``_preprocess_item``
+    in order to complete implementation.
+
+    Args:
+        task_name (str): Name of the task with which it will be registered
+    """
     def __init__(self, task_name):
         super(BaseTask, self).__init__()
         self.task_name = task_name
@@ -98,9 +137,7 @@ class BaseTask(Dataset):
         Temporary solution, later we will use decorators to easily register
         datasets with a task
 
-        Returns
-        -------
-        type
+        Returns:
             List - List of available datasets for this particular task
         """
         return []
@@ -135,15 +172,11 @@ class BaseTask(Dataset):
         Override in your child task class, so you have control on what you are
         returning
 
-        Parameters
-        ----------
-        item : Object
-            Object returned by a particular dataset
+        Args:
+            item (Sample): Sample returned by a particular dataset
 
-        Returns
-        -------
-        Object:
-            Preprocessed item
+        Returns:
+            Sample: Preprocessed item
         """
         raise NotImplementedError(
             "This task doesn't implement preprocess_item" " method"
