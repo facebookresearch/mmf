@@ -81,7 +81,11 @@ key name and datasets it can be run on.
 | BAN       | ban     | textvqa, vizwiz, vqa2 |
 +-----------+---------+-----------------------+
 ```
-**Note**: BAN support is preliminary and hasn't been properly fine-tuned yet.
+
+```eval_rst
+.. note::
+  BAN support is preliminary and hasn't been properly fine-tuned yet.
+```
 
 ## Registry
 
@@ -101,3 +105,63 @@ from pythia.common.registry import registry
 ```
 
 Find more details about Registry class in its documentation [common/registry](../common/registry).
+
+
+## Configuration
+
+As is necessary with research, most of the parameters/settings in Pythia are
+configurable. Pythia specific default values (`training_parameters`) are present
+in [pythia/common/defaults/configs/base.yml](https://github.com/facebookresearch/pythia/blob/v0.3/pythia/common/defaults/configs/base.yml)
+with detailed comments delineating the usage of each parameter.
+
+For ease of usage and modularity, configuration for each dataset is kept separately in
+`pythia/common/defaults/configs/tasks/[task]/[dataset].yml` where you can get `[task]`
+value for the dataset from the tables in [Tasks and Datasets](#tasks-and-datasets) section.
+
+The most dynamic part, model configuration are also kept separate and are the one which
+need to be defined by the user if they are creating their own models. We include
+configurations for the models included in the model zoo of Pythia. For each model,
+there is a separate configuration for each dataset it can work on. See an example in
+[configs/vqa/vqa2/pythia.yml](https://github.com/facebookresearch/pythia/blob/v0.3/configs/vqa/vqa2/pythia.yml). The configuration in
+the configs folder are divided using the scheme `configs/[task]/[dataset]/[model].yml`.
+
+It is possible to include other configs into your config using `includes` directive.
+Thus, in Pythia config above you can include `vqa2`'s config like this:
+
+```
+includes:
+- common/defaults/configs/tasks/vqa/vqa2.yml
+```  
+
+Now, due to separate config per dataset this concept can be extended
+to do multi-tasking and include multiple dataset configs here.
+
+`base.yml` file mentioned above is always included and provides sane defaults
+for most of the training parameters. You can then specify the config of the model
+that you want to train using `--config [config_path]` option. The final config can be
+retrieved using `registry.get('config')` anywhere in your codebase. You can access
+the attributes from these configs by using `dot` notation. For e.g. if you want to
+get the value of maximum iterations, you can get that by `registry.get('config').training_parameters.max_iterations`.
+
+The values in the configuration can be overriden using two formats:
+
+- Individual Override: For e.g. you want to use `DataParallel` to train on multiple GPUs,
+you can override the default value of `False` by passing arguments `training_parameters.data_parallel True` at the end your command. This will override that option on the fly.
+- DemJSON based override: The above option gets clunky when you are trying to run the
+hyperparameters sweeps over model parameters. To avoid this, you can update a whole block
+using a demjson string. For e.g. to use early stopping as well update the patience, you
+can pass `--config_override {training_parameters: {should_early_stop: True, patience: 5000}}`. This demjson string is easier to generate programmatically than the individual
+override.  
+
+```eval_rst
+.. note::
+  It is always helpful to verify your config overrides and final configuration
+  values that are printed to make sure you override the correct keys.
+```
+
+## Processors
+
+The main aim of processors is to keep data processing pipelines as similar as
+possible for different datasets and allow code reusability.
+
+## Sample List
