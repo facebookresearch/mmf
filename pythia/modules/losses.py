@@ -8,21 +8,61 @@ from pythia.common.registry import registry
 
 
 class Losses(nn.Module):
+    """``Losses`` acts as an abstraction for instantiating and calculating
+    losses. ``BaseModel`` instantiates this class based on the `losses`
+    attribute in the model's configuration `model_attributes`. ``loss_list``
+    needs to be a list for each separate loss containing `type` and `params`
+    attributes.
+
+    Args:
+        loss_list (List[ConfigNode]): Description of parameter `loss_list`.
+
+    Attributes:
+        losses (List[PythiaLoss]): List containing instanttions of each loss
+                                   passed in config
+
+    Example::
+
+        # losses:
+        # - type: logit_bce
+        # Can also contain `params` to specify that particular class's init params
+        # - type: combined
+        config = [{"type": "logit_bce"}, {"type": "combined"}]
+        losses = Losses(config)
+
+    .. note::
+
+        Since, ``Losses`` is instantiated in the ``BaseModel``, normal end user
+        mostly doesn't need to use this class.
+
+    """
     def __init__(self, loss_list):
         super().__init__()
         self.losses = []
         tp = registry.get("config").training_parameters
-        self._evalai_predict = tp.evalai_predict
+        self._evalai_inference = tp.evalai_inference
         for loss in loss_list:
             self.losses.append(PythiaLoss(loss))
 
     def forward(self, sample_list, model_output, *args, **kwargs):
+        """Takes in the original ``SampleList`` returned from DataLoader
+        and `model_output` returned from the model and returned a Dict containing
+        loss for each of the losses in `losses`.
+
+        Args:
+            sample_list (SampleList): SampleList given be the dataloader.
+            model_output (Dict): Dict returned from model as output.
+
+        Returns:
+            Dict: Dictionary containing loss value for each of the loss.
+
+        """
         output = {}
         if not hasattr(sample_list, "targets"):
-            if not self._evalai_predict:
+            if not self._evalai_inference:
                 warnings.warn("Sample list has not field 'targets', are you "
                               "sure that your ImDB has labels? you may have "
-                              "wanted to run with --evalai_predict 1")
+                              "wanted to run with --evalai_inference 1")
             return output
 
         for loss in self.losses:

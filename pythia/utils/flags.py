@@ -141,7 +141,7 @@ class Flags:
             help="Use when you want to restore from " "automatic checkpoint",
         )
         self.parser.add_argument(
-            "--evalai_predict",
+            "--evalai_inference",
             type=bool,
             default=None,
             help="Whether predictions should be made" " for EvalAI.",

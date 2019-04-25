@@ -83,7 +83,7 @@ training_parameters:
   batch_size: 128
   num_workers: 7
   task_size_proportional_sampling: true
-  run_type: train+predict
+  run_type: train+inference
   monitored_metric: vqa2_vqa_accuracy
   metric_minimize: false
   text_vocab:

@@ -106,7 +106,6 @@ class Trainer:
         self.snapshot_iterations //= self.config.training_parameters.batch_size
 
         self.test_task = self.task_loader.test_task
-        self.test_reporter = self.task_loader.test_reporter
 
     def load_model(self):
         attributes = self.config.model_attributes[self.config.model]
@@ -211,7 +210,7 @@ class Trainer:
         self.writer.write(self.model)
 
         if "train" not in self.run_type:
-            self.predict()
+            self.inference()
             return
 
 
@@ -294,7 +293,7 @@ class Trainer:
         self.writer.write("Stepping into final validation check")
         self._try_full_validation(force=True)
         self.checkpoint.restore()
-        self.predict()
+        self.inference()
 
 
     def _update_meter(self, report, meter=None, eval_mode=False):
@@ -420,21 +419,25 @@ class Trainer:
 
         self.writer.write(meter.delimiter.join(print_str))
 
-    def predict(self):
-        if "predict" not in self.run_type:
+    def inference(self):
+        if "val" in self.run_type:
+            self._inference_run("val")
+
+        if "inference" in self.run_type or "predict" in self.run_type:
+            self._inference_run("test")
+
+    def _inference_run(self, dataset_type):
+        if self.config.training_parameters.evalai_inference is True:
+            self.predict_for_evalai(dataset_type)
             return
 
-        # TODO: Make evalai based prediction dataset dependent i.e.
-        # it will become a config parameter for dataset
-        if self.test_reporter is not None:
-            self.predict_for_evalai()
-        else:
-            self.writer.write("Starting predictions")
+        self.writer.write("Starting inference on {} set".format(dataset_type))
 
-            report, meter = self.evaluate(self.test_loader, use_tqdm=True)
-            prefix = "{}: full test".format(report.dataset_name)
-
-            self._summarize_report(meter, prefix)
+        report, meter = self.evaluate(
+            getattr(self, "{}_loader".format(dataset_type)), use_tqdm=True
+        )
+        prefix = "{}: full {}".format(report.dataset_name, dataset_type)
+        self._summarize_report(meter, prefix)
 
     def _calculate_time_left(self):
         time_taken_for_log = time.time() * 1000 - self.train_timer.start
@@ -454,19 +457,21 @@ class Trainer:
         self.writer.write(text + ": " + self.profiler.get_time_since_start(), "debug")
         self.profiler.reset()
 
-    def predict_for_evalai(self):
+    def predict_for_evalai(self, dataset_type):
+        reporter = self.task_loader.get_test_reporter(dataset_type)
         with torch.no_grad():
             self.model.eval()
-            self.writer.write("Starting prediction for evalai")
+            message = "Starting {} inference for evalai".format(dataset_type)
+            self.writer.write(message)
 
-            while self.test_reporter.next_dataset():
-                dataloader = self.test_reporter.get_dataloader()
+            while reporter.next_dataset():
+                dataloader = reporter.get_dataloader()
 
                 for batch in tqdm(dataloader):
-                    prepared_batch = self.test_reporter.prepare_batch(batch)
+                    prepared_batch = reporter.prepare_batch(batch)
                     model_output = self.model(prepared_batch)
                     report = Report(prepared_batch, model_output)
-                    self.test_reporter.add_to_report(report)
+                    reporter.add_to_report(report)
 
             self.writer.write("Finished predicting")
             self.model.train()

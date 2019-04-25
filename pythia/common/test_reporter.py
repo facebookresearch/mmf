@@ -18,6 +18,7 @@ from .batch_collator import BatchCollator
 class TestReporter(Dataset):
     def __init__(self, multi_task_instance):
         self.test_task = multi_task_instance
+        self.task_type = multi_task_instance.dataset_type
         self.config = registry.get("config")
         self.writer = registry.get("writer")
         self.report = []
@@ -75,6 +76,8 @@ class TestReporter(Dataset):
 
         if len(self.experiment_name) > 0:
             filename += self.experiment_name + "_"
+
+        filename += self.task_type + "_"
 
         filename += time + ".json"
         filepath = os.path.join(self.report_folder, filename)

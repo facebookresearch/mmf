@@ -107,7 +107,7 @@ wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.
 cd ../..
 # Replace tasks, datasets and model with corresponding key for other pretrained models
 pythia tools/run.py --tasks vqa --datasets vqa2 --model lorra --config configs/vqa/textvqa/lorra.yml \
---run_type predict --evalai_predict 1 --resume_file data/models/lorra_best.pth
+--run_type inference --evalai_inference 1 --resume_file data/models/lorra_best.pth
 ```
 
 

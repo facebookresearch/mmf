@@ -29,11 +29,14 @@ class TaskLoader:
 
         self.test_reporter = None
         self.should_not_log = self.config.training_parameters.should_not_log
-        if self.config.training_parameters.evalai_predict is True:
-            self.test_reporter = TestReporter(self.test_task)
 
     def get_config(self):
         return self.task_config
+
+    def get_test_reporter(self, dataset_type):
+        task = getattr(self, "{}_task".format(dataset_type))
+        return TestReporter(task)
+
 
     def _load_task_config(self, task_name):
         directory = os.path.dirname(os.path.abspath(__file__))

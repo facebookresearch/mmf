@@ -63,9 +63,10 @@ training_parameters:
     # Iteration until which warnup should be done
     warmup_iterations: 1000
 
-    # Type of run, train+predict by default means both training and prediction
-    # (test) stage will be run
-    run_type: train+predict
+    # Type of run, train+inference by default means both training and inference
+    # (test) stage will be run, if run_type contains 'val',
+    # inference will be run on val set also.
+    run_type: train+inference
     # Level of logging, only logs which are >= to current level will be logged
     logger_level: info
     # Whether to use distributed training, mutually exclusive with respected
@@ -78,7 +79,7 @@ training_parameters:
     # `distributed` flag
     data_parallel: false
     # Whether JSON files for evalai evaluation should be generated
-    evalai_predict: false
+    evalai_inference: false
     # Use to load specific modules from checkpoint to your model,
     # this is helpful in finetuning. for e.g. you can specify
     # text_embeddings: text_embedding_pythia
