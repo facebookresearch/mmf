@@ -141,8 +141,12 @@ class PythiaLoss(nn.Module):
     def forward(self, sample_list, model_output, *args, **kwargs):
         loss = self.loss_criterion(sample_list, model_output, *args, **kwargs)
 
+        if not isinstance(loss, torch.Tensor):
+            loss = torch.tensor(loss, dtype=torch.float)
+
         if loss.dim() == 0:
             loss = loss.view(1)
+
         return {"{}/{}".format(sample_list.dataset_type, self.name): loss}
 
 
