@@ -24,7 +24,9 @@ research built on top of PyTorch.
 
    common/registry
    common/sample
+   models/base_model
    modules/losses
+   modules/metrics
 
 Indices and tables
 ==================

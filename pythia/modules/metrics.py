@@ -1,4 +1,49 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+"""
+The metrics module contains implementations of various metrics used commonly to
+understand how well our models are performing. For e.g. accuracy, vqa_accuracy,
+r@1 etc.
+
+For implementing your own metric, you need to follow these steps:
+
+1. Create your own metric class and inherit ``BaseMetric`` class.
+2. In the ``__init__`` function of your class, make sure to call
+   ``super().__init__('name')`` where 'name' is the name of your metric. If
+   you require any parameters in your ``__init__`` function, you can use
+   keyword arguments to represent them and metric constructor will take care of
+   providing them to your class from config.
+3. Implement a ``calculate`` function which takes in ``SampleList`` and
+   `model_output` as input and return back a float tensor/number.
+4. Register your metric with a key 'name' by using decorator,
+   ``@registry.register_metric('name')``.
+
+Example::
+
+    import torch
+
+    from pythia.common.registry import registry
+    from pythia.modules.metrics import BaseMetric
+
+    @registry.register_metric("some")
+    class SomeMetric(BaseMetric):
+        def __init__(self, some_param=None):
+            super().__init__("some")
+            ....
+
+        def calculate(self, sample_list, model_output):
+            metric = torch.tensor(2, dtype=torch.float)
+            return metric
+
+Example config for above metric::
+
+    model_attributes:
+        pythia:
+            metrics:
+            - type: some
+              params:
+                some_param: a
+"""
+
 import collections
 
 import torch
@@ -7,6 +52,18 @@ from pythia.common.registry import registry
 
 
 class Metrics:
+    """Internally used by Pythia, Metrics acts as wrapper for handling
+    calculation of metrics over various metrics specified by the model in
+    the config. It initializes all of the metrics and when called it runs
+    calculate on each of them one by one and returns back a dict with proper
+    naming back. For e.g. an example dict returned by Metrics class:
+    ``{'val/vqa_accuracy': 0.3, 'val/r@1': 0.8}``
+
+    Args:
+        metric_list (List[ConfigNode]): List of ConfigNodes where each ConfigNode
+                                        specifies name and parameters of the
+                                        metrics used.
+    """
     def __init__(self, metric_list):
         if not isinstance(metric_list, list):
             metrics_list = [metric_list]
@@ -55,6 +112,12 @@ class Metrics:
                     sample_list, model_output, *args, **kwargs
                 )
 
+                if not isinstance(values[key], torch.Tensor):
+                    values[key] = torch.tensor(values[key], dtype=torch.float)
+
+                if values[key].dim() == 0:
+                    values[key] = values[key].view(1)
+
         registry.register(
             "{}.{}.{}".format("metrics", sample_list.dataset_name, dataset_type), values
         )
@@ -63,12 +126,35 @@ class Metrics:
 
 
 class BaseMetric:
+    """Base class to be inherited by all metrics registered to Pythia. See
+    the description on top of the file for more information. Child class must
+    implement ``calculate`` function.
+
+    Args:
+        name (str): Name of the metric.
+
+    """
     def __init__(self, name, *args, **kwargs):
         self.name = name
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Abstract method to be implemented by the child class. Takes
+        in a ``SampleList`` and a dict returned by model as output and
+        returns back a float tensor/number indicating value for this metric.
+
+        Args:
+            sample_list (SampleList): SampleList provided by the dataloader for the
+                                current iteration.
+            model_output (Dict): Output dict from the model for the current
+                                 SampleList
+
+        Returns:
+            torch.Tensor|float: Value of the metric.
+
+        """
         # Override in your child class
-        return
+        raise NotImplementedError("'calculate' must be implemented in the "
+                                  "child class")
 
     def __call__(self, *args, **kwargs):
         return self.calculate(*args, **kwargs)
