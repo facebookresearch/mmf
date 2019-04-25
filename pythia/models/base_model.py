@@ -16,6 +16,10 @@ class BaseModel(nn.Module):
         self.config = config
         self.writer = registry.get("writer")
 
+    def build(self):
+        raise NotImplementedError("Build method not implemented in the child "
+                                  "model class.")
+
     def init_losses_and_metrics(self):
         self.loss = Losses(self.config.losses)
         self.metrics = Metrics(self.config.metrics)

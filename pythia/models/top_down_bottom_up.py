@@ -11,9 +11,9 @@ from pythia.modules.layers import (ClassifierLayer, Identity,
 
 from .base_model import BaseModel
 
-
+# Note: Doesn't work currently. Needs to be migrated to new API
 @registry.register_model("top_down_bottom_up")
-class TopDownBottomUp(nn.Module):
+class TopDownBottomUp(BaseModel):
     def __init__(self, image_attention_model, text_embedding_models, classifier):
         super(TopDownBottomUpModel, self).__init__()
         self.image_attention_model = image_attention_model
@@ -28,6 +28,9 @@ class TopDownBottomUp(nn.Module):
         self.non_linear_image = ReLUWithWeightNormFC(
             image_feat_dim, joint_embedding_out_dim
         )
+
+    def build(self):
+        return
 
     def forward(
         self, image_feat_variable, input_text_variable, input_answers=None, **kwargs
