@@ -58,16 +58,25 @@ class Checkpoint:
 
     def load_state_dict(self):
         tp = self.config.training_parameters
-        if tp.resume_file is not None and os.path.exists(tp.resume_file):
-            self._load(tp.resume_file)
-            return
+        if tp.resume_file is not None:
+            if os.path.exists(tp.resume_file):
+                self._load(tp.resume_file)
+                return
+            else:
+                raise RuntimeError("{} doesn't exist".format(tp.resume_file))
 
         ckpt_filepath = os.path.join(
             self.ckpt_foldername, self.ckpt_prefix + "best.ckpt"
         )
 
-        if tp.resume is True and os.path.exists(ckpt_filepath):
-            self._load(ckpt_filepath)
+        if tp.resume is True:
+            if os.path.exists(ckpt_filepath):
+                self._load(ckpt_filepath)
+            else:
+                warnings.warn("Tried to resume but checkpoint filepath {} "
+                              "is not present. Skipping."
+                              .format(ckpt_filepath))
+
 
     def _load(self, file):
         self.trainer.writer.write("Loading checkpoint")
