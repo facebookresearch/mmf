@@ -17,6 +17,7 @@ research built on top of PyTorch.
 
    tutorials/quickstart
    tutorials/concepts
+   tutorials/features
 
 .. toctree::
    :maxdepth: 1

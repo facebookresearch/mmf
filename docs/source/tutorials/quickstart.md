@@ -74,13 +74,12 @@ cd ~/pythia/data
 mkdir -p models && cd models;
 wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth
 cd ../..
-python tools/run.py --tasks vqa --datasets vqa2 --model lorra --config \
+python tools/run.py --tasks vqa --datasets textvqa --model lorra --config \
 configs/vqa/textvqa/lorra.yml --resume_file data/models/lorra_best.pth \
 --evalai_inference 1 --run_type inference
 ```
 
-These commands should be enough to get you started with training and performing inference using
-Pythia.
+These commands should be enough to get you started with training and performing inference using Pythia.
 
 ## Next steps
 

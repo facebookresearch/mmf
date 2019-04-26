@@ -1,7 +1,7 @@
 # Pythia
 
 Pythia is a modular framework for vision and language multimodal research. Built on top
-of PyTorch, pythia features:
+of PyTorch, it features:
 
 - **Model Zoo**: Reference implementations for state-of-the-art vision and language model including
 [LoRRA](https://arxiv.org/abs/1904.08920) (SoTA on VQA and TextVQA),
@@ -89,7 +89,7 @@ For running `LoRRA` on `TextVQA`, run the following command from root directory 
 
 ```
 cd ~/pythia
-pythia tools/run.py --tasks vqa --datasets vqa2 --model lorra --config configs/vqa/textvqa/lorra.yml
+python tools/run.py --tasks vqa --datasets textvqa --model lorra --config configs/vqa/textvqa/lorra.yml
 ```
 
 ## Pretrained Models
@@ -106,7 +106,7 @@ wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.
 
 cd ../..
 # Replace tasks, datasets and model with corresponding key for other pretrained models
-pythia tools/run.py --tasks vqa --datasets vqa2 --model lorra --config configs/vqa/textvqa/lorra.yml \
+python tools/run.py --tasks vqa --datasets vqa2 --model lorra --config configs/vqa/textvqa/lorra.yml \
 --run_type inference --evalai_inference 1 --resume_file data/models/lorra_best.pth
 ```
 
