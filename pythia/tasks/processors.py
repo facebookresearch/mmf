@@ -26,24 +26,27 @@ Config::
 
     task_attributes:
         vqa:
-            vqa2:
-                processors:
-                  text_processor:
-                    type: vocab
-                    params:
-                      max_length: 14
-                      vocab:
-                        type: intersected
-                        embedding_name: glove.6B.300d
-                        vocab_file: vocabs/vocabulary_100k.txt
-                      answer_processor:
-                        type: vqa_answer
+            datasets:
+            - vqa2
+            dataset_attributes:
+                vqa2:
+                    processors:
+                      text_processor:
+                        type: vocab
                         params:
-                          num_answers: 10
-                          vocab_file: vocabs/answers_vqa.txt
-                          preprocessor:
-                            type: simple_word
-                            params: {}
+                          max_length: 14
+                          vocab:
+                            type: intersected
+                            embedding_name: glove.6B.300d
+                            vocab_file: vocabs/vocabulary_100k.txt
+                          answer_processor:
+                            type: vqa_answer
+                            params:
+                              num_answers: 10
+                              vocab_file: vocabs/answers_vqa.txt
+                              preprocessor:
+                                type: simple_word
+                                params: {}
 
 ``BaseDataset`` will init the processors and they will available inside your
 dataset with same attribute name as the key name, for e.g. `text_processor` will

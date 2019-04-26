@@ -73,11 +73,20 @@ class ConfigNode(collections.OrderedDict):
 
     def __str__(self):
         strs = []
-        for key, value in sorted(self.items()):
-            seperator = "\n" if isinstance(value, ConfigNode) else " "
-            attr_str = "{}:{}{}".format(str(key), seperator, str(value))
-            attr_str = self._indent(attr_str, 2)
-            strs.append(attr_str)
+
+        if isinstance(self, collections.Mapping):
+            for key, value in sorted(self.items()):
+                seperator = "\n" if isinstance(value, ConfigNode) else " "
+                if isinstance(value, list):
+                    attr_str = ["{}:".format(key)]
+                    for item in value:
+                        item_str = self._indent(str(item), 2)
+                        attr_str.append("- {}".format(item_str))
+                    attr_str = "\n".join(attr_str)
+                else:
+                    attr_str = "{}:{}{}".format(str(key), seperator, str(value))
+                    attr_str = self._indent(attr_str, 2)
+                strs.append(attr_str)
         return "\n".join(strs)
 
     def __repr__(self):
@@ -169,7 +178,7 @@ class Configuration:
             if isinstance(v, collections.Mapping):
                 dictionary[k] = self.nested_dict_update(dictionary.get(k, {}), v)
             else:
-                dictionary[k] = v
+                dictionary[k] = self._decode_value(v)
         return dictionary
 
     def freeze(self):
@@ -217,6 +226,9 @@ class Configuration:
         if not isinstance(value, str):
             return value
 
+        if value == "None":
+            value = None
+
         try:
             value = literal_eval(value)
         except ValueError:
@@ -245,24 +257,47 @@ class Configuration:
 
         self.writer.write("=====  Training Parameters    =====", "info")
         self.writer.write(
-            json.dumps(self.config["training_parameters"], indent=4, sort_keys=True),
+            json.dumps(self.config.training_parameters, indent=4, sort_keys=True),
             "info",
         )
 
         self.writer.write("======  Task Attributes  ======", "info")
-        self.writer.write(
-            json.dumps(self.config["task_attributes"], indent=4, sort_keys=True), "info"
-        )
+        tasks = self.config.tasks.split(",")
+        datasets = self.config.datasets.split(",")
+
+        for task in tasks:
+            if task not in self.config.task_attributes:
+                raise ValueError("Task {} not present in task_attributes "
+                                 "config".format(task))
+
+            task_config = self.config.task_attributes[task]
+
+            for dataset in datasets:
+                if dataset in task_config.dataset_attributes:
+                    self.writer.write("======== {}/{} ======="
+                                      .format(task, dataset), "info")
+                    dataset_config = task_config.dataset_attributes[dataset]
+                    self.writer.write(
+                        json.dumps(dataset_config, indent=4, sort_keys=True),
+                        "info"
+                    )
 
         self.writer.write("======  Optimizer Attributes  ======", "info")
         self.writer.write(
-            json.dumps(self.config["optimizer_attributes"], indent=4, sort_keys=True),
+            json.dumps(self.config.optimizer_attributes, indent=4, sort_keys=True),
             "info",
         )
 
-        self.writer.write("======  Model Attributes  ======", "info")
+        if self.config.model not in self.config.model_attributes:
+            raise ValueError("{} not present in model attributes".format(
+                self.config.model
+            ))
+
+        self.writer.write("======  Model ({}) Attributes  ======"
+                          .format(self.config.model), "info")
         self.writer.write(
-            json.dumps(self.config["model_attributes"], indent=4, sort_keys=True),
+            json.dumps(self.config.model_attributes[self.config.model], indent=4,
+                       sort_keys=True),
             "info",
         )
 
