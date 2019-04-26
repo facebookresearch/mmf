@@ -85,7 +85,7 @@ training_parameters:
     # text_embeddings: text_embedding_pythia
     # for loading `text_embedding` module of your model
     # from `text_embedding_pythia`
-    pretrained_mapping: {}
+    pretrained_mapping: null
     # Whether the above mentioned pretrained mapping should be loaded or not
     load_pretrained: false
 

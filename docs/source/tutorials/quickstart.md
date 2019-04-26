@@ -80,8 +80,14 @@ configs/vqa/textvqa/lorra.yml --resume_file data/models/lorra_best.pth \
 ```
 
 For running inference on `val` set, use `--run_type val` and rest of the arguments remain same.
+Check more details in [pretrained models](pretrained_models) section.
+
 These commands should be enough to get you started with training and performing inference using Pythia.
 
 ## Next steps
 
 To dive deep into world of Pythia, you can move on the following next topics:
+
+- [Concepts and Terminology](./concepts)
+- [Using Pretrained Models](./pretrained_models)
+- [Challenge Participation](./challenge)

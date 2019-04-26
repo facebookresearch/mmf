@@ -18,6 +18,8 @@ research built on top of PyTorch.
    tutorials/quickstart
    tutorials/concepts
    tutorials/features
+   tutorials/pretrained_models
+   tutorials/challenge
 
 .. toctree::
    :maxdepth: 1
