@@ -104,7 +104,8 @@ class SampleList(OrderedDict):
                     and sample[field].size(0) != samples[0][field].size(0)
                 ):
                     raise AssertionError(
-                        "Fields for all samples must be" " equally sized."
+                        "Fields for all samples must be equally sized. "
+                        "{} is of different sizes".format(field)
                     )
 
                 self[field][idx] = self._get_data_copy(sample[field])

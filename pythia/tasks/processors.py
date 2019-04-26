@@ -17,7 +17,42 @@ To create a new processor, follow these steps:
    registry where 'name' will be used to refer to your processor later.
 
 In processor's config you can specify ``preprocessor`` option to specify
-different kind of preprocessor you want in your dataset.
+different kind of preprocessors you want in your dataset.
+
+Let's break down processor's config inside a dataset (VQA2.0) a bit to understand
+different moving parts.
+
+Config::
+
+    task_attributes:
+        vqa:
+            vqa2:
+                processors:
+                  text_processor:
+                    type: vocab
+                    params:
+                      max_length: 14
+                      vocab:
+                        type: intersected
+                        embedding_name: glove.6B.300d
+                        vocab_file: vocabs/vocabulary_100k.txt
+                      answer_processor:
+                        type: vqa_answer
+                        params:
+                          num_answers: 10
+                          vocab_file: vocabs/answers_vqa.txt
+                          preprocessor:
+                            type: simple_word
+                            params: {}
+
+``BaseDataset`` will init the processors and they will available inside your
+dataset with same attribute name as the key name, for e.g. `text_processor` will
+be available as `self.text_processor` inside your dataset. As is with every module
+in Pythia, processor also accept a ``ConfigNode`` with a `type` and `params`
+attributes. `params` defined the custom parameters for each of the processors.
+By default, processor initialization process will also init `preprocessor` attribute
+which can be a processor config in itself. `preprocessor` can be then be accessed
+inside the processor's functions.
 
 Example::
 
@@ -49,14 +84,43 @@ from pythia.utils.vocab import Vocab, WordToVectorDict
 
 
 class BaseProcessor:
+    """Every processor in Pythia needs to inherit this class for compatability
+    with Pythia. End user mainly needs to implement ``__call__`` function.
+
+    Args:
+        config (ConfigNode): Config for this processor, containing `type` and
+                             `params` attributes if available.
+
+    """
     def __init__(self, config, *args, **kwargs):
         return
 
     def __call__(self, item, *args, **kwargs):
+        """Main function of the processor. Takes in a dict and returns back
+        a dict
+
+        Args:
+            item (Dict): Some item that needs to be processed.
+
+        Returns:
+            Dict: Processed dict.
+
+        """
         return item
 
 
 class Processor:
+    """Wrapper class used by Pythia to initialized processor based on their
+    ``type`` as passed in configuration. It retrieves the processor class
+    registered in registry corresponding to the ``type`` key and initializes
+    with ``params`` passed in configuration. All functions and attributes of
+    the processor initialized are directly available via this class.
+
+    Args:
+        config (ConfigNode): ConfigNode containing ``type`` of the processor to
+                             be initialized and ``params`` of that procesor.
+
+    """
     def __init__(self, config, *args, **kwargs):
         self.writer = registry.get("writer")
 
@@ -95,6 +159,39 @@ class Processor:
 
 @registry.register_processor("vocab")
 class VocabProcessor(BaseProcessor):
+    """Use VocabProcessor when you have vocab file and you want to process
+    words to indices. Expects UNK token as "<unk>" and pads sentences using
+    "<pad>" token. Config parameters can have ``preprocessor`` property which
+    is used to preprocess the item passed and ``max_length`` property which
+    points to maximum length of the sentence/tokens which can be convert to
+    indices. If the length is smaller, the sentence will be padded. Parameters
+    for "vocab" are necessary to be passed.
+
+    **Key**: vocab
+
+    Example Config::
+
+        task_attributes:
+            vqa:
+                vqa2:
+                    processors:
+                      text_processor:
+                        type: vocab
+                        params:
+                          max_length: 14
+                          vocab:
+                            type: intersected
+                            embedding_name: glove.6B.300d
+                            vocab_file: vocabs/vocabulary_100k.txt
+
+    Args:
+        config (ConfigNode): node containing configuration parameters of
+                             the processor
+
+    Attributes:
+        vocab (Vocab): Vocab class object which is abstraction over the vocab
+                       file passed.
+    """
     MAX_LENGTH_DEFAULT = 50
     PAD_TOKEN = "<pad>"
     PAD_INDEX = 0
@@ -130,6 +227,18 @@ class VocabProcessor(BaseProcessor):
                 )
 
     def __call__(self, item):
+        """Call requires item to have either "tokens" attribute or either
+        "text" attribute. If "text" is present, it will tokenized using
+        the preprocessor.
+
+        Args:
+            item (Dict): Dict containing the "text" or "tokens".
+
+        Returns:
+            Dict: Dict containing indices in "text" key, "tokens" in "tokens"
+                  key and "length" of the string in "length" key.
+
+        """
         indices = None
         if not isinstance(item, dict):
             raise TypeError(
@@ -167,9 +276,21 @@ class VocabProcessor(BaseProcessor):
         return padded_tokens, token_length
 
     def get_pad_index(self):
+        """Get index of padding <pad> token in vocabulary.
+
+        Returns:
+            int: index of the padding token.
+
+        """
         return self.vocab.get_pad_index()
 
     def get_vocab_size(self):
+        """Get size of the vocabulary.
+
+        Returns:
+            int: size of the vocabulary.
+
+        """
         return self.vocab.get_size()
 
     def _map_strings_to_indices(self, tokens):
@@ -187,6 +308,15 @@ class VocabProcessor(BaseProcessor):
 
 @registry.register_processor("glove")
 class GloVeProcessor(VocabProcessor):
+    """Inherits VocabProcessor, and returns GloVe vectors for each of the
+    words. Maps them to index using vocab processor, and then gets GloVe vectors
+    corresponding to those indices.
+
+    Args:
+        config (ConfigNode): Configuration parameters for GloVe same as
+                             :func:`~VocabProcessor`.
+
+    """
     def __init__(self, config, *args, **kwargs):
         if not hasattr(config, "vocab"):
             raise AttributeError(
@@ -220,6 +350,12 @@ class GloVeProcessor(VocabProcessor):
 
 @registry.register_processor("fasttext")
 class FastTextProcessor(VocabProcessor):
+    """FastText processor, similar to GloVe processor but returns FastText vectors.
+
+    Args:
+        config (ConfigNode): Configuration values for the processor.
+
+    """
     def __init__(self, config, *args, **kwargs):
         self._init_extras(config)
 
@@ -238,7 +374,7 @@ class FastTextProcessor(VocabProcessor):
             needs_download = True
 
         if needs_download:
-            self.writer.write("Downloading FastText vectors", "info")
+            self.writer.write("Downloading FastText bin", "info")
             model_file = self._download_model()
 
         synchronize()
@@ -259,11 +395,29 @@ class FastTextProcessor(VocabProcessor):
             )
             return model_file_path
 
-        import torchtext
+        import requests
+        from pythia.common.constants import FASTTEXT_WIKI_URL
+        from tqdm import tqdm
 
-        torchtext.vocab.FastText("en", cache=os.path.dirname(model_file_path))
+        os.makedirs(os.path.dirname(model_file_path), exist_ok=True)
+        response = requests.get(FASTTEXT_WIKI_URL, stream=True)
 
-        self.writer.write("Vectors downloaded at {}.".format(model_file_path), "info")
+        with open(model_file_path, "wb") as f:
+            pbar = tqdm(total=int(response.headers['Content-Length']) / 4096,
+                        miniters=50)
+
+            idx = 0
+            for data in response.iter_content(chunk_size=4096):
+                if data:
+                    if idx % 50 == 0:
+                        pbar.update(len(data))
+                    f.write(data)
+                    idx += 1
+
+            pbar.close()
+
+        self.writer.write("fastText bin downloaded at {}."
+                          .format(model_file_path), "info")
 
         return model_file_path
 
@@ -295,6 +449,19 @@ class FastTextProcessor(VocabProcessor):
 
 @registry.register_processor("vqa_answer")
 class VQAAnswerProcessor(BaseProcessor):
+    """Processor for generating answer scores for answers passed using VQA
+    accuracy formula. Using VocabDict class to represent answer vocabulary,
+    so parameters must specify "vocab_file". "num_answers" in parameter config
+    specify the max number of answers possible. Takes in dict containing
+    "answers" or "answers_tokens". "answers" are preprocessed to generate
+    "answers_tokens" if passed.
+
+    Args:
+        config (ConfigNode): Configuration for the processor
+
+    Attributes:
+        answer_vocab (VocabDict): Class representing answer vocabulary
+    """
     DEFAULT_NUM_ANSWERS = 10
 
     def __init__(self, config, *args, **kwargs):
@@ -327,6 +494,18 @@ class VQAAnswerProcessor(BaseProcessor):
             )
 
     def __call__(self, item):
+        """Takes in dict with answers or answers_tokens, and returns back
+        a dict with answers (processed), "answers_indices" which point to
+        indices of the answers if present and "answers_scores" which represent
+        VQA style scores for the answers.
+
+        Args:
+            item (Dict): Dict containing answers or answers_tokens
+
+        Returns:
+            Dict: Processed answers, indices and scores.
+
+        """
         tokens = None
 
         if not isinstance(item, dict):
@@ -366,18 +545,59 @@ class VQAAnswerProcessor(BaseProcessor):
         }
 
     def get_vocab_size(self):
+        """Get vocab size of the answer vocabulary. Can also include
+        soft copy dynamic answer space size.
+
+        Returns:
+            int: size of the answer vocabulary
+
+        """
         return self.answer_vocab.num_vocab
 
     def get_true_vocab_size(self):
+        """True vocab size can be different from normal vocab size in some cases
+        such as soft copy where dynamic answer space is added.
+
+        Returns:
+            int: True vocab size.
+
+        """
         return self.answer_vocab.num_vocab
 
     def word2idx(self, word):
+        """Convert a word to its index according to vocabulary
+
+        Args:
+            word (str): Word to be converted to index.
+
+        Returns:
+            int: Index of the word.
+
+        """
         return self.answer_vocab.word2idx(word)
 
     def idx2word(self, idx):
+        """Index to word according to the vocabulary.
+
+        Args:
+            idx (int): Index to be converted to the word.
+
+        Returns:
+            str: Word corresponding to the index.
+
+        """
         return self.answer_vocab.idx2word(idx)
 
     def compute_answers_scores(self, answers_indices):
+        """Generate VQA based answer scores for answers_indices.
+
+        Args:
+            answers_indices (torch.LongTensor): tensor containing indices of the answers
+
+        Returns:
+            torch.FloatTensor: tensor containing scores.
+
+        """
         scores = torch.zeros(self.get_vocab_size(), dtype=torch.float)
         gt_answers = list(enumerate(answers_indices))
         unique_answers = set(answers_indices.tolist())
@@ -400,6 +620,14 @@ class VQAAnswerProcessor(BaseProcessor):
 
 @registry.register_processor("soft_copy_answer")
 class SoftCopyAnswerProcessor(VQAAnswerProcessor):
+    """Similar to Answer Processor but adds soft copy dynamic answer space to it.
+    Read https://arxiv.org/abs/1904.08920 for extra information on soft copy
+    and LoRRA.
+
+    Args:
+        config (ConfigNode): Configuration for soft copy processor.
+
+    """
     DEFAULT_MAX_LENGTH = 50
 
     def __init__(self, config, *args, **kwargs):
@@ -428,6 +656,12 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
             self.context_preprocessor = Processor(config.context_preprocessor)
 
     def get_vocab_size(self):
+        """Size of Vocab + Size of Dynamic soft-copy based answer space
+
+        Returns:
+            int: Size of vocab + size of dynamic soft-copy answer space.
+
+        """
         answer_vocab_nums = self.answer_vocab.num_vocab
 
         if self.use_soft_copy is True:
@@ -436,6 +670,12 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
         return answer_vocab_nums
 
     def get_true_vocab_size(self):
+        """Actual vocab size which only include size of the vocabulary file.
+
+        Returns:
+            int: Actual size of vocabs.
+
+        """
         return self.answer_vocab.num_vocab
 
     def __call__(self, item):
@@ -488,6 +728,12 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
 
 @registry.register_processor("simple_word")
 class SimpleWordProcessor(BaseProcessor):
+    """Tokenizes a word and processes it.
+
+    Attributes:
+        tokenizer (function): Type of tokenizer to be used.
+
+    """
     def __init__(self, *args, **kwargs):
         from pythia.utils.text_utils import word_tokenize
 
@@ -499,6 +745,12 @@ class SimpleWordProcessor(BaseProcessor):
 
 @registry.register_processor("simple_sentence")
 class SimpleSentenceProcessor(BaseProcessor):
+    """Tokenizes a sentence and processes it.
+
+    Attributes:
+        tokenizer (function): Type of tokenizer to be used.
+
+    """
     def __init__(self, *args, **kwargs):
         from pythia.utils.text_utils import tokenize
 
@@ -510,6 +762,41 @@ class SimpleSentenceProcessor(BaseProcessor):
 
 @registry.register_processor("bbox")
 class BBoxProcessor(VocabProcessor):
+    """Generates bboxes in proper format.
+    Takes in a dict which contains "info" key which is a list of dicts
+    containing following for each of the the bounding box
+
+    Example bbox input::
+
+        {
+            "info": [
+                {
+                    "bounding_box": {
+                        "top_left_x": 100,
+                        "top_left_y": 100,
+                        "width": 200,
+                        "height": 300
+                    }
+                },
+                ...
+            ]
+        }
+
+
+    This will further return a Sample in a dict with key "bbox" with last
+    dimension of 4 corresponding to "xyxy". So sample will look like following:
+
+    Example Sample::
+
+        Sample({
+            "coordinates": torch.Size(n, 4),
+            "width": List[number], # size n
+            "height": List[number], # size n
+            "bbox_types": List[str] # size n, either xyxy or xywh.
+            # currently only supports xyxy.
+        })
+
+    """
     def __init__(self, config, *args, **kwargs):
         from pythia.utils.dataset_utils import build_bbox_tensors
 
@@ -521,4 +808,4 @@ class BBoxProcessor(VocabProcessor):
         if self.preprocessor is not None:
             info = self.preprocessor(info)
 
-        return {"bbox": self.lambda_fn(info)}
+        return {"bbox": self.lambda_fn(info, self.max_length)}

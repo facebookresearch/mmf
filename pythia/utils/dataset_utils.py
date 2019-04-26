@@ -6,10 +6,12 @@ from pythia.common.sample import Sample
 
 def build_bbox_tensors(infos, max_length):
     num_bbox = min(max_length, len(infos))
-    coord_tensor = torch.zeros((num_bbox, 4), dtype=torch.float)
-    width_tensor = torch.zeros(num_bbox, dtype=torch.float)
-    height_tensor = torch.zeros(num_bbox, dtype=torch.float)
-    bbox_types = ["xyxy"] * num_bbox
+
+    # After num_bbox, everything else should be zero
+    coord_tensor = torch.zeros((max_length, 4), dtype=torch.float)
+    width_tensor = torch.zeros(max_length, dtype=torch.float)
+    height_tensor = torch.zeros(max_length, dtype=torch.float)
+    bbox_types = ["xyxy"] * max_length
 
     infos = infos[:num_bbox]
     sample = Sample()
@@ -31,5 +33,6 @@ def build_bbox_tensors(infos, max_length):
     sample.coordinates = coord_tensor
     sample.width = width_tensor
     sample.height = height_tensor
+    sample.bbox_types = bbox_types
 
     return sample
