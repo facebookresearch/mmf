@@ -60,7 +60,7 @@ Once we have the data in-place, we can start training by running the following c
 
 ```bash
 cd ~/pythia;
-python tools/run.py --tasks vqa --datasets vqa2 --model lorra --config \
+python tools/run.py --tasks vqa --datasets textvqa --model lorra --config \
 configs/vqa/textvqa/lorra.yml
 ```
 
@@ -79,6 +79,7 @@ configs/vqa/textvqa/lorra.yml --resume_file data/models/lorra_best.pth \
 --evalai_inference 1 --run_type inference
 ```
 
+For running inference on `val` set, use `--run_type val` and rest of the arguments remain same.
 These commands should be enough to get you started with training and performing inference using Pythia.
 
 ## Next steps
