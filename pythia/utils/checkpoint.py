@@ -21,6 +21,7 @@ class Checkpoint:
 
         self.config = self.trainer.config
         self.save_dir = self.config.training_parameters.save_dir
+        self.model_name = self.config.model
 
         self.ckpt_foldername = ckpt_name_from_core_args(self.config)
         self.ckpt_foldername += foldername_from_config_override(self.trainer.args)
@@ -28,17 +29,21 @@ class Checkpoint:
         self.device = registry.get("current_device")
 
         self.ckpt_prefix = ""
+
         if hasattr(self.trainer.model, "get_ckpt_name"):
             self.ckpt_prefix = self.trainer.model.get_ckpt_name() + "_"
 
         self.config["log_foldername"] = self.ckpt_foldername
         self.ckpt_foldername = os.path.join(self.save_dir, self.ckpt_foldername)
         self.pth_filepath = os.path.join(
-            self.save_dir, self.ckpt_foldername, self.ckpt_prefix + "final.pth"
+            self.save_dir, self.ckpt_foldername,
+            self.ckpt_prefix + self.model_name +  "_final.pth"
         )
         self.params_filepath = os.path.join(
-            self.save_dir, self.ckpt_foldername, self.ckpt_prefix + "params.pth"
+            self.save_dir, self.ckpt_foldername,
+            self.ckpt_prefix + self.model_name + "_params.pth"
         )
+
 
         self.models_foldername = os.path.join(self.ckpt_foldername, "models")
         if not os.path.exists(self.models_foldername):
@@ -54,7 +59,7 @@ class Checkpoint:
             # Pop out config_override if present to remove clutter in
             # saved configuration yaml file
             self.config.pop("config_override", None)
-            yaml.dump(self.config, f)
+            f.write(str(self.config))
 
     def load_state_dict(self):
         tp = self.config.training_parameters

@@ -293,8 +293,8 @@ class Trainer:
         self.writer.write("Stepping into final validation check")
         self._try_full_validation(force=True)
         self.checkpoint.restore()
+        self.checkpoint.finalize()
         self.inference()
-
 
     def _update_meter(self, report, meter=None, eval_mode=False):
         if meter is None:
