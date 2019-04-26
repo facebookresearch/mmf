@@ -358,18 +358,27 @@ class FastTextProcessor(VocabProcessor):
     """
     def __init__(self, config, *args, **kwargs):
         self._init_extras(config)
+        self.config = config
+        self._already_downloaded = False
 
+    def _try_download(self):
+        if self._already_downloaded:
+            return
+
+        self.writer.write("Fetching fastText model for OCR processing")
         needs_download = False
-        model_file = config.model_file
-        model_file = os.path.join(get_pythia_root(), config.model_file)
 
-        if not hasattr(config, "model_file"):
+        if not hasattr(self.config, "model_file"):
             warnings.warn(
                 "'model_file' key is required but missing "
                 "from FastTextProcessor's config."
             )
             needs_download = True
-        elif not os.path.exists(model_file):
+
+        model_file = self.config.model_file
+        model_file = os.path.join(get_pythia_root(), model_file)
+
+        if not os.path.exists(model_file):
             warnings.warn("No model file present at {}.".format(model_file))
             needs_download = True
 
@@ -380,6 +389,7 @@ class FastTextProcessor(VocabProcessor):
         synchronize()
 
         self._load_fasttext_model(model_file)
+        self._already_downloaded = True
 
     def _download_model(self):
         model_file_path = os.path.join(
@@ -445,6 +455,10 @@ class FastTextProcessor(VocabProcessor):
             output[idx] = torch.from_numpy(self.stov[token])
 
         return output
+
+    def __call__(self, item):
+        self._try_download()
+        return super().__call__(item)
 
 
 @registry.register_processor("vqa_answer")
@@ -633,15 +647,6 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
     def __init__(self, config, *args, **kwargs):
         super().__init__(config, *args, **kwargs)
 
-        if not hasattr(config, "use_soft_copy"):
-            warnings.warn(
-                "SoftCopyAnswerProcessor's config doesn't have field"
-                " 'use_soft_copy'. Setting to default of False"
-            )
-            self.use_soft_copy = False
-        else:
-            self.use_soft_copy = config.use_soft_copy
-
         if hasattr(config, "max_length"):
             self.max_length = config.max_length
         else:
@@ -663,9 +668,7 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
 
         """
         answer_vocab_nums = self.answer_vocab.num_vocab
-
-        if self.use_soft_copy is True:
-            answer_vocab_nums += self.max_length
+        answer_vocab_nums += self.max_length
 
         return answer_vocab_nums
 
@@ -681,9 +684,6 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
     def __call__(self, item):
         answers = item["answers"]
         scores = super().__call__({"answers": answers})
-
-        if self.use_soft_copy is False:
-            return scores
 
         indices = scores["answers_indices"]
         answers = scores["answers"]
