@@ -1,16 +1,16 @@
 includes:
-- common/defaults/configs/tasks/vqa/textvqa.yml
+- common/defaults/configs/tasks/vqa/vizwiz.yml
 # Use soft copy
 task_attributes:
   vqa:
     dataset_attributes:
-      textvqa:
+      vizwiz:
         use_ocr: true
         processors:
           answer_processor:
             type: soft_copy_answer
             params:
-              vocab_file: vocabs/answers_textvqa_more_than_1.txt
+              vocab_file: vocabs/answers_vizwiz_7k.txt
               preprocessor:
                 type: simple_word
                 params: {}

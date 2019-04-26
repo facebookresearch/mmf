@@ -33,18 +33,13 @@ task_attributes:
                         embedding_name: glove.6B.300d
                         vocab_file: vocabs/vocabulary_100k.txt
                   answer_processor:
-                    type: soft_copy_answer
+                    type: vqa_answer
                     params:
                       vocab_file: vocabs/answers_vizwiz_7k.txt
                       preprocessor:
                         type: simple_word
                         params: {}
-                      context_preprocessor:
-                        type: simple_word
-                        params: {}
-                      max_length: 50
                       num_answers: 10
-                      use_soft_copy: false
                   context_processor:
                     type: fasttext
                     params:
@@ -59,7 +54,7 @@ task_attributes:
                       max_length: 50
                 return_info: true
                 # Return OCR information
-                use_ocr: true
+                use_ocr: false
                 # Return spatial information of OCR tokens if present
                 use_ocr_info: false
 training_parameters:

@@ -40,7 +40,23 @@ task_attributes:
                       preprocessor:
                         type: simple_word
                         params: {}
+                  context_processor:
+                    type: fasttext
+                    params:
+                      max_length: 50
+                      model_file: .vector_cache/wiki.en.bin
+                  ocr_token_processor:
+                    type: simple_word
+                    params: {}
+                  bbox_processor:
+                    type: bbox
+                    params:
+                      max_length: 50
                 return_info: true
+                # Return OCR information
+                use_ocr: false
+                # Return spatial information of OCR tokens if present
+                use_ocr_info: false
 training_parameters:
     monitored_metric: vqa2_vqa_accuracy
     metric_minimize: false
