@@ -197,7 +197,7 @@ class Flags:
         )
         self.parser.add_argument(
             "-pt",
-            "--pretrained",
+            "--load_pretrained",
             type=int,
             default=None,
             help="If using a pretrained model. "
