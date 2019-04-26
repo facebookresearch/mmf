@@ -29,6 +29,7 @@ research built on top of PyTorch.
    modules/metrics
    tasks/base_dataset_builder
    tasks/base_task
+   tasks/processors
 
 Indices and tables
 ==================

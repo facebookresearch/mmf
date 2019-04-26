@@ -1,4 +1,39 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+"""
+The processors exist in Pythia to make data processing pipelines in various
+datasets as similar as possible while allowing code reuse.
+
+The processors also help maintain proper abstractions to keep only what matters
+inside the dataset's code. This allows us to keep the dataset ``get_item``
+logic really clean and no need about maintaining opinions about data type.
+Processors can work on both images and text due to their generic structure.
+
+To create a new processor, follow these steps:
+
+1. Inherit the ``BaseProcessor`` class.
+2. Implement ``_call`` function which takes in a dict and returns a dict with
+   same keys preprocessed as well as any extra keys that need to be returned.
+3. Register the processor using ``@registry.register_processor('name')`` to
+   registry where 'name' will be used to refer to your processor later.
+
+In processor's config you can specify ``preprocessor`` option to specify
+different kind of preprocessor you want in your dataset.
+
+Example::
+
+    from pythia.common.registry import registry
+    from pythia.tasks.processors import BaseProcessor
+
+
+    class MyProcessor(BaseProcessor):
+        def __init__(self, config, *args, **kwargs):
+            return
+
+        def __call__(self, item, *args, **kwargs):
+            text = item['text']
+            text = [t.strip() for t in text.split(" ")]
+            return {"text": text}
+"""
 import os
 import warnings
 from collections import Counter
@@ -27,7 +62,7 @@ class Processor:
 
         if not hasattr(config, "type"):
             raise AttributeError(
-                "Config must have 'type' attribute to " "specify type of processor"
+                "Config must have 'type' attribute to specify type of processor"
             )
 
         processor_class = registry.get_processor_class(config.type)
