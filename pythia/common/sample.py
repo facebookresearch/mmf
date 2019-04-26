@@ -29,6 +29,7 @@ class Sample(OrderedDict):
 
         >>> sample = Sample({"text": torch.tensor(2)})
         >>> sample.text.zero_()
+        # Custom attributes can be added to ``Sample`` after initialization
         >>> sample.context = torch.tensor(4)
     """
     def __init__(self, init_dict={}):
@@ -315,6 +316,8 @@ class SampleList(OrderedDict):
 
         for field in fields:
             if hasattr(sample_list[field], "to"):
-                sample_list[field] = sample_list[field].to(device, non_blocking=True)
+                sample_list[field] = sample_list[field].to(
+                    device, non_blocking=non_blocking
+                )
 
         return sample_list
