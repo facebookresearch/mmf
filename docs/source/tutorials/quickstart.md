@@ -95,3 +95,28 @@ To dive deep into world of Pythia, you can move on the following next topics:
 - [Concepts and Terminology](./concepts)
 - [Using Pretrained Models](./pretrained_models)
 - [Challenge Participation](./challenge)
+
+## Citation
+
+If you use Pythia in your work, please cite:
+
+```text
+@inproceedings{Singh2019TowardsVM,
+  title={Towards VQA Models That Can Read},
+  author={Singh, Amanpreet and Natarajan, Vivek and Shah, Meet and Jiang, Yu and Chen, Xinlei and Batra, Dhruv and Parikh, Devi and Rohrbach, Marcus},
+  booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
+  year={2019}
+}
+```
+
+and
+
+```text
+@inproceedings{singh2019pythia,
+  title={Pythia-a platform for vision \& language research},
+  author={Singh, Amanpreet and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
+  booktitle={SysML Workshop, NeurIPS},
+  volume={2018},
+  year={2019}
+}
+```

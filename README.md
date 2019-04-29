@@ -132,8 +132,8 @@ If you use Pythia in your work, please cite:
 
 ```
 @inproceedings{Singh2019TowardsVM,
-  title={Towards VQA Models that can Read},
-  author={Amanpreet Singh, Vivek Natarajan, Meet Shah, Yu Jiang, Xinlei Chen, Dhruv Batra, Devi Parikh, Marcus Rohrbach},
+  title={Towards VQA Models That Can Read},
+  author={Singh, Amanpreet and Natarajan, Vivek and Shah, Meet and Jiang, Yu and Chen, Xinlei and Batra, Dhruv and Parikh, Devi and Rohrbach, Marcus},
   booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
   year={2019}
 }
