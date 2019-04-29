@@ -2,7 +2,8 @@
 
 Performing inference using pretrained models in Pythia is easy. Pickup a pretrained
 model from the table below and follow the steps to do inference or generate
-predictions for EvalAI evaluation.
+predictions for EvalAI evaluation. This section expects that you have already installed the
+required data as explained in [quickstart](./quickstart).
 
 ```eval_rst
 +--------+-----------+-----------------------+---------------------------------------+-----------------------------------------------------------+

@@ -48,6 +48,10 @@ tar xf open_images.tar.gz
 wget http://dl.fbaipublicfiles.com/pythia/data/vocab.tar.gz
 tar xf vocab.tar.gz
 
+# Download detectron weights required by some models
+wget http://dl.fbaipublicfiles.com/pythia/data/detectron_weights.tar.gz
+tar xf detectron_weights.tar.gz
+
 # Download and extract ImDB
 mkdir -p imdb && cd imdb
 wget https://dl.fbaipublicfiles.com/pythia/data/imdb/textvqa_0.5.tar.gz

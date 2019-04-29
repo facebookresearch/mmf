@@ -57,6 +57,10 @@ wget http://dl.fbaipublicfiles.com/pythia/data/vocab.tar.gz
 # Should result in vocabs folder in your data dir
 tar xf vocab.tar.gz
 
+# Download detectron weights
+wget http://dl.fbaipublicfiles.com/pythia/data/detectron_weights.tar.gz
+tar xf detectron_weights.tar.gz
+
 # Now download the features required, feature link is taken from the table below
 # These two commands below can take time
 wget feature_link
