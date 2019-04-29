@@ -31,7 +31,7 @@ if __name__ == "__main__":
         install_requires=REQUIREMENTS,
         packages=setuptools.find_packages(),
         dependency_links=[
-            "git://github.com/facebookresearch/fastText.git#egg=fastText"
+            "https://github.com/facebookresearch/fastText/tarball/master#egg=fastText"
         ],
         version="0.3",
         description=DESCRIPTION,
