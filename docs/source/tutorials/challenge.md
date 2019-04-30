@@ -1,8 +1,19 @@
+```eval_rst
+:github_url: https://github.com/facebookresearch/pythia
+```
+
 # Challenge Participation
 
 Participating in EvalAI challenges is really easy using Pythia. We will show how to
 do inference for two challenges here:
 
+```eval_rst
+.. note::
+
+  This section assumes that you have downloaded data following the Quickstart_ tutorial.
+
+.. _Quickstart: ./quickstart
+```
 ## TextVQA challenge
 
 TextVQA challenge is available at [this link](https://evalai.cloudcv.org/web/challenges/challenge-page/244/overview).
