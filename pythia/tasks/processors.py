@@ -74,6 +74,7 @@ Example::
 """
 import os
 import warnings
+import multiprocessing
 from collections import Counter
 
 import torch
@@ -365,28 +366,35 @@ class FastTextProcessor(VocabProcessor):
         self._already_downloaded = False
 
     def _try_download(self):
+        is_main_process = self._is_main_process()
+
         if self._already_downloaded:
             return
 
-        self.writer.write("Fetching fastText model for OCR processing")
+        if is_main_process:
+            self.writer.write("Fetching fastText model for OCR processing")
+
         needs_download = False
 
         if not hasattr(self.config, "model_file"):
-            warnings.warn(
-                "'model_file' key is required but missing "
-                "from FastTextProcessor's config."
-            )
+            if is_main_process:
+                warnings.warn(
+                    "'model_file' key is required but missing "
+                    "from FastTextProcessor's config."
+                )
             needs_download = True
 
         model_file = self.config.model_file
         model_file = os.path.join(get_pythia_root(), model_file)
 
         if not os.path.exists(model_file):
-            warnings.warn("No model file present at {}.".format(model_file))
+            if is_main_process:
+                warnings.warn("No model file present at {}.".format(model_file))
             needs_download = True
 
         if needs_download:
-            self.writer.write("Downloading FastText bin", "info")
+            if is_main_process:
+                self.writer.write("Downloading FastText bin", "info")
             model_file = self._download_model()
 
         synchronize()
@@ -395,17 +403,21 @@ class FastTextProcessor(VocabProcessor):
         self._already_downloaded = True
 
     def _download_model(self):
+        is_main_process = self._is_main_process()
+
         model_file_path = os.path.join(
             get_pythia_root(), ".vector_cache", "wiki.en.bin"
         )
 
-        if not is_main_process():
+        if is_main_process:
             return model_file_path
 
         if os.path.exists(model_file_path):
-            self.writer.write(
-                "Vectors already present at {}.".format(model_file_path), "info"
-            )
+            if is_main_process:
+                self.writer.write(
+                    "Vectors already present at {}.".format(model_file_path),
+                    "info"
+                )
             return model_file_path
 
         import requests
@@ -417,7 +429,7 @@ class FastTextProcessor(VocabProcessor):
 
         with open(model_file_path, "wb") as f:
             pbar = tqdm(total=int(response.headers['Content-Length']) / 4096,
-                        miniters=50)
+                        miniters=50, disable=not is_main_process)
 
             idx = 0
             for data in response.iter_content(chunk_size=4096):
@@ -429,20 +441,30 @@ class FastTextProcessor(VocabProcessor):
 
             pbar.close()
 
-        self.writer.write("fastText bin downloaded at {}."
-                          .format(model_file_path), "info")
+        if is_main_process:
+            self.writer.write("fastText bin downloaded at {}."
+                              .format(model_file_path), "info")
 
         return model_file_path
 
     def _load_fasttext_model(self, model_file):
         from fastText import load_model
 
-        self.writer.write("Loading fasttext model now from %s" % model_file)
+        is_main_process = self._is_main_process()
+
+        if is_main_process:
+            self.writer.write("Loading fasttext model now from %s" %
+                              model_file)
 
         self.model = load_model(model_file)
         # String to Vector
         self.stov = WordToVectorDict(self.model)
-        self.writer.write("Finished loading fasttext model")
+
+        if is_main_process:
+            self.writer.write("Finished loading fasttext model")
+
+    def _is_main_process(self):
+        return multiprocessing.current_process().name == "Process-1"
 
     def _map_strings_to_indices(self, tokens):
         length = min(len(tokens), self.max_length)

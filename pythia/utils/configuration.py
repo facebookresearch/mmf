@@ -174,6 +174,9 @@ class Configuration:
         dict
             Updated dictionary.
         """
+        if dictionary is None:
+            dictionary = {}
+
         for k, v in update.items():
             if isinstance(v, collections.Mapping):
                 dictionary[k] = self.nested_dict_update(dictionary.get(k, {}), v)

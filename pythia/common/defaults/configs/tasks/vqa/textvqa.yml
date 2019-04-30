@@ -32,9 +32,9 @@ task_attributes:
                         type: intersected
                         embedding_name: glove.6B.300d
                         vocab_file: vocabs/vocabulary_100k.txt
-                    preprocessor:
-                      type: simple_sentence
-                      params: {}
+                      preprocessor:
+                        type: simple_sentence
+                        params: {}
                   answer_processor:
                     type: vqa_answer
                     params:
