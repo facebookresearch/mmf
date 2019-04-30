@@ -157,8 +157,12 @@ class VQA2Dataset(BaseDataset):
     def add_answer_info(self, sample_info, sample):
         if "answers" in sample_info:
             answers = sample_info["answers"]
+            answer_processor_arg = {"answers": answers}
+
+            if self.use_ocr:
+                answer_processor_arg["tokens"] = sample_info["ocr_tokens"]
             processed_soft_copy_answers = self.answer_processor(
-                {"answers": answers, "tokens": sample_info["ocr_tokens"]}
+                answer_processor_arg
             )
 
             sample.answers = processed_soft_copy_answers["answers"]
