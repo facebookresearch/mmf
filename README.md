@@ -1,6 +1,7 @@
 # Pythia
 
-[![Documentation Status](https://readthedocs.org/projects/learnpythia/badge/?version=latest)](https://learnpythia.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/learnpythia/badge/?version=latest)](https://learnpythia.readthedocs.io/en/latest/?badge=latest) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR)
+
 
 Pythia is a modular framework for vision and language multimodal research. Built on top
 of PyTorch, it features:
@@ -23,6 +24,10 @@ language datasets (TextVQA challenge, VQA challenge)
 ## Documentation
 
 Learn more about Pythia [here](https://learnpythia.readthedocs.io/en/latest/).
+
+## Demo
+
+Try the demo for Pythia model on [Colab](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR).
 
 ## Getting Started
 
@@ -154,6 +159,17 @@ and
 ## Miscellaneous
 If you are looking for v0.1, the VQA 2018 challenge winner entry, checkout the tag
 for [v0.1](https://github.com/facebookresearch/pythia/releases/tag/v0.1).
+
+## Troubleshooting/FAQs
+
+1. If `setup.py` causes any issues, please install fastText first directly from the source and
+then run `python setup.py develop`. To install fastText run following commands:
+
+```
+git clone https://github.com/facebookresearch/fastText.git
+cd fastText
+pip install -e .
+```
 
 ## License
 
