@@ -136,7 +136,7 @@ Documentation specific on how to navigate around Pythia and making changes will 
 If you use Pythia in your work, please cite:
 
 ```
-@inproceedings{Singh2019TowardsVM,
+@inproceedings{singh2019TowardsVM,
   title={Towards VQA Models That Can Read},
   author={Singh, Amanpreet and Natarajan, Vivek and Shah, Meet and Jiang, Yu and Chen, Xinlei and Batra, Dhruv and Parikh, Devi and Rohrbach, Marcus},
   booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
@@ -147,12 +147,12 @@ If you use Pythia in your work, please cite:
 and
 
 ```
-@inproceedings{singh2019pythia,
+@inproceedings{singh2018pythia,
   title={Pythia-a platform for vision \& language research},
   author={Singh, Amanpreet and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
   booktitle={SysML Workshop, NeurIPS},
   volume={2018},
-  year={2019}
+  year={2018}
 }
 ```
 
