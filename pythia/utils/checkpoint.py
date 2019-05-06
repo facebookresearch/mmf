@@ -36,14 +36,13 @@ class Checkpoint:
         self.config["log_foldername"] = self.ckpt_foldername
         self.ckpt_foldername = os.path.join(self.save_dir, self.ckpt_foldername)
         self.pth_filepath = os.path.join(
-            self.save_dir, self.ckpt_foldername,
+            self.ckpt_foldername,
             self.ckpt_prefix + self.model_name +  "_final.pth"
         )
         self.params_filepath = os.path.join(
-            self.save_dir, self.ckpt_foldername,
+            self.ckpt_foldername,
             self.ckpt_prefix + self.model_name + "_params.pth"
         )
-
 
         self.models_foldername = os.path.join(self.ckpt_foldername, "models")
         if not os.path.exists(self.models_foldername):
@@ -241,5 +240,4 @@ class Checkpoint:
             self.trainer.optimizer.load_state_dict(ckpt["optimizer"])
 
     def finalize(self):
-        torch.save(self.trainer.model, self.pth_filepath)
-        torch.save(self.trainer.model.state_dict(), self.params_filepath)
+        torch.save(self.trainer.model.state_dict(), self.pth_filepath)
