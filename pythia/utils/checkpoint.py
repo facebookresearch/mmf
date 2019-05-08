@@ -106,7 +106,7 @@ class Checkpoint:
         for attr in ckpt_model:
             if "fa_history" in attr:
                 new_dict[attr.replace("fa_history", "fa_context")] = ckpt_model[attr]
-            elif data_parallel is False:
+            elif data_parallel is False and attr.startswith("module."):
                 # In case the ckpt was actually a data parallel model
                 # replace first module. from dataparallel with empty string
                 new_dict[attr.replace("module.", "", 1)] = ckpt_model[attr]
