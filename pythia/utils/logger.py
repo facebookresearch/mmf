@@ -121,6 +121,6 @@ class Logger:
     def add_histogram_for_model(self, model, iteration):
         if self.summary_writer is None:
             return
-        for name, param in model.parameters():
+        for name, param in model.named_parameters():
             np_param = param.clone().cpu().data.numpy()
             self.summary_writer.add_histogram(name, np_param, iteration)
