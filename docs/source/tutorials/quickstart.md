@@ -1,4 +1,4 @@
-# Quickstart [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR)[![CircleCI](https://circleci.com/gh/facebookresearch/pythia.svg?style=svg)](https://circleci.com/gh/facebookresearch/pythia)
+# Quickstart [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR)[![](https://circleci.com/gh/facebookresearch/pythia.svg?style=svg)](https://circleci.com/gh/facebookresearch/pythia)
 
 
 **Authors**: Amanpreet Singh
@@ -25,8 +25,13 @@ cd ~/pythia
 python setup.py develop
 ```
 
-**Note:** You can also create/activate your own conda environments before running
-above commands.
+```eval_rst
+.. note::
+
+  1. If you face any issues with the setup, check the Troubleshooting/FAQ section below.
+  2. You can also create/activate your own conda environments before running
+     above commands.
+```
 
 ## Getting Data
 
