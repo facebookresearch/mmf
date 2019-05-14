@@ -25,7 +25,7 @@ class Vocab:
 
         elif vocab_type == "custom":
             if params["vocab_file"] is None or params["embedding_file"] is None:
-                raise ValueError("No vocab path or embedding_file " "passed for vocab")
+                raise ValueError("No vocab path or embedding_file passed for vocab")
             self.vocab = CustomVocab(*args, **params)
 
         elif vocab_type == "pretrained":
@@ -33,18 +33,18 @@ class Vocab:
 
         elif vocab_type == "intersected":
             if params["vocab_file"] is None or params["embedding_name"] is None:
-                raise ValueError("No vocab path or embedding_name " "passed for vocab")
+                raise ValueError("No vocab path or embedding_name passed for vocab")
 
             self.vocab = IntersectedVocab(*args, **params)
 
         elif vocab_type == "extracted":
             if params["base_path"] is None or params["embedding_dim"] is None:
-                raise ValueError("No base_path or embedding_dim " "passed for vocab")
+                raise ValueError("No base_path or embedding_dim passed for vocab")
             self.vocab = ExtractedVocab(*args, **params)
 
         elif vocab_type == "model":
             if params["name"] is None or params["model_file"] is None:
-                raise ValueError("No name or model_file " "passed for vocab")
+                raise ValueError("No name or model_file passed for vocab")
             if params["name"] == "fasttext":
                 self.vocab = ModelVocab(*args, **params)
         else:

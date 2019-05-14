@@ -13,6 +13,14 @@ jobs:
             . venv/bin/activate
             python setup.py develop
       - run:
+          name: Download required data
+          command: |
+            mkdir data
+            cd data
+            wget http://dl.fbaipublicfiles.com/pythia/data/vocab.tar.gz
+            tar xf vocab.tar.gz
+            cd ..
+      - run:
           name: Run Tests
           command: |
             . venv/bin/activate
