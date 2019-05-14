@@ -93,6 +93,17 @@ Check more details in [pretrained models](pretrained_models) section.
 
 These commands should be enough to get you started with training and performing inference using Pythia.
 
+## Troubleshooting/FAQs
+
+1. If `setup.py` causes any issues, please install fastText first directly from the source and
+then run `python setup.py develop`. To install fastText run following commands:
+
+```
+git clone https://github.com/facebookresearch/fastText.git
+cd fastText
+pip install -e .
+```
+
 ## Next steps
 
 To dive deep into world of Pythia, you can move on the following next topics:
