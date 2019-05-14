@@ -11,7 +11,7 @@ import json
 import os
 from collections import Counter
 
-from pythia.utils.preprocessing import text_tokenize
+from pythia.utils.text_utils import tokenize
 
 
 class ExtractVocabulary:
@@ -31,7 +31,7 @@ class ExtractVocabulary:
         text_lengths = [None] * len(texts)
 
         for inx, text in enumerate(texts):
-            words = text_tokenize(text)
+            words = tokenize(text)
             text_lengths[inx] = len(words)
             word_count.update(words)
 

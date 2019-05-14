@@ -1,11 +1,17 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
-import pythia.common.text.utils as text_utils
+import pythia.utils.text_utils as text_utils
 
 
 class TestTextUtils(unittest.TestCase):
     TOKENS = ["this", "will", "be", "a", "test", "of", "tokens"]
+    SENTENCE = "This will be a test of tokens?"
+
+    def test_tokenize(self):
+        tokens = text_utils.tokenize(self.SENTENCE)
+
+        self.assertEqual(list(tokens), self.TOKENS)
 
     def test_generate_ngrams(self):
         ngrams = text_utils.generate_ngrams(self.TOKENS, 2)

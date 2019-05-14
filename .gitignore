@@ -11,6 +11,7 @@ boards/*
 *.egg_info/*
 pythia.egg_info
 *_cache
+.cache
 data
 save
 .eggs
