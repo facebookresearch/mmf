@@ -16,7 +16,7 @@ required data as explained in [quickstart](./quickstart).
 | BAN    | ban       | vqa2, vizwiz, textvqa | Coming soon!                          | Support is preliminary and haven't been tested throughly. |
 +--------+-----------+-----------------------+---------------------------------------+-----------------------------------------------------------+
 
-.. _vqa2 train+val: https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/pythia_train_val.pth
+.. _vqa2 train+val: https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia_train_val.pth
 .. _vqa2 train only: https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia.pth
 .. _textvqa: https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth
 ```
