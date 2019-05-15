@@ -59,7 +59,7 @@ cd ~/pythia
 mkdir -p data && cd data
 wget http://dl.fbaipublicfiles.com/pythia/data/vocab.tar.gz
 
-# Should result in vocabs folder in your data dir
+# The following command should result in a 'vocabs' folder in your data dir
 tar xf vocab.tar.gz
 
 # Download detectron weights
@@ -126,6 +126,13 @@ python tools/run.py --tasks vqa --datasets textvqa --model lorra --config config
 --run_type inference --evalai_inference 1 --resume_file data/models/lorra_best.pth
 ```
 
+The table below shows inference metrics for various pretrained models:
+
+| Model  | Dataset          | Metric                     | Notes                         |
+|--------|------------------|----------------------------|-------------------------------|
+| Pythia | vqa2 (train+val) | test-dev accuracy - 68.31% | Can be easily pushed to 69.2% |
+| Pythia | vqa2 (train)     | test-dev accuracy - 66.7%  |                               |
+| LoRRA  | textvqa (train)  | val accuracy - 27.4%       |                               |
 
 ## Documentation
 

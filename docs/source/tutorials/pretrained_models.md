@@ -43,3 +43,17 @@ if you remove `--evalai_inference` argument, Pythia will perform inference and p
 directly on the dataset. Do note that this is not possible in case of test sets as we
 don't have answers/targets for them. So, this can be useful for performing inference
 on val set locally.
+
+Table below shows evaluation metrics for various pretrained models:
+
+```eval_rst
++--------+------------------+----------------------------+-------------------------------+
+| Model  | Dataset          | Metric                     | Notes                         |
++--------+------------------+----------------------------+-------------------------------+
+| Pythia | vqa2 (train+val) | test-dev accuracy - 68.31% | Can be easily pushed to 69.2% |
++--------+------------------+----------------------------+-------------------------------+
+| Pythia | vqa2 (train)     | test-dev accuracy - 66.7%  |                               |
++--------+------------------+----------------------------+-------------------------------+
+| LoRRA  | textvqa (train)  | val accuracy - 27.4%       |                               |
++--------+------------------+----------------------------+-------------------------------+
+```
