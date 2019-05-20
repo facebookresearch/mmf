@@ -2,7 +2,7 @@
 import torch
 from torch import nn
 
-from .layers import CaptionAttention
+from .attention import CaptionAttention
 
 
 class VisDialDiscriminator(nn.Module):
