@@ -1,0 +1,41 @@
+task_attributes:
+    captioning:
+        datasets:
+        - coco
+        dataset_size_proportional_sampling: true
+        dataset_attributes:
+            coco:
+                data_root_dir: ../data
+                image_depth_first: false
+                fast_read: false
+                image_features:
+                    train:
+                    - coco/detectron_fix_100/fc6/train_val_2014
+                    val:
+                    - coco/detectron_fix_100/fc6/train_val_2014
+                    test:
+                    - coco/detectron_fix_100/fc6/train_val_2014
+                imdb_files:
+                    train:
+                    - imdb/captioning/imdb_train2014.npy
+                    val:
+                    - imdb/captioning/imdb_val2014.npy
+                    test:
+                    - imdb/captioning/imdb_test2014_new.npy
+                features_max_len: 100
+                processors:
+                  text_processor:
+                    type: vocab
+                    params:
+                      max_length: 52
+                      vocab:
+                        type: intersected
+                        embedding_name: glove.6B.300d
+                        vocab_file: vocabs/vocabulary_captioning_thresh5.txt
+                      preprocessor:
+                        type: simple_sentence
+                        params: {}
+                return_info: true
+training_parameters:
+    monitored_metric: coco_caption_accuracy
+    metric_minimize: false

@@ -30,6 +30,8 @@ import warnings
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import warnings
+from torch.nn.utils.rnn import pack_padded_sequence
 
 from pythia.common.registry import registry
 
@@ -205,6 +207,32 @@ class BinaryCrossEntropyLoss(nn.Module):
         loss = F.binary_cross_entropy(scores, targets, reduction="mean")
 
         return loss * targets.size(1)
+
+@registry.register_loss("cross_entropy")
+class CrossEntropyLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, sample_list, model_output):
+        """Calculates and returns the cross entropy loss
+
+        Args:
+            sample_list (SampleList): SampleList containing `targets` attribute.
+            model_output (Dict): Model output containing `scores` attribute.
+
+        Returns:
+            torch.FloatTensor: Float value for loss.
+
+        """
+        scores = sample_list["scores"]
+        targets = sample_list["targets"]
+        caption_lengths, _ = sample_list.text_len.sort(dim=0, descending=True)
+        decode_lengths = (caption_lengths - 1).tolist()
+        scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
+        targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+        loss = F.cross_entropy(scores, targets)
+
+        return loss
 
 
 @registry.register_loss("nll_loss")

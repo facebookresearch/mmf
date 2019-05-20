@@ -49,6 +49,8 @@ import collections
 import torch
 
 from pythia.common.registry import registry
+# from nlgeval import NLGEval
+from nltk.translate.bleu_score import corpus_bleu
 
 
 class Metrics:
@@ -200,6 +202,92 @@ class Accuracy(BaseMetric):
 
         value = correct / total
         return value
+
+
+@registry.register_metric("caption_accuracy")
+class CaptionAccuracy(BaseMetric):
+    """Metric for calculating caption accuracy.
+
+    **Key:** ``accuracy``
+    """
+    def __init__(self):
+        super().__init__("caption_accuracy")
+        text_processor = registry.get("coco_text_processor")
+        self.vocab = text_processor.vocab
+        # self.nlgeval = NLGEval(metrics_to_omit=['METEOR'])
+        # self.meter_types = ['Bleu_1','Bleu_2','Bleu_3', 'Bleu_4', 'ROUGE_L', 'CIDEr']
+        self.references = list()
+        self.hypotheses = list()
+
+    def _masked_unk_softmax(self, x, dim, mask_idx):
+        x1 = torch.nn.functional.softmax(x, dim=dim)
+        x1[:, mask_idx] = 0
+        x1_sum = torch.sum(x1, dim=1, keepdim=True)
+        y = x1 / x1_sum
+        return y
+
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate accuracy and return it back.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration
+            model_output (Dict): Dict returned by model.
+
+        Returns:
+            torch.FloatTensor: accuracy.
+
+        """
+        # Create target and prediction sentence strings.
+        # references = list()
+        # hypotheses = list()
+
+        targets = sample_list.answers
+        for j, p in enumerate(targets):
+            img_caps = targets[j].tolist()
+            img_captions = list(
+                map(lambda c: [self.vocab.get_itos()[w] for w in c if w not in {self.vocab.SOS_INDEX, self.vocab.EOS_INDEX, self.vocab.PAD_INDEX}],
+                    img_caps))  # remove <start> and pads
+
+            # img_caps = [' '.join(c) for c in img_captions]
+            self.references.append(img_captions)
+
+        # references_new = list(map(list, zip(*self.references)))
+
+        # References
+        # targets = sample_list["targets"]
+        # targets = targets.tolist()
+        # for j, t in enumerate(targets):
+        #     img_caps = t
+        #     img_captions = list(self.vocab.get_itos()[w] for w in img_caps if w not in {self.vocab.SOS_INDEX, self.vocab.EOS_INDEX, self.vocab.PAD_INDEX})
+        #     references.append([img_captions])
+
+        # Hypotheses
+        scores = sample_list["scores"]
+        # scores = self._masked_unk_softmax(scores, 2, 3)
+        _, preds = torch.max(scores, dim=2)
+        preds = preds.tolist()
+        temp_preds = list()
+        for j, p in enumerate(preds):
+            for idx, el in enumerate(preds[j]):
+                if el == self.vocab.EOS_INDEX:
+                    preds[j] = preds[j][:idx]
+                    break
+            x = [self.vocab.get_itos()[w] for w in preds[j] if w not in {self.vocab.SOS_INDEX, self.vocab.EOS_INDEX, self.vocab.PAD_INDEX}]
+            # x = ' '.join(x)
+            temp_preds.append(x)
+        preds = temp_preds
+        self.hypotheses.extend(preds)
+
+        # assert len(references) == len(hypotheses)
+
+        bleu4 = corpus_bleu(self.references, self.hypotheses)
+        # print(bleu4)
+        # if len(self.hypotheses) > 4995:
+        #     metrics = self.nlgeval.compute_metrics(references_new, self.hypotheses)
+        #     print(metrics)
+
+        return bleu4
 
 
 @registry.register_metric("vqa_accuracy")
