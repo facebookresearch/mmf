@@ -216,8 +216,8 @@ class CaptionAccuracy(BaseMetric):
         self.vocab = text_processor.vocab
         # self.nlgeval = NLGEval(metrics_to_omit=['METEOR'])
         # self.meter_types = ['Bleu_1','Bleu_2','Bleu_3', 'Bleu_4', 'ROUGE_L', 'CIDEr']
-        self.references = list()
-        self.hypotheses = list()
+        # self.references = list()
+        # self.hypotheses = list()
 
     def _masked_unk_softmax(self, x, dim, mask_idx):
         x1 = torch.nn.functional.softmax(x, dim=dim)
@@ -239,8 +239,8 @@ class CaptionAccuracy(BaseMetric):
 
         """
         # Create target and prediction sentence strings.
-        # references = list()
-        # hypotheses = list()
+        references = list()
+        hypotheses = list()
 
         targets = sample_list.answers
         for j, p in enumerate(targets):
@@ -250,7 +250,7 @@ class CaptionAccuracy(BaseMetric):
                     img_caps))  # remove <start> and pads
 
             # img_captions = [' '.join(c) for c in img_captions]
-            self.references.append(img_captions)
+            references.append(img_captions)
 
         # references_new = list(map(list, zip(*self.references)))
 
@@ -277,11 +277,11 @@ class CaptionAccuracy(BaseMetric):
             # x = ' '.join(x)
             temp_preds.append(x)
         preds = temp_preds
-        self.hypotheses.extend(preds)
+        hypotheses.extend(preds)
 
         # assert len(references) == len(hypotheses)
 
-        bleu4 = corpus_bleu(self.references, self.hypotheses)
+        bleu4 = corpus_bleu(references, hypotheses)
         # print(bleu4)
         # if len(self.hypotheses) > 4995:
         #     metrics = self.nlgeval.compute_metrics(references_new, self.hypotheses)

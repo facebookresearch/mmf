@@ -207,7 +207,7 @@ class BUTD(BaseModel):
             data['state'] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
         return data
 
-    def beam_search(self, sample_list, k=3):
+    def beam_search(self, sample_list, k=5):
         image_embedding_total  = self.process_feature_embedding("image", sample_list)
 
         top_k_scores = torch.zeros(k, 1).to("cuda")
@@ -309,8 +309,11 @@ class BUTD(BaseModel):
             step += 1
 
 
-        i = complete_seqs_scores.index(max(complete_seqs_scores))
-        captions = torch.FloatTensor(complete_seqs[i]).unsqueeze(0)
+        if len(complete_seqs_scores) == 0:
+            captions = torch.FloatTensor([0, 0, 0, 0]).unsqueeze(0)
+        else:
+            i = complete_seqs_scores.index(max(complete_seqs_scores))
+            captions = torch.FloatTensor(complete_seqs[i]).unsqueeze(0)
 
         targets = sample_list.answers[:, 0]
         sample_list.add_field("targets", targets)
