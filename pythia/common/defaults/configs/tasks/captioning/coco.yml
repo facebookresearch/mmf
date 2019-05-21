@@ -17,11 +17,11 @@ task_attributes:
                     - coco/detectron_fix_100/fc6/train_val_2014
                 imdb_files:
                     train:
-                    - imdb/captioning_new/imdb_train2014.npy
+                    - imdb/captioning/imdb_train2014.npy
                     val:
-                    - imdb/captioning_new/imdb_test2014.npy
+                    - imdb/captioning/imdb_val2014.npy
                     test:
-                    - imdb/captioning_new/imdb_test2014.npy
+                    - imdb/captioning/imdb_test2014.npy
                 features_max_len: 100
                 processors:
                   text_processor:

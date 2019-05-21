@@ -450,7 +450,7 @@ class BaseTrainer:
 
                 for batch in tqdm(dataloader):
                     prepared_batch = reporter.prepare_batch(batch)
-                    model_output = self.model.beam_search(prepared_batch)
+                    model_output = self.model(prepared_batch)
                     report = Report(prepared_batch, model_output)
                     reporter.add_to_report(report)
 

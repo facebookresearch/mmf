@@ -49,7 +49,6 @@ import collections
 import torch
 
 from pythia.common.registry import registry
-# from nlgeval import NLGEval
 from nltk.translate.bleu_score import corpus_bleu
 
 
@@ -208,23 +207,13 @@ class Accuracy(BaseMetric):
 class CaptionAccuracy(BaseMetric):
     """Metric for calculating caption accuracy. Currently we are calculating BLEU4 Score.
 
-    **Key:** ``accuracy``
+    **Key:** ``caption_accuracy``
     """
+
     def __init__(self):
         super().__init__("caption_accuracy")
         text_processor = registry.get("coco_text_processor")
         self.vocab = text_processor.vocab
-        # self.nlgeval = NLGEval(metrics_to_omit=['METEOR'])
-        # self.meter_types = ['Bleu_1','Bleu_2','Bleu_3', 'Bleu_4', 'ROUGE_L', 'CIDEr']
-        # self.references = list()
-        # self.hypotheses = list()
-
-    def _masked_unk_softmax(self, x, dim, mask_idx):
-        x1 = torch.nn.functional.softmax(x, dim=dim)
-        x1[:, mask_idx] = 0
-        x1_sum = torch.sum(x1, dim=1, keepdim=True)
-        y = x1 / x1_sum
-        return y
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
         """Calculate accuracy and return it back.
@@ -238,54 +227,58 @@ class CaptionAccuracy(BaseMetric):
             torch.FloatTensor: bleu4 score.
 
         """
-        # Create target and prediction sentence strings.
+        # Create reference and hypotheses captions.
         references = list()
         hypotheses = list()
 
+        # References
         targets = sample_list.answers
         for j, p in enumerate(targets):
             img_caps = targets[j].tolist()
             img_captions = list(
-                map(lambda c: [self.vocab.get_itos()[w] for w in c if w not in {self.vocab.SOS_INDEX, self.vocab.EOS_INDEX, self.vocab.PAD_INDEX}],
-                    img_caps))  # remove <start> and pads
-
-            # img_captions = [' '.join(c) for c in img_captions]
+                map(
+                    lambda c: [
+                        self.vocab.get_itos()[w]
+                        for w in c
+                        if w
+                        not in {
+                            self.vocab.SOS_INDEX,
+                            self.vocab.EOS_INDEX,
+                            self.vocab.PAD_INDEX,
+                        }
+                    ],
+                    img_caps,
+                )
+            )
+            img_captions = [" ".join(c) for c in img_captions]
             references.append(img_captions)
-
-        # references_new = list(map(list, zip(*self.references)))
-
-        # References
-        # targets = sample_list["targets"]
-        # targets = targets.tolist()
-        # for j, t in enumerate(targets):
-        #     img_caps = t
-        #     img_captions = list(self.vocab.get_itos()[w] for w in img_caps if w not in {self.vocab.SOS_INDEX, self.vocab.EOS_INDEX, self.vocab.PAD_INDEX})
-        #     references.append([img_captions])
 
         # Hypotheses
         scores = model_output["scores"]
-        # scores = self._masked_unk_softmax(scores, 2, 3)
-        _, preds = torch.max(scores, dim=2)
-        preds = preds.tolist()
-        temp_preds = list()
-        for j, p in enumerate(preds):
-            for idx, el in enumerate(preds[j]):
-                if el == self.vocab.EOS_INDEX:
-                    preds[j] = preds[j][:idx]
+        _, scores = torch.max(scores, dim=2)
+        scores = scores.tolist()
+        predictions = list()
+        for j, p in enumerate(scores):
+            for idx, v in enumerate(scores[j]):
+                if v == self.vocab.EOS_INDEX:
+                    scores[j] = scores[j][:idx]
                     break
-            x = [self.vocab.get_itos()[w] for w in preds[j] if w not in {self.vocab.SOS_INDEX, self.vocab.EOS_INDEX, self.vocab.PAD_INDEX}]
-            # x = ' '.join(x)
-            temp_preds.append(x)
-        preds = temp_preds
-        hypotheses.extend(preds)
+            predictions.append(
+                [
+                    self.vocab.get_itos()[w]
+                    for w in scores[j]
+                    if w
+                    not in {
+                        self.vocab.SOS_INDEX,
+                        self.vocab.EOS_INDEX,
+                        self.vocab.PAD_INDEX,
+                    }
+                ]
+            )
+        hypotheses.extend(predictions)
 
-        # assert len(references) == len(hypotheses)
-
+        assert len(references) == len(hypotheses)
         bleu4 = corpus_bleu(references, hypotheses)
-        # print(bleu4)
-        # if len(self.hypotheses) > 4995:
-        #     metrics = self.nlgeval.compute_metrics(references_new, self.hypotheses)
-        #     print(metrics)
 
         return bleu4
 

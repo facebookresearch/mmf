@@ -25,8 +25,8 @@ class BUTD(BaseModel):
         self._init_extras()
 
     def _build_word_embedding(self):
-        text_processor = registry.get(self._datasets[0] + "_text_processor")
-        self.vocab = text_processor.vocab
+        self.text_processor = registry.get(self._datasets[0] + "_text_processor")
+        self.vocab = self.text_processor.vocab
         self.vocab_size = self.vocab.get_size()
         self.word_embedding = self.vocab.get_embedding(
             torch.nn.Embedding, embedding_dim=300
@@ -131,7 +131,7 @@ class BUTD(BaseModel):
             data["state"] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
         return data
 
-    def forward(self, sample_list):
+    def forward_prev(self, sample_list):
         image_embedding_total = self.process_feature_embedding("image", sample_list)
 
         teacher_forcing = hasattr(sample_list, "text")
@@ -151,7 +151,7 @@ class BUTD(BaseModel):
                 [[self.vocab.SOS_INDEX]] * sample_list.get_batch_size()
             ).to("cuda")
             data["image_features"] = image_embedding_total
-            timesteps = 52
+            timesteps = self.text_processor.max_length
 
         batch_size = sample_list.get_batch_size()
 
@@ -192,13 +192,8 @@ class BUTD(BaseModel):
 
         return model_output
 
-
-    # Beam Search 
-    def update_batch_size(self, data, batch_size_t):
-        # data['texts'] = data['texts'][:batch_size_t]
+    def get_data_beam_search_t(self, data, batch_size_t):
         data['image_features'] = data['image_features'][batch_size_t]
-
-        # Don't pass in states that are "finished", since the new decode_length is 1.
         if 'state' in data:
             h1 = data['state']['td_hidden'][0][batch_size_t]
             c1 = data['state']['td_hidden'][1][batch_size_t]
@@ -207,71 +202,49 @@ class BUTD(BaseModel):
             data['state'] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
         return data
 
-    def beam_search(self, sample_list, k=5):
+    def forward(self, sample_list, k=5):
         image_embedding_total  = self.process_feature_embedding("image", sample_list)
 
         top_k_scores = torch.zeros(k, 1).to("cuda")
-        # xyz = xyz.repeat(-1, 5, -1, -1)
-        # print(xyz.size())
-
-        # complete_seqs = list()
-        # complete_seqs_scores = list()
         data = {}
         data["texts"] = torch.LongTensor([[self.vocab.SOS_INDEX]] * k).to("cuda")
         data["image_features"] = (
             image_embedding_total.unsqueeze(1).expand(-1, k, -1, -1).squeeze(0)
         )
-
-        # Tensor to store top k previous words at each step; now they're just <start>
-        # k_prev_words = torch.LongTensor([[word_map['<start>']]] * k).to(device)  # (k, 1)÷
-
-        # Tensor to store top k sequences; now they're just <start>
-        seqs = data["texts"]  # (k, 1)
-
-        # Tensor to store top k sequences' scores; now they're just 0
-        # top_k_scores = torch.zeros(sample_list.text.size(0), k, 1).to(device)  # (k, 1)
+        seqs = data["texts"]
+        timesteps = self.text_processor.max_length
 
         # Lists to store completed sequences and scores
         complete_seqs = list()
         complete_seqs_scores = list()
 
+        # Dummy output for loss calculation to not complain
         outputs = torch.ones(sample_list.get_batch_size(), 52, self.vocab_size).to("cuda")
 
-        # Start decoding
-        step = 1
-
-        # s is a number less than or equal to k, because sequences are removed from this process once they hit <end>
-        while True:
+        for t in range(timesteps):
             data["texts"] = self.word_embedding(data["texts"].long())
             if "state" not in data:
                 data["state"] = None
 
-            scores, new_state = self.decoder(
+            scores, data["state"] = self.decoder(
                 data["image_features"],
                 data["texts"][:, 0, :],
                 data["state"],
             )
-            # scores[:batch_size_t, t] = output
-            data["state"] = new_state
 
-            # output_softmax = torch.log_softmax(output, dim=1)
-            # _, indices = torch.max(output_softmax, dim=1, keepdim=True) # greedy
-            # data['texts'] = indices.view(batch_size_t, 1)
-
-            # Add
+            # Add predicted scores to top_k_scores
             scores = torch.nn.functional.log_softmax(scores, dim=1)
-            scores = top_k_scores.expand_as(scores) + scores  # (s, vocab_size)
+            scores = top_k_scores.expand_as(scores) + scores
 
-            # For the first step, all k points will have the same scores (since same k previous words, h, c)
-            if step == 1:
+            # Find next top k scores and words
+            if t == 0:
                 top_k_scores, top_k_words = scores[0].topk(k, 0, True, True)
             else:
-                # Unroll and find top scores, and their unrolled indices
                 top_k_scores, top_k_words = scores.view(-1).topk(
                     k, 0, True, True
                 )
 
-            # Convert unrolled indices to actual indices of scores
+            # Convert to vocab indices
             prev_word_inds = top_k_words / self.vocab_size
             next_word_inds = top_k_words % self.vocab_size
 
@@ -280,7 +253,7 @@ class BUTD(BaseModel):
                 [seqs[prev_word_inds], next_word_inds.unsqueeze(1)], dim=1
             )
 
-            # Which sequences are incomplete (didn't reach <end>)?
+            # Find completed sequences
             incomplete_inds = [
                 ind
                 for ind, next_word in enumerate(next_word_inds)
@@ -288,29 +261,26 @@ class BUTD(BaseModel):
             ]
             complete_inds = list(set(range(len(next_word_inds))) - set(incomplete_inds))
 
-            # Set aside complete sequences
+            # Add to completed sequences
             if len(complete_inds) > 0:
                 complete_seqs.extend(seqs[complete_inds].tolist())
                 complete_seqs_scores.extend(top_k_scores[complete_inds])
-            k -= len(complete_inds)  # reduce beam length accordingly
+
+            # Reduce beam length
+            k -= len(complete_inds)
 
             # Proceed with incomplete sequences
             if k == 0:
                 break
             seqs = seqs[incomplete_inds]
 
-            data = self.update_batch_size(data, prev_word_inds[incomplete_inds])
+            data = self.get_data_beam_search_t(data, prev_word_inds[incomplete_inds])
             top_k_scores = top_k_scores[incomplete_inds].unsqueeze(1)
             data["texts"] = next_word_inds[incomplete_inds].unsqueeze(1)
 
-            # Break if things have been going on too long
-            if step > 52:
-                break
-            step += 1
-
 
         if len(complete_seqs_scores) == 0:
-            captions = torch.FloatTensor([0, 0, 0, 0]).unsqueeze(0)
+            captions = torch.FloatTensor([0] * timesteps).unsqueeze(0)
         else:
             i = complete_seqs_scores.index(max(complete_seqs_scores))
             captions = torch.FloatTensor(complete_seqs[i]).unsqueeze(0)
