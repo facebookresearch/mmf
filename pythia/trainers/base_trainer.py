@@ -234,7 +234,7 @@ class BaseTrainer:
                 if should_break:
                     break
 
-        self.finalize()
+        # self.finalize()
 
     def _run_scheduler(self):
         if self.lr_scheduler is not None:
@@ -450,7 +450,7 @@ class BaseTrainer:
 
                 for batch in tqdm(dataloader):
                     prepared_batch = reporter.prepare_batch(batch)
-                    model_output = self.model(prepared_batch)
+                    model_output = self.model.beam_search(prepared_batch)
                     report = Report(prepared_batch, model_output)
                     reporter.add_to_report(report)
 

@@ -1,4 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+
+import gc
 import torch
 from pythia.common.registry import registry
 from pythia.modules.encoders import ImageEncoder
@@ -184,7 +186,136 @@ class BUTD(BaseModel):
             else sample_list.text[:, 1:]
         )
         sample_list.add_field("targets", targets)
-        sample_list.add_field("scores", scores)
-        model_output = {"scores": scores, "targets": targets}
+        model_output = {"scores": scores}
+        del (data)
+        gc.collect()
 
         return model_output
+
+
+    # Beam Search 
+    def update_batch_size(self, data, batch_size_t):
+        # data['texts'] = data['texts'][:batch_size_t]
+        data['image_features'] = data['image_features'][batch_size_t]
+
+        # Don't pass in states that are "finished", since the new decode_length is 1.
+        if 'state' in data:
+            h1 = data['state']['td_hidden'][0][batch_size_t]
+            c1 = data['state']['td_hidden'][1][batch_size_t]
+            h2 = data['state']['lm_hidden'][0][batch_size_t]
+            c2 = data['state']['lm_hidden'][1][batch_size_t]
+            data['state'] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
+        return data
+
+    def beam_search(self, sample_list, k=3):
+        image_embedding_total  = self.process_feature_embedding("image", sample_list)
+
+        top_k_scores = torch.zeros(k, 1).to("cuda")
+        # xyz = xyz.repeat(-1, 5, -1, -1)
+        # print(xyz.size())
+
+        # complete_seqs = list()
+        # complete_seqs_scores = list()
+        data = {}
+        data["texts"] = torch.LongTensor([[self.vocab.SOS_INDEX]] * k).to("cuda")
+        data["image_features"] = (
+            image_embedding_total.unsqueeze(1).expand(-1, k, -1, -1).squeeze(0)
+        )
+
+        # Tensor to store top k previous words at each step; now they're just <start>
+        # k_prev_words = torch.LongTensor([[word_map['<start>']]] * k).to(device)  # (k, 1)÷
+
+        # Tensor to store top k sequences; now they're just <start>
+        seqs = data["texts"]  # (k, 1)
+
+        # Tensor to store top k sequences' scores; now they're just 0
+        # top_k_scores = torch.zeros(sample_list.text.size(0), k, 1).to(device)  # (k, 1)
+
+        # Lists to store completed sequences and scores
+        complete_seqs = list()
+        complete_seqs_scores = list()
+
+        outputs = torch.ones(sample_list.get_batch_size(), 52, self.vocab_size).to("cuda")
+
+        # Start decoding
+        step = 1
+
+        # s is a number less than or equal to k, because sequences are removed from this process once they hit <end>
+        while True:
+            data["texts"] = self.word_embedding(data["texts"].long())
+            if "state" not in data:
+                data["state"] = None
+
+            scores, new_state = self.decoder(
+                data["image_features"],
+                data["texts"][:, 0, :],
+                data["state"],
+            )
+            # scores[:batch_size_t, t] = output
+            data["state"] = new_state
+
+            # output_softmax = torch.log_softmax(output, dim=1)
+            # _, indices = torch.max(output_softmax, dim=1, keepdim=True) # greedy
+            # data['texts'] = indices.view(batch_size_t, 1)
+
+            # Add
+            scores = torch.nn.functional.log_softmax(scores, dim=1)
+            scores = top_k_scores.expand_as(scores) + scores  # (s, vocab_size)
+
+            # For the first step, all k points will have the same scores (since same k previous words, h, c)
+            if step == 1:
+                top_k_scores, top_k_words = scores[0].topk(k, 0, True, True)
+            else:
+                # Unroll and find top scores, and their unrolled indices
+                top_k_scores, top_k_words = scores.view(-1).topk(
+                    k, 0, True, True
+                )
+
+            # Convert unrolled indices to actual indices of scores
+            prev_word_inds = top_k_words / self.vocab_size
+            next_word_inds = top_k_words % self.vocab_size
+
+            # Add new words to sequences
+            seqs = torch.cat(
+                [seqs[prev_word_inds], next_word_inds.unsqueeze(1)], dim=1
+            )
+
+            # Which sequences are incomplete (didn't reach <end>)?
+            incomplete_inds = [
+                ind
+                for ind, next_word in enumerate(next_word_inds)
+                if next_word != self.vocab.EOS_INDEX
+            ]
+            complete_inds = list(set(range(len(next_word_inds))) - set(incomplete_inds))
+
+            # Set aside complete sequences
+            if len(complete_inds) > 0:
+                complete_seqs.extend(seqs[complete_inds].tolist())
+                complete_seqs_scores.extend(top_k_scores[complete_inds])
+            k -= len(complete_inds)  # reduce beam length accordingly
+
+            # Proceed with incomplete sequences
+            if k == 0:
+                break
+            seqs = seqs[incomplete_inds]
+
+            data = self.update_batch_size(data, prev_word_inds[incomplete_inds])
+            top_k_scores = top_k_scores[incomplete_inds].unsqueeze(1)
+            data["texts"] = next_word_inds[incomplete_inds].unsqueeze(1)
+
+            # Break if things have been going on too long
+            if step > 52:
+                break
+            step += 1
+
+
+        i = complete_seqs_scores.index(max(complete_seqs_scores))
+        captions = torch.FloatTensor(complete_seqs[i]).unsqueeze(0)
+
+        targets = sample_list.answers[:, 0]
+        sample_list.add_field("targets", targets)
+        sample_list.add_field("captions", captions)
+        model_output = {"scores": outputs}
+
+        return model_output
+

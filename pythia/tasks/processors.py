@@ -255,9 +255,7 @@ class VocabProcessor(BaseProcessor):
             )
         if "tokens" in item:
             tokens = item["tokens"]
-            tokens.insert(0, "<s>")
-            tokens.append("</s>")
-            indices = self._map_strings_to_indices(tokens)
+            indices = self._map_strings_to_indices(item["tokens"])
         elif "text" in item:
             if self.preprocessor is None:
                 raise AssertionError(

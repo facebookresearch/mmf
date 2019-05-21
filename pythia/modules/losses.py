@@ -224,7 +224,7 @@ class CrossEntropyLoss(nn.Module):
             torch.FloatTensor: Float value for loss.
 
         """
-        scores = sample_list["scores"]
+        scores = model_output["scores"]
         targets = sample_list["targets"]
         caption_lengths, _ = sample_list.text_len.sort(dim=0, descending=True)
         decode_lengths = (caption_lengths - 1).tolist()

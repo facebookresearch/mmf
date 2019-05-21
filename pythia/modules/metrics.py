@@ -206,7 +206,7 @@ class Accuracy(BaseMetric):
 
 @registry.register_metric("caption_accuracy")
 class CaptionAccuracy(BaseMetric):
-    """Metric for calculating caption accuracy.
+    """Metric for calculating caption accuracy. Currently we are calculating BLEU4 Score.
 
     **Key:** ``accuracy``
     """
@@ -235,7 +235,7 @@ class CaptionAccuracy(BaseMetric):
             model_output (Dict): Dict returned by model.
 
         Returns:
-            torch.FloatTensor: accuracy.
+            torch.FloatTensor: bleu4 score.
 
         """
         # Create target and prediction sentence strings.
@@ -249,7 +249,7 @@ class CaptionAccuracy(BaseMetric):
                 map(lambda c: [self.vocab.get_itos()[w] for w in c if w not in {self.vocab.SOS_INDEX, self.vocab.EOS_INDEX, self.vocab.PAD_INDEX}],
                     img_caps))  # remove <start> and pads
 
-            # img_caps = [' '.join(c) for c in img_captions]
+            # img_captions = [' '.join(c) for c in img_captions]
             self.references.append(img_captions)
 
         # references_new = list(map(list, zip(*self.references)))
@@ -263,7 +263,7 @@ class CaptionAccuracy(BaseMetric):
         #     references.append([img_captions])
 
         # Hypotheses
-        scores = sample_list["scores"]
+        scores = model_output["scores"]
         # scores = self._masked_unk_softmax(scores, 2, 3)
         _, preds = torch.max(scores, dim=2)
         preds = preds.tolist()

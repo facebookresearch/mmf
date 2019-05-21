@@ -3,7 +3,6 @@ import os
 
 import torch
 import tqdm
-import json
 
 from pythia.common.sample import Sample
 from pythia.tasks.base_dataset import BaseDataset
@@ -31,12 +30,6 @@ class COCODataset(BaseDataset):
         self.kwargs = kwargs
         self.image_depth_first = self.config.image_depth_first
         self._should_fast_read = self.config.fast_read
-
-        with open("/private/home/vedanuj/pythia/data/dataset_coco.json", 'r') as j:
-            self.all_captions = json.load(j)
-
-        # self.use_ocr = self.config.use_ocr
-        # self.use_ocr_info = self.config.use_ocr_info
 
         self._use_features = False
         if hasattr(self.config, "image_features"):
@@ -122,62 +115,38 @@ class COCODataset(BaseDataset):
             features = self.features_db[idx]
             current_sample.update(features)
 
-
-        # if self._dataset_type == "test":
-        list_answers = []
-        for img in self.all_captions['images']:
-            if img['imgid'] == sample_info["image_id"]:
-                for sentence in img['sentences']:
-                    text_processor_argument = {"tokens": sentence['tokens']}
-                    processed_caption = self.text_processor(text_processor_argument)
-                    list_answers.append(processed_caption["text"])
-
-        current_sample.answers = torch.stack(list_answers)[:5]
-
-        # # Add details for OCR like OCR bbox, vectors, tokens here
-        # current_sample = self.add_ocr_details(sample_info, current_sample)
-        # Depending on whether we are using soft copy this can add
-        # dynamic answer space
-        # current_sample = self.add_answer_info(sample_info, current_sample)
+        # Add reference captions to sample
+        current_sample = self.add_reference_caption(sample_info, current_sample)
 
         return current_sample
 
-    def add_answer_info(self, sample_info, sample):
-        if "answers" in sample_info:
-            answers = sample_info["answers"]
-            answer_processor_arg = {"answers": answers}
+    def add_reference_caption(self, sample_info, sample):
+        reference_list = []
+        for reference in sample_info["reference_tokens"]:
+            text_processor_argument = {"tokens": reference}
+            processed_reference = self.text_processor(text_processor_argument)
+            reference_list.append(processed_reference["text"])
 
-            # if self.use_ocr:
-            #     answer_processor_arg["tokens"] = sample_info["ocr_tokens"]
-            processed_soft_copy_answers = self.answer_processor(
-                answer_processor_arg
-            )
-
-            sample.answers = processed_soft_copy_answers["answers"]
-            sample.targets = processed_soft_copy_answers["answers_scores"]
+        # Restrict to 5 reference captions
+        sample.answers = torch.stack(reference_list)[:5]
 
         return sample
 
-    def idx_to_answer(self, idx):
-        return self.answer_processor.convert_idx_to_answer(idx)
-
     def format_for_evalai(self, report):
-        answers = report.scores.argmax(dim=1)
-
+        vocab = self.text_processor.vocab
+        captions = report.captions.tolist()
         predictions = []
-        answer_space_size = self.answer_processor.get_true_vocab_size()
-
-        for idx, question_id in enumerate(report.question_id):
-            answer_id = answers[idx].item()
-
-            if answer_id >= answer_space_size:
-                answer_id -= answer_space_size
-                answer = report.context_tokens[idx][answer_id]
-            else:
-                answer = self.answer_processor.idx2word(answer_id)
-            if answer == self.context_processor.PAD_TOKEN:
-                answer = "unanswerable"
-
-            predictions.append({"question_id": question_id.item(), "answer": answer})
+        for idx, image_id in enumerate(report.image_id):
+            for idx_, el in enumerate(captions[idx]):
+                if el == vocab.EOS_INDEX:
+                    captions[idx] = captions[idx][:idx_]
+                    break
+            answer = [
+                vocab.get_itos()[w]
+                for w in captions[idx]
+                if w not in {vocab.SOS_INDEX, vocab.EOS_INDEX, vocab.PAD_INDEX}
+            ]
+            answer = " ".join(answer)
+            predictions.append({"image_id": image_id.item(), "caption": answer})
 
         return predictions

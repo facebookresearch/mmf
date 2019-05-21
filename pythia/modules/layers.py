@@ -505,4 +505,3 @@ class BiAttention(nn.Module):
         p = nn.functional.softmax(expanded_logits, 2)
 
         return p.view(-1, self.glimpse, v_num, q_num), logits
-

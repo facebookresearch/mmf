@@ -5,9 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 #
 
-
-import os
-
 from pythia.common.registry import registry
 from pythia.tasks.base_dataset_builder import BaseDatasetBuilder
 from pythia.tasks.concat_dataset import PythiaConcatDataset
