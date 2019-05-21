@@ -15,7 +15,7 @@ from .base_model import BaseModel
 @registry.register_model("top_down_bottom_up")
 class TopDownBottomUp(BaseModel):
     def __init__(self, image_attention_model, text_embedding_models, classifier):
-        super(TopDownBottomUpModel, self).__init__()
+        super().__init__()
         self.image_attention_model = image_attention_model
         self.text_embedding_models = text_embedding_models
         self.classifier = classifier
