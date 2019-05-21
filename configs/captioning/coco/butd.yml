@@ -7,35 +7,12 @@ model_attributes:
     - type: caption_accuracy
     losses:
     - type: cross_entropy
-    classifier:
-      type: logit
-      params:
-        img_hidden_dim: 5000
-        text_hidden_dim: 300
-    image_feature_embeddings:
-    - modal_combine:
-        type: non_linear_element_multiply
-        params:
-          dropout: 0
-          hidden_dim: 5000
-      normalization: softmax
-      transform:
-        type: linear
-        params:
-          out_dim: 1
     image_feature_dim: 2048
     image_feature_encodings:
     - type: finetune_faster_rcnn_fpn_fc7
       params:
         bias_file: detectron/fc6/fc7_b.pkl
         weights_file: detectron/fc6/fc7_w.pkl
-    # - type: default
-    #   params: {}
-    image_text_modal_combine:
-      type: non_linear_element_multiply
-      params:
-        dropout: 0
-        hidden_dim: 5000
     text_embeddings:
     - type: attention
       params:
@@ -69,7 +46,7 @@ training_parameters:
   warmup_factor: 0.2
   warmup_iterations: 1000
   patience: 4000
-  batch_size: 1
+  batch_size: 256
   num_workers: 20
   task_size_proportional_sampling: true
   monitored_metric: caption_accuracy

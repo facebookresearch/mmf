@@ -234,7 +234,7 @@ class BaseTrainer:
                 if should_break:
                     break
 
-        # self.finalize()
+        self.finalize()
 
     def _run_scheduler(self):
         if self.lr_scheduler is not None:

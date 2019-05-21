@@ -131,7 +131,7 @@ class BUTD(BaseModel):
             data["state"] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
         return data
 
-    def forward_prev(self, sample_list):
+    def forward(self, sample_list):
         image_embedding_total = self.process_feature_embedding("image", sample_list)
 
         teacher_forcing = hasattr(sample_list, "text")
@@ -202,7 +202,7 @@ class BUTD(BaseModel):
             data['state'] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
         return data
 
-    def forward(self, sample_list, k=5):
+    def beam_search(self, sample_list, k=5):
         image_embedding_total  = self.process_feature_embedding("image", sample_list)
 
         top_k_scores = torch.zeros(k, 1).to("cuda")
