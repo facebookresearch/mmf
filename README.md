@@ -21,6 +21,8 @@ You can use Pythia to **_bootstrap_** for your next vision and language multimod
 Pythia can also act as **starter codebase** for challenges around vision and
 language datasets (TextVQA challenge, VQA challenge)
 
+![Pythia Examples](https://i.imgur.com/BP8sYnk.jpg)
+
 ## Documentation
 
 Learn more about Pythia [here](https://learnpythia.readthedocs.io/en/latest/).
