@@ -85,8 +85,8 @@ tar xf [imdb].tar.gz
 
 | Dataset      | Key | Task | ImDB Link                                                                         | Features Link  | Features checksum                                                                 |
 |--------------|-----|-----|-----------------------------------------------------------------------------------|---------------------------------------------------------------------------------|---------|
-| TextVQA      | textvqa | vqa | [TextVQA 0.5 ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/textvqa_0.5.tar.gz) | [OpenImages](https://dl.fbaipublicfiles.com/pythia/features/open_images.tar.gz) | `ab7947b04f3063c774b87dfbf4d0e981` | 
-| VQA 2.0      | vqa2 | vqa | [VQA 2.0 ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/vqa.tar.gz)                 | [COCO](https://dl.fbaipublicfiles.com/pythia/features/coco.tar.gz)              | `b22e80997b2580edaf08d7e3a896e324` |
+| TextVQA      | textvqa | vqa | [TextVQA 0.5 ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/textvqa_0.5.tar.gz) | [OpenImages](https://dl.fbaipublicfiles.com/pythia/features/open_images.tar.gz) | `b22e80997b2580edaf08d7e3a896e324` | 
+| VQA 2.0      | vqa2 | vqa | [VQA 2.0 ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/vqa.tar.gz)                 | [COCO](https://dl.fbaipublicfiles.com/pythia/features/coco.tar.gz)              | `ab7947b04f3063c774b87dfbf4d0e981` |
 | VizWiz       | vizwiz | vqa | [VizWiz ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/vizwiz.tar.gz)           | [VizWiz](https://dl.fbaipublicfiles.com/pythia/features/vizwiz.tar.gz)          | `9a28d6a9892dda8519d03fba52fb899f` |
 | VisualDialog | visdial | dialog | Coming soon!                                                                      | Coming soon!                                                                    | Coming soon! | 
 
