@@ -105,6 +105,7 @@ class MFH(nn.Module):
 
     def forward(self, image_feat, question_embedding):
         feature_list = []
+        prev_mfb_exp = 1
         for i in range(self.order):
             mfb_exp = self.mfb_expand_list[i]
             mfb_sqz = self.mfb_sqz_list[i]
