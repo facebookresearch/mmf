@@ -49,7 +49,6 @@ import collections
 import torch
 
 from pythia.common.registry import registry
-from nltk.translate.bleu_score import corpus_bleu
 
 
 class Metrics:
@@ -203,17 +202,17 @@ class Accuracy(BaseMetric):
         return value
 
 
-@registry.register_metric("caption_accuracy")
-class CaptionAccuracy(BaseMetric):
-    """Metric for calculating caption accuracy. Currently we are calculating BLEU4 Score.
+@registry.register_metric("caption_bleu4")
+class CaptionBleu4Metric(BaseMetric):
+    """Metric for calculating caption accuracy using BLEU4 Score.
 
-    **Key:** ``caption_accuracy``
+    **Key:** ``caption_bleu4``
     """
 
+    import nltk.translate.bleu_score as bleu_score
+
     def __init__(self):
-        super().__init__("caption_accuracy")
-        text_processor = registry.get("coco_text_processor")
-        self.vocab = text_processor.vocab
+        super().__init__("caption_bleu4")
         self.caption_processor = registry.get("coco_caption_processor")
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
@@ -229,33 +228,29 @@ class CaptionAccuracy(BaseMetric):
 
         """
         # Create reference and hypotheses captions.
-        references = list()
-        hypotheses = list()
+        references = []
+        hypotheses = []
 
         # References
         targets = sample_list.answers
         for j, p in enumerate(targets):
-            img_caps = targets[j].tolist()
-            img_captions = list(
-                map(
-                    lambda c: self.caption_processor(c)["tokens"],
-                    img_caps,
-                )
-            )
+            img_captions = [
+                self.caption_processor(c)["tokens"] for c in targets[j].tolist()
+            ]
             references.append(img_captions)
 
         # Hypotheses
-        scores = model_output["scores"]
-        _, scores = torch.max(scores, dim=2)
+        scores = torch.max(model_output["scores"], dim=-1)[1]
         scores = scores.tolist()
-        predictions = list()
+        predictions = []
         for j, p in enumerate(scores):
             caption = self.caption_processor(scores[j])["tokens"]
             predictions.append(caption)
         hypotheses.extend(predictions)
 
         assert len(references) == len(hypotheses)
-        bleu4 = corpus_bleu(references, hypotheses)
+
+        bleu4 = self.bleu_score.corpus_bleu(references, hypotheses)
 
         return bleu4
 

@@ -208,8 +208,9 @@ class BinaryCrossEntropyLoss(nn.Module):
 
         return loss * targets.size(1)
 
-@registry.register_loss("cross_entropy")
-class CrossEntropyLoss(nn.Module):
+
+@registry.register_loss("caption_cross_entropy")
+class CaptionCrossEntropyLoss(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -228,8 +229,15 @@ class CrossEntropyLoss(nn.Module):
         targets = sample_list["targets"]
         caption_lengths, _ = sample_list.text_len.sort(dim=0, descending=True)
         decode_lengths = (caption_lengths - 1).tolist()
-        scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
-        targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+        if torch.__version__ >= "1.1":
+            scores = pack_padded_sequence(scores, decode_lengths, batch_first=True).data
+            targets = pack_padded_sequence(
+                targets, decode_lengths, batch_first=True
+            ).data
+        else:
+            scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
+            targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+
         loss = F.cross_entropy(scores, targets)
 
         return loss
