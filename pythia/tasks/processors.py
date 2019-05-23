@@ -846,3 +846,35 @@ class BBoxProcessor(VocabProcessor):
             info = self.preprocessor(info)
 
         return {"bbox": self.lambda_fn(info, self.max_length)}
+
+
+@registry.register_processor("caption")
+class CaptionProcessor(BaseProcessor):
+    """Processes a caption with start, end and pad tokens and returns raw string.
+
+    Args:
+        config (ConfigNode): Configuration for caption processor.
+
+    """
+
+    def __init__(self,  config, *args, **kwargs):
+        if not hasattr(config, "vocab"):
+            raise AttributeError(
+                "config passed to the processor has no " "attribute vocab"
+            )
+
+        self.vocab = Vocab(*args, **config.vocab, **kwargs)
+
+    def __call__(self, item):
+        for idx, v in enumerate(item):
+            if v == self.vocab.EOS_INDEX:
+                item = item[:idx]
+                break
+        tokens = [
+            self.vocab.get_itos()[w]
+            for w in item
+            if w
+            not in {self.vocab.SOS_INDEX, self.vocab.EOS_INDEX, self.vocab.PAD_INDEX}
+        ]
+        caption = " ".join(tokens)
+        return {"tokens": tokens, "caption": caption}

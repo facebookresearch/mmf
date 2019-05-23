@@ -35,6 +35,13 @@ task_attributes:
                       preprocessor:
                         type: simple_sentence
                         params: {}
+                  caption_processor:
+                    type: caption
+                    params:
+                      vocab:
+                        type: intersected
+                        embedding_name: glove.6B.300d
+                        vocab_file: vocabs/vocabulary_captioning_thresh5.txt
                 return_info: true
 training_parameters:
     monitored_metric: coco_caption_accuracy

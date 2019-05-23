@@ -214,6 +214,7 @@ class CaptionAccuracy(BaseMetric):
         super().__init__("caption_accuracy")
         text_processor = registry.get("coco_text_processor")
         self.vocab = text_processor.vocab
+        self.caption_processor = registry.get("coco_caption_processor")
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
         """Calculate accuracy and return it back.
@@ -237,20 +238,10 @@ class CaptionAccuracy(BaseMetric):
             img_caps = targets[j].tolist()
             img_captions = list(
                 map(
-                    lambda c: [
-                        self.vocab.get_itos()[w]
-                        for w in c
-                        if w
-                        not in {
-                            self.vocab.SOS_INDEX,
-                            self.vocab.EOS_INDEX,
-                            self.vocab.PAD_INDEX,
-                        }
-                    ],
+                    lambda c: self.caption_processor(c)["tokens"],
                     img_caps,
                 )
             )
-            img_captions = [" ".join(c) for c in img_captions]
             references.append(img_captions)
 
         # Hypotheses
@@ -259,22 +250,8 @@ class CaptionAccuracy(BaseMetric):
         scores = scores.tolist()
         predictions = list()
         for j, p in enumerate(scores):
-            for idx, v in enumerate(scores[j]):
-                if v == self.vocab.EOS_INDEX:
-                    scores[j] = scores[j][:idx]
-                    break
-            predictions.append(
-                [
-                    self.vocab.get_itos()[w]
-                    for w in scores[j]
-                    if w
-                    not in {
-                        self.vocab.SOS_INDEX,
-                        self.vocab.EOS_INDEX,
-                        self.vocab.PAD_INDEX,
-                    }
-                ]
-            )
+            caption = self.caption_processor(scores[j])["tokens"]
+            predictions.append(caption)
         hypotheses.extend(predictions)
 
         assert len(references) == len(hypotheses)

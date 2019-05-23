@@ -133,20 +133,10 @@ class COCODataset(BaseDataset):
         return sample
 
     def format_for_evalai(self, report):
-        vocab = self.text_processor.vocab
         captions = report.captions.tolist()
         predictions = []
         for idx, image_id in enumerate(report.image_id):
-            for idx_, el in enumerate(captions[idx]):
-                if el == vocab.EOS_INDEX:
-                    captions[idx] = captions[idx][:idx_]
-                    break
-            answer = [
-                vocab.get_itos()[w]
-                for w in captions[idx]
-                if w not in {vocab.SOS_INDEX, vocab.EOS_INDEX, vocab.PAD_INDEX}
-            ]
-            answer = " ".join(answer)
-            predictions.append({"image_id": image_id.item(), "caption": answer})
+            caption = self.caption_processor(captions[idx])["caption"]
+            predictions.append({"image_id": image_id.item(), "caption": caption})
 
         return predictions
