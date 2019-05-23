@@ -6,79 +6,20 @@
 #
 
 from pythia.common.registry import registry
-from pythia.tasks.base_dataset_builder import BaseDatasetBuilder
-from pythia.tasks.concat_dataset import PythiaConcatDataset
+from pythia.tasks.vqa.vqa2 import VQA2Builder
 
 from .dataset import COCODataset
 
 
 @registry.register_builder("coco")
-class COCOBuilder(BaseDatasetBuilder):
+class COCOBuilder(VQA2Builder):
     def __init__(self):
-        super().__init__("coco")
-        self.dataset_class = COCODataset
-
-    def _load(self, dataset_type, config, *args, **kwargs):
-        self.config = config
-
-        image_features = config["image_features"]["train"][0].split(",")
-        self.num_image_features = len(image_features)
-
-        registry.register("num_image_features", self.num_image_features)
-
-        self.dataset = self.prepare_data_set(dataset_type, config)
-
-        return self.dataset
-
-    def _build(self, dataset_type, config):
-        # TODO: Build actually here
-        return
+        super().__init__()
+        self.dataset_name = "coco"
+        self.set_dataset_class(COCODataset)
 
     def update_registry_for_model(self, config):
         registry.register(
             self.dataset_name + "_text_vocab_size",
             self.dataset.text_processor.get_vocab_size(),
         )
-        registry.register(
-            self.dataset_name + "_num_final_outputs",
-            self.dataset.text_processor.get_vocab_size(),
-        )
-
-    def init_args(self, parser):
-        parser.add_argument_group("COCO task specific arguments")
-        parser.add_argument(
-            "--data_root_dir",
-            type=str,
-            default="../data",
-            help="Root directory for data",
-        )
-        parser.add_argument(
-            "-nfr",
-            "--fast_read",
-            type=bool,
-            default=None,
-            help="Disable fast read and " "load features on fly",
-        )
-
-    def set_dataset_class(self, cls):
-        self.dataset_class = cls
-
-    def prepare_data_set(self, dataset_type, config):
-        if dataset_type not in config.imdb_files:
-            raise ValueError(
-                "Dataset type {} is not present in "
-                "imdb_files of dataset config".format(dataset_type)
-            )
-
-        imdb_files = config["imdb_files"][dataset_type]
-
-        datasets = []
-
-        for imdb_idx in range(len(imdb_files)):
-            cls = self.dataset_class
-            dataset = cls(dataset_type, imdb_idx, config)
-            datasets.append(dataset)
-
-        dataset = PythiaConcatDataset(datasets)
-
-        return dataset

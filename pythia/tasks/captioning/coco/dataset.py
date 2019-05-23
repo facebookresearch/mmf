@@ -1,93 +1,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import os
-
 import torch
-import tqdm
 
 from pythia.common.sample import Sample
-from pythia.tasks.base_dataset import BaseDataset
-from pythia.tasks.features_dataset import FeaturesDataset
-from pythia.tasks.image_database import ImageDatabase
-from pythia.utils.distributed_utils import is_main_process
-from pythia.utils.general import get_pythia_root
+from pythia.tasks.vqa.vqa2 import VQA2Dataset
 
 
-class COCODataset(BaseDataset):
+class COCODataset(VQA2Dataset):
     def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__("coco", dataset_type, config)
-        imdb_files = self.config.imdb_files
-
-        if dataset_type not in imdb_files:
-            raise ValueError(
-                "Dataset type {} is not present in "
-                "imdb_files of dataset config".format(dataset_type)
-            )
-
-        self.imdb_file = imdb_files[dataset_type][imdb_file_index]
-        self.imdb_file = self._get_absolute_path(self.imdb_file)
-        self.imdb = ImageDatabase(self.imdb_file)
-
-        self.kwargs = kwargs
-        self.image_depth_first = self.config.image_depth_first
-        self._should_fast_read = self.config.fast_read
-
-        self._use_features = False
-        if hasattr(self.config, "image_features"):
-            self._use_features = True
-            self.features_max_len = self.config.features_max_len
-
-            all_image_feature_dirs = self.config.image_features[dataset_type]
-            curr_image_features_dir = all_image_feature_dirs[imdb_file_index]
-            curr_image_features_dir = curr_image_features_dir.split(",")
-            curr_image_features_dir = self._get_absolute_path(curr_image_features_dir)
-
-            self.features_db = FeaturesDataset(
-                "coco",
-                directories=curr_image_features_dir,
-                depth_first=self.image_depth_first,
-                max_features=self.features_max_len,
-                fast_read=self._should_fast_read,
-                imdb=self.imdb,
-            )
-
-    def _get_absolute_path(self, paths):
-        if isinstance(paths, list):
-            return [self._get_absolute_path(path) for path in paths]
-        elif isinstance(paths, str):
-            if not os.path.isabs(paths):
-                pythia_root = get_pythia_root()
-                paths = os.path.join(pythia_root, self.config.data_root_dir, paths)
-            return paths
-        else:
-            raise TypeError(
-                "Paths passed to dataset should either be " "string or list"
-            )
-
-    def __len__(self):
-        return len(self.imdb)
-
-    def try_fast_read(self):
-        # Don't fast read in case of test set.
-        if self._dataset_type == "test":
-            return
-
-        if hasattr(self, "_should_fast_read") and self._should_fast_read is True:
-            self.writer.write(
-                "Starting to fast read {} {} dataset".format(
-                    self._name, self._dataset_type
-                )
-            )
-            self.cache = {}
-            for idx in tqdm.tqdm(
-                range(len(self.imdb)), miniters=100, disable=not is_main_process()
-            ):
-                self.cache[idx] = self.load_item(idx)
-
-    def get_item(self, idx):
-        if self._should_fast_read is True and self._dataset_type != "test":
-            return self.cache[idx]
-        else:
-            return self.load_item(idx)
+        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
+        self._name = "coco"
 
     def load_item(self, idx):
         sample_info = self.imdb[idx]

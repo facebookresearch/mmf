@@ -17,11 +17,11 @@ task_attributes:
                     - coco/detectron_fix_100/fc6/train_val_2014
                 imdb_files:
                     train:
-                    - imdb/captioning/imdb_train2014.npy
+                    - imdb/captioning/imdb_karpathy_train.npy
                     val:
-                    - imdb/captioning/imdb_val2014.npy
+                    - imdb/captioning/imdb_karpathy_val.npy
                     test:
-                    - imdb/captioning/imdb_test2014.npy
+                    - imdb/captioning/imdb_karpathy_test.npy
                 features_max_len: 100
                 processors:
                   text_processor:
@@ -43,6 +43,10 @@ task_attributes:
                         embedding_name: glove.6B.300d
                         vocab_file: vocabs/vocabulary_captioning_thresh5.txt
                 return_info: true
+                # Return OCR information
+                use_ocr: false
+                # Return spatial information of OCR tokens if present
+                use_ocr_info: false
 training_parameters:
     monitored_metric: coco_caption_accuracy
     metric_minimize: false
