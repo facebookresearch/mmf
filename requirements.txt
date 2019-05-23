@@ -1,4 +1,4 @@
-torch>=1.1.0
+torch==1.0.1.post2
 torchvision>0.2
 tensorboardX==1.2
 numpy>=1.14
