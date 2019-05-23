@@ -8,6 +8,7 @@ import numpy as np
 import torch
 from torch import nn
 
+from pythia.utils.vocab import Vocab
 from .attention import AttentionLayer
 from .layers import Identity
 
