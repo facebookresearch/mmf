@@ -21,9 +21,9 @@ class COCODataset(VQA2Dataset):
             current_sample.caption_id = torch.tensor(
                 sample_info["caption_id"], dtype=torch.int
             )
-        current_sample.text_len = torch.tensor(
-            len(sample_info["caption_tokens"]), dtype=torch.int
-        )
+            current_sample.caption_len = torch.tensor(
+                len(sample_info["caption_tokens"]), dtype=torch.int
+            )
 
         if isinstance(sample_info["image_id"], int):
             current_sample.image_id = torch.tensor(

@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-import gc
 import torch
 from pythia.common.registry import registry
 from pythia.modules.encoders import ImageEncoder
@@ -137,7 +136,7 @@ class BUTD(BaseModel):
         teacher_forcing = hasattr(sample_list, "text")
         data = {}
         if teacher_forcing:
-            caption_lengths, sort_ind = sample_list.text_len.sort(
+            caption_lengths, sort_ind = sample_list.caption_len.sort(
                 dim=0, descending=True
             )
             decode_lengths = (caption_lengths - 1).tolist()
@@ -147,15 +146,19 @@ class BUTD(BaseModel):
             data["image_features"] = image_embedding_total[sort_ind]
             timesteps = max(decode_lengths)
         else:
-            data["texts"] = torch.LongTensor(
-                [[self.vocab.SOS_INDEX]] * sample_list.get_batch_size()
-            ).to("cuda")
+            data["texts"] = image_embedding_total.new_full(
+                (sample_list.get_batch_size(), 1),
+                self.vocab.SOS_INDEX,
+                dtype=torch.long,
+            )
             data["image_features"] = image_embedding_total
             timesteps = self.text_processor.max_length
 
-        batch_size = sample_list.get_batch_size()
+        batch_size = image_embedding_total.size(0)
 
-        scores = torch.ones(batch_size, timesteps, self.vocab_size).to("cuda")
+        scores = image_embedding_total.new_ones(
+            (batch_size, timesteps, self.vocab_size)
+        )
 
         for t in range(timesteps):
             if not teacher_forcing:
@@ -187,27 +190,27 @@ class BUTD(BaseModel):
         )
         sample_list.add_field("targets", targets)
         model_output = {"scores": scores}
-        del (data)
-        gc.collect()
 
         return model_output
 
     def get_data_beam_search_t(self, data, batch_size_t):
-        data['image_features'] = data['image_features'][batch_size_t]
-        if 'state' in data:
-            h1 = data['state']['td_hidden'][0][batch_size_t]
-            c1 = data['state']['td_hidden'][1][batch_size_t]
-            h2 = data['state']['lm_hidden'][0][batch_size_t]
-            c2 = data['state']['lm_hidden'][1][batch_size_t]
-            data['state'] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
+        data["image_features"] = data["image_features"][batch_size_t]
+        if "state" in data:
+            h1 = data["state"]["td_hidden"][0][batch_size_t]
+            c1 = data["state"]["td_hidden"][1][batch_size_t]
+            h2 = data["state"]["lm_hidden"][0][batch_size_t]
+            c2 = data["state"]["lm_hidden"][1][batch_size_t]
+            data["state"] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
         return data
 
     def beam_search(self, sample_list, k=5):
-        image_embedding_total  = self.process_feature_embedding("image", sample_list)
+        image_embedding_total = self.process_feature_embedding("image", sample_list)
 
-        top_k_scores = torch.zeros(k, 1).to("cuda")
+        top_k_scores = image_embedding_total.new_zeros((k, 1))
         data = {}
-        data["texts"] = torch.LongTensor([[self.vocab.SOS_INDEX]] * k).to("cuda")
+        data["texts"] = image_embedding_total.new_full(
+            (k, 1), self.vocab.SOS_INDEX, dtype=torch.long
+        )
         data["image_features"] = (
             image_embedding_total.unsqueeze(1).expand(-1, k, -1, -1).squeeze(0)
         )
@@ -219,17 +222,16 @@ class BUTD(BaseModel):
         complete_seqs_scores = list()
 
         # Dummy output for loss calculation to not complain
-        outputs = torch.ones(sample_list.get_batch_size(), 52, self.vocab_size).to("cuda")
+        outputs = image_embedding_total.new_ones(
+            (sample_list.get_batch_size(), timesteps, self.vocab_size)
+        )
 
         for t in range(timesteps):
-            data["texts"] = self.word_embedding(data["texts"].long())
-            if "state" not in data:
-                data["state"] = None
+            data["texts"] = self.word_embedding(data["texts"])
+            data["state"] = data.pop("state", None)
 
             scores, data["state"] = self.decoder(
-                data["image_features"],
-                data["texts"][:, 0, :],
-                data["state"],
+                data["image_features"], data["texts"][:, 0, :], data["state"]
             )
 
             # Add predicted scores to top_k_scores
@@ -240,18 +242,14 @@ class BUTD(BaseModel):
             if t == 0:
                 top_k_scores, top_k_words = scores[0].topk(k, 0, True, True)
             else:
-                top_k_scores, top_k_words = scores.view(-1).topk(
-                    k, 0, True, True
-                )
+                top_k_scores, top_k_words = scores.view(-1).topk(k, 0, True, True)
 
             # Convert to vocab indices
             prev_word_inds = top_k_words / self.vocab_size
             next_word_inds = top_k_words % self.vocab_size
 
             # Add new words to sequences
-            seqs = torch.cat(
-                [seqs[prev_word_inds], next_word_inds.unsqueeze(1)], dim=1
-            )
+            seqs = torch.cat([seqs[prev_word_inds], next_word_inds.unsqueeze(1)], dim=1)
 
             # Find completed sequences
             incomplete_inds = [
@@ -278,17 +276,14 @@ class BUTD(BaseModel):
             top_k_scores = top_k_scores[incomplete_inds].unsqueeze(1)
             data["texts"] = next_word_inds[incomplete_inds].unsqueeze(1)
 
-
         if len(complete_seqs_scores) == 0:
             captions = torch.FloatTensor([0] * timesteps).unsqueeze(0)
         else:
             i = complete_seqs_scores.index(max(complete_seqs_scores))
             captions = torch.FloatTensor(complete_seqs[i]).unsqueeze(0)
 
-        targets = sample_list.answers[:, 0]
+        targets = sample_list.answers[:, 1:]
         sample_list.add_field("targets", targets)
-        sample_list.add_field("captions", captions)
-        model_output = {"scores": outputs}
+        model_output = {"scores": outputs, "captions": captions}
 
         return model_output
-

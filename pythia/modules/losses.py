@@ -227,8 +227,13 @@ class CaptionCrossEntropyLoss(nn.Module):
         """
         scores = model_output["scores"]
         targets = sample_list["targets"]
-        caption_lengths, _ = sample_list.text_len.sort(dim=0, descending=True)
-        decode_lengths = (caption_lengths - 1).tolist()
+
+        # If no captions(test dataset) then assume decode length to be uniform
+        if hasattr(sample_list, "caption_len"):
+            caption_lengths, _ = sample_list.caption_len.sort(dim=0, descending=True)
+            decode_lengths = (caption_lengths - 1).tolist()
+        else:
+            decode_lengths = [targets.size(1)] * targets.size(0)
         if torch.__version__ >= "1.1":
             scores = pack_padded_sequence(scores, decode_lengths, batch_first=True).data
             targets = pack_padded_sequence(

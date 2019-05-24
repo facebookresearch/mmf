@@ -4,9 +4,9 @@ model_attributes:
   butd: &butd
     model_data_dir: ../data/
     metrics:
-    - type: caption_accuracy
+    - type: caption_bleu4
     losses:
-    - type: cross_entropy
+    - type: caption_cross_entropy
     image_feature_dim: 2048
     image_feature_encodings:
     - type: finetune_faster_rcnn_fpn_fc7
@@ -47,7 +47,7 @@ training_parameters:
   warmup_iterations: 1000
   patience: 4000
   batch_size: 256
-  num_workers: 20
+  num_workers: 7
   task_size_proportional_sampling: true
-  monitored_metric: caption_accuracy
+  monitored_metric: caption_bleu4
   metric_minimize: false

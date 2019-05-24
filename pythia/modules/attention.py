@@ -160,7 +160,7 @@ class TopDownAttention(nn.Module):
 
 class CaptionAttention(nn.Module):
     def __init__(self, features_dim, decoder_dim, attention_dim, dropout=0.5):
-        super(CaptionAttention, self).__init__()
+        super().__init__()
         self.features_att = nn.utils.weight_norm(nn.Linear(features_dim, attention_dim))
         self.decoder_att = nn.utils.weight_norm(nn.Linear(decoder_dim, attention_dim))
         self.full_att = nn.utils.weight_norm(nn.Linear(attention_dim, 1))

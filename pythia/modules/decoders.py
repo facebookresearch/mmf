@@ -61,8 +61,7 @@ class CaptioningDecoder(nn.Module):
         features_dim=2048,
         dropout=0.5,
     ):
-        super(CaptioningDecoder, self).__init__()
-
+        super().__init__()
         self.features_dim = features_dim
         self.attention_dim = attention_dim
         self.embed_dim = embed_dim
