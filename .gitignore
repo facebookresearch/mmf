@@ -7,8 +7,14 @@
 data/.DS_Store
 docs/build
 results/*
+build
+dist
 boards/*
 *.egg_info/*
+*.egg_info
+checkpoint
+*.pth
+*.ckpt
 pythia.egg_info
 *_cache
 .cache

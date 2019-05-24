@@ -104,7 +104,7 @@ supported by the models in Pythia's model zoo.
 
 | Model  | Key | Supported Datasets    | Pretrained Models | Notes                                                     |
 |--------|-----------|-----------------------|-------------------|-----------------------------------------------------------|
-| Pythia | pythia    | vqa2, vizwiz, textvqa | [vqa2 train+val](https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia_train_val.pth), [vqa2 train only](https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia.pth)      |                                                            |
+| Pythia | pythia    | vqa2, vizwiz, textvqa | [vqa2 train+val](https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia_train_val.pth), [vqa2 train only](https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia.pth), [vizwiz](https://dl.fbaipublicfiles.com/pythia/pretrained_models/vizwiz/pythia_pretrained_vqa2.pth)  | VizWiz model has been pretrained on VQAv2 and transferred |
 | LoRRA  | lorra     | vqa2, vizwiz, textvqa       | [textvqa](https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth)      |                               |
 | BAN    | ban       | vqa2, vizwiz, textvqa | Coming soon!      | Support is preliminary and haven't been tested thoroughly. |
 
@@ -139,7 +139,8 @@ The table below shows inference metrics for various pretrained models:
 | Model  | Dataset          | Metric                     | Notes                         |
 |--------|------------------|----------------------------|-------------------------------|
 | Pythia | vqa2 (train+val) | test-dev accuracy - 68.31% | Can be easily pushed to 69.2% |
-| Pythia | vqa2 (train)     | test-dev accuracy - 66.7%  |                               |
+| Pythia | vqa2 (train)     | test-dev accuracy - 66.70%  | Pretrained on VQA2 and transferred to VizWiz |
+| Pythia | vizwiz (train)     | test-dev accuracy - 54.22%  |                               |
 | LoRRA  | textvqa (train)  | val accuracy - 27.4%       |                               |
 
 ## Documentation
