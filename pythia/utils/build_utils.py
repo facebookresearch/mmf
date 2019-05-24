@@ -2,8 +2,32 @@
 import torch
 import warnings
 
+from pythia.utils.configuration import Configuration
 from pythia.common.registry import registry
 from pythia.utils.general import get_optimizer_parameters
+
+
+def build_trainer(args, *rest, **kwargs):
+    configuration = Configuration(args.config)
+
+    # Update with the config override if passed
+    configuration.override_with_cmd_config(args.config_override)
+
+    # Now, update with opts args that were passed
+    configuration.override_with_cmd_opts(args.opts)
+
+    # Finally, update with args that were specifically passed
+    # as arguments
+    configuration.update_with_args(args)
+    configuration.freeze()
+
+    config = configuration.get_config()
+    registry.register("config", config)
+    registry.register("configuration", configuration)
+
+    trainer_name = config.training_parameters.trainer_name
+    trainer_cls = registry.get_trainer_class(trainer_name)
+    return trainer_cls(config)
 
 
 def build_model(config):
