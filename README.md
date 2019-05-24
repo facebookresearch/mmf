@@ -139,8 +139,8 @@ The table below shows inference metrics for various pretrained models:
 | Model  | Dataset          | Metric                     | Notes                         |
 |--------|------------------|----------------------------|-------------------------------|
 | Pythia | vqa2 (train+val) | test-dev accuracy - 68.31% | Can be easily pushed to 69.2% |
-| Pythia | vqa2 (train)     | test-dev accuracy - 66.70%  | Pretrained on VQA2 and transferred to VizWiz |
-| Pythia | vizwiz (train)     | test-dev accuracy - 54.22%  |                               |
+| Pythia | vqa2 (train)     | test-dev accuracy - 66.70%  |  |
+| Pythia | vizwiz (train)     | test-dev accuracy - 54.22%  |    Pretrained on VQA2 and transferred to VizWiz                           |
 | LoRRA  | textvqa (train)  | val accuracy - 27.4%       |                               |
 
 ## Documentation
