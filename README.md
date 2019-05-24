@@ -143,6 +143,8 @@ The table below shows inference metrics for various pretrained models:
 | Pythia | vizwiz (train)     | test-dev accuracy - 54.22%  |    Pretrained on VQA2 and transferred to VizWiz                           |
 | LoRRA  | textvqa (train)  | val accuracy - 27.4%       |                               |
 
+**Note** that, for simplicity, our current released model **does not** incorporate extensive data augmentations (e.g. visual genome, visual dialogue) during training, which was used in our challenge winner entries for VQA and VizWiz 2018. As a result, there can be some performance gap to models reported and released previously. If you are looking for reproducing those results, please checkout the [v0.1](https://github.com/facebookresearch/pythia/releases/tag/v0.1) release.
+
 ## Documentation
 
 Documentation specific on how to navigate around Pythia and making changes will be available soon.
@@ -171,10 +173,6 @@ and
   year={2018}
 }
 ```
-
-## Miscellaneous
-If you are looking for v0.1, the VQA 2018 challenge winner entry, checkout the tag
-for [v0.1](https://github.com/facebookresearch/pythia/releases/tag/v0.1).
 
 ## Troubleshooting/FAQs
 
