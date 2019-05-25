@@ -161,9 +161,7 @@ class VQA2Dataset(BaseDataset):
 
             if self.use_ocr:
                 answer_processor_arg["tokens"] = sample_info["ocr_tokens"]
-            processed_soft_copy_answers = self.answer_processor(
-                answer_processor_arg
-            )
+            processed_soft_copy_answers = self.answer_processor(answer_processor_arg)
 
             sample.answers = processed_soft_copy_answers["answers"]
             sample.targets = processed_soft_copy_answers["answers_scores"]

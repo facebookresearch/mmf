@@ -3,13 +3,13 @@ import torch
 from torch import nn
 
 from pythia.common.registry import registry
+from pythia.models.base_model import BaseModel
 from pythia.modules.embeddings import (ImageEmbedding, PreExtractedEmbedding,
                                        TextEmbedding)
 from pythia.modules.encoders import ImageEncoder
 from pythia.modules.layers import (ClassifierLayer, Identity,
                                    ModalCombineLayer, ReLUWithWeightNormFC)
 
-from .base_model import BaseModel
 
 # Note: Doesn't work currently. Needs to be migrated to new API
 @registry.register_model("top_down_bottom_up")

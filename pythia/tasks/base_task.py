@@ -47,6 +47,7 @@ class BaseTask(Dataset):
     Args:
         task_name (str): Name of the task with which it will be registered
     """
+
     def __init__(self, task_name):
         super(BaseTask, self).__init__()
         self.task_name = task_name

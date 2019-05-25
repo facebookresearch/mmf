@@ -43,6 +43,7 @@ class BaseDatasetBuilder:
     Args:
         dataset_name (str): Name of the dataset passed from child.
     """
+
     def __init__(self, dataset_name):
         self.dataset_name = dataset_name
 

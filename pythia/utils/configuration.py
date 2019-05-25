@@ -270,19 +270,20 @@ class Configuration:
 
         for task in tasks:
             if task not in self.config.task_attributes:
-                raise ValueError("Task {} not present in task_attributes "
-                                 "config".format(task))
+                raise ValueError(
+                    "Task {} not present in task_attributes " "config".format(task)
+                )
 
             task_config = self.config.task_attributes[task]
 
             for dataset in datasets:
                 if dataset in task_config.dataset_attributes:
-                    self.writer.write("======== {}/{} ======="
-                                      .format(task, dataset), "info")
+                    self.writer.write(
+                        "======== {}/{} =======".format(task, dataset), "info"
+                    )
                     dataset_config = task_config.dataset_attributes[dataset]
                     self.writer.write(
-                        json.dumps(dataset_config, indent=4, sort_keys=True),
-                        "info"
+                        json.dumps(dataset_config, indent=4, sort_keys=True), "info"
                     )
 
         self.writer.write("======  Optimizer Attributes  ======", "info")
@@ -292,15 +293,19 @@ class Configuration:
         )
 
         if self.config.model not in self.config.model_attributes:
-            raise ValueError("{} not present in model attributes".format(
-                self.config.model
-            ))
+            raise ValueError(
+                "{} not present in model attributes".format(self.config.model)
+            )
 
-        self.writer.write("======  Model ({}) Attributes  ======"
-                          .format(self.config.model), "info")
         self.writer.write(
-            json.dumps(self.config.model_attributes[self.config.model], indent=4,
-                       sort_keys=True),
+            "======  Model ({}) Attributes  ======".format(self.config.model), "info"
+        )
+        self.writer.write(
+            json.dumps(
+                self.config.model_attributes[self.config.model],
+                indent=4,
+                sort_keys=True,
+            ),
             "info",
         )
 

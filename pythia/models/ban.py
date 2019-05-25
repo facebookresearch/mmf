@@ -3,11 +3,10 @@ import torch
 from torch import nn
 
 from pythia.common.registry import registry
+from pythia.models.base_model import BaseModel
 from pythia.modules.embeddings import BiLSTMTextEmbedding
 from pythia.modules.layers import (BCNet, BiAttention, FCNet,
                                    WeightNormClassifier)
-
-from .base_model import BaseModel
 
 
 @registry.register_model("ban")

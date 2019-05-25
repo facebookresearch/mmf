@@ -5,14 +5,13 @@ import os
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.distributed import DistributedSampler
 
+from pythia.common.batch_collator import BatchCollator
 from pythia.common.registry import registry
 from pythia.utils.distributed_utils import (gather_tensor, get_world_size,
                                             is_main_process)
 from pythia.utils.general import (ckpt_name_from_core_args,
                                   foldername_from_config_override)
 from pythia.utils.timer import Timer
-
-from .batch_collator import BatchCollator
 
 
 class TestReporter(Dataset):

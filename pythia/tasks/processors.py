@@ -72,9 +72,9 @@ Example::
             text = [t.strip() for t in text.split(" ")]
             return {"text": text}
 """
+import multiprocessing
 import os
 import warnings
-import multiprocessing
 from collections import Counter
 
 import torch
@@ -96,6 +96,7 @@ class BaseProcessor:
                              `params` attributes if available.
 
     """
+
     def __init__(self, config, *args, **kwargs):
         return
 
@@ -125,6 +126,7 @@ class Processor:
                              be initialized and ``params`` of that procesor.
 
     """
+
     def __init__(self, config, *args, **kwargs):
         self.writer = registry.get("writer")
 
@@ -196,6 +198,7 @@ class VocabProcessor(BaseProcessor):
         vocab (Vocab): Vocab class object which is abstraction over the vocab
                        file passed.
     """
+
     MAX_LENGTH_DEFAULT = 50
     PAD_TOKEN = "<pad>"
     PAD_INDEX = 0
@@ -321,6 +324,7 @@ class GloVeProcessor(VocabProcessor):
                              :func:`~VocabProcessor`.
 
     """
+
     def __init__(self, config, *args, **kwargs):
         if not hasattr(config, "vocab"):
             raise AttributeError(
@@ -360,6 +364,7 @@ class FastTextProcessor(VocabProcessor):
         config (ConfigNode): Configuration values for the processor.
 
     """
+
     def __init__(self, config, *args, **kwargs):
         self._init_extras(config)
         self.config = config
@@ -415,8 +420,7 @@ class FastTextProcessor(VocabProcessor):
         if os.path.exists(model_file_path):
             if is_main_process:
                 self.writer.write(
-                    "Vectors already present at {}.".format(model_file_path),
-                    "info"
+                    "Vectors already present at {}.".format(model_file_path), "info"
                 )
             return model_file_path
 
@@ -428,8 +432,11 @@ class FastTextProcessor(VocabProcessor):
         response = requests.get(FASTTEXT_WIKI_URL, stream=True)
 
         with open(model_file_path, "wb") as f:
-            pbar = tqdm(total=int(response.headers['Content-Length']) / 4096,
-                        miniters=50, disable=not is_main_process)
+            pbar = tqdm(
+                total=int(response.headers["Content-Length"]) / 4096,
+                miniters=50,
+                disable=not is_main_process,
+            )
 
             idx = 0
             for data in response.iter_content(chunk_size=4096):
@@ -442,8 +449,9 @@ class FastTextProcessor(VocabProcessor):
             pbar.close()
 
         if is_main_process:
-            self.writer.write("fastText bin downloaded at {}."
-                              .format(model_file_path), "info")
+            self.writer.write(
+                "fastText bin downloaded at {}.".format(model_file_path), "info"
+            )
 
         return model_file_path
 
@@ -453,8 +461,7 @@ class FastTextProcessor(VocabProcessor):
         is_main_process = self._is_main_process()
 
         if is_main_process:
-            self.writer.write("Loading fasttext model now from %s" %
-                              model_file)
+            self.writer.write("Loading fasttext model now from %s" % model_file)
 
         self.model = load_model(model_file)
         # String to Vector
@@ -501,6 +508,7 @@ class VQAAnswerProcessor(BaseProcessor):
     Attributes:
         answer_vocab (VocabDict): Class representing answer vocabulary
     """
+
     DEFAULT_NUM_ANSWERS = 10
 
     def __init__(self, config, *args, **kwargs):
@@ -667,6 +675,7 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
         config (ConfigNode): Configuration for soft copy processor.
 
     """
+
     DEFAULT_MAX_LENGTH = 50
 
     def __init__(self, config, *args, **kwargs):
@@ -759,6 +768,7 @@ class SimpleWordProcessor(BaseProcessor):
         tokenizer (function): Type of tokenizer to be used.
 
     """
+
     def __init__(self, *args, **kwargs):
         from pythia.utils.text_utils import word_tokenize
 
@@ -776,6 +786,7 @@ class SimpleSentenceProcessor(BaseProcessor):
         tokenizer (function): Type of tokenizer to be used.
 
     """
+
     def __init__(self, *args, **kwargs):
         from pythia.utils.text_utils import tokenize
 
@@ -822,6 +833,7 @@ class BBoxProcessor(VocabProcessor):
         })
 
     """
+
     def __init__(self, config, *args, **kwargs):
         from pythia.utils.dataset_utils import build_bbox_tensors
 
