@@ -7,6 +7,7 @@ import torch
 import yaml
 
 from pythia.common.registry import registry
+from pythia.utils.distributed_utils import is_main_process, synchronize
 from pythia.utils.general import (ckpt_name_from_core_args,
                                   foldername_from_config_override, updir)
 
@@ -72,10 +73,10 @@ class Checkpoint:
             if os.path.exists(ckpt_filepath):
                 self._load(ckpt_filepath)
             else:
-                warnings.warn("Tried to resume but checkpoint filepath {} "
-                              "is not present. Skipping."
-                              .format(ckpt_filepath))
-
+                warnings.warn(
+                    "Tried to resume but checkpoint filepath {} "
+                    "is not present. Skipping.".format(ckpt_filepath)
+                )
 
     def _load(self, file):
         self.trainer.writer.write("Loading checkpoint")
@@ -135,19 +136,20 @@ class Checkpoint:
             final_dict = {}
             model = self.trainer.model
             own_state = model.state_dict()
+
             for key, value in pretrained_mapping.items():
-                key = "." + key + "."
-                value = "." + value + "."
+                key += "."
+                value += "."
                 for attr in new_dict:
                     for own_attr in own_state:
-                        if "fa_context" in own_attr:
-                            continue
                         if (
                             key in attr
                             and value in own_attr
                             and attr.replace(key, "") == own_attr.replace(value, "")
                         ):
-                            print("Copying", attr, own_attr)
+                            self.trainer.writer.write(
+                                "Copying " + attr + " " + own_attr
+                            )
                             own_state[own_attr].copy_(new_dict[attr])
             self.trainer.writer.write("Pretrained model loaded")
 
@@ -200,6 +202,13 @@ class Checkpoint:
         }
 
     def save(self, iteration, update_best=False):
+        # Sync all models before we start the save process
+        synchronize()
+
+        # Only save in main process
+        if not is_main_process():
+            return
+
         ckpt_filepath = os.path.join(
             self.models_foldername, "model_%d.ckpt" % iteration
         )
@@ -229,6 +238,7 @@ class Checkpoint:
     def restore(self):
         self.trainer.writer.write("Restoring checkpoint")
         best_path = os.path.join(self.ckpt_foldername, self.ckpt_prefix + "best.ckpt")
+
         if os.path.exists(best_path):
             ckpt = self._torch_load(best_path)
             self.trainer.model.load_state_dict(ckpt["model"])
