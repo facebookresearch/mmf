@@ -42,7 +42,7 @@ class Timer:
             format = self.DEFAULT_TIME_FORMAT
 
         items = [ms, s, m, h]
-        assert len(items) == len(format), "Format length should be same" " as items"
+        assert len(items) == len(format), "Format length should be same as items"
 
         time_str = ""
         for idx, item in enumerate(items):

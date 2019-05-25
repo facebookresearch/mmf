@@ -132,8 +132,7 @@ class Trainer:
                 rank, torch.cuda.get_device_name(self.local_rank)
             )
 
-            self.writer.write(device_info)
-            print(device_info)
+            self.writer.write(device_info, log_all=True)
 
         self.model = self.model.to(self.device)
 
@@ -360,7 +359,7 @@ class Trainer:
         should_break = False
 
         if self.current_iteration % self.snapshot_interval == 0 or force:
-            self.writer.write("Evaluation time. Running on full " "validation set...")
+            self.writer.write("Evaluation time. Running on full validation set...")
             # Validation and Early stopping
             # Create a new meter for this case
             report, meter = self.evaluate(self.val_loader)

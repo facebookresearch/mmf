@@ -206,7 +206,7 @@ class VocabProcessor(BaseProcessor):
     def __init__(self, config, *args, **kwargs):
         if not hasattr(config, "vocab"):
             raise AttributeError(
-                "config passed to the processor has no " "attribute vocab"
+                "config passed to the processor has no attribute vocab"
             )
 
         self.vocab = Vocab(*args, **config.vocab, **kwargs)
@@ -328,7 +328,7 @@ class GloVeProcessor(VocabProcessor):
     def __init__(self, config, *args, **kwargs):
         if not hasattr(config, "vocab"):
             raise AttributeError(
-                "Config passed to the processor has no " "attribute vocab"
+                "Config passed to the processor has no attribute vocab"
             )
         vocab_processor_config = ConfigNode(config)
         # GloVeProcessor needs vocab type to be "intersected"

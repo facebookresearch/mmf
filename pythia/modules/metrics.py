@@ -79,7 +79,7 @@ class Metrics:
             if isinstance(metric, collections.Mapping):
                 if not hasattr(metric, "type"):
                     raise ValueError(
-                        "Metric {} needs to have 'type' " "attribute".format(metric)
+                        "Metric {} needs to have 'type' attribute".format(metric)
                     )
                 metric = metric.type
                 params = getattr(metric, "params", {})
@@ -156,7 +156,7 @@ class BaseMetric:
         """
         # Override in your child class
         raise NotImplementedError(
-            "'calculate' must be implemented in the " "child class"
+            "'calculate' must be implemented in the child class"
         )
 
     def __call__(self, *args, **kwargs):

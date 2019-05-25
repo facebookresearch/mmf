@@ -81,7 +81,7 @@ class BaseDatasetBuilder:
             dataset (BaseDataset): Dataset containing data to be trained on
         """
         raise NotImplementedError(
-            "This dataset builder doesn't implement a " "load method"
+            "This dataset builder doesn't implement a load method"
         )
 
     def build(self, dataset_type, config, *args, **kwargs):
@@ -114,5 +114,5 @@ class BaseDatasetBuilder:
                                  config.
         """
         raise NotImplementedError(
-            "This dataset builder doesn't implement a " "build method"
+            "This dataset builder doesn't implement a build method"
         )

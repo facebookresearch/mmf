@@ -59,7 +59,7 @@ class ConfigNode(collections.OrderedDict):
 
     def __setattr__(self, key, value):
         if self.__dict__[ConfigNode.IMMUTABLE] is True:
-            raise AttributeError("ConfigNode has been frozen and can't" " be updated")
+            raise AttributeError("ConfigNode has been frozen and can't be updated")
 
         self[key] = value
 
@@ -271,7 +271,7 @@ class Configuration:
         for task in tasks:
             if task not in self.config.task_attributes:
                 raise ValueError(
-                    "Task {} not present in task_attributes " "config".format(task)
+                    "Task {} not present in task_attributes config".format(task)
                 )
 
             task_config = self.config.task_attributes[task]

@@ -72,7 +72,7 @@ class BaseModel(nn.Module):
         downloads should also happen here.
         """
         raise NotImplementedError(
-            "Build method not implemented in the child " "model class."
+            "Build method not implemented in the child model class."
         )
 
     def init_losses_and_metrics(self):
@@ -100,7 +100,7 @@ class BaseModel(nn.Module):
 
         """
         raise NotImplementedError(
-            "Forward of the child model class needs " "to be implemented."
+            "Forward of the child model class needs to be implemented."
         )
 
     def __call__(self, sample_list, *args, **kwargs):
@@ -108,7 +108,7 @@ class BaseModel(nn.Module):
 
         # Make sure theat the output from the model is a Mapping
         assert isinstance(model_output, collections.Mapping), (
-            "A dict must " "be returned from the forward of the model."
+            "A dict must be returned from the forward of the model."
         )
 
         if "losses" in model_output:

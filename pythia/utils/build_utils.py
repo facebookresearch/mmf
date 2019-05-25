@@ -35,7 +35,7 @@ def build_optimizer(model, config):
 
     if not hasattr(optimizer_config, "params"):
         warnings.warn(
-            "optimizer attributes has no params defined, " "defaulting to {}."
+            "optimizer attributes has no params defined, defaulting to {}."
         )
 
     params = getattr(optimizer_config, "params", {})

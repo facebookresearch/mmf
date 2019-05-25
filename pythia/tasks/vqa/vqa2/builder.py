@@ -59,7 +59,7 @@ class VQA2Builder(BaseDatasetBuilder):
             "--fast_read",
             type=bool,
             default=None,
-            help="Disable fast read and " "load features on fly",
+            help="Disable fast read and load features on fly",
         )
 
     def set_dataset_class(self, cls):
