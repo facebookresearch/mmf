@@ -11,6 +11,7 @@ from pythia.common.meter import Meter
 from pythia.common.registry import registry
 from pythia.common.report import Report
 from pythia.common.task_loader import TaskLoader
+from pythia.utils.build_utils import build_model, build_optimizer
 from pythia.utils.checkpoint import Checkpoint
 from pythia.utils.configuration import Configuration
 from pythia.utils.distributed_utils import (broadcast_scalar, is_main_process,
@@ -20,7 +21,6 @@ from pythia.utils.flags import flags
 from pythia.utils.general import (clip_gradients, dict_to_string,
                                   lr_lambda_update)
 from pythia.utils.logger import Logger
-from pythia.utils.build_utils import build_model, build_optimizer
 from pythia.utils.timer import Timer
 
 
@@ -56,7 +56,7 @@ class Trainer:
         if self.local_rank is not None and training_parameters.distributed:
             if not torch.distributed.is_nccl_available():
                 raise RuntimeError(
-                    "Unable to initialize process group: " "NCCL is not available"
+                    "Unable to initialize process group: NCCL is not available"
                 )
             torch.distributed.init_process_group(backend="nccl")
             synchronize()
@@ -128,11 +128,11 @@ class Trainer:
 
         if "cuda" in str(self.config.training_parameters.device):
             rank = self.local_rank if self.local_rank is not None else 0
-            self.writer.write(
-                "CUDA Device {} is: {}".format(
-                    rank, torch.cuda.get_device_name(self.local_rank)
-                )
+            device_info = "CUDA Device {} is: {}".format(
+                rank, torch.cuda.get_device_name(self.local_rank)
             )
+
+            self.writer.write(device_info, log_all=True)
 
         self.model = self.model.to(self.device)
 
@@ -151,7 +151,7 @@ class Trainer:
             and distributed is True
         ):
             self.model = torch.nn.parallel.DistributedDataParallel(
-                self.model, device_ids=[self.local_rank], output_device=self.local_rank
+                self.model, device_ids=[self.local_rank]
             )
 
     def load_optimizer(self):
@@ -212,7 +212,6 @@ class Trainer:
         if "train" not in self.run_type:
             self.inference()
             return
-
 
         should_break = False
 
@@ -351,14 +350,16 @@ class Trainer:
             extra=extra,
             prefix=report.dataset_name,
         )
-        self._try_full_validation()
+
+        should_break = self._try_full_validation()
 
         return should_break
 
     def _try_full_validation(self, force=False):
+        should_break = False
+
         if self.current_iteration % self.snapshot_interval == 0 or force:
-            self.writer.write("Evaluation time. Running on full "
-                              "validation set...")
+            self.writer.write("Evaluation time. Running on full validation set...")
             # Validation and Early stopping
             # Create a new meter for this case
             report, meter = self.evaluate(self.val_loader)
@@ -382,6 +383,8 @@ class Trainer:
             if stop is True:
                 self.writer.write("Early stopping activated")
                 should_break = True
+
+        return should_break
 
     def evaluate(self, loader, use_tqdm=False, single_batch=False):
         meter = Meter()

@@ -5,11 +5,10 @@ import yaml
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
+from pythia.common.batch_collator import BatchCollator
+from pythia.common.test_reporter import TestReporter
 from pythia.tasks import MultiTask
 from pythia.utils.distributed_utils import get_world_size
-
-from .batch_collator import BatchCollator
-from .test_reporter import TestReporter
 
 
 class TaskLoader:
@@ -36,7 +35,6 @@ class TaskLoader:
     def get_test_reporter(self, dataset_type):
         task = getattr(self, "{}_task".format(dataset_type))
         return TestReporter(task)
-
 
     def _load_task_config(self, task_name):
         directory = os.path.dirname(os.path.abspath(__file__))

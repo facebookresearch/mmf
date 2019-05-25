@@ -32,6 +32,7 @@ class Sample(OrderedDict):
         # Custom attributes can be added to ``Sample`` after initialization
         >>> sample.context = torch.tensor(4)
     """
+
     def __init__(self, init_dict={}):
         super().__init__(init_dict)
 
@@ -71,6 +72,7 @@ class SampleList(OrderedDict):
         >>> sample_list.text
         torch.tensor([2, 2])
     """
+
     _TENSOR_FIELD_ = "_tensor_field"
 
     def __init__(self, samples=[]):

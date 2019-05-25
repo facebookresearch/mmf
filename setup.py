@@ -3,8 +3,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os.path
 import sys
-import setuptools
 
+import setuptools
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "pythia"))
 

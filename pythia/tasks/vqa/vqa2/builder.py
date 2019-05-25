@@ -11,8 +11,7 @@ import os
 from pythia.common.registry import registry
 from pythia.tasks.base_dataset_builder import BaseDatasetBuilder
 from pythia.tasks.concat_dataset import PythiaConcatDataset
-
-from .dataset import VQA2Dataset
+from pythia.tasks.vqa.vqa2.dataset import VQA2Dataset
 
 
 @registry.register_builder("vqa2")
@@ -60,7 +59,7 @@ class VQA2Builder(BaseDatasetBuilder):
             "--fast_read",
             type=bool,
             default=None,
-            help="Disable fast read and " "load features on fly",
+            help="Disable fast read and load features on fly",
         )
 
     def set_dataset_class(self, cls):

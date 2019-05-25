@@ -64,11 +64,13 @@ class Registry:
                 ...
 
         """
+
         def wrap(task_cls):
             from pythia.tasks.base_task import BaseTask
 
-            assert issubclass(task_cls, BaseTask), \
-                   "All task must inherit BaseTask class"
+            assert issubclass(
+                task_cls, BaseTask
+            ), "All task must inherit BaseTask class"
             cls.mapping["task_name_mapping"][name] = task_cls
             return task_cls
 
@@ -96,8 +98,9 @@ class Registry:
         def wrap(builder_cls):
             from pythia.tasks.base_dataset_builder import BaseDatasetBuilder
 
-            assert issubclass(builder_cls, BaseDatasetBuilder), \
-                   "All builders must inherit BaseDatasetBuilder class"
+            assert issubclass(
+                builder_cls, BaseDatasetBuilder
+            ), "All builders must inherit BaseDatasetBuilder class"
             cls.mapping["builder_name_mapping"][name] = builder_cls
             return builder_cls
 
@@ -121,10 +124,13 @@ class Registry:
                 ...
 
         """
+
         def wrap(func):
             from pythia.modules.metrics import BaseMetric
-            assert issubclass(func, BaseMetric), \
-                   "All Metric must inherit BaseMetric class"
+
+            assert issubclass(
+                func, BaseMetric
+            ), "All Metric must inherit BaseMetric class"
             cls.mapping["metric_name_mapping"][name] = func
             return func
 
@@ -147,11 +153,13 @@ class Registry:
                 ...
 
         """
+
         def wrap(func):
             from torch import nn
 
-            assert issubclass(func, nn.Module), \
-                   "All loss must inherit torch.nn.Module class"
+            assert issubclass(
+                func, nn.Module
+            ), "All loss must inherit torch.nn.Module class"
             cls.mapping["loss_name_mapping"][name] = func
             return func
 
@@ -173,11 +181,13 @@ class Registry:
             class Pythia(BaseModel):
                 ...
         """
+
         def wrap(func):
             from pythia.models.base_model import BaseModel
 
-            assert issubclass(func, BaseModel), \
-                   "All models must inherit BaseModel class"
+            assert issubclass(
+                func, BaseModel
+            ), "All models must inherit BaseModel class"
             cls.mapping["model_name_mapping"][name] = func
             return func
 
@@ -200,11 +210,13 @@ class Registry:
                 ...
 
         """
+
         def wrap(func):
             from pythia.tasks.processors import BaseProcessor
 
-            assert issubclass(func, BaseProcessor), \
-                   "All Processor classes must inherit BaseProcessor class"
+            assert issubclass(
+                func, BaseProcessor
+            ), "All Processor classes must inherit BaseProcessor class"
             cls.mapping["processor_name_mapping"][name] = func
             return func
 
@@ -318,7 +330,6 @@ class Registry:
         return value
 
     @classmethod
-
     def unregister(cls, name):
         r"""Remove an item from registry with key 'name'
 

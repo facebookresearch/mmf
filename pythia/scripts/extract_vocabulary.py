@@ -75,7 +75,7 @@ class ExtractVocabulary:
             "--out_dir",
             type=str,
             default="./",
-            help="output directory, default is " "current directory",
+            help="output directory, default is current directory",
         )
         parser.add_argument(
             "--min_freq",
@@ -88,7 +88,7 @@ class ExtractVocabulary:
             "--vocab_file_name",
             type=str,
             default="vocabulary.txt",
-            help="Name of the file in " "vocabulary will be stored",
+            help="Name of the file in vocabulary will be stored",
         )
 
         args = parser.parse_args()

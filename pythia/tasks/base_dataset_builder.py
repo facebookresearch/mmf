@@ -43,6 +43,7 @@ class BaseDatasetBuilder:
     Args:
         dataset_name (str): Name of the dataset passed from child.
     """
+
     def __init__(self, dataset_name):
         self.dataset_name = dataset_name
 
@@ -80,7 +81,7 @@ class BaseDatasetBuilder:
             dataset (BaseDataset): Dataset containing data to be trained on
         """
         raise NotImplementedError(
-            "This dataset builder doesn't implement a " "load method"
+            "This dataset builder doesn't implement a load method"
         )
 
     def build(self, dataset_type, config, *args, **kwargs):
@@ -113,5 +114,5 @@ class BaseDatasetBuilder:
                                  config.
         """
         raise NotImplementedError(
-            "This dataset builder doesn't implement a " "build method"
+            "This dataset builder doesn't implement a build method"
         )

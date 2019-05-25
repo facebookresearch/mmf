@@ -113,7 +113,11 @@ training_parameters:
     task_size_proportional_sampling: true
     monitored_metric: vqa_accuracy
     pretrained_mapping:
+      word_embedding: word_embedding
       text_embeddings: text_embeddings
+      context_feature_encoders: context_feature_encoders
+      context_embeddings: context_embeddings
+      context_feature_embeddings_list: context_feature_embeddings_list
       image_feature_encoders: image_feature_encoders
       image_feature_embeddings_list: image_feature_embeddings_list
       image_text_multi_modal_combine_layer: image_text_multi_modal_combine_layer

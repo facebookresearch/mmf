@@ -20,8 +20,7 @@ class Flags:
         self.parser.add_argument_group("Core Arguments")
 
         self.parser.add_argument(
-            "--config", type=str, default=None, required=False,
-            help="config yaml file"
+            "--config", type=str, default=None, required=False, help="config yaml file"
         )
 
         self.parser.add_argument(
@@ -38,8 +37,10 @@ class Flags:
             "--model", type=str, required=True, help="Model for training"
         )
         self.parser.add_argument(
-            "--run_type", type=str, default=None,
-            help="Type of run. Default=train+predict"
+            "--run_type",
+            type=str,
+            default=None,
+            help="Type of run. Default=train+predict",
         )
         self.parser.add_argument(
             "-exp",
@@ -60,32 +61,32 @@ class Flags:
         self.parser.add_argument(
             "--config_overwrite",
             type=str,
-            help="a json string to update" " yaml config file",
+            help="a json string to update yaml config file",
             default=None,
         )
 
         self.parser.add_argument(
             "--force_restart",
             action="store_true",
-            help="flag to force clean previous" " result and restart training",
+            help="flag to force clean previous result and restart training",
         )
         self.parser.add_argument(
             "--log_interval",
             type=int,
             default=None,
-            help="Number of iterations after which" " we should log validation results",
+            help="Number of iterations after which we should log validation results",
         )
         self.parser.add_argument(
             "--snapshot_interval",
             type=int,
             default=None,
-            help="Number of iterations after which " " we should save snapshots",
+            help="Number of iterations after which  we should save snapshots",
         )
         self.parser.add_argument(
             "--max_iterations",
             type=int,
             default=None,
-            help="Number of iterations after which " " we should stop training",
+            help="Number of iterations after which  we should stop training",
         )
         self.parser.add_argument(
             "--max_epochs",
@@ -119,14 +120,14 @@ class Flags:
             "--should_not_log",
             action="store_true",
             default=False,
-            help="Set when you don't want" " logging to happen",
+            help="Set when you don't want logging to happen",
         )
         self.parser.add_argument(
             "-co",
             "--config_override",
             type=str,
             default=None,
-            help="Use to override config " "from command line directly",
+            help="Use to override config from command line directly",
         )
         self.parser.add_argument(
             "--resume_file",
@@ -138,13 +139,13 @@ class Flags:
             "--resume",
             type=bool,
             default=None,
-            help="Use when you want to restore from " "automatic checkpoint",
+            help="Use when you want to restore from automatic checkpoint",
         )
         self.parser.add_argument(
             "--evalai_inference",
             type=bool,
             default=None,
-            help="Whether predictions should be made" " for EvalAI.",
+            help="Whether predictions should be made for EvalAI.",
         )
         self.parser.add_argument(
             "--verbose_dump",
@@ -175,8 +176,7 @@ class Flags:
             "--distributed",
             type=bool,
             default=None,
-            help="Use when you want to use DistributedDataParallel for "
-            "training",
+            help="Use when you want to use DistributedDataParallel for training",
         )
         self.parser.add_argument(
             "-dev",
@@ -225,7 +225,7 @@ class Flags:
             "opts",
             default=None,
             nargs=argparse.REMAINDER,
-            help="Modify config options from " "command line",
+            help="Modify config options from command line",
         )
 
     def update_task_args(self):

@@ -60,6 +60,7 @@ class BaseModel(nn.Module):
         config (ConfigNode): ``model_attributes`` configuration from global config.
 
     """
+
     def __init__(self, config):
         super().__init__()
         self.config = config
@@ -70,8 +71,9 @@ class BaseModel(nn.Module):
         build their model separately than ``__init__``. All model related
         downloads should also happen here.
         """
-        raise NotImplementedError("Build method not implemented in the child "
-                                  "model class.")
+        raise NotImplementedError(
+            "Build method not implemented in the child model class."
+        )
 
     def init_losses_and_metrics(self):
         """Initializes loss and metrics for the model based ``losses`` key
@@ -97,15 +99,16 @@ class BaseModel(nn.Module):
             Dict: Dict containing scores object.
 
         """
-        raise NotImplementedError("Forward of the child model class needs "
-                                  "to be implemented.")
+        raise NotImplementedError(
+            "Forward of the child model class needs to be implemented."
+        )
 
     def __call__(self, sample_list, *args, **kwargs):
         model_output = super().__call__(sample_list, *args, **kwargs)
 
         # Make sure theat the output from the model is a Mapping
         assert isinstance(model_output, collections.Mapping), (
-            "A dict must " "be returned from the forward of the model."
+            "A dict must be returned from the forward of the model."
         )
 
         if "losses" in model_output:

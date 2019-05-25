@@ -64,6 +64,7 @@ class Metrics:
                                         specifies name and parameters of the
                                         metrics used.
     """
+
     def __init__(self, metric_list):
         if not isinstance(metric_list, list):
             metrics_list = [metric_list]
@@ -78,7 +79,7 @@ class Metrics:
             if isinstance(metric, collections.Mapping):
                 if not hasattr(metric, "type"):
                     raise ValueError(
-                        "Metric {} needs to have 'type' " "attribute".format(metric)
+                        "Metric {} needs to have 'type' attribute".format(metric)
                     )
                 metric = metric.type
                 params = getattr(metric, "params", {})
@@ -134,6 +135,7 @@ class BaseMetric:
         name (str): Name of the metric.
 
     """
+
     def __init__(self, name, *args, **kwargs):
         self.name = name
 
@@ -153,8 +155,9 @@ class BaseMetric:
 
         """
         # Override in your child class
-        raise NotImplementedError("'calculate' must be implemented in the "
-                                  "child class")
+        raise NotImplementedError(
+            "'calculate' must be implemented in the child class"
+        )
 
     def __call__(self, *args, **kwargs):
         return self.calculate(*args, **kwargs)
@@ -170,6 +173,7 @@ class Accuracy(BaseMetric):
 
     **Key:** ``accuracy``
     """
+
     def __init__(self):
         super().__init__("accuracy")
 
@@ -207,6 +211,7 @@ class VQAAccuracy(BaseMetric):
 
     .. _here: https://visualqa.org/evaluation.html
     """
+
     def __init__(self):
         super().__init__("vqa_accuracy")
 
@@ -292,6 +297,7 @@ class RecallAt1(RecallAtK):
 
     **Key**: ``r@1``.
     """
+
     def __init__(self):
         super().__init__("r@1")
 
@@ -318,6 +324,7 @@ class RecallAt5(RecallAtK):
 
     **Key**: ``r@5``.
     """
+
     def __init__(self):
         super().__init__("r@5")
 
@@ -344,6 +351,7 @@ class RecallAt10(RecallAtK):
 
     **Key**: ``r@10``.
     """
+
     def __init__(self):
         super().__init__("r@10")
 
@@ -370,6 +378,7 @@ class MeanRank(RecallAtK):
 
     **Key**: ``mean_r``.
     """
+
     def __init__(self):
         super().__init__("mean_r")
 
@@ -396,6 +405,7 @@ class MeanReciprocalRank(RecallAtK):
 
     **Key**: ``mean_rr``.
     """
+
     def __init__(self):
         super().__init__("mean_rr")
 

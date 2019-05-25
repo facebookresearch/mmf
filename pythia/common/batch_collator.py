@@ -1,5 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from .sample import SampleList
+from pythia.common.sample import SampleList
 
 
 class BatchCollator:

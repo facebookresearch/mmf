@@ -16,9 +16,7 @@ class Logger:
     def __init__(self, config):
         self.logger = None
         self.summary_writer = None
-
-        if not is_main_process():
-            return
+        self._is_main_process = is_main_process()
 
         self.timer = Timer()
         self.config = config
@@ -44,7 +42,8 @@ class Logger:
 
         self.log_filename = os.path.join(self.log_folder, self.log_filename)
 
-        print("Logging to:", self.log_filename)
+        if self._is_main_process:
+            print("Logging to:", self.log_filename)
 
         logging.captureWarnings(True)
 
@@ -86,9 +85,13 @@ class Logger:
         if getattr(self, "summary_writer", None) is not None:
             self.summary_writer.close()
 
-    def write(self, x, level="info", donot_print=False):
+    def write(self, x, level="info", donot_print=False, log_all=False):
         if self.logger is None:
             return
+
+        if log_all is False and not self._is_main_process:
+            return
+
         # if it should not log then just print it
         if self.should_log:
             if hasattr(self.logger, level):
@@ -107,20 +110,32 @@ class Logger:
         else:
             self.write(x, level)
 
-    def add_scalar(self, key, value, iteration):
+    def _should_log_tensorboard(self):
         if self.summary_writer is None:
+            return False
+
+        if not self._is_main_process:
+            return False
+
+        return True
+
+    def add_scalar(self, key, value, iteration):
+        if not self._should_log_tensorboard():
             return
+
         self.summary_writer.add_scalar(key, value, iteration)
 
     def add_scalars(self, scalar_dict, iteration):
-        if self.summary_writer is None:
+        if not self._should_log_tensorboard():
             return
+
         for key, val in scalar_dict.items():
             self.summary_writer.add_scalar(key, val, iteration)
 
     def add_histogram_for_model(self, model, iteration):
-        if self.summary_writer is None:
+        if not self._should_log_tensorboard():
             return
+
         for name, param in model.named_parameters():
             np_param = param.clone().cpu().data.numpy()
             self.summary_writer.add_histogram(name, np_param, iteration)
