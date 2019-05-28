@@ -12,6 +12,7 @@ Import the global registry object using
 Various decorators for registry different kind of classes with unique keys
 
 - Register a task: ``@registry.register_task``
+- Register a trainer: ``@registry.register_trainer``
 - Register a dataset builder: ``@registry.register_builder``
 - Register a metric: ``@registry.register_metric``
 - Register a loss: ``@registry.register_loss``
@@ -36,6 +37,7 @@ class Registry:
         # Similar to the task_name_mapping above except that this
         # one is used to keep a mapping for dataset to its builder class.
         # Use "register_builder" decorator to mapping a builder
+        "trainer_name_mapping": {},
         "builder_name_mapping": {},
         "model_name_mapping": {},
         "metric_name_mapping": {},
@@ -74,6 +76,29 @@ class Registry:
             cls.mapping["task_name_mapping"][name] = task_cls
             return task_cls
 
+        return wrap
+
+    @classmethod
+    def register_trainer(cls, name):
+        r"""Register a trainer to registry with key 'name'
+
+        Args:
+            name: Key with which the trainer will be registered.
+
+        Usage::
+
+            from pythia.common.registry import registry
+            from pythia.trainers.custom_trainer import CustomTrainer
+
+
+            @registry.register_trainer("custom_trainer")
+            class CustomTrainer():
+                ...
+
+        """
+        def wrap(trainer_cls):
+            cls.mapping["trainer_name_mapping"][name] = trainer_cls
+            return trainer_cls
         return wrap
 
     @classmethod
@@ -264,6 +289,10 @@ class Registry:
     @classmethod
     def get_task_class(cls, name):
         return cls.mapping["task_name_mapping"].get(name, None)
+
+    @classmethod
+    def get_trainer_class(cls, name):
+        return cls.mapping["trainer_name_mapping"].get(name, None)
 
     @classmethod
     def get_builder_class(cls, name):
