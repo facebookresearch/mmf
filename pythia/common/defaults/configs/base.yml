@@ -1,5 +1,7 @@
 # Configuration for training
 training_parameters:
+    # Name of the trainer class used to define the training/evalution loop
+    trainer: 'base_trainer'
     # Name of the experiment, will be used while saving checkpoints
     # and generating reports
     experiment_name: run

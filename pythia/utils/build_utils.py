@@ -1,10 +1,33 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import torch
 import warnings
 
-import torch
-
+from pythia.utils.configuration import Configuration
 from pythia.common.registry import registry
 from pythia.utils.general import get_optimizer_parameters
+
+
+def build_trainer(args, *rest, **kwargs):
+    configuration = Configuration(args.config)
+
+    # Update with the config override if passed
+    configuration.override_with_cmd_config(args.config_override)
+
+    # Now, update with opts args that were passed
+    configuration.override_with_cmd_opts(args.opts)
+
+    # Finally, update with args that were specifically passed
+    # as arguments
+    configuration.update_with_args(args)
+    configuration.freeze()
+
+    config = configuration.get_config()
+    registry.register("config", config)
+    registry.register("configuration", configuration)
+
+    trainer_type = config.training_parameters.trainer
+    trainer_cls = registry.get_trainer_class(trainer_type)
+    return trainer_cls(config)
 
 
 def build_model(config):
