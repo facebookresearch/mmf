@@ -25,8 +25,8 @@ def build_trainer(args, *rest, **kwargs):
     registry.register("config", config)
     registry.register("configuration", configuration)
 
-    trainer_name = config.training_parameters.trainer_name
-    trainer_cls = registry.get_trainer_class(trainer_name)
+    trainer_type = config.training_parameters.trainer
+    trainer_cls = registry.get_trainer_class(trainer_type)
     return trainer_cls(config)
 
 
