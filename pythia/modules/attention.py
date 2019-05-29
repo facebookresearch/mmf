@@ -156,25 +156,3 @@ class TopDownAttention(nn.Module):
                 masked_attention = self._mask_attentions(attention, image_locs)
 
         return masked_attention
-
-
-class CaptionAttention(nn.Module):
-    def __init__(self, features_dim, decoder_dim, attention_dim, dropout=0.5):
-        super().__init__()
-        self.features_att = nn.utils.weight_norm(nn.Linear(features_dim, attention_dim))
-        self.decoder_att = nn.utils.weight_norm(nn.Linear(decoder_dim, attention_dim))
-        self.full_att = nn.utils.weight_norm(nn.Linear(attention_dim, 1))
-        self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(p=dropout)
-        self.softmax = nn.Softmax(dim=1)
-
-    def forward(self, image_features, decoder_hidden):
-        att1 = self.features_att(image_features)
-        att2 = self.decoder_att(decoder_hidden)
-        att = self.full_att(self.dropout(self.relu(att1 + att2.unsqueeze(1)))).squeeze(
-            2
-        )
-        alpha = self.softmax(att)
-        attention_weighted_encoding = (image_features * alpha.unsqueeze(2)).sum(dim=1)
-
-        return attention_weighted_encoding

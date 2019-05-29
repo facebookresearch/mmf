@@ -2,6 +2,7 @@
 import torch
 from torch import nn
 from torch.nn.utils.weight_norm import weight_norm
+from pythia.common.registry import registry
 
 
 class GatedTanh(nn.Module):
@@ -52,6 +53,8 @@ class ClassifierLayer(nn.Module):
             self.module = WeightNormClassifier(in_dim, out_dim, **kwargs)
         elif classifier_type == "logit":
             self.module = LogitClassifier(in_dim, out_dim, **kwargs)
+        elif classifier_type == "language_decoder":
+            self.module = LanguageDecoder(in_dim, out_dim, **kwargs)
         elif classifier_type == "linear":
             self.module = nn.Linear(in_dim, out_dim)
         else:
@@ -108,6 +111,39 @@ class WeightNormClassifier(nn.Module):
         return logits
 
 
+class LanguageDecoder(nn.Module):
+    def __init__(self, in_dim, out_dim, **kwargs):
+        super().__init__()
+
+        self.language_lstm = nn.LSTMCell(
+            in_dim + kwargs["hidden_dim"], kwargs["hidden_dim"], bias=True
+        )
+        self.fc = nn.utils.weight_norm(nn.Linear(kwargs["hidden_dim"], out_dim))
+        self.dropout = nn.Dropout(p=kwargs["dropout"])
+        self.init_weights(kwargs["fc_bias_init"])
+
+    def init_weights(self, fc_bias_init):
+        self.fc.bias.data.fill_(fc_bias_init)
+        self.fc.weight.data.uniform_(-0.1, 0.1)
+
+    def forward(self, weighted_attn):
+        # Get LSTM state
+        state = registry.get("{}_lstm_state".format(weighted_attn.device))
+        h1, c1 = state["td_hidden"]
+        h2, c2 = state["lm_hidden"]
+
+        # Language LSTM
+        h2, c2 = self.language_lstm(
+            torch.cat([weighted_attn, h1], dim=1), (h2, c2)
+        )
+        logits = self.fc(self.dropout(h2))
+
+        # Update hidden state for t+1
+        state["lm_hidden"] = (h2, c2)
+
+        return logits
+
+
 class Identity(nn.Module):
     def __init__(self, **kwargs):
         super(Identity, self).__init__()
@@ -125,6 +161,8 @@ class ModalCombineLayer(nn.Module):
             self.module = NonLinearElementMultiply(img_feat_dim, txt_emb_dim, **kwargs)
         elif combine_type == "two_layer_element_multiply":
             self.module = TwoLayerElementMultiply(img_feat_dim, txt_emb_dim, **kwargs)
+        elif combine_type == "top_down_attention_lstm":
+            self.module = TopDownAttentionLSTM(img_feat_dim, txt_emb_dim, **kwargs)
         else:
             raise NotImplementedError("Not implemented combine type: %s" % combine_type)
 
@@ -267,6 +305,45 @@ class NonLinearElementMultiply(nn.Module):
 
             context_text_joint_feaure = context_fa * question_fa_expand
             joint_feature = torch.cat([joint_feature, context_text_joint_feaure], dim=1)
+
+        joint_feature = self.dropout(joint_feature)
+
+        return joint_feature
+
+
+class TopDownAttentionLSTM(nn.Module):
+    def __init__(self, image_feat_dim, embed_dim, **kwargs):
+        super().__init__()
+        self.fa_image = ReLUWithWeightNormFC(image_feat_dim, kwargs["attention_dim"])
+        self.fa_hidden = ReLUWithWeightNormFC(
+            kwargs["hidden_dim"], kwargs["attention_dim"]
+        )
+        self.top_down_lstm = nn.LSTMCell(
+            embed_dim + image_feat_dim + kwargs["hidden_dim"],
+            kwargs["hidden_dim"],
+            bias=True,
+        )
+        self.dropout = nn.Dropout(kwargs["dropout"])
+        self.out_dim = kwargs["attention_dim"]
+
+    def forward(self, image_feat, embedding):
+        image_feat_mean = image_feat.mean(1)
+
+        # Get LSTM state
+        state = registry.get("{}_lstm_state".format(image_feat.device))
+        h1, c1 = state["td_hidden"]
+        h2, c2 = state["lm_hidden"]
+
+        h1, c1 = self.top_down_lstm(
+            torch.cat([h2, image_feat_mean, embedding], dim=1), (h1, c1)
+        )
+
+        state["td_hidden"] = (h1, c1)
+
+        image_fa = self.fa_image(image_feat)
+        hidden_fa = self.fa_hidden(h1)
+
+        joint_feature = image_fa + hidden_fa.unsqueeze(1)
 
         joint_feature = self.dropout(joint_feature)
 

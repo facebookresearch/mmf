@@ -7,23 +7,32 @@ model_attributes:
     - type: caption_bleu4
     losses:
     - type: caption_cross_entropy
+    classifier:
+      type: language_decoder
+      params:
+        dropout: 0.5
+        hidden_dim: 1024
+        feature_dim: 2048
+        fc_bias_init: 0
+    image_feature_embeddings:
+    - modal_combine:
+        type: top_down_attention_lstm
+        params:
+          dropout: 0.5
+          hidden_dim: 1024
+          attention_dim: 1024
+      normalization: softmax
+      transform:
+        type: linear
+        params:
+          out_dim: 1
     image_feature_dim: 2048
+    embedding_dim: 300
     image_feature_encodings:
     - type: finetune_faster_rcnn_fpn_fc7
       params:
         bias_file: detectron/fc6/fc7_b.pkl
         weights_file: detectron/fc6/fc7_w.pkl
-    text_embeddings:
-    - type: attention
-      params:
-        hidden_dim: 1024
-        num_layers: 1
-        conv1_out: 512
-        conv2_out: 2
-        dropout: 0
-        embedding_dim: 300
-        kernel_size: 1
-        padding: 0
 optimizer_attributes:
   type: Adamax
   params:

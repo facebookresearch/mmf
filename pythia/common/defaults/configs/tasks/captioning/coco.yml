@@ -42,7 +42,7 @@ task_attributes:
                         type: intersected
                         embedding_name: glove.6B.300d
                         vocab_file: vocabs/vocabulary_captioning_thresh5.txt
-                return_info: true
+                return_info: false
                 # Return OCR information
                 use_ocr: false
                 # Return spatial information of OCR tokens if present

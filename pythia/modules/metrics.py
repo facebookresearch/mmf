@@ -252,7 +252,7 @@ class CaptionBleu4Metric(BaseMetric):
 
         bleu4 = self.bleu_score.corpus_bleu(references, hypotheses)
 
-        return bleu4
+        return targets.new_tensor(bleu4, dtype=torch.float)
 
 
 @registry.register_metric("vqa_accuracy")
