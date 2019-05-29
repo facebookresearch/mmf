@@ -8,7 +8,7 @@ of PyTorch, it features:
 
 - **Model Zoo**: Reference implementations for state-of-the-art vision and language model including
 [LoRRA](https://arxiv.org/abs/1904.08920) (SoTA on VQA and TextVQA),
-[Pythia](https://arxiv.org/abs/1807.09956) model (VQA 2018 challenge winner) and [BAN]().
+[Pythia](https://arxiv.org/abs/1807.09956) model (VQA 2018 challenge winner) and [BAN](https://arxiv.org/abs/1805.07932).
 - **Multi-Tasking**: Support for multi-tasking which allows training on multiple dataset together.
 - **Datasets**: Includes support for various datasets built-in including VQA, VizWiz, TextVQA and VisualDialog.
 - **Modules**: Provides implementations for many commonly used layers in vision and language domain
