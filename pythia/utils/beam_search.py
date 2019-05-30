@@ -26,6 +26,7 @@ class BeamSearch:
             "top_k_scores",
             sample_list.answers.new_zeros((self.beam_size, 1), dtype=torch.float),
         )
+        # Add a dim and duplicate the tensor beam_size times across that dim
         sample_list.image_feature_0 = (
             sample_list.image_feature_0.unsqueeze(1)
             .expand(-1, self.beam_size, -1, -1)
@@ -58,11 +59,10 @@ class BeamSearch:
         )
 
         # Find completed sequences
-        incomplete_inds = [
-            ind
-            for ind, next_word in enumerate(next_word_inds)
-            if next_word != self.vocab.EOS_INDEX
-        ]
+        incomplete_inds = []
+        for ind, next_word in enumerate(next_word_inds):
+            if next_word != self.vocab.EOS_INDEX:
+                incomplete_inds.append(ind)
         complete_inds = list(set(range(len(next_word_inds))) - set(incomplete_inds))
 
         # Add to completed sequences
@@ -79,13 +79,19 @@ class BeamSearch:
 
         self.seqs = self.seqs[incomplete_inds]
         self.top_k_scores = self.top_k_scores[incomplete_inds].unsqueeze(1)
+
+        # TODO: Make the data update generic for any type of model
+        # This is specific to BUTD model only.
         data["texts"] = next_word_inds[incomplete_inds].unsqueeze(1)
         h1 = data["state"]["td_hidden"][0][prev_word_inds[incomplete_inds]]
         c1 = data["state"]["td_hidden"][1][prev_word_inds[incomplete_inds]]
         h2 = data["state"]["lm_hidden"][0][prev_word_inds[incomplete_inds]]
         c2 = data["state"]["lm_hidden"][1][prev_word_inds[incomplete_inds]]
         data["state"] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
-        return False, data, len(prev_word_inds[incomplete_inds])
+
+        next_beam_length = len(prev_word_inds[incomplete_inds])
+
+        return False, data, next_beam_length
 
     def best_score(self):
         if len(self.complete_seqs_scores) == 0:

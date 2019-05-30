@@ -118,7 +118,7 @@ class LanguageDecoder(nn.Module):
         self.language_lstm = nn.LSTMCell(
             in_dim + kwargs["hidden_dim"], kwargs["hidden_dim"], bias=True
         )
-        self.fc = nn.utils.weight_norm(nn.Linear(kwargs["hidden_dim"], out_dim))
+        self.fc = weight_norm(nn.Linear(kwargs["hidden_dim"], out_dim))
         self.dropout = nn.Dropout(p=kwargs["dropout"])
         self.init_weights(kwargs["fc_bias_init"])
 
@@ -133,9 +133,7 @@ class LanguageDecoder(nn.Module):
         h2, c2 = state["lm_hidden"]
 
         # Language LSTM
-        h2, c2 = self.language_lstm(
-            torch.cat([weighted_attn, h1], dim=1), (h2, c2)
-        )
+        h2, c2 = self.language_lstm(torch.cat([weighted_attn, h1], dim=1), (h2, c2))
         logits = self.fc(self.dropout(h2))
 
         # Update hidden state for t+1
@@ -314,15 +312,16 @@ class NonLinearElementMultiply(nn.Module):
 class TopDownAttentionLSTM(nn.Module):
     def __init__(self, image_feat_dim, embed_dim, **kwargs):
         super().__init__()
-        self.fa_image = ReLUWithWeightNormFC(image_feat_dim, kwargs["attention_dim"])
-        self.fa_hidden = ReLUWithWeightNormFC(
-            kwargs["hidden_dim"], kwargs["attention_dim"]
+        self.fa_image = weight_norm(nn.Linear(image_feat_dim, kwargs["attention_dim"]))
+        self.fa_hidden = weight_norm(
+            nn.Linear(kwargs["hidden_dim"], kwargs["attention_dim"])
         )
         self.top_down_lstm = nn.LSTMCell(
             embed_dim + image_feat_dim + kwargs["hidden_dim"],
             kwargs["hidden_dim"],
             bias=True,
         )
+        self.relu = nn.ReLU()
         self.dropout = nn.Dropout(kwargs["dropout"])
         self.out_dim = kwargs["attention_dim"]
 
@@ -343,8 +342,7 @@ class TopDownAttentionLSTM(nn.Module):
         image_fa = self.fa_image(image_feat)
         hidden_fa = self.fa_hidden(h1)
 
-        joint_feature = image_fa + hidden_fa.unsqueeze(1)
-
+        joint_feature = self.relu(image_fa + hidden_fa.unsqueeze(1))
         joint_feature = self.dropout(joint_feature)
 
         return joint_feature

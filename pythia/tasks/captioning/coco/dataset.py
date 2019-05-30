@@ -48,8 +48,8 @@ class COCODataset(VQA2Dataset):
             processed_reference = self.text_processor(text_processor_argument)
             reference_list.append(processed_reference["text"])
 
-        # Restrict to 5 reference captions
-        sample.answers = torch.stack(reference_list)[:5]
+        # Restrict to minimum reference captions available per image
+        sample.answers = torch.stack(reference_list)[: self.config.min_captions_per_img]
 
         return sample
 

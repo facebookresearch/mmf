@@ -81,16 +81,19 @@ class BUTD(Pythia):
         )
         return h, c
 
-    def get_data_t(self, t, data, batch_size_t, prev_output, remove_indices=[]):
+    def get_data_t(self, t, data, batch_size_t, prev_output):
         if self.teacher_forcing:
+            # Modify batch_size for timestep t
             batch_size_t = sum([l > t for l in data["decode_lengths"]])
         elif prev_output is not None and self.config["inference"]["type"] == "greedy":
+            # Adding t-1 output words to data["text"] for greedy decoding
             output_softmax = torch.log_softmax(prev_output, dim=1)
             _, indices = torch.max(output_softmax, dim=1, keepdim=True)
             data["texts"] = torch.cat(
                 (data["texts"], indices.view(batch_size_t, 1)), dim=1
             )
 
+        # Slice data based on batch_size at timestep t
         data["texts"] = data["texts"][:batch_size_t]
         if "state" in data:
             h1 = data["state"]["td_hidden"][0][:batch_size_t]
@@ -116,7 +119,9 @@ class BUTD(Pythia):
             dtype=torch.float,
         )
 
-        # Modify sample_list to have duplicated beam_length times batch
+        # For beam search inference. Currently beam seach for BUTD works only 
+        # with batch_size = 1 and should be used with run_type inference only.
+        # TODO : Implement batch beam search
         if self.config["inference"]["type"] == "beam_search":
             beam_search = BeamSearch(
                 self.vocab, self.config["inference"]["params"]["beam_length"]
