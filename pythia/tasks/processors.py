@@ -414,7 +414,7 @@ class FastTextProcessor(VocabProcessor):
             get_pythia_root(), ".vector_cache", "wiki.en.bin"
         )
 
-        if is_main_process:
+        if not is_main_process:
             return model_file_path
 
         if os.path.exists(model_file_path):
