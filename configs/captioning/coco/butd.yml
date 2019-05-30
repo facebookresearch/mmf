@@ -33,6 +33,8 @@ model_attributes:
       params:
         bias_file: detectron/fc6/fc7_b.pkl
         weights_file: detectron/fc6/fc7_w.pkl
+    inference:
+      type: greedy
 optimizer_attributes:
   type: Adamax
   params:

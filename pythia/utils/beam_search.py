@@ -1,0 +1,96 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
+import torch
+
+
+class BeamSearch:
+    def __init__(self, vocab, beam_size=5):
+        self.vocab = vocab
+        self.vocab_size = vocab.get_size()
+        self.beam_size = beam_size
+
+        # Lists to store completed sequences and scores
+        self.complete_seqs = []
+        self.complete_seqs_scores = []
+
+    def init_batch(self, sample_list):
+        setattr(
+            self,
+            "seqs",
+            sample_list.answers.new_full(
+                (self.beam_size, 1), self.vocab.SOS_INDEX, dtype=torch.long
+            ),
+        )
+        setattr(
+            self,
+            "top_k_scores",
+            sample_list.answers.new_zeros((self.beam_size, 1), dtype=torch.float),
+        )
+        sample_list.image_feature_0 = (
+            sample_list.image_feature_0.unsqueeze(1)
+            .expand(-1, self.beam_size, -1, -1)
+            .squeeze(0)
+        )
+        return sample_list
+
+    def search(self, t, data, scores):
+        # Add predicted scores to top_k_scores
+        scores = torch.nn.functional.log_softmax(scores, dim=1)
+        scores = self.top_k_scores.expand_as(scores) + scores
+
+        # Find next top k scores and words
+        if t == 0:
+            self.top_k_scores, top_k_words = scores[0].topk(
+                self.beam_size, 0, True, True
+            )
+        else:
+            self.top_k_scores, top_k_words = scores.view(-1).topk(
+                self.beam_size, 0, True, True
+            )
+
+        # Convert to vocab indices
+        prev_word_inds = top_k_words // self.vocab_size
+        next_word_inds = top_k_words % self.vocab_size
+
+        # Add new words to sequences
+        self.seqs = torch.cat(
+            [self.seqs[prev_word_inds], next_word_inds.unsqueeze(1)], dim=1
+        )
+
+        # Find completed sequences
+        incomplete_inds = [
+            ind
+            for ind, next_word in enumerate(next_word_inds)
+            if next_word != self.vocab.EOS_INDEX
+        ]
+        complete_inds = list(set(range(len(next_word_inds))) - set(incomplete_inds))
+
+        # Add to completed sequences
+        if len(complete_inds) > 0:
+            self.complete_seqs.extend(self.seqs[complete_inds].tolist())
+            self.complete_seqs_scores.extend(self.top_k_scores[complete_inds])
+
+        # Reduce beam length
+        self.beam_size -= len(complete_inds)
+
+        # Proceed with incomplete sequences
+        if self.beam_size == 0:
+            return True, data, 0
+
+        self.seqs = self.seqs[incomplete_inds]
+        self.top_k_scores = self.top_k_scores[incomplete_inds].unsqueeze(1)
+        data["texts"] = next_word_inds[incomplete_inds].unsqueeze(1)
+        h1 = data["state"]["td_hidden"][0][prev_word_inds[incomplete_inds]]
+        c1 = data["state"]["td_hidden"][1][prev_word_inds[incomplete_inds]]
+        h2 = data["state"]["lm_hidden"][0][prev_word_inds[incomplete_inds]]
+        c2 = data["state"]["lm_hidden"][1][prev_word_inds[incomplete_inds]]
+        data["state"] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
+        return False, data, len(prev_word_inds[incomplete_inds])
+
+    def best_score(self):
+        if len(self.complete_seqs_scores) == 0:
+            captions = torch.FloatTensor([0] * 5).unsqueeze(0)
+        else:
+            i = self.complete_seqs_scores.index(max(self.complete_seqs_scores))
+            captions = torch.FloatTensor(self.complete_seqs[i]).unsqueeze(0)
+        return captions
