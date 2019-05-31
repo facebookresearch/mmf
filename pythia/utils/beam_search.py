@@ -39,7 +39,8 @@ class BeamSearch:
         scores = torch.nn.functional.log_softmax(scores, dim=1)
         scores = self.top_k_scores.expand_as(scores) + scores
 
-        # Find next top k scores and words
+        # Find next top k scores and words. We flatten the scores tensor here
+        # and get the top_k_scores and their indices top_k_words
         if t == 0:
             self.top_k_scores, top_k_words = scores[0].topk(
                 self.beam_size, 0, True, True
@@ -49,7 +50,15 @@ class BeamSearch:
                 self.beam_size, 0, True, True
             )
 
-        # Convert to vocab indices
+        # Convert to vocab indices. top_k_words contain indices from a flattened
+        # k x vocab_size tensor. To get prev_word_indices we divide top_k_words 
+        # by vocab_size to determine which index in the beam among k generated 
+        # the next top_k_word. To get next_word_indices we take top_k_words 
+        # modulo vocab_size index. For example :
+        # vocab_size : 9491
+        # top_k_words : [610, 7, 19592, 9529, 292]
+        # prev_word_inds : [0, 0, 2, 1, 0]
+        # next_word_inds : [610, 7, 610, 38, 292]  
         prev_word_inds = top_k_words // self.vocab_size
         next_word_inds = top_k_words % self.vocab_size
 
