@@ -4,7 +4,7 @@ import torch
 from pythia.common.registry import registry
 from pythia.modules.layers import ClassifierLayer
 from pythia.models.pythia import Pythia
-from pythia.utils.beam_search import BeamSearch
+from pythia.utils.text_utils import BeamSearch
 
 
 @registry.register_model("butd")
