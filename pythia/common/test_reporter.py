@@ -135,8 +135,12 @@ class TestReporter(Dataset):
 
     def add_to_report(self, report):
         # TODO: Later gather whole report for no opinions
-        report.scores = gather_tensor(report.scores).view(-1, report.scores.size(-1))
-        report.question_id = gather_tensor(report.question_id).view(-1)
+        if self.current_dataset._name == "coco":
+            report.captions = gather_tensor(report.captions)
+            report.image_id = gather_tensor(report.image_id).view(-1)
+        else:
+            report.scores = gather_tensor(report.scores).view(-1, report.scores.size(-1))
+            report.question_id = gather_tensor(report.question_id).view(-1)
 
         if not is_main_process():
             return

@@ -1,0 +1,64 @@
+includes:
+- common/defaults/configs/tasks/captioning/coco.yml
+model_attributes:
+  butd: &butd
+    model_data_dir: ../data/
+    metrics:
+    - type: caption_bleu4
+    losses:
+    - type: caption_cross_entropy
+    classifier:
+      type: language_decoder
+      params:
+        dropout: 0.5
+        hidden_dim: 1024
+        feature_dim: 2048
+        fc_bias_init: 0
+    image_feature_embeddings:
+    - modal_combine:
+        type: top_down_attention_lstm
+        params:
+          dropout: 0.5
+          hidden_dim: 1024
+          attention_dim: 1024
+      normalization: softmax
+      transform:
+        type: linear
+        params:
+          out_dim: 1
+    image_feature_dim: 2048
+    embedding_dim: 300
+    image_feature_encodings:
+    - type: finetune_faster_rcnn_fpn_fc7
+      params:
+        bias_file: detectron/fc6/fc7_b.pkl
+        weights_file: detectron/fc6/fc7_w.pkl
+    inference:
+      type: greedy
+optimizer_attributes:
+  type: Adamax
+  params:
+    eps: 1.0e-08
+    lr: 0.01
+    weight_decay: 0
+training_parameters:
+  clip_norm_mode: all
+  clip_gradients: true
+  lr_ratio: 0.1
+  lr_scheduler: true
+  lr_steps:
+  - 15000
+  - 25000
+  - 35000
+  - 45000
+  max_grad_l2_norm: 0.25
+  max_iterations: 50000
+  use_warmup: true
+  warmup_factor: 0.2
+  warmup_iterations: 1000
+  patience: 4000
+  batch_size: 256
+  num_workers: 7
+  task_size_proportional_sampling: true
+  monitored_metric: caption_bleu4
+  metric_minimize: false

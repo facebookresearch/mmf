@@ -30,6 +30,8 @@ import warnings
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import warnings
+from torch.nn.utils.rnn import pack_padded_sequence
 
 from pythia.common.registry import registry
 
@@ -205,6 +207,45 @@ class BinaryCrossEntropyLoss(nn.Module):
         loss = F.binary_cross_entropy(scores, targets, reduction="mean")
 
         return loss * targets.size(1)
+
+
+@registry.register_loss("caption_cross_entropy")
+class CaptionCrossEntropyLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, sample_list, model_output):
+        """Calculates and returns the cross entropy loss
+
+        Args:
+            sample_list (SampleList): SampleList containing `targets` attribute.
+            model_output (Dict): Model output containing `scores` attribute.
+
+        Returns:
+            torch.FloatTensor: Float value for loss.
+
+        """
+        scores = model_output["scores"]
+        targets = sample_list["targets"]
+
+        # If no captions(test dataset) then assume decode length to be uniform
+        if hasattr(sample_list, "caption_len"):
+            caption_lengths, _ = sample_list.caption_len.sort(dim=0, descending=True)
+            decode_lengths = (caption_lengths - 1).tolist()
+        else:
+            decode_lengths = [targets.size(1)] * targets.size(0)
+        if torch.__version__ >= "1.1":
+            scores = pack_padded_sequence(scores, decode_lengths, batch_first=True).data
+            targets = pack_padded_sequence(
+                targets, decode_lengths, batch_first=True
+            ).data
+        else:
+            scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
+            targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+
+        loss = F.cross_entropy(scores, targets)
+
+        return loss
 
 
 @registry.register_loss("nll_loss")
