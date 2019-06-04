@@ -22,17 +22,16 @@ class COCOEvalCap:
     COCOEvalCap code is adopted from https://github.com/tylin/coco-caption
     """
 
-    def __init__(self, imgIds, coco, cocoRes):
-        self.evalImgs = []
+    def __init__(self, img_ids, coco, coco_res):
+        self.eval_imgs = []
         self.eval = dict()
-        self.imgToEval = dict()
+        self.img_to_eval = dict()
         self.coco = coco
-        self.cocoRes = cocoRes
-        # self.params = {"image_id": imgIds}
+        self.coco_res = coco_res
 
     def evaluate(self):
         gts = self.coco
-        res = self.cocoRes
+        res = self.coco_res
 
         # =================================================
         # Set up scorers
@@ -62,41 +61,41 @@ class COCOEvalCap:
             score, scores = scorer.compute_score(gts, res)
             if type(method) == list:
                 for sc, scs, m in zip(score, scores, method):
-                    self.setEval(sc, m)
-                    self.setImgToEvalImgs(scs, gts.keys(), m)
+                    self.set_eval(sc, m)
+                    self.set_img_to_eval_imgs(scs, gts.keys(), m)
                     print("%s: %0.3f" % (m, sc))
             else:
-                self.setEval(score, method)
-                self.setImgToEvalImgs(scores, gts.keys(), method)
+                self.set_eval(score, method)
+                self.set_img_to_eval_imgs(scores, gts.keys(), method)
                 print("%s: %0.3f" % (method, score))
-        self.setEvalImgs()
+        self.set_eval_imgs()
 
-    def setEval(self, score, method):
+    def set_eval(self, score, method):
         self.eval[method] = score
 
-    def setImgToEvalImgs(self, scores, imgIds, method):
-        for imgId, score in zip(imgIds, scores):
-            if imgId not in self.imgToEval:
-                self.imgToEval[imgId] = dict()
-                self.imgToEval[imgId]["image_id"] = imgId
-            self.imgToEval[imgId][method] = score
+    def set_img_to_eval_imgs(self, scores, img_ids, method):
+        for img_id, score in zip(img_ids, scores):
+            if img_id not in self.img_to_eval:
+                self.img_to_eval[img_id] = dict()
+                self.img_to_eval[img_id]["image_id"] = img_id
+            self.img_to_eval[img_id][method] = score
 
-    def setEvalImgs(self):
-        self.evalImgs = [eval for imgId, eval in self.imgToEval.items()]
+    def set_eval_imgs(self):
+        self.eval_imgs = [eval for img_id, eval in self.img_to_eval.items()]
 
 
-def calculate_metrics(imgIds, datasetGTS, datasetRES):
-    imgToAnnsGTS = {id: [] for id in imgIds}
-    for ann in datasetGTS["annotations"]:
-        imgToAnnsGTS[ann["image_id"]] += [ann]
+def calculate_metrics(img_ids, dataset_dts, dataset_res):
+    img_to_anns_gts = {id: [] for id in img_ids}
+    for ann in dataset_dts["annotations"]:
+        img_to_anns_gts[ann["image_id"]] += [ann]
 
-    imgToAnnsRES = {id: [] for id in imgIds}
-    for ann in datasetRES["annotations"]:
-        imgToAnnsRES[ann["image_id"]] += [ann]
+    img_to_anns_res = {id: [] for id in img_ids}
+    for ann in dataset_res["annotations"]:
+        img_to_anns_res[ann["image_id"]] += [ann]
 
-    evalObj = COCOEvalCap(imgIds, imgToAnnsGTS, imgToAnnsRES)
-    evalObj.evaluate()
-    return evalObj.eval
+    eval_obj = COCOEvalCap(img_ids, img_to_anns_gts, img_to_anns_res)
+    eval_obj.evaluate()
+    return eval_obj.eval
 
 
 if __name__ == "__main__":
@@ -124,6 +123,6 @@ if __name__ == "__main__":
     with open(args.predicted_json, "r") as f:
         preds = json.load(f)
 
-    datasetGTS = {"annotations": references}
-    datasetRES = {"annotations": preds}
-    print(calculate_metrics(img_ids, datasetGTS, datasetRES))
+    dataset_dts = {"annotations": references}
+    dataset_res = {"annotations": preds}
+    print(calculate_metrics(img_ids, dataset_dts, dataset_res))
