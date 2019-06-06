@@ -15,14 +15,14 @@ required data as explained in [quickstart](./quickstart).
 +--------+-----------+-----------------------+---------------------------------------------------+-----------------------------------------------------------+
 | BAN    | ban       | vqa2, vizwiz, textvqa | Coming soon!                                      | Support is preliminary and haven't been tested throughly. |
 +--------+-----------+-----------------------+---------------------------------------------------+-----------------------------------------------------------+
-| BUTD   | butd      | coco                  | `butd`_                                           |                                                           |
+| BUTD   | butd      | coco                  | `coco`_                                           |                                                           |
 +--------+-----------+-----------------------+---------------------------------------------------+-----------------------------------------------------------+
 
 .. _vqa2 train+val: https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia_train_val.pth
 .. _vqa2 train only: https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia.pth
 .. _vizwiz: https://dl.fbaipublicfiles.com/pythia/pretrained_models/vizwiz/pythia_pretrained_vqa2.pth
 .. _textvqa: https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth
-.. _butd: https://dl.fbaipublicfiles.com/pythia/pretrained_models/coco_captions/butd.pth
+.. _coco: https://dl.fbaipublicfiles.com/pythia/pretrained_models/coco_captions/butd.pth
 ```
 
 Now, let's say your link to pretrained model `model` is `link` (select from table > right click > copy link address), the respective config should be at
