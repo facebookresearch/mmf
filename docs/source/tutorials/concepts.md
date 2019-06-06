@@ -56,7 +56,7 @@ Following table shows the inverse of the above table, datasets along with their 
 +--------------+---------+-----------+--------------------+
 | VisualDialog | visdial | dialog    |   Coming soon!     |
 +--------------+---------+-----------+--------------------+
-| MS COCO      | coco    | captioning |                    |
+| MS COCO      | coco    | captioning|                    |
 +--------------+---------+-----------+--------------------+
 ```
 

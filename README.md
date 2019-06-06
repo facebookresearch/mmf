@@ -29,7 +29,8 @@ Learn more about Pythia [here](https://learnpythia.readthedocs.io/en/latest/).
 
 ## Demo
 
-Try the demo for Pythia model on [Colab](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR). Try the demo of BUTD captioning model here on [Colab](https://colab.research.google.com/drive/1vzrxDYB0vxtuUy8KCaGxm--nDCJvyBSg).
+1. [Pythia VQA](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR). 
+2. [BUTD Captioning](https://colab.research.google.com/drive/1vzrxDYB0vxtuUy8KCaGxm--nDCJvyBSg).
 
 ## Getting Started
 

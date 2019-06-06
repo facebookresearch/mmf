@@ -215,7 +215,7 @@ class CaptionCrossEntropyLoss(nn.Module):
         super().__init__()
 
     def forward(self, sample_list, model_output):
-        """Calculates and returns the cross entropy loss
+        """Calculates and returns the cross entropy loss for captions.
 
         Args:
             sample_list (SampleList): SampleList containing `targets` attribute.
