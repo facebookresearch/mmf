@@ -1,6 +1,6 @@
 # Pythia
 
-[![Documentation Status](https://readthedocs.org/projects/learnpythia/badge/?version=latest)](https://learnpythia.readthedocs.io/en/latest/?badge=latest) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR)[![CircleCI](https://circleci.com/gh/facebookresearch/pythia.svg?style=svg)](https://circleci.com/gh/facebookresearch/pythia)
+[![Documentation Status](https://readthedocs.org/projects/learnpythia/badge/?version=latest)](https://learnpythia.readthedocs.io/en/latest/?badge=latest) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR) [![CircleCI](https://circleci.com/gh/facebookresearch/pythia.svg?style=svg)](https://circleci.com/gh/facebookresearch/pythia)
 
 
 Pythia is a modular framework for vision and language multimodal research. Built on top
@@ -8,9 +8,9 @@ of PyTorch, it features:
 
 - **Model Zoo**: Reference implementations for state-of-the-art vision and language model including
 [LoRRA](https://arxiv.org/abs/1904.08920) (SoTA on VQA and TextVQA),
-[Pythia](https://arxiv.org/abs/1807.09956) model (VQA 2018 challenge winner) and [BAN](https://arxiv.org/abs/1805.07932).
+[Pythia](https://arxiv.org/abs/1807.09956) model (VQA 2018 challenge winner) , [BAN](https://arxiv.org/abs/1805.07932) and [BUTD](https://arxiv.org/abs/1707.07998).
 - **Multi-Tasking**: Support for multi-tasking which allows training on multiple dataset together.
-- **Datasets**: Includes support for various datasets built-in including VQA, VizWiz, TextVQA and VisualDialog.
+- **Datasets**: Includes support for various datasets built-in including VQA, VizWiz, TextVQA, VisualDialog and COCO Captioning.
 - **Modules**: Provides implementations for many commonly used layers in vision and language domain
 - **Distributed**: Support for distributed training based on DataParallel as well as DistributedDataParallel.
 - **Unopinionated**: Unopinionated about the dataset and model implementations built on top of it.
@@ -29,7 +29,8 @@ Learn more about Pythia [here](https://learnpythia.readthedocs.io/en/latest/).
 
 ## Demo
 
-Try the demo for Pythia model on [Colab](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR).
+1. [Pythia VQA](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR). 
+2. [BUTD Captioning](https://colab.research.google.com/drive/1vzrxDYB0vxtuUy8KCaGxm--nDCJvyBSg).
 
 ## Getting Started
 
@@ -89,6 +90,7 @@ tar xf [imdb].tar.gz
 | VQA 2.0      | vqa2 | vqa | [VQA 2.0 ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/vqa.tar.gz)                 | [COCO](https://dl.fbaipublicfiles.com/pythia/features/coco.tar.gz)              | `ab7947b04f3063c774b87dfbf4d0e981` |
 | VizWiz       | vizwiz | vqa | [VizWiz ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/vizwiz.tar.gz)           | [VizWiz](https://dl.fbaipublicfiles.com/pythia/features/vizwiz.tar.gz)          | `9a28d6a9892dda8519d03fba52fb899f` |
 | VisualDialog | visdial | dialog | Coming soon!                                                                      | Coming soon!                                                                    | Coming soon! | 
+| MS COCO  | coco    | captioning | [COCO Caption](https://dl.fbaipublicfiles.com/pythia/data/imdb/coco_captions.tar.gz)      | [COCO](https://dl.fbaipublicfiles.com/pythia/features/coco.tar.gz)           | `ab7947b04f3063c774b87dfbf4d0e981`| 
 
 After downloading the features, verify the download by checking the md5sum using 
 
@@ -107,14 +109,17 @@ supported by the models in Pythia's model zoo.
 | Pythia | pythia    | vqa2, vizwiz, textvqa | [vqa2 train+val](https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia_train_val.pth), [vqa2 train only](https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia.pth), [vizwiz](https://dl.fbaipublicfiles.com/pythia/pretrained_models/vizwiz/pythia_pretrained_vqa2.pth)  | VizWiz model has been pretrained on VQAv2 and transferred |
 | LoRRA  | lorra     | vqa2, vizwiz, textvqa       | [textvqa](https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth)      |                               |
 | BAN    | ban       | vqa2, vizwiz, textvqa | Coming soon!      | Support is preliminary and haven't been tested thoroughly. |
+| BUTD    | butd       | coco | [butd](https://dl.fbaipublicfiles.com/pythia/pretrained_models/coco_captions/butd.pth)    |              |
 
 
 For running `LoRRA` on `TextVQA`, run the following command from root directory of your pythia clone:
 
 ```
 cd ~/pythia
-python tools/run.py --tasks vqa --datasets textvqa --model lorra --config configs/vqa/textvqa/lorra.yml
+python tools/run.py --tasks vqa --datasets textvqa --model lorra --config configs/vqa/textvqa/lorra.yml 
 ```
+
+**Note for BUTD model :**  for training BUTD model use the config `butd.yml`. Training uses greedy decoding for validation. Currently we do not have support to train the model using beam search decoding validation. We will add that support soon. For inference only use `butd_beam_search.yml` config that supports beam search decoding.
 
 ## Pretrained Models
 
@@ -142,6 +147,7 @@ The table below shows inference metrics for various pretrained models:
 | Pythia | vqa2 (train)     | test-dev accuracy - 66.70%  |  |
 | Pythia | vizwiz (train)     | test-dev accuracy - 54.22%  |    Pretrained on VQA2 and transferred to VizWiz                           |
 | LoRRA  | textvqa (train)  | val accuracy - 27.4%       |                               |
+| BUTD  | coco  (karpathy train)  | BLEU 1 - 76.02, BLEU 4 - 35.42 , METEOR - 27.39, ROUGE_L - 56.17, CIDEr - 112.03 , SPICE -  20.33    |   With Beam Search(length 5), Karpathy test split                           |
 
 **Note** that, for simplicity, our current released model **does not** incorporate extensive data augmentations (e.g. visual genome, visual dialogue) during training, which was used in our challenge winner entries for VQA and VizWiz 2018. As a result, there can be some performance gap to models reported and released previously. If you are looking for reproducing those results, please checkout the [v0.1](https://github.com/facebookresearch/pythia/releases/tag/v0.1) release.
 

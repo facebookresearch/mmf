@@ -15,11 +15,14 @@ required data as explained in [quickstart](./quickstart).
 +--------+-----------+-----------------------+---------------------------------------------------+-----------------------------------------------------------+
 | BAN    | ban       | vqa2, vizwiz, textvqa | Coming soon!                                      | Support is preliminary and haven't been tested throughly. |
 +--------+-----------+-----------------------+---------------------------------------------------+-----------------------------------------------------------+
+| BUTD   | butd      | coco                  | `butd`_                                           |                                                           |
++--------+-----------+-----------------------+---------------------------------------------------+-----------------------------------------------------------+
 
 .. _vqa2 train+val: https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia_train_val.pth
 .. _vqa2 train only: https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia.pth
 .. _vizwiz: https://dl.fbaipublicfiles.com/pythia/pretrained_models/vizwiz/pythia_pretrained_vqa2.pth
 .. _textvqa: https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth
+.. _butd: https://dl.fbaipublicfiles.com/pythia/pretrained_models/coco_captions/butd.pth
 ```
 
 Now, let's say your link to pretrained model `model` is `link` (select from table > right click > copy link address), the respective config should be at
@@ -48,15 +51,22 @@ on val set locally.
 Table below shows evaluation metrics for various pretrained models:
 
 ```eval_rst
-+--------+------------------+-------------------------------+----------------------------------------------+
-| Model  | Dataset          | Metric                        | Notes                                        |
-+--------+------------------+-------------------------------+----------------------------------------------+
-| Pythia | vqa2 (train+val) | test-dev accuracy - 68.31%    | Can be easily pushed to 69.2%                |
-+--------+------------------+-------------------------------+----------------------------------------------+
-| Pythia | vqa2 (train)     | test-dev accuracy - 66.7%     |                                              |
-+--------+------------------+-------------------------------+----------------------------------------------+
-| Pythia | vizwiz (train)   | test-dev accuracy - 54.22%    | Pretrained on VQA2 and transferred to VizWiz |
-+--------+------------------+-------------------------------+----------------------------------------------+
-| LoRRA  | textvqa (train)  | val accuracy - 27.4%          |                                              |
-+--------+------------------+-------------------------------+----------------------------------------------+
++--------+--------------------+---------------------------------+----------------------------------------------+
+| Model  | Dataset            | Metric                          | Notes                                        |
++--------+--------------------+---------------------------------+----------------------------------------------+
+| Pythia | vqa2 (train+val)   | test-dev accuracy - 68.31%      | Can be easily pushed to 69.2%                |
++--------+--------------------+---------------------------------+----------------------------------------------+
+| Pythia | vqa2 (train)       | test-dev accuracy - 66.7%       |                                              |
++--------+--------------------+---------------------------------+----------------------------------------------+
+| Pythia | vizwiz (train)     | test-dev accuracy - 54.22%      | Pretrained on VQA2 and transferred to VizWiz |
++--------+--------------------+---------------------------------+----------------------------------------------+
+| LoRRA  | textvqa (train)    | val accuracy - 27.4%            |                                              |
++--------+--------------------+---------------------------------+----------------------------------------------+
+|        |  coco              | | BLEU 1 - 76.02, BLEU 4- 35.42 |                                              |
+| BUTD   |  (karpathy-train)  | | METEOR- 27.39, ROUGE_L- 56.17 | Beam Search(length 5), Karpathy test split   |
+|        |                    | | CIDEr - 112.03, SPICE - 20.33 |                                              |
++--------+--------------------+---------------------------------+----------------------------------------------+
 ```
+
+**Note for BUTD model :**  For training BUTD model use the config `butd.yml`. Training uses greedy decoding for validation. Currently we do not have support to train the model using beam search decoding validation. We will add that support soon. For inference only use `butd_beam_search.yml` config that supports beam search decoding.
+

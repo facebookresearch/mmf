@@ -38,6 +38,8 @@ Following table shows the tasks and their datasets:
 +--------+------------+------------------------+
 | Dialog | dialog     | VisualDialog           |
 +--------+------------+------------------------+
+| Caption| captioning | MS COCO                |
++--------+------------+------------------------+
 ```
 
 Following table shows the inverse of the above table, datasets along with their tasks and keys:
@@ -53,6 +55,8 @@ Following table shows the inverse of the above table, datasets along with their 
 | VizWiz       | vizwiz  | vqa       |                    |
 +--------------+---------+-----------+--------------------+
 | VisualDialog | visdial | dialog    |   Coming soon!     |
++--------------+---------+-----------+--------------------+
+| MS COCO      | coco    | captioning|                    |
 +--------------+---------+-----------+--------------------+
 ```
 
@@ -79,6 +83,8 @@ key name and datasets it can be run on.
 | Pythia    | pythia  | textvqa, vizwiz, vqa2 |
 +-----------+---------+-----------------------+
 | BAN       | ban     | textvqa, vizwiz, vqa2 |
++-----------+---------+-----------------------+
+| BUTD      | butd    | coco                  |
 +-----------+---------+-----------------------+
 ```
 
