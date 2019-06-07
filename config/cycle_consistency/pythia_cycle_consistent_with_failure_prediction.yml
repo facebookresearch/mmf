@@ -1,0 +1,104 @@
+data:
+  batch_size: 256
+  data_root_dir: /private/home/meetshah/cb/data
+  num_workers: 15
+  image_depth_first: false
+  image_feat_train:
+  - detectron_fix_100/fc6/vqa/train2014
+  - detectron_fix_100/fc6/vqa/val2014
+  imdb_file_val:
+  - imdb/imdb_minival2014.npy
+  imdb_file_test:
+  - imdb/imdb_test2015.npy
+  imdb_file_train:
+  - imdb/imdb_train2014.npy
+  - imdb/imdb_val2train2014.npy
+  image_feat_val:
+  - detectron_fix_100/fc6/vqa/val2014
+  image_feat_test:
+  - detectron_fix_100/fc6/vqa/test2015
+  image_fast_reader: False
+  vocab_answer_file: answers_vqa_larger.txt
+  vocab_question_file: vocabulary_vqa.txt
+  image_max_loc: 100
+exp_name: baseline
+loss: logitBCE
+model:
+  failure_predictor:
+    feat_combine: iqa
+    hidden_1: 1024
+    hidden_2: 512
+    dropout: 0.5
+  question_consistency:
+    attended: True
+    vqa_gating: True
+    cycle: True
+    activation_iter: 2500
+    hidden_size: 512
+    embed_size: 300
+    ans_embed_hidden_size: 1000
+    image_feature_in_size: 2048
+  classifier:
+    method: logit_classifier
+    par:
+      img_hidden_dim: 5000
+      txt_hidden_dim: 300
+  image_embedding_models:
+  - modal_combine:
+      method: non_linear_elmt_multiply
+      par:
+        dropout: 0
+        hidden_size: 5000
+    normalization: softmax
+    transform:
+      method: linear_transform
+      par:
+        out_dim: 1
+  image_feat_dim: 2048
+  image_feature_encoding:
+  - method: finetune_faster_rcnn_fpn_fc7
+    par:
+      weights_file: /private/home/meetshah/cb/data/detectron_fix_100/fc6/fc7_w.pkl
+      bias_file: /private/home/meetshah/cb/data/detectron_fix_100/fc6/fc7_b.pkl
+  modal_combine:
+    method: non_linear_elmt_multiply
+    par:
+      dropout: 0
+      hidden_size: 5000
+  question_embedding:
+  - method: att_que_embed
+    par:
+      LSTM_hidden_size: 1024
+      LSTM_layer: 1
+      conv1_out: 512
+      conv2_out: 2
+      dropout: 0
+      embedding_dim: 300
+      embedding_init_file: /private/home/meetshah/cb/data/vqa2.0_glove.6B.300d.txt.npy
+      kernel_size: 1
+      padding: 0
+optimizer:
+  method: Adamax
+  par:
+    eps: 1.0e-08
+    lr: 0.005
+    weight_decay: 0
+run: train+predict
+training_parameters:
+  fp_lr: 0.01
+  qc_lr: 0.0005
+  fp_lambda: 1.5
+  qc_lambda: 0.5
+  clip_norm_mode: all
+  lr_ratio: 0.1
+  lr_steps:
+  - 10000
+  - 14000
+  - 18000
+  - 22000
+  max_grad_l2_norm: 0.25
+  max_iter: 42000
+  report_interval: 200
+  snapshot_interval: 2000
+  wu_factor: 0.2
+  wu_iters: 1000

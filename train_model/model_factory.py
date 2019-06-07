@@ -4,10 +4,9 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 #
-
-
 from global_variables.global_variables import *
-from top_down_bottom_up.top_down_bottom_up_model import vqa_multi_modal_model
+from top_down_bottom_up.top_down_bottom_up_model import (vqa_multi_modal_model,
+     vqa_multi_modal_with_qc_cycle, vqa_multi_modal_with_fpqc_cycle)
 from top_down_bottom_up.image_attention import build_image_attention_module
 from top_down_bottom_up.classifier import build_classifier
 from top_down_bottom_up.question_embeding import build_question_encoding_module
@@ -16,6 +15,11 @@ from top_down_bottom_up.multi_modal_combine import build_modal_combine_module
 from top_down_bottom_up.intermediate_layer import inter_layer
 from top_down_bottom_up.image_feature_encoding \
     import build_image_feature_encoding
+from cycle_consistency.failure_predictor import build_failure_prediction_module
+from cycle_consistency.question_consistency import \
+    build_question_consistency_module
+
+
 import torch.nn as nn
 import torch
 
@@ -89,11 +93,48 @@ def prepare_model(num_vocab_txt, num_choices, **model_config):
         in_dim=joint_embedding_dim,
         out_dim=num_choices)
 
-    my_model = vqa_multi_modal_model(
-        image_emdedding_models_list,
-        question_embeding_models,
-        multi_modal_combine,
-        classifier, image_feature_encode_list, inter_model)
+    is_failure_prediction = model_config.get('failure_predictor', {}).get('hidden_1', 0)
+    is_question_consistency = model_config.get('question_consistency', {}).get('hidden_size', 0)
+
+    if is_question_consistency and not is_failure_prediction:
+
+        question_consistency_model = build_question_consistency_module(**model_config['question_consistency'])
+        skip_thought = model_config['question_consistency'].get('skip_thought', False)
+        decode_question = model_config['question_consistency'].get('decode_question', False)
+        attended = model_config['question_consistency'].get('attended', False)
+        model_class = vqa_multi_modal_with_qc_cycle
+
+        my_model = model_class(image_emdedding_models_list, question_embeding_models,
+                               multi_modal_combine, classifier, image_feature_encode_list,
+                               inter_model, question_consistency_model, skip_thought,
+                               decode_question, attended)
+
+    elif is_question_consistency and is_failure_prediction:
+        feat_combine = model_config['failure_predictor']['feat_combine']
+        if feat_combine == 'iqa':
+            input_size = joint_embedding_dim + model_config['failure_predictor']['answer_hidden_size']
+        elif feat_combine == 'iq':
+            input_size = joint_embedding_dim
+        else:  
+            raise NotImplementedError('feat combine of type {} is not implemented'.format(feat_combine))
+
+        failure_predictor = build_failure_prediction_module(input_size, **model_config['failure_predictor'])
+
+        skip_thought = model_config['question_consistency'].get('skip_thought', False)
+        decode_question = model_config['question_consistency'].get('decode_question', False)
+        attended = model_config['question_consistency'].get('attended', False)
+        question_consistency_model = build_question_consistency_module(**model_config['question_consistency'])
+
+        model_class = vqa_multi_modal_with_fpqc_cycle
+
+        my_model = model_class(image_emdedding_models_list, question_embeding_models,
+                               multi_modal_combine, classifier, image_feature_encode_list,
+                               inter_model, failure_predictor, question_consistency_model,
+                               skip_thought, decode_question, attended)
+
+    else:
+        my_model = vqa_multi_modal_model(image_emdedding_models_list, question_embeding_models,
+                                         multi_modal_combine, classifier, image_feature_encode_list, inter_model)
 
     if use_cuda:
         my_model = my_model.cuda()

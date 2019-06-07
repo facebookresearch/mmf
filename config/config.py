@@ -97,3 +97,43 @@ top_down_bottom_up.transform = ModelParPair('linear_transform')
 top_down_bottom_up.normalization = 'softmax'
 
 __C.model.image_embedding_models.append(top_down_bottom_up)
+
+# --------------------------------------------------------------------------- #
+# failure prediction options:
+# --------------------------------------------------------------------------- #
+failure_predictor = AttrDict()
+failure_predictor.hidden_1 = 0
+failure_predictor.hidden_2 = 512
+failure_predictor.answer_hidden_size = 256
+failure_predictor.dropout = 0.5
+failure_predictor.feat_combine = 'iq'
+
+__C.model.failure_predictor = failure_predictor
+
+# --------------------------------------------------------------------------- #
+# question generator options:
+# --------------------------------------------------------------------------- #
+question_consistency = AttrDict()
+question_consistency.hidden_1 = 0
+question_consistency.attended = False
+question_consistency.cycle = False
+question_consistency.vqa_gating = False        # don't use VQA gating by default
+question_consistency.activation_iter = 10e10   # Never activated by def
+question_consistency.gating_th = 0             # Pass all questions by default
+question_consistency.hidden_size = 512         # hidden size of LSTM
+question_consistency.embed_size = 300          # embedding size of image, answer feats
+question_consistency.ans_embed_hidden_size = 1000  # hidden state of answer embedding layer
+question_consistency.image_feature_in_size = 2048  # input image feat size
+
+
+__C.model.question_consistency = question_consistency
+
+# --------------------------------------------------------------------------- #
+# cycle-consistency options:
+# --------------------------------------------------------------------------- #
+__C.training_parameters.fp_lr = 0.001    # Default lr for failure predictor
+__C.training_parameters.qc_lr = 0.001    # Default lr for question generation
+__C.training_parameters.fp_lambda = 1.0  # lr multiplier  for failure predictor loss
+__C.training_parameters.qc_lambda = 1.0  # lr_multiplier for question generation loss
+__C.training_parameters.cc_lambda = 0.5  # lr_multiplier for answer consistency loss
+

@@ -7,9 +7,11 @@
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from top_down_bottom_up.nonlinear_layer import nonlinear_layer
 from global_variables.global_variables import use_cuda
 
+from train_model.Engineer import masked_unk_softmax
 
 class top_down_bottom_up_model(nn.Module):
     def __init__(self, image_attention_model,
@@ -57,7 +59,7 @@ class top_down_bottom_up_model(nn.Module):
             question_embedding) * self.nonLinear_image(image_embedding)
         logit_res = self.classifier(joint_embedding)
 
-        return logit_res
+        return {'logits': logit_res}
 
 
 class vqa_multi_modal_model(nn.Module):
@@ -73,6 +75,7 @@ class vqa_multi_modal_model(nn.Module):
         self.classifier = classifier
         self.image_feature_encode_list = image_feature_encode_list
         self.inter_model = inter_model
+        self.model_intermediates = {}
 
     def forward(self,
                 image_feat_variables,
@@ -84,6 +87,13 @@ class vqa_multi_modal_model(nn.Module):
             q_embedding = q_model(input_question_variable)
             question_embeddings.append(q_embedding)
         question_embedding_total = torch.cat(question_embeddings, dim=1)
+
+        # Register Question embeddings and tokenized input sequence
+        self.model_intermediates['question_embeddings'] = question_embedding_total
+        self.model_intermediates['question_input'] = input_question_variable
+
+        # Register Raw Image Embeddings assuming rcnn_10_100 feats are first
+        self.model_intermediates['raw_image_embeddings'] = image_feat_variables[0]
 
         assert (len(image_feat_variables) ==
                 len(self.image_feature_encode_list)), \
@@ -108,8 +118,117 @@ class vqa_multi_modal_model(nn.Module):
         if self.inter_model is not None:
             image_embedding_total = self.inter_model(image_embedding_total)
 
+        # Register Image embeddings
+        self.model_intermediates['image_embeddings'] = image_embedding_total
+
         joint_embedding = self.multi_modal_combine(
             image_embedding_total, question_embedding_total)
-        logit_res = self.classifier(joint_embedding)
 
-        return logit_res
+        # Register Joint Embeddings
+        self.model_intermediates['joint_embeddings'] = joint_embedding
+
+        class_out = self.classifier(joint_embedding)
+        if isinstance(class_out, dict):
+            return class_out
+
+        return {'logits': class_out}
+
+
+class vqa_multi_modal_with_qc_cycle(vqa_multi_modal_model):
+    def __init__(self,
+                 image_embedding_models_list,
+                 question_embedding_models,
+                 multi_modal_combine,
+                 classifier,
+                 image_feature_encode_list,
+                 inter_model=None,
+                 question_consistency_model=None,
+                 skip_thought=False,
+                 decode_question=False,
+                 attended=False):
+
+        super().__init__(image_embedding_models_list,
+                         question_embedding_models,
+                         multi_modal_combine,
+                         classifier,
+                         image_feature_encode_list,
+                         inter_model=None)
+
+        self.question_consistency = question_consistency_model
+        self.skip_thought = skip_thought
+        self.decode_question = decode_question
+        self.attended = attended
+
+        self.feat_dict = None
+
+    def forward(self,
+                image_feat_variables,
+                input_question_variable,
+                image_dim_variable,
+                input_answers=None, **kwargs):
+        return_dict = super().forward(image_feat_variables,
+                                      input_question_variable,
+                                      image_dim_variable,
+                                      input_answers=input_answers,
+                                      **kwargs)
+        self.feat_dict = return_dict
+
+        q_gt_input = (kwargs['batch'],
+                      self.model_intermediates['question_input'].clone().detach())
+
+        if self.attended:
+            img_feat_input = self.model_intermediates['image_embeddings'].clone().detach()
+        else:
+            img_feat_input = torch.mean(self.model_intermediates['raw_image_embeddings'].clone().detach(), 1)
+
+        qc_return_dict = self.question_consistency(img_feat_input,
+                                                   return_dict['logits'].clone().detach(),
+                                                   q_gt_input)
+
+        return {'logits': return_dict['logits'],
+                'qc_return_dict': qc_return_dict}
+
+
+class vqa_multi_modal_with_fpqc_cycle(vqa_multi_modal_with_qc_cycle):
+    def __init__(self,
+                 image_embedding_models_list,
+                 question_embedding_models,
+                 multi_modal_combine,
+                 classifier,
+                 image_feature_encode_list,
+                 inter_model=None,
+                 failure_predictor=None,
+                 question_consistency_model=None,
+                 skip_thought=False,
+                 decode_question=False,
+                 attended=False):
+        super().__init__(image_embedding_models_list,
+                         question_embedding_models,
+                         multi_modal_combine,
+                         classifier,
+                         image_feature_encode_list,
+                         inter_model,
+                         question_consistency_model,
+                         skip_thought,
+                         decode_question,
+                         attended)
+
+        self.failure_predictor = failure_predictor
+
+    def forward(self,
+                image_feat_variables,
+                input_question_variable,
+                image_dim_variable,
+                input_answers=None, **kwargs):
+
+        return_dict = super().forward(image_feat_variables,
+                                      input_question_variable,
+                                      image_dim_variable,
+                                      input_answers=input_answers,
+                                      **kwargs)
+
+        fp_return_dict = self.failure_predictor(self.model_intermediates['joint_embeddings'],
+                                                return_dict)
+
+        return_dict.update({'fp_return_dict': fp_return_dict})
+        return return_dict

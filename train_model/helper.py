@@ -32,7 +32,7 @@ def build_model(config, dataset):
 
     num_image_feat = len(config['data']['image_feat_train'][0].split(','))
     my_model = prepare_model(num_vocab_txt, num_choices, **config['model'],
-                            num_image_feat=num_image_feat)
+                             num_image_feat=num_image_feat)
     return my_model
 
 
@@ -51,7 +51,7 @@ def run_model(current_model, data_reader, UNK_idx=0):
 
         verbose_info = batch['verbose_info']
         q_ids = verbose_info['question_id'].cpu().numpy().tolist()
-        logit_res = one_stage_run_model(batch, current_model, eval_mode=True)
+        logit_res = one_stage_run_model(batch, current_model)['logits']
         softmax_res = masked_unk_softmax(logit_res, dim=1, mask_idx=UNK_idx)
         softmax_res = softmax_res.data.cpu().numpy().astype(np.float16)
         q_id_tot += q_ids

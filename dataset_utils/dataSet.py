@@ -282,6 +282,16 @@ class vqa_dataset(Dataset):
         sample = dict(input_seq_batch=input_seq,
                       seq_length_batch=seq_length)
 
+        if 'test2015' in image_file_name:
+            id_start_index = image_file_name.find('5_') + 2
+            sample['image_id'] = int(image_file_name[id_start_index:-4])
+        elif 'genome' in image_file_name:
+            id_start_index = image_file_name.find('e_') + 2
+            sample['image_id'] = int(image_file_name[id_start_index:-4])
+        else:
+            id_start_index = image_file_name.find('4_') + 2
+            sample['image_id'] = int(image_file_name[id_start_index:-4])
+
         for im_idx, image_feat in enumerate(image_feats):
             if im_idx == 0:
                 sample['image_feat_batch'] = image_feat
