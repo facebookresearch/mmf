@@ -107,7 +107,7 @@ class BaseModel(nn.Module):
         model_output = super().__call__(sample_list, *args, **kwargs)
 
         # Make sure theat the output from the model is a Mapping
-        assert isinstance(model_output, collections.Mapping), (
+        assert isinstance(model_output, collections.abc.Mapping), (
             "A dict must be returned from the forward of the model."
         )
 
@@ -117,7 +117,7 @@ class BaseModel(nn.Module):
                 "No calculation will be done in base model."
             )
             assert isinstance(
-                model_output["losses"], collections.Mapping
+                model_output["losses"], collections.abc.Mapping
             ), "'losses' must be a dict."
         else:
             model_output["losses"] = self.loss(sample_list, model_output)
@@ -128,7 +128,7 @@ class BaseModel(nn.Module):
                 "No calculation will be done in base model."
             )
             assert isinstance(
-                model_output["metrics"], collections.Mapping
+                model_output["metrics"], collections.abc.Mapping
             ), "'metrics' must be a dict."
         else:
             model_output["metrics"] = self.metrics(sample_list, model_output)

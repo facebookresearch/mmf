@@ -14,10 +14,10 @@ class Report(OrderedDict):
 
         all_args = [batch, model_output] + [*args]
         for idx, arg in enumerate(all_args):
-            if not isinstance(arg, collections.Mapping):
+            if not isinstance(arg, collections.abc.Mapping):
                 raise TypeError(
                     "Argument {:d}, {} must be of instance of "
-                    "collections.Mapping".format(idx, arg)
+                    "collections.abc.Mapping".format(idx, arg)
                 )
 
         self.writer = registry.get("writer")
@@ -40,7 +40,7 @@ class Report(OrderedDict):
                 self[key] = item
 
     def _check_and_load_tuple(self, batch):
-        if isinstance(batch, collections.Mapping):
+        if isinstance(batch, collections.abc.Mapping):
             return False
 
         if isinstance(batch[0], (tuple, list)) and isinstance(batch[0][0], str):
