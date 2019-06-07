@@ -3,13 +3,12 @@ import collections
 import json
 import os
 import random
-import sys
 from ast import literal_eval
+
+import yaml
 
 import demjson
 import torch
-import yaml
-
 from pythia.common.registry import registry
 from pythia.utils.distributed_utils import is_main_process
 
@@ -22,31 +21,31 @@ class ConfigNode(collections.OrderedDict):
         super().__init__(init_dict)
 
         for key in self:
-            if isinstance(self[key], collections.Mapping):
+            if isinstance(self[key], collections.abc.Mapping):
                 self[key] = ConfigNode(self[key])
             elif isinstance(self[key], list):
                 for idx, item in enumerate(self[key]):
-                    if isinstance(item, collections.Mapping):
+                    if isinstance(item, collections.abc.Mapping):
                         self[key][idx] = ConfigNode(item)
 
     def freeze(self):
         for field in self.keys():
-            if isinstance(self[field], collections.Mapping):
+            if isinstance(self[field], collections.abc.Mapping):
                 self[field].freeze()
             elif isinstance(self[field], list):
                 for item in self[field]:
-                    if isinstance(item, collections.Mapping):
+                    if isinstance(item, collections.abc.Mapping):
                         item.freeze()
 
         self.__dict__[ConfigNode.IMMUTABLE] = True
 
     def defrost(self):
         for field in self.keys():
-            if isinstance(self[field], collections.Mapping):
+            if isinstance(self[field], collections.abc.Mapping):
                 self[field].defrost()
             elif isinstance(self[field], list):
                 for item in self[field]:
-                    if isinstance(item, collections.Mapping):
+                    if isinstance(item, collections.abc.Mapping):
                         item.defrost()
 
         self.__dict__[ConfigNode.IMMUTABLE] = False
@@ -74,7 +73,7 @@ class ConfigNode(collections.OrderedDict):
     def __str__(self):
         strs = []
 
-        if isinstance(self, collections.Mapping):
+        if isinstance(self, collections.abc.Mapping):
             for key, value in sorted(self.items()):
                 seperator = "\n" if isinstance(value, ConfigNode) else " "
                 if isinstance(value, list):
@@ -178,7 +177,7 @@ class Configuration:
             dictionary = {}
 
         for k, v in update.items():
-            if isinstance(v, collections.Mapping):
+            if isinstance(v, collections.abc.Mapping):
                 dictionary[k] = self.nested_dict_update(dictionary.get(k, {}), v)
             else:
                 dictionary[k] = self._decode_value(v)
@@ -206,7 +205,7 @@ class Configuration:
                         " option {} is missing from"
                         " configuration at field {}".format(opt, field)
                     )
-                if not isinstance(current[field], collections.Mapping):
+                if not isinstance(current[field], collections.abc.Mapping):
                     if idx == len(splits) - 1:
                         if is_main_process():
                             print("Overriding option {} to {}".format(opt, value))
@@ -247,7 +246,7 @@ class Configuration:
         any level in 'dictionary'
         """
         for key, value in dictionary.items():
-            if not isinstance(value, collections.Mapping):
+            if not isinstance(value, collections.abc.Mapping):
                 if key in update_dict and update_dict[key] is not None:
                     dictionary[key] = update_dict[key]
             else:
