@@ -76,7 +76,7 @@ class Metrics:
         metrics = {}
         for metric in metric_list:
             params = {}
-            if isinstance(metric, collections.Mapping):
+            if isinstance(metric, collections.abc.Mapping):
                 if not hasattr(metric, "type"):
                     raise ValueError(
                         "Metric {} needs to have 'type' attribute".format(metric)

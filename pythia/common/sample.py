@@ -113,7 +113,7 @@ class SampleList(OrderedDict):
 
                 self[field][idx] = self._get_data_copy(sample[field])
 
-            if isinstance(samples[0][field], collections.Mapping):
+            if isinstance(samples[0][field], collections.abc.Mapping):
                 self[field] = SampleList(self[field])
 
     def _check_and_load_tuple(self, samples):
@@ -125,7 +125,7 @@ class SampleList(OrderedDict):
             return False
 
     def _check_and_load_dict(self, samples):
-        if isinstance(samples, collections.Mapping):
+        if isinstance(samples, collections.abc.Mapping):
             for key, value in samples.items():
                 self.add_field(key, value)
             return True
