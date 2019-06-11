@@ -1,4 +1,4 @@
-# Requires maskrcnn-benchmark to be built and installed
+# Requires vqa-maskrcnn-benchmark to be built and installed
 import argparse
 import glob
 import os
@@ -23,19 +23,20 @@ class FeatureExtractor:
     CONFIG_URL = (
         "https://dl.fbaipublicfiles.com/pythia/detectron_model/detectron_model.yaml"
     )
+    MAX_SIZE = 1333
+    NUM_FEATURES = 100
 
     def __init__(self):
         self.args = self.get_parser().parse_args()
         self.detection_model = self._build_detection_model()
 
-        if not os.path.exists(self.args.output_folder):
-            os.makedirs(self.args.output_folder, exist_ok=True)
+        os.makedirs(self.args.output_folder, exist_ok=True)
 
     def _try_downloading_necessities(self):
         if self.args.model_file is None:
             print("Downloading model and configuration")
-            self.args.model_file = "./detectron_model.pth"
-            self.args.config_file = "./detectron_model.yaml"
+            self.args.model_file = self.MODEL_URL.split("/")[-1]
+            self.args.config_file = self.CONFIG_URL.split("/")[-1]
             download_file(self.MODEL_URL)
             download_file(self.CONFIG_URL)
 
@@ -76,10 +77,15 @@ class FeatureExtractor:
         im_shape = im.shape
         im_size_min = np.min(im_shape[0:2])
         im_size_max = np.max(im_shape[0:2])
-        im_scale = float(800) / float(im_size_min)
+
+        # Scale based on 800
+        im_scale = 800 / im_size_min
+
         # Prevent the biggest axis from being more than max_size
-        if np.round(im_scale * im_size_max) > 1333:
-            im_scale = float(1333) / float(im_size_max)
+        # If bigger, scale it down
+        if np.round(im_scale * im_size_max) > self.MAX_SIZE:
+            im_scale = self.MAX_SIZE / im_size_max
+
         im = cv2.resize(
             im, None, None, fx=im_scale, fy=im_scale, interpolation=cv2.INTER_LINEAR
         )
@@ -90,7 +96,7 @@ class FeatureExtractor:
         self, output, im_scales, feat_name="fc6", conf_thresh=0.2
     ):
         batch_size = len(output[0]["proposals"])
-        n_boxes_per_image = [len(_) for _ in output[0]["proposals"]]
+        n_boxes_per_image = [len(boxes) for boxes in output[0]["proposals"]]
         score_list = output[0]["scores"].split(n_boxes_per_image)
         score_list = [torch.nn.functional.softmax(x, -1) for x in score_list]
         feats = output[0][feat_name].split(n_boxes_per_image)
@@ -111,7 +117,7 @@ class FeatureExtractor:
                     cls_scores[keep] > max_conf[keep], cls_scores[keep], max_conf[keep]
                 )
 
-            keep_boxes = torch.argsort(max_conf, descending=True)[:100]
+            keep_boxes = torch.argsort(max_conf, descending=True)[:self.NUM_FEATURES]
             feat_list.append(feats[i][keep_boxes])
             bbox = output[0]["proposals"][i][keep_boxes].bbox / im_scales[i]
             objects = torch.argmax(scores[keep_boxes], dim=1)
@@ -137,6 +143,8 @@ class FeatureExtractor:
             img_tensor.append(im)
             im_scales.append(im_scale)
 
+        # Image dimensions should be divisible by 32, to allow convolutions
+        # in detector to work
         current_img_list = to_image_list(img_tensor, size_divisible=32)
         current_img_list = current_img_list.to("cuda")
 
