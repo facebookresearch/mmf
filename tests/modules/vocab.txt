@@ -16,4 +16,3 @@ countryside
 back
 of
 motorcycle
-<unk>
