@@ -89,8 +89,7 @@ def download_file(url, output_dir=".", filename=""):
     if len(filename) == 0:
         filename = os.path.join(".", url.split("/")[-1])
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
 
     filename = os.path.join(output_dir, filename)
     r = requests.get(url, stream=True)
