@@ -4,7 +4,9 @@ import gc
 import os
 from bisect import bisect
 
+import requests
 import torch
+import tqdm
 import yaml
 from torch import nn
 
@@ -81,6 +83,30 @@ def get_pythia_root():
         pythia_root = os.path.abspath(os.path.join(pythia_root, ".."))
         registry.register("pythia_root", pythia_root)
     return pythia_root
+
+
+def download_file(url, output_dir=".", filename=""):
+    if len(filename) == 0:
+        filename = os.path.join(".", url.split("/")[-1])
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    filename = os.path.join(output_dir, filename)
+    r = requests.get(url, stream=True)
+
+    file_size = int(r.headers["Content-Length"])
+    chunk_size = 1024 * 1024
+    num_bars = int(file_size / chunk_size)
+
+    with open(filename, "wb") as fh:
+        for chunk in tqdm.tqdm(
+            r.iter_content(chunk_size=chunk_size),
+            total=num_bars,
+            unit="MB",
+            desc=filename,
+            leave=True,
+        ):
+            fh.write(chunk)
 
 
 def get_optimizer_parameters(model, config):
