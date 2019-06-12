@@ -1,4 +1,6 @@
 # Requires vqa-maskrcnn-benchmark to be built and installed
+# Category mapping for visual genome can be downloaded from
+# https://dl.fbaipublicfiles.com/pythia/data/visual_genome_categories.json
 import argparse
 import glob
 import os
@@ -24,6 +26,7 @@ class FeatureExtractor:
         "https://dl.fbaipublicfiles.com/pythia/detectron_model/detectron_model.yaml"
     )
     MAX_SIZE = 1333
+    MIN_SIZE = 800
     NUM_FEATURES = 100
 
     def __init__(self):
@@ -53,7 +56,14 @@ class FeatureExtractor:
             "--output_folder", type=str, default="./output", help="Output folder"
         )
         parser.add_argument("--image_dir", type=str, help="Image directory or file")
-
+        parser.add_argument(
+            "--feature_name", type=str, help="The name of the feature to extract",
+            default="fc6",
+        )
+        parser.add_argument(
+            "--confidence_threshold", type=float, default=0.2,
+            help="Threshold of detection confidence above which boxes will be selected"
+        )
         return parser
 
     def _build_detection_model(self):
@@ -78,8 +88,8 @@ class FeatureExtractor:
         im_size_min = np.min(im_shape[0:2])
         im_size_max = np.max(im_shape[0:2])
 
-        # Scale based on 800
-        im_scale = 800 / im_size_min
+        # Scale based on minimum size
+        im_scale = self.MIN_SIZE / im_size_min
 
         # Prevent the biggest axis from being more than max_size
         # If bigger, scale it down
@@ -93,13 +103,13 @@ class FeatureExtractor:
         return img, im_scale
 
     def _process_feature_extraction(
-        self, output, im_scales, feat_name="fc6", conf_thresh=0.2
+        self, output, im_scales, feature_name="fc6", conf_thresh=0.2
     ):
         batch_size = len(output[0]["proposals"])
         n_boxes_per_image = [len(boxes) for boxes in output[0]["proposals"]]
         score_list = output[0]["scores"].split(n_boxes_per_image)
         score_list = [torch.nn.functional.softmax(x, -1) for x in score_list]
-        feats = output[0][feat_name].split(n_boxes_per_image)
+        feats = output[0][feature_name].split(n_boxes_per_image)
         cur_device = score_list[0].device
 
         feat_list = []
@@ -150,7 +160,9 @@ class FeatureExtractor:
 
         with torch.no_grad():
             output = self.detection_model(current_img_list)
-        feat_list = self._process_feature_extraction(output, im_scales, "fc6", 0.2)
+        feat_list = self._process_feature_extraction(
+            output, im_scales, self.args.feature_name, self.args.confidence_threshold
+        )
         return feat_list
 
     def _chunks(self, array, chunk_size):
