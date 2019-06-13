@@ -10,6 +10,16 @@ from pythia.tasks.processors import Processor
 
 
 class BaseDataset(Dataset):
+    """Base class for implementing a dataset. Inherits from PyTorch's Dataset class
+    but adds some custom functionality on top. Instead of ``__getitem__`` you have to implement
+    ``get_item`` here. Processors mentioned in the configuration are automatically initialized for
+    the end user.
+
+    Args:
+        name (str): Name of your dataset to be used a representative in text strings
+        dataset_type (str): Type of your dataset. Normally, train|val|test
+        config (ConfigNode): Configuration for the current dataset
+    """
     def __init__(self, name, dataset_type, config={}):
         super(BaseDataset, self).__init__()
         self.config = config
