@@ -94,6 +94,9 @@ def download_file(url, output_dir=".", filename=""):
     filename = os.path.join(output_dir, filename)
     r = requests.get(url, stream=True)
 
+    if r.status_code != 200:
+        print("The url {} is broken. If this is not your own url,"
+              " please open up an issue on GitHub.".format(url))
     file_size = int(r.headers["Content-Length"])
     chunk_size = 1024 * 1024
     num_bars = int(file_size / chunk_size)
