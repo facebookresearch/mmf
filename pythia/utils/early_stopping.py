@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import torch
+import warnings
 
 from pythia.common.registry import registry
 from pythia.utils.distributed_utils import is_main_process
@@ -27,8 +28,10 @@ class EarlyStopping:
         self.model = model
         self.checkpoint = checkpoint_instance
         self.monitored_metric = monitored_metric
+
         if "val" not in self.monitored_metric:
             self.monitored_metric = "val/{}".format(self.monitored_metric)
+
         self.best_monitored_value = -np.inf if not minimize else np.inf
         self.best_monitored_iteration = 0
         self.should_stop = should_stop
@@ -47,13 +50,14 @@ class EarlyStopping:
         if not is_main_process():
             return False
 
-        value = meter.meters.get(self.monitored_metric, None).global_avg
-
+        value = meter.meters.get(self.monitored_metric, None)
         if value is None:
             raise ValueError(
                 "Metric used for early stopping ({}) is not "
                 "present in meter.".format(self.monitored_metric)
             )
+
+        value = value.global_avg
 
         if isinstance(value, torch.Tensor):
             value = value.item()

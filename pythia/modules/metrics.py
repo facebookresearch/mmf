@@ -67,7 +67,7 @@ class Metrics:
 
     def __init__(self, metric_list):
         if not isinstance(metric_list, list):
-            metrics_list = [metric_list]
+            metric_list = [metric_list]
 
         self.writer = registry.get("writer")
         self.metrics = self._init_metrics(metric_list)
@@ -115,6 +115,8 @@ class Metrics:
 
                 if not isinstance(values[key], torch.Tensor):
                     values[key] = torch.tensor(values[key], dtype=torch.float)
+                else:
+                    values[key] = values[key].float()
 
                 if values[key].dim() == 0:
                     values[key] = values[key].view(1)
@@ -191,11 +193,20 @@ class Accuracy(BaseMetric):
         """
         output = model_output["scores"]
         expected = sample_list["targets"]
-        output = torch.max(output, 1)[1]
 
-        correct = (expected == output.squeeze()).sum()
+        assert output.dim() <= 2, ("Output from model shouldn't have "
+                                   " more than dim 2 for accuracy")
+        assert expected.dim() <= 2, ("Expected target shouldn't have "
+                                     "more than dim 2 for accuracy")
 
-        correct = correct
+        if output.dim() == 2:
+            output = torch.max(output, 1)[1]
+
+        # If more than 1
+        if expected.dim() == 2:
+            expected = torch.max(expected, 1)[1]
+
+        correct = (expected == output.squeeze()).sum().float()
         total = len(expected)
 
         value = correct / total
