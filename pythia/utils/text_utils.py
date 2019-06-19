@@ -3,6 +3,7 @@ import os
 import re
 import torch
 from itertools import chain
+from collections import Counter
 
 from pythia.utils.general import get_pythia_root
 
@@ -53,9 +54,15 @@ def generate_ngrams_range(tokens, ngram_range=(1, 3)):
     return chain(*(generate_ngrams(tokens, i) for i in range(*ngram_range)))
 
 
-def tokenize(sentence, regex=SENTENCE_SPLIT_REGEX):
+def tokenize(sentence, regex=SENTENCE_SPLIT_REGEX, keep=["'s"], remove=[",", "?"]):
     sentence = sentence.lower()
-    sentence = sentence.replace(",", "").replace("?", "").replace("'s", " 's")
+
+    for token in keep:
+        sentence = sentence.replace(token, " " + token)
+
+    for token in remove:
+        sentence = sentence.replace(token, "")
+
     tokens = regex.split(sentence)
     tokens = [t.strip() for t in tokens if len(t.strip()) > 0]
     return tokens
@@ -88,14 +95,31 @@ class VocabDict:
             )
 
         self.word_list = load_str_list(vocab_file)
+        self._build()
+
+    def _build(self):
         self.word2idx_dict = {w: n_w for n_w, w in enumerate(self.word_list)}
+        self.stoi = self.word2idx_dict
+        self.itos = self.word_list
         self.num_vocab = len(self.word_list)
+
         self.UNK_INDEX = (
             self.word2idx_dict["<unk>"] if "<unk>" in self.word2idx_dict else None
         )
 
+        self.PAD_INDEX = (
+            self.word2idx_dict["<unk>"] if "<unk>" in self.word2idx_dict else None
+        )
+
+
     def idx2word(self, n_w):
         return self.word_list[n_w]
+
+    def __len__(self):
+        return len(self.word_list)
+
+    def get_size(self):
+        return len(self.word_list)
 
     def get_unk_index(self):
         return self.UNK_INDEX
@@ -118,6 +142,33 @@ class VocabDict:
     def tokenize_and_index(self, sentence):
         inds = [self.word2idx(w) for w in tokenize(sentence)]
         return inds
+
+
+class VocabFromText(VocabDict):
+    DEFAULT_TOKENS = ["<pad>", "<unk>", "<s>", "</s>"]
+
+    def __init__(self, sentences, min_count, regex=SENTENCE_SPLIT_REGEX,
+                 keep=[], remove=[], only_unk_extra=False):
+        token_counter = Counter()
+
+        for sentence in sentences:
+            tokens = tokenize(
+                sentence, regex=regex, keep=keep, remove=remove
+            )
+            token_counter.update(tokens)
+
+        token_list = []
+        for token in token_counter:
+            if token_counter[token] >= min_count:
+                token_list.append(token)
+
+        extras = self.DEFAULT_TOKENS
+
+        if only_unk_extra:
+            extras = ["<unk>"]
+
+        self.word_list = extras + token_list
+        self._build()
 
 
 class BeamSearch:
