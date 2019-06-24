@@ -147,7 +147,7 @@ class VocabDict:
 class VocabFromText(VocabDict):
     DEFAULT_TOKENS = ["<pad>", "<unk>", "<s>", "</s>"]
 
-    def __init__(self, sentences, min_count, regex=SENTENCE_SPLIT_REGEX,
+    def __init__(self, sentences, min_count=1, regex=SENTENCE_SPLIT_REGEX,
                  keep=[], remove=[], only_unk_extra=False):
         token_counter = Counter()
 
