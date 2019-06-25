@@ -665,8 +665,8 @@ class VQAAnswerProcessor(BaseProcessor):
         return scores
 
 
-@registry.register_processor("one_hot_answer_from_vocab")
-class OneHotAnswerFromVocabProcessor(VQAAnswerProcessor):
+@registry.register_processor("multi_hot_answer_from_vocab")
+class MultiHotAnswerFromVocabProcessor(VQAAnswerProcessor):
     def __init__(self, config, *args, **kwargs):
         super().__init__(config, *args, **kwargs)
 

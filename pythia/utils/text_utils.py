@@ -82,6 +82,9 @@ def load_str_list(fname):
 
 
 class VocabDict:
+    UNK_TOKEN = "<unk>"
+    PAD_TOKEN = "<pad>"
+
     def __init__(self, vocab_file, data_root_dir=None):
         if not os.path.isabs(vocab_file) and data_root_dir is not None:
             pythia_root = get_pythia_root()
@@ -98,17 +101,20 @@ class VocabDict:
         self._build()
 
     def _build(self):
+        if self.UNK_TOKEN not in self.word_list:
+            self.word_list = [self.UNK_TOKEN] + self.word_list
+
         self.word2idx_dict = {w: n_w for n_w, w in enumerate(self.word_list)}
         self.stoi = self.word2idx_dict
         self.itos = self.word_list
         self.num_vocab = len(self.word_list)
 
         self.UNK_INDEX = (
-            self.word2idx_dict["<unk>"] if "<unk>" in self.word2idx_dict else None
+            self.word2idx_dict[self.UNK_TOKEN] if self.UNK_TOKEN in self.word2idx_dict else None
         )
 
         self.PAD_INDEX = (
-            self.word2idx_dict["<unk>"] if "<unk>" in self.word2idx_dict else None
+            self.word2idx_dict[self.PAD_TOKEN] if self.PAD_TOKEN in self.word2idx_dict else None
         )
 
 
@@ -125,7 +131,7 @@ class VocabDict:
         return self.UNK_INDEX
 
     def get_unk_token(self):
-        return "<unk>"
+        return self.UNK_TOKEN
 
     def word2idx(self, w):
         if w in self.word2idx_dict:

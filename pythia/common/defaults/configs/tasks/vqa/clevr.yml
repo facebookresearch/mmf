@@ -27,7 +27,7 @@ task_attributes:
                             type: simple_sentence
                             params: {}
                     answer_processor:
-                        type: one_hot_answer_from_vocab
+                        type: multi_hot_answer_from_vocab
                         params:
                             num_answers: 1
                             # Vocab file is relative to [data_root_dir]/[data_folder]

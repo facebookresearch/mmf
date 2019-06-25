@@ -24,7 +24,7 @@ class TestModuleMetrics(unittest.TestCase):
         config = ConfigNode(config)
         captioning_config = config.task_attributes.captioning.dataset_attributes.coco
         caption_processor_config = captioning_config.processors.caption_processor
-        vocab_path = os.path.join(os.path.abspath(__file__), "../vocab.txt")
+        vocab_path = os.path.join(os.path.abspath(__file__), "..", "..", "data", "vocab.txt")
         caption_processor_config.params.vocab.vocab_file = os.path.abspath(vocab_path)
         caption_processor = CaptionProcessor(caption_processor_config.params)
         registry.register("coco_caption_processor", caption_processor)
