@@ -29,15 +29,17 @@ class ConvNet(nn.Module):
         x = self.max_pool2d(nn.functional.leaky_relu(self.conv(x)))
 
         if self.batch_norm:
-            return self.batch_norm_2d(x)
-        else:
-            return x
+            x = self.batch_norm_2d(x)
+
+        return x
 
 
 class Flatten(nn.Module):
     def forward(self, input):
-        return input.view(input.size(0), -1)
+        if input.dim() > 1:
+            input = input.view(input.size(0), -1)
 
+        return input
 
 class UnFlatten(nn.Module):
     def forward(self, input, sizes=[]):
