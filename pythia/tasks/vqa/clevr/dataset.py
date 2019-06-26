@@ -11,6 +11,7 @@ from pythia.common.sample import Sample
 from pythia.tasks.base_dataset import BaseDataset
 from pythia.utils.general import get_pythia_root
 from pythia.utils.text_utils import VocabFromText, tokenize
+from pythia.utils.distributed_utils import is_main_process, synchronize
 
 
 class CLEVRDataset(BaseDataset):
@@ -47,8 +48,12 @@ class CLEVRDataset(BaseDataset):
             )
         ) as f:
             self.questions = json.load(f)["questions"]
-            self._build_vocab(self.questions, "question")
-            self._build_vocab(self.questions, "answer")
+
+            # Only build in the main process
+            if is_main_process():
+                self._build_vocab(self.questions, "question")
+                self._build_vocab(self.questions, "answer")
+            synchronize()
 
     def __len__(self):
         return len(self.questions)
