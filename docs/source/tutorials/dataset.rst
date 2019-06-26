@@ -9,8 +9,8 @@ This is a tutorial on how to add a new dataset to Pythia.
 Pythia is agnostic to kind of datasets that can be added to it. On high level, adding a dataset requires 4 main components. 
 
 - Dataset Builder
-- Dataset Class
 - Default Configuration
+- Dataset Class
 - Dataset's Metrics
 - [Optional] Task specification
 
@@ -51,160 +51,71 @@ Let's write down this using example of *CLEVR* dataset.
     import zipfile
 
     from collections import Counter
-    
+
     from pythia.common.registry import registry
-    from pythia.common.constants import DATA_FOLDER
     from pythia.tasks.base_dataset_builder import BaseDatasetBuilder
     # Let's assume for now that we have a dataset class called CLEVRDataset
     from pythia.tasks.vqa.clevr.dataset import CLEVRDataset
-    from pythia.utils.general import download_url, get_pythia_root
-
+    from pythia.utils.general import download_file, get_pythia_root
 
     @registry.register_builder("clevr")
     class CLEVRBuilder(BaseDatasetBuilder):
         DOWNLOAD_URL = "https://s3-us-west-1.amazonaws.com/clevr/CLEVR_v1.0.zip"
-        FOLDER_NAME = "CLEVR_v1.0"
 
         def __init__(self):
             # Init should call super().__init__ with the key for the dataset
             super().__init__("clevr")
-        
-            self.writer = registry.get("writer") 
+            self.writer = registry.get("writer")
+
             # Assign the dataset class
             self.dataset_class = CLEVRDataset
-        
+
         def _build(self, dataset_type, config):
-            download_folder = getattr(config, "download_folder", DATA_FOLDER)
-            download_folder = os.path.join(download_folder, self.FOLDER_NAME)
-            download_folder = os.path.join(get_pythia_root(), download_folder)
+            download_folder = os.path.join(get_pythia_root(), config.data_root_dir)
+            download_folder = os.path.join(download_folder, config.data_folder)
 
-            self.download_folder = download_folder
+            file_name = CLEVR_DOWNLOAD_URL.split("/")[-1]
+            local_filename = os.path.join(download_folder, file_name)
 
-            file_name = self.DOWNLOAD_URL.split("/")[-1]
-            local_filename = os.path.join(self.download_folder, file_name)
+            extraction_folder = os.path.join(download_folder, ".".join(file_name.split(".")[:-1]))
+            self.data_folder = extraction_folder
 
+            # Either if the zip file is already present or if there are some
+            # files inside the folder we don't continue download process
             if os.path.exists(local_filename):
                 return
 
-            if len(os.listdir(self.download_folder)) != 0:
+            if os.path.exists(extraction_folder) and \
+                len(os.listdir(extraction_folder)) != 0:
                 return
 
             self.writer.write("Downloading the CLEVR dataset now")
+            download_file(self.DOWNLOAD_URL, output_dir=download_folder)
 
-            download_url(self.DOWNLOAD_URL, output_folder=self.download_folder)
-
+            self.writer.write("Downloaded. Extracting now. This can take time.")
             with zipfile.ZipFile(local_filename, "r") as zip_ref:
-                zip_ref.extractall(self.download_folder)
-                            
-        def _load(self, dataset_type, config, *args, **kwargs):
-            self.dataset = CLEVRDataset(dataset_type, config, download_folder=self.download_folder)
+                zip_ref.extractall(download_folder)
 
+
+        def _load(self, dataset_type, config, *args, **kwargs):
+            # Load the dataset using the CLEVRDataset class
+            self.dataset = CLEVRDataset(
+                dataset_type, config, data_folder=self.data_folder
+            )
             return self.dataset
 
-
-.. note:
-
-    Actual implementation of the dataset might differ due to support for distributed training.
-
-
-
-Dataset Class
-=============
-
-Next step is to actually build a dataset class which inherits |BaseDataset| so it can interact with PyTorch
-dataloaders. Follow the steps below to inherit and create your dataset's class.
-
-- Inherit :class:`pythia.tasks.base_dataset.BaseDataset`
-- Implement ``__init__(self, dataset_type, config)``. Call parent's init using ``super().__init__("name", dataset_type, config)``
-  where "name" is the string representing the name of your dataset.
-- Implement ``get_item(self, idx)``, our replacement for normal ``__getitem__(self, idx)`` you would implement for a torch dataset. This needs to 
-  return an object of class :class:Sample. 
-- Implement ``__len__(self)`` method, which represents size of your dataset.
-- [Optional] Implement ``load_item(self, idx)`` if you need to load something or do something else with data and then call it inside ``get_item``.
-
-
-
-.. code-block:: python
-
-    import os
-
-    from pythia.common.registry import registry
-    from pythia.common.sample import Sample
-    from pythia.tasks.base_dataset import BaseDataset
-    from pythia.utils.general import get_pythia_root
-    from pythia.utils.text_utils import VocabFromText
-
-    
-    class CLEVRDataset(BaseDataset):
-        FOLDER_NAME = "CLEVR_v1.0"
-
-        def __init__(self, dataset_type, config, download_folder=None, *args, **kwargs):
-            super().__init__("clevr", dataset_type, config)
-
-            self.download_folder = download_folder
-
-            if not self.download_folder:
-                self.download_folder = os.path.join(get_pythia_root(), self.FOLDER_NAME)
-
-            if len(os.listdir(self.download_folder)) == 0:
-                raise RuntimeError("CLEVR dataset folder is empty")
-            
-            self._load()
-        
-        def _load(self):
-            self.image_path = os.path.join(folder_name, "images", self._dataset_type)
-            with open(
-                os.path.join(
-                    self.download_folder,
-                    "questions",
-                    "CLEVR_{}_questions.json".format(self._dataset_type),
-                )
-            ) as f:
-                self.questions = json.load(f)["questions"]
-
-            self.question_vocab = self._load_vocab(
-                self.download_folder, self.questions, "question"
+        def update_registry_for_model(self, config):
+            # Register both vocab (question and answer) sizes to registry for easy access to the 
+            # models. update_registry_for_model function if present is automatically called by 
+            # pythia
+            registry.register(
+                self.dataset_name + "_text_vocab_size",
+                self.dataset.text_processor.get_vocab_size(),
             )
-            self.answer_vocab = self._load_vocab(
-                self.download_folder, self.questions, "answer"
+            registry.register(
+                self.dataset_name + "_num_final_outputs",
+                self.dataset.answer_processor.get_vocab_size(),
             )
-        
-         def __len__(self):
-            return len(self.questions)
-
-        def _load_vocab(self, self.download_folder, questions, attribute):
-            ....
-        
-        def get_item(self, idx):
-            data = self.questions[idx]
-            
-            # Each call to get_item from dataloader returns a Sample class object which
-            # collated by our special batch collator to a SampleList which is basically
-            # a attribute based batch in layman terms
-            current_sample = Sample()
-
-            question = data["question"]
-
-            processed = self.text_processor(
-                {"text": question}, delimiter=" ", keep=[";", ","], remove=["?", "."]
-            )
-
-            current_sample.text = processed["text"]
-
-            processed = self.answer_processor(
-                {"answers": data["answer"]}
-            )
-
-            current_sample.answers = processed["answers"]
-            current_sample.targets = processed["answers_scores"]
-            
-            image_path = os.path.join(self.image_path, data["image_filename"])
-            image = np.true_divide(Image.open(image_path).convert("RGB"), 255)
-            image = image.astype(np.float32)
-            current_sample.image = torch.from_numpy(image.transpose(2, 0, 1))
-
-            return current_sample
-
 
 Default Configuration
 =====================
@@ -247,31 +158,49 @@ Here, is a default configuration for CLEVR needed based on our dataset and build
         vqa:
             datasets:
             - clevr
-            dataset_size_proportional_sampling: true
             dataset_attributes:
+                # You can specify any attributes you want, and you will get them as attributes 
+                # inside the config passed to the dataset. Check the Dataset implementation below.
                 clevr:
+                    # Where your data is stored
                     data_root_dir: ../data
+                    data_folder: CLEVR_v1.0
+                    # Any attribute that you require to build your dataset but are configurable
+                    # For CLEVR, we have attributes that can be passed to vocab building class
+                    build_attributes:
+                        min_count: 1
+                        split_regex: " "
+                        keep:
+                            - ";"
+                            - ","
+                        remove:
+                            - "?"
+                            - "."
                     processors:
+                    # The processors will be assigned to the datasets automatically by Pythia
+                    # For example if key is text_processor, you can access that processor inside
+                    # dataset object using self.text_processor
                         text_processor:
                             type: vocab
                             params:
                                 max_length: 10
                                 vocab:
                                     type: random
-                                    vocab_file: CLEVR_v1.0/question_vocab.txt
-                                preprocessor:
-                                    type: simple_sentence
-                                    params: {}
+                                    vocab_file: vocabs/clevr_question_vocab.txt
+                            # You can also specify a processor here
+                            preprocessor:
+                                type: simple_sentence
+                                params: {}
                         answer_processor:
-                            type: vocab
+                            # Add your processor for answer processor here
+                            type: multi_hot_answer_from_vocab
                             params:
-                                max_length: 1
-                                vocab:
-                                    type: random
-                                    vocab_file: CLEVR_v1.0/answer_vocab.txt
+                                num_answers: 1
+                                # Vocab file is relative to [data_root_dir]/[data_folder]
+                                vocab_file: vocabs/clevr_answer_vocab.txt
                                 preprocessor:
                                     type: simple_word
-                                    params: {}
+                                    params: {} 
     training_parameters:
         monitored_metric: clevr_accuracy
         metric_minimize: false
@@ -286,6 +215,133 @@ we set ``metric_minimize`` to ``false``.
 
     Since, in v0.3, models are expected to return the metrics, so these attributes will also need to be specified by the user
     in future based on the metrics they are optimizing. Thus, in future warnings, these will move to user configs for models.
+
+For processors, check :class:`pythia.tasks.processors` to understand how to create a processor and different processors that are
+already available in Pythia.
+
+Dataset Class
+=============
+
+Next step is to actually build a dataset class which inherits |BaseDataset| so it can interact with PyTorch
+dataloaders. Follow the steps below to inherit and create your dataset's class.
+
+- Inherit :class:`pythia.tasks.base_dataset.BaseDataset`
+- Implement ``__init__(self, dataset_type, config)``. Call parent's init using ``super().__init__("name", dataset_type, config)``
+  where "name" is the string representing the name of your dataset.
+- Implement ``get_item(self, idx)``, our replacement for normal ``__getitem__(self, idx)`` you would implement for a torch dataset. This needs to 
+  return an object of class :class:Sample. 
+- Implement ``__len__(self)`` method, which represents size of your dataset.
+- [Optional] Implement ``load_item(self, idx)`` if you need to load something or do something else with data and then call it inside ``get_item``.
+
+.. note:
+
+    Actual implementation of the dataset might differ due to support for distributed training.
+
+.. code-block:: python
+
+    import os
+    import json
+
+    import numpy as np
+    import torch
+
+    from PIL import Image
+
+    from pythia.common.registry import registry
+    from pythia.common.sample import Sample
+    from pythia.tasks.base_dataset import BaseDataset
+    from pythia.utils.general import get_pythia_root
+    from pythia.utils.text_utils import VocabFromText, tokenize
+
+
+    class CLEVRDataset(BaseDataset):
+        def __init__(self, dataset_type, config, data_folder=None, *args, **kwargs):
+            super().__init__("clevr", dataset_type, config)
+            self._data_folder = data_folder
+            self._data_root_dir = os.path.join(get_pythia_root(), config.data_root_dir)
+
+            if not self._data_folder:
+                self._data_folder = os.path.join(self._data_root_dir, config.data_folder)
+
+            if not os.path.exists(self._data_folder):
+                raise RuntimeError(
+                    "Data folder {} for CLEVR is not present".format(self._data_folder)
+                )
+
+            # Check if the folder was actually extracted in the subfolder
+            if config.data_folder in os.listdir(self._data_folder):
+                self._data_folder = os.path.join(self._data_folder, config.data_folder)
+
+            if len(os.listdir(self._data_folder)) == 0:
+                raise RuntimeError("CLEVR dataset folder is empty")
+
+            self._load()
+
+        def _load(self):
+            self.image_path = os.path.join(self._data_folder, "images", self._dataset_type)
+
+            with open(
+                os.path.join(
+                    self._data_folder,
+                    "questions",
+                    "CLEVR_{}_questions.json".format(self._dataset_type),
+                )
+            ) as f:
+                self.questions = json.load(f)["questions"]
+                self._build_vocab(self.questions, "question")
+                self._build_vocab(self.questions, "answer")
+
+        def __len__(self):
+            # __len__ tells how many samples are there
+            return len(self.questions)
+
+        def _get_vocab_path(self, attribute):
+            return os.path.join(
+                self._data_root_dir, "vocabs",
+                "{}_{}_vocab.txt".format(self._name, attribute)
+            )
+
+        def _build_vocab(self, questions, attribute):
+            # This function builds vocab for questions and answers but not required for the
+            # tutorial
+            ...
+
+        def get_item(self, idx):
+            # Get item is like your normal __getitem__ in PyTorch Dataset. Based on id 
+            # return a sample. Check VQA2Dataset implementation if you want to see how 
+            # to do caching in Pythia
+            data = self.questions[idx]
+
+            # Each call to get_item from dataloader returns a Sample class object which
+            # collated by our special batch collator to a SampleList which is basically
+            # a attribute based batch in layman terms
+            current_sample = Sample()
+
+            question = data["question"]
+            tokens = tokenize(question, keep=[";", ","], remove=["?", "."])
+            
+            # This processors are directly assigned as attributes to dataset based on the config
+            # we created above
+            processed = self.text_processor({"tokens": tokens})
+            # Add the question as text attribute to the sample
+            current_sample.text = processed["text"]
+
+            processed = self.answer_processor({"answers": [data["answer"]]})
+            # Now add answers and then the targets. We normally use "targets" for what
+            # should be the final output from the model in Pythia
+            current_sample.answers = processed["answers"]
+            current_sample.targets = processed["answers_scores"]
+
+            image_path = os.path.join(self.image_path, data["image_filename"])
+            image = np.true_divide(Image.open(image_path).convert("RGB"), 255)
+            image = image.astype(np.float32)
+            # Process and add image as a tensor
+            current_sample.image = torch.from_numpy(image.transpose(2, 0, 1))
+
+            # Return your sample and Pythia will automatically convert it to SampleList before 
+            # passing to the model
+            return current_sample
+
 
 
 Metrics
@@ -324,11 +380,15 @@ where '[key]' is the key for your metric. Here is a sample implementation of acc
             """
             output = model_output["scores"]
             expected = sample_list["targets"]
-            output = torch.max(output, 1)[1]
 
-            correct = (expected == output.squeeze()).sum()
+            if output.dim() == 2:
+                output = torch.max(output, 1)[1]
 
-            correct = correct
+            # If more than 1
+            if expected.dim() == 2:
+                expected = torch.max(expected, 1)[1]
+
+            correct = (expected == output.squeeze()).sum().float()
             total = len(expected)
 
             value = correct / total
