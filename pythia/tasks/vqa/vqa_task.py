@@ -9,7 +9,7 @@ class VQATask(BaseTask):
         super(VQATask, self).__init__("vqa")
 
     def _get_available_datasets(self):
-        return ["vqa2", "vizwiz", "textvqa", "vqa2_ocr"]
+        return ["vqa2", "vizwiz", "textvqa", "vqa2_ocr", "clevr"]
 
     def _preprocess_item(self, item):
         return item

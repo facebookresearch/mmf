@@ -10,6 +10,7 @@ import tqdm
 import yaml
 from torch import nn
 
+from pythia.common.constants import DOWNLOAD_CHUNK_SIZE
 
 def lr_lambda_update(i_iter, cfg):
     if (
@@ -94,13 +95,15 @@ def download_file(url, output_dir=".", filename=""):
     filename = os.path.join(output_dir, filename)
     r = requests.get(url, stream=True)
 
+    if r.status_code != requests.codes.ok:
+        print("The url {} is broken. If this is not your own url,"
+              " please open up an issue on GitHub.".format(url))
     file_size = int(r.headers["Content-Length"])
-    chunk_size = 1024 * 1024
-    num_bars = int(file_size / chunk_size)
+    num_bars = int(file_size / DOWNLOAD_CHUNK_SIZE)
 
     with open(filename, "wb") as fh:
         for chunk in tqdm.tqdm(
-            r.iter_content(chunk_size=chunk_size),
+            r.iter_content(chunk_size=DOWNLOAD_CHUNK_SIZE),
             total=num_bars,
             unit="MB",
             desc=filename,

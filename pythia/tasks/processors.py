@@ -151,8 +151,8 @@ class Processor:
 
         self._dir_representation = dir(self)
 
-    def __call__(self, item):
-        return self.processor(item)
+    def __call__(self, item, *args, **kwargs):
+        return self.processor(item, *args, **kwargs)
 
     def __getattr__(self, name):
         if name in self._dir_representation:
@@ -577,7 +577,7 @@ class VQAAnswerProcessor(BaseProcessor):
                 " to answer processor in a dict"
             )
 
-        answers_indices = torch.zeros(self.num_answers, dtype=torch.int)
+        answers_indices = torch.zeros(self.num_answers, dtype=torch.long)
         answers_indices.fill_(self.answer_vocab.get_unk_index())
 
         for idx, token in enumerate(tokens):
@@ -662,6 +662,18 @@ class VQAAnswerProcessor(BaseProcessor):
             if answer != self.answer_vocab.UNK_INDEX:
                 scores[answer] = avg_acc
 
+        return scores
+
+
+@registry.register_processor("multi_hot_answer_from_vocab")
+class MultiHotAnswerFromVocabProcessor(VQAAnswerProcessor):
+    def __init__(self, config, *args, **kwargs):
+        super().__init__(config, *args, **kwargs)
+
+    def compute_answers_scores(self, answers_indices):
+        scores = torch.zeros(self.get_vocab_size(), dtype=torch.float)
+        scores[answers_indices] = 1
+        scores[self.answer_vocab.UNK_INDEX] = 0
         return scores
 
 
@@ -774,8 +786,8 @@ class SimpleWordProcessor(BaseProcessor):
 
         self.tokenizer = word_tokenize
 
-    def __call__(self, item):
-        return {"text": self.tokenizer(item["text"])}
+    def __call__(self, item, *args, **kwargs):
+        return {"text": self.tokenizer(item["text"], *args, **kwargs)}
 
 
 @registry.register_processor("simple_sentence")
@@ -792,8 +804,8 @@ class SimpleSentenceProcessor(BaseProcessor):
 
         self.tokenizer = tokenize
 
-    def __call__(self, item):
-        return {"text": self.tokenizer(item["text"])}
+    def __call__(self, item, *args, **kwargs):
+        return {"text": self.tokenizer(item["text"], *args, **kwargs)}
 
 
 @registry.register_processor("bbox")
