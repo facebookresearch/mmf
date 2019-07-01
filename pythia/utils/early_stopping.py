@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import torch
-import warnings
 
 from pythia.common.registry import registry
 from pythia.utils.distributed_utils import is_main_process

@@ -93,7 +93,7 @@ class BaseModel(nn.Module):
                 "No metrics are defined in model configuration. You are expected "
                 "to return metrics in your return dict from forward."
             )
-        self.loss = Losses(losses)
+        self.losses = Losses(losses)
         self.metrics = Metrics(metrics)
 
     @classmethod
@@ -133,7 +133,7 @@ class BaseModel(nn.Module):
                 model_output["losses"], collections.abc.Mapping
             ), "'losses' must be a dict."
         else:
-            model_output["losses"] = self.loss(sample_list, model_output)
+            model_output["losses"] = self.losses(sample_list, model_output)
 
         if "metrics" in model_output:
             warnings.warn(

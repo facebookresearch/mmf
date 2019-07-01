@@ -9,8 +9,8 @@ from pythia.modules.decoders import LanguageDecoder
 class ConvNet(nn.Module):
     def __init__(
         self,
-        in_c,
-        out_c,
+        in_channels,
+        out_channels,
         kernel_size,
         padding_size="same",
         pool_stride=2,
@@ -20,10 +20,12 @@ class ConvNet(nn.Module):
 
         if padding_size == "same":
             padding_size = kernel_size // 2
-        self.conv = nn.Conv2d(in_c, out_c, kernel_size, padding=padding_size)
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, padding=padding_size)
         self.max_pool2d = nn.MaxPool2d(pool_stride, stride=pool_stride)
         self.batch_norm = batch_norm
-        self.batch_norm_2d = nn.BatchNorm2d(out_c)
+
+        if self.batch_norm:
+            self.batch_norm_2d = nn.BatchNorm2d(out_channels)
 
     def forward(self, x):
         x = self.max_pool2d(nn.functional.leaky_relu(self.conv(x)))
