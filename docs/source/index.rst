@@ -18,6 +18,7 @@ research built on top of PyTorch.
    tutorials/quickstart
    tutorials/concepts
    tutorials/features
+   tutorials/dataset
    tutorials/pretrained_models
    tutorials/challenge
 
@@ -31,6 +32,7 @@ research built on top of PyTorch.
    modules/losses
    modules/metrics
    tasks/base_dataset_builder
+   tasks/base_dataset
    tasks/base_task
    tasks/processors
 
