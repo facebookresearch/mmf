@@ -20,7 +20,7 @@ In most of the cases, you should be able to inherit one of the existing datasets
 Dataset Builder
 ===============
 
-Builder creates and returned an instance of :class:`pythia.tasks.base_dataset.BaseDataset` which is inherited from ``torch.utils.data.dataset.Dataset``.
+Builder creates and returns an instance of :class:`pythia.tasks.base_dataset.BaseDataset` which is inherited from ``torch.utils.data.dataset.Dataset``.
 Any builder class in Pythia needs to be inherited from :class:`pythia.tasks.base_dataset_builder.BaseDatasetBuilder`. |BaseDatasetBuilder| requires
 user to implement following methods after inheriting the class.
 
@@ -71,10 +71,11 @@ Let's write down this using example of *CLEVR* dataset.
             self.dataset_class = CLEVRDataset
 
         def _build(self, dataset_type, config):
-            download_folder = os.path.join(get_pythia_root(), config.data_root_dir)
-            download_folder = os.path.join(download_folder, config.data_folder)
+            download_folder = os.path.join(
+                get_pythia_root(), config.data_root_dir, config.data_folder
+            )
 
-            file_name = CLEVR_DOWNLOAD_URL.split("/")[-1]
+            file_name = self.DOWNLOAD_URL.split("/")[-1]
             local_filename = os.path.join(download_folder, file_name)
 
             extraction_folder = os.path.join(download_folder, ".".join(file_name.split(".")[:-1]))
