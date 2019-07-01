@@ -1,7 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import torch
-import tqdm
-from torch.autograd import Variable
 from torch.utils.data.dataset import Dataset
 
 from pythia.common.registry import registry
@@ -10,6 +7,16 @@ from pythia.tasks.processors import Processor
 
 
 class BaseDataset(Dataset):
+    """Base class for implementing a dataset. Inherits from PyTorch's Dataset class
+    but adds some custom functionality on top. Instead of ``__getitem__`` you have to implement
+    ``get_item`` here. Processors mentioned in the configuration are automatically initialized for
+    the end user.
+
+    Args:
+        name (str): Name of your dataset to be used a representative in text strings
+        dataset_type (str): Type of your dataset. Normally, train|val|test
+        config (ConfigNode): Configuration for the current dataset
+    """
     def __init__(self, name, dataset_type, config={}):
         super(BaseDataset, self).__init__()
         self.config = config
@@ -21,9 +28,22 @@ class BaseDataset(Dataset):
         self.use_cuda = "cuda" in str(self._device)
 
     def load_item(self, idx):
-        raise NotImplementedError
+        """
+        Implement if you need to separately load the item and cache it.
+
+        Args:
+            idx (int): Index of the sample to be loaded.
+        """
+        return
 
     def get_item(self, idx):
+        """
+        Basically, __getitem__ of a torch dataset.
+
+        Args:
+            idx (int): Index of the sample to be loaded.
+        """
+
         raise NotImplementedError
 
     def init_processors(self):
@@ -46,6 +66,13 @@ class BaseDataset(Dataset):
 
     def __getitem__(self, idx):
         # TODO: Add warning about overriding
+        """
+        Internal __getitem__. Don't override, instead override ``get_item`` for your usecase.
+
+        .. warning::
+
+            DO NOT OVERRIDE in child class. Instead override ``get_item``.
+        """
         sample = self.get_item(idx)
         sample.dataset_type = self._dataset_type
         sample.dataset_name = self._name
@@ -56,27 +83,14 @@ class BaseDataset(Dataset):
         Can be possibly overriden in your child class
 
         Prepare batch for passing to model. Whatever returned from here will
-        be directly passed to model's forward function
+        be directly passed to model's forward function. Currently moves the batch to
+        proper device.
 
-        Parameters
-        ----------
-        batch: dict
-            Dictionary containing information about the next
-            sample in batched form
+        Args:
+            batch (SampleList): sample list containing the currently loaded batch
 
-        Returns
-        -------
-        data: dict
-            Contains variables in the following format
-            'texts': The main text of the batch which can be a question in
-            most of the cases
-            'image_features': Image features for the current batch
-            'image_dim': Max BBoxes for the images
-            'contexts': Contains context relevant to current batch, in VisDial
-            this will be the history of the dialog till now
-
-        obs: tensor
-            Tensor containing observations for the current batch
+        Returns:
+            sample_list (SampleList): Returns a sample representing current batch loaded
         """
         # Should be a SampleList
         if not isinstance(batch, SampleList):
