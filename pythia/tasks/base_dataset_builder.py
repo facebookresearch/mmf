@@ -104,7 +104,6 @@ class BaseDatasetBuilder:
         # Only build in main process, so none of the others have to build
         if is_main_process():
             self._build(dataset_type, config, *args, **kwargs)
-        # After building synchronize
         synchronize()
 
     def _build(self, dataset_type, config, *args, **kwargs):

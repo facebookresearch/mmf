@@ -19,8 +19,7 @@ class CLEVRBuilder(BaseDatasetBuilder):
         self.dataset_class = CLEVRDataset
 
     def _build(self, dataset_type, config):
-        download_folder = os.path.join(get_pythia_root(), config.data_root_dir)
-        download_folder = os.path.join(download_folder, config.data_folder)
+        download_folder = os.path.join(get_pythia_root(), config.data_root_dir, config.data_folder)
 
         file_name = CLEVR_DOWNLOAD_URL.split("/")[-1]
         local_filename = os.path.join(download_folder, file_name)
@@ -31,6 +30,7 @@ class CLEVRBuilder(BaseDatasetBuilder):
         # Either if the zip file is already present or if there are some
         # files inside the folder we don't continue download process
         if os.path.exists(local_filename):
+            self.writer.write("CLEVR dataset is already present. Skipping download.")
             return
 
         if os.path.exists(extraction_folder) and \

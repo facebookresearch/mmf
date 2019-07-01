@@ -84,6 +84,8 @@ def load_str_list(fname):
 class VocabDict:
     UNK_TOKEN = "<unk>"
     PAD_TOKEN = "<pad>"
+    START_TOKEN = "<s>"
+    END_TOKEN = "</s>"
 
     def __init__(self, vocab_file, data_root_dir=None):
         if not os.path.isabs(vocab_file) and data_root_dir is not None:
@@ -105,7 +107,10 @@ class VocabDict:
             self.word_list = [self.UNK_TOKEN] + self.word_list
 
         self.word2idx_dict = {w: n_w for n_w, w in enumerate(self.word_list)}
+
+        # String (word) to integer (index) dict mapping
         self.stoi = self.word2idx_dict
+        # Integer to string (word) reverse mapping
         self.itos = self.word_list
         self.num_vocab = len(self.word_list)
 
@@ -151,7 +156,8 @@ class VocabDict:
 
 
 class VocabFromText(VocabDict):
-    DEFAULT_TOKENS = ["<pad>", "<unk>", "<s>", "</s>"]
+    DEFAULT_TOKENS = [VocabDict.PAD_TOKEN, VocabDict.UNK_TOKEN,
+                      VocabDict.START_TOKEN, VocabDict.END_TOKEN]
 
     def __init__(self, sentences, min_count=1, regex=SENTENCE_SPLIT_REGEX,
                  keep=[], remove=[], only_unk_extra=False):
@@ -171,7 +177,7 @@ class VocabFromText(VocabDict):
         extras = self.DEFAULT_TOKENS
 
         if only_unk_extra:
-            extras = ["<unk>"]
+            extras = [self.UNK_TOKEN]
 
         self.word_list = extras + token_list
         self._build()

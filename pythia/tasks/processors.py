@@ -577,7 +577,7 @@ class VQAAnswerProcessor(BaseProcessor):
                 " to answer processor in a dict"
             )
 
-        answers_indices = torch.zeros(self.num_answers, dtype=torch.int)
+        answers_indices = torch.zeros(self.num_answers, dtype=torch.long)
         answers_indices.fill_(self.answer_vocab.get_unk_index())
 
         for idx, token in enumerate(tokens):
@@ -672,12 +672,8 @@ class MultiHotAnswerFromVocabProcessor(VQAAnswerProcessor):
 
     def compute_answers_scores(self, answers_indices):
         scores = torch.zeros(self.get_vocab_size(), dtype=torch.float)
-        unique_answers = set(answers_indices.tolist())
-
-        for answer in unique_answers:
-            if answer != self.answer_vocab.UNK_INDEX:
-                scores[answer] = 1
-
+        scores[answers_indices] = 1
+        scores[self.answer_vocab.UNK_INDEX] = 0
         return scores
 
 

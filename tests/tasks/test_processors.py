@@ -53,7 +53,7 @@ class TestTaskProcessors(unittest.TestCase):
         processed = answer_processor({"answers": ["helmet"]})
         answers_indices = processed["answers_indices"]
         answers_scores = processed["answers_scores"]
-        self.assertTrue(compare_tensors(answers_indices, torch.tensor([5], dtype=torch.int)))
+        self.assertTrue(compare_tensors(answers_indices, torch.tensor([5], dtype=torch.long)))
         expected_answers_scores = torch.zeros(19, dtype=torch.float)
         expected_answers_scores[5] = 1.0
         self.assertTrue(compare_tensors(answers_scores, expected_answers_scores))
@@ -66,7 +66,7 @@ class TestTaskProcessors(unittest.TestCase):
         answers_indices = processed["answers_indices"]
         answers_scores = processed["answers_scores"]
         self.assertTrue(compare_tensors(
-            answers_indices, torch.tensor([2, 3, 15], dtype=torch.int)
+            answers_indices, torch.tensor([2, 3, 15], dtype=torch.long)
         ))
         expected_answers_scores = torch.zeros(19, dtype=torch.float)
         expected_answers_scores[2] = 1.0
@@ -79,7 +79,7 @@ class TestTaskProcessors(unittest.TestCase):
         answers_indices = processed["answers_indices"]
         answers_scores = processed["answers_scores"]
         self.assertTrue(compare_tensors(
-            answers_indices, torch.tensor([0, 0, 2], dtype=torch.int)
+            answers_indices, torch.tensor([0, 0, 2], dtype=torch.long)
         ))
         print(answers_indices, answers_scores)
         expected_answers_scores = torch.zeros(19, dtype=torch.float)
