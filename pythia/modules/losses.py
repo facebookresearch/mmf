@@ -99,6 +99,12 @@ class Losses(nn.Module):
         for loss in self.losses:
             output.update(loss(sample_list, model_output, *args, **kwargs))
 
+        registry_loss_key = "{}.{}.{}".format(
+            "losses", sample_list.dataset_name, sample_list.dataset_type
+        )
+        # Register the losses to registry
+        registry.register(registry_loss_key, output)
+
         return output
 
 
