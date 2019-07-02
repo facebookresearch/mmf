@@ -289,10 +289,12 @@ class BaseTrainer:
             reduced_loss = sum([loss.mean() for loss in reduced_loss_dict.values()])
             if hasattr(reduced_loss, "item"):
                 reduced_loss = reduced_loss.item()
+
+            registry.register(loss_key, reduced_loss)
+
             meter_update_dict = {loss_key: reduced_loss}
             meter_update_dict.update(reduced_loss_dict)
             meter_update_dict.update(reduced_metrics_dict)
-
             meter.update(meter_update_dict)
 
     def _logistics(self, report):

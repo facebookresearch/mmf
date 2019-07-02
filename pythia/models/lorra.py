@@ -32,14 +32,6 @@ class LoRRA(Pythia):
 
         return params
 
-    # def _add_model_specific_info(self, sample_list):
-    #     context = sample_list.context
-    #     order_vectors = torch.eye(context.size(1)).unsqueeze(0)
-    #     order_vectors = order_vectors.expand(context.size(0), -1, -1)
-    #     order_vectors = order_vectors.to(context.device)
-    #     sample_list.add_field("order_vectors", order_vectors)
-    #     return sample_list
-
     def _get_classifier_input_dim(self):
         # Now, the classifier's input will be cat of image and context based
         # features
@@ -48,9 +40,6 @@ class LoRRA(Pythia):
     def forward(self, sample_list):
         sample_list.text = self.word_embedding(sample_list.text)
         text_embedding_total = self.process_text_embedding(sample_list)
-        context_embeddings = self.process_text_embedding(
-            sample_list, "context_embeddings"
-        )
 
         image_embedding_total, _ = self.process_feature_embedding(
             "image", sample_list, text_embedding_total

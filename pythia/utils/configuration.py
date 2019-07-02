@@ -10,6 +10,7 @@ import yaml
 import demjson
 import torch
 from pythia.common.registry import registry
+from pythia.utils.general import get_pythia_root
 from pythia.utils.distributed_utils import is_main_process
 
 
@@ -119,6 +120,9 @@ class Configuration:
         with open(file, "r") as stream:
             mapping = yaml.safe_load(stream)
 
+            if mapping is None:
+                mapping = {}
+
             includes = mapping.get("includes", [])
 
             if not isinstance(includes, list):
@@ -127,8 +131,7 @@ class Configuration:
                 )
             include_mapping = {}
 
-            utils_dir = os.path.dirname(os.path.abspath(__file__))
-            pythia_root_dir = os.path.join(utils_dir, "..")
+            pythia_root_dir = get_pythia_root()
 
             for include in includes:
                 include = os.path.join(pythia_root_dir, include)
