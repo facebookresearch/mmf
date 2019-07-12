@@ -3,11 +3,11 @@ import os
 
 import yaml
 from torch.utils.data import DataLoader
-from torch.utils.data.distributed import DistributedSampler
 
 from pythia.common.batch_collator import BatchCollator
 from pythia.common.test_reporter import TestReporter
 from pythia.tasks import MultiTask
+from pythia.tasks.samplers import DistributedSampler
 from pythia.utils.distributed_utils import get_world_size
 
 
@@ -95,15 +95,19 @@ class TaskLoader:
     def _add_extra_args_for_dataloader(self, task, other_args={}):
         training_parameters = self.config.training_parameters
 
+        other_args["shuffle"] = False
+        if task.dataset_type != "test":
+            other_args["shuffle"] = True
+
         if (
             training_parameters.local_rank is not None
             and training_parameters.distributed
         ):
-            other_args["sampler"] = DistributedSampler(task)
-        else:
-            other_args["shuffle"] = False
-            if task.dataset_type != "test":
-                other_args["shuffle"] = True
+            other_args["sampler"] = DistributedSampler(task, shuffle=other_args["shuffle"])
+            # Shuffle is mutually exclusive with sampler, let DistributedSampler take care of
+            # shuffle and pop from main args
+            other_args.pop("shuffle")
+            setattr(self, "{}_sampler".format(task.dataset_type), other_args["sampler"])
 
         batch_size = training_parameters.batch_size
 
@@ -136,3 +140,13 @@ class TaskLoader:
         if self.config.training_parameters.verbose_dump:
             dataset_type = report.dataset_type
             self.mapping[dataset_type].verbose_dump(report, *args, **kwargs)
+
+    def seed_sampler(self, task_type, seed):
+        training_parameters = self.config.training_parameters
+        if (
+            training_parameters.local_rank is not None
+            and training_parameters.distributed
+        ):
+            sampler = getattr(self, "{}_sampler".format(task_type))
+            assert hasattr(sampler, "set_epoch"), "Can't seed with set_epoch method"
+            sampler.set_epoch(seed)

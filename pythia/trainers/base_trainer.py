@@ -2,6 +2,7 @@
 import gc
 import math
 import time
+import random
 
 import torch
 from torch import optim
@@ -25,6 +26,7 @@ from pythia.utils.timer import Timer
 class BaseTrainer:
     def __init__(self, config):
         self.config = config
+        self.profiler = Timer()
 
     def load(self):
         self._init_process_group()
@@ -128,6 +130,7 @@ class BaseTrainer:
             and self.local_rank is not None
             and distributed is True
         ):
+            torch.cuda.set_device(self.local_rank)
             self.model = torch.nn.parallel.DistributedDataParallel(
                 self.model, device_ids=[self.local_rank]
             )
@@ -179,9 +182,13 @@ class BaseTrainer:
 
     def config_based_setup(self):
         seed = self.config.training_parameters.seed
+        if seed is None:
+            return
 
+        random.seed(seed)
         torch.manual_seed(seed)
         torch.cuda.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
 
     def train(self):
         self.writer.write("===== Model =====")
@@ -210,6 +217,9 @@ class BaseTrainer:
         while self.current_iteration < self.max_iterations and not should_break:
             self.current_epoch += 1
             registry.register("current_epoch", self.current_epoch)
+
+            # Seed the sampler in case if it is distributed
+            self.task_loader.seed_sampler("train", self.current_epoch)
 
             if self.current_epoch > self.max_epochs:
                 break

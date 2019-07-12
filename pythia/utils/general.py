@@ -8,6 +8,8 @@ import requests
 import torch
 import tqdm
 import yaml
+import random
+
 from torch import nn
 
 from pythia.common.constants import DOWNLOAD_CHUNK_SIZE
@@ -49,13 +51,18 @@ def clip_gradients(model, i_iter, writer, config):
 
 
 def ckpt_name_from_core_args(config):
-    return "%s_%s_%s_%d" % (
+    seed = config["training_parameters"]["seed"]
+
+    ckpt_name = "{}_{}_{}".format(
         config["tasks"],
         config["datasets"],
-        config["model"],
-        config["training_parameters"]["seed"],
+        config["model"]
     )
 
+    if seed is not None:
+        ckpt_name += "_{:d}".format(seed)
+
+    return ckpt_name
 
 def foldername_from_config_override(args):
     cfg_override = None
