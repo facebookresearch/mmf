@@ -14,9 +14,39 @@ from pythia.utils.text_utils import VocabFromText, tokenize
 from pythia.utils.distributed_utils import is_main_process, synchronize
 
 
+_CONSTANTS = {
+    "questions_folder": "questions",
+    "dataset_key": "clevr",
+    "empty_folder_error": "CLEVR dataset folder is empty.",
+    "questions_key": "questions",
+    "question_key": "question",
+    "answer_key": "answer",
+    "train_dataset_key": "train",
+    "images_folder": "images",
+    "vocabs_folder": "vocabs"
+}
+
+_TEMPLATES = {
+    "data_folder_missing_error": "Data folder {} for CLEVR is not present.",
+    "question_json_file": "CLEVR_{}_questions.json",
+    "vocab_file_template": "{}_{}_vocab.txt"
+}
+
+
 class CLEVRDataset(BaseDataset):
+    """Dataset for CLEVR. CLEVR is a reasoning task where given an image with some
+    3D shapes you have to answer basic questions.
+
+    Args:
+        dataset_type (str): type of dataset, train|val|test
+        config (ConfigNode): Configuration Node representing all of the data necessary
+                             to initialize CLEVR dataset class
+        data_folder: Root folder in which all of the data will be present if passed
+                     replaces default based on data_root_dir and data_folder in config.
+
+    """
     def __init__(self, dataset_type, config, data_folder=None, *args, **kwargs):
-        super().__init__("clevr", dataset_type, config)
+        super().__init__(_CONSTANTS["dataset_key"], dataset_type, config)
         self._data_folder = data_folder
         self._data_root_dir = os.path.join(get_pythia_root(), config.data_root_dir)
 
@@ -24,35 +54,33 @@ class CLEVRDataset(BaseDataset):
             self._data_folder = os.path.join(self._data_root_dir, config.data_folder)
 
         if not os.path.exists(self._data_folder):
-            raise RuntimeError(
-                "Data folder {} for CLEVR is not present".format(self._data_folder)
-            )
+            raise RuntimeError(_TEMPLATES["data_folder_missing_error"].format(self._data_folder))
 
         # Check if the folder was actually extracted in the subfolder
         if config.data_folder in os.listdir(self._data_folder):
             self._data_folder = os.path.join(self._data_folder, config.data_folder)
 
         if len(os.listdir(self._data_folder)) == 0:
-            raise RuntimeError("CLEVR dataset folder is empty")
+            raise FileNotFoundError(_CONSTANTS["empty_folder_error"])
 
         self._load()
 
     def _load(self):
-        self.image_path = os.path.join(self._data_folder, "images", self._dataset_type)
+        self.image_path = os.path.join(self._data_folder, _CONSTANTS["images_folder"], self._dataset_type)
 
         with open(
             os.path.join(
                 self._data_folder,
-                "questions",
-                "CLEVR_{}_questions.json".format(self._dataset_type),
+                _CONSTANTS["questions_folder"],
+                _TEMPLATES["question_json_file"].format(self._dataset_type),
             )
         ) as f:
-            self.questions = json.load(f)["questions"]
+            self.questions = json.load(f)[_CONSTANTS["questions_key"]]
 
-            # Only build in the main process
+            # Vocab should only be built in main process, as it will repetition of same task
             if is_main_process():
-                self._build_vocab(self.questions, "question")
-                self._build_vocab(self.questions, "answer")
+                self._build_vocab(self.questions, _CONSTANTS["question_key"])
+                self._build_vocab(self.questions, _CONSTANTS["answer_key"])
             synchronize()
 
     def __len__(self):
@@ -60,13 +88,13 @@ class CLEVRDataset(BaseDataset):
 
     def _get_vocab_path(self, attribute):
         return os.path.join(
-            self._data_root_dir, "vocabs",
-            "{}_{}_vocab.txt".format(self._name, attribute)
+            self._data_root_dir, _CONSTANTS["vocabs_folder"],
+            _TEMPLATES["vocab_file_template"].format(self._name, attribute)
         )
 
     def _build_vocab(self, questions, attribute):
-        # Don't build when not train
-        if self._dataset_type != "train":
+        # Vocab should only be built from "train" as val and test are not observed in training
+        if self._dataset_type != _CONSTANTS["train_dataset_key"]:
             return
 
         vocab_file = self._get_vocab_path(attribute)
@@ -88,7 +116,7 @@ class CLEVRDataset(BaseDataset):
             "remove": build_attributes.get("remove", ["?", "."])
         }
 
-        if attribute == "answer":
+        if attribute == _CONSTANTS["answer_key"]:
             kwargs["only_unk_extra"] = False
 
         vocab = VocabFromText(sentences, **kwargs)

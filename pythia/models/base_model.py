@@ -80,8 +80,21 @@ class BaseModel(nn.Module):
         and ``metrics`` keys. Automatically called by Pythia internally after
         building the model.
         """
-        self.loss = Losses(self.config.losses)
-        self.metrics = Metrics(self.config.metrics)
+        losses = self.config.get("losses", [])
+        metrics = self.config.get("metrics", [])
+        if len(losses) == 0:
+            warnings.warn(
+                "No losses are defined in model configuration. You are expected "
+                "to return loss in your return dict from forward."
+            )
+
+        if len(metrics) == 0:
+            warnings.warn(
+                "No metrics are defined in model configuration. You are expected "
+                "to return metrics in your return dict from forward."
+            )
+        self.losses = Losses(losses)
+        self.metrics = Metrics(metrics)
 
     @classmethod
     def init_args(cls, parser):
@@ -120,7 +133,7 @@ class BaseModel(nn.Module):
                 model_output["losses"], collections.abc.Mapping
             ), "'losses' must be a dict."
         else:
-            model_output["losses"] = self.loss(sample_list, model_output)
+            model_output["losses"] = self.losses(sample_list, model_output)
 
         if "metrics" in model_output:
             warnings.warn(
