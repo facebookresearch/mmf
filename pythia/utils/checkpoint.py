@@ -202,9 +202,6 @@ class Checkpoint:
         }
 
     def save(self, iteration, update_best=False):
-        # Sync all models before we start the save process
-        synchronize()
-
         # Only save in main process
         if not is_main_process():
             return
