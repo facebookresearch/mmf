@@ -39,18 +39,20 @@ class TaskLoader:
     def _load_task_config(self, task_name):
         directory = os.path.dirname(os.path.abspath(__file__))
         config_path = os.path.join(directory, "..", "tasks", task_name, "config.yml")
-        task_config = {}
+
+        self.task_config = {}
+
         if not os.path.exists(config_path):
             print("[Warning] No config present for task %s" % task_name)
             return {}
 
         with open(config_path, "r") as f:
             try:
-                task_config = yaml.load(f)
+                self.task_config = yaml.load(f)
             except yaml.YAMLError as err:
-                print("[Error] Task %s's config yaml error" % self.task_name, err)
+                print("[Error] Task %s's config yaml error" % task_name, err)
 
-        return task_config
+        return self.task_config
 
     def make_dataloaders(self):
         training_parameters = self.config.training_parameters
@@ -148,5 +150,5 @@ class TaskLoader:
             and training_parameters.distributed
         ):
             sampler = getattr(self, "{}_sampler".format(task_type))
-            assert hasattr(sampler, "set_epoch"), "Can't seed with set_epoch method"
+            assert hasattr(sampler, "set_epoch"), "Can't seed without `set_epoch` method"
             sampler.set_epoch(seed)
