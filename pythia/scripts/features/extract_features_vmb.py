@@ -133,7 +133,9 @@ class FeatureExtractor:
             keep_boxes = torch.argsort(max_conf, descending=True)[:self.NUM_FEATURES]
             feat_list.append(feats[i][keep_boxes])
             bbox = output[0]["proposals"][i][keep_boxes].bbox / im_scales[i]
-            objects = torch.argmax(scores[keep_boxes], dim=1)
+            # Predict the class label using the scores (excluding the background class)
+            # Column 0 of the scores matrix is for the background class
+            objects = torch.argmax(scores[keep_boxes][1:], dim=1)
             image_width = output[0]["proposals"][i].size[0] / im_scales[i]
             image_height = output[0]["proposals"][i].size[1] / im_scales[i]
 

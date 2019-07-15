@@ -183,7 +183,9 @@ def get_detections_from_im(
             keep_boxes = np.argsort(max_conf)[::-1][:MIN_BOXES]
         elif len(keep_boxes) > MAX_BOXES:
             keep_boxes = np.argsort(max_conf)[::-1][:MAX_BOXES]
-        objects = np.argmax(cls_prob[keep_boxes], axis=1)
+        # Predict the class label using the scores (excluding the background class)
+        # Column 0 of the scores matrix is for the background class
+        objects = np.argmax(cls_prob[keep_boxes][1:], axis=1)
 
     return box_features[keep_boxes]
 
