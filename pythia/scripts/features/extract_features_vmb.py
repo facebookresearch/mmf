@@ -82,6 +82,9 @@ class FeatureExtractor:
     def _image_transform(self, path):
         img = Image.open(path)
         im = np.array(img).astype(np.float32)
+        # IndexError: too many indices for array
+        if len(im.shape) < 3:
+            im = np.repeat(im[:, :, np.newaxis], 3, axis=2)
         im = im[:, :, ::-1]
         im -= np.array([102.9801, 115.9465, 122.7717])
         im_shape = im.shape
