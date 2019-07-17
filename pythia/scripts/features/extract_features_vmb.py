@@ -1,6 +1,11 @@
 # Requires vqa-maskrcnn-benchmark to be built and installed
 # Category mapping for visual genome can be downloaded from
 # https://dl.fbaipublicfiles.com/pythia/data/visual_genome_categories.json
+# When the --background flag is set, the index saved with key "objects" in
+# info_list will be +1 of the Visual Genome category mapping above and 0
+# is the background class. When the --background flag is not set, the
+# index saved with key "objects" in info list will match the Visual Genome
+# category mapping.
 import argparse
 import glob
 import os
@@ -64,6 +69,10 @@ class FeatureExtractor:
             "--confidence_threshold", type=float, default=0.2,
             help="Threshold of detection confidence above which boxes will be selected"
         )
+        parser.add_argument(
+            "--background", action="store_true",
+            help="The model will output predictions for the background class when set"
+        )
         return parser
 
     def _build_detection_model(self):
@@ -123,7 +132,11 @@ class FeatureExtractor:
             scores = score_list[i]
             max_conf = torch.zeros((scores.shape[0])).to(cur_device)
 
-            for cls_ind in range(1, scores.shape[1]):
+            start_index = 1
+            # Column 0 of the scores matrix is for the background class
+            if self.args.background:
+                start_index = 0
+            for cls_ind in range(start_index, scores.shape[1]):
                 cls_scores = scores[:, cls_ind]
                 keep = nms(dets, cls_scores, 0.5)
                 max_conf[keep] = torch.where(
@@ -133,9 +146,8 @@ class FeatureExtractor:
             keep_boxes = torch.argsort(max_conf, descending=True)[:self.NUM_FEATURES]
             feat_list.append(feats[i][keep_boxes])
             bbox = output[0]["proposals"][i][keep_boxes].bbox / im_scales[i]
-            # Predict the class label using the scores (excluding the background class)
-            # Column 0 of the scores matrix is for the background class
-            objects = torch.argmax(scores[keep_boxes][1:], dim=1)
+            # Predict the class label using the scores
+            objects = torch.argmax(scores[keep_boxes][start_index:], dim=1)
             image_width = output[0]["proposals"][i].size[0] / im_scales[i]
             image_height = output[0]["proposals"][i].size[1] / im_scales[i]
 
