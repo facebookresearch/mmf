@@ -18,6 +18,13 @@
 """Perform inference on a single image or all images with a certain extension
 (e.g., .jpg) in a folder.
 """
+# Category mapping for visual genome can be downloaded from
+# https://dl.fbaipublicfiles.com/pythia/data/visual_genome_categories.json
+# When the --background flag is set, the index saved with key "objects" in
+# info_list will be +1 of the Visual Genome category mapping above and 0
+# is the background class. When the --background flag is not set, the
+# index saved with key "objects" in info list will match the Visual Genome
+# category mapping.
 
 from __future__ import absolute_import, division, print_function
 
@@ -141,6 +148,11 @@ def parse_args():
     )
     parser.add_argument("im_or_folder", help="image or folder of images", default=None)
 
+    parser.add_argument(
+        "--background", action="store_true",
+        help="The model will output predictions for the background class when set"
+    )
+
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
@@ -155,6 +167,7 @@ def get_detections_from_im(
     feat_blob_name,
     MIN_BOXES,
     MAX_BOXES,
+    background=False,
     conf_thresh=0.2,
     bboxes=None,
 ):
@@ -170,7 +183,11 @@ def get_detections_from_im(
         # unscale back to raw image space
         cls_boxes = rois[:, 1:5] / im_scale
 
-        for cls_ind in range(1, cls_prob.shape[1]):
+        start_index = 1
+        # Column 0 of the scores matrix is for the background class
+        if background:
+            start_index = 0
+        for cls_ind in range(start_index, cls_prob.shape[1]):
             cls_scores = scores[:, cls_ind]
             dets = np.hstack((cls_boxes, cls_scores[:, np.newaxis])).astype(np.float32)
             keep = np.array(nms(dets, cfg.TEST.NMS))
@@ -183,7 +200,8 @@ def get_detections_from_im(
             keep_boxes = np.argsort(max_conf)[::-1][:MIN_BOXES]
         elif len(keep_boxes) > MAX_BOXES:
             keep_boxes = np.argsort(max_conf)[::-1][:MAX_BOXES]
-        objects = np.argmax(cls_prob[keep_boxes], axis=1)
+        # Predict the class label using the scores
+        objects = np.argmax(cls_prob[keep_boxes][start_index:], axis=1)
 
     return box_features[keep_boxes]
 
@@ -266,6 +284,7 @@ def main(args):
                     args.feat_name,
                     args.min_bboxes,
                     args.max_bboxes,
+                    background=args.background,
                     bboxes=bbox,
                 )
 
