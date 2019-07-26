@@ -317,8 +317,9 @@ class Configuration:
 
     def _update_specific(self, args):
         self.writer = registry.get("writer")
+        tp = self.config["training_parameters"]
 
-        if args["seed"] is not None:
+        if args["seed"] is not None or tp['seed'] is not None:
             print(
                 "You have chosen to seed the training. This will turn on CUDNN deterministic "
                 "setting which can slow down your training considerably! You may see unexpected "
@@ -344,7 +345,6 @@ class Configuration:
                 )
             self.config["training_parameters"]["device"] = "cpu"
 
-        tp = self.config["training_parameters"]
         if tp["distributed"] is True and tp["data_parallel"] is True:
             print(
                 "training_parameters.distributed and "
