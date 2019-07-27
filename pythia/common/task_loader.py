@@ -29,8 +29,16 @@ class TaskLoader:
         self.test_reporter = None
         self.should_not_log = self.config.training_parameters.should_not_log
 
+    @property
+    def task_config(self):
+        return self._task_config
+
+    @task_config.setter
+    def task_config(self, config):
+        self._task_config = config
+
     def get_config(self):
-        return self.task_config
+        return self._task_config
 
     def get_test_reporter(self, dataset_type):
         task = getattr(self, "{}_task".format(dataset_type))
@@ -40,7 +48,7 @@ class TaskLoader:
         directory = os.path.dirname(os.path.abspath(__file__))
         config_path = os.path.join(directory, "..", "tasks", task_name, "config.yml")
 
-        self.task_config = {}
+        self._task_config = {}
 
         if not os.path.exists(config_path):
             print("[Warning] No config present for task %s" % task_name)
@@ -48,11 +56,11 @@ class TaskLoader:
 
         with open(config_path, "r") as f:
             try:
-                self.task_config = yaml.load(f)
+                self._task_config = yaml.load(f)
             except yaml.YAMLError as err:
                 print("[Error] Task %s's config yaml error" % task_name, err)
 
-        return self.task_config
+        return self._task_config
 
     def make_dataloaders(self):
         training_parameters = self.config.training_parameters
