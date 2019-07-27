@@ -53,8 +53,8 @@ class Flags:
         self.parser.add_argument(
             "--seed",
             type=int,
-            default=1234,
-            help="random seed, default 1234,"
+            default=None,
+            help="random seed, default None, meaning nothing will be seeded"
             " set seed to -1 if need a random seed"
             " between 1 and 100000",
         )

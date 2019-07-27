@@ -3,11 +3,11 @@ import os
 
 import yaml
 from torch.utils.data import DataLoader
-from torch.utils.data.distributed import DistributedSampler
 
 from pythia.common.batch_collator import BatchCollator
 from pythia.common.test_reporter import TestReporter
 from pythia.tasks import MultiTask
+from pythia.tasks.samplers import DistributedSampler
 from pythia.utils.distributed_utils import get_world_size
 
 
@@ -29,8 +29,16 @@ class TaskLoader:
         self.test_reporter = None
         self.should_not_log = self.config.training_parameters.should_not_log
 
+    @property
+    def task_config(self):
+        return self._task_config
+
+    @task_config.setter
+    def task_config(self, config):
+        self._task_config = config
+
     def get_config(self):
-        return self.task_config
+        return self._task_config
 
     def get_test_reporter(self, dataset_type):
         task = getattr(self, "{}_task".format(dataset_type))
@@ -39,18 +47,20 @@ class TaskLoader:
     def _load_task_config(self, task_name):
         directory = os.path.dirname(os.path.abspath(__file__))
         config_path = os.path.join(directory, "..", "tasks", task_name, "config.yml")
-        task_config = {}
+
+        self._task_config = {}
+
         if not os.path.exists(config_path):
             print("[Warning] No config present for task %s" % task_name)
             return {}
 
         with open(config_path, "r") as f:
             try:
-                task_config = yaml.load(f)
+                self._task_config = yaml.load(f)
             except yaml.YAMLError as err:
-                print("[Error] Task %s's config yaml error" % self.task_name, err)
+                print("[Error] Task %s's config yaml error" % task_name, err)
 
-        return task_config
+        return self._task_config
 
     def make_dataloaders(self):
         training_parameters = self.config.training_parameters
@@ -95,15 +105,19 @@ class TaskLoader:
     def _add_extra_args_for_dataloader(self, task, other_args={}):
         training_parameters = self.config.training_parameters
 
+        other_args["shuffle"] = False
+        if task.dataset_type != "test":
+            other_args["shuffle"] = True
+
         if (
             training_parameters.local_rank is not None
             and training_parameters.distributed
         ):
-            other_args["sampler"] = DistributedSampler(task)
-        else:
-            other_args["shuffle"] = False
-            if task.dataset_type != "test":
-                other_args["shuffle"] = True
+            other_args["sampler"] = DistributedSampler(task, shuffle=other_args["shuffle"])
+            # Shuffle is mutually exclusive with sampler, let DistributedSampler take care of
+            # shuffle and pop from main args
+            other_args.pop("shuffle")
+            setattr(self, "{}_sampler".format(task.dataset_type), other_args["sampler"])
 
         batch_size = training_parameters.batch_size
 
@@ -136,3 +150,13 @@ class TaskLoader:
         if self.config.training_parameters.verbose_dump:
             dataset_type = report.dataset_type
             self.mapping[dataset_type].verbose_dump(report, *args, **kwargs)
+
+    def seed_sampler(self, task_type, seed):
+        training_parameters = self.config.training_parameters
+        if (
+            training_parameters.local_rank is not None
+            and training_parameters.distributed
+        ):
+            sampler = getattr(self, "{}_sampler".format(task_type))
+            assert hasattr(sampler, "set_epoch"), "Can't seed without `set_epoch` method"
+            sampler.set_epoch(seed)

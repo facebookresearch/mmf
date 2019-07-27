@@ -30,7 +30,7 @@ training_parameters:
     device: cuda
     # Seed to be used for training. -1 means random seed.
     # Either pass fixed through your config or command line arguments
-    seed: -1
+    seed: null
     # Size of each batch. If distributed or data_parallel
     # is used, this will be divided equally among GPUs
     batch_size: 512

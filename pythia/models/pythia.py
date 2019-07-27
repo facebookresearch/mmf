@@ -30,6 +30,7 @@ class Pythia(BaseModel):
         self._init_extras()
 
     def _build_word_embedding(self):
+        assert len(self._datasets) > 0
         text_processor = registry.get(self._datasets[0] + "_text_processor")
         vocab = text_processor.vocab
         self.word_embedding = vocab.get_embedding(torch.nn.Embedding, embedding_dim=300)

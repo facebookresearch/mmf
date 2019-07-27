@@ -191,8 +191,6 @@ class Configuration:
         self.config.freeze()
 
     def _merge_from_list(self, opts):
-        writer = registry.get("writer")
-
         if opts is None:
             opts = []
 
@@ -318,7 +316,17 @@ class Configuration:
         )
 
     def _update_specific(self, args):
-        if args["seed"] <= 0:
+        self.writer = registry.get("writer")
+        tp = self.config["training_parameters"]
+
+        if args["seed"] is not None or tp['seed'] is not None:
+            print(
+                "You have chosen to seed the training. This will turn on CUDNN deterministic "
+                "setting which can slow down your training considerably! You may see unexpected "
+                "behavior when restarting from checkpoints."
+            )
+
+        if args["seed"] == -1:
             self.config["training_parameters"]["seed"] = random.randint(1, 1000000)
 
         if "learning_rate" in args:
@@ -337,9 +345,8 @@ class Configuration:
                 )
             self.config["training_parameters"]["device"] = "cpu"
 
-        tp = self.config["training_parameters"]
         if tp["distributed"] is True and tp["data_parallel"] is True:
-            self.writer.write(
+            print(
                 "training_parameters.distributed and "
                 "training_parameters.data_parallel are "
                 "mutually exclusive. Setting "
