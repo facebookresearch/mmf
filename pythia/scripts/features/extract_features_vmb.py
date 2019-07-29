@@ -156,9 +156,9 @@ class FeatureExtractor:
                     cls_scores[keep], max_conf[keep]
                 )
 
-            num_boxes = (torch.sort(max_conf, descending=True)[0][:self.args.num_features] != 0)
-            num_boxes = num_boxes.sum()
-            keep_boxes = torch.argsort(max_conf, descending=True)[:self.args.num_features]
+            sorted_scores, sorted_indices = torch.sort(max_conf, descending=True)
+            num_boxes = (sorted_scores[:self.args.num_features] != 0).sum()
+            keep_boxes = sorted_indices[:self.args.num_features]
             feat_list.append(feats[i][keep_boxes])
             bbox = output[0]["proposals"][i][keep_boxes].bbox / im_scales[i]
             # Predict the class label using the scores
