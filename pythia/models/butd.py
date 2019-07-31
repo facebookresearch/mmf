@@ -1,10 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import torch
+
 from pythia.common.registry import registry
-from pythia.modules.layers import ClassifierLayer
 from pythia.models.pythia import Pythia
-from pythia.utils.text_utils import BeamSearch
+from pythia.modules.layers import ClassifierLayer
+from pythia.utils.text_utils import BeamSearch, NucleusSampling
 
 
 @registry.register_model("butd")
@@ -108,8 +109,81 @@ class BUTD(Pythia):
 
         return data, batch_size_t
 
+    def forward_greedy(self, sample_list, scores):
+
+        batch_size = sample_list.image_feature_0.size(0)
+        data, sample_list, timesteps = self.prepare_data(sample_list, batch_size)
+        output = None
+        batch_size_t = batch_size
+        for t in range(timesteps):
+            data, batch_size_t = self.get_data_t(t, data, batch_size_t, output)
+            pi_t = data["texts"][:, t].unsqueeze(-1)
+            embedding = self.word_embedding(pi_t)
+            attention_feature, _ = self.process_feature_embedding(
+                "image", sample_list, embedding[:, 0, :], batch_size_t=batch_size_t
+            )
+            output = self.classifier(attention_feature)
+            scores[:batch_size_t, t] = output
+
+        model_output = {"scores": scores}
+        return model_output
+
+    def forward_beam_search(self, sample_list, scores):
+        beam_search = BeamSearch(
+            self.vocab, self.config["inference"]["params"]["beam_length"]
+        )
+        sample_list = beam_search.init_batch(sample_list)
+        batch_size = sample_list.image_feature_0.size(0)
+        data, sample_list, timesteps = self.prepare_data(sample_list, batch_size)
+        output = None
+        batch_size_t = batch_size
+        for t in range(timesteps):
+            data, batch_size_t = self.get_data_t(t, data, batch_size_t, output)
+            pi_t = data["texts"]
+            embedding = self.word_embedding(pi_t)
+            attention_feature, _ = self.process_feature_embedding(
+                "image", sample_list, embedding[:, 0, :], batch_size_t=batch_size_t
+            )
+            output = self.classifier(attention_feature)
+            # Compute Beam Search decoding
+            finish, data, batch_size_t = beam_search.search(t, data, output)
+            if finish:
+                break
+
+        model_output = {"scores": scores}
+        model_output["captions"] = beam_search.best_score()
+
+        return model_output
+
+    def forward_nucleus_sampling(self, sample_list, scores):
+        nucleus_sampling = NucleusSampling(
+            self.vocab, self.config["inference"]["params"]["sum_threshold"]
+        )
+        sample_list = nucleus_sampling.init_batch(sample_list)
+        batch_size = sample_list.image_feature_0.size(0)
+        data, sample_list, timesteps = self.prepare_data(sample_list, batch_size)
+        output = None
+        batch_size_t = batch_size
+        for t in range(timesteps):
+            data, batch_size_t = self.get_data_t(t, data, batch_size_t, output)
+            pi_t = data["texts"]
+            embedding = self.word_embedding(pi_t)
+            attention_feature, _ = self.process_feature_embedding(
+                "image", sample_list, embedding[:, 0, :], batch_size_t=batch_size_t
+            )
+            output = self.classifier(attention_feature)
+            # Compute Nucleus Sampling decoding
+            finish, data, batch_size_t = nucleus_sampling.sample(t, data, output)
+            if finish:
+                break
+
+        model_output = {"scores": scores}
+        model_output["captions"] = nucleus_sampling.get_caption()
+
+        return model_output
+
     def forward(self, sample_list):
-        # Stores the output probabilites. Not used if beam_search inference
+        # Stores the output probabilites.
         scores = sample_list.answers.new_ones(
             (
                 sample_list.answers.size(0),
@@ -118,42 +192,9 @@ class BUTD(Pythia):
             ),
             dtype=torch.float,
         )
-
-        # For beam search inference. Currently beam seach for BUTD works only 
-        # with batch_size = 1 and should be used with run_type inference only.
-        # TODO : Implement batch beam search
         if self.config["inference"]["type"] == "beam_search":
-            beam_search = BeamSearch(
-                self.vocab, self.config["inference"]["params"]["beam_length"]
-            )
-            sample_list = beam_search.init_batch(sample_list)
-
-        batch_size = sample_list.image_feature_0.size(0)
-        data, sample_list, timesteps = self.prepare_data(sample_list, batch_size)
-        output = None
-        batch_size_t = batch_size
-        for t in range(timesteps):
-            data, batch_size_t = self.get_data_t(t, data, batch_size_t, output)
-            if self.config["inference"]["type"] == "beam_search":
-                pi_t = data["texts"]
-            else:
-                pi_t = data["texts"][:, t].unsqueeze(-1)
-            embedding = self.word_embedding(pi_t)
-            attention_feature, _ = self.process_feature_embedding(
-                "image", sample_list, embedding[:, 0, :], batch_size_t=batch_size_t
-            )
-            output = self.classifier(attention_feature)
-
-            # Compute Beam Search decoding
-            if self.config["inference"]["type"] == "beam_search":
-                finish, data, batch_size_t = beam_search.search(t, data, output)
-                if finish:
-                    break
-            else:
-                scores[:batch_size_t, t] = output
-
-        model_output = {"scores": scores}
-        if self.config["inference"]["type"] == "beam_search":
-            model_output["captions"] = beam_search.best_score()
-
-        return model_output
+            return self.forward_beam_search(sample_list, scores)
+        elif self.config["inference"]["type"] == "nucleus_sampling":
+            return self.forward_nucleus_sampling(sample_list, scores)
+        else:
+            return self.forward_greedy(sample_list, scores)

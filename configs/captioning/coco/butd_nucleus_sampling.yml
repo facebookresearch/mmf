@@ -1,0 +1,10 @@
+includes:
+- ../configs/captioning/coco/butd.yml
+model_attributes:
+  butd: &butd
+    inference:
+      type: nucleus_sampling
+      params:
+        sum_threshold: 0.8
+training_parameters:
+  batch_size: 1
