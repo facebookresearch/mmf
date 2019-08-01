@@ -4,23 +4,16 @@
   </a>
 </div>
 
-<div style="display: flex; align-items: center; justify-content: center;">
-
-<div style="padding-right: 5px">
+<div align="center">
   <a href="https://learnpythia.readthedocs.io/en/latest/?badge=latest">
-  <img alt="Documentation Status" src="https://readthedocs.org/projects/learnpythia/badge/?version=latest"/>
+  <img alt="Documentation Status" src="https://img.shields.io/readthedocs/pythia.svg?label=docs&style=flat&logo=read-the-docs"/>
   </a>
-</div>
-<div style="padding-right: 5px">
   <a href="https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR">
   <img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg"/>
   </a>
-</div>
-<div style="padding-right: 5px">
   <a href="https://circleci.com/gh/facebookresearch/pythia">
   <img alt="CircleCI" src="https://circleci.com/gh/facebookresearch/pythia.svg?style=svg"/>
   </a>
-</div>
 </div>
 
 Pythia is a modular framework for vision and language multimodal research. Built on top
