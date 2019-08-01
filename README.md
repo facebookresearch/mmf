@@ -1,7 +1,20 @@
-# Pythia
+<div align="center">
+  <a href="https://readthedocs.org/projects/learnpythia/">
+    <img width="60%" alt="Pythia" src="https://i.imgur.com/wPgp4N4.png"/>
+  </a>
+</div>
 
-[![Documentation Status](https://readthedocs.org/projects/learnpythia/badge/?version=latest)](https://learnpythia.readthedocs.io/en/latest/?badge=latest) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR) [![CircleCI](https://circleci.com/gh/facebookresearch/pythia.svg?style=svg)](https://circleci.com/gh/facebookresearch/pythia)
-
+<div align="center">
+  <a href="https://learnpythia.readthedocs.io/en/latest/?badge=latest">
+  <img alt="Documentation Status" src="https://img.shields.io/readthedocs/pythia.svg?label=docs&style=flat&logo=read-the-docs"/>
+  </a>
+  <a href="https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR">
+  <img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg"/>
+  </a>
+  <a href="https://circleci.com/gh/facebookresearch/pythia">
+  <img alt="CircleCI" src="https://circleci.com/gh/facebookresearch/pythia.svg?style=svg"/>
+  </a>
+</div>
 
 Pythia is a modular framework for vision and language multimodal research. Built on top
 of PyTorch, it features:
