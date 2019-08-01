@@ -1,6 +1,6 @@
-<div style="width: 50%; margin: 0 auto;">
+<div align="center">
   <a href="https://readthedocs.org/projects/learnpythia/">
-    <img style="width: 100%" alt="Pythia" src="https://i.imgur.com/wPgp4N4.png"/>
+    <img width="60%" alt="Pythia" src="https://i.imgur.com/wPgp4N4.png"/>
   </a>
 </div>
 
