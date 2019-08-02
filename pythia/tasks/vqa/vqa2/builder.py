@@ -7,6 +7,7 @@
 
 
 import os
+import warnings
 
 from pythia.common.registry import registry
 from pythia.tasks.base_dataset_builder import BaseDatasetBuilder
@@ -67,10 +68,12 @@ class VQA2Builder(BaseDatasetBuilder):
 
     def prepare_data_set(self, dataset_type, config):
         if dataset_type not in config.imdb_files:
-            raise ValueError(
+            warnings.warn(
                 "Dataset type {} is not present in "
-                "imdb_files of dataset config".format(dataset_type)
+                "imdb_files of dataset config. Returning None. "
+                "This dataset won't be used.".format(dataset_type)
             )
+            return None
 
         imdb_files = config["imdb_files"][dataset_type]
 

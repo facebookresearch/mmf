@@ -66,8 +66,9 @@ class BaseDatasetBuilder:
             DO NOT OVERRIDE in child class. Instead override ``_load``.
         """
         dataset = self._load(dataset_type, config, *args, **kwargs)
-        dataset.init_processors()
-        dataset.try_fast_read()
+        if dataset is not None:
+            dataset.init_processors()
+            dataset.try_fast_read()
         return dataset
 
     def _load(self, dataset_type, config, *args, **kwargs):

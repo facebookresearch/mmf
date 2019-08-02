@@ -220,7 +220,7 @@ def extract_file(path, output_dir="."):
     cwd = os.getcwd()
     os.chdir(output_dir)
 
-    extension = "." + ".".join(path.split(".")[1:])
+    extension = "." + ".".join(os.path.abspath(path).split(".")[1:])
 
     opener, mode = _FILETYPE_TO_OPENER_MODE_MAPPING[extension]
     with opener(path, mode) as f:
