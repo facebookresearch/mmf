@@ -1,6 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import copy
-
 from pythia.tasks.image_database import ImageDatabase
 
 
@@ -12,4 +10,4 @@ class SceneGraphDatabase(ImageDatabase):
             self.data_dict[item["image_id"]] = item
 
     def __getitem__(self, idx):
-        return copy.deepcopy(self.data_dict[idx])
+        return self.data_dict[idx]

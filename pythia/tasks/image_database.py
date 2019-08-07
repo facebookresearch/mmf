@@ -2,7 +2,6 @@
 import numpy as np
 import torch
 import json
-import copy
 
 
 class ImageDatabase(torch.utils.data.Dataset):
@@ -83,7 +82,7 @@ class ImageDatabase(torch.utils.data.Dataset):
         if "answers" in data and data["answers"][-1] == "<copy>":
             data["answers"] = data["answers"][:-1]
 
-        return copy.deepcopy(data)
+        return data
 
     def get_version(self):
         return self.metadata.get("version", None)

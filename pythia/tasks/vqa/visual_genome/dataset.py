@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import json
 import torch
+import copy
 
 from pythia.tasks.vqa.vqa2 import VQA2Dataset
 from pythia.tasks.scene_graph_database import SceneGraphDatabase
@@ -21,12 +22,12 @@ class VisualGenomeDataset(VQA2Dataset):
         self._return_relationships = config.return_relationships
         self.scene_graph_db = None
 
-        should_build_scene_graph_db = (
+        build_scene_graph_db = (
             self._return_scene_graph or self._return_objects
             or self._return_relationships
         )
 
-        if should_build_scene_graph_db:
+        if build_scene_graph_db:
             scene_graph_file = config.scene_graph_files[dataset_type][imdb_file_index]
             scene_graph_file = self._get_absolute_path(scene_graph_file)
             self.scene_graph_db = SceneGraphDatabase(scene_graph_file)
@@ -73,7 +74,8 @@ class VisualGenomeDataset(VQA2Dataset):
         return self.imdb[idx][_CONSTANTS["image_id_key"]]
 
     def _get_image_info(self, idx):
-        return self.scene_graph_db[self._get_image_id(idx)]
+        # Deep copy so that we can directly update the nested dicts
+        return copy.deepcopy(self.scene_graph_db[self._get_image_id(idx)])
 
     def _preprocess_answer(self, sample_info):
         sample_info["answers"] = [self.vg_answer_preprocessor({

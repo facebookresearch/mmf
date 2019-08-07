@@ -17,12 +17,13 @@ class VisualGenomeBuilder(VQA2Builder):
         self.dataset_class = VisualGenomeDataset
         self.writer = registry.get("writer")
 
-
     def _build(self, dataset_type, config):
         self._dataset_type = dataset_type
         self._config = config
         data_folder = os.path.join(get_pythia_root(), self._config.data_root_dir)
 
+        # Since the imdb tar file contains all of the sets, we won't download them
+        # except in case of train
         if self._dataset_type != "train":
             return
 
