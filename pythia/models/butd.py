@@ -1,10 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import torch
-
 from pythia.common.registry import registry
-from pythia.models.pythia import Pythia
 from pythia.modules.layers import ClassifierLayer
+from pythia.models.pythia import Pythia
 from pythia.utils.text_utils import BeamSearch, NucleusSampling
 
 
@@ -130,8 +129,8 @@ class BUTD(Pythia):
 
     def forward_beam_search(self, sample_list, scores):
         beam_search = BeamSearch(
-            self.vocab, self.config["inference"]["params"]["beam_length"]
-        )
+                self.vocab, self.config["inference"]["params"]["beam_length"]
+            )
         sample_list = beam_search.init_batch(sample_list)
         batch_size = sample_list.image_feature_0.size(0)
         data, sample_list, timesteps = self.prepare_data(sample_list, batch_size)
@@ -151,14 +150,14 @@ class BUTD(Pythia):
                 break
 
         model_output = {"scores": scores}
-        model_output["captions"] = beam_search.best_score()
+        model_output["captions"] = beam_search.get_captions()
 
         return model_output
 
     def forward_nucleus_sampling(self, sample_list, scores):
         nucleus_sampling = NucleusSampling(
-            self.vocab, self.config["inference"]["params"]["sum_threshold"]
-        )
+                self.vocab, self.config["inference"]["params"]["sum_threshold"]
+            )
         sample_list = nucleus_sampling.init_batch(sample_list)
         batch_size = sample_list.image_feature_0.size(0)
         data, sample_list, timesteps = self.prepare_data(sample_list, batch_size)
@@ -192,9 +191,4 @@ class BUTD(Pythia):
             ),
             dtype=torch.float,
         )
-        if self.config["inference"]["type"] == "beam_search":
-            return self.forward_beam_search(sample_list, scores)
-        elif self.config["inference"]["type"] == "nucleus_sampling":
-            return self.forward_nucleus_sampling(sample_list, scores)
-        else:
-            return self.forward_greedy(sample_list, scores)
+        return getattr(self, 'forward_' + self.config["inference"]["type"])(sample_list, scores)

@@ -5,26 +5,23 @@ import torch
 from itertools import chain
 from collections import Counter
 
-from pythia.utils.general import get_pythia_root
+from pythia.utils.general import get_pythia_root, find_complete_inds, update_data
 
 SENTENCE_SPLIT_REGEX = re.compile(r"(\W+)")
 
 
 def generate_ngrams(tokens, n=1):
     """Generate ngrams for particular 'n' from a list of tokens
-
     Parameters
     ----------
     tokens : List[str]
         List of tokens for which the ngram are to be generated
     n : int
         n for which ngrams are to be generated
-
     Returns
     -------
     List[str]
         List of ngrams generated
-
     """
     shifted_tokens = (tokens[i:] for i in range(n))
     tuple_ngrams = zip(*shifted_tokens)
@@ -33,7 +30,6 @@ def generate_ngrams(tokens, n=1):
 
 def generate_ngrams_range(tokens, ngram_range=(1, 3)):
     """Generates and returns a list of ngrams for all n present in ngram_range.
-
     Parameters
     ----------
     tokens : List[str]
@@ -41,12 +37,10 @@ def generate_ngrams_range(tokens, ngram_range=(1, 3)):
     ngram_range : List[int]
         List of 'n' for which ngrams are to be generated. For e.g. if
         ngram_range = (1, 4) then it will returns 1grams, 2grams and 3grams
-
     Returns
     -------
     List[str]
         List of ngrams for each n in ngram_range.
-
     """
     assert len(ngram_range) == 2, (
         "'ngram_range' should be a tuple" " of two elements which is range of numbers"
@@ -248,11 +242,7 @@ class BeamSearch:
         )
 
         # Find completed sequences
-        incomplete_inds = []
-        for ind, next_word in enumerate(next_word_inds):
-            if next_word != self.vocab.EOS_INDEX:
-                incomplete_inds.append(ind)
-        complete_inds = list(set(range(len(next_word_inds))) - set(incomplete_inds))
+        complete_inds, incomplete_inds = find_complete_inds(self, next_word_inds)
 
         # Add to completed sequences
         if len(complete_inds) > 0:
@@ -271,25 +261,19 @@ class BeamSearch:
 
         # TODO: Make the data update generic for any type of model
         # This is specific to BUTD model only.
-        data["texts"] = next_word_inds[incomplete_inds].unsqueeze(1)
-        h1 = data["state"]["td_hidden"][0][prev_word_inds[incomplete_inds]]
-        c1 = data["state"]["td_hidden"][1][prev_word_inds[incomplete_inds]]
-        h2 = data["state"]["lm_hidden"][0][prev_word_inds[incomplete_inds]]
-        c2 = data["state"]["lm_hidden"][1][prev_word_inds[incomplete_inds]]
-        data["state"] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
+        data = update_data(data, prev_word_inds, next_word_inds, incomplete_inds)
 
         next_beam_length = len(prev_word_inds[incomplete_inds])
 
         return False, data, next_beam_length
 
-    def best_score(self):
+    def get_captions(self):
         if len(self.complete_seqs_scores) == 0:
             captions = torch.FloatTensor([0] * 5).unsqueeze(0)
         else:
             i = self.complete_seqs_scores.index(max(self.complete_seqs_scores))
             captions = torch.FloatTensor(self.complete_seqs[i]).unsqueeze(0)
         return captions
-
 
 class NucleusSampling:
     def __init__(self, vocab, threshold=0.8):
@@ -308,17 +292,12 @@ class NucleusSampling:
                 (1, 1), self.vocab.SOS_INDEX, dtype=torch.long
             ),
         )
-        setattr(
-            self,
-            "top_m_scores",
-            sample_list.answers.new_zeros((1, 1), dtype=torch.float),
-        )
         # Add a dim and duplicate the tensor beam_size times across that dim
-        print("before: ", sample_list.image_feature_0)
         sample_list.image_feature_0 = (
-            sample_list.image_feature_0.unsqueeze(1).expand(-1, 1, -1, -1).squeeze(0)
+            sample_list.image_feature_0.unsqueeze(1)
+            .expand(-1, 1, -1, -1)
+            .squeeze(0)
         )
-        print("after: ", sample_list.image_feature_0)
         return sample_list
 
     def sample(self, t, data, scores):
@@ -327,34 +306,34 @@ class NucleusSampling:
         # Sort scores in descending order and then select the top m elements having sum more than threshold.
         # We get the top_m_scores and their indices top_m_words
         if t == 0:
-            self.top_m_scores, top_m_words = scores[0].sort(0, True)
+            top_m_scores, top_m_words = scores[0].sort(
+                0, True
+            )
         else:
-            self.top_m_scores, top_m_words = scores.view(-1).sort(0, True)
+            top_m_scores, top_m_words = scores.view(-1).sort(
+                0, True
+            )
 
         lastIndex = 0
         scoreSum = 0
-        for score in self.top_m_scores:
+        for score in top_m_scores:
             lastIndex += 1
             scoreSum += score
             if scoreSum >= self.threshold:
                 break
 
-        self.top_m_scores = torch.div(self.top_m_scores[:lastIndex], scoreSum)
+        top_m_scores = torch.div(top_m_scores[:lastIndex], scoreSum)
         top_m_words = top_m_words[:lastIndex]
         # Zero value inside prev_word_inds because we are predicting a single stream of output.
         prev_word_ind = torch.tensor([0])
         # Get next word based on probabilities of top m words.
-        next_word_ind = top_m_words[torch.multinomial(self.top_m_scores, 1)]
+        next_word_ind = top_m_words[torch.multinomial(top_m_scores, 1)]
         # Add next word to sequence
         self.seq = torch.cat(
             [self.seq[prev_word_ind], next_word_ind.unsqueeze(1)], dim=1
         )
         # Check if sequence is complete
-        incomplete_inds = []
-        for ind, next_word in enumerate(next_word_ind):
-            if next_word != self.vocab.EOS_INDEX:
-                incomplete_inds.append(ind)
-        complete_inds = list(set(range(len(next_word_ind))) - set(incomplete_inds))
+        complete_inds, incomplete_inds = find_complete_inds(self, next_word_ind)
 
         # If sequence is complete then return
         if len(complete_inds) > 0:
@@ -365,12 +344,7 @@ class NucleusSampling:
 
         # TODO: Make the data update generic for any type of model
         # This is specific to BUTD model only.
-        data["texts"] = next_word_ind[incomplete_inds].unsqueeze(1)
-        h1 = data["state"]["td_hidden"][0][prev_word_ind[incomplete_inds]]
-        c1 = data["state"]["td_hidden"][1][prev_word_ind[incomplete_inds]]
-        h2 = data["state"]["lm_hidden"][0][prev_word_ind[incomplete_inds]]
-        c2 = data["state"]["lm_hidden"][1][prev_word_ind[incomplete_inds]]
-        data["state"] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
+        data = update_data(data, prev_word_ind, next_word_ind, incomplete_inds)
 
         return False, data, 1
 

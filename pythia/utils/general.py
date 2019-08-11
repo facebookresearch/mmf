@@ -8,11 +8,10 @@ import requests
 import torch
 import tqdm
 import yaml
-import random
-
 from torch import nn
 
 from pythia.common.constants import DOWNLOAD_CHUNK_SIZE
+
 
 def lr_lambda_update(i_iter, cfg):
     if (
@@ -51,18 +50,13 @@ def clip_gradients(model, i_iter, writer, config):
 
 
 def ckpt_name_from_core_args(config):
-    seed = config["training_parameters"]["seed"]
-
-    ckpt_name = "{}_{}_{}".format(
+    return "%s_%s_%s_%d" % (
         config["tasks"],
         config["datasets"],
-        config["model"]
+        config["model"],
+        config["training_parameters"]["seed"],
     )
 
-    if seed is not None:
-        ckpt_name += "_{:d}".format(seed)
-
-    return ckpt_name
 
 def foldername_from_config_override(args):
     cfg_override = None
@@ -204,3 +198,20 @@ def get_current_tensors():
                 print(type(obj), obj.size())
         except:
             pass
+
+def find_complete_inds(decoder, next_word_inds):
+    incomplete_inds = []
+    for ind, next_word in enumerate(next_word_inds):
+        if next_word != decoder.vocab.EOS_INDEX:
+            incomplete_inds.append(ind)
+    complete_inds = list(set(range(len(next_word_inds))) - set(incomplete_inds))
+    return complete_inds, incomplete_inds
+
+def update_data(data, prev_word_inds, next_word_inds, incomplete_inds):
+    data["texts"] = next_word_inds[incomplete_inds].unsqueeze(1)
+    h1 = data["state"]["td_hidden"][0][prev_word_inds[incomplete_inds]]
+    c1 = data["state"]["td_hidden"][1][prev_word_inds[incomplete_inds]]
+    h2 = data["state"]["lm_hidden"][0][prev_word_inds[incomplete_inds]]
+    c2 = data["state"]["lm_hidden"][1][prev_word_inds[incomplete_inds]]
+    data["state"] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
+    return data
