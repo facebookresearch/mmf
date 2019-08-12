@@ -49,6 +49,7 @@ import collections
 import torch
 
 from pythia.common.registry import registry
+from pythia.utils.process_answers import ProcessAnswer
 
 
 class Metrics:
@@ -157,9 +158,7 @@ class BaseMetric:
 
         """
         # Override in your child class
-        raise NotImplementedError(
-            "'calculate' must be implemented in the child class"
-        )
+        raise NotImplementedError("'calculate' must be implemented in the child class")
 
     def __call__(self, *args, **kwargs):
         return self.calculate(*args, **kwargs)
@@ -194,10 +193,12 @@ class Accuracy(BaseMetric):
         output = model_output["scores"]
         expected = sample_list["targets"]
 
-        assert output.dim() <= 2, ("Output from model shouldn't have "
-                                   " more than dim 2 for accuracy")
-        assert expected.dim() <= 2, ("Expected target shouldn't have "
-                                     "more than dim 2 for accuracy")
+        assert (
+            output.dim() <= 2
+        ), "Output from model shouldn't have more than dim 2 for accuracy"
+        assert (
+            expected.dim() <= 2
+        ), "Expected target shouldn't have more than dim 2 for accuracy"
 
         if output.dim() == 2:
             output = torch.max(output, 1)[1]
@@ -310,6 +311,79 @@ class VQAAccuracy(BaseMetric):
         accuracy = torch.sum(scores) / expected.size(0)
 
         return accuracy
+
+
+@registry.register_metric("vqa_evalai_accuracy")
+class VQAEvalAIAccuracy(BaseMetric):
+    """
+    Calculate Eval AI VQAAccuracy. Find more information here_
+    This is more accurate and similar comparision to Eval AI
+    but is slower compared to vqa_accuracy.
+
+    **Key**: ``vqa_evalai_accuracy``.
+
+    .. _here: https://visualqa.org/evaluation.html
+    """
+
+    def __init__(self):
+        super().__init__("vqa_evalai_accuracy")
+        self.process_for_evalai = ProcessAnswer()
+
+    def _masked_unk_softmax(self, x, dim, mask_idx):
+        x1 = torch.nn.functional.softmax(x, dim=dim)
+        x1[:, mask_idx] = 0
+        x1_sum = torch.sum(x1, dim=1, keepdim=True)
+        y = x1 / x1_sum
+        return y
+
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate vqa accuracy and return it back.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration
+            model_output (Dict): Dict returned by model.
+
+        Returns:
+            torch.FloatTensor: VQA Accuracy
+
+        """
+        output = model_output["scores"]
+        expected = sample_list["answers"]
+
+        answer_processor = registry.get(sample_list.dataset_name + "_answer_processor")
+        answer_space_size = answer_processor.get_true_vocab_size()
+
+        output = self._masked_unk_softmax(output, 1, 0)
+        output = output.argmax(dim=1).clone().tolist()
+        accuracy = []
+
+        for idx, answer_id in enumerate(output):
+            if answer_id >= answer_space_size:
+                answer_id -= answer_space_size
+                answer = sample_list["context_tokens"][idx][answer_id]
+            else:
+                answer = answer_processor.idx2word(answer_id)
+
+            answer = self.process_for_evalai.process_answer(answer)
+
+            gt_answers = [
+                self.process_for_evalai.process_answer(x) for x in expected[idx]
+            ]
+            gt_answers = list(enumerate(gt_answers))
+
+            gt_acc = []
+            for gt_answer in gt_answers:
+                other_answers = [item for item in gt_answers if item != gt_answer]
+                matching_answers = [item for item in other_answers if item[1] == answer]
+                acc = min(1, float(len(matching_answers)) / 3)
+                gt_acc.append(acc)
+            avgGTAcc = float(sum(gt_acc)) / len(gt_acc)
+            accuracy.append(avgGTAcc)
+
+        accuracy = float(sum(accuracy)) / len(accuracy)
+
+        return model_output["scores"].new_tensor(accuracy, dtype=torch.float)
 
 
 class RecallAtK(BaseMetric):
