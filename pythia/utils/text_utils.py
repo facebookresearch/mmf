@@ -183,31 +183,31 @@ class VocabFromText(VocabDict):
 
 class BeamSearch:
     def __init__(self, vocab, beam_size=5):
-        self.vocab = vocab
-        self.vocab_size = vocab.get_size()
-        self.beam_size = beam_size
+        self._vocab = vocab
+        self._vocab_size = vocab.get_size()
+        self._beam_size = beam_size
 
         # Lists to store completed sequences and scores
-        self.complete_seqs = []
-        self.complete_seqs_scores = []
+        self._complete_seqs = []
+        self._complete_seqs_scores = []
 
     def init_batch(self, sample_list):
         setattr(
             self,
             "seqs",
             sample_list.answers.new_full(
-                (self.beam_size, 1), self.vocab.SOS_INDEX, dtype=torch.long
+                (self._beam_size, 1), self._vocab.SOS_INDEX, dtype=torch.long
             ),
         )
         setattr(
             self,
             "top_k_scores",
-            sample_list.answers.new_zeros((self.beam_size, 1), dtype=torch.float),
+            sample_list.answers.new_zeros((self._beam_size, 1), dtype=torch.float),
         )
         # Add a dim and duplicate the tensor beam_size times across that dim
         sample_list.image_feature_0 = (
             sample_list.image_feature_0.unsqueeze(1)
-            .expand(-1, self.beam_size, -1, -1)
+            .expand(-1, self._beam_size, -1, -1)
             .squeeze(0)
         )
         return sample_list
@@ -221,11 +221,11 @@ class BeamSearch:
         # and get the top_k_scores and their indices top_k_words
         if t == 0:
             self.top_k_scores, top_k_words = scores[0].topk(
-                self.beam_size, 0, True, True
+                self._beam_size, 0, True, True
             )
         else:
             self.top_k_scores, top_k_words = scores.view(-1).topk(
-                self.beam_size, 0, True, True
+                self._beam_size, 0, True, True
             )
 
         # Convert to vocab indices. top_k_words contain indices from a flattened
@@ -237,8 +237,8 @@ class BeamSearch:
         # top_k_words : [610, 7, 19592, 9529, 292]
         # prev_word_inds : [0, 0, 2, 1, 0]
         # next_word_inds : [610, 7, 610, 38, 292]
-        prev_word_inds = top_k_words // self.vocab_size
-        next_word_inds = top_k_words % self.vocab_size
+        prev_word_inds = top_k_words // self._vocab_size
+        next_word_inds = top_k_words % self._vocab_size
 
         # Add new words to sequences
         self.seqs = torch.cat(
@@ -250,14 +250,14 @@ class BeamSearch:
 
         # Add to completed sequences
         if len(complete_inds) > 0:
-            self.complete_seqs.extend(self.seqs[complete_inds].tolist())
-            self.complete_seqs_scores.extend(self.top_k_scores[complete_inds])
+            self._complete_seqs.extend(self.seqs[complete_inds].tolist())
+            self._complete_seqs_scores.extend(self.top_k_scores[complete_inds])
 
         # Reduce beam length
-        self.beam_size -= len(complete_inds)
+        self._beam_size -= len(complete_inds)
 
         # Proceed with incomplete sequences
-        if self.beam_size == 0:
+        if self._beam_size == 0:
             return True, data, 0
 
         self.seqs = self.seqs[incomplete_inds]
@@ -272,28 +272,27 @@ class BeamSearch:
         return False, data, next_beam_length
 
     def get_captions(self):
-        if len(self.complete_seqs_scores) == 0:
+        if len(self._complete_seqs_scores) == 0:
             captions = torch.FloatTensor([0] * 5).unsqueeze(0)
         else:
-            i = self.complete_seqs_scores.index(max(self.complete_seqs_scores))
-            captions = torch.FloatTensor(self.complete_seqs[i]).unsqueeze(0)
+            i = self._complete_seqs_scores.index(max(self._complete_seqs_scores))
+            captions = torch.FloatTensor(self._complete_seqs[i]).unsqueeze(0)
         return captions
 
 class NucleusSampling:
     def __init__(self, vocab, threshold=0.8):
-        self.vocab = vocab
-        self.vocab_size = vocab.get_size()
+        self._vocab = vocab
         # Threshold for sum of probability
-        self.threshold = threshold
+        self._threshold = threshold
         # Lists to store completed sequence
-        self.complete_seq = []
+        self._complete_seq = []
 
     def init_batch(self, sample_list):
         setattr(
             self,
             "seq",
             sample_list.answers.new_full(
-                (1, 1), self.vocab.SOS_INDEX, dtype=torch.long
+                (1, 1), self._vocab.SOS_INDEX, dtype=torch.long
             ),
         )
         # Add a dim and duplicate the tensor beam_size times across that dim
@@ -323,7 +322,7 @@ class NucleusSampling:
         for score in top_m_scores:
             lastIndex += 1
             scoreSum += score
-            if scoreSum >= self.threshold:
+            if scoreSum >= self._threshold:
                 break
 
         top_m_scores = torch.div(top_m_scores[:lastIndex], scoreSum)
@@ -341,7 +340,7 @@ class NucleusSampling:
 
         # If sequence is complete then return
         if len(complete_inds) > 0:
-            self.complete_seq.extend(self.seq[complete_inds].tolist())
+            self._complete_seq.extend(self.seq[complete_inds].tolist())
             return True, data, 0
 
         self.seq = self.seq[incomplete_inds]
@@ -353,5 +352,5 @@ class NucleusSampling:
         return False, data, 1
 
     def get_caption(self):
-        captions = torch.FloatTensor(self.complete_seq[0]).unsqueeze(0)
+        captions = torch.FloatTensor(self._complete_seq[0]).unsqueeze(0)
         return captions
