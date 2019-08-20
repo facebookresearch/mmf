@@ -68,7 +68,7 @@ class COCOFeaturesDataset(BaseFeaturesDataset):
     def _threaded_read(self):
         elements = [idx for idx in range(1, len(self.imdb))]
         pool = ThreadPool(processes=4)
-        is_main = is_main_process()
+
         with tqdm.tqdm(total=len(elements), disable=not is_main_process()) as pbar:
             for i, _ in enumerate(pool.imap_unordered(self._fill_cache, elements)):
                 if i % 100 == 0:
@@ -109,7 +109,10 @@ class COCOFeaturesDataset(BaseFeaturesDataset):
 
     def __getitem__(self, idx):
         image_info = self.imdb[idx]
-        image_file_name = image_info["feature_path"]
+        image_file_name = image_info.get("feature_path", None)
+
+        if image_file_name is None:
+            image_file_name = "{}.npy".format(image_info["image_id"])
 
         image_features, infos = self._get_image_features_and_info(image_file_name)
 

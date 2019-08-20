@@ -1,7 +1,20 @@
-# Pythia
+<div align="center">
+  <a href="https://readthedocs.org/projects/learnpythia/">
+    <img width="60%" alt="Pythia" src="https://i.imgur.com/wPgp4N4.png"/>
+  </a>
+</div>
 
-[![Documentation Status](https://readthedocs.org/projects/learnpythia/badge/?version=latest)](https://learnpythia.readthedocs.io/en/latest/?badge=latest) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR) [![CircleCI](https://circleci.com/gh/facebookresearch/pythia.svg?style=svg)](https://circleci.com/gh/facebookresearch/pythia)
-
+<div align="center">
+  <a href="https://learnpythia.readthedocs.io/en/latest/?badge=latest">
+  <img alt="Documentation Status" src="https://img.shields.io/readthedocs/pythia.svg?label=docs&style=flat&logo=read-the-docs"/>
+  </a>
+  <a href="https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR">
+  <img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg"/>
+  </a>
+  <a href="https://circleci.com/gh/facebookresearch/pythia">
+  <img alt="CircleCI" src="https://circleci.com/gh/facebookresearch/pythia.svg?style=svg"/>
+  </a>
+</div>
 
 Pythia is a modular framework for vision and language multimodal research. Built on top
 of PyTorch, it features:
@@ -84,13 +97,15 @@ wget imdb_link
 tar xf [imdb].tar.gz
 ```
 
-| Dataset      | Key | Task | ImDB Link                                                                         | Features Link  | Features checksum                                                                 |
-|--------------|-----|-----|-----------------------------------------------------------------------------------|---------------------------------------------------------------------------------|---------|
-| TextVQA      | textvqa | vqa | [TextVQA 0.5 ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/textvqa_0.5.tar.gz) | [OpenImages](https://dl.fbaipublicfiles.com/pythia/features/open_images.tar.gz) | `b22e80997b2580edaf08d7e3a896e324` | 
-| VQA 2.0      | vqa2 | vqa | [VQA 2.0 ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/vqa.tar.gz)                 | [COCO](https://dl.fbaipublicfiles.com/pythia/features/coco.tar.gz)              | `ab7947b04f3063c774b87dfbf4d0e981` |
-| VizWiz       | vizwiz | vqa | [VizWiz ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/vizwiz.tar.gz)           | [VizWiz](https://dl.fbaipublicfiles.com/pythia/features/vizwiz.tar.gz)          | `9a28d6a9892dda8519d03fba52fb899f` |
-| VisualDialog | visdial | dialog | Coming soon!                                                                      | Coming soon!                                                                    | Coming soon! | 
-| MS COCO  | coco    | captioning | [COCO Caption](https://dl.fbaipublicfiles.com/pythia/data/imdb/coco_captions.tar.gz)      | [COCO](https://dl.fbaipublicfiles.com/pythia/features/coco.tar.gz)           | `ab7947b04f3063c774b87dfbf4d0e981`| 
+| Dataset      | Key | Task | ImDB Link                                                                         | Features Link  | Features checksum                                                                 | Notes|
+|--------------|-----|-----|-----------------------------------------------------------------------------------|---------------------------------------------------------------------------------|---------|-----|
+| TextVQA      | textvqa | vqa | [TextVQA 0.5 ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/textvqa_0.5.tar.gz) | [OpenImages](https://dl.fbaipublicfiles.com/pythia/features/open_images.tar.gz) | `b22e80997b2580edaf08d7e3a896e324` || 
+| VQA 2.0      | vqa2 | vqa | [VQA 2.0 ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/vqa.tar.gz)                 | [COCO](https://dl.fbaipublicfiles.com/pythia/features/coco.tar.gz)              | `ab7947b04f3063c774b87dfbf4d0e981` ||
+| VizWiz       | vizwiz | vqa | [VizWiz ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/vizwiz.tar.gz)           | [VizWiz](https://dl.fbaipublicfiles.com/pythia/features/vizwiz.tar.gz)          | `9a28d6a9892dda8519d03fba52fb899f` ||
+| VisualDialog | visdial | dialog | Coming soon!                                                                      | Coming soon!                                                                    | Coming soon! | |
+| VisualGenome | visual_genome | vqa | Automatically downloaded                                                                      | Automatically downloaded                                                                    | Coming soon! | Also supports scene graphs|
+| CLEVR | clevr | vqa | Automatically downloaded                                                                      | Automatically downloaded                                                                    |  | |
+| MS COCO  | coco    | captioning | [COCO Caption](https://dl.fbaipublicfiles.com/pythia/data/imdb/coco_captions.tar.gz)      | [COCO](https://dl.fbaipublicfiles.com/pythia/features/coco.tar.gz)           | `ab7947b04f3063c774b87dfbf4d0e981`| |
 
 After downloading the features, verify the download by checking the md5sum using 
 
@@ -106,8 +121,9 @@ supported by the models in Pythia's model zoo.
 
 | Model  | Key | Supported Datasets    | Pretrained Models | Notes                                                     |
 |--------|-----------|-----------------------|-------------------|-----------------------------------------------------------|
-| Pythia | pythia    | vqa2, vizwiz, textvqa | [vqa2 train+val](https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia_train_val.pth), [vqa2 train only](https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia.pth), [vizwiz](https://dl.fbaipublicfiles.com/pythia/pretrained_models/vizwiz/pythia_pretrained_vqa2.pth)  | VizWiz model has been pretrained on VQAv2 and transferred |
+| Pythia | pythia    | vqa2, vizwiz, textvqa, visual_genome | [vqa2 train+val](https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia_train_val.pth), [vqa2 train only](https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia.pth), [vizwiz](https://dl.fbaipublicfiles.com/pythia/pretrained_models/vizwiz/pythia_pretrained_vqa2.pth)  | VizWiz model has been pretrained on VQAv2 and transferred |
 | LoRRA  | lorra     | vqa2, vizwiz, textvqa       | [textvqa](https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth)      |                               |
+| CNN LSTM  | cnn_lstm     | clevr       |       | Features are calculated on fly. |                             
 | BAN    | ban       | vqa2, vizwiz, textvqa | Coming soon!      | Support is preliminary and haven't been tested thoroughly. |
 | BUTD    | butd       | coco | [coco](https://dl.fbaipublicfiles.com/pythia/pretrained_models/coco_captions/butd.pth)    |              |
 

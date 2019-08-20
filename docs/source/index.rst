@@ -5,6 +5,39 @@
 
 :github_url: https://github.com/facebookresearch/pythia
 
+.. raw:: html
+
+    <embed>
+        <div>
+        <div style="width: 50%; margin: 0 auto;">
+            <a href="https://readthedocs.org/projects/learnpythia/">
+                <img style="width: 100%" alt="Pythia" src="https://i.imgur.com/wPgp4N4.png"/>
+            </a>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: center;">
+
+            <div style="padding-right: 5px">
+                <a href="https://learnpythia.readthedocs.io/en/latest/?badge=latest">
+                    <img alt="Documentation Status" src="https://readthedocs.org/projects/learnpythia/badge/?version=latest"/>
+                </a>
+            </div>
+            <div style="padding-right: 5px">
+                <a href="https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR">
+                    <img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg"/>
+                </a>
+            </div>
+            <div style="padding-right: 5px">
+                <a href="https://circleci.com/gh/facebookresearch/pythia">
+                    <img alt="CircleCI" src="https://circleci.com/gh/facebookresearch/pythia.svg?style=svg"/>
+                </a>
+            </div>
+        </div>
+        <br/>
+        <br/>
+        </div>
+    </embed>
+
 Pythia's Documentation
 ==================================
 

@@ -108,7 +108,12 @@ class PaddedFasterRCNNFeatureReader:
 
     def read(self, image_feat_path):
         content = np.load(image_feat_path, allow_pickle=True)
+        info_path = "{}_info.npy".format(image_feat_path.split(".npy")[0])
         image_info = {}
+
+        if os.path.exists(info_path):
+            image_info.update(np.load(info_path, allow_pickle=True).item())
+
         if self.first:
             self.first = False
             if content.size == 1 and "image_feat" in content.item():

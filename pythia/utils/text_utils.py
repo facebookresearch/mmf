@@ -62,9 +62,13 @@ def tokenize(sentence, regex=SENTENCE_SPLIT_REGEX, keep=["'s"], remove=[",", "?"
     return tokens
 
 
-def word_tokenize(word):
+def word_tokenize(word, remove=[",", "?"]):
     word = word.lower()
-    word = word.replace(",", "").replace("?", "").replace("'s", " 's")
+
+    for item in remove:
+        word = word.replace(item, "")
+    word = word.replace("'s", " 's")
+
     return word.strip()
 
 

@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import torch
+import json
 
 
 class ImageDatabase(torch.utils.data.Dataset):
@@ -28,10 +29,25 @@ class ImageDatabase(torch.utils.data.Dataset):
 
     def __init__(self, imdb_path):
         super().__init__()
+        self._load_imdb(imdb_path)
 
-        if not imdb_path.endswith(".npy"):
+    def _load_imdb(self, imdb_path):
+        if imdb_path.endswith(".npy"):
+            self._load_npy(imdb_path)
+        elif imdb_path.endswith(".jsonl"):
+            self._load_jsonl(imdb_path)
+        else:
             raise ValueError("Unknown file format for imdb")
 
+    def _load_jsonl(self, imdb_path):
+        with open(imdb_path, "r") as f:
+            db = f.readlines()
+            for idx, line in enumerate(db):
+                db[idx] = json.loads(line.strip("\n"))
+            self.data = db
+            self.start_idx = 0
+
+    def _load_npy(self, imdb_path):
         self.db = np.load(imdb_path, allow_pickle=True)
         self.start_idx = 0
 

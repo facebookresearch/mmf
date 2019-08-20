@@ -4,6 +4,7 @@
 *.swp
 .idea/*
 **/__pycache__/*
+**/output/*
 data/.DS_Store
 docs/build
 results/*

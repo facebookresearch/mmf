@@ -8,6 +8,8 @@ import requests
 import torch
 import tqdm
 import yaml
+import tarfile
+import zipfile
 from torch import nn
 
 from pythia.common.constants import DOWNLOAD_CHUNK_SIZE
@@ -96,7 +98,7 @@ def download_file(url, output_dir=".", filename=""):
     filename = os.path.join(output_dir, filename)
     r = requests.get(url, stream=True)
 
-    if r.status_code != requests.codes.ok:
+    if r.status_code != requests.codes['ok']:
         print("The url {} is broken. If this is not your own url,"
               " please open up an issue on GitHub.".format(url))
     file_size = int(r.headers["Content-Length"])
@@ -199,6 +201,7 @@ def get_current_tensors():
         except:
             pass
 
+
 def find_complete_inds(decoder, next_word_inds):
     incomplete_inds = []
     for ind, next_word in enumerate(next_word_inds):
@@ -215,3 +218,26 @@ def update_data(data, prev_word_inds, next_word_inds, incomplete_inds):
     c2 = data["state"]["lm_hidden"][1][prev_word_inds[incomplete_inds]]
     data["state"] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
     return data
+
+def extract_file(path, output_dir="."):
+    _FILETYPE_TO_OPENER_MODE_MAPPING = {
+        ".zip": (zipfile.ZipFile, "r"),
+        ".tar.gz": (tarfile.open, "r:gz"),
+        ".tgz": (tarfile.open, "r:gz"),
+        ".tar": (tarfile.open, "r:"),
+        ".tar.bz2": (tarfile.open, "r:bz2"),
+        ".tbz": (tarfile.open, "r:bz2"),
+    }
+
+    cwd = os.getcwd()
+    os.chdir(output_dir)
+
+    extension = "." + ".".join(os.path.abspath(path).split(".")[1:])
+
+    opener, mode = _FILETYPE_TO_OPENER_MODE_MAPPING[extension]
+    with opener(path, mode) as f:
+        f.extractall()
+
+    os.chdir(cwd)
+    return output_dir
+
