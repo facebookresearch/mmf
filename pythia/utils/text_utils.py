@@ -317,16 +317,16 @@ class NucleusSampling:
                 0, True
             )
 
-        lastIndex = 0
-        scoreSum = 0
+        last_index = 0
+        score_sum = 0
         for score in top_m_scores:
-            lastIndex += 1
-            scoreSum += score
-            if scoreSum >= self._threshold:
+            last_index += 1
+            score_sum += score
+            if score_sum >= self._threshold:
                 break
 
-        top_m_scores = torch.div(top_m_scores[:lastIndex], scoreSum)
-        top_m_words = top_m_words[:lastIndex]
+        top_m_scores = torch.div(top_m_scores[:last_index], score_sum)
+        top_m_words = top_m_words[:last_index]
         # Zero value inside prev_word_inds because we are predicting a single stream of output.
         prev_word_ind = torch.tensor([0])
         # Get next word based on probabilities of top m words.
