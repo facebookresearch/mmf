@@ -162,7 +162,7 @@ class FeatureExtractor:
             feat_list.append(feats[i][keep_boxes])
             bbox = output[0]["proposals"][i][keep_boxes].bbox / im_scales[i]
             # Predict the class label using the scores
-            objects = torch.argmax(scores[keep_boxes][start_index:], dim=1)
+            objects = torch.argmax(scores[keep_boxes][:, start_index:], dim=1)
 
             info_list.append(
                 {
