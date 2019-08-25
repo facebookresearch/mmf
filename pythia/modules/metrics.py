@@ -49,7 +49,7 @@ import collections
 import torch
 
 from pythia.common.registry import registry
-from pythia.utils.process_answers import ProcessAnswer
+from pythia.tasks.processors import EvalAIAnswerProcessor
 
 
 class Metrics:
@@ -327,7 +327,7 @@ class VQAEvalAIAccuracy(BaseMetric):
 
     def __init__(self):
         super().__init__("vqa_evalai_accuracy")
-        self.process_for_evalai = ProcessAnswer()
+        self.evalai_answer_processor = EvalAIAnswerProcessor()
 
     def _masked_unk_softmax(self, x, dim, mask_idx):
         x1 = torch.nn.functional.softmax(x, dim=dim)
@@ -365,11 +365,9 @@ class VQAEvalAIAccuracy(BaseMetric):
             else:
                 answer = answer_processor.idx2word(answer_id)
 
-            answer = self.process_for_evalai.process_answer(answer)
+            answer = self.evalai_answer_processor(answer)
 
-            gt_answers = [
-                self.process_for_evalai.process_answer(x) for x in expected[idx]
-            ]
+            gt_answers = [self.evalai_answer_processor(x) for x in expected[idx]]
             gt_answers = list(enumerate(gt_answers))
 
             gt_acc = []
