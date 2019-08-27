@@ -65,5 +65,4 @@ class TestModelCNNLSTM(unittest.TestCase):
             0.0456063412129879, -0.428459107875824, -0.026385333389043808, -0.1570669412612915,
             -0.2377825379371643, 0.3231588304042816, 0.21098048985004425, -0.712349534034729
         ]
-
         np.testing.assert_almost_equal(scores[0].tolist(), expected_scores, decimal=5)
