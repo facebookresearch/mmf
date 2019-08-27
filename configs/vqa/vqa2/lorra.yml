@@ -119,7 +119,7 @@ training_parameters:
   batch_size: 512
   num_workers: 7
   task_size_proportional_sampling: true
-  monitored_metric: vqa_accuracy
+  monitored_metric: vqa2/vqa_accuracy
   pretrained_mapping:
     text_embeddings: text_embeddings
     context_embeddings: context_embeddings

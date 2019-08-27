@@ -109,7 +109,7 @@ training_parameters:
     batch_size: 128
     num_workers: 7
     task_size_proportional_sampling: true
-    monitored_metric: vqa_accuracy
+    monitored_metric: vizwiz/vqa_accuracy
     pretrained_mapping:
       word_embedding: word_embedding
       text_embeddings: text_embeddings
