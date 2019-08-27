@@ -1,6 +1,6 @@
-torch>=1.2
-torchvision>0.2
-tensorboardX>=1.2
+torch==1.2.0
+torchvision==0.2.2
+tensorboardX==1.2
 numpy>=1.14
 tqdm>=4.19
 demjson>=2.2

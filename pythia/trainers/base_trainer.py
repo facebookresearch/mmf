@@ -58,7 +58,7 @@ class BaseTrainer:
                 raise RuntimeError(
                     "Unable to initialize process group: NCCL is not available"
                 )
-            torch.distributed.init_process_group(backend="nccl")
+            torch.distributed.init_process_group(backend="nccl", init_method="env://")
             synchronize()
 
         if (
