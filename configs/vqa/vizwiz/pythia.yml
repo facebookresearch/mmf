@@ -1,5 +1,5 @@
 includes:
-- common/defaults/configs/tasks/vqa/vizwiz.yml
+- common/defaults/configs/datasets/vqa/vizwiz.yml
 model_attributes:
   pythia: &pythia
     model_data_dir: ../data/

@@ -35,14 +35,14 @@ class Logger:
             self.log_folder = arg_log_dir
 
         if not os.path.exists(self.log_folder):
-            os.makedirs(self.log_folder)
+            os.makedirs(self.log_folder, exist_ok=True)
 
-        tensorboard_folder = os.path.join(self.log_folder, "tensorboard")
-        self.summary_writer = SummaryWriter(tensorboard_folder)
 
         self.log_filename = os.path.join(self.log_folder, self.log_filename)
 
         if self._is_main_process:
+            tensorboard_folder = os.path.join(self.log_folder, "tensorboard")
+            self.summary_writer = SummaryWriter(tensorboard_folder)
             print("Logging to:", self.log_filename)
 
         logging.captureWarnings(True)

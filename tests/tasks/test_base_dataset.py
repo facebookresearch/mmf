@@ -3,7 +3,7 @@ import unittest
 import os
 
 from pythia.common.registry import registry
-from pythia.tasks.base_dataset import BaseDataset
+from pythia.datasets.base_dataset import BaseDataset
 from pythia.utils.configuration import Configuration
 
 
@@ -11,7 +11,7 @@ class TestBaseDataset(unittest.TestCase):
     def test_init_processors(self):
         path = os.path.join(
             os.path.abspath(__file__),
-            "../../../pythia/common/defaults/configs/tasks/vqa/vqa2.yml"
+            "../../../pythia/common/defaults/configs/datasets/vqa/vqa2.yml"
         )
 
         configuration = Configuration(os.path.abspath(path))

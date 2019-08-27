@@ -1,4 +1,4 @@
-torch==1.0.1.post2
+torch==1.2.0
 torchvision==0.2.2
 tensorboardX==1.2
 numpy>=1.14
@@ -9,5 +9,5 @@ GitPython>=2.1
 PyYAML>=3.11
 pytest==3.3.2
 requests==2.21.0
-fastText
+fasttext==0.9.1
 nltk==3.4.1

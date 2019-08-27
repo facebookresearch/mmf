@@ -6,7 +6,7 @@
 
 <div align="center">
   <a href="https://learnpythia.readthedocs.io/en/latest/?badge=latest">
-  <img alt="Documentation Status" src="https://img.shields.io/readthedocs/pythia.svg?label=docs&style=flat&logo=read-the-docs"/>
+  <img alt="Documentation Status" src="https://readthedocs.org/projects/learnpythia/badge/?version=latest"/>
   </a>
   <a href="https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR">
   <img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg"/>
@@ -36,9 +36,33 @@ language datasets (TextVQA challenge, VQA challenge)
 
 ![Pythia Examples](https://i.imgur.com/BP8sYnk.jpg)
 
-## Documentation
+## Citation
 
-Learn more about Pythia [here](https://learnpythia.readthedocs.io/en/latest/).
+If you use Pythia in your work, please cite:
+
+```
+@inproceedings{singh2019TowardsVM,
+  title={Towards VQA Models That Can Read},
+  author={Singh, Amanpreet and Natarajan, Vivek and Shah, Meet and Jiang, Yu and Chen, Xinlei and Batra, Dhruv and Parikh, Devi and Rohrbach, Marcus},
+  booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
+  year={2019}
+}
+```
+
+and
+
+```
+@inproceedings{singh2018pythia,
+  title={Pythia-a platform for vision \& language research},
+  author={Singh, Amanpreet and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
+  booktitle={SysML Workshop, NeurIPS},
+  volume={2018},
+  year={2018}
+}
+```
+## Documentation and Tutorials
+
+Learn more and read tutorials about Pythia [here](https://learnpythia.readthedocs.io/en/latest/).
 
 ## Demo
 
@@ -132,7 +156,7 @@ For running `LoRRA` on `TextVQA`, run the following command from root directory 
 
 ```
 cd ~/pythia
-python tools/run.py --tasks vqa --datasets textvqa --model lorra --config configs/vqa/textvqa/lorra.yml 
+python tools/run.py --datasets textvqa --model lorra --config configs/vqa/textvqa/lorra.yml 
 ```
 
 **Note for BUTD model :**  for training BUTD model use the config `butd.yml`. Training uses greedy decoding for validation. Currently we do not have support to train the model using beam search decoding validation. We will add that support soon. For inference only use `butd_beam_search.yml` config that supports beam search decoding.
@@ -150,8 +174,8 @@ mkdir -p models && cd models;
 wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth
 
 cd ../..
-# Replace tasks, datasets and model with corresponding key for other pretrained models
-python tools/run.py --tasks vqa --datasets textvqa --model lorra --config configs/vqa/textvqa/lorra.yml \
+# Replace datasets and model with corresponding key for other pretrained models
+python tools/run.py --datasets textvqa --model lorra --config configs/vqa/textvqa/lorra.yml \
 --run_type inference --evalai_inference 1 --resume_file data/models/lorra_best.pth
 ```
 
@@ -166,35 +190,6 @@ The table below shows inference metrics for various pretrained models:
 | BUTD  | coco  (karpathy train)  | BLEU 1 - 76.02, BLEU 4 - 35.42 , METEOR - 27.39, ROUGE_L - 56.17, CIDEr - 112.03 , SPICE -  20.33    |   With Beam Search(length 5), Karpathy test split                           |
 
 **Note** that, for simplicity, our current released model **does not** incorporate extensive data augmentations (e.g. visual genome, visual dialogue) during training, which was used in our challenge winner entries for VQA and VizWiz 2018. As a result, there can be some performance gap to models reported and released previously. If you are looking for reproducing those results, please checkout the [v0.1](https://github.com/facebookresearch/pythia/releases/tag/v0.1) release.
-
-## Documentation
-
-Documentation specific on how to navigate around Pythia and making changes will be available soon.
-
-## Citation
-
-If you use Pythia in your work, please cite:
-
-```
-@inproceedings{singh2019TowardsVM,
-  title={Towards VQA Models That Can Read},
-  author={Singh, Amanpreet and Natarajan, Vivek and Shah, Meet and Jiang, Yu and Chen, Xinlei and Batra, Dhruv and Parikh, Devi and Rohrbach, Marcus},
-  booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
-  year={2019}
-}
-```
-
-and
-
-```
-@inproceedings{singh2018pythia,
-  title={Pythia-a platform for vision \& language research},
-  author={Singh, Amanpreet and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
-  booktitle={SysML Workshop, NeurIPS},
-  volume={2018},
-  year={2018}
-}
-```
 
 ## Troubleshooting/FAQs
 

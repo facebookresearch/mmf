@@ -12,7 +12,6 @@ Pythia is agnostic to kind of datasets that can be added to it. On high level, a
 - Default Configuration
 - Dataset Class
 - Dataset's Metrics
-- [Optional] Task specification
 
 In most of the cases, you should be able to inherit one of the existing datasets for easy integration. Let's start from the dataset builder
 
@@ -20,8 +19,8 @@ In most of the cases, you should be able to inherit one of the existing datasets
 Dataset Builder
 ===============
 
-Builder creates and returns an instance of :class:`pythia.tasks.base_dataset.BaseDataset` which is inherited from ``torch.utils.data.dataset.Dataset``.
-Any builder class in Pythia needs to be inherited from :class:`pythia.tasks.base_dataset_builder.BaseDatasetBuilder`. |BaseDatasetBuilder| requires
+Builder creates and returns an instance of :class:`pythia.datasets.base_dataset.BaseDataset` which is inherited from ``torch.utils.data.dataset.Dataset``.
+Any builder class in Pythia needs to be inherited from :class:`pythia.datasets.base_dataset_builder.BaseDatasetBuilder`. |BaseDatasetBuilder| requires
 user to implement following methods after inheriting the class.
 
 - ``__init__(self):``
@@ -53,9 +52,9 @@ Let's write down this using example of *CLEVR* dataset.
     from collections import Counter
 
     from pythia.common.registry import registry
-    from pythia.tasks.base_dataset_builder import BaseDatasetBuilder
+    from pythia.datasets.base_dataset_builder import BaseDatasetBuilder
     # Let's assume for now that we have a dataset class called CLEVRDataset
-    from pythia.tasks.vqa.clevr.dataset import CLEVRDataset
+    from pythia.datasets.vqa.clevr.dataset import CLEVRDataset
     from pythia.utils.general import download_file, get_pythia_root
 
     @registry.register_builder("clevr")
@@ -124,7 +123,7 @@ Default Configuration
 Some things to note about Pythia's configuration:
 
 - Each dataset in Pythia has its own default configuration which is usually under this structure 
-  ``pythia/commmon/defaults/configs/tasks/[task]/[dataset].yml`` where ``task`` is the task your dataset belongs to.
+  ``pythia/commmon/defaults/configs/datasets/[task]/[dataset].yml`` where ``task`` is the task your dataset belongs to.
 - These dataset configurations can be then included by the user in their end config using ``includes`` directive
 - This allows easy multi-tasking and management of configurations and user can also override the default configurations
   easily in their own config
@@ -138,13 +137,9 @@ Basic structure for a dataset configuration looks like below:
 
 .. code-block:: yaml
 
-    task_attributes:
-        [task]:
-            datasets:
-            - [dataset]
-            dataset_attributes:
-                [dataset]:
-                    ... your config here
+    dataset_attributes:
+        [dataset]:
+            ... your config here
 
 .. note:
 
@@ -155,61 +150,57 @@ Here, is a default configuration for CLEVR needed based on our dataset and build
 
 .. code-block:: yaml
 
-    task_attributes:
-        vqa:
-            datasets:
-            - clevr
-            dataset_attributes:
-                # You can specify any attributes you want, and you will get them as attributes 
-                # inside the config passed to the dataset. Check the Dataset implementation below.
-                clevr:
-                    # Where your data is stored
-                    data_root_dir: ../data
-                    data_folder: CLEVR_v1.0
-                    # Any attribute that you require to build your dataset but are configurable
-                    # For CLEVR, we have attributes that can be passed to vocab building class
-                    build_attributes:
-                        min_count: 1
-                        split_regex: " "
-                        keep:
-                            - ";"
-                            - ","
-                        remove:
-                            - "?"
-                            - "."
-                    processors:
-                    # The processors will be assigned to the datasets automatically by Pythia
-                    # For example if key is text_processor, you can access that processor inside
-                    # dataset object using self.text_processor
-                        text_processor:
-                            type: vocab
-                            params:
-                                max_length: 10
-                                vocab:
-                                    type: random
-                                    vocab_file: vocabs/clevr_question_vocab.txt
-                            # You can also specify a processor here
-                            preprocessor:
-                                type: simple_sentence
-                                params: {}
-                        answer_processor:
-                            # Add your processor for answer processor here
-                            type: multi_hot_answer_from_vocab
-                            params:
-                                num_answers: 1
-                                # Vocab file is relative to [data_root_dir]/[data_folder]
-                                vocab_file: vocabs/clevr_answer_vocab.txt
-                                preprocessor:
-                                    type: simple_word
-                                    params: {} 
+    dataset_attributes:
+        # You can specify any attributes you want, and you will get them as attributes 
+        # inside the config passed to the dataset. Check the Dataset implementation below.
+        clevr:
+            # Where your data is stored
+            data_root_dir: ../data
+            data_folder: CLEVR_v1.0
+            # Any attribute that you require to build your dataset but are configurable
+            # For CLEVR, we have attributes that can be passed to vocab building class
+            build_attributes:
+                min_count: 1
+                split_regex: " "
+                keep:
+                    - ";"
+                    - ","
+                remove:
+                    - "?"
+                    - "."
+            processors:
+            # The processors will be assigned to the datasets automatically by Pythia
+            # For example if key is text_processor, you can access that processor inside
+            # dataset object using self.text_processor
+                text_processor:
+                    type: vocab
+                    params:
+                        max_length: 10
+                        vocab:
+                            type: random
+                            vocab_file: vocabs/clevr_question_vocab.txt
+                    # You can also specify a processor here
+                    preprocessor:
+                        type: simple_sentence
+                        params: {}
+                answer_processor:
+                    # Add your processor for answer processor here
+                    type: multi_hot_answer_from_vocab
+                    params:
+                        num_answers: 1
+                        # Vocab file is relative to [data_root_dir]/[data_folder]
+                        vocab_file: vocabs/clevr_answer_vocab.txt
+                        preprocessor:
+                            type: simple_word
+                            params: {} 
     training_parameters:
-        monitored_metric: clevr_accuracy
+        monitored_metric: clevr/clevr_accuracy
         metric_minimize: false
 
 
 Extra field that we have added here is ``training_parameters`` which specify the dataset specific training parameters and will 
 be merged with the rest of the training parameters coming from user's config. Your metrics are normally stored in registry as
-``[dataset]_[metric_key]``, so to monitor accuracy on CLEVR, you need to set it as ``clevr_accuracy`` and we need to maximize it,
+``[dataset]/[metric_key]``, so to monitor accuracy on CLEVR, you need to set it as ``clevr/clevr_accuracy`` and we need to maximize it,
 we set ``metric_minimize`` to ``false``.
 
 .. note:
@@ -217,7 +208,7 @@ we set ``metric_minimize`` to ``false``.
     Since, in v0.3, models are expected to return the metrics, so these attributes will also need to be specified by the user
     in future based on the metrics they are optimizing. Thus, in future warnings, these will move to user configs for models.
 
-For processors, check :class:`pythia.tasks.processors` to understand how to create a processor and different processors that are
+For processors, check :class:`pythia.datasets.processors` to understand how to create a processor and different processors that are
 already available in Pythia.
 
 Dataset Class
@@ -226,7 +217,7 @@ Dataset Class
 Next step is to actually build a dataset class which inherits |BaseDataset| so it can interact with PyTorch
 dataloaders. Follow the steps below to inherit and create your dataset's class.
 
-- Inherit :class:`pythia.tasks.base_dataset.BaseDataset`
+- Inherit :class:`pythia.datasets.base_dataset.BaseDataset`
 - Implement ``__init__(self, dataset_type, config)``. Call parent's init using ``super().__init__("name", dataset_type, config)``
   where "name" is the string representing the name of your dataset.
 - Implement ``get_item(self, idx)``, our replacement for normal ``__getitem__(self, idx)`` you would implement for a torch dataset. This needs to 
@@ -250,7 +241,7 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
 
     from pythia.common.registry import registry
     from pythia.common.sample import Sample
-    from pythia.tasks.base_dataset import BaseDataset
+    from pythia.datasets.base_dataset import BaseDataset
     from pythia.utils.general import get_pythia_root
     from pythia.utils.text_utils import VocabFromText, tokenize
 
@@ -396,16 +387,9 @@ where '[key]' is the key for your metric. Here is a sample implementation of acc
             return value
 
 
-[Optional] Task Specification
-=============================
-
-This optional step is required in case you are adding a new task type to Pythia. Check implementation of VQATask_ to understand an 
-implementation of task specification. In most cases, you don't need to do this.
-
 These are the common steps you need to follow when you are adding a dataset to Pythia.
 
-.. |BaseDatasetBuilder| replace:: :class:`~pythia.tasks.base_dataset_builder.BaseDatasetBuilder`
-.. |BaseDataset| replace:: :class:`~pythia.tasks.base_dataset.BaseDataset`
+.. |BaseDatasetBuilder| replace:: :class:`~pythia.datasets.base_dataset_builder.BaseDatasetBuilder`
+.. |BaseDataset| replace:: :class:`~pythia.datasets.base_dataset.BaseDataset`
 .. |SampleList| replace:: :class:`~pythia.common.sample.SampleList`
-.. _VQATask: https://github.com/facebookresearch/pythia/blob/master/pythia/tasks/vqa/vqa_task.py
 .. |BaseMetric| replace:: :class:`~pythia.modules.metrics.BaseMetric`

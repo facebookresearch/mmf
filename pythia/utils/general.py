@@ -14,6 +14,8 @@ import zipfile
 from torch import nn
 
 from pythia.common.constants import DOWNLOAD_CHUNK_SIZE
+from pythia.utils.distributed_utils import get_world_size
+
 
 def lr_lambda_update(i_iter, cfg):
     if (
@@ -54,8 +56,7 @@ def clip_gradients(model, i_iter, writer, config):
 def ckpt_name_from_core_args(config):
     seed = config["training_parameters"]["seed"]
 
-    ckpt_name = "{}_{}_{}".format(
-        config["tasks"],
+    ckpt_name = "{}_{}".format(
         config["datasets"],
         config["model"]
     )
@@ -228,3 +229,18 @@ def extract_file(path, output_dir="."):
 
     os.chdir(cwd)
     return output_dir
+
+def get_batch_size():
+    from pythia.common.registry import registry
+
+    batch_size = registry.get("config").training_parameters.batch_size
+
+    world_size = get_world_size()
+
+    if batch_size % world_size != 0:
+        raise RuntimeError(
+            "Batch size {} must be divisible by number "
+            "of GPUs {} used.".format(batch_size, world_size)
+        )
+
+    return batch_size // world_size

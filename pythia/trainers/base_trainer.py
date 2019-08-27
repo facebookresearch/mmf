@@ -11,7 +11,7 @@ from tqdm import tqdm
 from pythia.common.meter import Meter
 from pythia.common.registry import registry
 from pythia.common.report import Report
-from pythia.common.task_loader import TaskLoader
+from pythia.common.dataset_loader import DatasetLoader
 from pythia.utils.build_utils import build_model, build_optimizer
 from pythia.utils.checkpoint import Checkpoint
 from pythia.utils.distributed_utils import (broadcast_scalar, is_main_process,
@@ -32,7 +32,8 @@ class BaseTrainer:
         self._init_process_group()
 
         self.run_type = self.config.training_parameters.get("run_type", "train")
-        self.task_loader = TaskLoader(self.config)
+        self.dataset_loader = DatasetLoader(self.config)
+        self._datasets = self.config.datasets
 
         self.writer = Logger(self.config)
         registry.register("writer", self.writer)
@@ -57,7 +58,7 @@ class BaseTrainer:
                 raise RuntimeError(
                     "Unable to initialize process group: NCCL is not available"
                 )
-            torch.distributed.init_process_group(backend="nccl")
+            torch.distributed.init_process_group(backend="nccl", init_method="env://")
             synchronize()
 
         if (
@@ -70,22 +71,21 @@ class BaseTrainer:
         registry.register("current_device", self.device)
 
     def load_task(self):
-        self.writer.write("Loading tasks and data", "info")
-        self.task_loader.load_task()
+        self.writer.write("Loading datasets", "info")
+        self.dataset_loader.load_datasets()
 
-        self.task_loader.make_dataloaders()
-
-        self.train_loader = self.task_loader.train_loader
-        self.val_loader = self.task_loader.val_loader
-        self.test_loader = self.task_loader.test_loader
-        self.train_task = self.task_loader.train_task
-        self.val_task = self.task_loader.val_task
+        self.train_dataset = self.dataset_loader.train_dataset
+        self.val_dataset = self.dataset_loader.val_dataset
 
         # Total iterations for snapshot
-        self.snapshot_iterations = len(self.val_task)
+        self.snapshot_iterations = len(self.val_dataset)
         self.snapshot_iterations //= self.config.training_parameters.batch_size
 
-        self.test_task = self.task_loader.test_task
+        self.test_dataset = self.dataset_loader.test_dataset
+
+        self.train_loader = self.dataset_loader.train_loader
+        self.val_loader = self.dataset_loader.val_loader
+        self.test_loader = self.dataset_loader.test_loader
 
     def load_model(self):
         attributes = self.config.model_attributes[self.config.model]
@@ -95,9 +95,9 @@ class BaseTrainer:
 
         attributes["model"] = self.config.model
 
-        self.task_loader.update_registry_for_model(attributes)
+        self.dataset_loader.update_registry_for_model(attributes)
         self.model = build_model(attributes)
-        self.task_loader.clean_config(attributes)
+        self.dataset_loader.clean_config(attributes)
         training_parameters = self.config.training_parameters
 
         data_parallel = training_parameters.data_parallel
@@ -132,7 +132,8 @@ class BaseTrainer:
         ):
             torch.cuda.set_device(self.local_rank)
             self.model = torch.nn.parallel.DistributedDataParallel(
-                self.model, device_ids=[self.local_rank]
+                self.model, device_ids=[self.local_rank], output_device=self.local_rank,
+                check_reduction=True, find_unused_parameters=True
             )
 
     def load_optimizer(self):
@@ -165,7 +166,6 @@ class BaseTrainer:
         )
         self.current_epoch = 0
         self.current_iteration = 0
-
         self.checkpoint.load_state_dict()
 
         self.not_debug = self.training_parameters.logger_level != "debug"
@@ -187,7 +187,6 @@ class BaseTrainer:
 
         random.seed(seed)
         torch.manual_seed(seed)
-        torch.cuda.manual_seed(seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
@@ -213,14 +212,13 @@ class BaseTrainer:
         self.profile("Setup Time")
 
         torch.autograd.set_detect_anomaly(True)
-
         self.writer.write("Starting training...")
         while self.current_iteration < self.max_iterations and not should_break:
             self.current_epoch += 1
             registry.register("current_epoch", self.current_epoch)
 
             # Seed the sampler in case if it is distributed
-            self.task_loader.seed_sampler("train", self.current_epoch)
+            self.dataset_loader.seed_sampler("train", self.current_epoch)
 
             if self.current_epoch > self.max_epochs:
                 break
@@ -235,7 +233,6 @@ class BaseTrainer:
                 if self.current_iteration > self.max_iterations:
                     break
 
-                self._run_scheduler()
                 report = self._forward_pass(batch)
                 self._update_meter(report, self.meter)
                 loss = self._extract_loss(report)
@@ -252,9 +249,8 @@ class BaseTrainer:
             self.lr_scheduler.step(self.current_iteration)
 
     def _forward_pass(self, batch):
-        prepared_batch = self.task_loader.prepare_batch(batch)
+        prepared_batch = self.dataset_loader.prepare_batch(batch)
         self.profile("Batch prepare time")
-
         # Arguments should be a dict at this point
         model_output = self.model(prepared_batch)
         report = Report(prepared_batch, model_output)
@@ -270,6 +266,8 @@ class BaseTrainer:
             clip_gradients(self.model, self.current_iteration, self.writer, self.config)
 
         self.optimizer.step()
+        self._run_scheduler()
+
         self.profile("Backward time")
 
     def _extract_loss(self, report):
@@ -279,7 +277,13 @@ class BaseTrainer:
 
     def finalize(self):
         self.writer.write("Stepping into final validation check")
-        self._try_full_validation(force=True)
+
+        # Only do when run_type has train as it shouldn't happen on validation and inference runs
+        # Inference will take care of this anyways. Also, don't run if current iteration
+        # is divisble by snapshot interval as it will just be a repeat
+        if "train" in self.run_type and self.current_iteration % self.snapshot_interval != 0:
+            self._try_full_validation(force=True)
+
         self.checkpoint.restore()
         self.checkpoint.finalize()
         self.inference()
@@ -382,7 +386,9 @@ class BaseTrainer:
 
         with torch.no_grad():
             self.model.eval()
-            for batch in tqdm(loader, disable=not use_tqdm):
+            # disable_tqdm = not use_tqdm or not is_main_process()
+            disable_tqdm = False
+            for batch in tqdm(loader, disable=disable_tqdm):
                 report = self._forward_pass(batch)
                 self._update_meter(report, meter, eval_mode=True)
 
@@ -452,7 +458,7 @@ class BaseTrainer:
         self.profiler.reset()
 
     def predict_for_evalai(self, dataset_type):
-        reporter = self.task_loader.get_test_reporter(dataset_type)
+        reporter = self.dataset_loader.get_test_reporter(dataset_type)
         with torch.no_grad():
             self.model.eval()
             message = "Starting {} inference for evalai".format(dataset_type)

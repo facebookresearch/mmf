@@ -1,5 +1,21 @@
 includes:
-- common/defaults/configs/tasks/vqa/vqa2.yml
+- common/defaults/configs/datasets/vqa/vqa2.yml
+task_attributes:
+  vqa:
+    dataset_attributes:
+      vqa2:
+        image_features:
+          train:
+          - /private/home/asg/datasets/COCO/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+          val:
+          - /private/home/asg/datasets/COCO/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+          test:
+          - /private/home/asg/datasets/COCO/detectron_fix_100/fc6/test2015,coco/resnet152/test2015
+        imdb_files:
+          train:
+          - imdb/vqa/imdb_train2014.npy
+          val:
+          - imdb/vqa/imdb_val2014.npy
 model_attributes:
   pythia: &pythia
     model_data_dir: ../data/
@@ -10,14 +26,14 @@ model_attributes:
     classifier:
       type: logit
       params:
-        img_hidden_dim: 5000
+        img_hidden_dim: 1000
         text_hidden_dim: 300
     image_feature_embeddings:
     - modal_combine:
         type: non_linear_element_multiply
         params:
           dropout: 0
-          hidden_dim: 5000
+          hidden_dim: 1000
       normalization: softmax
       transform:
         type: linear
@@ -35,7 +51,7 @@ model_attributes:
       type: non_linear_element_multiply
       params:
         dropout: 0
-        hidden_dim: 5000
+        hidden_dim: 1000
     text_embeddings:
     - type: attention
       params:
@@ -74,5 +90,12 @@ training_parameters:
   batch_size: 512
   num_workers: 7
   task_size_proportional_sampling: true
-  monitored_metric: vqa_accuracy
+  monitored_metric: vqa2/vqa_accuracy
   metric_minimize: false
+  pretrained_mapping:
+    word_embedding: word_embedding
+    text_embeddings: text_embeddings
+    image_feature_encoders: image_feature_encoders
+    image_feature_embeddings_list: image_feature_embeddings_list
+    image_text_multi_modal_combine_layer: image_text_multi_modal_combine_layer
+    classifier: classifier

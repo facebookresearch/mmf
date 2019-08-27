@@ -1,5 +1,5 @@
 includes:
-- common/defaults/configs/tasks/captioning/coco.yml
+- common/defaults/configs/datasets/captioning/coco.yml
 model_attributes:
   butd: &butd
     model_data_dir: ../data/

@@ -28,27 +28,19 @@ def setup_imports():
 
     trainer_folder = os.path.join(root_folder, "trainers")
     trainer_pattern = os.path.join(trainer_folder, "**", "*.py")
-    tasks_folder = os.path.join(root_folder, "tasks")
-    tasks_pattern = os.path.join(tasks_folder, "**", "*.py")
+    datasets_folder = os.path.join(root_folder, "datasets")
+    datasets_pattern = os.path.join(datasets_folder, "**", "*.py")
     model_folder = os.path.join(root_folder, "models")
     model_pattern = os.path.join(model_folder, "**", "*.py")
 
     importlib.import_module("pythia.common.meter")
 
-    files = glob.glob(tasks_pattern, recursive=True) + \
+    files = glob.glob(datasets_pattern, recursive=True) + \
             glob.glob(model_pattern, recursive=True) + \
             glob.glob(trainer_pattern, recursive=True)
 
     for f in files:
-        if f.endswith("task.py"):
-            splits = f.split(os.sep)
-            task_name = splits[-2]
-            if task_name == "tasks":
-                continue
-            file_name = splits[-1]
-            module_name = file_name[: file_name.find(".py")]
-            importlib.import_module("pythia.tasks." + task_name + "." + module_name)
-        elif f.find("models") != -1:
+        if f.find("models") != -1:
             splits = f.split(os.sep)
             file_name = splits[-1]
             module_name = file_name[: file_name.find(".py")]
@@ -62,12 +54,12 @@ def setup_imports():
             splits = f.split(os.sep)
             task_name = splits[-3]
             dataset_name = splits[-2]
-            if task_name == "tasks" or dataset_name == "tasks":
+            if task_name == "datasets" or dataset_name == "datasets":
                 continue
             file_name = splits[-1]
             module_name = file_name[: file_name.find(".py")]
             importlib.import_module(
-                "pythia.tasks." + task_name + "." + dataset_name + "." + module_name
+                "pythia.datasets." + task_name + "." + dataset_name + "." + module_name
             )
 
 

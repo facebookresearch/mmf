@@ -78,11 +78,11 @@ class Checkpoint:
                     "is not present. Skipping.".format(ckpt_filepath)
                 )
 
-    def _load(self, file):
+    def _load(self, file, force=False):
         self.trainer.writer.write("Loading checkpoint")
         ckpt = self._torch_load(file)
 
-        data_parallel = registry.get("data_parallel")
+        data_parallel = registry.get("data_parallel") or registry.get("distributed")
 
         if "model" in ckpt:
             ckpt_model = ckpt["model"]
@@ -92,7 +92,7 @@ class Checkpoint:
 
         pretrained_mapping = self.config.training_parameters.pretrained_mapping
 
-        if not self.config.training_parameters.load_pretrained:
+        if not self.config.training_parameters.load_pretrained or force is True:
             pretrained_mapping = {}
 
         new_dict = {}
@@ -105,6 +105,8 @@ class Checkpoint:
                 # In case the ckpt was actually a data parallel model
                 # replace first module. from dataparallel with empty string
                 new_dict[attr.replace("module.", "", 1)] = ckpt_model[attr]
+            elif data_parallel is not False and not attr.startswith("module."):
+                new_dict["module." + attr] = ckpt_model[attr]
             else:
                 new_dict[attr] = ckpt_model[attr]
 
@@ -175,7 +177,7 @@ class Checkpoint:
 
     def _torch_load(self, file):
         if "cuda" in str(self.device):
-            return torch.load(file)
+            return torch.load(file, map_location=self.device)
         else:
             return torch.load(file, map_location=lambda storage, loc: storage)
 
@@ -215,9 +217,14 @@ class Checkpoint:
 
         best_iteration = self.trainer.early_stopping.best_monitored_iteration
         best_metric = self.trainer.early_stopping.best_monitored_value
+        model = self.trainer.model
+        data_parallel = registry.get("data_parallel") or registry.get("distributed")
+
+        if data_parallel is True:
+            model = model.module
 
         ckpt = {
-            "model": self.trainer.model.state_dict(),
+            "model": model.state_dict(),
             "optimizer": self.trainer.optimizer.state_dict(),
             "best_iteration": best_iteration,
             "best_metric_value": best_metric,
@@ -233,13 +240,12 @@ class Checkpoint:
             torch.save(ckpt, best_ckpt_filepath)
 
     def restore(self):
+        synchronize()
         self.trainer.writer.write("Restoring checkpoint")
         best_path = os.path.join(self.ckpt_foldername, self.ckpt_prefix + "best.ckpt")
 
         if os.path.exists(best_path):
-            ckpt = self._torch_load(best_path)
-            self.trainer.model.load_state_dict(ckpt["model"])
-            self.trainer.optimizer.load_state_dict(ckpt["optimizer"])
+            self._load(best_path, force=True)
 
     def finalize(self):
         torch.save(self.trainer.model.state_dict(), self.pth_filepath)

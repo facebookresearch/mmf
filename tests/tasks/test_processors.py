@@ -5,7 +5,7 @@ import unittest
 import yaml
 import torch
 
-from pythia.tasks.processors import CaptionProcessor, MultiHotAnswerFromVocabProcessor
+from pythia.datasets.processors import CaptionProcessor, MultiHotAnswerFromVocabProcessor
 from pythia.utils.configuration import ConfigNode
 
 from ..test_utils import compare_tensors
@@ -21,7 +21,7 @@ class TestTaskProcessors(unittest.TestCase):
 
     def test_caption_processor(self):
         config = self._get_config(
-            "../../../pythia/common/defaults/configs/tasks/captioning/coco.yml"
+            "../../../pythia/common/defaults/configs/datasets/captioning/coco.yml"
         )
         captioning_config = config.task_attributes.captioning.dataset_attributes.coco
         caption_processor_config = captioning_config.processors.caption_processor
@@ -42,7 +42,7 @@ class TestTaskProcessors(unittest.TestCase):
         self.assertEqual(caption["caption"], "a man with a red helmet")
 
     def test_multi_hot_answer_from_vocab_processor(self):
-        config = self._get_config("../../../pythia/common/defaults/configs/tasks/vqa/clevr.yml")
+        config = self._get_config("../../../pythia/common/defaults/configs/datasets/vqa/clevr.yml")
         clevr_config = config.task_attributes.vqa.dataset_attributes.clevr
         answer_processor_config = clevr_config.processors.answer_processor
 

@@ -1,5 +1,5 @@
 includes:
-- common/defaults/configs/tasks/vqa/vqa2.yml
+- common/defaults/configs/datasets/vqa/vqa2.yml
 model_attributes:
   ban:
     metrics:

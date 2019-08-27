@@ -1,5 +1,5 @@
 includes:
-- common/defaults/configs/tasks/vqa/clevr.yml
+- common/defaults/configs/datasets/vqa/clevr.yml
 
 model_attributes:
   cnn_lstm:
