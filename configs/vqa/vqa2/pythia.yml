@@ -26,14 +26,14 @@ model_attributes:
     classifier:
       type: logit
       params:
-        img_hidden_dim: 1000
+        img_hidden_dim: 5000
         text_hidden_dim: 300
     image_feature_embeddings:
     - modal_combine:
         type: non_linear_element_multiply
         params:
           dropout: 0
-          hidden_dim: 1000
+          hidden_dim: 5000
       normalization: softmax
       transform:
         type: linear
@@ -51,7 +51,7 @@ model_attributes:
       type: non_linear_element_multiply
       params:
         dropout: 0
-        hidden_dim: 1000
+        hidden_dim: 5000
     text_embeddings:
     - type: attention
       params:
