@@ -259,7 +259,7 @@ class BeamSearch(TextDecoder):
             captions = torch.FloatTensor(self._complete_seqs[i]).unsqueeze(0)
         return captions
 
-class NucleusSampling:
+class NucleusSampling(TextDecoder):
     """Nucleus Sampling is a new text decoding strategy that avoids likelihood maximization.
     Rather, it works by sampling from the smallest set of top tokens which have a cumulative
     probability greater than a specified threshold.
@@ -363,17 +363,17 @@ class TextDecoder:
 
     def find_complete_inds(self, next_word_inds):
         incomplete_inds = []
-    for ind, next_word in enumerate(next_word_inds):
-        if next_word != self.vocab.EOS_INDEX:
-            incomplete_inds.append(ind)
-    complete_inds = list(set(range(len(next_word_inds))) - set(incomplete_inds))
-    return complete_inds, incomplete_inds
+        for ind, next_word in enumerate(next_word_inds):
+            if next_word != self.vocab.EOS_INDEX:
+                incomplete_inds.append(ind)
+        complete_inds = list(set(range(len(next_word_inds))) - set(incomplete_inds))
+        return complete_inds, incomplete_inds
 
     def update_data(self, data, prev_word_inds, next_word_inds, incomplete_inds):
-    data["texts"] = next_word_inds[incomplete_inds].unsqueeze(1)
-    h1 = data["state"]["td_hidden"][0][prev_word_inds[incomplete_inds]]
-    c1 = data["state"]["td_hidden"][1][prev_word_inds[incomplete_inds]]
-    h2 = data["state"]["lm_hidden"][0][prev_word_inds[incomplete_inds]]
-    c2 = data["state"]["lm_hidden"][1][prev_word_inds[incomplete_inds]]
-    data["state"] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
-    return data
+        data["texts"] = next_word_inds[incomplete_inds].unsqueeze(1)
+        h1 = data["state"]["td_hidden"][0][prev_word_inds[incomplete_inds]]
+        c1 = data["state"]["td_hidden"][1][prev_word_inds[incomplete_inds]]
+        h2 = data["state"]["lm_hidden"][0][prev_word_inds[incomplete_inds]]
+        c2 = data["state"]["lm_hidden"][1][prev_word_inds[incomplete_inds]]
+        data["state"] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
+        return data
