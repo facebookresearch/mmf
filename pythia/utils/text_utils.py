@@ -260,32 +260,27 @@ class BeamSearch(TextDecoder):
         return captions
 
 class NucleusSampling:
+    """Nucleus Sampling is a new text decoding strategy that avoids likelihood maximization.
+    Rather, it works by sampling from the smallest set of top tokens which have a cumulative
+    probability greater than a specified threshold.
+
+    Present text decoding strategies like beam search do not work well on open-ended
+    generation tasks (even on strong language models like GPT-2). They tend to repeat text
+    a lot and the main reason behind it is that they try to maximize likelihood, which is a
+    contrast from human-generated text which has a mix of high and low probability tokens.
+
+    Nucleus Sampling is a stochastic approach and resolves this issue. Moreover, it improves
+    upon other stochastic methods like top-k sampling by choosing the right amount of tokens
+    to sample from. The overall result is better text generation on the same language model.
+    """
     def __init__(self, vocab, threshold=0.8):
-        self._vocab = vocab
+        super().__init__(vocab)
         # Threshold for sum of probability
         self._threshold = threshold
-        # Lists to store completed sequence
-        self._complete_seq = []
-
-    def init_batch(self, sample_list):
-        setattr(
-            self,
-            "seq",
-            sample_list.answers.new_full(
-                (1, 1), self._vocab.SOS_INDEX, dtype=torch.long
-            ),
-        )
-        # Add a dim and duplicate the tensor beam_size times across that dim
-        sample_list.image_feature_0 = (
-            sample_list.image_feature_0.unsqueeze(1)
-            .expand(-1, 1, -1, -1)
-            .squeeze(0)
-        )
-        return sample_list
 
     def sample(self, t, data, scores):
         # Convert scores to probabilities
-        scores = torch.nn.functional.softmax(scores, dim=1)
+        scores = self.get_prob_from_scores(scores)
         # Sort scores in descending order and then select the top m elements having sum more than threshold.
         # We get the top_m_scores and their indices top_m_words
         if t == 0:
@@ -312,11 +307,9 @@ class NucleusSampling:
         # Get next word based on probabilities of top m words.
         next_word_ind = top_m_words[torch.multinomial(top_m_scores, 1)]
         # Add next word to sequence
-        self.seq = torch.cat(
-            [self.seq[prev_word_ind], next_word_ind.unsqueeze(1)], dim=1
-        )
+        self.seqs = self.add_next_word(seqs, prev_word_ind, next_word_ind)
         # Check if sequence is complete
-        complete_inds, incomplete_inds = find_complete_inds(self, next_word_ind)
+        complete_inds, incomplete_inds = self.find_complete_inds(next_word_ind)
 
         # If sequence is complete then return
         if len(complete_inds) > 0:
@@ -327,7 +320,7 @@ class NucleusSampling:
 
         # TODO: Make the data update generic for any type of model
         # This is specific to BUTD model only.
-        data = update_data(data, prev_word_ind, next_word_ind, incomplete_inds)
+        data = self.update_data(data, prev_word_ind, next_word_ind, incomplete_inds)
 
         return False, data, 1
 
