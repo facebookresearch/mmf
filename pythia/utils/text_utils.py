@@ -181,6 +181,57 @@ class VocabFromText(VocabDict):
         self._build()
 
 
+class TextDecoder:
+    def __init__(self, vocab):
+        self._vocab = vocab
+        self._vocab_size = vocab.get_size()
+
+        # Lists to store completed sequences and scores
+        self._complete_seqs = []
+        self._complete_seqs_scores = []
+
+    def init_batch(self, sample_list):
+        setattr(
+            self,
+            "seqs",
+            sample_list.answers.new_full(
+                (self._beam_size, 1), self._vocab.SOS_INDEX, dtype=torch.long
+            ),
+        )
+        # Add a dim and duplicate the tensor beam_size times across that dim
+        sample_list.image_feature_0 = (
+            sample_list.image_feature_0.unsqueeze(1)
+            .expand(-1, self._beam_size, -1, -1)
+            .squeeze(0)
+        )
+        return sample_list
+
+    def get_prob_from_scores(self, scores):
+        return torch.nn.functional.log_softmax(scores, dim=1)
+
+    def add_next_word(self, seqs, prev_word_inds, next_word_inds):
+        return torch.cat(
+            [seqs[prev_word_inds], next_word_inds.unsqueeze(1)], dim=1
+        )
+
+    def find_complete_inds(self, next_word_inds):
+        incomplete_inds = []
+        for ind, next_word in enumerate(next_word_inds):
+            if next_word != self.vocab.EOS_INDEX:
+                incomplete_inds.append(ind)
+        complete_inds = list(set(range(len(next_word_inds))) - set(incomplete_inds))
+        return complete_inds, incomplete_inds
+
+    def update_data(self, data, prev_word_inds, next_word_inds, incomplete_inds):
+        data["texts"] = next_word_inds[incomplete_inds].unsqueeze(1)
+        h1 = data["state"]["td_hidden"][0][prev_word_inds[incomplete_inds]]
+        c1 = data["state"]["td_hidden"][1][prev_word_inds[incomplete_inds]]
+        h2 = data["state"]["lm_hidden"][0][prev_word_inds[incomplete_inds]]
+        c2 = data["state"]["lm_hidden"][1][prev_word_inds[incomplete_inds]]
+        data["state"] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
+        return data
+
+
 class BeamSearch(TextDecoder):
     def __init__(self, vocab, beam_size=5):
         super().__init__(vocab)
@@ -327,53 +378,3 @@ class NucleusSampling(TextDecoder):
     def get_caption(self):
         captions = torch.FloatTensor(self._complete_seq[0]).unsqueeze(0)
         return captions
-
-class TextDecoder:
-    def __init__(self, vocab):
-        self._vocab = vocab
-        self._vocab_size = vocab.get_size()
-
-        # Lists to store completed sequences and scores
-        self._complete_seqs = []
-        self._complete_seqs_scores = []
-
-    def init_batch(self, sample_list):
-        setattr(
-            self,
-            "seqs",
-            sample_list.answers.new_full(
-                (self._beam_size, 1), self._vocab.SOS_INDEX, dtype=torch.long
-            ),
-        )
-        # Add a dim and duplicate the tensor beam_size times across that dim
-        sample_list.image_feature_0 = (
-            sample_list.image_feature_0.unsqueeze(1)
-            .expand(-1, self._beam_size, -1, -1)
-            .squeeze(0)
-        )
-        return sample_list
-
-    def get_prob_from_scores(self, scores):
-        return torch.nn.functional.log_softmax(scores, dim=1)
-
-    def add_next_word(self, seqs, prev_word_inds, next_word_inds):
-        return torch.cat(
-            [seqs[prev_word_inds], next_word_inds.unsqueeze(1)], dim=1
-        )
-
-    def find_complete_inds(self, next_word_inds):
-        incomplete_inds = []
-        for ind, next_word in enumerate(next_word_inds):
-            if next_word != self.vocab.EOS_INDEX:
-                incomplete_inds.append(ind)
-        complete_inds = list(set(range(len(next_word_inds))) - set(incomplete_inds))
-        return complete_inds, incomplete_inds
-
-    def update_data(self, data, prev_word_inds, next_word_inds, incomplete_inds):
-        data["texts"] = next_word_inds[incomplete_inds].unsqueeze(1)
-        h1 = data["state"]["td_hidden"][0][prev_word_inds[incomplete_inds]]
-        c1 = data["state"]["td_hidden"][1][prev_word_inds[incomplete_inds]]
-        h2 = data["state"]["lm_hidden"][0][prev_word_inds[incomplete_inds]]
-        c2 = data["state"]["lm_hidden"][1][prev_word_inds[incomplete_inds]]
-        data["state"] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
-        return data
