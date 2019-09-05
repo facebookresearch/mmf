@@ -108,57 +108,98 @@ class BUTD(Pythia):
 
         return data, batch_size_t
 
-    def forward_greedy(self, sample_list, scores):
+    # def forward_greedy(self, sample_list, scores):
 
-        batch_size = sample_list.image_feature_0.size(0)
-        data, sample_list, timesteps = self.prepare_data(sample_list, batch_size)
-        output = None
-        batch_size_t = batch_size
-        for t in range(timesteps):
-            data, batch_size_t = self.get_data_t(t, data, batch_size_t, output)
-            pi_t = data["texts"][:, t].unsqueeze(-1)
-            embedding = self.word_embedding(pi_t)
-            attention_feature, _ = self.process_feature_embedding(
-                "image", sample_list, embedding[:, 0, :], batch_size_t=batch_size_t
-            )
-            output = self.classifier(attention_feature)
-            scores[:batch_size_t, t] = output
+    #     batch_size = sample_list.image_feature_0.size(0)
+    #     data, sample_list, timesteps = self.prepare_data(sample_list, batch_size)
+    #     output = None
+    #     batch_size_t = batch_size
+    #     for t in range(timesteps):
+    #         data, batch_size_t = self.get_data_t(t, data, batch_size_t, output)
+    #         pi_t = data["texts"][:, t].unsqueeze(-1)
+    #         embedding = self.word_embedding(pi_t)
+    #         attention_feature, _ = self.process_feature_embedding(
+    #             "image", sample_list, embedding[:, 0, :], batch_size_t=batch_size_t
+    #         )
+    #         output = self.classifier(attention_feature)
+    #         scores[:batch_size_t, t] = output
 
-        model_output = {"scores": scores}
-        return model_output
+    #     model_output = {"scores": scores}
+    #     return model_output
 
-    def forward_beam_search(self, sample_list, scores):
-        beam_search = BeamSearch(
-                self.vocab, self.config["inference"]["params"]["beam_length"]
-            )
-        sample_list = beam_search.init_batch(sample_list)
-        batch_size = sample_list.image_feature_0.size(0)
-        data, sample_list, timesteps = self.prepare_data(sample_list, batch_size)
-        output = None
-        batch_size_t = batch_size
-        for t in range(timesteps):
-            data, batch_size_t = self.get_data_t(t, data, batch_size_t, output)
-            pi_t = data["texts"]
-            embedding = self.word_embedding(pi_t)
-            attention_feature, _ = self.process_feature_embedding(
-                "image", sample_list, embedding[:, 0, :], batch_size_t=batch_size_t
-            )
-            output = self.classifier(attention_feature)
-            # Compute Beam Search decoding
-            finish, data, batch_size_t = beam_search.search(t, data, output)
-            if finish:
-                break
+    # def forward_beam_search(self, sample_list, scores):
+    #     beam_search = BeamSearch(
+    #             self.vocab, self.config["inference"]["params"]["beam_length"]
+    #         )
+    #     sample_list = beam_search.init_batch(sample_list)
+    #     batch_size = sample_list.image_feature_0.size(0)
+    #     data, sample_list, timesteps = self.prepare_data(sample_list, batch_size)
+    #     output = None
+    #     batch_size_t = batch_size
+    #     for t in range(timesteps):
+    #         data, batch_size_t = self.get_data_t(t, data, batch_size_t, output)
+    #         pi_t = data["texts"]
+    #         embedding = self.word_embedding(pi_t)
+    #         attention_feature, _ = self.process_feature_embedding(
+    #             "image", sample_list, embedding[:, 0, :], batch_size_t=batch_size_t
+    #         )
+    #         output = self.classifier(attention_feature)
+    #         # Compute Beam Search decoding
+    #         finish, data, batch_size_t = beam_search.search(t, data, output)
+    #         if finish:
+    #             break
 
-        model_output = {"scores": scores}
-        model_output["captions"] = beam_search.get_captions()
+    #     model_output = {"scores": scores}
+    #     model_output["captions"] = beam_search.get_captions()
 
-        return model_output
+    #     return model_output
 
-    def forward_nucleus_sampling(self, sample_list, scores):
-        nucleus_sampling = NucleusSampling(
-                self.vocab, self.config["inference"]["params"]["sum_threshold"]
-            )
-        sample_list = nucleus_sampling.init_batch(sample_list)
+    # def forward_nucleus_sampling(self, sample_list, scores):
+    #     nucleus_sampling = NucleusSampling(
+    #             self.vocab, self.config["inference"]["params"]["sum_threshold"]
+    #         )
+    #     sample_list = nucleus_sampling.init_batch(sample_list)
+    #     batch_size = sample_list.image_feature_0.size(0)
+    #     data, sample_list, timesteps = self.prepare_data(sample_list, batch_size)
+    #     output = None
+    #     batch_size_t = batch_size
+    #     for t in range(timesteps):
+    #         data, batch_size_t = self.get_data_t(t, data, batch_size_t, output)
+    #         pi_t = data["texts"]
+    #         embedding = self.word_embedding(pi_t)
+    #         attention_feature, _ = self.process_feature_embedding(
+    #             "image", sample_list, embedding[:, 0, :], batch_size_t=batch_size_t
+    #         )
+    #         output = self.classifier(attention_feature)
+    #         # Compute Nucleus Sampling decoding
+    #         finish, data, batch_size_t = nucleus_sampling.sample(t, data, output)
+    #         if finish:
+    #             break
+
+    #     model_output = {"scores": scores}
+    #     model_output["captions"] = nucleus_sampling.get_caption()
+
+    #     return model_output
+
+    def forward(self, sample_list):
+        # Stores the output probabilites.
+        scores = sample_list.answers.new_ones(
+            (
+                sample_list.answers.size(0),
+                self.text_processor.max_length,
+                self.vocab_size,
+            ),
+            dtype=torch.float,
+        )
+        # return getattr(self, 'forward_' + self.config["inference"]["type"])(sample_list, scores)
+        if(self.config["inference"]["type"] == "greedy"):
+            decoder = BeamSearch(self.vocab, 1)
+        elif(self.config["inference"]["type"] == "beam_search"):
+            decoder = BeamSearch(self.vocab, self.config["inference"]["params"]["beam_length"])
+        elif(self.config["inference"]["type"] == "nucleus_sampling"):
+            decoder = NucleusSampling(self.vocab, self.config["inference"]["params"]["sum_threshold"])
+
+        sample_list = decoder.init_batch(sample_list)
         batch_size = sample_list.image_feature_0.size(0)
         data, sample_list, timesteps = self.prepare_data(sample_list, batch_size)
         output = None
@@ -172,23 +213,12 @@ class BUTD(Pythia):
             )
             output = self.classifier(attention_feature)
             # Compute Nucleus Sampling decoding
-            finish, data, batch_size_t = nucleus_sampling.sample(t, data, output)
+            finish, data, batch_size_t = decoder.decode(t, data, output)
             if finish:
                 break
 
         model_output = {"scores": scores}
-        model_output["captions"] = nucleus_sampling.get_caption()
+        model_output["captions"] = decoder.get_result()
 
         return model_output
 
-    def forward(self, sample_list):
-        # Stores the output probabilites.
-        scores = sample_list.answers.new_ones(
-            (
-                sample_list.answers.size(0),
-                self.text_processor.max_length,
-                self.vocab_size,
-            ),
-            dtype=torch.float,
-        )
-        return getattr(self, 'forward_' + self.config["inference"]["type"])(sample_list, scores)

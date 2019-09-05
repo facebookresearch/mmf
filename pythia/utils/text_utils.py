@@ -1,11 +1,26 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+"""
+Text utils module contains implementations for various decoding strategies like
+Greedy, Beam Search and Nucleus Sampling.
+
+In your model's config you can specify ``inference`` attribute to use these strategies
+in the following way:
+
+.. code::
+
+   model_attributes:
+       some_model:
+           inference:
+               - type: greedy
+               - params: {}
+"""
 import os
 import re
 import torch
 from itertools import chain
 from collections import Counter
 
-from pythia.utils.general import get_pythia_root, find_complete_inds, update_data
+from pythia.utils.general import get_pythia_root
 
 SENTENCE_SPLIT_REGEX = re.compile(r"(\W+)")
 
@@ -182,6 +197,13 @@ class VocabFromText(VocabDict):
 
 
 class TextDecoder:
+    """Base class to be inherited by all decoding strategies. Contains
+    implementations that are common for all strategies.
+
+    Args:
+        vocab (list): Collection of all words in vocabulary.
+
+    """
     def __init__(self, vocab):
         self._vocab = vocab
         self._vocab_size = vocab.get_size()
@@ -191,23 +213,16 @@ class TextDecoder:
         self._complete_seqs_scores = []
 
     def init_batch(self, sample_list):
-        setattr(
-            self,
-            "seqs",
-            sample_list.answers.new_full(
-                (self._beam_size, 1), self._vocab.SOS_INDEX, dtype=torch.long
-            ),
-        )
-        # Add a dim and duplicate the tensor beam_size times across that dim
+        self.seqs = sample_list.answers.new_full(
+                (self._decode_size, 1), self._vocab.SOS_INDEX, dtype=torch.long
+            )
+
         sample_list.image_feature_0 = (
             sample_list.image_feature_0.unsqueeze(1)
-            .expand(-1, self._beam_size, -1, -1)
+            .expand(-1, self._decode_size, -1, -1)
             .squeeze(0)
         )
         return sample_list
-
-    def get_prob_from_scores(self, scores):
-        return torch.nn.functional.log_softmax(scores, dim=1)
 
     def add_next_word(self, seqs, prev_word_inds, next_word_inds):
         return torch.cat(
@@ -217,7 +232,7 @@ class TextDecoder:
     def find_complete_inds(self, next_word_inds):
         incomplete_inds = []
         for ind, next_word in enumerate(next_word_inds):
-            if next_word != self.vocab.EOS_INDEX:
+            if next_word != self._vocab.EOS_INDEX:
                 incomplete_inds.append(ind)
         complete_inds = list(set(range(len(next_word_inds))) - set(incomplete_inds))
         return complete_inds, incomplete_inds
@@ -234,31 +249,31 @@ class TextDecoder:
 
 class BeamSearch(TextDecoder):
     def __init__(self, vocab, beam_size=5):
-        super().__init__(vocab)
-        self._beam_size = beam_size
+        super(BeamSearch, self).__init__(vocab)
+        self._decode_size = beam_size
 
     def init_batch(self, sample_list):
         setattr(
             self,
             "top_k_scores",
-            sample_list.answers.new_zeros((self._beam_size, 1), dtype=torch.float),
+            sample_list.answers.new_zeros((self._decode_size, 1), dtype=torch.float),
         )
         return super().init_batch(sample_list)
 
-    def search(self, t, data, scores):
+    def decode(self, t, data, scores):
         # Add predicted scores to top_k_scores
-        scores = self.get_prob_from_scores(scores)
+        scores = torch.nn.functional.log_softmax(scores, dim=1)
         scores = self.top_k_scores.expand_as(scores) + scores
 
         # Find next top k scores and words. We flatten the scores tensor here
         # and get the top_k_scores and their indices top_k_words
         if t == 0:
             self.top_k_scores, top_k_words = scores[0].topk(
-                self._beam_size, 0, True, True
+                self._decode_size, 0, True, True
             )
         else:
             self.top_k_scores, top_k_words = scores.view(-1).topk(
-                self._beam_size, 0, True, True
+                self._decode_size, 0, True, True
             )
 
         # Convert to vocab indices. top_k_words contain indices from a flattened
@@ -274,7 +289,7 @@ class BeamSearch(TextDecoder):
         next_word_inds = top_k_words % self._vocab_size
 
         # Add new words to sequences
-        self.seqs = self.add_next_word(seqs, prev_word_inds, next_word_inds)
+        self.seqs = self.add_next_word(self.seqs, prev_word_inds, next_word_inds)
 
         # Find completed sequences
         complete_inds, incomplete_inds = self.find_complete_inds(next_word_inds)
@@ -285,10 +300,10 @@ class BeamSearch(TextDecoder):
             self._complete_seqs_scores.extend(self.top_k_scores[complete_inds])
 
         # Reduce beam length
-        self._beam_size -= len(complete_inds)
+        self._decode_size -= len(complete_inds)
 
         # Proceed with incomplete sequences
-        if self._beam_size == 0:
+        if self._decode_size == 0:
             return True, data, 0
 
         self.seqs = self.seqs[incomplete_inds]
@@ -302,7 +317,7 @@ class BeamSearch(TextDecoder):
 
         return False, data, next_beam_length
 
-    def get_captions(self):
+    def get_result(self):
         if len(self._complete_seqs_scores) == 0:
             captions = torch.FloatTensor([0] * 5).unsqueeze(0)
         else:
@@ -323,15 +338,20 @@ class NucleusSampling(TextDecoder):
     Nucleus Sampling is a stochastic approach and resolves this issue. Moreover, it improves
     upon other stochastic methods like top-k sampling by choosing the right amount of tokens
     to sample from. The overall result is better text generation on the same language model.
+
+    Args:
+        vocab (list): Collection of all words in vocabulary.
+        sum_threshold (float): Ceiling of sum of probabilities of tokens to sample from.
     """
     def __init__(self, vocab, threshold=0.8):
         super().__init__(vocab)
+        self._decode_size = 1
         # Threshold for sum of probability
         self._threshold = threshold
 
-    def sample(self, t, data, scores):
+    def decode(self, t, data, scores):
         # Convert scores to probabilities
-        scores = self.get_prob_from_scores(scores)
+        scores = torch.nn.functional.softmax(scores, dim=1)
         # Sort scores in descending order and then select the top m elements having sum more than threshold.
         # We get the top_m_scores and their indices top_m_words
         if t == 0:
@@ -358,16 +378,15 @@ class NucleusSampling(TextDecoder):
         # Get next word based on probabilities of top m words.
         next_word_ind = top_m_words[torch.multinomial(top_m_scores, 1)]
         # Add next word to sequence
-        self.seqs = self.add_next_word(seqs, prev_word_ind, next_word_ind)
+        self.seqs = self.add_next_word(self.seqs, prev_word_ind, next_word_ind)
         # Check if sequence is complete
         complete_inds, incomplete_inds = self.find_complete_inds(next_word_ind)
-
         # If sequence is complete then return
         if len(complete_inds) > 0:
-            self._complete_seq.extend(self.seq[complete_inds].tolist())
+            self._complete_seqs.extend(self.seqs[complete_inds].tolist())
             return True, data, 0
 
-        self.seq = self.seq[incomplete_inds]
+        self.seqs = self.seqs[incomplete_inds]
 
         # TODO: Make the data update generic for any type of model
         # This is specific to BUTD model only.
@@ -375,6 +394,6 @@ class NucleusSampling(TextDecoder):
 
         return False, data, 1
 
-    def get_caption(self):
-        captions = torch.FloatTensor(self._complete_seq[0]).unsqueeze(0)
+    def get_result(self):
+        captions = torch.FloatTensor(self._complete_seqs[0]).unsqueeze(0)
         return captions

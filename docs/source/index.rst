@@ -68,6 +68,7 @@ research built on top of PyTorch.
    tasks/base_dataset
    tasks/base_task
    tasks/processors
+   utils/text_utils
 
 Indices and tables
 ==================
