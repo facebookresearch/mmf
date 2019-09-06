@@ -128,13 +128,16 @@ class VocabDict:
         self.num_vocab = len(self.word_list)
 
         self.UNK_INDEX = (
-            self.word2idx_dict[self.UNK_TOKEN] if self.UNK_TOKEN in self.word2idx_dict else None
+            self.word2idx_dict[self.UNK_TOKEN]
+            if self.UNK_TOKEN in self.word2idx_dict
+            else None
         )
 
         self.PAD_INDEX = (
-            self.word2idx_dict[self.PAD_TOKEN] if self.PAD_TOKEN in self.word2idx_dict else None
+            self.word2idx_dict[self.PAD_TOKEN]
+            if self.PAD_TOKEN in self.word2idx_dict
+            else None
         )
-
 
     def idx2word(self, n_w):
         return self.word_list[n_w]
@@ -169,17 +172,26 @@ class VocabDict:
 
 
 class VocabFromText(VocabDict):
-    DEFAULT_TOKENS = [VocabDict.PAD_TOKEN, VocabDict.UNK_TOKEN,
-                      VocabDict.START_TOKEN, VocabDict.END_TOKEN]
+    DEFAULT_TOKENS = [
+        VocabDict.PAD_TOKEN,
+        VocabDict.UNK_TOKEN,
+        VocabDict.START_TOKEN,
+        VocabDict.END_TOKEN,
+    ]
 
-    def __init__(self, sentences, min_count=1, regex=SENTENCE_SPLIT_REGEX,
-                 keep=[], remove=[], only_unk_extra=False):
+    def __init__(
+        self,
+        sentences,
+        min_count=1,
+        regex=SENTENCE_SPLIT_REGEX,
+        keep=[],
+        remove=[],
+        only_unk_extra=False,
+    ):
         token_counter = Counter()
 
         for sentence in sentences:
-            tokens = tokenize(
-                sentence, regex=regex, keep=keep, remove=remove
-            )
+            tokens = tokenize(sentence, regex=regex, keep=keep, remove=remove)
             token_counter.update(tokens)
 
         token_list = []
@@ -204,6 +216,7 @@ class TextDecoder:
         vocab (list): Collection of all words in vocabulary.
 
     """
+
     def __init__(self, vocab):
         self._vocab = vocab
         self._vocab_size = vocab.get_size()
@@ -214,8 +227,8 @@ class TextDecoder:
 
     def init_batch(self, sample_list):
         self.seqs = sample_list.answers.new_full(
-                (self._decode_size, 1), self._vocab.SOS_INDEX, dtype=torch.long
-            )
+            (self._decode_size, 1), self._vocab.SOS_INDEX, dtype=torch.long
+        )
 
         sample_list.image_feature_0 = (
             sample_list.image_feature_0.unsqueeze(1)
@@ -225,9 +238,7 @@ class TextDecoder:
         return sample_list
 
     def add_next_word(self, seqs, prev_word_inds, next_word_inds):
-        return torch.cat(
-            [seqs[prev_word_inds], next_word_inds.unsqueeze(1)], dim=1
-        )
+        return torch.cat([seqs[prev_word_inds], next_word_inds.unsqueeze(1)], dim=1)
 
     def find_complete_inds(self, next_word_inds):
         incomplete_inds = []
@@ -325,6 +336,7 @@ class BeamSearch(TextDecoder):
             captions = torch.FloatTensor(self._complete_seqs[i]).unsqueeze(0)
         return captions
 
+
 class NucleusSampling(TextDecoder):
     """Nucleus Sampling is a new text decoding strategy that avoids likelihood maximization.
     Rather, it works by sampling from the smallest set of top tokens which have a cumulative
@@ -343,6 +355,7 @@ class NucleusSampling(TextDecoder):
         vocab (list): Collection of all words in vocabulary.
         sum_threshold (float): Ceiling of sum of probabilities of tokens to sample from.
     """
+
     def __init__(self, vocab, threshold=0.8):
         super().__init__(vocab)
         self._decode_size = 1
@@ -355,13 +368,9 @@ class NucleusSampling(TextDecoder):
         # Sort scores in descending order and then select the top m elements having sum more than threshold.
         # We get the top_m_scores and their indices top_m_words
         if t == 0:
-            top_m_scores, top_m_words = scores[0].sort(
-                0, True
-            )
+            top_m_scores, top_m_words = scores[0].sort(0, True)
         else:
-            top_m_scores, top_m_words = scores.view(-1).sort(
-                0, True
-            )
+            top_m_scores, top_m_words = scores.view(-1).sort(0, True)
 
         last_index = 0
         score_sum = 0

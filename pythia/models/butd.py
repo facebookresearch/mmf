@@ -119,12 +119,16 @@ class BUTD(Pythia):
             dtype=torch.float,
         )
 
-        if(self.config["inference"]["type"] == "greedy"):
+        if self.config["inference"]["type"] == "greedy":
             decoder = BeamSearch(self.vocab, 1)
-        elif(self.config["inference"]["type"] == "beam_search"):
-            decoder = BeamSearch(self.vocab, self.config["inference"]["params"]["beam_length"])
-        elif(self.config["inference"]["type"] == "nucleus_sampling"):
-            decoder = NucleusSampling(self.vocab, self.config["inference"]["params"]["sum_threshold"])
+        elif self.config["inference"]["type"] == "beam_search":
+            decoder = BeamSearch(
+                self.vocab, self.config["inference"]["params"]["beam_length"]
+            )
+        elif self.config["inference"]["type"] == "nucleus_sampling":
+            decoder = NucleusSampling(
+                self.vocab, self.config["inference"]["params"]["sum_threshold"]
+            )
 
         sample_list = decoder.init_batch(sample_list)
         batch_size = sample_list.image_feature_0.size(0)
@@ -148,4 +152,3 @@ class BUTD(Pythia):
         model_output["captions"] = decoder.get_result()
 
         return model_output
-
