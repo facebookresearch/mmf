@@ -351,6 +351,8 @@ class NucleusSampling(TextDecoder):
     upon other stochastic methods like top-k sampling by choosing the right amount of tokens
     to sample from. The overall result is better text generation on the same language model.
 
+    Link to the paper introducing Nucleus Sampling (Section 6) - https://arxiv.org/pdf/1904.09751.pdf
+
     Args:
         vocab (list): Collection of all words in vocabulary.
         sum_threshold (float): Ceiling of sum of probabilities of tokens to sample from.
