@@ -129,7 +129,7 @@ class BUTD(Pythia):
             decoder = BeamSearch(self.vocab, self.config)
 
         sample_list = decoder.init_batch(sample_list)
-        batch_size = sample_list.image_feature_0.size(0)
+        batch_size = sample_list.get_batch_size()
         data, sample_list, timesteps = self.prepare_data(sample_list, batch_size)
         output = None
         batch_size_t = batch_size
