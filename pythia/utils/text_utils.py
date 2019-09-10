@@ -259,9 +259,9 @@ class TextDecoder:
 
 
 class BeamSearch(TextDecoder):
-    def __init__(self, vocab, beam_size=5):
+    def __init__(self, vocab, config):
         super(BeamSearch, self).__init__(vocab)
-        self._decode_size = beam_size
+        self._decode_size = config["inference"]["params"]["beam_length"]
 
     def init_batch(self, sample_list):
         setattr(
@@ -358,11 +358,11 @@ class NucleusSampling(TextDecoder):
         sum_threshold (float): Ceiling of sum of probabilities of tokens to sample from.
     """
 
-    def __init__(self, vocab, threshold=0.8):
+    def __init__(self, vocab, config):
         super().__init__(vocab)
         self._decode_size = 1
         # Threshold for sum of probability
-        self._threshold = threshold
+        self._threshold = config["inference"]["params"]["sum_threshold"]
 
     def decode(self, t, data, scores):
         # Convert scores to probabilities

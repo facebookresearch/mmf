@@ -119,16 +119,14 @@ class BUTD(Pythia):
             dtype=torch.float,
         )
 
-        if self.config["inference"]["type"] == "greedy":
-            decoder = BeamSearch(self.vocab, 1)
-        elif self.config["inference"]["type"] == "beam_search":
-            decoder = BeamSearch(
-                self.vocab, self.config["inference"]["params"]["beam_length"]
-            )
-        elif self.config["inference"]["type"] == "nucleus_sampling":
-            decoder = NucleusSampling(
-                self.vocab, self.config["inference"]["params"]["sum_threshold"]
-            )
+        # If user has selected Nucleus Sampling decoding, then
+        # NucleusSampling object is created. Else, for both
+        # Greedy and Beam Search decoding a BeamSearch object is
+        # created where for Greedy, beam_size = 1.
+        if self.config["inference"]["type"] == "nucleus_sampling":
+            decoder = NucleusSampling(self.vocab, self.config)
+        else :
+            decoder = BeamSearch(self.vocab, self.config)
 
         sample_list = decoder.init_batch(sample_list)
         batch_size = sample_list.image_feature_0.size(0)

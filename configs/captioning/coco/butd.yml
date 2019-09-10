@@ -35,6 +35,8 @@ model_attributes:
         weights_file: detectron/fc6/fc7_w.pkl
     inference:
       type: greedy
+      params:
+        beam_length: 1
 optimizer_attributes:
   type: Adamax
   params:
