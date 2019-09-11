@@ -111,21 +111,17 @@ training_parameters:
     pin_memory: false
 
     # Use in multi-tasking, when you want to sample tasks proportional to their sizes
-    task_size_proportional_sampling: true
+    dataset_size_proportional_sampling: true
 
 # Attributes for model, default configuration files for various models
 # included in pythia can be found under configs directory in root folder
 model_attributes: {}
 
-# Attributes for tasks which encapsulates datasets. Separate configuration
-# for different datasets included in pythia are included in tasks folder
+# Attributes for datasets. Separate configuration
+# for different datasets included in pythia are included in dataset folder
 # which can be mixed and matched to train multiple datasets together
 # An example for mixing all vqa datasets is present under vqa folder
-task_attributes: {}
-
-# Defines which task to train for, can be used to train multiple tasks
-# together
-tasks: []
+dataset_attributes: {}
 
 # Defines which datasets from the above tasks you want to train on
 datasets: []

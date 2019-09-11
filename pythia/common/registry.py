@@ -11,7 +11,6 @@ Import the global registry object using
 
 Various decorators for registry different kind of classes with unique keys
 
-- Register a task: ``@registry.register_task``
 - Register a trainer: ``@registry.register_trainer``
 - Register a dataset builder: ``@registry.register_builder``
 - Register a metric: ``@registry.register_metric``
@@ -30,17 +29,14 @@ class Registry:
     for Pythia
     """
     mapping = {
-        # Mappings of task name to their respective classes
-        # Use decorator "register_task" in pythia.common.decorators to regiter a
-        # task class with a specific name
+        # Mappings of builder name to their respective classes
+        # Use `registry.register_builder` to register a builder class with a specific name
         # Further, use the name with the class is registered in the
-        # command line or configuration to load that specific task
-        "task_name_mapping": {},
-        # Similar to the task_name_mapping above except that this
-        # one is used to keep a mapping for dataset to its builder class.
-        # Use "register_builder" decorator to mapping a builder
-        "trainer_name_mapping": {},
+        # command line or configuration to load that specific dataset
         "builder_name_mapping": {},
+        # Similar to the builder_name_mapping above except that this
+        # one is used to keep a mapping for dataset to its trainer class.
+        "trainer_name_mapping": {},
         "model_name_mapping": {},
         "metric_name_mapping": {},
         "loss_name_mapping": {},
@@ -51,36 +47,6 @@ class Registry:
         "decoder_name_mapping": {},
         "state": {},
     }
-
-    @classmethod
-    def register_task(cls, name):
-        r"""Register a task to registry with key 'name'
-
-        Args:
-            name: Key with which the task will be registered.
-
-        Usage::
-
-            from pythia.common.registry import registry
-            from pythia.tasks.base_task import BaseTask
-
-
-            @registry.register_task("vqa")
-            class VQATask(BaseTask):
-                ...
-
-        """
-
-        def wrap(task_cls):
-            from pythia.tasks.base_task import BaseTask
-
-            assert issubclass(
-                task_cls, BaseTask
-            ), "All task must inherit BaseTask class"
-            cls.mapping["task_name_mapping"][name] = task_cls
-            return task_cls
-
-        return wrap
 
     @classmethod
     def register_trainer(cls, name):
@@ -115,7 +81,7 @@ class Registry:
         Usage::
 
             from pythia.common.registry import registry
-            from pythia.tasks.base_dataset_builder import BaseDatasetBuilder
+            from pythia.datasets.base_dataset_builder import BaseDatasetBuilder
 
 
             @registry.register_builder("vqa2")
@@ -125,7 +91,7 @@ class Registry:
         """
 
         def wrap(builder_cls):
-            from pythia.tasks.base_dataset_builder import BaseDatasetBuilder
+            from pythia.datasets.base_dataset_builder import BaseDatasetBuilder
 
             assert issubclass(
                 builder_cls, BaseDatasetBuilder
@@ -260,7 +226,7 @@ class Registry:
         Usage::
 
             from pythia.common.registry import registry
-            from pythia.tasks.processors import BaseProcessor
+            from pythia.datasets.processors import BaseProcessor
 
             @registry.register_task("glove")
             class GloVe(BaseProcessor):
@@ -269,7 +235,7 @@ class Registry:
         """
 
         def wrap(func):
-            from pythia.tasks.processors import BaseProcessor
+            from pythia.datasets.processors import BaseProcessor
 
             assert issubclass(
                 func, BaseProcessor
@@ -347,10 +313,6 @@ class Registry:
             current = current[part]
 
         current[path[-1]] = obj
-
-    @classmethod
-    def get_task_class(cls, name):
-        return cls.mapping["task_name_mapping"].get(name, None)
 
     @classmethod
     def get_trainer_class(cls, name):

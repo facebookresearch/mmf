@@ -30,9 +30,6 @@ if __name__ == "__main__":
         name=DISTNAME,
         install_requires=REQUIREMENTS,
         packages=setuptools.find_packages(),
-        dependency_links=[
-            "https://github.com/facebookresearch/fastText/tarball/master#egg=fastText"
-        ],
         version="0.3",
         description=DESCRIPTION,
         long_description=LONG_DESCRIPTION,

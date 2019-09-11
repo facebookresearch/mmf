@@ -37,7 +37,7 @@ mkdir -p models && cd models;
 # Download the pretrained model
 wget [link]
 cd ../..;
-python tools/run.py --tasks [task] --datasets [dataset] --model [model] --config [config] \
+python tools/run.py --datasets [dataset] --model [model] --config [config] \
 --run_type inference --evalai_inference 1 --resume_file data/[model].pth
 ```
 

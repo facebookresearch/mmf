@@ -1,0 +1,80 @@
+dataset_attributes:
+  visual_genome:
+      data_root_dir: ../data
+      image_depth_first: false
+      fast_read: false
+      image_features:
+          train:
+          - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+          val:
+          - visual_dialog/detectron_fix_100/fc6/val2018,visual_dialog/resnet152/
+          test:
+          - visual_dialog/detectron_fix_100/fc6/test2018,visual_dialog/resnet152/
+      imdb_files:
+          train:
+          - imdb/visual_dialog/visdial_1.0_train.json
+          val:
+          - imdb/visual_dialog/visdial_1.0_val.json
+          test:
+          - imdb/visual_dialog/visdial_1.0_test.json
+      features_max_len: 100
+      processors:
+        text_processor:
+          type: vocab
+          params:
+            max_length: 14
+            vocab:
+              type: intersected
+              embedding_name: glove.6B.300d
+              vocab_file: vocabs/vocabulary_100k.txt
+            preprocessor:
+              type: simple_sentence
+              params: {}
+        answer_processor:
+          type: vqa_answer
+          params:
+            num_answers: 1
+            vocab_file: vocabs/answers_vqa.txt
+            preprocessor:
+              type: simple_word
+              params: {}
+        discriminative_answer_processor:
+          type: vocab
+          params:
+            max_length: 1
+            vocab:
+              type: random
+              vocab_file: vocabs/vocabulary_100k.txt
+        vg_answer_preprocessor:
+          type: simple_word
+          params: {}
+        history_processor:
+          type: vocab
+          params:
+            max_length: 100
+            vocab:
+              type: intersected
+              embedding_name: glove.6B.300d
+              vocab_file: vocabs/vocabulary_100k.txt
+            preprocessor:
+              type: simple_sentence
+              params: {}
+        bbox_processor:
+          type: bbox
+          params:
+            max_length: 50
+      return_history: true
+      # Means you have to rank 100 candidate answers
+      discriminative:
+          enabled: true
+          # Only return answer indices, otherwise it will return
+          # glove embeddings
+          return_indices: true
+      no_unk: false
+      # Return OCR information
+      use_ocr: false
+      # Return spatial information of OCR tokens if present
+      use_ocr_info: false
+training_parameters:
+    monitored_metric: visual_dialog/r@1
+    metric_minimize: false

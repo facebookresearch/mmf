@@ -292,10 +292,9 @@ class NonLinearElementMultiply(nn.Module):
         self.fa_txt = ReLUWithWeightNormFC(ques_emb_dim, kwargs["hidden_dim"])
 
         context_dim = kwargs.get("context_dim", None)
-        if context_dim is None:
-            context_dim = ques_emb_dim
+        if context_dim is not None:
+            self.fa_context = ReLUWithWeightNormFC(context_dim, kwargs["hidden_dim"])
 
-        self.fa_context = ReLUWithWeightNormFC(context_dim, kwargs["hidden_dim"])
         self.dropout = nn.Dropout(kwargs["dropout"])
         self.out_dim = kwargs["hidden_dim"]
 

@@ -106,10 +106,11 @@ class Metrics:
             return values
 
         dataset_type = sample_list.dataset_type
+        dataset_name = sample_list.dataset_name
 
         with torch.no_grad():
             for metric_name, metric_object in self.metrics.items():
-                key = "{}/{}".format(dataset_type, metric_name)
+                key = "{}/{}/{}".format(dataset_type, dataset_name, metric_name)
                 values[key] = metric_object._calculate_with_checks(
                     sample_list, model_output, *args, **kwargs
                 )
@@ -221,9 +222,9 @@ class CaptionBleu4Metric(BaseMetric):
     **Key:** ``caption_bleu4``
     """
 
-    import nltk.translate.bleu_score as bleu_score
-
     def __init__(self):
+        import nltk.translate.bleu_score as bleu_score
+        self._bleu_score = bleu_score
         super().__init__("caption_bleu4")
         self.caption_processor = registry.get("coco_caption_processor")
 
@@ -262,7 +263,7 @@ class CaptionBleu4Metric(BaseMetric):
 
         assert len(references) == len(hypotheses)
 
-        bleu4 = self.bleu_score.corpus_bleu(references, hypotheses)
+        bleu4 = self._bleu_score.corpus_bleu(references, hypotheses)
 
         return targets.new_tensor(bleu4, dtype=torch.float)
 

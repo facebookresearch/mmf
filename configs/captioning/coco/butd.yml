@@ -1,5 +1,5 @@
 includes:
-- common/defaults/configs/tasks/captioning/coco.yml
+- common/defaults/configs/datasets/captioning/coco.yml
 model_attributes:
   butd: &butd
     model_data_dir: ../data/
@@ -62,5 +62,5 @@ training_parameters:
   batch_size: 256
   num_workers: 7
   task_size_proportional_sampling: true
-  monitored_metric: caption_bleu4
+  monitored_metric: coco/caption_bleu4
   metric_minimize: false

@@ -25,9 +25,9 @@ class TestTaskProcessors(unittest.TestCase):
 
     def test_caption_processor(self):
         config = self._get_config(
-            "../../../pythia/common/defaults/configs/tasks/captioning/coco.yml"
+            "../../../pythia/common/defaults/configs/datasets/captioning/coco.yml"
         )
-        captioning_config = config.task_attributes.captioning.dataset_attributes.coco
+        captioning_config = config.dataset_attributes.coco
         caption_processor_config = captioning_config.processors.caption_processor
 
         vocab_path = os.path.join(
