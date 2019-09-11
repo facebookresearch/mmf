@@ -5,11 +5,11 @@ dataset_attributes:
       fast_read: false
       image_features:
           train:
-          - /private/home/asg/datasets/open_images/detectron_fix_100/fc6/train,open_images/resnet152/train
+          - open_images/detectron_fix_100/fc6/train,open_images/resnet152/train
           val:
-          - /private/home/asg/datasets/open_images/detectron_fix_100/fc6/train,open_images/resnet152/train
+          - open_images/detectron_fix_100/fc6/train,open_images/resnet152/train
           test:
-          - /private/home/asg/datasets/open_images/detectron_fix_100/fc6/test,open_images/resnet152/test
+          - open_images/detectron_fix_100/fc6/test,open_images/resnet152/test
       imdb_files:
           train:
           - imdb/textvqa_0.5/imdb_textvqa_train.npy
