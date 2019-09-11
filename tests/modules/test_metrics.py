@@ -8,7 +8,7 @@ import pythia.modules.metrics as metrics
 import torch
 from pythia.common.registry import registry
 from pythia.common.sample import Sample
-from pythia.tasks.processors import CaptionProcessor
+from pythia.datasets.processors import CaptionProcessor
 from pythia.utils.configuration import ConfigNode
 
 
@@ -16,13 +16,13 @@ class TestModuleMetrics(unittest.TestCase):
     def test_caption_bleu4(self):
         path = os.path.join(
             os.path.abspath(__file__),
-            "../../../pythia/common/defaults/configs/tasks/captioning/coco.yml",
+            "../../../pythia/common/defaults/configs/datasets/captioning/coco.yml",
         )
         with open(os.path.abspath(path)) as f:
             config = yaml.load(f, Loader=yaml.FullLoader)
 
         config = ConfigNode(config)
-        captioning_config = config.task_attributes.captioning.dataset_attributes.coco
+        captioning_config = config.dataset_attributes.coco
         caption_processor_config = captioning_config.processors.caption_processor
         vocab_path = os.path.join(os.path.abspath(__file__), "..", "..", "data", "vocab.txt")
         caption_processor_config.params.vocab.vocab_file = os.path.abspath(vocab_path)

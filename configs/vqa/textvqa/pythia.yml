@@ -1,5 +1,5 @@
 includes:
-- common/defaults/configs/tasks/vqa/textvqa.yml
+- common/defaults/configs/datasets/vqa/textvqa.yml
 model_attributes:
   pythia: &pythia
     model_data_dir: ../data
@@ -74,7 +74,7 @@ training_parameters:
     batch_size: 128
     num_workers: 7
     task_size_proportional_sampling: true
-    monitored_metric: vqa_accuracy
+    monitored_metric: textvqa/vqa_accuracy
     pretrained_mapping:
       text_embeddings: text_embeddings
       image_feature_encoders: image_feature_encoders

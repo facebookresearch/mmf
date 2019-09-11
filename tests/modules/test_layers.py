@@ -22,8 +22,8 @@ class TestModuleLayers(unittest.TestCase):
         expected_size = torch.Size((4, 75, 32, 32))
         self.assertEqual(output.size(), expected_size)
         # Since seed is fix we can check some of tensor values
-        np.testing.assert_almost_equal(output[0][0][0][0].item(), -6.3501e-01, decimal=5)
-        np.testing.assert_almost_equal(output[3][74][31][31].item(), 6.7757e-01, decimal=5)
+        np.testing.assert_almost_equal(output[0][0][0][0].item(), 0.149190, decimal=5)
+        np.testing.assert_almost_equal(output[3][74][31][31].item(), -0.25199, decimal=5)
 
 
     def test_flatten(self):

@@ -6,7 +6,7 @@
 
 <div align="center">
   <a href="https://learnpythia.readthedocs.io/en/latest/?badge=latest">
-  <img alt="Documentation Status" src="https://img.shields.io/readthedocs/pythia.svg?label=docs&style=flat&logo=read-the-docs"/>
+  <img alt="Documentation Status" src="https://readthedocs.org/projects/learnpythia/badge/?version=latest"/>
   </a>
   <a href="https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR">
   <img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg"/>

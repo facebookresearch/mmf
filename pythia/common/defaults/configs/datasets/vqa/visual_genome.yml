@@ -1,0 +1,94 @@
+dataset_attributes:
+  visual_genome:
+      data_root_dir: ../data
+      image_depth_first: false
+      fast_read: false
+      image_features:
+          train:
+          - visual_genome/detectron_fix_100/fc6/,visual_genome/resnet152/
+          val:
+          - visual_genome/detectron_fix_100/fc6/,visual_genome/resnet152/
+          test:
+          - visual_genome/detectron_fix_100/fc6/,visual_genome/resnet152/
+      imdb_files:
+          train:
+          - imdb/visual_genome/vg_question_answers.jsonl
+          val:
+          - imdb/visual_genome/vg_question_answers_placeholder.jsonl
+          test:
+          - imdb/visual_genome/vg_question_answers_placeholder.jsonl
+      scene_graph_files:
+          train:
+          - imdb/visual_genome/vg_scene_graphs.jsonl
+          val:
+          - imdb/visual_genome/vg_scene_graphs_placeholder.jsonl
+          test:
+          - imdb/visual_genome/vg_scene_graphs_placeholder.jsonl
+      features_max_len: 100
+      processors:
+        text_processor:
+          type: vocab
+          params:
+            max_length: 14
+            vocab:
+              type: intersected
+              embedding_name: glove.6B.300d
+              vocab_file: vocabs/vocabulary_100k.txt
+            preprocessor:
+              type: simple_sentence
+              params: {}
+        answer_processor:
+          type: vqa_answer
+          params:
+            num_answers: 1
+            vocab_file: vocabs/answers_vqa.txt
+            preprocessor:
+              type: simple_word
+              params: {}
+        vg_answer_preprocessor:
+          type: simple_word
+          params: {}
+        attribute_processor:
+          type: vocab
+          params:
+            max_length: 2
+            vocab:
+              type: random
+              vocab_file: vocabs/vocabulary_100k.txt
+        name_processor:
+          type: vocab
+          params:
+            max_length: 1
+            vocab:
+              type: random
+              vocab_file: vocabs/vocabulary_100k.txt
+        predicate_processor:
+          type: vocab
+          params:
+            max_length: 2
+            vocab:
+              type: random
+              vocab_file: vocabs/vocabulary_100k.txt
+        synset_processor:
+          type: vocab
+          params: 
+            max_length: 1
+            vocab:
+              type: random
+              vocab_file: vocabs/vg_synsets.txt
+        bbox_processor:
+          type: bbox
+          params:
+            max_length: 50
+      return_scene_graph: true
+      return_objects: true
+      return_relationships: true
+      return_info: true
+      no_unk: false
+      # Return OCR information
+      use_ocr: false
+      # Return spatial information of OCR tokens if present
+      use_ocr_info: false
+training_parameters:
+    monitored_metric: visual_genome/vqa_accuracy
+    metric_minimize: false

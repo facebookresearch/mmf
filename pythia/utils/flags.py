@@ -9,7 +9,6 @@ class Flags:
     def __init__(self):
         self.parser = argparse.ArgumentParser()
         self.add_core_args()
-        self.update_task_args()
         self.update_model_args()
 
     def get_parser(self):
@@ -24,7 +23,7 @@ class Flags:
         )
 
         self.parser.add_argument(
-            "--tasks", type=str, required=True, help="Tasks for training"
+            "--tasks", type=str, default="", help="Tasks for training"
         )
         self.parser.add_argument(
             "--datasets",
@@ -227,26 +226,6 @@ class Flags:
             nargs=argparse.REMAINDER,
             help="Modify config options from command line",
         )
-
-    def update_task_args(self):
-        args = sys.argv
-        task_names = None
-        for index, item in enumerate(args):
-            if item == "--tasks":
-                task_names = args[index + 1]
-
-        if task_names is None:
-            return
-
-        task_names = map(lambda x: x.strip(), task_names.split(","))
-
-        for task_name in task_names:
-            task_class = registry.get_task_class(task_name)
-            if task_class is None:
-                return
-
-            task_object = task_class()
-            task_object.init_args(self.parser)
 
     def update_model_args(self):
         args = sys.argv

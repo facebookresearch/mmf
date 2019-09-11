@@ -50,7 +50,9 @@ def broadcast_tensor(tensor, src=0):
 
 
 def broadcast_scalar(scalar, src=0, device="cpu"):
-    scalar_tensor = torch.tensor(scalar).to(device)
+    if get_world_size() < 2:
+        return scalar
+    scalar_tensor = torch.tensor(scalar).long().to(device)
     scalar_tensor = broadcast_tensor(scalar_tensor, src)
     return scalar_tensor.item()
 
@@ -92,6 +94,9 @@ def reduce_dict(dictionary):
         return dictionary
 
     with torch.no_grad():
+        if len(dictionary) == 0:
+            return dictionary
+
         keys, values = zip(*sorted(dictionary.items()))
         values = torch.stack(values, dim=0)
 
@@ -103,3 +108,8 @@ def reduce_dict(dictionary):
             values /= world_size
         reduced_dict = {k: v for k, v in zip(keys, values)}
     return reduced_dict
+
+
+def print_only_main(string):
+    if is_main_process():
+        print(string)

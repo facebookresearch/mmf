@@ -160,7 +160,11 @@ class PythiaLoss(nn.Module):
         if loss.dim() == 0:
             loss = loss.view(1)
 
-        return {"{}/{}".format(sample_list.dataset_type, self.name): loss}
+            key = "{}/{}/{}".format(
+            sample_list.dataset_type, sample_list.dataset_name, self.name
+        )
+
+        return {key: loss}
 
 
 @registry.register_loss("logit_bce")

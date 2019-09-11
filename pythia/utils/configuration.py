@@ -11,7 +11,7 @@ import demjson
 import torch
 from pythia.common.registry import registry
 from pythia.utils.general import get_pythia_root
-from pythia.utils.distributed_utils import is_main_process
+from pythia.utils.distributed_utils import is_main_process, print_only_main
 
 
 class ConfigNode(collections.OrderedDict):
@@ -209,7 +209,7 @@ class Configuration:
                 if not isinstance(current[field], collections.abc.Mapping):
                     if idx == len(splits) - 1:
                         if is_main_process():
-                            print("Overriding option {} to {}".format(opt, value))
+                            print_only_main("Overriding option {} to {}".format(opt, value))
 
                         current[field] = self._decode_value(value)
                     else:
@@ -264,27 +264,18 @@ class Configuration:
             "info",
         )
 
-        self.writer.write("======  Task Attributes  ======", "info")
-        tasks = self.config.tasks.split(",")
+        self.writer.write("======  Dataset Attributes  ======", "info")
         datasets = self.config.datasets.split(",")
 
-        for task in tasks:
-            if task not in self.config.task_attributes:
-                raise ValueError(
-                    "Task {} not present in task_attributes config".format(task)
+        for dataset in datasets:
+            if dataset in self.config.dataset_attributes:
+                self.writer.write(
+                    "======== {} =======".format(dataset), "info"
                 )
-
-            task_config = self.config.task_attributes[task]
-
-            for dataset in datasets:
-                if dataset in task_config.dataset_attributes:
-                    self.writer.write(
-                        "======== {}/{} =======".format(task, dataset), "info"
-                    )
-                    dataset_config = task_config.dataset_attributes[dataset]
-                    self.writer.write(
-                        json.dumps(dataset_config, indent=4, sort_keys=True), "info"
-                    )
+                dataset_config = self.config.dataset_attributes[dataset]
+                self.writer.write(
+                    json.dumps(dataset_config, indent=4, sort_keys=True), "info"
+                )
 
         self.writer.write("======  Optimizer Attributes  ======", "info")
         self.writer.write(
@@ -320,7 +311,7 @@ class Configuration:
         tp = self.config["training_parameters"]
 
         if args["seed"] is not None or tp['seed'] is not None:
-            print(
+            print_only_main(
                 "You have chosen to seed the training. This will turn on CUDNN deterministic "
                 "setting which can slow down your training considerably! You may see unexpected "
                 "behavior when restarting from checkpoints."
@@ -339,14 +330,14 @@ class Configuration:
             and "cuda" in self.config["training_parameters"]["device"]
         ):
             if is_main_process():
-                print(
+                print_only_main(
                     "WARNING: Device specified is 'cuda' but cuda is "
                     "not present. Switching to CPU version"
                 )
             self.config["training_parameters"]["device"] = "cpu"
 
         if tp["distributed"] is True and tp["data_parallel"] is True:
-            print(
+            print_only_main(
                 "training_parameters.distributed and "
                 "training_parameters.data_parallel are "
                 "mutually exclusive. Setting "

@@ -4,7 +4,7 @@
 
 To develop on top of Pythia, it is necessary to understand concepts and terminology
 used in Pythia codebase. Pythia has been very carefully designed from ground-up to be a
-multi-tasking framework. This means using Pythia you can train on multiple tasks/datasets
+multi-tasking framework. This means using Pythia you can train on multiple datasets/datasets
 together.
 
 To achieve this, Pythia has few opinions about architecture of your research project.
@@ -127,7 +127,7 @@ in [pythia/common/defaults/configs/base.yml](https://github.com/facebookresearch
 with detailed comments delineating the usage of each parameter.
 
 For ease of usage and modularity, configuration for each dataset is kept separately in
-`pythia/common/defaults/configs/tasks/[task]/[dataset].yml` where you can get `[task]`
+`pythia/common/defaults/configs/datasets/[task]/[dataset].yml` where you can get `[task]`
 value for the dataset from the tables in [Tasks and Datasets](#tasks-and-datasets) section.
 
 The most dynamic part, model configuration are also kept separate and are the one which
@@ -142,7 +142,7 @@ Thus, in Pythia config above you can include `vqa2`'s config like this:
 
 ```
 includes:
-- common/defaults/configs/tasks/vqa/vqa2.yml
+- common/defaults/configs/datasets/vqa/vqa2.yml
 ```  
 
 Now, due to separate config per dataset this concept can be extended
@@ -179,14 +179,14 @@ a dict with keys corresponding to data they need and return back a dict with
 processed data. This helps keep processors independent of the rest of the logic
 by fixing the signatures they require. Processors are used in all of the datasets
 to hand off the data processing needs. Learn more about processors in the
-[documentation for processors](../tasks/processors).
+[documentation for processors](../datasets/processors).
 
 ## Sample List
 
-[SampleList](../tasks/sample#pythia.common.sample.SampleList) has been inspired
+[SampleList](../datasets/sample#pythia.common.sample.SampleList) has been inspired
 from BBoxList in maskrcnn-benchmark, but is more generic. All datasets integrated
 with Pythia need to return a
-[Sample](../tasks/sample#pythia.common.sample.Sample) which will be collated into
+[Sample](../datasets/sample#pythia.common.sample.Sample) which will be collated into
 `SampleList`. Now, `SampleList` comes with a lot of handy functions which
 enable easy batching and access of things. For e.g. ``Sample`` is a dict with
 some keys. In ``SampleList``, values for these keys will be smartly clubbed
