@@ -1,5 +1,5 @@
 includes:
-- common/defaults/configs/tasks/vqa/vizwiz.yml
+- common/defaults/configs/datasets/vqa/vizwiz.yml
 model_attributes:
   pythia: &pythia
     model_data_dir: ../data/
@@ -68,7 +68,7 @@ training_parameters:
     batch_size: 128
     num_workers: 7
     task_size_proportional_sampling: true
-    monitored_metric: vqa_accuracy
+    monitored_metric: vizwiz/vqa_accuracy
     metric_minimize: false
     pretrained_mapping:
       word_embedding: word_embedding

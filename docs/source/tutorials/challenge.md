@@ -27,8 +27,8 @@ mkdir -p models && cd models;
 wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth
 
 cd ../..
-# Replace tasks, datasets and model with corresponding key for other pretrained models
-python tools/run.py --tasks vqa --datasets textvqa --model lorra --config configs/vqa/textvqa/lorra.yml \
+# Replace datasets and model with corresponding key for other pretrained models
+python tools/run.py --datasets textvqa --model lorra --config configs/vqa/textvqa/lorra.yml \
 --run_type val --evalai_inference 1 --resume_file data/models/lorra_best.pth
 ```
 
@@ -65,8 +65,8 @@ mkdir -p models && cd models;
 wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/pythia_train_val.pth
 
 cd ../..
-# Replace tasks, datasets and model with corresponding key for other pretrained models
-python tools/run.py --tasks vqa --datasets vqa2 --model pythia --config configs/vqa/vqa2/pythia.yml \
+# Replace datasets and model with corresponding key for other pretrained models
+python tools/run.py --datasets vqa2 --model pythia --config configs/vqa/vqa2/pythia.yml \
 --run_type inference --evalai_inference 1 --resume_file data/models/pythia_train_val.pth
 ```
 

@@ -44,6 +44,32 @@ Pythia's Documentation
 Pythia is a modular framework for supercharging vision and language
 research built on top of PyTorch.
 
+Citation
+========
+
+If you use Pythia in your work, please cite:
+
+```text
+@inproceedings{Singh2019TowardsVM,
+  title={Towards VQA Models That Can Read},
+  author={Singh, Amanpreet and Natarajan, Vivek and Shah, Meet and Jiang, Yu and Chen, Xinlei and Batra, Dhruv and Parikh, Devi and Rohrbach, Marcus},
+  booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
+  year={2019}
+}
+```
+
+and
+
+```text
+@inproceedings{singh2019pythia,
+  title={Pythia-a platform for vision \& language research},
+  author={Singh, Amanpreet and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
+  booktitle={SysML Workshop, NeurIPS},
+  volume={2018},
+  year={2019}
+}
+```
+
 .. toctree::
    :maxdepth: 1
    :caption: Tutorials
@@ -64,10 +90,10 @@ research built on top of PyTorch.
    models/base_model
    modules/losses
    modules/metrics
-   tasks/base_dataset_builder
-   tasks/base_dataset
-   tasks/base_task
-   tasks/processors
+   datasets/base_dataset_builder
+   datasets/base_dataset
+   datasets/base_task
+   datasets/processors
 
 Indices and tables
 ==================

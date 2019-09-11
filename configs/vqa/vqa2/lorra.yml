@@ -1,24 +1,28 @@
 includes:
-- common/defaults/configs/tasks/vqa/vqa2.yml
+- common/defaults/configs/datasets/vqa/vqa2.yml
 # Use soft copy
-task_attributes:
-  vqa:
-    dataset_attributes:
-      vqa2:
-        use_ocr: true
-        processors:
-          answer_processor:
-            type: soft_copy_answer
-            params:
-              vocab_file: vocabs/answers_vqa.txt
-              preprocessor:
-                type: simple_word
-                params: {}
-              context_preprocessor:
-                type: simple_word
-                params: {}
-              max_length: 50
-              num_answers: 10
+dataset_attributes:
+  vqa2:
+    use_ocr: true
+    processors:
+      context_processor:
+        type: fasttext
+        params:
+          download_initially: true
+          max_length: 50
+          model_file: .vector_cache/wiki.en.bin
+      answer_processor:
+        type: soft_copy_answer
+        params:
+          vocab_file: vocabs/answers_vqa.txt
+          preprocessor:
+            type: simple_word
+            params: {}
+          context_preprocessor:
+            type: simple_word
+            params: {}
+          max_length: 50
+          num_answers: 10
 model_attributes:
   lorra: &lorra
     model_data_dir: ../data
@@ -115,7 +119,7 @@ training_parameters:
   batch_size: 512
   num_workers: 7
   task_size_proportional_sampling: true
-  monitored_metric: vqa_accuracy
+  monitored_metric: vqa2/vqa_accuracy
   pretrained_mapping:
     text_embeddings: text_embeddings
     context_embeddings: context_embeddings

@@ -1,0 +1,60 @@
+dataset_attributes:
+  vizwiz:
+      data_root_dir: ../data
+      image_depth_first: false
+      fast_read: false
+      image_features:
+          train:
+          - vizwiz/detectron_fix_100/fc6/train,vizwiz/resnet152/train
+          val:
+          - vizwiz/detectron_fix_100/fc6/val,vizwiz/resnet152/val
+          test:
+          - vizwiz/detectron_fix_100/fc6/test,vizwiz/resnet152/test
+      imdb_files:
+          train:
+          - imdb/vizwiz/imdb_vizwiz_train.npy
+          val:
+          - imdb/vizwiz/imdb_vizwiz_val.npy
+          test:
+          - imdb/vizwiz/imdb_vizwiz_test.npy
+      features_max_len: 100
+      processors:
+        text_processor:
+          type: vocab
+          params:
+            max_length: 14
+            vocab:
+              type: intersected
+              embedding_name: glove.6B.300d
+              vocab_file: vocabs/vocabulary_100k.txt
+            preprocessor:
+              type: simple_sentence
+              params: {}
+        answer_processor:
+          type: vqa_answer
+          params:
+            vocab_file: vocabs/answers_vizwiz_7k.txt
+            preprocessor:
+              type: simple_word
+              params: {}
+            num_answers: 10
+        context_processor:
+          type: fasttext
+          params:
+            max_length: 50
+            model_file: .vector_cache/wiki.en.bin
+        ocr_token_processor:
+          type: simple_word
+          params: {}
+        bbox_processor:
+          type: bbox
+          params:
+            max_length: 50
+      return_info: true
+      # Return OCR information
+      use_ocr: false
+      # Return spatial information of OCR tokens if present
+      use_ocr_info: false
+training_parameters:
+    monitored_metric: vizwiz/vqa_accuracy
+    metric_minimize: false

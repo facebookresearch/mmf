@@ -1,0 +1,61 @@
+dataset_attributes:
+  vqa2:
+      data_root_dir: ../data
+      image_depth_first: false
+      fast_read: false
+      image_features:
+          train:
+          - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+          val:
+          - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+          test:
+          - coco/detectron_fix_100/fc6/test2015,coco/resnet152/test2015
+      imdb_files:
+          train:
+          - imdb/vqa/imdb_train2014.npy
+          val:
+          - imdb/vqa/imdb_val2014.npy
+          test:
+          - imdb/vqa/imdb_test2015.npy
+      features_max_len: 100
+      processors:
+        text_processor:
+          type: vocab
+          params:
+            max_length: 14
+            vocab:
+              type: intersected
+              embedding_name: glove.6B.300d
+              vocab_file: vocabs/vocabulary_100k.txt
+            preprocessor:
+              type: simple_sentence
+              params: {}
+        answer_processor:
+          type: vqa_answer
+          params:
+            num_answers: 10
+            vocab_file: vocabs/answers_vqa.txt
+            preprocessor:
+              type: simple_word
+              params: {}
+        context_processor:
+          type: fasttext
+          params:
+            download_initially: false
+            max_length: 50
+            model_file: .vector_cache/wiki.en.bin
+        ocr_token_processor:
+          type: simple_word
+          params: {}
+        bbox_processor:
+          type: bbox
+          params:
+            max_length: 50
+      return_info: true
+      # Return OCR information
+      use_ocr: false
+      # Return spatial information of OCR tokens if present
+      use_ocr_info: false
+training_parameters:
+    monitored_metric: vqa2/vqa_accuracy
+    metric_minimize: false

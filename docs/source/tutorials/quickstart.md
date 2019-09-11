@@ -11,6 +11,31 @@ to train other models in Pythia.
 1. [Pythia VQA](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR) 
 2. [BUTD Captioning](https://colab.research.google.com/drive/1vzrxDYB0vxtuUy8KCaGxm--nDCJvyBSg)
 
+## Citation
+
+If you use Pythia in your work, please cite:
+
+```text
+@inproceedings{Singh2019TowardsVM,
+  title={Towards VQA Models That Can Read},
+  author={Singh, Amanpreet and Natarajan, Vivek and Shah, Meet and Jiang, Yu and Chen, Xinlei and Batra, Dhruv and Parikh, Devi and Rohrbach, Marcus},
+  booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
+  year={2019}
+}
+```
+
+and
+
+```text
+@inproceedings{singh2019pythia,
+  title={Pythia-a platform for vision \& language research},
+  author={Singh, Amanpreet and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
+  booktitle={SysML Workshop, NeurIPS},
+  volume={2018},
+  year={2019}
+}
+```
+
 ## Installation
 
 1. Clone Pythia repository
@@ -75,7 +100,7 @@ Once we have the data in-place, we can start training by running the following c
 
 ```bash
 cd ~/pythia;
-python tools/run.py --tasks vqa --datasets textvqa --model lorra --config \
+python tools/run.py --datasets textvqa --model lorra --config \
 configs/vqa/textvqa/lorra.yml
 ```
 
@@ -89,7 +114,7 @@ cd ~/pythia/data
 mkdir -p models && cd models;
 wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth
 cd ../..
-python tools/run.py --tasks vqa --datasets textvqa --model lorra --config \
+python tools/run.py --datasets textvqa --model lorra --config \
 configs/vqa/textvqa/lorra.yml --resume_file data/models/lorra_best.pth \
 --evalai_inference 1 --run_type inference
 ```
@@ -155,27 +180,4 @@ To dive deep into world of Pythia, you can move on the following next topics:
 - [Using Pretrained Models](./pretrained_models)
 - [Challenge Participation](./challenge)
 
-## Citation
 
-If you use Pythia in your work, please cite:
-
-```text
-@inproceedings{Singh2019TowardsVM,
-  title={Towards VQA Models That Can Read},
-  author={Singh, Amanpreet and Natarajan, Vivek and Shah, Meet and Jiang, Yu and Chen, Xinlei and Batra, Dhruv and Parikh, Devi and Rohrbach, Marcus},
-  booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
-  year={2019}
-}
-```
-
-and
-
-```text
-@inproceedings{singh2019pythia,
-  title={Pythia-a platform for vision \& language research},
-  author={Singh, Amanpreet and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
-  booktitle={SysML Workshop, NeurIPS},
-  volume={2018},
-  year={2019}
-}
-```

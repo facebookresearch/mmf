@@ -30,14 +30,13 @@ class TestReporter(Dataset):
 
         self.datasets = []
 
-        for task in self.test_task.get_tasks():
-            for dataset in task.get_datasets():
-                self.datasets.append(dataset)
+        for dataset in self.test_task.get_datasets():
+            self.datasets.append(dataset)
 
         self.current_dataset_idx = -1
         self.current_dataset = self.datasets[self.current_dataset_idx]
 
-        self.save_dir = self.config.get("save_dir", "./save")
+        self.save_dir = self.config.training_parameters.save_dir
         self.report_folder = ckpt_name_from_core_args(self.config)
         self.report_folder += foldername_from_config_override(self.config)
 
@@ -141,6 +140,7 @@ class TestReporter(Dataset):
         else:
             report.scores = gather_tensor(report.scores).view(-1, report.scores.size(-1))
             report.question_id = gather_tensor(report.question_id).view(-1)
+            report.image_id = gather_tensor(report.image_id).view(-1)
 
         if not is_main_process():
             return

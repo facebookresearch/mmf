@@ -1,5 +1,5 @@
 includes:
-- common/defaults/configs/tasks/vqa/clevr.yml
+- common/defaults/configs/datasets/vqa/clevr.yml
 
 model_attributes:
   cnn_lstm:
@@ -32,5 +32,5 @@ optimizer_attributes:
 training_parameters:
   batch_size: 128
   snapshot_interval: 6000
-  monitored_metric: accuracy
+  monitored_metric: clevr/accuracy
   metric_minimize: false

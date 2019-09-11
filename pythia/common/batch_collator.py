@@ -8,8 +8,8 @@ class BatchCollator:
 
     def __call__(self, batch):
         sample_list = SampleList(batch)
-
         for key in self._IDENTICAL_VALUE_KEYS:
+            sample_list[key + "_"] = sample_list[key]
             sample_list[key] = sample_list[key][0]
 
         return sample_list
