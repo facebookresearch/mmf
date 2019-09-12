@@ -20,6 +20,7 @@ import torch
 from itertools import chain
 from collections import Counter
 
+from pythia.common.registry import registry
 from pythia.utils.general import get_pythia_root
 
 SENTENCE_SPLIT_REGEX = re.compile(r"(\W+)")

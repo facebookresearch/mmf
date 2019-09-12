@@ -119,7 +119,7 @@ class BUTD(Pythia):
             dtype=torch.float,
         )
 
-        decoder = registry.get(self.config["inference"]["type"])(self.vocab, self.config)
+        decoder = registry.get_decoder_class(self.config["inference"]["type"])(self.vocab, self.config)
 
         sample_list = decoder.init_batch(sample_list)
         # batch_size = sample_list.get_batch_size()
