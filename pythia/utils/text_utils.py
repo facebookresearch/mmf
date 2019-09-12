@@ -258,6 +258,7 @@ class TextDecoder:
         return data
 
 
+@registry.register_decoder("beam_search")
 class BeamSearch(TextDecoder):
     def __init__(self, vocab, config):
         super(BeamSearch, self).__init__(vocab)
@@ -337,6 +338,7 @@ class BeamSearch(TextDecoder):
         return captions
 
 
+@registry.register_decoder("nucleus_sampling")
 class NucleusSampling(TextDecoder):
     """Nucleus Sampling is a new text decoding strategy that avoids likelihood maximization.
     Rather, it works by sampling from the smallest set of top tokens which have a cumulative
