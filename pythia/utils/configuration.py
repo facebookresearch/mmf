@@ -200,26 +200,34 @@ class Configuration:
             splits = opt.split(".")
             current = self.config
             for idx, field in enumerate(splits):
-                if field not in current:
+                array_index = -1
+                if field.find("[") != -1 and field.find("]") != -1:
+                    stripped_field = field[:field.find("[")]
+                    array_index = int(field[field.find("[") + 1: field.find("]")])
+                else:
+                    stripped_field = field
+                if stripped_field not in current:
                     raise AttributeError(
                         "While updating configuration"
                         " option {} is missing from"
-                        " configuration at field {}".format(opt, field)
+                        " configuration at field {}".format(opt, stripped_field)
                     )
-                if not isinstance(current[field], collections.abc.Mapping):
+                if isinstance(current[stripped_field], collections.abc.Mapping):
+                    current = current[stripped_field]
+                elif isinstance(current[stripped_field], list) and array_index != -1:
+                    current = current[stripped_field][array_index]
+                else:
                     if idx == len(splits) - 1:
                         if is_main_process():
                             print_only_main("Overriding option {} to {}".format(opt, value))
 
-                        current[field] = self._decode_value(value)
+                        current[stripped_field] = self._decode_value(value)
                     else:
                         raise AttributeError(
                             "While updating configuration",
                             "option {} is not present "
-                            "after field {}".format(opt, field),
+                            "after field {}".format(opt, stripped_field),
                         )
-                else:
-                    current = current[field]
 
     def override_with_cmd_opts(self, opts):
         self._merge_from_list(opts)
