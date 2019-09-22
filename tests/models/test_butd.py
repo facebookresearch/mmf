@@ -24,7 +24,7 @@ class TestModelBUTD(unittest.TestCase):
 
         configuration = Configuration(config_path)
         # Remove warning
-        configuration.training_parameters.evalai_inference = True
+        configuration.config.training_parameters.evalai_inference = True
         configuration.freeze()
         self.config = configuration.config
         registry.register("config", self.config)
