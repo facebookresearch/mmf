@@ -1,0 +1,143 @@
+datasets: coco
+log_foldername: captioning_coco_butd_6002
+model: butd
+model_attributes:
+  butd:
+    classifier:
+      params:
+        dropout: 0.5
+        fc_bias_init: 0
+        feature_dim: 2048
+        hidden_dim: 1024
+      type: language_decoder
+    embedding_dim: 300
+    image_feature_dim: 2048
+    image_feature_embeddings:
+    - modal_combine:
+        params:
+          attention_dim: 1024
+          dropout: 0.5
+          hidden_dim: 1024
+        type: top_down_attention_lstm
+      normalization: softmax
+      transform:
+        params:
+          out_dim: 1
+        type: linear
+    image_feature_encodings:
+    - params:
+        bias_file: detectron/fc6/fc7_b.pkl
+        model_data_dir: ../data/
+        weights_file: detectron/fc6/fc7_w.pkl
+      type: finetune_faster_rcnn_fpn_fc7
+    inference:
+      type: nucleus_sampling
+      params:
+        sum_threshold: 0.5
+    losses:
+    - type: caption_cross_entropy
+    metrics:
+    - type: caption_bleu4
+    model: butd
+    model_data_dir: ../data/
+optimizer_attributes:
+  params:
+    eps: 1e-08
+    lr: 0.01
+    weight_decay: 0
+  type: Adamax
+task_attributes:
+  captioning:
+    dataset_attributes:
+      coco:
+        data_root_dir: ../data
+        fast_read: False
+        features_max_len: 100
+        image_depth_first: False
+        image_features:
+          test:
+          - coco/detectron_fix_100/fc6/train_val_2014
+          train:
+          - coco/detectron_fix_100/fc6/train_val_2014
+          val:
+          - coco/detectron_fix_100/fc6/train_val_2014
+        imdb_files:
+          test:
+          - imdb/coco_captions/imdb_karpathy_test.npy
+          train:
+          - imdb/coco_captions/imdb_karpathy_train.npy
+          val:
+          - imdb/coco_captions/imdb_karpathy_val.npy
+        min_captions_per_img: 5
+        processors:
+          caption_processor:
+            params:
+              vocab:
+                embedding_name: glove.6B.300d
+                type: intersected
+                vocab_file: vocabs/vocabulary_captioning_thresh5.txt
+            type: caption
+          text_processor:
+            params:
+              max_length: 52
+              preprocessor:
+                params:
+                  
+                type: simple_sentence
+              vocab:
+                embedding_name: glove.6B.300d
+                type: intersected
+                vocab_file: vocabs/vocabulary_captioning_thresh5.txt
+            type: vocab
+        return_info: False
+        use_ocr: False
+        use_ocr_info: False
+    dataset_size_proportional_sampling: True
+    dataset_type: test
+    datasets: coco
+tasks: captioning
+training_parameters:
+  batch_size: 1
+  clip_gradients: True
+  clip_norm_mode: all
+  data_parallel: False
+  device: cuda
+  distributed: False
+  evalai_inference: True
+  experiment_name: run
+  load_pretrained: False
+  local_rank: None
+  log_dir: ./logs
+  log_interval: 100
+  logger_level: info
+  lr_ratio: 0.1
+  lr_scheduler: True
+  lr_steps:
+  - 15000
+  - 25000
+  - 35000
+  - 45000
+  max_epochs: None
+  max_grad_l2_norm: 0.25
+  max_iterations: 50000
+  metric_minimize: False
+  monitored_metric: caption_bleu4
+  num_workers: 7
+  patience: 4000
+  pin_memory: False
+  pretrained_mapping:
+    
+  resume: False
+  resume_file: ./save/captioning_coco_butd_6002/butd_final.pth
+  run_type: inference
+  save_dir: ./save
+  seed: 6002
+  should_early_stop: False
+  should_not_log: False
+  snapshot_interval: 1000
+  task_size_proportional_sampling: True
+  trainer: base_trainer
+  use_warmup: True
+  verbose_dump: False
+  warmup_factor: 0.2
+  warmup_iterations: 1000

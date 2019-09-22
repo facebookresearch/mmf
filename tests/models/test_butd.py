@@ -17,24 +17,22 @@ class TestModelBUTD(unittest.TestCase):
     def setUp(self):
         torch.manual_seed(1234)
         # to test beam search or greedy decoding, simply change config path.
-        config_path = os.path.join(
-            get_pythia_root(), "..", "configs", "captioning", "coco", "butd_nucleus_sampling.yml"
-        )
-        config_path = os.path.abspath(config_path)
+        with open("/test_butd_nucleus_sampling.yaml") as f:
+            config = yaml.load(f)
 
-        configuration = Configuration(config_path)
+        config = ConfigNode(config)
         # Remove warning
-        #configuration.config.training_parameters.evalai_inference = True
-        #configuration.freeze()
-        self.config = configuration.config
-        registry.register("config", self.config)
+        config.training_parameters.evalai_inference = True
+        registry.register("config", config)
+
+        self.config = config
 
         captioning_config = self.config.task_attributes.captioning.dataset_attributes.coco
         text_processor_config = captioning_config.processors.text_processor
         caption_processor_config = captioning_config.processors.caption_processor
 
-        text_processor_config.params.vocab.vocab_file = "vocabulary_captioning_thresh5.txt"
-        caption_processor_config.params.vocab.vocab_file = "vocabulary_captioning_thresh5.txt"
+        text_processor_config.params.vocab.vocab_file = "/vocabulary_captioning_thresh5.txt"
+        caption_processor_config.params.vocab.vocab_file = "/vocabulary_captioning_thresh5.txt"
         self.text_processor = VocabProcessor(text_processor_config.params)
         self.caption_processor = CaptionProcessor(caption_processor_config.params)
 
