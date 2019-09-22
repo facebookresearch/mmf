@@ -21,17 +21,15 @@ class TestModelBUTD(unittest.TestCase):
             get_pythia_root(), "..", "configs", "captioning", "coco", "butd_nucleus_sampling.yml"
         )
         config_path = os.path.abspath(config_path)
-        with open(config_path) as f:
-            config = yaml.load(f)
 
-        config = ConfigNode(config)
+        configuration = Configuration(config_path)
         # Remove warning
-        config.training_parameters.evalai_inference = True
-        registry.register("config", config)
+        configuration.training_parameters.evalai_inference = True
+        configuration.freeze()
+        self.config = configuration.config
+        registry.register("config", self.config)
 
-        self.config = config
-
-        captioning_config = self.config["task_attributes"]["captioning"]["dataset_attributes"]["coco"]
+        captioning_config = self.config.task_attributes.captioning.dataset_attributes.coco
         text_processor_config = captioning_config.processors.text_processor
         caption_processor_config = captioning_config.processors.caption_processor
 
