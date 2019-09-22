@@ -17,7 +17,10 @@ class TestModelBUTD(unittest.TestCase):
     def setUp(self):
         torch.manual_seed(1234)
         # to test beam search or greedy decoding, simply change config path.
-        with open("/test_butd_nucleus_sampling.yaml") as f:
+        config_path = os.path.join(
+            get_pythia_root(), "..", "tests", "models", "test_butd_nucleus_sampling.yaml"
+        )
+        with open(config_path) as f:
             config = yaml.load(f)
 
         config = ConfigNode(config)
@@ -31,8 +34,12 @@ class TestModelBUTD(unittest.TestCase):
         text_processor_config = captioning_config.processors.text_processor
         caption_processor_config = captioning_config.processors.caption_processor
 
-        text_processor_config.params.vocab.vocab_file = "/vocabulary_captioning_thresh5.txt"
-        caption_processor_config.params.vocab.vocab_file = "/vocabulary_captioning_thresh5.txt"
+        vocab_path = os.path.join(
+            get_pythia_root(), "..", "tests", "models", "vocabulary_captioning_thresh5.txt"
+        )
+
+        text_processor_config.params.vocab.vocab_file = vocab_path
+        caption_processor_config.params.vocab.vocab_file = vocab_path
         self.text_processor = VocabProcessor(text_processor_config.params)
         self.caption_processor = CaptionProcessor(caption_processor_config.params)
 
@@ -41,7 +48,7 @@ class TestModelBUTD(unittest.TestCase):
 
     def test_forward(self):
         data_dict_path = os.path.join(
-            get_pythia_root(), "..", "pythia", "data", "models", "butd.pth"
+            get_pythia_root(), "..", "data", "models", "butd.pth"
         )
         state_dict = torch.load(data_dict_path)
         model_config = self.config.model_attributes.butd
