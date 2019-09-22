@@ -31,7 +31,7 @@ class TestModelBUTD(unittest.TestCase):
 
         self.config = config
 
-        captioning_config = self.config.task_attributes.captioning.dataset_attributes.coco
+        captioning_config = self.config["task_attributes"]["captioning"]["dataset_attributes"]["coco"]
         text_processor_config = captioning_config.processors.text_processor
         caption_processor_config = captioning_config.processors.caption_processor
 
