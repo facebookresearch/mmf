@@ -25,7 +25,7 @@ class TestModelBUTD(unittest.TestCase):
         configuration = Configuration(config_path)
         # Remove warning
         #configuration.config.training_parameters.evalai_inference = True
-        configuration.freeze()
+        #configuration.freeze()
         self.config = configuration.config
         registry.register("config", self.config)
 
@@ -33,6 +33,8 @@ class TestModelBUTD(unittest.TestCase):
         text_processor_config = captioning_config.processors.text_processor
         caption_processor_config = captioning_config.processors.caption_processor
 
+        text_processor_config.params.vocab.vocab_file = "vocabulary_captioning_thresh5.txt"
+        caption_processor_config.params.vocab.vocab_file = "vocabulary_captioning_thresh5.txt"
         self.text_processor = VocabProcessor(text_processor_config.params)
         self.caption_processor = CaptionProcessor(caption_processor_config.params)
 
