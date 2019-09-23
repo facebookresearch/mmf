@@ -367,7 +367,7 @@ class NucleusSampling(TextDecoder):
         # Threshold for sum of probability
         self._threshold = config["inference"]["params"]["sum_threshold"]
 
-    def decode(self, t, data, scores):
+    def decode(self, t, data, scores, isTest = False):
         # Convert scores to probabilities
         scores = torch.nn.functional.softmax(scores, dim=1)
         # Sort scores in descending order and then select the top m elements having sum more than threshold.
@@ -392,6 +392,7 @@ class NucleusSampling(TextDecoder):
         # Get next word based on probabilities of top m words.
         next_word_ind = top_m_words[torch.multinomial(top_m_scores, 1)]
         # Add next word to sequence
+
         self.seqs = self.add_next_word(self.seqs, prev_word_ind, next_word_ind)
         # Check if sequence is complete
         complete_inds, incomplete_inds = self.find_complete_inds(next_word_ind)
@@ -400,10 +401,12 @@ class NucleusSampling(TextDecoder):
             self._complete_seqs.extend(self.seqs[complete_inds].tolist())
             return True, data, 0
 
+        if isTest and t == 4:
+            self._complete_seqs.extend(self.seqs[incomplete_inds].tolist())
+            return True, data, 0
+
         self.seqs = self.seqs[incomplete_inds]
 
-        # TODO: Make the data update generic for any type of model
-        # This is specific to BUTD model only.
         data = self.update_data(data, prev_word_ind, next_word_ind, incomplete_inds)
 
         return False, data, 1

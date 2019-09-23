@@ -108,7 +108,7 @@ class BUTD(Pythia):
 
         return data, batch_size_t
 
-    def forward(self, sample_list):
+    def forward(self, sample_list, isTest = False):
         # Stores the output probabilites.
         scores = sample_list.answers.new_ones(
             (
@@ -136,7 +136,7 @@ class BUTD(Pythia):
             )
             output = self.classifier(attention_feature)
             # Compute decoding
-            finish, data, batch_size_t = decoder.decode(t, data, output)
+            finish, data, batch_size_t = decoder.decode(t, data, output, isTest)
             if finish:
                 break
 

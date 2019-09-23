@@ -47,20 +47,11 @@ class TestModelBUTD(unittest.TestCase):
         registry.register("coco_caption_processor", self.caption_processor)
 
     def test_forward(self):
-        data_dict_path = os.path.join(
-            get_pythia_root(), "..", "data", "models", "butd.pth"
-        )
-        state_dict = torch.load(data_dict_path)
-        model_config = self.config.model_attributes.butd
 
+        model_config = self.config.model_attributes.butd
         butd = BUTD(model_config)
         butd.build()
         butd.init_losses_and_metrics()
-
-        if list(state_dict.keys())[0].startswith('module') and not hasattr(butd, 'module'):
-            state_dict = self._multi_gpu_state_to_single(state_dict)
-
-        butd.load_state_dict(state_dict)
         butd.to("cuda")
         butd.eval()
 
@@ -82,11 +73,11 @@ class TestModelBUTD(unittest.TestCase):
         test_sample_list = SampleList([test_sample])
         test_sample_list = test_sample_list.to("cuda")
 
-        tokens = butd(test_sample_list)["captions"]
+        tokens = butd(test_sample_list, True)["captions"]
         answer = self.caption_processor(tokens.tolist()[0])["caption"]
 
         # the expected caption is for sum_threshold = 0.5
-        expected_caption_nucleus_sampling = "a police officer and a woman on a bike and a motorcycle"
+        expected_caption_nucleus_sampling = "sauce pant chasing crosstown dollop"
 
         # to test with other decoding, change to expected_caption_beam_search or expected_caption_greedy
         self.assertMultiLineEqual(answer, expected_caption_nucleus_sampling)
