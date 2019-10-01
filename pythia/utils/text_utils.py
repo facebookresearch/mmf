@@ -367,7 +367,7 @@ class NucleusSampling(TextDecoder):
         # Threshold for sum of probability
         self._threshold = config["inference"]["params"]["sum_threshold"]
 
-    def decode(self, t, data, scores, isTest = False):
+    def decode(self, t, data, scores):
         # Convert scores to probabilities
         scores = torch.nn.functional.softmax(scores, dim=1)
         # Sort scores in descending order and then select the top m elements having sum more than threshold.
@@ -401,10 +401,6 @@ class NucleusSampling(TextDecoder):
             self._complete_seqs.extend(self.seqs[complete_inds].tolist())
             return True, data, 0
 
-        if isTest and t == 4:
-            self._complete_seqs.extend(self.seqs[incomplete_inds].tolist())
-            return True, data, 0
-
         self.seqs = self.seqs[incomplete_inds]
 
         data = self.update_data(data, prev_word_ind, next_word_ind, incomplete_inds)
@@ -412,5 +408,8 @@ class NucleusSampling(TextDecoder):
         return False, data, 1
 
     def get_result(self):
-        captions = torch.FloatTensor(self._complete_seqs[0]).unsqueeze(0)
+        if len(self._complete_seqs) == 0:
+            captions = torch.FloatTensor([0] * 5).unsqueeze(0)
+        else:
+            captions = torch.FloatTensor(self._complete_seqs[0]).unsqueeze(0)
         return captions
