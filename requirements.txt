@@ -11,3 +11,4 @@ pytest==3.3.2
 requests==2.21.0
 fastText
 nltk==3.4.1
+transformers>=2.0.0
