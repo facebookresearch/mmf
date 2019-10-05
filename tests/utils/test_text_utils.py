@@ -8,7 +8,7 @@ import numpy as np
 
 import pythia.utils.text_utils as text_utils
 
-from test_model import TestDecoderModel
+from tests.utils.test_model import TestDecoderModel
 from pythia.common.registry import registry
 from pythia.common.sample import Sample, SampleList
 from pythia.utils.configuration import ConfigNode, Configuration
