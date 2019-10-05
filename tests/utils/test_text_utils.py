@@ -35,6 +35,7 @@ class TestTextUtils(unittest.TestCase):
         config_path = os.path.abspath(config_path)
         configuration = Configuration(config_path)
         configuration.config["datasets"] = "coco"
+        configuration.config["model_attributes"]["butd"]["inference"]["params"]["sum_threshold"] = 0.5
         configuration.freeze()
         self.config = configuration.config
         registry.register("config", self.config)
