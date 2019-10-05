@@ -101,6 +101,11 @@ class VocabDict:
     START_TOKEN = "<s>"
     END_TOKEN = "</s>"
 
+    PAD_INDEX = 0
+    SOS_INDEX = 1
+    EOS_INDEX = 2
+    UNK_INDEX = 3
+
     def __init__(self, vocab_file, data_root_dir=None):
         if not os.path.isabs(vocab_file) and data_root_dir is not None:
             pythia_root = get_pythia_root()
@@ -387,6 +392,7 @@ class NucleusSampling(TextDecoder):
 
         top_m_scores = torch.div(top_m_scores[:last_index], score_sum)
         top_m_words = top_m_words[:last_index]
+
         # Zero value inside prev_word_inds because we are predicting a single stream of output.
         prev_word_ind = torch.tensor([0])
         # Get next word based on probabilities of top m words.
