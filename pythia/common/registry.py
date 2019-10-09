@@ -20,6 +20,7 @@ Various decorators for registry different kind of classes with unique keys
 - Register a processor: ``@registry.register_processor``
 - Register a optimizer: ``@registry.register_optimizer``
 - Register a scheduler: ``@registry.register_scheduler``
+- Register a decoder: ``@registry.register_decoder``
 """
 
 
@@ -45,6 +46,7 @@ class Registry:
         "optimizer_name_mapping": {},
         "scheduler_name_mapping": {},
         "processor_name_mapping": {},
+        "decoder_name_mapping": {},
         "state": {},
     }
 
@@ -264,6 +266,36 @@ class Registry:
         return wrap
 
     @classmethod
+    def register_decoder(cls, name):
+        r"""Register a decoder to registry with key 'name'
+
+        Args:
+            name: Key with which the decoder will be registered.
+
+        Usage::
+
+            from pythia.common.registry import registry
+            from pythia.utils.text_utils import TextDecoder
+
+
+            @registry.register_decoder("nucleus_sampling")
+            class NucleusSampling(TextDecoder):
+                ...
+
+        """
+
+        def wrap(decoder_cls):
+            from pythia.utils.text_utils import TextDecoder
+
+            assert issubclass(
+                decoder_cls, TextDecoder
+            ), "All decoders must inherit TextDecoder class"
+            cls.mapping["decoder_name_mapping"][name] = decoder_cls
+            return decoder_cls
+
+        return wrap
+
+    @classmethod
     def register(cls, name, obj):
         r"""Register an item to registry with key 'name'
 
@@ -321,6 +353,10 @@ class Registry:
     @classmethod
     def get_scheduler_class(cls, name):
         return cls.mapping["scheduler_name_mapping"].get(name, None)
+
+    @classmethod
+    def get_decoder_class(cls, name):
+        return cls.mapping["decoder_name_mapping"].get(name, None)
 
     @classmethod
     def get(cls, name, default=None, no_warning=False):
