@@ -1,7 +1,18 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
+import torch
+import random
+import os
+import numpy as np
+
 import pythia.utils.text_utils as text_utils
+
+from tests.utils.test_model import TestDecoderModel
+from pythia.common.registry import registry
+from pythia.common.sample import Sample, SampleList
+from pythia.utils.configuration import ConfigNode, Configuration
+from pythia.utils.general import get_pythia_root
 
 
 class TestTextUtils(unittest.TestCase):
@@ -15,6 +26,19 @@ class TestTextUtils(unittest.TestCase):
         "left of the large brown sphere?",
         "How big is the brown shiny sphere? ;"
     ]
+
+    def setUp(self):
+        torch.manual_seed(1234)
+        config_path = os.path.join(
+            get_pythia_root(), "..", "configs", "captioning", "coco", "butd_nucleus_sampling.yml"
+        )
+        config_path = os.path.abspath(config_path)
+        configuration = Configuration(config_path)
+        configuration.config["datasets"] = "coco"
+        configuration.config["model_attributes"]["butd"]["inference"]["params"]["sum_threshold"] = 0.5
+        configuration.freeze()
+        self.config = configuration.config
+        registry.register("config", self.config)
 
     def test_tokenize(self):
         tokens = text_utils.tokenize(self.TOKENIZE_EXAMPLE)
@@ -100,4 +124,28 @@ class TestTextUtils(unittest.TestCase):
             self.VOCAB_EXAMPLE_SENTENCES, min_count=1, keep=["?"], remove=";"
         )
         self.assertEqual(vocab.get_size(), 40)
+
+    def test_nucleus_sampling(self):
+        vocab = text_utils.VocabFromText(self.VOCAB_EXAMPLE_SENTENCES)
+
+        model_config = self.config.model_attributes.butd
+        model = TestDecoderModel(model_config, vocab)
+        model.build()
+        model.to("cuda")
+        model.eval()
+
+        sample = Sample()
+        sample.dataset_name = "coco"
+        sample.dataset_type = "test"
+        sample.image_feature_0 = torch.randn(100, 2048)
+        sample.answers = torch.zeros((5, 10), dtype=torch.long)
+        sample_list = SampleList([sample])
+
+        tokens = model(sample_list)["captions"]
+
+        # these are expected tokens for sum_threshold = 0.5
+        expected_tokens = [1.0000e+00, 2.9140e+03, 5.9210e+03, 2.2040e+03, 5.0550e+03, 9.2240e+03,
+         4.5120e+03, 1.8200e+02, 3.6490e+03, 6.4090e+03, 2.0000e+00]
+
+        self.assertEqual(tokens[0].tolist(), expected_tokens)
 
