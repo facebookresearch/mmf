@@ -362,8 +362,6 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
 
         if "pretraining" in self.training_head_type and dataset_name == "masked_coco":
             prediction_scores, seq_relationship_score = self.cls(sequence_output, pooled_output)
-            output_dict["logits"] = prediction_scores
-            output_dict["seq_relationship_score"] = seq_relationship_score
 
             if flattened["masked_lm_labels"] is not None and is_random_next is not None:
                 output_dict["logits"] = prediction_scores
@@ -578,7 +576,9 @@ class VisualBERTFixedImageEmbedding(BaseModel):
         # pretraining labels
         masked_lm_labels = getattr(sample_list, "lm_label_ids", None)
         # pretraining labels
-        is_random_next = getattr(sample_list, "is_correct", None)
+        # is_random_next = getattr(sample_list, "is_correct", None)
+        # TODO(aps): Fix on dataset side
+        is_random_next = None
         # image_feat_variable = batch x ( num_choice x ) image_feature_length x dim
         # Prepare Mask
         if image_feat_variable is not None and image_dim_variable is not None:
@@ -615,7 +615,8 @@ class VisualBERTFixedImageEmbedding(BaseModel):
             loss_key = "{}/{}".format(sample_list.dataset_name, sample_list.dataset_type)
             output_dict["losses"] = {}
             output_dict["losses"][loss_key + "/masked_lm_loss"] = output_dict.pop("masked_lm_loss")
-            output_dict["losses"][loss_key + "/next_sentence_loss"] = output_dict.pop("next_sentence_loss")
+            if is_random_next is not None:
+                output_dict["losses"][loss_key + "/next_sentence_loss"] = output_dict.pop("next_sentence_loss")
 
         # if self.training_head_type == "nlvr" or self.training_head_type == "multichoice":
         #     logits = output_dict["logits"]
