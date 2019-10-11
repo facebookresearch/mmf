@@ -37,7 +37,14 @@ class Sample(OrderedDict):
         super().__init__(init_dict)
 
     def __setattr__(self, key, value):
+        if isinstance(value, collections.abc.Mapping):
+            value = Sample(value)
         self[key] = value
+
+    def __setitem__(self, key, value):
+        if isinstance(value, collections.abc.Mapping):
+            value = Sample(value)
+        super().__setitem__(key, value)
 
     def __getattr__(self, key):
         try:
@@ -249,9 +256,15 @@ class SampleList(OrderedDict):
 
     def get_batch_size(self):
         """Get batch size of the current ``SampleList``. There must be a tensor
+
+    def __getitem__(self, key):
+        return self.__dict__[key]
         field present in the ``SampleList`` currently.
 
         Returns:
+
+    def __getitem__(self, key):
+        return self.__dict__[key]
             int: Size of the batch in ``SampleList``.
 
         """
@@ -271,27 +284,29 @@ class SampleList(OrderedDict):
         fields = self.fields()
         tensor_field = self._get_tensor_field()
 
-        if len(fields) == 0:
-            self[field] = self._get_data_copy(data)
-        else:
-            if (
-                isinstance(data, torch.Tensor)
-                and len(data.size()) != 0
-                and tensor_field is not None
-                and data.size(0) != self[tensor_field].size(0)
-            ):
-                raise AssertionError(
-                    "A tensor field to be added must "
-                    "have same size as existing tensor "
-                    "fields in SampleList. "
-                    "Passed size: {}, Required size: {}".format(
-                        len(data), len(self[fields[0]])
-                    )
+        if (
+            len(fields) != 0
+            and isinstance(data, torch.Tensor)
+            and len(data.size()) != 0
+            and tensor_field is not None
+            and data.size(0) != self[tensor_field].size(0)
+        ):
+            raise AssertionError(
+                "A tensor field to be added must "
+                "have same size as existing tensor "
+                "fields in SampleList. "
+                "Passed size: {}, Required size: {}".format(
+                    len(data), len(self[fields[0]])
                 )
+            )
+
+        if isinstance(data, collections.abc.Mapping):
+            self[field] = SampleList(data)
+        else:
             self[field] = self._get_data_copy(data)
 
-        if isinstance(self[field], torch.Tensor) and tensor_field is None:
-            self._set_tensor_field(field)
+            if isinstance(self[field], torch.Tensor) and tensor_field is None:
+                self._set_tensor_field(field)
 
     def to(self, device, non_blocking=True):
         """Similar to ``.to`` function on a `torch.Tensor`. Moves all of the

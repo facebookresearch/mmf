@@ -122,6 +122,7 @@ class BaseTrainer:
             "cuda" in str(self.device)
             and self.distributed
         ):
+            print(training_parameters.find_unused_parameters)
             registry.register("distributed", True)
             self.model = torch.nn.parallel.DistributedDataParallel(
                 self.model,
