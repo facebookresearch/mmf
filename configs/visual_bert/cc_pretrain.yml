@@ -1,0 +1,41 @@
+includes:
+- common/defaults/configs/datasets/captioning/masked_cc.yml
+
+model_attributes:
+  visual_bert:
+    bert_model_name: bert-base-uncased
+    training_head_type: pretraining
+    visual_embedding_dim: 2048
+    special_visual_initialize: true
+    hard_cap_seq_len: null
+    cut_first: text
+    embedding_strategy: plain
+    bypass_transformer: false
+    output_attentions: false
+    output_hidden_states: false
+    text_only: false
+    random_initialize: false
+    metrics:
+    - vqa_accuracy
+
+dataset_attributes:
+  masked_cc:
+    return_info: true
+
+optimizer_attributes:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+
+scheduler_attributes:
+  type: warmup_linear
+  params:
+    warmup_steps: 1000
+    t_total: 11000
+    
+training_parameters:
+  batch_size: 480
+  lr_scheduler: true
+  # Don't forget to update schedule_attributes if you update this
+  max_updates: 11000

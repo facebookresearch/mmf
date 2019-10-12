@@ -1,0 +1,39 @@
+dataset_attributes:
+  masked_cc:
+    data_root_dir: ../data
+    image_depth_first: false
+    fast_read: false
+    image_features:
+        train:
+        -  cc_captions/detectron_fix_100/fc6/training
+        val:
+        -  cc_captions/detectron_fix_100/fc6/validation
+        test:
+        -  cc_captions/detectron_fix_100/fc6/validation
+    imdb_files:
+        train:
+        - imdb/cc_captions/train.npy
+        val:
+        - imdb/cc_captions/val.npy
+        test:
+        - imdb/cc_captions/val.npy
+    features_max_len: 100
+    two_sentence: false
+    two_sentence_probability: 0.5
+    false_caption: true
+    false_caption_probability: 0.5
+    processors:
+      masked_token_processor:
+        type: masked_token
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0.15
+          max_seq_length: 128
+    return_info: false
+    # Return OCR information
+    use_ocr: false
+    # Return spatial information of OCR tokens if present
+    use_ocr_info: false
