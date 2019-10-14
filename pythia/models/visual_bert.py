@@ -546,6 +546,9 @@ class VisualBERTFixedImageEmbedding(BaseModel):
         if self.config.special_visual_initialize:
             self.bert.bert.embeddings.special_intialize()
 
+        if self.config.freeze_base:
+            for p in self.bert.bert.parameters():
+                p.weight.requires_grad = False
         # if self.training_head_type == "nlvr" or self.training_head_type == "multichoice":
         #     self._accuracy = CategoricalAccuracy()
         # if "vqa" in self.training_head_type:
@@ -640,7 +643,27 @@ class VisualBERTFixedImageEmbedding(BaseModel):
         return {"accuracy": 0.0}
 
     def get_optimizer_parameters(self, config):
-        param_optimizer = list(self.named_parameters())
+        # Pretraining has same LR for all of the parts
+        if self.training_head_type == "pretraining":
+            return self.get_bert_configured_parameters(self)
+
+        # For finetuning setup, we have classifier
+        lr = config.optimizer_attributes.params.lr
+        vb_config = getattr(config.model_attributes, "visual_bert", {})
+        finetune_lr_multiplier = getattr(vb_config, "finetune_lr_multiplier", 1)
+        # Finetune the bert pretrained part with finetune_lr_multiplier if it is set
+        parameters = self.get_bert_configured_parameters(
+            self.bert.bert, lr * finetune_lr_multiplier
+        )
+        # Classifier will be trained on the normal lr
+        parameters += self.get_bert_configured_parameters(
+            self.bert.classifier, lr
+        )
+
+        return parameters
+
+    def get_bert_configured_parameters(self, module, lr=None):
+        param_optimizer = list(module.named_parameters())
 
         no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
         optimizer_grouped_parameters = [
@@ -654,7 +677,12 @@ class VisualBERTFixedImageEmbedding(BaseModel):
             }
         ]
 
+        if lr is not None:
+            for p in optimizer_grouped_parameters:
+                p["lr"] = lr
+
         return optimizer_grouped_parameters
+
 
     @staticmethod
     def compute_score_with_logits(logits, labels):

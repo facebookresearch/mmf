@@ -15,6 +15,8 @@ model_attributes:
     output_hidden_states: false
     text_only: false
     random_initialize: false
+    freeze_base: false
+    finetune_lr_multiplier: 1
     metrics:
     - vqa_accuracy
 
