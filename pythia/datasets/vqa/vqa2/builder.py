@@ -38,14 +38,16 @@ class VQA2Builder(BaseDatasetBuilder):
         return
 
     def update_registry_for_model(self, config):
-        registry.register(
-            self.dataset_name + "_text_vocab_size",
-            self.dataset.text_processor.get_vocab_size(),
-        )
-        registry.register(
-            self.dataset_name + "_num_final_outputs",
-            self.dataset.answer_processor.get_vocab_size(),
-        )
+        if hasattr(self.dataset, "text_processor"):
+            registry.register(
+                self.dataset_name + "_text_vocab_size",
+                self.dataset.text_processor.get_vocab_size(),
+            )
+        if hasattr(self.dataset, "answer_processor"):
+            registry.register(
+                self.dataset_name + "_num_final_outputs",
+                self.dataset.answer_processor.get_vocab_size(),
+            )
 
     def init_args(self, parser):
         parser.add_argument_group("VQA2 task specific arguments")
