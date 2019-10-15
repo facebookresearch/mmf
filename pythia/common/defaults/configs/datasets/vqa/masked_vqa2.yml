@@ -1,0 +1,41 @@
+dataset_attributes:
+  masked_vqa2:
+    data_root_dir: ../data
+    image_depth_first: false
+    fast_read: false
+    image_features:
+        # train:
+        # - coco/detectron_fix_100/fc6/train_val_2014
+        # val:
+        # - coco/detectron_fix_100/fc6/train_val_2014
+        # test:
+        # - coco/detectron_fix_100/fc6/train_val_2014
+        train:
+        -  /private/home/vedanuj/pythia/data/coco/detectron_fix_resnext152/features_train2014
+        val:
+        -  /private/home/vedanuj/pythia/data/coco/detectron_fix_resnext152/features_val2014
+        test:
+        -  /private/home/vedanuj/pythia/data/coco/detectron_fix_resnext152/features_train2014
+    imdb_files:
+        train:
+        - imdb/vqa/imdb_train2014.npy
+        val:
+        - imdb/vqa/imdb_val2014.npy
+        test:
+        - imdb/vqa/imdb_test2015.npy
+    features_max_len: 100
+    processors:
+      masked_token_processor:
+        type: masked_token
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0.15
+          max_seq_length: 128
+    return_info: false
+    # Return OCR information
+    use_ocr: false
+    # Return spatial information of OCR tokens if present
+    use_ocr_info: false

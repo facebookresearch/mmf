@@ -546,7 +546,7 @@ class VisualBERTFixedImageEmbedding(BaseModel):
         if self.config.special_visual_initialize:
             self.bert.bert.embeddings.special_intialize()
 
-        if self.config.freeze_base:
+        if getattr(self.config, "freeze_base", False):
             for p in self.bert.bert.parameters():
                 p.weight.requires_grad = False
         # if self.training_head_type == "nlvr" or self.training_head_type == "multichoice":
