@@ -105,6 +105,9 @@ class VQA2Dataset(BaseDataset):
         processed_question = self.text_processor(text_processor_argument)
 
         current_sample.text = processed_question["text"]
+        if "input_ids" in processed_question:
+            current_sample.update(processed_question)
+
         current_sample.question_id = torch.tensor(
             sample_info["question_id"], dtype=torch.int
         )

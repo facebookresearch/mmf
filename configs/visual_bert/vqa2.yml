@@ -12,6 +12,7 @@ model_attributes:
 
 dataset_attributes:
   vqa2:
+    return_info: true
     processors:
       text_processor:
         type: bert_tokenizer
