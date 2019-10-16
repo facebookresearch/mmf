@@ -151,4 +151,5 @@ class BertTokenizer(MaskedTokenProcessor):
 
         self._truncate_seq_pair(tokens_a, None, self._max_seq_length)
         output = self._convert_to_indices(tokens_a, None, probability=self._probability)
+        output["text"] = output["tokens"]
         return output
