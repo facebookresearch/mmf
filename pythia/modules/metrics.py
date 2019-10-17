@@ -205,7 +205,8 @@ class Accuracy(BaseMetric):
             output = torch.max(output, 1)[1]
 
         # If more than 1
-        if expected.dim() == 2:
+        # If last dim is 1, we directly have class indices
+        if expected.dim() == 2 and expected.size(-1) != 1:
             expected = torch.max(expected, 1)[1]
 
         correct = (expected == output.squeeze()).sum().float()
