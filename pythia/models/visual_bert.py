@@ -221,9 +221,9 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
             self.classifier = nn.Linear(config.hidden_size, 3129)
         elif self.training_head_type == "vqa_advanced":
             self.cls = BertPreTrainingHeads(config)
-        elif self.training_head_type == "nlvr":
+        elif self.training_head_type == "nlvr2":
             self.dropout = nn.Dropout(config.hidden_dropout_prob)
-            self.classifier = nn.Linear(config.hidden_size, 2)
+            self.classifier = nn.Linear(config.hidden_size * 2, 2)
         elif self.training_head_type == "flickr":
             self.dropout = nn.Dropout(config.hidden_dropout_prob)
             self.cls = BertPreTrainingHeads(config)
@@ -282,69 +282,11 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
 
         return flattened
 
-    def forward_bert(
+    def forward_heads(
         self,
-        input_ids,
-        token_type_ids,
-        attention_mask,
-        visual_embeddings,
-        position_embeddings_visual,
-        visual_embedding_type,
-        image_text_alignment,
-        confidence,
+        output,
+        flattened
     ):
-        return
-
-
-    def forward(
-        self,
-        input_ids,
-        token_type_ids,
-        input_mask,
-
-        visual_embeddings,
-        position_embeddings_visual,
-        image_mask,
-        image_text_alignment = None,
-        confidence = None,
-
-        visual_embeddings_type=None,
-        label=None,
-        flickr_position = None,
-        masked_lm_labels=None,
-        image_lm_labels=None,
-        is_random_next=None,
-        dataset_name=None,
-        **kwargs
-    ):
-        to_be_flattened = {}
-        to_be_flattened_dim = {}
-        to_be_flattened["input_ids"] = input_ids
-        to_be_flattened["token_type_ids"] = token_type_ids
-        to_be_flattened["input_mask"] = input_mask
-        to_be_flattened["image_mask"] = image_mask
-        to_be_flattened["masked_lm_labels"] = masked_lm_labels
-        to_be_flattened["image_lm_labels"] = image_lm_labels
-        to_be_flattened["position_embeddings_visual"] = position_embeddings_visual
-        to_be_flattened["confidence"] = confidence
-        to_be_flattened_dim["image_text_alignment"] = image_text_alignment
-        to_be_flattened_dim["visual_embeddings"] = visual_embeddings
-        to_be_flattened["visual_embeddings_type"] = visual_embeddings_type
-
-        # We want to convert everything into: batch x sequence_length x (dim).
-        flattened = self.flatten(to_be_flattened, to_be_flattened_dim)
-
-        output = self.bert(
-            flattened["input_ids"],
-            flattened["token_type_ids"],
-            flattened["attention_mask"],
-            visual_embeddings=flattened["visual_embeddings"],
-            position_embeddings_visual=flattened["position_embeddings_visual"],
-            visual_embeddings_type=flattened["visual_embeddings_type"],
-            image_text_alignment=flattened["image_text_alignment"],
-            confidence=flattened["confidence"]
-        )
-
         output_dict = {}
 
         sequence_output, pooled_output = output[0], output[1]
@@ -406,7 +348,7 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
 
             return output_dict
 
-        elif "vqa" in self.training_head_type and dataset_name == "vqa2":
+        elif "vqa" in self.training_head_type:
             index_to_gather = flattened["input_mask"].sum(1) - 2
 
             pooled_output = torch.gather(
@@ -441,41 +383,41 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
 
             return output_dict
 
-        elif self.training_head_type == "vqa_advanced":
-            prediction_scores, seq_relationship_score = self.cls(sequence_output, pooled_output)
-            output_dict["logits"] = prediction_scores
-            output_dict["seq_relationship_score"] = seq_relationship_score
-            output_dict["loss"] = None
+        # elif self.training_head_type == "vqa_advanced":
+        #     prediction_scores, seq_relationship_score = self.cls(sequence_output, pooled_output)
+        #     output_dict["logits"] = prediction_scores
+        #     output_dict["seq_relationship_score"] = seq_relationship_score
+        #     output_dict["loss"] = None
 
-            loss_fct = nn.CrossEntropyLoss(ignore_index=-1)
-            masked_lm_loss = loss_fct(
-                prediction_scores.contiguous().view(-1, self.config.vocab_size),
-                flattened["masked_lm_labels"].contiguous().view(-1)
-            )
-            output_dict["masked_lm_loss"] = masked_lm_loss
-            output_dict["loss"] = masked_lm_loss
+        #     loss_fct = nn.CrossEntropyLoss(ignore_index=-1)
+        #     masked_lm_loss = loss_fct(
+        #         prediction_scores.contiguous().view(-1, self.config.vocab_size),
+        #         flattened["masked_lm_labels"].contiguous().view(-1)
+        #     )
+        #     output_dict["masked_lm_loss"] = masked_lm_loss
+        #     output_dict["loss"] = masked_lm_loss
 
-            prediction_tokens = torch.max(prediction_scores, -1)[1].view(
-                input_ids.size(0), -1
-            ).cpu().numpy() # batch x sequence length , records the predicted words
-            lm_labels = flattened["masked_lm_labels"].view(input_ids.size(0), -1).cpu().numpy()
-            counter = 0.0
-            flags = []
-            for i in range(lm_labels.shape[0]):
-                flag = True
-                for j in range(lm_labels.shape[1]):
-                    if lm_labels[i][j] != -1 and prediction_tokens[i][j] != lm_labels[i][j]:
-                        flag = False
-                        break
-                if flag:
-                    counter += 1
-                flags.append(flag)
+        #     prediction_tokens = torch.max(prediction_scores, -1)[1].view(
+        #         input_ids.size(0), -1
+        #     ).cpu().numpy() # batch x sequence length , records the predicted words
+        #     lm_labels = flattened["masked_lm_labels"].view(input_ids.size(0), -1).cpu().numpy()
+        #     counter = 0.0
+        #     flags = []
+        #     for i in range(lm_labels.shape[0]):
+        #         flag = True
+        #         for j in range(lm_labels.shape[1]):
+        #             if lm_labels[i][j] != -1 and prediction_tokens[i][j] != lm_labels[i][j]:
+        #                 flag = False
+        #                 break
+        #         if flag:
+        #             counter += 1
+        #         flags.append(flag)
 
-            output_dict["accuracy"] = counter / prediction_tokens.shape[0]
+        #     output_dict["accuracy"] = counter / prediction_tokens.shape[0]
 
-            return output_dict
+        #     return output_dict
 
-        elif self.training_head_type == "nlvr":
+        elif self.training_head_type == "nlvr2":
             pooled_output = self.dropout(pooled_output)
             logits = self.classifier(pooled_output)
             reshaped_logits = logits.contiguous()
@@ -517,7 +459,72 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
                 output_dict["entity_num"] = entities_num
             return output_dict
 
+    def flatten_for_bert(
+        self,
+        input_ids,
+        token_type_ids,
+        input_mask,
 
+        visual_embeddings,
+        position_embeddings_visual,
+        image_mask,
+        image_text_alignment = None,
+        confidence = None,
+
+        visual_embeddings_type=None,
+        label=None,
+        flickr_position = None,
+        masked_lm_labels=None,
+        image_lm_labels=None,
+        is_random_next=None,
+        dataset_name=None,
+        **kwargs
+    ):
+        to_be_flattened = {}
+        to_be_flattened_dim = {}
+        to_be_flattened["input_ids"] = input_ids
+        to_be_flattened["token_type_ids"] = token_type_ids
+        to_be_flattened["input_mask"] = input_mask
+        to_be_flattened["image_mask"] = image_mask
+        to_be_flattened["masked_lm_labels"] = masked_lm_labels
+        to_be_flattened["image_lm_labels"] = image_lm_labels
+        to_be_flattened["position_embeddings_visual"] = position_embeddings_visual
+        to_be_flattened["confidence"] = confidence
+        to_be_flattened_dim["image_text_alignment"] = image_text_alignment
+        to_be_flattened_dim["visual_embeddings"] = visual_embeddings
+        to_be_flattened["visual_embeddings_type"] = visual_embeddings_type
+
+        # We want to convert everything into: batch x sequence_length x (dim).
+        flattened = self.flatten(to_be_flattened, to_be_flattened_dim)
+        return flattened
+
+    def forward_bert(self, flattened):
+        return self.bert(
+            flattened["input_ids"],
+            flattened["token_type_ids"],
+            flattened["attention_mask"],
+            visual_embeddings=flattened["visual_embeddings"],
+            position_embeddings_visual=flattened["position_embeddings_visual"],
+            visual_embeddings_type=flattened["visual_embeddings_type"],
+            image_text_alignment=flattened["image_text_alignment"],
+            confidence=flattened["confidence"]
+        )
+
+    def forward(
+        self, *args, **kwargs
+    ):
+        flattened = self.flatten_for_bert(*args, **kwargs)
+        output = self.forward_bert(flattened)
+
+        if self.training_head_type == "nlvr2":
+            output = list(output)
+            pooled_output = output[1]
+            # 2B * H => B * 2H
+            b, h = pooled_output.size()
+            pooled_output = torch.cat([pooled_output[:b // 2], pooled_output[b // 2:]], dim=1)
+            output[1] = pooled_output
+
+        return self.forward_heads(output, flattened)
 
 
 @registry.register_model("visual_bert")
@@ -549,7 +556,7 @@ class VisualBERTFixedImageEmbedding(BaseModel):
         if getattr(self.config, "freeze_base", False):
             for p in self.bert.bert.parameters():
                 p.requires_grad = False
-        # if self.training_head_type == "nlvr" or self.training_head_type == "multichoice":
+        # if self.training_head_type == "nlvr2" or self.training_head_type == "multichoice":
         #     self._accuracy = CategoricalAccuracy()
         # if "vqa" in self.training_head_type:
         #     self._accuracy = Average()
@@ -557,62 +564,38 @@ class VisualBERTFixedImageEmbedding(BaseModel):
         #     self._accuracy = Average()
 
     def forward(self, sample_list):
-        if self.training_head_type == "nlvr2":
-            return self.forward_nlvr2(sample_list)
-        # bert text input
-        bert_input_ids = sample_list.input_ids
-        bert_input_mask = sample_list.input_mask
-        bert_input_type_ids = sample_list.segment_ids
+        params = self.get_image_and_text_features(sample_list)
+        params["visual_embeddings_type"] = getattr(sample_list, "visual_embeddings_type", None)
+        params["label"] = getattr(sample_list, "label", None)
 
-        # image input
-        image_info = getattr(sample_list, "image_info_0", {})
-        image_dim_variable = getattr(image_info, "max_features", None)
-        image_feat_variable = getattr(sample_list, "image_feature_0", None)
-        image_text_alignment = getattr(sample_list, "image_text_alignment", None)
-        visual_embeddings_type = getattr(sample_list, "visual_embeddings_type", None)
-        label = getattr(sample_list, "label", None)
-
-        if label is None:
+        if params["label"] is None:
             label = getattr(sample_list, "targets", None)
         # For flickr we also need to provide the position
-        flickr_position = getattr(sample_list, "flickr_position", None)
+        params["flickr_position"] = getattr(sample_list, "flickr_position", None)
         # pretraining labels
-        masked_lm_labels = getattr(sample_list, "lm_label_ids", None)
+        params["masked_lm_labels"] = getattr(sample_list, "lm_label_ids", None)
         # pretraining labels
         # is_random_next = getattr(sample_list, "is_correct", None)
         # TODO(aps): Fix on dataset side
-        is_random_next = None
+        params["is_random_next"] = None
         # image_feat_variable = batch x ( num_choice x ) image_feature_length x dim
         # Prepare Mask
-        if image_feat_variable is not None and image_dim_variable is not None:
-            image_mask = torch.arange(image_feat_variable.size(-2)).expand(*image_feat_variable.size()[:-1]).cuda()
-            if len(image_dim_variable.size()) < len(image_mask.size()):
-                image_dim_variable = image_dim_variable.unsqueeze(-1)
-                assert(len(image_dim_variable.size()) == len(image_mask.size()))
-            image_mask = image_mask < image_dim_variable
-            image_mask = image_mask.long()
+        if params["visual_embeddings"] is not None and params["image_dim"] is not None:
+            image_mask = torch.arange(
+                params["visual_embeddings"].size(-2)
+            ).expand(*params["visual_embeddings"].size()[:-1]).cuda()
+            if len(params["image_dim"].size()) < len(image_mask.size()):
+                params["image_dim"] = params["image_dim"].unsqueeze(-1)
+                assert(len(params["image_dim"].size()) == len(image_mask.size()))
+            image_mask = image_mask < params["image_dim"]
+            params["image_mask"] = image_mask.long()
         else:
-            image_mask = None
+            params["image_mask"] = None
 
-        dataset_name = sample_list.dataset_name
+        params["dataset_name"] = sample_list.dataset_name
+        params["position_embeddings_visual"] = None
 
-        output_dict = self.bert(
-            input_ids=bert_input_ids,
-            token_type_ids=bert_input_type_ids,
-            input_mask=bert_input_mask,
-
-            visual_embeddings=image_feat_variable,
-            position_embeddings_visual=None,
-            image_mask=image_mask,
-            visual_embeddings_type=visual_embeddings_type,
-            image_text_alignment=image_text_alignment,
-
-            label=label,
-            flickr_position=flickr_position,
-            masked_lm_labels=masked_lm_labels,
-            is_random_next=is_random_next,
-            dataset_name=dataset_name
-        )
+        output_dict = self.bert(**params)
 
         if "pretraining" in self.training_head_type and "masked" in dataset_name:
             loss_key = "{}/{}".format(sample_list.dataset_name, sample_list.dataset_type)
@@ -621,24 +604,46 @@ class VisualBERTFixedImageEmbedding(BaseModel):
             if is_random_next is not None:
                 output_dict["losses"][loss_key + "/next_sentence_loss"] = output_dict.pop("next_sentence_loss")
 
-        # if self.training_head_type == "nlvr" or self.training_head_type == "multichoice":
-        #     logits = output_dict["logits"]
-        #     self._accuracy(logits, label)
-
-        # Multi-process safe??
-        # if "vqa" in self.training_head_type or self.training_head_type == "flickr":
-        #     if output_dict["accuracy"] is not None:
-        #         self._accuracy(output_dict["accuracy"])
-
-        # output_dict["cnn_regularization_loss"] = None
-
         return output_dict
 
-    def forward_nlvr2(self, sample_list):
-        return
+    def get_image_and_text_features(self, sample_list):
+        bert_input_ids = sample_list.input_ids
+        bert_input_mask = sample_list.input_mask
+        bert_input_type_ids = sample_list.segment_ids
+
+        if self.training_head_type == "nlvr2":
+            bert_input_ids = torch.cat([bert_input_ids, bert_input_ids])
+            bert_input_mask = torch.cat([bert_input_mask, bert_input_mask])
+            bert_input_type_ids = torch.cat([bert_input_type_ids, bert_input_type_ids])
+
+            # image input
+            img0 = getattr(sample_list, "img0", {})
+            image_info = getattr(img0, "image_info_0", {})
+            image_dim_variable_0 = getattr(image_info, "max_features", None)
+            image_feat_variable_0 = getattr(img0, "image_feature_0", None)
+
+            img1 = getattr(sample_list, "img1", {})
+            image_info = getattr(img1, "image_info_0", {})
+            image_dim_variable_1 = getattr(image_info, "max_features", None)
+            image_feat_variable_1 = getattr(img1, "image_feature_0", None)
+
+            image_feat_variable = torch.cat([image_feat_variable_0, image_feat_variable_1])
+            image_dim_variable = torch.cat([image_dim_variable_0, image_dim_variable_1])
+        else:
+            image_info = getattr(sample_list, "image_info_0", {})
+            image_dim_variable = getattr(image_info, "max_features", None)
+            image_feat_variable = getattr(sample_list, "image_feature_0", None)
+
+        return {
+            "input_ids": bert_input_ids,
+            "input_mask": bert_input_mask,
+            "token_type_ids": bert_input_type_ids,
+            "image_dim": image_dim_variable,
+            "visual_embeddings": image_feat_variable
+        }
 
     def get_metrics(self, reset: bool = False):
-        if self.training_head_type == "nlvr" or self.training_head_type == "multichoice" or "vqa" in self.training_head_type or self.training_head_type == "flickr":
+        if self.training_head_type == "nlvr2" or self.training_head_type == "multichoice" or "vqa" in self.training_head_type or self.training_head_type == "flickr":
             return {"accuracy": self._accuracy.get_metric(reset)}
         return {"accuracy": 0.0}
 

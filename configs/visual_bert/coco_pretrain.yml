@@ -17,8 +17,7 @@ model_attributes:
     random_initialize: false
     freeze_base: false
     finetune_lr_multiplier: 1
-    metrics:
-    - vqa_accuracy
+    metrics: []
 
 dataset_attributes:
   masked_coco:

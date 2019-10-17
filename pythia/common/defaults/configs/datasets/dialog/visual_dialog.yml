@@ -1,5 +1,5 @@
 dataset_attributes:
-  visual_genome:
+  visual_dialog:
       data_root_dir: ../data
       image_depth_first: false
       fast_read: false
