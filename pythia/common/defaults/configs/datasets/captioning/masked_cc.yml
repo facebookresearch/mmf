@@ -18,8 +18,8 @@ dataset_attributes:
         test:
         - imdb/cc_captions/val.npy
     features_max_len: 100
-    two_sentence: false
-    two_sentence_probability: 0.5
+    two_sentence: true
+    two_sentence_probability: -0.1
     false_caption: true
     false_caption_probability: 0.5
     processors:
