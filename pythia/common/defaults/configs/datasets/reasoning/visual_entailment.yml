@@ -1,0 +1,44 @@
+dataset_attributes:
+  visual_entailment:
+      data_root_dir: ../data
+      image_depth_first: false
+      fast_read: false
+      image_features:
+          train:
+          - /private/home/vedanuj/projects/pythia-internal/data/flickr30k/detectron_fix_100/fc6
+          val:
+          - /private/home/vedanuj/projects/pythia-internal/data/flickr30k/detectron_fix_100/fc6
+          test:
+          - /private/home/vedanuj/projects/pythia-internal/data/flickr30k/detectron_fix_100/fc6
+      imdb_files:
+          train:
+          - imdb/visual_entailment/snli_ve_train.jsonl
+          val:
+          - imdb/visual_entailment/snli_ve_dev.jsonl
+          test:
+          - imdb/visual_entailment/snli_ve_test.jsonl
+      features_max_len: 100
+      processors:
+        text_processor:
+          type: vocab
+          params:
+            max_length: 14
+            vocab:
+              type: intersected
+              embedding_name: glove.6B.300d
+              vocab_file: vocabs/vocabulary_100k.txt
+            preprocessor:
+              type: simple_sentence
+              params: {}
+        bbox_processor:
+          type: bbox
+          params:
+            max_length: 50
+      return_info: false
+      # Return OCR information
+      use_ocr: false
+      # Return spatial information of OCR tokens if present
+      use_ocr_info: false
+training_parameters:
+    monitored_metric: visual_entailment/accuracy
+    metric_minimize: false

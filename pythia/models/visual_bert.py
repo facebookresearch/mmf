@@ -229,6 +229,9 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
         elif self.training_head_type == "nlvr2":
             self.dropout = nn.Dropout(config.hidden_dropout_prob)
             self.classifier = nn.Linear(config.hidden_size * 2, 2)
+        elif self.training_head_type == "visual_entailment":
+            self.dropout = nn.Dropout(config.hidden_dropout_prob)
+            self.classifier = nn.Linear(config.hidden_size, 3)
         elif self.training_head_type == "flickr":
             self.dropout = nn.Dropout(config.hidden_dropout_prob)
             self.cls = BertPreTrainingHeads(config)
@@ -290,7 +293,8 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
     def forward_heads(
         self,
         output,
-        flattened
+        flattened,
+        is_random_next=None
     ):
         output_dict = {}
 
@@ -307,7 +311,7 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
             output_dict["losses"] = None
             return output_dict
 
-        if "pretraining" in self.training_head_type and "masked" in dataset_name:
+        if "pretraining" in self.training_head_type:
             prediction_scores, seq_relationship_score = self.cls(sequence_output, pooled_output)
 
             if flattened["masked_lm_labels"] is not None and is_random_next is not None:
@@ -422,11 +426,9 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
 
         #     return output_dict
 
-        elif self.training_head_type == "nlvr2":
+        elif self.training_head_type == "nlvr2" or self.training_head_type == "visual_entailment":
             pooled_output = self.dropout(pooled_output)
             logits = self.classifier(pooled_output)
-            reshaped_logits = logits.contiguous()
-
             output_dict["scores"] = logits
             return output_dict
 
@@ -501,7 +503,7 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
 
         # We want to convert everything into: batch x sequence_length x (dim).
         flattened = self.flatten(to_be_flattened, to_be_flattened_dim)
-        return flattened
+        return flattened, is_random_next
 
     def forward_bert(self, flattened):
         return self.bert(
@@ -518,7 +520,7 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
     def forward(
         self, *args, **kwargs
     ):
-        flattened = self.flatten_for_bert(*args, **kwargs)
+        flattened, is_random_next = self.flatten_for_bert(*args, **kwargs)
         output = self.forward_bert(flattened)
 
         if self.training_head_type == "nlvr2":
@@ -529,7 +531,7 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
             pooled_output = torch.cat([pooled_output[:b // 2], pooled_output[b // 2:]], dim=1)
             output[1] = pooled_output
 
-        return self.forward_heads(output, flattened)
+        return self.forward_heads(output, flattened, is_random_next)
 
 
 @registry.register_model("visual_bert")
@@ -602,11 +604,11 @@ class VisualBERTFixedImageEmbedding(BaseModel):
 
         output_dict = self.bert(**params)
 
-        if "pretraining" in self.training_head_type and "masked" in dataset_name:
+        if "pretraining" in self.training_head_type:
             loss_key = "{}/{}".format(sample_list.dataset_name, sample_list.dataset_type)
             output_dict["losses"] = {}
             output_dict["losses"][loss_key + "/masked_lm_loss"] = output_dict.pop("masked_lm_loss")
-            if is_random_next is not None:
+            if params["is_random_next"] is not None:
                 output_dict["losses"][loss_key + "/next_sentence_loss"] = output_dict.pop("next_sentence_loss")
 
         return output_dict
