@@ -55,18 +55,24 @@ class Checkpoint:
 
     def load_state_dict(self):
         tp = self.config.training_parameters
-        if tp.resume_file is not None:
-            if os.path.exists(tp.resume_file):
-                self._load(tp.resume_file)
-                return
-            else:
-                raise RuntimeError("{} doesn't exist".format(tp.resume_file))
 
         suffix = "best.ckpt" if tp.resume_best else "current.ckpt"
         reverse_suffix = "best.ckpt" if not tp.resume_best else "current.ckpt"
         ckpt_filepath = os.path.join(
             self.ckpt_foldername, self.ckpt_prefix + suffix
         )
+
+        # In case of interrupts and resume, tp.resume_file would be there
+        # But, if the checkpoints are already created in the save dir
+        # and resume is true signifying the interrupt resume, we should skip
+        # loading the resume file.
+        if tp.resume_file is not None and \
+            (tp.resume is False or not os.path.exists(ckpt_filepath)):
+            if os.path.exists(tp.resume_file):
+                self._load(tp.resume_file)
+                return
+            else:
+                raise RuntimeError("{} doesn't exist".format(tp.resume_file))
 
         if tp.resume is True:
             if os.path.exists(ckpt_filepath):
