@@ -98,7 +98,10 @@ class VQA2Dataset(BaseDataset):
         current_sample = Sample()
 
         if "question_tokens" in sample_info:
-            text_processor_argument = {"tokens": sample_info["question_tokens"]}
+            text_processor_argument = {
+                "tokens": sample_info["question_tokens"],
+                "text": sample_info["question_str"]
+            }
         else:
             text_processor_argument = {"text": sample_info["question"]}
 
