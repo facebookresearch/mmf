@@ -218,7 +218,12 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
 
         if "vqa" in self.training_head_type:
             self.dropout = nn.Dropout(config.hidden_dropout_prob)
-            self.classifier = nn.Linear(config.hidden_size, 3129)
+            self.answer_space_size = 3129
+            self.classifier = nn.Linear(config.hidden_size, self.answer_space_size)
+        elif "vizwiz" in self.training_head_type:
+            self.dropout = nn.Dropout(config.hidden_dropout_prob)
+            self.answer_space_size = 7371
+            self.classifier = nn.Linear(config.hidden_size, self.answer_space_size)
         elif self.training_head_type == "vqa_advanced":
             self.cls = BertPreTrainingHeads(config)
         elif self.training_head_type == "nlvr2":
@@ -348,7 +353,7 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
 
             return output_dict
 
-        elif "vqa" in self.training_head_type:
+        elif "vqa" in self.training_head_type or self.training_head_type == "vizwiz":
             index_to_gather = flattened["input_mask"].sum(1) - 2
 
             pooled_output = torch.gather(
@@ -367,7 +372,7 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
 
             pooled_output = self.dropout(pooled_output)
             logits = self.classifier(pooled_output)
-            reshaped_logits = logits.contiguous().view(-1, 3129)
+            reshaped_logits = logits.contiguous().view(-1, self.answer_space_size)
 
             output_dict["scores"] = reshaped_logits
             # output_dict["loss"] = None
