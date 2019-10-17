@@ -500,7 +500,11 @@ class M4CDecodingBCEWithMaskLoss(nn.Module):
         loss = torch.sum(losses) / count
         return loss
 
-@registry.register_loss("visual_bert_pretraining")
-class VisualBertPretrainingLoss(nn.Module):
+@registry.register_loss("cross_entropy")
+class CrossEntropyLoss(nn.Module):
     def __init__(self, params={}):
+        super().__init__()
         self.loss_fn = nn.CrossEntropyLoss(**params)
+
+    def forward(self, sample_list, model_output):
+        return self.loss_fn(model_output["scores"], sample_list.targets)
