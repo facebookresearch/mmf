@@ -1,5 +1,5 @@
 includes:
-- common/defaults/configs/datasets/captioning/masked_cc.yml
+- common/defaults/configs/datasets/captioning/masked_sbu.yml
 
 model_attributes:
   visual_bert:
@@ -18,7 +18,7 @@ model_attributes:
     metrics: []
 
 dataset_attributes:
-  masked_cc:
+  masked_sbu:
     return_info: true
 
 optimizer_attributes:
