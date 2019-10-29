@@ -1,5 +1,6 @@
 import torch
 import random
+import numpy as np
 
 
 from pythia.common.sample import Sample
@@ -21,6 +22,24 @@ class MaskedCOCODataset(COCODataset):
 
         if self._use_features is True:
             features = self.features_db[idx]
+            image_labels = []
+            overlaps = np.ones((features["image_feature_0"].shape[0]))
+
+            for i in range(features["image_feature_0"].shape[0]):
+                prob = random.random()
+                # mask token with 15% probability
+                if prob < 0.15:
+                    prob /= 0.15
+
+                    if prob < 0.9:
+                        features["image_feature_0"][i] = 0
+                    image_labels.append(1)
+                else:
+                    # no masking token (will be ignored by loss function later)
+                    image_labels.append(-1)
+            item = {}
+            item["image_labels"] = image_labels
+            current_sample.update(item)
             current_sample.update(features)
 
         current_sample = self._add_masked_caption(sample_info, current_sample)
