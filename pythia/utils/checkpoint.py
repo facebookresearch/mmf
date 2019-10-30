@@ -69,7 +69,7 @@ class Checkpoint:
         if tp.resume_file is not None and \
             (tp.resume is False or not os.path.exists(ckpt_filepath)):
             if os.path.exists(tp.resume_file):
-                self._load(tp.resume_file)
+                self._load(tp.resume_file, load_pretrained=tp.load_pretrained)
                 return
             else:
                 raise RuntimeError("{} doesn't exist".format(tp.resume_file))
@@ -88,7 +88,7 @@ class Checkpoint:
                 if os.path.exists(ckpt_filepath):
                     self._load(ckpt_filepath)
 
-    def _load(self, file, force=False):
+    def _load(self, file, force=False, load_pretrained=False):
         tp = self.config.training_parameters
         self.trainer.writer.write("Loading checkpoint")
 
@@ -104,7 +104,7 @@ class Checkpoint:
 
         pretrained_mapping = tp.pretrained_mapping
 
-        if not tp.load_pretrained or force is True:
+        if load_pretrained is False or force is True:
             pretrained_mapping = {}
 
         new_dict = {}
