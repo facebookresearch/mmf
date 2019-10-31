@@ -40,80 +40,6 @@ language datasets (TextVQA challenge, VQA challenge)
 
 Learn more about Pythia [here](https://learnpythia.readthedocs.io/en/latest/).
 
-## Demo
-
-1. [Pythia VQA](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR). 
-2. [BUTD Captioning](https://colab.research.google.com/drive/1vzrxDYB0vxtuUy8KCaGxm--nDCJvyBSg).
-
-## Getting Started
-
-First install the repo using
-
-```
-git clone https://github.com/facebookresearch/pythia ~/pythia
-
-# You can also create your own conda environment and then enter this step
-cd ~/pythia
-python setup.py develop
-```
-
-Now, Pythia should be ready to use. Follow steps in specific sections to start training
-your own models using Pythia.
-
-
-## Data
-
-Default configuration assume that all of the data is present in the `data` folder inside `pythia` folder.
-
-Depending on which dataset you are planning to use download the feature and imdb (image database) data for that particular dataset using
-the links in the table (_right click -> copy link address_). Feature data has been extracted out from Detectron and are used in the
-reference models. Example below shows the sample commands to be run, once you have
-the feature (feature_link) and imdb (imdb_link) data links.
-
-```
-cd ~/pythia
-mkdir -p data && cd data
-wget http://dl.fbaipublicfiles.com/pythia/data/vocab.tar.gz
-
-# The following command should result in a 'vocabs' folder in your data dir
-tar xf vocab.tar.gz
-
-# Download detectron weights
-wget http://dl.fbaipublicfiles.com/pythia/data/detectron_weights.tar.gz
-tar xf detectron_weights.tar.gz
-
-# Now download the features required, feature link is taken from the table below
-# These two commands below can take time
-wget feature_link
-
-# [features].tar.gz is the file you just downloaded, replace that with your file's name
-tar xf [features].tar.gz
-
-# Make imdb folder and download required imdb
-mkdir -p imdb && cd imdb
-wget imdb_link
-
-# [imdb].tar.gz is the file you just downloaded, replace that with your file's name
-tar xf [imdb].tar.gz
-```
-
-| Dataset      | Key | Task | ImDB Link                                                                         | Features Link  | Features checksum                                                                 | Notes|
-|--------------|-----|-----|-----------------------------------------------------------------------------------|---------------------------------------------------------------------------------|---------|-----|
-| TextVQA      | textvqa | vqa | [TextVQA 0.5 ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/textvqa_0.5.tar.gz) | [OpenImages](https://dl.fbaipublicfiles.com/pythia/features/open_images.tar.gz) | `b22e80997b2580edaf08d7e3a896e324` || 
-| VQA 2.0      | vqa2 | vqa | [VQA 2.0 ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/vqa.tar.gz)                 | [COCO](https://dl.fbaipublicfiles.com/pythia/features/coco.tar.gz)              | `ab7947b04f3063c774b87dfbf4d0e981` ||
-| VizWiz       | vizwiz | vqa | [VizWiz ImDB](https://dl.fbaipublicfiles.com/pythia/data/imdb/vizwiz.tar.gz)           | [VizWiz](https://dl.fbaipublicfiles.com/pythia/features/vizwiz.tar.gz)          | `9a28d6a9892dda8519d03fba52fb899f` ||
-| VisualDialog | visdial | dialog | Coming soon!                                                                      | Coming soon!                                                                    | Coming soon! | |
-| VisualGenome | visual_genome | vqa | Automatically downloaded                                                                      | Automatically downloaded                                                                    | Coming soon! | Also supports scene graphs|
-| CLEVR | clevr | vqa | Automatically downloaded                                                                      | Automatically downloaded                                                                    |  | |
-| MS COCO  | coco    | captioning | [COCO Caption](https://dl.fbaipublicfiles.com/pythia/data/imdb/coco_captions.tar.gz)      | [COCO](https://dl.fbaipublicfiles.com/pythia/features/coco.tar.gz)           | `ab7947b04f3063c774b87dfbf4d0e981`| |
-
-After downloading the features, verify the download by checking the md5sum using 
-
-```bash
-echo "<checksum>  <dataset_name>.tar.gz" | md5sum -c -
-```
-
-
 ## Training
 
 Once we have the data downloaded and in place, we just need to select a model, an appropriate task and dataset as well related config file. Default configurations can be found  inside `configs` folder in repository's root folder. Configs are divided for models in format of `[task]/[dataset_key]/[model_key].yml` where `dataset_key` can be retrieved from the table above. For example, for `pythia` model, configuration for VQA 2.0 dataset can be found at `configs/vqa/vqa2/pythia.yml`. Following table shows the keys and the datasets
@@ -167,10 +93,6 @@ The table below shows inference metrics for various pretrained models:
 
 **Note** that, for simplicity, our current released model **does not** incorporate extensive data augmentations (e.g. visual genome, visual dialogue) during training, which was used in our challenge winner entries for VQA and VizWiz 2018. As a result, there can be some performance gap to models reported and released previously. If you are looking for reproducing those results, please checkout the [v0.1](https://github.com/facebookresearch/pythia/releases/tag/v0.1) release.
 
-## Documentation
-
-Documentation specific on how to navigate around Pythia and making changes will be available soon.
-
 ## Citation
 
 If you use Pythia in your work, please cite:
@@ -194,17 +116,6 @@ and
   volume={2018},
   year={2018}
 }
-```
-
-## Troubleshooting/FAQs
-
-1. If `setup.py` causes any issues, please install fastText first directly from the source and
-then run `python setup.py develop`. To install fastText run following commands:
-
-```
-git clone https://github.com/facebookresearch/fastText.git
-cd fastText
-pip install -e .
 ```
 
 ## License
