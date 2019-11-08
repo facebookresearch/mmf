@@ -4,13 +4,7 @@ includes:
 
 dataset_attributes:
   vqa2:
-    image_features:
-      train:
-      - coco/detectron_fix_100/fc6/train_val_2014
-      val:
-      - coco/detectron_fix_100/fc6/train_val_2014
-      test:
-      - coco/detectron_fix_100/fc6/test2015
+    return_info: true
     processors:
         text_processor:
           type: bert_tokenizer
@@ -27,6 +21,8 @@ model_attributes:
     training_head_type: vqa
     losses:
     - type: logit_bce
+    metrics:
+    - vqa_accuracy
 
 scheduler_attributes:
   type: warmup_linear
@@ -42,8 +38,9 @@ training_parameters:
   pretrained_mapping:
     word_embedding: word_embedding
     text_embedding: text_embedding
-    feature_projection: feature_projection
+    image_feature_projection: image_feature_projection
     image_feature_encoders: image_feature_encoders
     image_feature_embeddings_list: image_feature_embeddings_list
+    image_feature_intra_attention: image_feature_intra_attention
     image_text_multi_modal_combine_layer: image_text_multi_modal_combine_layer
     pooler: pooler

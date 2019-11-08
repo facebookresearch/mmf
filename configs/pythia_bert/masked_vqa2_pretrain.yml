@@ -1,0 +1,10 @@
+includes:
+- common/defaults/configs/datasets/vqa/masked_vqa2.yml
+- ../configs/pythia_bert/coco_pretrain.yml
+
+dataset_attributes:
+  masked_vqa2:
+    imdb_files:
+      train:
+      - imdb/vqa/imdb_train2014_len_coco.npy
+    return_info: true

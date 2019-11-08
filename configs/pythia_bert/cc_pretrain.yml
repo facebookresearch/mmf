@@ -1,5 +1,6 @@
 includes:
-- common/defaults/configs/datasets/captioning/masked_coco.yml
+- ../configs/pythia_bert/coco_pretrain.yml
+- common/defaults/configs/datasets/captioning/masked_cc.yml
 
 model_attributes:
   pythia_bert:
@@ -56,23 +57,5 @@ model_attributes:
       dropout: 0.1
 
 dataset_attributes:
-  masked_coco:
+  masked_cc:
     return_info: true
-
-optimizer_attributes:
-  type: adam_w
-  params:
-    lr: 5e-5
-    eps: 1e-8
-
-scheduler_attributes:
-  type: warmup_linear
-  params:
-    warmup_steps: 1000
-    t_total: 11000
-    
-training_parameters:
-  batch_size: 480
-  lr_scheduler: true
-  # Don't forget to update schedule_attributes if you update this
-  max_updates: 11000
