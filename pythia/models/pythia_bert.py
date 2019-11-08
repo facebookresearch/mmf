@@ -21,6 +21,11 @@ class PythiaBert(Pythia):
         super().build()
         self.tie_weights()
 
+        if getattr(self.config, "freeze_base", False):
+            for n, p in self.named_parameters():
+                if "classifier" not in n:
+                    p.requires_grad = False
+
     def _build_word_embedding(self):
         self.bert_config = BertConfig.from_pretrained(self.config.bert_model_name)
         if self.config.pretrained_bert:
@@ -29,20 +34,25 @@ class PythiaBert(Pythia):
             self.pooler = bert_model.bert.pooler
             self.pooler.apply(self.init_weights)
 
-            if "pretraining" in self.config.training_head_type:
-                self.classifier = bert_model.cls
-                self.classifier.apply(self.init_weights)
-
         else:
             self.pooler = BertPooler(self.bert_config)
             self.word_embedding = BertEmbeddings(self.bert_config)
-            self.classifier = BertPreTrainingHeads(self.bert_config)
 
 
     def _init_classifier(self, hidden_size):
+        if "pretraining" in self.config.training_head_type:
+            self.classifier = BertPreTrainingHeads(self.bert_config)
         if "vqa" in self.config.training_head_type:
             self.dropout = nn.Dropout(self.bert_config.hidden_dropout_prob)
-            self.classifier = nn.Linear(self.bert_config.hidden_size, 3129)
+            self.answer_space_size = 3129
+            self.classifier = nn.Linear(self.bert_config.hidden_size, self.answer_space_size)
+        elif "vizwiz" in self.config.training_head_type:
+            self.dropout = nn.Dropout(self.bert_config.hidden_dropout_prob)
+            self.answer_space_size = 7371
+            self.classifier = nn.Linear(self.bert_config.hidden_size, self.answer_space_size)
+        elif self.config.training_head_type == "visual_entailment":
+            self.dropout = nn.Dropout(self.bert_config.hidden_dropout_prob)
+            self.classifier = nn.Linear(self.bert_config.hidden_size, 3)
 
     def _init_text_embeddings(self, attr="text"):
         self.text_embeddings_out_dim = self.bert_config.hidden_size
@@ -72,8 +82,13 @@ class PythiaBert(Pythia):
             getattr(self.config, "{}_feature_encodings".format(attr))
         )
 
-        self.feature_projection = ProjectionEmbedding(**self.config.image_feature_projection)
+        self.image_feature_projection = ProjectionEmbedding(**self.config.image_feature_projection)
         self.feature_embeddings_out_dim = 0
+
+        if self.config.image_intra_attention:
+            self.image_feature_intra_attention = nn.MultiheadAttention(
+                **self.config.image_feature_attentions[0]
+            )
 
         for _ in range(num_feature_feat):
             feature_embeddings = []
@@ -126,6 +141,8 @@ class PythiaBert(Pythia):
         ]
 
         return optimizer_grouped_parameters
+
+    # WARNING(ASG): This doesn't have finetune_lr_multiplier option enabled yet
 
     def process_text_embedding(self, text_embedding, key_padding_mask=None):
         text_embedding = text_embedding.transpose(0, 1)
@@ -193,12 +210,17 @@ class PythiaBert(Pythia):
             # Get all of the feature embeddings
             list_attr = attr + "_feature_embeddings_list"
             feature_embedding_models = getattr(self, list_attr)[i]
-            encoded_feature = self.feature_projection(encoded_feature)
+            encoded_feature = self.image_feature_projection(encoded_feature)
+            encoded_feature = encoded_feature.transpose(0, 1)
+            text_embedding_total = text_embedding_total.transpose(0, 1)
 
+            if self.config.image_intra_attention:
+                encoded_feature, _ = self.image_feature_intra_attention(
+                    encoded_feature, encoded_feature, encoded_feature,
+                    key_padding_mask=key_padding_mask, attn_mask=attn_mask
+                )
             # Forward through these embeddings one by one
             for feature_embedding_model in feature_embedding_models:
-                encoded_feature = encoded_feature.transpose(0, 1)
-                text_embedding_total = text_embedding_total.transpose(0, 1)
                 inp = (text_embedding_total, encoded_feature, encoded_feature)
                 embedding, attention = feature_embedding_model(
                     *inp, key_padding_mask=key_padding_mask, attn_mask=attn_mask
@@ -242,7 +264,9 @@ class PythiaBert(Pythia):
         masked_lm_labels = getattr(sample_list, "lm_label_ids", None)
         masked_lm_labels = transform_to_batch_sequence(masked_lm_labels)
         # pretraining labels
-        is_random_next = getattr(sample_list, "is_correct", None)
+        # is_random_next = getattr(sample_list, "is_correct", None)
+        # TODO(aps): Fix later on dataset side
+        is_random_next = None
 
         # Since attention_mask is 1.0 for positions we want to attend and 0.0 for
         # masked positions, this operation will create a tensor which is 0.0 for
@@ -278,41 +302,34 @@ class PythiaBert(Pythia):
 
         pooled_output = self.pooler(joint_embedding)
 
-        if "pretraining" in self.config.training_head_type and dataset_name == "masked_coco":
+        if "pretraining" in self.config.training_head_type:
             prediction_scores, seq_relationship_score = self.classifier(
                 joint_embedding, pooled_output
             )
             output_dict["logits"] = prediction_scores
-            output_dict["seq_relationship_score"] = seq_relationship_score
 
-            if masked_lm_labels is not None and is_random_next is not None:
+            if masked_lm_labels is not None:
                 loss_fct = nn.CrossEntropyLoss(ignore_index=-1)
                 masked_lm_loss = loss_fct(
                     prediction_scores.contiguous().view(-1, self.bert_config.vocab_size),
                     masked_lm_labels.contiguous().view(-1)
                 )
-                next_sentence_loss = loss_fct(
-                    seq_relationship_score.contiguous().view(-1, 2),
-                    is_random_next.contiguous().view(-1)
-                )
                 # print(seq_relationship_score.argmax(dim=1), is_random_next)
                 loss_key = "{}/{}".format(sample_list.dataset_name, sample_list.dataset_type)
 
                 output_dict["losses"] = {}
-                output_dict["losses"][loss_key + "/next_sentence_loss"] = next_sentence_loss
                 output_dict["losses"][loss_key + "/masked_lm_loss"] = masked_lm_loss
 
-            if masked_lm_labels is not None and is_random_next is None:
-                loss_fct = nn.CrossEntropyLoss(ignore_index=-1)
-                masked_lm_loss = loss_fct(prediction_scores.contiguous().view(
-                    -1, self.bert_config.vocab_size
-                ), masked_lm_labels.contiguous().view(-1))
-                #output_dict["next_sentence_loss"] = None
-                output_dict["masked_lm_loss"] = masked_lm_loss
-                output_dict["loss"] = masked_lm_loss
+                if is_random_next is not None:
+                    output_dict["seq_relationship_score"] = seq_relationship_score
 
+                    next_sentence_loss = loss_fct(
+                        seq_relationship_score.contiguous().view(-1, 2),
+                        is_random_next.contiguous().view(-1)
+                    )
+                    output_dict["losses"][loss_key + "/next_sentence_loss"] = next_sentence_loss
             return output_dict
-        elif "vqa" in self.config.training_head_type and dataset_name == "vqa2":
+        elif "vqa" in self.config.training_head_type or self.config.training_head_type == "vizwiz":
             index_to_gather = input_mask.sum(1) - 2
 
             pooled_output = torch.gather(
@@ -324,9 +341,14 @@ class PythiaBert(Pythia):
 
             pooled_output = self.dropout(pooled_output)
             logits = self.classifier(pooled_output)
-            reshaped_logits = logits.contiguous().view(-1, 3129)
+            reshaped_logits = logits.contiguous().view(-1, self.answer_space_size)
 
             output_dict["scores"] = reshaped_logits
+            return output_dict
+        elif self.config.training_head_type == "nlvr2" or self.config.training_head_type == "visual_entailment":
+            pooled_output = self.dropout(pooled_output)
+            logits = self.classifier(pooled_output)
+            output_dict["scores"] = logits
             return output_dict
 
         return output_dict

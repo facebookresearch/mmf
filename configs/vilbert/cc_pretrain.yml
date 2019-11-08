@@ -57,6 +57,7 @@ model_attributes:
     visual_target: 0
     objective: 0
     num_negative: 128
+    freeze_base: False
     model: "bert"
 
 dataset_attributes:
