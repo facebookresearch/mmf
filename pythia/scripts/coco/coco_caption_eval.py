@@ -84,9 +84,9 @@ class COCOEvalCap:
         self.eval_imgs = [eval for img_id, eval in self.img_to_eval.items()]
 
 
-def calculate_metrics(img_ids, dataset_dts, dataset_res):
+def calculate_metrics(img_ids, dataset_gts, dataset_res):
     img_to_anns_gts = {id: [] for id in img_ids}
-    for ann in dataset_dts["annotations"]:
+    for ann in dataset_gts["annotations"]:
         img_to_anns_gts[ann["image_id"]] += [ann]
 
     img_to_anns_res = {id: [] for id in img_ids}
@@ -123,6 +123,6 @@ if __name__ == "__main__":
     with open(args.predicted_json, "r") as f:
         preds = json.load(f)
 
-    dataset_dts = {"annotations": references}
+    dataset_gts = {"annotations": references}
     dataset_res = {"annotations": preds}
-    print(calculate_metrics(img_ids, dataset_dts, dataset_res))
+    print(calculate_metrics(img_ids, dataset_gts, dataset_res))
