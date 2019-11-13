@@ -10,5 +10,5 @@ PyYAML>=3.11
 pytest==5.2.0
 requests==2.21.0
 fastText
-nltk==3.4.1
+nltk==3.4.5
 transformers>=2.0.0
