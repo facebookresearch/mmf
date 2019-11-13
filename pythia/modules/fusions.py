@@ -35,6 +35,15 @@ from block import fusions
 from pythia.common.registry import registry
 
 
+@registry.register_fusion("block")
+class Block(nn.Module):
+    def __init__(self, input_dims, output_dims, **kwargs):
+        super(Block, self).__init__()
+        self.module = fusions.Block(input_dims, output_dims, **kwargs)
+
+    def forward(self, *args, **kwargs):
+        return self.module(*args, **kwargs)
+
 @registry.register_fusion("linear_sum")
 class LinearSum(nn.Module):
     def __init__(self, input_dims, output_dims, **kwargs):
