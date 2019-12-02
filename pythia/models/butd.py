@@ -119,28 +119,37 @@ class BUTD(Pythia):
             dtype=torch.float,
         )
 
-        decoder = registry.get_decoder_class(self.config["inference"]["type"])(self.vocab, self.config)
+        if self.config["inference"]["type"] in ["beam_search", "nucleus_sampling"]:
+            decoder = registry.get_decoder_class(self.config["inference"]["type"])(
+                self.vocab, self.config
+            )
+            sample_list = decoder.init_batch(sample_list)
 
-        sample_list = decoder.init_batch(sample_list)
-        # batch_size = sample_list.get_batch_size()
         batch_size = sample_list.image_feature_0.size(0)
         data, sample_list, timesteps = self.prepare_data(sample_list, batch_size)
         output = None
         batch_size_t = batch_size
         for t in range(timesteps):
             data, batch_size_t = self.get_data_t(t, data, batch_size_t, output)
-            pi_t = data["texts"]
+            if self.config["inference"]["type"] in ["beam_search", "nucleus_sampling"]:
+                pi_t = data["texts"]
+            else:
+                pi_t = data["texts"][:, t].unsqueeze(-1)
             embedding = self.word_embedding(pi_t)
             attention_feature, _ = self.process_feature_embedding(
                 "image", sample_list, embedding[:, 0, :], batch_size_t=batch_size_t
             )
             output = self.classifier(attention_feature)
             # Compute decoding
-            finish, data, batch_size_t = decoder.decode(t, data, output)
-            if finish:
-                break
+            if self.config["inference"]["type"] in ["beam_search", "nucleus_sampling"]:
+                finish, data, batch_size_t = decoder.decode(t, data, output)
+                if finish:
+                    break
+            else:
+                scores[:batch_size_t, t] = output
 
         model_output = {"scores": scores}
-        model_output["captions"] = decoder.get_result()
+        if self.config["inference"]["type"] in ["beam_search", "nucleus_sampling"]:
+            model_output["captions"] = decoder.get_result()
 
         return model_output
