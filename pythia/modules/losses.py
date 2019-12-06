@@ -214,6 +214,7 @@ class BinaryCrossEntropyLoss(nn.Module):
         """
         scores = model_output["scores"]
         targets = sample_list["targets"]
+
         loss = F.binary_cross_entropy(scores, targets, reduction="mean")
 
         return loss * targets.size(1)

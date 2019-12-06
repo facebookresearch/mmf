@@ -1830,6 +1830,8 @@ class BertForMultiModalPreTraining(BertPreTrainedModel):
                 output_dict["scores"] = self.classifier(pooled_output.view(-1 , pooled_output.size(1) * 2))
             elif self.training_head_type == "visual_entailment":
                 output_dict["scores"] = self.classifier(pooled_output)
+            elif self.training_head_type == "mmimdb":
+                output_dict["scores"] = self.classifier(pooled_output)
 
         return output_dict
 

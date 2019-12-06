@@ -56,6 +56,9 @@ class BaseTrainer:
         self.device = self.local_rank
         self.distributed = False
 
+        # Will be updated later based on distributed setup
+        registry.register("global_device", self.device)
+
         if self.args.distributed_init_method is not None:
             self.distributed = True
             self.device = torch.device("cuda", self.local_rank)
@@ -101,7 +104,7 @@ class BaseTrainer:
             device_info = "CUDA Device {} is: {}".format(
                 self.args.distributed_rank, torch.cuda.get_device_name(self.local_rank)
             )
-
+            registry.register("global_device", self.args.distributed_rank)
             self.writer.write(device_info, log_all=True)
 
         self.model = self.model.to(self.device)

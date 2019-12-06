@@ -51,6 +51,8 @@ class BaseDataset(Dataset):
             return
         extra_params = {"data_root_dir": self.config.data_root_dir}
         for processor_key, processor_params in self.config.processors.items():
+            if not processor_params:
+                continue
             reg_key = "{}_{}".format(self._name, processor_key)
             reg_check = registry.get(reg_key, no_warning=True)
 
