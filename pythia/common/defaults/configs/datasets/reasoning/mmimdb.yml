@@ -1,0 +1,53 @@
+dataset_attributes:
+  mmimdb:
+      data_root_dir: ../data
+      image_depth_first: false
+      fast_read: false
+      image_features:
+          train:
+          - /private/home/asg/pythia/output_mmimdb/
+          val:
+          - /private/home/asg/pythia/output_mmimdb/
+          test:
+          - /private/home/asg/pythia/output_mmimdb/
+      imdb_files:
+          train:
+          - /private/home/asg/pythia/data/imdb/mm_imdb/train.jsonl
+          val:
+          - /private/home/asg/pythia/data/imdb/mm_imdb/dev.jsonl
+          test:
+          - /private/home/asg/pythia/data/imdb/mm_imdb/test.jsonl
+      features_max_len: 100
+      processors:
+        text_processor:
+          type: vocab
+          params:
+            max_length: 70
+            vocab:
+              type: intersected
+              embedding_name: glove.6B.300d
+              vocab_file: /private/home/asg/pythia/data/imdb/mm_imdb/vocab_mmimdb.txt
+            preprocessor:
+              type: simple_sentence
+              params: {}
+        bbox_processor:
+          type: bbox
+          params:
+            max_length: 50
+        answer_processor:
+          type: multi_hot_answer_from_vocab
+          params:
+              num_answers: 1
+              # Vocab file is relative to [data_root_dir]/[data_folder]
+              vocab_file: /private/home/asg/pythia/data/imdb/mm_imdb/classes_mm_imdb.txt
+              preprocessor:
+                  type: simple_word
+                  params: {}
+      return_info: false
+      # Return OCR information
+      use_ocr: false
+      # Return spatial information of OCR tokens if present
+      use_ocr_info: false
+training_parameters:
+    monitored_metric: mmimdb/micro_f1
+    metric_minimize: false

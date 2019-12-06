@@ -232,6 +232,9 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
         elif self.training_head_type == "visual_entailment":
             self.dropout = nn.Dropout(config.hidden_dropout_prob)
             self.classifier = nn.Linear(config.hidden_size, 3)
+        elif self.training_head_type == "mmimdb":
+            self.dropout = nn.Dropout(config.hidden_dropout_prob)
+            self.classifier = nn.Linear(config.hidden_size, 24)
         elif self.training_head_type == "flickr":
             self.dropout = nn.Dropout(config.hidden_dropout_prob)
             self.cls = BertPreTrainingHeads(config)
@@ -425,11 +428,11 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
         #     output_dict["accuracy"] = counter / prediction_tokens.shape[0]
 
         #     return output_dict
-
-        elif self.training_head_type == "nlvr2" or self.training_head_type == "visual_entailment":
+        elif self.training_head_type == "nlvr2" or self.training_head_type == "visual_entailment" or self.training_head_type == "mmimdb":
             pooled_output = self.dropout(pooled_output)
             logits = self.classifier(pooled_output)
             output_dict["scores"] = logits
+
             return output_dict
 
         elif self.training_head_type == "flickr":
