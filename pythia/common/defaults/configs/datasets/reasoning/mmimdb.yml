@@ -5,11 +5,11 @@ dataset_attributes:
       fast_read: false
       image_features:
           train:
-          - /private/home/asg/pythia/output_mmimdb/
+          - /private/home/asg/features/mm_imdb/detectron_fix_100_resnext152/
           val:
-          - /private/home/asg/pythia/output_mmimdb/
+          - /private/home/asg/features/mm_imdb/detectron_fix_100_resnext152/
           test:
-          - /private/home/asg/pythia/output_mmimdb/
+          - /private/home/asg/features/mm_imdb/detectron_fix_100_resnext152/
       imdb_files:
           train:
           - /private/home/asg/pythia/data/imdb/mm_imdb/train.jsonl

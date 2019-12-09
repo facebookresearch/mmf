@@ -5,11 +5,11 @@ dataset_attributes:
       fast_read: false
       image_features:
           train:
-          - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+          -  /private/home/vedanuj/pythia/data/coco/detectron_fix_resnext152/features_train2014
           val:
-          - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+          -  /private/home/vedanuj/pythia/data/coco/detectron_fix_resnext152/features_val2014
           test:
-          - coco/detectron_fix_100/fc6/test2015,coco/resnet152/test2015
+          -  /private/home/vedanuj/pythia/data/coco/detectron_fix_resnext152/features_train2014
       imdb_files:
           train:
           - imdb/vqa/imdb_train2014.npy
