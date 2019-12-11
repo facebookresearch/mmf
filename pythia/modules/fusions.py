@@ -29,40 +29,46 @@ import collections
 
 import torch
 import torch.nn as nn
-from block.fusions import (
-    Block, LinearSum, ConcatMLP, MLB,
-    Mutan, BlockTucker, Tucker, MFH,
-    MFB, MCB
-)
+from block import fusions
 
 from pythia.common.registry import registry
 
 
+Block = fusions.Block
 registry.register_fusion("block")(Block)
 
 
+LinearSum = fusions.LinearSum
 registry.register_fusion("linear_sum")(LinearSum)
 
 
+ConcatMLP = fusions.ConcatMLP
 registry.register_fusion("concat_mlp")(ConcatMLP)
 
 
+MLB = fusions.MLB
 registry.register_fusion("mlb")(MLB)
 
 
+Mutan = fusions.Mutan
 registry.register_fusion("mutan")(Mutan)
 
 
+Tucker = fusions.Tucker
 registry.register_fusion("tucker")(Tucker)
 
 
+BlockTucker = fusions.BlockTucker
 registry.register_fusion("block_tucker")(BlockTucker)
 
 
+MFH = fusions.MFH
 registry.register_fusion("mfh")(MFH)
 
 
+MFB = fusions.MFB
 registry.register_fusion("mfb")(MFB)
 
 
+MCB = fusions.MCB
 registry.register_fusion("mcb")(MCB)
