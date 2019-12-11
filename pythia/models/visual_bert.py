@@ -6,7 +6,7 @@ from copy import deepcopy
 from torch import nn
 from pytorch_transformers.modeling_bert import (
     BertLayerNorm, BertEmbeddings, BertEncoder, BertPooler,
-    BertLayer, BertPreTrainedModel, BertPreTrainingHeads
+    BertLayer, BertPreTrainedModel, BertPreTrainingHeads, BertPredictionHeadTransform
 )
 from pytorch_transformers.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
 
@@ -219,22 +219,39 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
         if "vqa" in self.training_head_type:
             self.dropout = nn.Dropout(config.hidden_dropout_prob)
             self.answer_space_size = 3129
-            self.classifier = nn.Linear(config.hidden_size, self.answer_space_size)
+            self.classifier = nn.Sequential(
+                BertPredictionHeadTransform(config),
+                nn.Linear(config.hidden_size, self.answer_space_size)
+            )
         elif "vizwiz" in self.training_head_type:
             self.dropout = nn.Dropout(config.hidden_dropout_prob)
             self.answer_space_size = 7371
-            self.classifier = nn.Linear(config.hidden_size, self.answer_space_size)
+            self.classifier = nn.Sequential(
+                BertPredictionHeadTransform(config),
+                nn.Linear(config.hidden_size, self.answer_space_size)
+            )
         elif self.training_head_type == "vqa_advanced":
             self.cls = BertPreTrainingHeads(config)
         elif self.training_head_type == "nlvr2":
             self.dropout = nn.Dropout(config.hidden_dropout_prob)
-            self.classifier = nn.Linear(config.hidden_size * 2, 2)
+            config.hidden_size *= 2
+            self.classifier = nn.Sequential(
+                BertPredictionHeadTransform(config),
+                nn.Linear(config.hidden_size, 2)
+            )
+            config.hidden_size /= 2
         elif self.training_head_type == "visual_entailment":
             self.dropout = nn.Dropout(config.hidden_dropout_prob)
-            self.classifier = nn.Linear(config.hidden_size, 3)
+            self.classifier = nn.Sequential(
+                BertPredictionHeadTransform(config),
+                nn.Linear(config.hidden_size, 3)
+            )
         elif self.training_head_type == "mmimdb":
             self.dropout = nn.Dropout(config.hidden_dropout_prob)
-            self.classifier = nn.Linear(config.hidden_size, 24)
+            self.classifier = nn.Sequential(
+                BertPredictionHeadTransform(config),
+                nn.Linear(config.hidden_size, 24)
+            )
         elif self.training_head_type == "flickr":
             self.dropout = nn.Dropout(config.hidden_dropout_prob)
             self.cls = BertPreTrainingHeads(config)
