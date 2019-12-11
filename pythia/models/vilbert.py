@@ -1680,19 +1680,45 @@ class BertForMultiModalPreTraining(BertPreTrainedModel):
         self.training_head_type = training_head_type
         self.fusion_method = config.fusion_method
         self.dropout = nn.Dropout(dropout_prob)
+        config.defrost()
+        hidden_size = config.hidden_size
+        config.hidden_size = config.bi_hidden_size
 
         if "vqa" in self.training_head_type:
             self.answer_space_size = 3129
-            self.classifier = SimpleClassifier(config.bi_hidden_size, config.bi_hidden_size*2, self.answer_space_size, 0.5)
+            self.classifier = nn.Sequential(
+                BertPredictionHeadTransform(config),
+                nn.Linear(config.hidden_size, 3129)
+            )
+            # self.classifier = SimpleClassifier(config.bi_hidden_size, config.bi_hidden_size*2, self.answer_space_size, 0.5)
         elif "vizwiz" in self.training_head_type:
             self.answer_space_size = 7371
-            self.classifier = SimpleClassifier(config.bi_hidden_size, config.bi_hidden_size*2, self.answer_space_size, 0.5)
+            self.classifier = nn.Sequential(
+                BertPredictionHeadTransform(config),
+                nn.Linear(config.hidden_size, 7371)
+            )
+            # self.classifier = SimpleClassifier(config.bi_hidden_size, config.bi_hidden_size*2, self.answer_space_size, 0.5)
         elif self.training_head_type == "nlvr2":
-            self.classifier = SimpleClassifier(config.bi_hidden_size * 2, config.bi_hidden_size*2, 2, 0.5)
+            config.hidden_size *= 2
+            self.classifier = nn.Sequential(
+                BertPredictionHeadTransform(config),
+                nn.Linear(config.hidden_size, 2)
+            )
+            config.hidden_size /= 2
+            # self.classifier = SimpleClassifier(config.bi_hidden_size * 2, config.bi_hidden_size*2, 2, 0.5)
         elif self.training_head_type == "visual_entailment":
-            self.classifier = nn.Linear(config.bi_hidden_size, 3)
-
-
+            # self.classifier = nn.Linear(config.bi_hidden_size, 3)
+            self.classifier = nn.Sequential(
+                BertPredictionHeadTransform(config),
+                nn.Linear(config.hidden_size, 3)
+            )
+        elif self.training_head_type == "mmimdb":
+            self.classifier = nn.Sequential(
+                BertPredictionHeadTransform(config),
+                nn.Linear(config.hidden_size, 24)
+            )
+        config.hidden_size = hidden_size
+        config.freeze()
         self.apply(self.init_weights)
         self.visual_target = config.visual_target
         self.num_negative = config.num_negative
@@ -1963,11 +1989,15 @@ class VilBERT(BaseModel):
             image_feat_variable = torch.cat([image_feat_variable_0, image_feat_variable_1])
             image_loc_variable = torch.cat([image_loc_variable_0, image_loc_variable_1])
             image_dim_variable = torch.cat([image_dim_variable_0, image_dim_variable_1])
+            image_label_variable = None
+            image_target_variable = None
         else:
             image_info = getattr(sample_list, "image_info_0", {})
             image_dim_variable = getattr(image_info, "max_features", None)
             image_feat_variable = getattr(sample_list, "image_feature_0", None)
-            image_label_variable = torch.tensor(getattr(sample_list, "image_labels", None), dtype=torch.long).cuda()
+            image_label_variable = getattr(sample_list, "image_labels", None)
+            if image_label_variable is not None:
+                image_label_variable = torch.tensor(image_label_variable, dtype=torch.long).cuda()
 
             bbox = np.array(getattr(image_info, "bbox", None), dtype=np.float32)
             image_w = np.array(getattr(image_info, "image_width", None), dtype=np.float32)
