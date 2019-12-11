@@ -29,105 +29,40 @@ import collections
 
 import torch
 import torch.nn as nn
-from block import fusions
+from block.fusions import (
+    Block, LinearSum, ConcatMLP, MLB,
+    Mutan, BlockTucker, Tucker, MFH,
+    MFB, MCB
+)
 
 from pythia.common.registry import registry
 
 
-registry.register_fusion("block")(fusions.Block)
-class Block(nn.Module):
-    def __init__(self, input_dims, output_dims, **kwargs):
-        super(Block, self).__init__()
-        self.module = fusions.Block(input_dims, output_dims, **kwargs)
-
-    def forward(self, *args, **kwargs):
-        return self.module(*args, **kwargs)
-
-registry.register_fusion("linear_sum")(fusions.LinearSum)
-class LinearSum(nn.Module):
-    def __init__(self, input_dims, output_dims, **kwargs):
-        super(LinearSum, self).__init__()
-        self.module = fusions.LinearSum(input_dims, output_dims, **kwargs)
-
-    def forward(self, *args, **kwargs):
-        return self.module(*args, **kwargs)
+registry.register_fusion("block")(Block)
 
 
-registry.register_fusion("concat_mlp")(fusions.ConcatMLP)
-class ConcatMLP(nn.Module):
-    def __init__(self, input_dims, output_dims, **kwargs):
-        super(ConcatMLP, self).__init__()
-        self.module = fusions.ConcatMLP(input_dims, output_dims, **kwargs)
-
-    def forward(self, *args, **kwargs):
-        return self.module(*args, **kwargs)
+registry.register_fusion("linear_sum")(LinearSum)
 
 
-registry.register_fusion("mlb")(fusions.MLB)
-class MLB(nn.Module):
-    def __init__(self, input_dims, output_dims, **kwargs):
-        super(MLB, self).__init__()
-        self.module = fusions.MLB(input_dims, output_dims, **kwargs)
-
-    def forward(self, *args, **kwargs):
-        return self.module(*args, **kwargs)
+registry.register_fusion("concat_mlp")(ConcatMLP)
 
 
-registry.register_fusion("mutan")(fusions.Mutan)
-class Mutan(nn.Module):
-    def __init__(self, input_dims, output_dims, **kwargs):
-        super(Mutan, self).__init__()
-        self.module = fusions.Mutan(input_dims, output_dims, **kwargs)
-
-    def forward(self, *args, **kwargs):
-        return self.module(*args, **kwargs)
+registry.register_fusion("mlb")(MLB)
 
 
-registry.register_fusion("tucker")(fusions.Tucker)
-class Tucker(nn.Module):
-    def __init__(self, input_dims, output_dims, **kwargs):
-        super(Tucker, self).__init__()
-        self.module = fusions.Tucker(input_dims, output_dims, **kwargs)
-
-    def forward(self, *args, **kwargs):
-        return self.module(*args, **kwargs)
+registry.register_fusion("mutan")(Mutan)
 
 
-registry.register_fusion("block_tucker")(fusions.BlockTucker)
-class BlockTucker(nn.Module):
-    def __init__(self, input_dims, output_dims, **kwargs):
-        super(BlockTucker, self).__init__()
-        self.module = fusions.BlockTucker(input_dims, output_dims, **kwargs)
-
-    def forward(self, *args, **kwargs):
-        return self.module(*args, **kwargs)
+registry.register_fusion("tucker")(Tucker)
 
 
-registry.register_fusion("mfh")(fusions.MFH)
-class MFH(nn.Module):
-    def __init__(self, input_dims, output_dims, **kwargs):
-        super(MFH, self).__init__()
-        self.module = fusions.MFH(input_dims, output_dims, **kwargs)
-
-    def forward(self, *args, **kwargs):
-        return self.module(*args, **kwargs)
+registry.register_fusion("block_tucker")(BlockTucker)
 
 
-registry.register_fusion("mfb")(fusions.MFB)
-class MFB(nn.Module):
-    def __init__(self, input_dims, output_dims, **kwargs):
-        super(MFB, self).__init__()
-        self.module = fusions.MFB(input_dims, output_dims, **kwargs)
-
-    def forward(self, *args, **kwargs):
-        return self.module(*args, **kwargs)
+registry.register_fusion("mfh")(MFH)
 
 
-registry.register_fusion("mcb")(fusions.MCB)
-class MCB(nn.Module):
-    def __init__(self, input_dims, output_dims, **kwargs):
-        super(MCB, self).__init__()
-        self.module = fusions.MCB(input_dims, output_dims, **kwargs)
+registry.register_fusion("mfb")(MFB)
 
-    def forward(self, *args, **kwargs):
-        return self.module(*args, **kwargs)
+
+registry.register_fusion("mcb")(MCB)
