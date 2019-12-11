@@ -16,6 +16,7 @@ Various decorators for registry different kind of classes with unique keys
 - Register a dataset builder: ``@registry.register_builder``
 - Register a metric: ``@registry.register_metric``
 - Register a loss: ``@registry.register_loss``
+- Register a fusion technique: ``@registery.register_fusion``
 - Register a model: ``@registry.register_model``
 - Register a processor: ``@registry.register_processor``
 - Register a optimizer: ``@registry.register_optimizer``
@@ -43,6 +44,7 @@ class Registry:
         "model_name_mapping": {},
         "metric_name_mapping": {},
         "loss_name_mapping": {},
+        "fusion_name_mapping": {},
         "optimizer_name_mapping": {},
         "scheduler_name_mapping": {},
         "processor_name_mapping": {},
@@ -188,6 +190,34 @@ class Registry:
                 func, nn.Module
             ), "All loss must inherit torch.nn.Module class"
             cls.mapping["loss_name_mapping"][name] = func
+            return func
+
+        return wrap
+
+    @classmethod
+    def register_fusion(cls, name):
+        r"""Register a fusion technique to registry with key 'name'
+
+        Args:
+            name: Key with which the fusion technique will be registered
+
+        Usage::
+
+            from pythia.common.registry import registry
+            from torch import nn
+
+            @registry.register_fusion("linear_sum")
+            class LinearSum():
+                ...
+        """
+
+        def wrap(func):
+            from torch import nn
+
+            assert issubclass(
+                func, nn.Module
+            ), "All Fusion must inherit torch.nn.Module class"
+            cls.mapping["fusion_name_mapping"][name] = func
             return func
 
         return wrap
