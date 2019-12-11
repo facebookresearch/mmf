@@ -63,7 +63,7 @@ and
 ```
 @inproceedings{singh2018pythia,
   title={Pythia-a platform for vision \& language research},
-  author={Singh, Amanpreet and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
+  author={Singh, Amanpreet and Goswami, Vedanuj and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
   booktitle={SysML Workshop, NeurIPS},
   volume={2018},
   year={2018}
