@@ -14,3 +14,4 @@ fastText
 nltk==3.4.1
 pytorch-transformers==1.2.0
 editdistance
+sklearn==0.0
