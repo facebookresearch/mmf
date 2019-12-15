@@ -47,6 +47,7 @@ Example config for above metric::
 import collections
 
 import torch
+from sklearn.metrics import f1_score
 
 from pythia.common.registry import registry
 from pythia.tasks.processors import EvalAIAnswerProcessor
@@ -648,3 +649,63 @@ class TextCapsBleu4(TextVQAAccuracy):
         self.gt_key = 'ref_strs'
         import pythia.utils.m4c_evaluators as evaluators
         self.evaluator = evaluators.TextCapsBleu4Evaluator()
+@registry.register_metric("macro_f1")
+class MacroF1(BaseMetric):
+    """Metric for calculating Macro F1.
+
+    **Key:** ``macro_f1``
+    """
+
+    def __init__(self, pos_label=1):
+        super().__init__("macro_f1")
+        self.pos_label = pos_label
+
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate macro_f1 and return it back.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration
+            model_output (Dict): Dict returned by model.
+
+        Returns:
+            torch.FloatTensor: macro_f1.
+
+        """
+        output = torch.sigmoid(model_output["scores"])
+        output = torch.round(output)
+        expected = sample_list["targets"]
+
+        value = f1_score(expected.cpu(), output.cpu(), pos_label=self.pos_label, average='macro')
+        return expected.new_tensor(value, dtype=torch.float)
+
+
+@registry.register_metric("micro_f1")
+class MicroF1(BaseMetric):
+    """Metric for calculating Micro F1.
+
+    **Key:** ``micro_f1``
+    """
+
+    def __init__(self, pos_label=1):
+        super().__init__("micro_f1")
+        self.pos_label = pos_label
+
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate micro_f1 and return it back.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration
+            model_output (Dict): Dict returned by model.
+
+        Returns:
+            torch.FloatTensor: micro_f1.
+
+        """
+        output = torch.sigmoid(model_output["scores"])
+        output = torch.round(output)
+        expected = sample_list["targets"]
+
+        value = f1_score(expected.cpu(), output.cpu(), pos_label=self.pos_label, average='micro')
+        return expected.new_tensor(value, dtype=torch.float)
