@@ -16,32 +16,38 @@ class SmoothedValue:
 
     def reset(self):
         self.deque = deque(maxlen=self.window_size)
-        self.series = []
+        self.averaged_value_deque = deque(maxlen=self.window_size)
+        self.batch_sizes = deque(maxlen=self.window_size)
+        self.total_samples = 0
         self.total = 0.0
         self.count = 0
 
-    def update(self, value):
-        self.deque.append(value)
-        self.series.append(value)
+    def update(self, value, batch_size):
+        self.deque.append(value * batch_size)
+        self.averaged_value_deque.append(value)
+        self.batch_sizes.append(batch_size)
+
         self.count += 1
-        self.total += value
+        self.total_samples += batch_size
+        self.total += value * batch_size
 
     @property
     def median(self):
-        d = torch.tensor(list(self.deque))
+        d = torch.tensor(list(self.averaged_value_deque))
         return d.median().item()
 
     @property
     def avg(self):
         d = torch.tensor(list(self.deque))
-        return d.mean().item()
+        s = torch.tensor(list(self.batch_sizes))
+        return d.sum().item() / s.sum().item()
 
     @property
     def global_avg(self):
-        return self.total / self.count
+        return self.total / self.total_samples
 
     def get_latest(self):
-        return self.deque[-1]
+        return self.averaged_value_deque[-1]
 
 
 class Meter:
@@ -49,14 +55,14 @@ class Meter:
         self.meters = defaultdict(SmoothedValue)
         self.delimiter = delimiter
 
-    def update(self, update_dict):
+    def update(self, update_dict, batch_size):
         for k, v in update_dict.items():
             if isinstance(v, torch.Tensor):
                 if v.dim() != 0:
                     v = v.mean()
                 v = v.item()
             assert isinstance(v, (float, int))
-            self.meters[k].update(v)
+            self.meters[k].update(v, batch_size)
 
     def update_from_meter(self, meter):
         for key, value in meter.meters.items():

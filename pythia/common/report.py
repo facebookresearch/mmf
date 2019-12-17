@@ -21,7 +21,7 @@ class Report(OrderedDict):
                 )
 
         self.writer = registry.get("writer")
-
+        self._batch_size = batch.get_batch_size()
         self.warning_string = (
             "Updating forward report with key {}"
             "{}, but it already exists in {}. "
@@ -38,6 +38,9 @@ class Report(OrderedDict):
                     )
                     warnings.warn(log)
                 self[key] = item
+
+    def get_batch_size(self):
+        return self._batch_size
 
     def _check_and_load_tuple(self, batch):
         if isinstance(batch, collections.abc.Mapping):

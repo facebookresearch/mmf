@@ -321,7 +321,7 @@ class BaseTrainer:
             meter_update_dict = {loss_key: reduced_loss}
             meter_update_dict.update(reduced_loss_dict)
             meter_update_dict.update(reduced_metrics_dict)
-            meter.update(meter_update_dict)
+            meter.update(meter_update_dict, report.get_batch_size())
 
     def _logistics(self, report):
         registry.register("current_iteration", self.current_iteration)
