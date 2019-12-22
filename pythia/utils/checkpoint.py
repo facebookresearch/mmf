@@ -99,16 +99,18 @@ class Checkpoint:
 
         # TODO: Move to separate function
         for attr in ckpt_model:
+            new_attr = attr
             if "fa_history" in attr:
-                new_dict[attr.replace("fa_history", "fa_context")] = ckpt_model[attr]
-            elif data_parallel is False and attr.startswith("module."):
+                new_attr = new_attr.replace("fa_history", "fa_context")
+
+            if data_parallel is False and attr.startswith("module."):
                 # In case the ckpt was actually a data parallel model
                 # replace first module. from dataparallel with empty string
-                new_dict[attr.replace("module.", "", 1)] = ckpt_model[attr]
+                new_dict[new_attr.replace("module.", "", 1)] = ckpt_model[attr]
             elif data_parallel is not False and not attr.startswith("module."):
-                new_dict["module." + attr] = ckpt_model[attr]
+                new_dict["module." + new_attr] = ckpt_model[attr]
             else:
-                new_dict[attr] = ckpt_model[attr]
+                new_dict[new_attr] = ckpt_model[attr]
 
         if len(pretrained_mapping.items()) == 0:
             final_dict = new_dict
