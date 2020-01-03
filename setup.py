@@ -2,9 +2,13 @@
 
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os.path
+import shutil
+from glob import glob
 import sys
 
 import setuptools
+from setuptools import Extension
+from setuptools.command.build_ext import build_ext
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "pythia"))
 
@@ -25,11 +29,31 @@ AUTHOR = "Facebook AI Research"
 LICENSE = license
 REQUIREMENTS = (reqs.strip().split("\n"),)
 
+ext_modules = [
+    Extension(
+        'cphoc',
+        sources=['pythia/utils/phoc/src/cphoc.c'],
+        language='c',
+        libraries=["pthread", "dl", "util", "rt", "m"],
+        extra_compile_args=["-O3"],
+    ),
+]
+
+
+class BuildExt(build_ext):
+    def run(self):
+        build_ext.run(self)
+        cphoc_lib = glob('build/lib.*/cphoc.*.so')[0]
+        shutil.copy(cphoc_lib, 'pythia/utils/phoc/cphoc.so')
+
+
 if __name__ == "__main__":
     setuptools.setup(
         name=DISTNAME,
         install_requires=REQUIREMENTS,
         packages=setuptools.find_packages(),
+        ext_modules=ext_modules,
+        cmdclass={'build_ext': BuildExt},
         version="0.3",
         description=DESCRIPTION,
         long_description=LONG_DESCRIPTION,

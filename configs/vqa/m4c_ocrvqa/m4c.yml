@@ -1,0 +1,98 @@
+includes:
+- common/defaults/configs/datasets/vqa/m4c_ocrvqa.yml
+# Use soft copy
+dataset_attributes:
+  m4c_ocrvqa:
+    image_features:
+      train:
+      - m4c_ocrvqa_obj_frcn_features/all,m4c_ocrvqa_ocr_en_frcn_features/all
+      val:
+      - m4c_ocrvqa_obj_frcn_features/all,m4c_ocrvqa_ocr_en_frcn_features/all
+      test:
+      - m4c_ocrvqa_obj_frcn_features/all,m4c_ocrvqa_ocr_en_frcn_features/all
+    imdb_files:
+      train:
+      - imdb/m4c_ocrvqa/imdb_train.npy
+      val:
+      - imdb/m4c_ocrvqa/imdb_val.npy
+      test:
+      - imdb/m4c_ocrvqa/imdb_test.npy
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          max_length: 20
+      answer_processor:
+        type: m4c_answer
+        params:
+          vocab_file: m4c_vocabs/ocrvqa/fixed_answer_vocab_ocrvqa_82.txt
+          preprocessor:
+            type: simple_word
+            params: {}
+          context_preprocessor:
+            type: simple_word
+            params: {}
+          max_length: 50
+          max_copy_steps: 12
+          num_answers: 10
+      copy_processor:
+        type: copy
+        params:
+          max_length: 100
+      phoc_processor:
+        type: phoc
+        params:
+          max_length: 50
+model_attributes:
+  m4c:
+    lr_scale_frcn: 0.1
+    lr_scale_text_bert: 0.1
+    lr_scale_mmt: 1.0  # no scaling
+    text_bert_init_from_bert_base: true
+    text_bert:
+      num_hidden_layers: 3
+    obj:
+      mmt_in_dim: 2048
+      dropout_prob: 0.1
+    ocr:
+      mmt_in_dim: 3002  # 300 (FastText) + 604 (PHOC) + 2048 (Faster R-CNN) + 50 (all zeros; legacy)
+      dropout_prob: 0.1
+    mmt:
+      hidden_size: 768
+      num_hidden_layers: 4
+    classifier:
+      type: linear
+      ocr_max_num: 50
+      ocr_ptr_net:
+        hidden_size: 768
+        query_key_size: 768
+      params: {}
+    model_data_dir: ../data
+    metrics:
+    - type: ocrvqa_accuracy
+    losses:
+    - type: m4c_decoding_bce_with_mask
+optimizer_attributes:
+  params:
+    eps: 1.0e-08
+    lr: 1e-4
+    weight_decay: 0
+  type: Adam
+training_parameters:
+    clip_norm_mode: all
+    clip_gradients: true
+    max_grad_l2_norm: 0.25
+    lr_scheduler: true
+    lr_steps:
+    - 28000
+    - 38000
+    lr_ratio: 0.1
+    use_warmup: true
+    warmup_factor: 0.2
+    warmup_iterations: 1000
+    max_iterations: 48000
+    batch_size: 128
+    num_workers: 8
+    task_size_proportional_sampling: true
+    monitored_metric: m4c_ocrvqa/ocrvqa_accuracy
+    metric_minimize: false
