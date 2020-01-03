@@ -160,7 +160,7 @@ class PythiaLoss(nn.Module):
         if loss.dim() == 0:
             loss = loss.view(1)
 
-            key = "{}/{}/{}".format(
+        key = "{}/{}/{}".format(
             sample_list.dataset_type, sample_list.dataset_name, self.name
         )
 
@@ -476,4 +476,26 @@ class CombinedLoss(nn.Module):
 
         loss = self.weight_softmax * loss1 + loss2
 
+        return loss
+
+
+@registry.register_loss("m4c_decoding_bce_with_mask")
+class M4CDecodingBCEWithMaskLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.one = torch.Tensor([1.])
+
+    def forward(self, sample_list, model_output):
+        scores = model_output["scores"]
+        targets = sample_list["targets"]
+        loss_mask = sample_list["train_loss_mask"]
+        assert scores.dim() == 3 and loss_mask.dim() == 2
+
+        losses = F.binary_cross_entropy_with_logits(
+            scores, targets, reduction="none"
+        )
+        losses *= loss_mask.unsqueeze(-1)
+
+        count = torch.max(torch.sum(loss_mask), self.one.to(losses.device))
+        loss = torch.sum(losses) / count
         return loss

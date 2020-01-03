@@ -560,3 +560,77 @@ class MeanReciprocalRank(RecallAtK):
         """
         ranks = self.get_ranks(sample_list, model_output)
         return torch.mean(ranks.reciprocal())
+
+
+@registry.register_metric("textvqa_accuracy")
+class TextVQAAccuracy(BaseMetric):
+    def __init__(self):
+        super().__init__("textvqa_accuracy")
+        import pythia.utils.m4c_evaluators as evaluators
+        self.evaluator = evaluators.TextVQAAccuracyEvaluator()
+
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        answer_processor = registry.get(
+            sample_list.dataset_name + "_answer_processor"
+        )
+
+        batch_size = sample_list.context_tokens_enc.size(0)
+        pred_answers = model_output["scores"].argmax(dim=-1)
+        context_tokens_enc = sample_list.context_tokens_enc.cpu().numpy()
+        gt_answers_enc = sample_list.gt_answers_enc.cpu().numpy()
+        answer_space_size = answer_processor.get_true_vocab_size()
+
+        predictions = []
+        from pythia.utils.objects_to_byte_tensor import dec_bytes2obj
+        from pythia.utils.text_utils import word_tokenize
+        for idx in range(batch_size):
+            context_tokens = dec_bytes2obj(context_tokens_enc[idx])
+            answer_words = []
+            for answer_id in pred_answers[idx].tolist():
+                if answer_id >= answer_space_size:
+                    answer_id -= answer_space_size
+                    answer_words.append(
+                        word_tokenize(context_tokens[answer_id])
+                    )
+                else:
+                    if answer_id == answer_processor.EOS_IDX:
+                        break
+                    answer_words.append(
+                        answer_processor.answer_vocab.idx2word(answer_id)
+                    )
+
+            pred_answer = ' '.join(answer_words).replace(" 's", "'s")
+            gt_answers = dec_bytes2obj(gt_answers_enc[idx])
+            predictions.append({
+                "pred_answer": pred_answer,
+                "gt_answers": gt_answers,
+            })
+
+        accuracy = self.evaluator.eval_pred_list(predictions)
+        accuracy = torch.tensor(accuracy).cuda()
+
+        return accuracy
+
+
+@registry.register_metric("stvqa_anls")
+class STVQAANLS(TextVQAAccuracy):
+    def __init__(self):
+        self.name = "stvqa_anls"
+        import pythia.utils.m4c_evaluators as evaluators
+        self.evaluator = evaluators.STVQAANLSEvaluator()
+
+
+@registry.register_metric("stvqa_accuracy")
+class STVQAAccuracy(TextVQAAccuracy):
+    def __init__(self):
+        self.name = "stvqa_accuracy"
+        import pythia.utils.m4c_evaluators as evaluators
+        self.evaluator = evaluators.STVQAAccuracyEvaluator()
+
+
+@registry.register_metric("ocrvqa_accuracy")
+class OCRVQAAccuracy(STVQAAccuracy):
+    def __init__(self):
+        super().__init__()
+        # same as STVQAAccuracy except for the name
+        self.name = "ocrvqa_accuracy"
