@@ -11,3 +11,5 @@ pytest==3.3.2
 requests==2.21.0
 fasttext==0.9.1
 nltk==3.4.1
+pytorch-transformers==1.2.0
+editdistance
