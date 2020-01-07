@@ -1012,6 +1012,11 @@ class M4CAnswerProcessor(BaseProcessor):
         self.max_copy_steps = config.max_copy_steps
         assert self.max_copy_steps >= 1
 
+        self.match_answer_to_unk = False
+
+    def tokenize(self, sentence):
+        return sentence.split()
+
     def match_answer_to_vocab_ocr_seq(
         self, answer, vocab2idx_dict, ocr2inds_dict, max_match_num=20
     ):
@@ -1022,7 +1027,7 @@ class M4CAnswerProcessor(BaseProcessor):
         """
         num_vocab = len(vocab2idx_dict)
 
-        answer_words = answer.split()
+        answer_words = self.tokenize(answer)
         answer_word_matches = []
         for word in answer_words:
             # match answer word to fixed vocabulary
@@ -1036,7 +1041,10 @@ class M4CAnswerProcessor(BaseProcessor):
                 [num_vocab + idx for idx in ocr2inds_dict[word]]
             )
             if len(matched_inds) == 0:
-                return []
+                if self.match_answer_to_unk:
+                    matched_inds.append(vocab2idx_dict.get('<unk>'))
+                else:
+                    return []
             answer_word_matches.append(matched_inds)
 
         # expand per-word matched indices into the list of matched sequences
@@ -1062,14 +1070,7 @@ class M4CAnswerProcessor(BaseProcessor):
     def get_true_vocab_size(self):
         return self.answer_vocab.num_vocab
 
-    def __call__(self, item):
-        answers = item["answers"]
-        answers = [
-            self.answer_preprocessor({"text": a})["text"] for a in answers
-        ]
-        assert len(answers) == self.num_answers
-
-        # Step 1: calculate the soft score of ground-truth answers
+    def compute_answer_scores(self, answers):
         gt_answers = list(enumerate(answers))
         unique_answers = sorted(set(answers))
         unique_answer_scores = [0] * len(unique_answers)
@@ -1088,6 +1089,17 @@ class M4CAnswerProcessor(BaseProcessor):
         unique_answer2score = {
             a: s for a, s in zip(unique_answers, unique_answer_scores)
         }
+        return unique_answer2score
+
+    def __call__(self, item):
+        answers = item["answers"]
+        answers = [
+            self.answer_preprocessor({"text": a})["text"] for a in answers
+        ]
+        assert len(answers) == self.num_answers
+
+        # Step 1: calculate the soft score of ground-truth answers
+        unique_answer2score = self.compute_answer_scores(answers)
 
         # Step 2: fill the first step soft scores for tokens
         scores = torch.zeros(
@@ -1150,3 +1162,25 @@ class M4CAnswerProcessor(BaseProcessor):
             'train_loss_mask': train_loss_mask,
         }
         return answer_info
+
+
+@registry.register_processor("m4c_caption")
+class M4CCaptionProcessor(M4CAnswerProcessor):
+    def __init__(self, config, *args, **kwargs):
+        super().__init__(config, *args, **kwargs)
+        import re
+        self.SENTENCE_SPLIT_REGEX = re.compile(r"(\W+)")
+
+        self.match_answer_to_unk = True
+
+    def tokenize(self, sentence):
+        sentence = sentence.lower()
+        sentence = sentence.replace(",", "").replace("?", "").replace(".", "")\
+            .replace("'s", " 's")
+        tokens = self.SENTENCE_SPLIT_REGEX.split(sentence)
+        tokens = [t.strip() for t in tokens if len(t.strip()) > 0]
+        return tokens
+
+    def compute_answer_scores(self, answers):
+        unique_answer2score = {a: 1. for a in answers}
+        return unique_answer2score

@@ -1,0 +1,15 @@
+includes:
+- ../configs/captioning/m4c_textcaps/butd.yml
+dataset_attributes:
+  coco:
+    imdb_files:
+      val:
+      - imdb/m4c_textcaps/imdb_val_filtered_by_image_id.npy
+model_attributes:
+  butd: &butd
+    inference:
+      type: beam_search
+      params:
+        beam_length: 5
+training_parameters:
+  batch_size: 1

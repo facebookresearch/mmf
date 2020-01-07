@@ -496,6 +496,7 @@ class TextVQAAccuracy(BaseMetric):
         super().__init__("textvqa_accuracy")
         import pythia.utils.m4c_evaluators as evaluators
         self.evaluator = evaluators.TextVQAAccuracyEvaluator()
+        self.gt_key = 'gt_answers_enc'
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
         answer_processor = registry.get(
@@ -505,7 +506,7 @@ class TextVQAAccuracy(BaseMetric):
         batch_size = sample_list.context_tokens_enc.size(0)
         pred_answers = model_output["scores"].argmax(dim=-1)
         context_tokens_enc = sample_list.context_tokens_enc.cpu().numpy()
-        gt_answers_enc = sample_list.gt_answers_enc.cpu().numpy()
+        gt_answers_enc = sample_list[self.gt_key].cpu().numpy()
         answer_space_size = answer_processor.get_true_vocab_size()
 
         predictions = []
@@ -543,6 +544,7 @@ class TextVQAAccuracy(BaseMetric):
 @registry.register_metric("stvqa_anls")
 class STVQAANLS(TextVQAAccuracy):
     def __init__(self):
+        super().__init__()
         self.name = "stvqa_anls"
         import pythia.utils.m4c_evaluators as evaluators
         self.evaluator = evaluators.STVQAANLSEvaluator()
@@ -551,6 +553,7 @@ class STVQAANLS(TextVQAAccuracy):
 @registry.register_metric("stvqa_accuracy")
 class STVQAAccuracy(TextVQAAccuracy):
     def __init__(self):
+        super().__init__()
         self.name = "stvqa_accuracy"
         import pythia.utils.m4c_evaluators as evaluators
         self.evaluator = evaluators.STVQAAccuracyEvaluator()
@@ -562,3 +565,13 @@ class OCRVQAAccuracy(STVQAAccuracy):
         super().__init__()
         # same as STVQAAccuracy except for the name
         self.name = "ocrvqa_accuracy"
+
+
+@registry.register_metric("textcaps_bleu4")
+class TextCapsBleu4(TextVQAAccuracy):
+    def __init__(self):
+        super().__init__()
+        self.name = "textcaps_bleu4"
+        self.gt_key = 'ref_strs'
+        import pythia.utils.m4c_evaluators as evaluators
+        self.evaluator = evaluators.TextCapsBleu4Evaluator()

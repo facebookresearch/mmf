@@ -2,13 +2,13 @@
 
 This repository contains the code for M4C model from the following paper, released under the Pythia framework:
 
-* R. Hu, A. Singh, T. Darrell, M. Rohrbach, *Iterative Answer Prediction with Pointer-Augmented Multimodal Transformers for TextVQA*. arXiv preprint arXiv:1911.06258, 2019 ([PDF](https://arxiv.org/pdf/1911.06258.pdf))
+* R. Hu, A. Singh, T. Darrell, M. Rohrbach, *Iterative Answer Prediction with Pointer-Augmented Multimodal Transformers for TextVQA*. in CVPR, 2020 ([PDF](https://arxiv.org/pdf/1911.06258.pdf))
 ```
-@article{hu2019iterative,
+@inproceedings{hu2020iterative,
   title={Iterative Answer Prediction with Pointer-Augmented Multimodal Transformers for TextVQA},
   author={Hu, Ronghang and Singh, Amanpreet and Darrell, Trevor and Rohrbach, Marcus},
-  journal={arXiv preprint arXiv:1911.06258},
-  year={2019}
+  booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
+  year={2020}
 }
 ```
 
@@ -19,7 +19,7 @@ Project Page: http://ronghanghu.com/m4c
 Clone this repository, and build it with the following command.
 ```
 cd ~/pythia
-python setup.py develop
+python setup.py build develop
 ```
 This will install all M4C dependencies such as `pytorch-transformers` and `editdistance` and will also compile the python interface for PHOC features.
 
@@ -35,9 +35,20 @@ For the TextVQA dataset, the downloaded file contains both imdbs with the Rosett
 
 | Datasets      | M4C Vocabs | M4C ImDBs | Object Faster R-CNN Features | OCR Faster R-CNN Features |
 |--------------|-----|-----|-------------------------------|-------------------------------|
-| TextVQA      | [All Vocabs](https://dl.fbaipublicfiles.com/pythia_m4c/data/m4c_vocabs.tar.gz) | [TextVQA ImDB](https://dl.fbaipublicfiles.com/pythia_m4c/data/imdb/m4c_textvqa.tar.gz) | [OpenImages](https://dl.fbaipublicfiles.com/pythia/features/open_images.tar.gz) | [TextVQA Rosetta-en OCRs](https://dl.fbaipublicfiles.com/pythia_m4c/data/m4c_textvqa_ocr_en_frcn_features.tar.gz), [TextVQA Rosetta-ml OCRs](https://dl.fbaipublicfiles.com/pythia_m4c/data/m4c_textvqa_ocr_ml_frcn_features.tar.gz) |
-| ST-VQA      | [All Vocabs](https://dl.fbaipublicfiles.com/pythia_m4c/data/m4c_vocabs.tar.gz) | [ST-VQA ImDB](https://dl.fbaipublicfiles.com/pythia_m4c/data/imdb/m4c_stvqa.tar.gz) | [ST-VQA Objects](https://dl.fbaipublicfiles.com/pythia_m4c/data/m4c_stvqa_obj_frcn_features.tar.gz) | [ST-VQA Rosetta-en OCRs](https://dl.fbaipublicfiles.com/pythia_m4c/data/m4c_stvqa_ocr_en_frcn_features.tar.gz) |
-| OCR-VQA      | [All Vocabs](https://dl.fbaipublicfiles.com/pythia_m4c/data/m4c_vocabs.tar.gz) | [OCR-VQA ImDB](https://dl.fbaipublicfiles.com/pythia_m4c/data/imdb/m4c_ocrvqa.tar.gz) | [OCR-VQA Objects](https://dl.fbaipublicfiles.com/pythia_m4c/data/m4c_ocrvqa_obj_frcn_features.tar.gz) | [OCR-VQA Rosetta-en OCRs](https://dl.fbaipublicfiles.com/pythia_m4c/data/m4c_ocrvqa_ocr_en_frcn_features.tar.gz) |
+| TextVQA      | [All Vocabs](https://dl.fbaipublicfiles.com/pythia/m4c/data/m4c_vocabs.tar.gz) | [TextVQA ImDB](https://dl.fbaipublicfiles.com/pythia/m4c/data/imdb/m4c_textvqa.tar.gz) | [Open Images](https://dl.fbaipublicfiles.com/pythia/features/open_images.tar.gz) | [TextVQA Rosetta-en OCRs](https://dl.fbaipublicfiles.com/pythia/m4c/data/m4c_textvqa_ocr_en_frcn_features.tar.gz), [TextVQA Rosetta-ml OCRs](https://dl.fbaipublicfiles.com/pythia/m4c/data/m4c_textvqa_ocr_ml_frcn_features.tar.gz) |
+| ST-VQA      | [All Vocabs](https://dl.fbaipublicfiles.com/pythia/m4c/data/m4c_vocabs.tar.gz) | [ST-VQA ImDB](https://dl.fbaipublicfiles.com/pythia/m4c/data/imdb/m4c_stvqa.tar.gz) | [ST-VQA Objects](https://dl.fbaipublicfiles.com/pythia/m4c/data/m4c_stvqa_obj_frcn_features.tar.gz) | [ST-VQA Rosetta-en OCRs](https://dl.fbaipublicfiles.com/pythia/m4c/data/m4c_stvqa_ocr_en_frcn_features.tar.gz) |
+| OCR-VQA      | [All Vocabs](https://dl.fbaipublicfiles.com/pythia/m4c/data/m4c_vocabs.tar.gz) | [OCR-VQA ImDB](https://dl.fbaipublicfiles.com/pythia/m4c/data/imdb/m4c_ocrvqa.tar.gz) | [OCR-VQA Objects](https://dl.fbaipublicfiles.com/pythia/m4c/data/m4c_ocrvqa_obj_frcn_features.tar.gz) | [OCR-VQA Rosetta-en OCRs](https://dl.fbaipublicfiles.com/pythia/m4c/data/m4c_ocrvqa_ocr_en_frcn_features.tar.gz) |
+
+In addition, you also need to download the detectron weights to use Faster R-CNN features:
+```
+# Download detectron weights
+cd data/
+wget http://dl.fbaipublicfiles.com/pythia/data/detectron_weights.tar.gz
+tar xf detectron_weights.tar.gz
+cd ..
+```
+
+Note that the object Faster R-CNN features are extracted with [`extract_features_vmb.py`](../../pythia/scripts/features/extract_features_vmb.py) and the OCR Faster R-CNN features are extracted with [`extract_ocr_frcn_feature.py`](../../projects/M4C/scripts/extract_ocr_frcn_feature.py).
 
 ## Pretrained M4C Models
 
@@ -47,11 +58,11 @@ For the TextVQA dataset, we release three versions: M4C trained with ST-VQA as a
 
 | Datasets  | Config Files (under `configs/vqa/`)         | Pretrained Models | Metrics                     | Notes                         |
 |--------|------------------|----------------------------|-------------------------------|-------------------------------|
-| TextVQA (`m4c_textvqa`) | `m4c_textvqa/m4c_with_stvqa.yml` | [`m4c_textvqa_m4c_with_stvqa`](https://dl.fbaipublicfiles.com/pythia_m4c/m4c_release_models/m4c_textvqa/m4c_textvqa_m4c_with_stvqa.ckpt) | val accuracy - 40.55%; test accuracy - 40.46% | Rosetta-en OCRs; ST-VQA as additional data |
-| TextVQA (`m4c_textvqa`) | `m4c_textvqa/m4c.yml` | [`m4c_textvqa_m4c`](https://dl.fbaipublicfiles.com/pythia_m4c/m4c_release_models/m4c_textvqa/m4c_textvqa_m4c.ckpt) | val accuracy - 39.40%; test accuracy - 39.01% | Rosetta-en OCRs |
-| TextVQA (`m4c_textvqa`) | `m4c_textvqa/m4c_ocr_ml.yml` | [`m4c_textvqa_m4c_ocr_ml`](https://dl.fbaipublicfiles.com/pythia_m4c/m4c_release_models/m4c_textvqa/m4c_textvqa_m4c_ocr_ml.ckpt) | val accuracy - 37.06% | Rosetta-ml OCRs |
-| ST-VQA (`m4c_stvqa`)  | `m4c_stvqa/m4c.yml` | [`m4c_stvqa_m4c`](https://dl.fbaipublicfiles.com/pythia_m4c/m4c_release_models/m4c_stvqa/m4c_stvqa_m4c.ckpt) | val ANLS - 0.472 (accuracy - 38.05%); test ANLS - 0.462 | Rosetta-en OCRs |
-| OCR-VQA (`m4c_ocrvqa`) | `m4c_ocrvqa/m4c.yml` | [`m4c_ocrvqa_m4c`](https://dl.fbaipublicfiles.com/pythia_m4c/m4c_release_models/m4c_ocrvqa/m4c_ocrvqa_m4c.ckpt) | val accuracy - 63.52%; test accuracy - 63.87% | Rosetta-en OCRs |
+| TextVQA (`m4c_textvqa`) | `m4c_textvqa/m4c_with_stvqa.yml` | [`m4c_textvqa_m4c_with_stvqa`](https://dl.fbaipublicfiles.com/pythia/m4c/m4c_release_models/m4c_textvqa/m4c_textvqa_m4c_with_stvqa.ckpt) | val accuracy - 40.55%; test accuracy - 40.46% | Rosetta-en OCRs; ST-VQA as additional data |
+| TextVQA (`m4c_textvqa`) | `m4c_textvqa/m4c.yml` | [`m4c_textvqa_m4c`](https://dl.fbaipublicfiles.com/pythia/m4c/m4c_release_models/m4c_textvqa/m4c_textvqa_m4c.ckpt) | val accuracy - 39.40%; test accuracy - 39.01% | Rosetta-en OCRs |
+| TextVQA (`m4c_textvqa`) | `m4c_textvqa/m4c_ocr_ml.yml` | [`m4c_textvqa_m4c_ocr_ml`](https://dl.fbaipublicfiles.com/pythia/m4c/m4c_release_models/m4c_textvqa/m4c_textvqa_m4c_ocr_ml.ckpt) | val accuracy - 37.06% | Rosetta-ml OCRs |
+| ST-VQA (`m4c_stvqa`)  | `m4c_stvqa/m4c.yml` | [`m4c_stvqa_m4c`](https://dl.fbaipublicfiles.com/pythia/m4c/m4c_release_models/m4c_stvqa/m4c_stvqa_m4c.ckpt) | val ANLS - 0.472 (accuracy - 38.05%); test ANLS - 0.462 | Rosetta-en OCRs |
+| OCR-VQA (`m4c_ocrvqa`) | `m4c_ocrvqa/m4c.yml` | [`m4c_ocrvqa_m4c`](https://dl.fbaipublicfiles.com/pythia/m4c/m4c_release_models/m4c_ocrvqa/m4c_ocrvqa_m4c.ckpt) | val accuracy - 63.52%; test accuracy - 63.87% | Rosetta-en OCRs |
 
 ## Training and Evaluation
 
@@ -61,16 +72,26 @@ For example:
 
 1) to train the M4C model on the TextVQA training set:
 ```
+# Distributed Data Parallel (on a 4-GPU machine)
+# (change `--nproc_per_node 4` to the actual GPU number on your machine)
+python -m torch.distributed.launch --nproc_per_node 4 tools/run.py --tasks vqa --datasets m4c_textvqa --model m4c \
+--config configs/vqa/m4c_textvqa/m4c.yml \
+--save_dir save/m4c \
+training_parameters.distributed True
+
+# alternative: Data Parallel (slower, but results should be the same)
 python tools/run.py --tasks vqa --datasets m4c_textvqa --model m4c \
 --config configs/vqa/m4c_textvqa/m4c.yml \
+--save_dir save/m4c \
 training_parameters.data_parallel True
 ```
-(Replace `m4c_textvqa` with other datasets and `configs/vqa/m4c_textvqa/m4c.yml` with other config files to train with other datasets and configurations. See the table above.)
+(Replace `m4c_textvqa` with other datasets and `configs/vqa/m4c_textvqa/m4c.yml` with other config files to train with other datasets and configurations. See the table above. You can also specify a different path to `--save_dir` to save to a location you prefer.)
 
 2) to evaluate the pretrained M4C model locally on the TextVQA validation set (assuming the pretrained model is downloaded to `data/models/m4c_textvqa_m4c.ckpt`):
 ```
 python tools/run.py --tasks vqa --datasets m4c_textvqa --model m4c \
 --config configs/vqa/m4c_textvqa/m4c.yml \
+--save_dir save/m4c \
 --run_type val \
 --resume_file data/models/m4c_textvqa_m4c.ckpt
 ```
@@ -80,6 +101,7 @@ python tools/run.py --tasks vqa --datasets m4c_textvqa --model m4c \
 ```
 python tools/run.py --tasks vqa --datasets m4c_textvqa --model m4c \
 --config configs/vqa/m4c_textvqa/m4c.yml \
+--save_dir save/m4c \
 --run_type inference --evalai_inference 1 \
 --resume_file data/models/m4c_textvqa_m4c.ckpt
 ```

@@ -25,3 +25,4 @@ eggs/
 .DS_Store
 .vscode/*
 *.so
+*-checkpoint.ipynb

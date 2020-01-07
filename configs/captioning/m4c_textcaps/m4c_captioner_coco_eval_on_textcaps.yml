@@ -1,0 +1,14 @@
+includes:
+- ../configs/captioning/m4c_textcaps/m4c_captioner_coco.yml
+dataset_attributes:
+  m4c_textcaps:
+    image_features:
+      val:
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      test:
+      - open_images/detectron_fix_100/fc6/test,m4c_textvqa_ocr_en_frcn_features/test_images
+    imdb_files:
+      val:
+      - imdb/m4c_textcaps/imdb_val_filtered_by_image_id.npy  # only one sample per image_id
+      test:
+      - imdb/m4c_textcaps/imdb_test_filtered_by_image_id.npy  # only one sample per image_id

@@ -49,7 +49,12 @@ class BUTD(Pythia):
         return params
 
     def prepare_data(self, sample_list, batch_size):
-        setattr(self, "teacher_forcing", hasattr(sample_list, "text"))
+        # turn off teacher forcing during beam search
+        # (otherwise one cannot run beam search on val set)
+        self.teacher_forcing = (
+            self.config.inference.type != "beam_search" and
+            hasattr(sample_list, "text")
+        )
         data = {}
         if self.teacher_forcing:
             caption_lengths, sort_ind = sample_list.caption_len.sort(

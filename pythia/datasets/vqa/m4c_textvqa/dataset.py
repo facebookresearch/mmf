@@ -15,6 +15,12 @@ class M4CTextVQADataset(TextVQADataset):
         )
         self._name = "m4c_textvqa"
 
+    def preprocess_sample_info(self, sample_info):
+        return sample_info  # Do nothing
+
+    def postprocess_evalai_entry(self, entry):
+        return entry  # Do nothing
+
     def format_for_evalai(self, report):
         answer_processor = self.answer_processor
 
@@ -47,9 +53,11 @@ class M4CTextVQADataset(TextVQADataset):
             pred_answer = ' '.join(answer_words).replace(" 's", "'s")
             entry = {
                 "question_id": question_id.item(),
+                "image_id": report.image_id[idx],
                 "answer": pred_answer,
                 "pred_source": pred_source,
             }
+            entry = self.postprocess_evalai_entry(entry)
 
             predictions.append(entry)
 
@@ -57,6 +65,7 @@ class M4CTextVQADataset(TextVQADataset):
 
     def load_item(self, idx):
         sample_info = self.imdb[idx]
+        sample_info = self.preprocess_sample_info(sample_info)
         current_sample = Sample()
 
         # breaking change from VQA2Dataset: load question_id
@@ -65,9 +74,7 @@ class M4CTextVQADataset(TextVQADataset):
         )
 
         if isinstance(sample_info["image_id"], int):
-            current_sample.image_id = torch.tensor(
-                sample_info["image_id"], dtype=torch.int
-            )
+            current_sample.image_id = str(sample_info["image_id"])
         else:
             current_sample.image_id = sample_info["image_id"]
 
@@ -77,6 +84,15 @@ class M4CTextVQADataset(TextVQADataset):
 
         current_sample = self.add_sample_details(sample_info, current_sample)
         current_sample = self.add_answer_info(sample_info, current_sample)
+
+        # only the 'max_features' key is needed
+        # pop other keys to minimize data loading overhead
+        for k in list(current_sample.image_info_0):
+            if k != 'max_features':
+                current_sample.image_info_0.pop(k)
+        for k in list(current_sample.image_info_1):
+            if k != 'max_features':
+                current_sample.image_info_1.pop(k)
 
         return current_sample
 
@@ -100,8 +116,18 @@ class M4CTextVQADataset(TextVQADataset):
         )["blob"]
 
         # 3. Load OCR
-        assert self.use_ocr and self.use_ocr_info, \
-            'use_ocr and use_ocr_info must be both True for M4CTextVQADataset'
+        if not self.use_ocr:
+            # remove all OCRs from the sample
+            # (i.e. make an empty OCR list)
+            sample_info['ocr_tokens'] = []
+            sample_info['ocr_info'] = []
+            if 'ocr_normalized_boxes' in sample_info:
+                sample_info['ocr_normalized_boxes'] = np.zeros(
+                    (0, 4), np.float32
+                )
+            # clear OCR visual features
+            sample.image_feature_1 = torch.zeros_like(sample.image_feature_1)
+
         # Preprocess OCR tokens
         ocr_tokens = [
             self.ocr_token_processor({"text": token})["text"]
