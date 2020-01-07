@@ -96,6 +96,22 @@ class M4C(BaseModel):
         self.obj_drop = nn.Dropout(self.config.obj.dropout_prob)
 
     def _build_ocr_encoding(self):
+        self.remove_ocr_fasttext = getattr(
+            self.config.ocr, 'remove_ocr_fasttext', False
+        )
+        self.remove_ocr_phoc = getattr(
+            self.config.ocr, 'remove_ocr_phoc', False
+        )
+        self.remove_ocr_frcn = getattr(
+            self.config.ocr, 'remove_ocr_frcn', False
+        )
+        self.remove_ocr_semantics = getattr(
+            self.config.ocr, 'remove_ocr_semantics', False
+        )
+        self.remove_ocr_bbox = getattr(
+            self.config.ocr, 'remove_ocr_bbox', False
+        )
+
         # OCR appearance feature: Faster R-CNN
         self.ocr_faster_rcnn_fc7 = ImageEncoder(
             encoder_type='finetune_faster_rcnn_fpn_fc7',
@@ -214,11 +230,21 @@ class M4C(BaseModel):
         # TODO remove OCR order vectors; they are not needed
         ocr_order_vectors = torch.zeros_like(sample_list.order_vectors)
 
+        if self.remove_ocr_fasttext:
+            ocr_fasttext = torch.zeros_like(ocr_fasttext)
+        if self.remove_ocr_phoc:
+            ocr_phoc = torch.zeros_like(ocr_phoc)
+        if self.remove_ocr_frcn:
+            ocr_fc7 = torch.zeros_like(ocr_fc7)
         ocr_feat = torch.cat(
             [ocr_fasttext, ocr_phoc, ocr_fc7, ocr_order_vectors],
             dim=-1
         )
         ocr_bbox = sample_list.ocr_bbox_coordinates
+        if self.remove_ocr_semantics:
+            ocr_feat = torch.zeros_like(ocr_feat)
+        if self.remove_ocr_bbox:
+            ocr_bbox = torch.zeros_like(ocr_bbox)
         ocr_mmt_in = (
             self.ocr_feat_layer_norm(
                 self.linear_ocr_feat_to_mmt_in(ocr_feat)

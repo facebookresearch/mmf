@@ -2,6 +2,7 @@
 import json
 import os
 
+import torch
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.distributed import DistributedSampler
 
@@ -136,7 +137,8 @@ class TestReporter(Dataset):
         # TODO: Later gather whole report for no opinions
         if self.current_dataset._name == "coco":
             report.captions = gather_tensor(report.captions)
-            report.image_id = gather_tensor(report.image_id).view(-1)
+            if isinstance(report.image_id, torch.Tensor):
+                report.image_id = gather_tensor(report.image_id).view(-1)
         else:
             report.scores = gather_tensor(report.scores).view(-1, report.scores.size(-1))
             report.question_id = gather_tensor(report.question_id).view(-1)

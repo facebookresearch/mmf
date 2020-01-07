@@ -298,3 +298,31 @@ class STVQAANLSEvaluator:
 
         accuracy = sum(pred_scores) / len(pred_scores)
         return accuracy
+
+
+class TextCapsBleu4Evaluator:
+    def __init__(self):
+        # The following script requires Java 1.8.0 and pycocotools installed.
+        # The pycocoevalcap can be installed with pip as
+        # pip install git+https://github.com/ronghanghu/coco-caption.git@python23
+        # Original pycocoevalcap code is at https://github.com/tylin/coco-caption
+        # but has no python3 support yet.
+        from pycocoevalcap.tokenizer.ptbtokenizer import PTBTokenizer
+        from pycocoevalcap.bleu.bleu import Bleu
+        self.tokenizer = PTBTokenizer()
+        self.scorer = Bleu(4)
+
+    def eval_pred_list(self, pred_list):
+        # Create reference and hypotheses captions.
+        gts = {}
+        res = {}
+        for idx, entry in enumerate(pred_list):
+            gts[idx] = [{'caption': a} for a in entry['gt_answers']]
+            res[idx] = [{'caption': entry['pred_answer']}]
+
+        gts = self.tokenizer.tokenize(gts)
+        res = self.tokenizer.tokenize(res)
+        score, _ = self.scorer.compute_score(gts, res)
+
+        bleu4 = score[3]  # score is (Bleu-1, Bleu-2, Bleu-3, Bleu-4)
+        return bleu4

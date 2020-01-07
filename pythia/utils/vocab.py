@@ -126,6 +126,9 @@ class BaseVocab:
                     self.word_dict[line.strip()] = index
                     index += 1
 
+        self.word_dict[self.SOS_TOKEN] = self.SOS_INDEX
+        self.word_dict[self.EOS_TOKEN] = self.EOS_INDEX
+        self.word_dict[self.PAD_TOKEN] = self.PAD_INDEX
         self.word_dict[self.UNK_TOKEN] = self.UNK_INDEX
         # Return unk index by default
         self.stoi = defaultdict(lambda: self.UNK_INDEX)

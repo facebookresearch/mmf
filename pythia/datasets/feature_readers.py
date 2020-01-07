@@ -135,7 +135,7 @@ class PaddedFasterRCNNFeatureReader:
 
         image_loc, image_dim = image_feature.shape
         tmp_image_feat = np.zeros((self.max_loc, image_dim), dtype=np.float32)
-        tmp_image_feat[0:image_loc,] = image_feature
+        tmp_image_feat[0:image_loc,] = image_feature[:self.max_loc, :]
         image_feature = torch.from_numpy(tmp_image_feat)
 
         image_info["max_features"] = torch.tensor(image_loc, dtype=torch.long)
