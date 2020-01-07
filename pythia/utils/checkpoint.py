@@ -42,7 +42,7 @@ class Checkpoint:
 
         self.models_foldername = os.path.join(self.ckpt_foldername, "models")
         if not os.path.exists(self.models_foldername):
-            os.makedirs(self.models_foldername)
+            os.makedirs(self.models_foldername, exist_ok=True)
 
         self.save_config()
         self.repo_path = updir(os.path.abspath(__file__), n=3)
