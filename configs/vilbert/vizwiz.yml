@@ -1,11 +1,9 @@
 includes:
 - common/defaults/configs/datasets/vqa/vizwiz.yml
-- ../configs/vilbert/coco_pretrain.yml
+- common/defaults/configs/models/vilbert.yml
 
 model_attributes:
   vilbert:
-    hidden_size: 768
-    hidden_dropout_prob: 0.1
     training_head_type: vizwiz
     losses:
     - type: logit_bce
@@ -36,7 +34,13 @@ dataset_attributes:
               do_lower_case: true
           mask_probability: 0
           max_seq_length: 128
-        
+
+optimizer_attributes:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+      
 scheduler_attributes:
   type: warmup_linear
   params:

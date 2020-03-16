@@ -1,64 +1,10 @@
 includes:
 - common/defaults/configs/datasets/captioning/masked_cc.yml
+- common/defaults/configs/models/vilbert.yml
 
 model_attributes:
   vilbert:
-    bert_model_name: bert-base-uncased
     training_head_type: pretraining
-    visual_embedding_dim: 2048
-    special_visual_initialize: true
-    hard_cap_seq_len: null
-    cut_first: text
-    embedding_strategy: plain
-    bypass_transformer: false
-    output_attentions: false
-    output_hidden_states: false
-    text_only: false
-    random_initialize: false
-    metrics: []
-    attention_probs_dropout_prob: 0.1
-    layer_norm_eps: 1e-12
-    hidden_act: "gelu"
-    hidden_dropout_prob: 0.1
-    hidden_size: 768
-    initializer_range: 0.02
-    intermediate_size: 3072
-    max_position_embeddings: 512
-    num_attention_heads: 12
-    num_hidden_layers: 12
-    type_vocab_size: 2
-    vocab_size: 30522
-    v_feature_size: 2048
-    v_target_size: 1601
-    v_hidden_size: 1024
-    v_num_hidden_layers: 6
-    v_num_attention_heads: 8
-    v_intermediate_size: 1024
-    bi_hidden_size: 1024
-    bi_num_attention_heads: 8
-    bi_intermediate_size: 1024
-    bi_attention_type: 1
-    v_attention_probs_dropout_prob: 0.1
-    v_hidden_act: "gelu"
-    v_hidden_dropout_prob: 0.1
-    v_initializer_range: 0.02
-    v_biattention_id: [0, 1, 2, 3, 4, 5]
-    t_biattention_id: [6, 7, 8, 9, 10, 11]
-    pooling_method: "mul"
-    fusion_method: "mul"
-    fast_mode: false
-    with_coattention: true
-    dynamic_attention: false
-    in_batch_pairs: false
-    task_specific_tokens: false
-    fixed_v_layer: 0
-    fixed_t_layer: 0
-    visualization: false
-    visual_target: 0
-    objective: 0
-    num_negative: 128
-    freeze_base: False
-    model: "bert"
 
 dataset_attributes:
   masked_cc:
