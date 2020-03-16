@@ -1,11 +1,9 @@
 includes:
 - common/defaults/configs/datasets/reasoning/mmimdb.yml
-- ../configs/vilbert/coco_pretrain.yml
+- common/defaults/configs/models/vilbert.yml
 
 model_attributes:
   vilbert:
-    hidden_size: 768
-    hidden_dropout_prob: 0.1
     training_head_type: mmimdb
     losses:
     - type: logit_bce
@@ -28,12 +26,17 @@ dataset_attributes:
           mask_probability: 0
           max_seq_length: 256
 
+optimizer_attributes:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+
 scheduler_attributes:
   type: warmup_linear
   params:
     warmup_steps: 2000
     t_total: 88000
-
 
 training_parameters:
   batch_size: 480
