@@ -2,7 +2,7 @@
 from torch import nn
 from torch.optim.lr_scheduler import LambdaLR
 
-from pytorch_transformers.optimization import WarmupLinearSchedule, WarmupCosineSchedule
+from transformers.optimization import WarmupLinearSchedule, WarmupCosineSchedule
 
 from pythia.common.registry import registry
 

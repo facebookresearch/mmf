@@ -3,7 +3,7 @@ import torch
 
 from pythia.common.registry import registry
 from pythia.datasets.processors import BaseProcessor
-from pytorch_transformers.tokenization_auto import AutoTokenizer
+from transformers.tokenization_auto import AutoTokenizer
 
 
 @registry.register_processor("masked_token")

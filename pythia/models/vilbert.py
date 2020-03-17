@@ -8,8 +8,10 @@ from copy import deepcopy
 import numpy as np
 import torch
 import torch.nn.functional as F
-from pytorch_transformers.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
-from pytorch_transformers.modeling_bert import (
+from torch import nn
+from torch.nn import CrossEntropyLoss
+from transformers.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
+from transformers.modeling_bert import (
     ACT2FN,
     BertConfig,
     BertEmbeddings,
@@ -21,12 +23,8 @@ from pytorch_transformers.modeling_bert import (
     BertPreTrainedModel,
     BertPreTrainingHeads,
     BertSelfOutput,
-    BERT_PRETRAINED_MODEL_ARCHIVE_MAP,
-    load_tf_weights_in_bert,
 )
-from pytorch_transformers.modeling_utils import PretrainedConfig, PreTrainedModel
-from torch import nn
-from torch.nn import CrossEntropyLoss
+from transformers.modeling_utils import PreTrainedModel
 
 from pythia.common.registry import registry
 from pythia.models import BaseModel
@@ -809,7 +807,7 @@ class BertModel(BertPreTrainedModel):
         self.t_pooler = BertTextPooler(config)
         self.v_pooler = BertImagePooler(config)
 
-        self.apply(self.init_weights)
+        self.init_weights()
 
     def forward(
         self,
@@ -983,7 +981,7 @@ class BertForMultiModalPreTraining(BertPreTrainedModel):
 
         config.hidden_size = hidden_size
         # config.freeze()
-        self.apply(self.init_weights)
+        self.init_weights()
         self.visual_target = config.visual_target
         self.num_negative = config.num_negative
         self.loss_fct = CrossEntropyLoss(ignore_index=-1)

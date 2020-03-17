@@ -4,11 +4,11 @@ import torch
 
 from copy import deepcopy
 from torch import nn
-from pytorch_transformers.modeling_bert import (
+from transformers.modeling_bert import (
     BertLayerNorm, BertEmbeddings, BertEncoder, BertPooler,
     BertLayer, BertPreTrainedModel, BertPreTrainingHeads, BertPredictionHeadTransform
 )
-from pytorch_transformers.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
+from transformers.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
 
 from pythia.common.registry import registry
 from pythia.models import BaseModel
@@ -118,7 +118,7 @@ class BertVisualModel(BertPreTrainedModel):
         self.output_attentions = self.config.output_attentions
         self.output_hidden_states = self.config.output_hidden_states
         self.fixed_head_masks = [None for _ in range(len(self.encoder.layer))]
-        self.apply(self.init_weights)
+        self.init_weights()
 
     def forward(
         self, input_ids, token_type_ids, attention_mask, visual_embeddings,
@@ -258,7 +258,7 @@ class TrainVisualBERTObjective(BertPreTrainedModel):
             self.flickr_attention = FlickrAttention(config)
 
         if random_initialize is False:
-            self.apply(self.init_weights)
+            self.init_weights()
             self.tie_weights()
 
     def tie_weights(self):
