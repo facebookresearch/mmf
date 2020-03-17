@@ -7,13 +7,10 @@ model_attributes:
     training_head_type: pretraining
     visual_embedding_dim: 2048
     special_visual_initialize: true
-    hard_cap_seq_len: null
-    cut_first: text
     embedding_strategy: plain
     bypass_transformer: false
     output_attentions: false
     output_hidden_states: false
-    text_only: false
     random_initialize: false
     freeze_base: false
     finetune_lr_multiplier: 1
