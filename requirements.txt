@@ -12,6 +12,6 @@ requests==2.21.0
 block.bootstrap.pytorch==0.1.6
 fastText
 nltk==3.4.1
-pytorch-transformers==1.2.0
 editdistance
+transformers>=2.1.0
 sklearn==0.0

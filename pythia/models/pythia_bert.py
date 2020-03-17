@@ -2,7 +2,7 @@ import torch
 
 from torch import nn
 
-from pytorch_transformers.modeling_bert import (
+from transformers.modeling_bert import (
     BertLayerNorm, BertEmbeddings, BertEncoder, BertPooler,
     BertLayer, BertForPreTraining, BertPreTrainingHeads, BertConfig,
     BertPredictionHeadTransform
