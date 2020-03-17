@@ -125,7 +125,7 @@ class Checkpoint:
         if len(pretrained_mapping.items()) == 0:
             final_dict = new_dict
 
-            self.trainer.model.load_state_dict(final_dict)
+            self.trainer.model.load_state_dict(final_dict, strict=False)
 
             if "optimizer" in ckpt:
                 self.trainer.optimizer.load_state_dict(ckpt["optimizer"])

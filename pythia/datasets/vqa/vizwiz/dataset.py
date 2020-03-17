@@ -36,11 +36,14 @@ class VizWizDataset(VQA2Dataset):
                 answer = report.context_tokens[idx][answer_id]
             else:
                 answer = self.answer_processor.idx2word(answer_id)
-            if answer == self.context_processor.PAD_TOKEN:
+            # if answer == self.context_processor.PAD_TOKEN:
+            #     answer = "unanswerable"
+            if answer == "<unk>" or answer == "<pad>":
                 answer = "unanswerable"
             predictions.append(
                 {
-                    "image": "_".join(["VizWiz"] + image_id.split("_")[2:]) + ".jpg",
+                    # "image": "_".join(["VizWiz"] + image_id.split("_")[2:]) + ".jpg",
+                    "image": "VizWiz_" + self._dataset_type + "_" + str(image_id.item()).zfill(12) + ".jpg",
                     "answer": answer,
                 }
             )

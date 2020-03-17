@@ -24,9 +24,9 @@ dataset_attributes:
         test:
         - imdb/coco_captions/imdb_karpathy_test_by_image.npy
     features_max_len: 100
-    two_sentence: true
+    two_sentence: false
     two_sentence_probability: 0.5
-    false_caption: true
+    false_caption: false
     false_caption_probability: 0.5
     use_image_feature_masks: false
     processors:

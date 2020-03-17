@@ -114,6 +114,9 @@ class COCOFeaturesDataset(BaseFeaturesDataset):
         image_info = self.imdb[idx]
         image_file_name = image_info.get("feature_path", None)
 
+        if "genome" in image_file_name:
+            image_file_name = str(int(image_file_name.split("_")[-1].split(".")[0])) + ".npy"
+
         if image_file_name is None:
             image_file_name = "{}.npy".format(image_info["image_id"])
 
@@ -123,6 +126,7 @@ class COCOFeaturesDataset(BaseFeaturesDataset):
         for idx, image_feature in enumerate(image_features):
             item["image_feature_%s" % idx] = image_feature
             if infos is not None:
+                # infos[idx].pop("cls_prob", None)
                 item["image_info_%s" % idx] = infos[idx]
 
         return item

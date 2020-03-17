@@ -4,7 +4,8 @@ from torch import nn
 
 from pytorch_transformers.modeling_bert import (
     BertLayerNorm, BertEmbeddings, BertEncoder, BertPooler,
-    BertLayer, BertForPreTraining, BertPreTrainingHeads, BertConfig
+    BertLayer, BertForPreTraining, BertPreTrainingHeads, BertConfig,
+    BertPredictionHeadTransform
 )
 from pythia.models.visual_bert import transform_to_batch_sequence
 from pythia.models.pythia import Pythia
@@ -45,14 +46,26 @@ class PythiaBert(Pythia):
         if "vqa" in self.config.training_head_type:
             self.dropout = nn.Dropout(self.bert_config.hidden_dropout_prob)
             self.answer_space_size = 3129
-            self.classifier = nn.Linear(self.bert_config.hidden_size, self.answer_space_size)
+            self.classifier = nn.Sequential(
+                BertPredictionHeadTransform(self.bert_config),
+                nn.Linear(self.bert_config.hidden_size, self.answer_space_size)
+            )
+            # self.classifier = nn.Linear(self.bert_config.hidden_size, self.answer_space_size)
         elif "vizwiz" in self.config.training_head_type:
             self.dropout = nn.Dropout(self.bert_config.hidden_dropout_prob)
             self.answer_space_size = 7371
-            self.classifier = nn.Linear(self.bert_config.hidden_size, self.answer_space_size)
+            self.classifier = nn.Sequential(
+                BertPredictionHeadTransform(self.bert_config),
+                nn.Linear(self.bert_config.hidden_size, self.answer_space_size)
+            )
+            # self.classifier = nn.Linear(self.bert_config.hidden_size, self.answer_space_size)
         elif self.config.training_head_type == "visual_entailment":
             self.dropout = nn.Dropout(self.bert_config.hidden_dropout_prob)
-            self.classifier = nn.Linear(self.bert_config.hidden_size, 3)
+            self.classifier = nn.Sequential(
+                BertPredictionHeadTransform(self.bert_config),
+                nn.Linear(self.bert_config.hidden_size, 3)
+            )
+            # self.classifier = nn.Linear(self.bert_config.hidden_size, 3)
 
     def _init_text_embeddings(self, attr="text"):
         self.text_embeddings_out_dim = self.bert_config.hidden_size
