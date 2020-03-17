@@ -147,6 +147,9 @@ class SampleList(OrderedDict):
             samples = proper_samples
         return samples
 
+    def __setattr__(self, key, value):
+        self[key] = value
+
     def __getattr__(self, key):
         if key not in self:
             raise AttributeError(
