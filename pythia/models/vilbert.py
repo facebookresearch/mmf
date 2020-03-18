@@ -2,7 +2,6 @@
 
 import math
 import os
-import sys
 from copy import deepcopy
 
 import numpy as np
@@ -21,10 +20,8 @@ from transformers.modeling_bert import (
     BertOutput,
     BertPredictionHeadTransform,
     BertPreTrainedModel,
-    BertPreTrainingHeads,
     BertSelfOutput,
 )
-from transformers.modeling_utils import PreTrainedModel
 
 from pythia.common.registry import registry
 from pythia.models import BaseModel
@@ -243,9 +240,7 @@ class BertImageIntermediate(nn.Module):
     def __init__(self, config):
         super(BertImageIntermediate, self).__init__()
         self.dense = nn.Linear(config.v_hidden_size, config.v_intermediate_size)
-        if isinstance(config.v_hidden_act, str) or (
-            sys.version_info[0] == 2 and isinstance(config.v_hidden_act, unicode)
-        ):
+        if isinstance(config.v_hidden_act, str):
             self.intermediate_act_fn = ACT2FN[config.v_hidden_act]
         else:
             self.intermediate_act_fn = config.v_hidden_act
@@ -733,9 +728,7 @@ class BertImgPredictionHeadTransform(nn.Module):
     def __init__(self, config):
         super(BertImgPredictionHeadTransform, self).__init__()
         self.dense = nn.Linear(config.v_hidden_size, config.v_hidden_size)
-        if isinstance(config.hidden_act, str) or (
-            sys.version_info[0] == 2 and isinstance(config.hidden_act, unicode)
-        ):
+        if isinstance(config.hidden_act, str):
             self.transform_act_fn = ACT2FN[config.hidden_act]
         else:
             self.transform_act_fn = config.v_hidden_act
@@ -1055,7 +1048,6 @@ class BertForMultiModalPreTraining(BertPreTrainedModel):
                     ) / max(torch.sum((image_label == 1)), 0)
                 elif self.visual_target == 2:
                     # generate negative sampled index.
-                    num_negative = self.num_negative
                     num_across_batch = int(self.num_negative * 0.7)
                     num_inside_batch = int(self.num_negative * 0.3)
 
