@@ -124,7 +124,6 @@ class Checkpoint:
 
         if len(pretrained_mapping.items()) == 0:
             final_dict = new_dict
-
             self.trainer.model.load_state_dict(final_dict, strict=False)
 
             if "optimizer" in ckpt:
@@ -172,10 +171,11 @@ class Checkpoint:
                 value += "."
                 for attr in new_dict:
                     for own_attr in own_state:
+                        formatted_attr = model.format_state_key(attr)
                         if (
-                            key in attr
+                            key in formatted_attr
                             and value in own_attr
-                            and attr.replace(key, "") == own_attr.replace(value, "")
+                            and formatted_attr.replace(key, "") == own_attr.replace(value, "")
                         ):
                             self.trainer.writer.write(
                                 "Copying " + attr + " " + own_attr

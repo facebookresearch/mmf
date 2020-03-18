@@ -43,6 +43,7 @@ import collections
 import warnings
 
 from torch import nn
+from copy import deepcopy
 
 from pythia.common.registry import registry
 from pythia.common.report import Report
@@ -104,6 +105,30 @@ class BaseModel(nn.Module):
     @classmethod
     def init_args(cls, parser):
         return parser
+
+    @classmethod
+    def format_state_key(cls, key):
+        """Can be implemented if something special needs to be done
+        key when pretrained model is being load. This will adapt and return
+        keys according to that. Useful for backwards compatability. See
+        updated load_state_dict below. For an example, see VisualBERT model's
+        code.
+
+        Args:
+            key (string): key to be formatted
+
+        Returns:
+            string: formatted key
+        """
+        return key
+
+    def load_state_dict(self, state_dict, *args, **kwargs):
+        copied_state_dict = deepcopy(state_dict)
+        for key in list(copied_state_dict.keys()):
+            formatted_key = self.format_state_key(key)
+            copied_state_dict[formatted_key] = copied_state_dict.pop(key)
+
+        return super().load_state_dict(copied_state_dict, *args, **kwargs)
 
     def forward(self, sample_list, *args, **kwargs):
         """To be implemented by child class. Takes in a ``SampleList`` and
