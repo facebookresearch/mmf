@@ -114,11 +114,11 @@ class COCOFeaturesDataset(BaseFeaturesDataset):
         image_info = self.imdb[idx]
         image_file_name = image_info.get("feature_path", None)
 
-        if "genome" in image_file_name:
-            image_file_name = str(int(image_file_name.split("_")[-1].split(".")[0])) + ".npy"
-
         if image_file_name is None:
             image_file_name = "{}.npy".format(image_info["image_id"])
+
+        if "genome" in image_file_name:
+            image_file_name = str(int(image_file_name.split("_")[-1].split(".")[0])) + ".npy"
 
         image_features, infos = self._get_image_features_and_info(image_file_name)
 
