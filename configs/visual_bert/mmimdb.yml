@@ -39,4 +39,4 @@ training_parameters:
   # Don't forget to update schedule_attributes if you update this
   max_updates: 60000
   pretrained_mapping:
-    bert.bert: bert.bert
+    bert: bert

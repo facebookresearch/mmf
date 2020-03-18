@@ -176,39 +176,39 @@ class VisualBERT(BaseModel):
 
         # TODO: Remove hard coded answer space sizes
         if "vqa" in self.training_head_type:
-            self.dropout = nn.Dropout(config.hidden_dropout_prob)
+            self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
             self.answer_space_size = 3129
             self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(config),
-                nn.Linear(config.hidden_size, self.answer_space_size)
+                BertPredictionHeadTransform(self.config),
+                nn.Linear(self.config.hidden_size, self.answer_space_size)
             )
         elif "vizwiz" in self.training_head_type:
-            self.dropout = nn.Dropout(config.hidden_dropout_prob)
+            self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
             self.answer_space_size = 7371
             self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(config),
-                nn.Linear(config.hidden_size, self.answer_space_size)
+                BertPredictionHeadTransform(self.config),
+                nn.Linear(self.config.hidden_size, self.answer_space_size)
             )
 
         elif self.training_head_type == "nlvr2":
-            self.dropout = nn.Dropout(config.hidden_dropout_prob)
-            config.hidden_size *= 2
+            self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
+            self.config.hidden_size *= 2
             self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(config),
-                nn.Linear(config.hidden_size, 2)
+                BertPredictionHeadTransform(self.config),
+                nn.Linear(self.config.hidden_size, 2)
             )
-            config.hidden_size /= 2
+            self.config.hidden_size /= 2
         elif self.training_head_type == "visual_entailment":
-            self.dropout = nn.Dropout(config.hidden_dropout_prob)
+            self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
             self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(config),
-                nn.Linear(config.hidden_size, 3)
+                BertPredictionHeadTransform(self.config),
+                nn.Linear(self.config.hidden_size, 3)
             )
         elif self.training_head_type == "mmimdb":
-            self.dropout = nn.Dropout(config.hidden_dropout_prob)
+            self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
             self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(config),
-                nn.Linear(config.hidden_size, 24)
+                BertPredictionHeadTransform(self.config),
+                nn.Linear(self.config.hidden_size, 24)
             )
 
         if self.config.random_initialize is False:
@@ -449,6 +449,12 @@ class VisualBERT(BaseModel):
 
             return output_dict
 
+    # Backward compatibility for code from original VisualBERT
+    @classmethod
+    def format_state_key(cls, key):
+        return key.replace(
+            "bert.bert", "bert"
+        ).replace("bert.cls", "cls").replace("bert.classifier", "classifier")
 
 
     def forward(self, sample_list):
