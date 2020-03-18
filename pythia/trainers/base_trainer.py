@@ -47,9 +47,7 @@ class BaseTrainer:
         self.config_based_setup()
 
         self.load_task()
-        self.load_model()
-        self.load_optimizer()
-        self.load_extras()
+        self.load_model_and_optimizer()
 
     def _set_device(self):
         self.local_rank = self.args.device_id
@@ -86,7 +84,7 @@ class BaseTrainer:
         self.val_loader = self.dataset_loader.val_loader
         self.test_loader = self.dataset_loader.test_loader
 
-    def load_model(self):
+    def load_model_and_optimizer(self):
         attributes = self.config.model_attributes[self.config.model]
         # Easy way to point to config for other model
         if isinstance(attributes, str):
@@ -108,11 +106,16 @@ class BaseTrainer:
             self.writer.write(device_info, log_all=True)
 
         self.model = self.model.to(self.device)
-
-        self.writer.write("Torch version is: " + torch.__version__)
+        self.optimizer = build_optimizer(self.model, self.config)
 
         registry.register("data_parallel", False)
         registry.register("distributed", False)
+
+        self.load_extras()
+        self.parallelize_model()
+
+    def parallelize_model(self):
+        training_parameters = self.config.training_parameters
         if (
             "cuda" in str(self.device)
             and torch.cuda.device_count() > 1
@@ -133,10 +136,8 @@ class BaseTrainer:
                 find_unused_parameters=training_parameters.find_unused_parameters
             )
 
-    def load_optimizer(self):
-        self.optimizer = build_optimizer(self.model, self.config)
-
     def load_extras(self):
+        self.writer.write("Torch version is: " + torch.__version__)
         self.checkpoint = Checkpoint(self)
         self.meter = Meter()
 
