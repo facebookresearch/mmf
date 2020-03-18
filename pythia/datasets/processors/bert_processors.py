@@ -1,9 +1,12 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
 import random
+
 import torch
+from transformers.tokenization_auto import AutoTokenizer
 
 from pythia.common.registry import registry
 from pythia.datasets.processors import BaseProcessor
-from transformers.tokenization_auto import AutoTokenizer
 
 
 @registry.register_processor("masked_token")
@@ -16,14 +19,12 @@ class MaskedTokenProcessor(BaseProcessor):
         self._tokenizer = AutoTokenizer.from_pretrained(
             tokenizer_config.type, **tokenizer_config.params
         )
-        self._vocab = self._tokenizer.vocab
-        self._unk_index = self._vocab["[UNK]"]
 
         self._max_seq_length = config.max_seq_length
         self._probability = getattr(config, "mask_probability", 0.15)
 
     def get_vocab_size(self):
-        return len(self._vocab)
+        return len(self._tokenizer)
 
     def _random_word(self, tokens, probability=0.15):
         labels = []
@@ -38,14 +39,13 @@ class MaskedTokenProcessor(BaseProcessor):
                     tokens[idx] = "[MASK]"
                 # 10% randomly change token to random token
                 elif prob < 0.9:
-                    tokens[idx] = random.choice(list(self._vocab.items()))[0]
+                    tokens[idx] = self._tokenizer.convert_ids_to_tokens(
+                        torch.randint(len(self._tokenizer), (1,), dtype=torch.long)
+                    )[0]
 
                 # rest 10% keep the original token as it is
 
-                if token in self._vocab:
-                    labels.append(self._vocab[token])
-                else:
-                    labels.append(self._unk_index)
+                labels.append(self._tokenizer.convert_tokens_to_ids(token))
             else:
                 labels.append(-1)
 
@@ -84,15 +84,14 @@ class MaskedTokenProcessor(BaseProcessor):
 
         if tokens_b:
             tokens_b, label_b = self._random_word(tokens_b, probability=probability)
-            lm_label_ids = ([-1] + label_a + [-1] + label_b + [-1])
+            lm_label_ids = [-1] + label_a + [-1] + label_b + [-1]
             assert len(tokens_b) > 0
             tokens += tokens_b
             segment_ids += [1] * len(tokens_b)
             tokens.append(self._SEP_TOKEN)
             segment_ids.append(1)
         else:
-            lm_label_ids = ([-1] + label_a + [-1])
-
+            lm_label_ids = [-1] + label_a + [-1]
 
         input_ids = self._tokenizer.convert_tokens_to_ids(tokens)
         input_mask = [1] * len(input_ids)
@@ -118,7 +117,7 @@ class MaskedTokenProcessor(BaseProcessor):
             "input_mask": input_mask,
             "segment_ids": segment_ids,
             "lm_label_ids": lm_label_ids,
-            "tokens": tokens
+            "tokens": tokens,
         }
 
     def __call__(self, item):
@@ -132,7 +131,9 @@ class MaskedTokenProcessor(BaseProcessor):
             tokens_b = self._tokenizer.tokenize(text_b)
 
         self._truncate_seq_pair(tokens_a, tokens_b, self._max_seq_length - 2)
-        output = self._convert_to_indices(tokens_a, tokens_b, probability=self._probability)
+        output = self._convert_to_indices(
+            tokens_a, tokens_b, probability=self._probability
+        )
         output["is_correct"] = torch.tensor(item["is_correct"], dtype=torch.long)
 
         return output

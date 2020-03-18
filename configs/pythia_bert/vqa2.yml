@@ -27,8 +27,8 @@ model_attributes:
 scheduler_attributes:
   type: warmup_linear
   params:
-    warmup_steps: 2400
-    t_total: 24000
+    num_warmup_steps: 2400
+    num_training_steps: 24000
     
 training_parameters:
   batch_size: 512

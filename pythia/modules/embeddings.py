@@ -12,7 +12,7 @@ from torch import nn
 from pythia.modules.attention import AttentionLayer
 from pythia.modules.layers import Identity
 from pythia.utils.vocab import Vocab
-from pytorch_transformers.modeling_bert import BertEmbeddings
+from transformers.modeling_bert import BertEmbeddings
 
 
 class TextEmbedding(nn.Module):
