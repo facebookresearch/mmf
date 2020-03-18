@@ -1,25 +1,22 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # Initial version was taken from https://github.com/uclanlp/visualbert
 # which was cleaned up and adapted for Pythia.
-import math
-import os
-import torch
 
+import os
 from copy import deepcopy
+
+import torch
 from torch import nn
-from transformers.modeling_bert import (
-    BertLayerNorm,
-    BertEmbeddings,
-    BertEncoder,
-    BertPooler,
-    BertLayer,
-    BertPreTrainedModel,
-    BertPreTrainingHeads,
-    BertPredictionHeadTransform,
-    BertForPreTraining,
-    BertConfig,
-)
 from transformers.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
+from transformers.modeling_bert import (
+    BertConfig,
+    BertEncoder,
+    BertForPreTraining,
+    BertLayer,
+    BertPooler,
+    BertPredictionHeadTransform,
+    BertPreTrainedModel,
+)
 
 from pythia.common.registry import registry
 from pythia.models import BaseModel

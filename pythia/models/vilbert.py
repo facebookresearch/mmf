@@ -1381,13 +1381,3 @@ class ViLBERT(BaseModel):
                 p["lr"] = lr
 
         return optimizer_grouped_parameters
-
-    @staticmethod
-    def compute_score_with_logits(logits, labels):
-        logits = masked_unk_softmax(logits, 1, 0)
-        logits = torch.max(logits, 1)[1].data  # argmax
-        one_hots = torch.zeros(*labels.size())
-        one_hots = one_hots.cuda() if use_cuda else one_hots
-        one_hots.scatter_(1, logits.view(-1, 1), 1)
-        scores = one_hots * labels
-        return scores
