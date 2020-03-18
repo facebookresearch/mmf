@@ -1,11 +1,9 @@
 includes:
 - common/defaults/configs/datasets/vqa/vqa2.yml
-- ../configs/vilbert/coco_pretrain.yml
+- common/defaults/configs/models/vilbert.yml
 
 model_attributes:
   vilbert:
-    hidden_size: 768
-    hidden_dropout_prob: 0.1
     training_head_type: vqa
     losses:
     - type: logit_bce
@@ -37,8 +35,8 @@ dataset_attributes:
 scheduler_attributes:
   type: warmup_linear
   params:
-    warmup_steps: 6000
-    t_total: 60000
+    num_warmup_steps: 6000
+    num_training_steps: 60000
     
 training_parameters:
   batch_size: 480

@@ -30,8 +30,8 @@ dataset_attributes:
 scheduler_attributes:
   type: warmup_linear
   params:
-    warmup_steps: 2000
-    t_total: 88000
+    num_warmup_steps: 2000
+    num_training_steps: 88000
 
 training_parameters:
   batch_size: 480

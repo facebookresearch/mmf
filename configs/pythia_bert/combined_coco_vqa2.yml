@@ -9,8 +9,8 @@ model_attributes:
 scheduler_attributes:
   type: warmup_linear
   params:
-    warmup_steps: 3000
-    t_total: 33000
+    num_warmup_steps: 3000
+    num_training_steps: 33000
   
 training_parameters:
   max_updates: 34000

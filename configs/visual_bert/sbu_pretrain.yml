@@ -30,8 +30,8 @@ optimizer_attributes:
 scheduler_attributes:
   type: warmup_linear
   params:
-    warmup_steps: 1000
-    t_total: 11000
+    num_warmup_steps: 1000
+    num_training_steps: 11000
     
 training_parameters:
   batch_size: 480
