@@ -8,9 +8,16 @@ import torch
 from copy import deepcopy
 from torch import nn
 from transformers.modeling_bert import (
-    BertLayerNorm, BertEmbeddings, BertEncoder, BertPooler,
-    BertLayer, BertPreTrainedModel, BertPreTrainingHeads, BertPredictionHeadTransform,
-    BertForPreTraining, BertConfig
+    BertLayerNorm,
+    BertEmbeddings,
+    BertEncoder,
+    BertPooler,
+    BertLayer,
+    BertPreTrainedModel,
+    BertPreTrainingHeads,
+    BertPredictionHeadTransform,
+    BertForPreTraining,
+    BertConfig,
 )
 from transformers.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
 
@@ -18,8 +25,10 @@ from pythia.common.registry import registry
 from pythia.models import BaseModel
 from pythia.modules.embeddings import BertVisioLinguisticEmbeddings
 from pythia.utils.transform_utils import (
-    transform_to_batch_sequence, transform_to_batch_sequence_dim
+    transform_to_batch_sequence,
+    transform_to_batch_sequence_dim,
 )
+
 
 class VisualBERTBase(BertPreTrainedModel):
     def __init__(
@@ -29,7 +38,7 @@ class VisualBERTBase(BertPreTrainedModel):
         embedding_strategy="plain",
         bypass_transformer=False,
         output_attentions=False,
-        output_hidden_states=False
+        output_hidden_states=False,
     ):
         super().__init__(config)
         self.config = config
@@ -53,9 +62,7 @@ class VisualBERTBase(BertPreTrainedModel):
         self.fixed_head_masks = [None for _ in range(len(self.encoder.layer))]
         self.init_weights()
 
-    def forward(
-        self, sample_list, *args, **kwargs
-    ):
+    def forward(self, sample_list, *args, **kwargs):
         if sample_list.attention_mask is None:
             sample_list.attention_mask = torch.ones_like(sample_list.input_ids)
         if sample_list.token_type_ids is None:
@@ -73,31 +80,42 @@ class VisualBERTBase(BertPreTrainedModel):
         # positions we want to attend and -10000.0 for masked positions.
         # Since we are adding it to the raw scores before the softmax, this is
         # effectively the same as removing these entirely.
-        extended_attention_mask = extended_attention_mask.to(dtype=next(self.parameters()).dtype) # fp16 compatibility
+        extended_attention_mask = extended_attention_mask.to(
+            dtype=next(self.parameters()).dtype
+        )  # fp16 compatibility
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
 
         embedding_output = self.embeddings(
-            sample_list.input_ids, sample_list.token_type_ids,
+            sample_list.input_ids,
+            sample_list.token_type_ids,
             visual_embeddings=sample_list.visual_embeddings,
             position_embeddings_visual=sample_list.position_embeddings_visual,
             visual_embeddings_type=sample_list.visual_embeddings_type,
-            image_text_alignment=sample_list.image_text_alignment
+            image_text_alignment=sample_list.image_text_alignment,
         )
 
         if self.bypass_transformer and sample_list.visual_embeddings is not None:
-            assert(not self.output_hidden_states) # Don't support this for the bypass model
+            assert (
+                not self.output_hidden_states
+            )  # Don't support this for the bypass model
             text_length = sample_list.input_ids.size(1)
             text_embedding_output = embedding_output[:, :text_length, :]
             visual_part = embedding_output[:, text_length:, :]
 
-            text_extended_attention_mask = extended_attention_mask[:, :, :text_length, :text_length]
+            text_extended_attention_mask = extended_attention_mask[
+                :, :, :text_length, :text_length
+            ]
 
             encoded_layers = self.encoder(
-                text_embedding_output, text_extended_attention_mask, self.fixed_head_masks
+                text_embedding_output,
+                text_extended_attention_mask,
+                self.fixed_head_masks,
             )
             sequence_output = encoded_layers[0]
-            new_input = torch.cat((sequence_output, visual_part), dim = 1)
-            final_sequence_output = self.additional_layer(new_input, extended_attention_mask)
+            new_input = torch.cat((sequence_output, visual_part), dim=1)
+            final_sequence_output = self.additional_layer(
+                new_input, extended_attention_mask
+            )
             pooled_output = self.pooler(final_sequence_output)
             return final_sequence_output, pooled_output
 
@@ -142,7 +160,7 @@ class VisualBERT(BaseModel):
                 embedding_strategy=self.config.embedding_strategy,
                 bypass_transformer=self.config.bypass_transformer,
                 output_attentions=self.config.output_attentions,
-                output_hidden_states=self.config.output_hidden_states
+                output_hidden_states=self.config.output_hidden_states,
             )
         else:
             self.bert = VisualBERTBase.from_pretrained(
@@ -154,7 +172,7 @@ class VisualBERT(BaseModel):
                 embedding_strategy=self.config.embedding_strategy,
                 bypass_transformer=self.config.bypass_transformer,
                 output_attentions=self.config.output_attentions,
-                output_hidden_states=self.config.output_hidden_states
+                output_hidden_states=self.config.output_hidden_states,
             )
 
         self.bert_config = self.bert.config
@@ -168,9 +186,8 @@ class VisualBERT(BaseModel):
                 bert_masked_lm = BertForPreTraining.from_pretrained(
                     self.config.bert_model_name,
                     cache_dir=os.path.join(
-                        str(PYTORCH_PRETRAINED_BERT_CACHE),
-                        "distributed_{}".format(-1)
-                    )
+                        str(PYTORCH_PRETRAINED_BERT_CACHE), "distributed_{}".format(-1)
+                    ),
                 )
             self.cls = deepcopy(bert_masked_lm.cls)
 
@@ -180,14 +197,14 @@ class VisualBERT(BaseModel):
             self.answer_space_size = 3129
             self.classifier = nn.Sequential(
                 BertPredictionHeadTransform(self.config),
-                nn.Linear(self.config.hidden_size, self.answer_space_size)
+                nn.Linear(self.config.hidden_size, self.answer_space_size),
             )
         elif "vizwiz" in self.training_head_type:
             self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
             self.answer_space_size = 7371
             self.classifier = nn.Sequential(
                 BertPredictionHeadTransform(self.config),
-                nn.Linear(self.config.hidden_size, self.answer_space_size)
+                nn.Linear(self.config.hidden_size, self.answer_space_size),
             )
 
         elif self.training_head_type == "nlvr2":
@@ -195,27 +212,26 @@ class VisualBERT(BaseModel):
             self.config.hidden_size *= 2
             self.classifier = nn.Sequential(
                 BertPredictionHeadTransform(self.config),
-                nn.Linear(self.config.hidden_size, 2)
+                nn.Linear(self.config.hidden_size, 2),
             )
             self.config.hidden_size /= 2
         elif self.training_head_type == "visual_entailment":
             self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
             self.classifier = nn.Sequential(
                 BertPredictionHeadTransform(self.config),
-                nn.Linear(self.config.hidden_size, 3)
+                nn.Linear(self.config.hidden_size, 3),
             )
         elif self.training_head_type == "mmimdb":
             self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
             self.classifier = nn.Sequential(
                 BertPredictionHeadTransform(self.config),
-                nn.Linear(self.config.hidden_size, 24)
+                nn.Linear(self.config.hidden_size, 24),
             )
 
         self.init_weights()
 
         if self.config.special_visual_initialize:
             self.bert.embeddings.initialize_visual_from_pretrained()
-
 
     def init_weights(self):
         if self.config.random_initialize is False:
@@ -235,10 +251,9 @@ class VisualBERT(BaseModel):
         """ Make sure we are sharing the input and output embeddings.
             Export to TorchScript can't handle parameter sharing so we are cloning them instead.
         """
-        if hasattr(self, 'cls'):
+        if hasattr(self, "cls"):
             self.bert._tie_or_clone_weights(
-                self.cls.predictions.decoder,
-                self.bert.embeddings.word_embeddings
+                self.cls.predictions.decoder, self.bert.embeddings.word_embeddings
             )
 
     def flatten(self, sample_list, to_be_flattened={}, to_be_flattened_dim={}):
@@ -253,24 +268,22 @@ class VisualBERT(BaseModel):
         if sample_list.visual_embeddings_type is None:
             if sample_list.image_mask is not None:
                 sample_list.visual_embeddings_type = torch.zeros_like(
-                    sample_list.image_mask, dtype = torch.long
+                    sample_list.image_mask, dtype=torch.long
                 )
-
 
         if sample_list.image_mask is not None:
             attention_mask = torch.cat(
-                (sample_list.input_mask, sample_list.image_mask), dim = -1
+                (sample_list.input_mask, sample_list.image_mask), dim=-1
             )
             if sample_list.masked_lm_labels is not None:
-                assert(
-                    sample_list.masked_lm_labels.size(-1) ==
-                    sample_list.input_mask.size(-1)
-                )
+                assert sample_list.masked_lm_labels.size(
+                    -1
+                ) == sample_list.input_mask.size(-1)
                 new_lm_labels = torch.ones_like(attention_mask) * -1
                 size_masked_lm_labels = sample_list.masked_lm_labels.size()
-                assert(len(size_masked_lm_labels) == 2)
+                assert len(size_masked_lm_labels) == 2
                 new_lm_labels[
-                    :size_masked_lm_labels[0], :size_masked_lm_labels[1]
+                    : size_masked_lm_labels[0], : size_masked_lm_labels[1]
                 ] = sample_list.masked_lm_labels
                 sample_list.masked_lm_labels = new_lm_labels
         else:
@@ -294,9 +307,7 @@ class VisualBERT(BaseModel):
             self.bert, lr * finetune_lr_multiplier
         )
         # Classifier will be trained on the normal lr
-        parameters += self.get_bert_configured_parameters(
-            self.classifier, lr
-        )
+        parameters += self.get_bert_configured_parameters(self.classifier, lr)
 
         return parameters
 
@@ -305,14 +316,18 @@ class VisualBERT(BaseModel):
 
         no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
         optimizer_grouped_parameters = [
-            {"params": [
+            {
+                "params": [
                     p for n, p in param_optimizer if not any(nd in n for nd in no_decay)
-                ], "weight_decay": 0.01
+                ],
+                "weight_decay": 0.01,
             },
-            {"params": [
+            {
+                "params": [
                     p for n, p in param_optimizer if any(nd in n for nd in no_decay)
-                ], "weight_decay": 0.0
-            }
+                ],
+                "weight_decay": 0.0,
+            },
         ]
 
         if lr is not None:
@@ -321,16 +336,17 @@ class VisualBERT(BaseModel):
 
         return optimizer_grouped_parameters
 
-    def flatten_for_bert(
-        self, sample_list, **kwargs
-    ):
+    def flatten_for_bert(self, sample_list, **kwargs):
         to_be_flattened = [
-            "input_ids", "token_type_ids", "input_mask", "image_mask", "masked_lm_labels",
-            "position_embeddings_visual", "visual_embeddings_type"
+            "input_ids",
+            "token_type_ids",
+            "input_mask",
+            "image_mask",
+            "masked_lm_labels",
+            "position_embeddings_visual",
+            "visual_embeddings_type",
         ]
-        to_be_flattened_dim = [
-            "image_text_alignment", "visual_embeddings"
-        ]
+        to_be_flattened_dim = ["image_text_alignment", "visual_embeddings"]
 
         # We want to convert everything into: batch x sequence_length x (dim).
         flattened = self.flatten(sample_list, to_be_flattened, to_be_flattened_dim)
@@ -357,7 +373,9 @@ class VisualBERT(BaseModel):
             image_dim_variable_1 = getattr(image_info, "max_features", None)
             image_feat_variable_1 = getattr(img1, "image_feature_0", None)
 
-            image_feat_variable = torch.cat([image_feat_variable_0, image_feat_variable_1])
+            image_feat_variable = torch.cat(
+                [image_feat_variable_0, image_feat_variable_1]
+            )
             image_dim_variable = torch.cat([image_dim_variable_0, image_dim_variable_1])
         else:
             image_info = getattr(sample_list, "image_info_0", {})
@@ -379,12 +397,14 @@ class VisualBERT(BaseModel):
         # image_feat_variable = batch x ( num_choice x ) image_feature_length x dim
         # Prepare Mask
         if visual_embeddings is not None and image_dim is not None:
-            image_mask = torch.arange(
-                visual_embeddings.size(-2)
-            ).expand(*visual_embeddings.size()[:-1]).cuda()
+            image_mask = (
+                torch.arange(visual_embeddings.size(-2))
+                .expand(*visual_embeddings.size()[:-1])
+                .cuda()
+            )
             if len(image_dim.size()) < len(image_mask.size()):
                 image_dim = image_dim.unsqueeze(-1)
-                assert(len(image_dim.size()) == len(image_mask.size()))
+                assert len(image_dim.size()) == len(image_mask.size())
             image_mask = image_mask < image_dim
             sample_list.image_mask = image_mask.long()
         else:
@@ -394,11 +414,7 @@ class VisualBERT(BaseModel):
 
         return sample_list
 
-    def forward_heads(
-        self,
-        base_output,
-        sample_list
-    ):
+    def forward_heads(self, base_output, sample_list):
         output_dict = {}
 
         sequence_output, pooled_output = base_output[0], base_output[1]
@@ -415,13 +431,15 @@ class VisualBERT(BaseModel):
             return output_dict
 
         if "pretraining" in self.training_head_type:
-            prediction_scores, seq_relationship_score = self.cls(sequence_output, pooled_output)
+            prediction_scores, seq_relationship_score = self.cls(
+                sequence_output, pooled_output
+            )
             if sample_list.masked_lm_labels is not None:
                 output_dict["logits"] = prediction_scores
                 loss_fct = nn.CrossEntropyLoss(ignore_index=-1)
                 masked_lm_loss = loss_fct(
                     prediction_scores.contiguous().view(-1, self.config.vocab_size),
-                    sample_list.masked_lm_labels.contiguous().view(-1)
+                    sample_list.masked_lm_labels.contiguous().view(-1),
                 )
                 output_dict["masked_lm_loss"] = masked_lm_loss
                 output_dict["loss"] = masked_lm_loss
@@ -432,17 +450,17 @@ class VisualBERT(BaseModel):
             index_to_gather = sample_list.input_mask.sum(1) - 2
 
             pooled_output = torch.gather(
-                sequence_output, 1,
-                index_to_gather.unsqueeze(-1).unsqueeze(-1).expand(
-                    index_to_gather.size(0), 1, sequence_output.size(-1)
-                )
+                sequence_output,
+                1,
+                index_to_gather.unsqueeze(-1)
+                .unsqueeze(-1)
+                .expand(index_to_gather.size(0), 1, sequence_output.size(-1)),
             )
 
             sample_list.input_ids = torch.gather(
-                sample_list.input_ids, 1,
-                index_to_gather.unsqueeze(-1).expand(
-                    index_to_gather.size(0), 1
-                )
+                sample_list.input_ids,
+                1,
+                index_to_gather.unsqueeze(-1).expand(index_to_gather.size(0), 1),
             )
 
             pooled_output = self.dropout(pooled_output)
@@ -452,8 +470,11 @@ class VisualBERT(BaseModel):
             output_dict["scores"] = reshaped_logits
             return output_dict
 
-        elif self.training_head_type == "nlvr2" or \
-            self.training_head_type == "visual_entailment" or self.training_head_type == "mmimdb":
+        elif (
+            self.training_head_type == "nlvr2"
+            or self.training_head_type == "visual_entailment"
+            or self.training_head_type == "mmimdb"
+        ):
             pooled_output = self.dropout(pooled_output)
             logits = self.classifier(pooled_output)
             output_dict["scores"] = logits
@@ -463,10 +484,11 @@ class VisualBERT(BaseModel):
     # Backward compatibility for code from original VisualBERT
     @classmethod
     def format_state_key(cls, key):
-        return key.replace(
-            "bert.bert", "bert"
-        ).replace("bert.cls", "cls").replace("bert.classifier", "classifier")
-
+        return (
+            key.replace("bert.bert", "bert")
+            .replace("bert.cls", "cls")
+            .replace("bert.classifier", "classifier")
+        )
 
     def forward(self, sample_list):
         sample_list = self.update_sample_list_based_on_head(sample_list)
@@ -480,14 +502,20 @@ class VisualBERT(BaseModel):
             pooled_output = output[1]
             # 2B * H => B * 2H
             b, h = pooled_output.size()
-            pooled_output = torch.cat([pooled_output[:b // 2], pooled_output[b // 2:]], dim=1)
+            pooled_output = torch.cat(
+                [pooled_output[: b // 2], pooled_output[b // 2 :]], dim=1
+            )
             output[1] = pooled_output
 
         output_dict = self.forward_heads(output, sample_list)
 
         if "pretraining" in self.training_head_type:
-            loss_key = "{}/{}".format(sample_list.dataset_name, sample_list.dataset_type)
+            loss_key = "{}/{}".format(
+                sample_list.dataset_name, sample_list.dataset_type
+            )
             output_dict["losses"] = {}
-            output_dict["losses"][loss_key + "/masked_lm_loss"] = output_dict.pop("masked_lm_loss")
+            output_dict["losses"][loss_key + "/masked_lm_loss"] = output_dict.pop(
+                "masked_lm_loss"
+            )
 
         return output_dict
