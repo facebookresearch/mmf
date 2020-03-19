@@ -78,7 +78,7 @@ from collections import Counter, defaultdict
 import numpy as np
 import torch
 
-from pytorch_transformers.tokenization_bert import BertTokenizer
+from transformers.tokenization_bert import BertTokenizer
 
 from pythia.common.registry import registry
 from pythia.utils.configuration import ConfigNode
@@ -1171,7 +1171,7 @@ class BertTokenizerProcessor(BaseProcessor):
             print('computing question generation indices in bert tokenizer')
 
     def get_vocab_size(self):
-        return self.bert_tokenizer.vocab_size
+        return len(self.bert_tokenizer)
 
     def __call__(self, item):
         # [PAD] in self.bert_tokenizer is zero (as checked in assert above)
