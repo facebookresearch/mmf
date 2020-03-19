@@ -5,7 +5,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from pytorch_transformers.modeling_bert import (
+from transformers.modeling_bert import (
     BertLayerNorm, BertEmbeddings, BertEncoder, BertConfig,
     BertPreTrainedModel
 )
@@ -344,7 +344,6 @@ class TextBert(BertPreTrainedModel):
 
         self.embeddings = BertEmbeddings(config)
         self.encoder = BertEncoder(config)
-        # self.apply(self.init_weights)  # old versions of pytorch_transformers
         self.init_weights()
 
     def forward(self, txt_inds, txt_mask):
@@ -372,7 +371,6 @@ class MMT(BertPreTrainedModel):
 
         self.prev_pred_embeddings = PrevPredEmbeddings(config)
         self.encoder = BertEncoder(config)
-        # self.apply(self.init_weights)  # old versions of pytorch_transformers
         self.init_weights()
 
     def forward(self,
