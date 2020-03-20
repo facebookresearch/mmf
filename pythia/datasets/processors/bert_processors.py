@@ -157,3 +157,51 @@ class BertTokenizer(MaskedTokenProcessor):
         output = self._convert_to_indices(tokens_a, None, probability=self._probability)
         output["text"] = output["tokens"]
         return output
+
+
+@registry.register_processor("m4c_bert_tokenizer")
+class M4CBertTokenizerProcessor(BaseProcessor):
+    """
+    Tokenize a text string with BERT tokenizer
+    """
+    def __init__(self, config, *args, **kwargs):
+        self.max_length = config.max_length
+        tokenizer_config = config.tokenizer_config
+        self.bert_tokenizer = AutoTokenizer.from_pretrained(
+            tokenizer_config.type, **tokenizer_config.params
+        )
+        assert (
+            self.bert_tokenizer.encode(
+                self.bert_tokenizer.pad_token,
+                add_special_tokens=False
+            ) == [0]
+        )
+        self.get_qgen_inds = getattr(config, "get_qgen_inds", False)
+        if self.get_qgen_inds:
+            print("computing question generation indices in bert tokenizer")
+
+    def get_vocab_size(self):
+        return len(self.bert_tokenizer)
+
+    def __call__(self, item):
+        # [PAD] in self.bert_tokenizer is zero (as checked in assert above)
+        token_inds = torch.zeros(self.max_length, dtype=torch.long)
+
+        indices = self.bert_tokenizer.encode(
+            item["question"], add_special_tokens=True)
+        indices = indices[:self.max_length]
+        token_inds[:len(indices)] = torch.tensor(indices)
+        token_num = torch.tensor(len(indices), dtype=torch.long)
+
+        results = {"token_inds": token_inds, "token_num": token_num}
+
+        if self.get_qgen_inds:
+            # default will be -1 (ignored labels in softmax loss)
+            qgen_inds = -torch.ones(self.max_length, dtype=torch.long)
+            # stripping [CLS] at beginning and [SEP] at end
+            # then add two [PAD] at end (as stop tokens)
+            indices_qgen = indices[1:-1] + [0, 0]
+            qgen_inds[:len(indices_qgen)] = torch.tensor(indices_qgen)
+            results["qgen_inds"] = qgen_inds
+
+        return results
