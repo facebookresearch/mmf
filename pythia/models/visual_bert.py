@@ -132,8 +132,8 @@ class VisualBERT(BaseModel):
         # If bert_model_name is not specified, you will need to specify
         # all of the required parameters for BERTConfig and a pretrained
         # model won't be loaded
-        bert_model_name = getattr(self.config, "bert_model_name", None)
-        if bert_model_name is None:
+        self.bert_model_name = getattr(self.config, "bert_model_name", None)
+        if self.bert_model_name is None:
             self.bert_config = BertConfig.from_dict(self.config)
 
             self.bert = VisualBERTBase(
@@ -162,7 +162,7 @@ class VisualBERT(BaseModel):
         self.config.update(self.bert_config.to_dict())
 
         if "pretraining" in self.training_head_type:
-            if bert_model_name is None:
+            if self.bert_model_name is None:
                 bert_masked_lm = BertForPreTraining(self.bert_config)
             else:
                 bert_masked_lm = BertForPreTraining.from_pretrained(
@@ -211,14 +211,25 @@ class VisualBERT(BaseModel):
                 nn.Linear(self.config.hidden_size, 24)
             )
 
-        if self.config.random_initialize is False:
-            if bert_model_name is None:
-                # No pretrained model, init weights
-                self.apply(self.bert.init_weights)
-            self.tie_weights()
+        self.init_weights()
 
         if self.config.special_visual_initialize:
             self.bert.embeddings.initialize_visual_from_pretrained()
+
+
+    def init_weights(self):
+        if self.config.random_initialize is False:
+            if self.bert_model_name is None:
+                # No pretrained model, init weights
+                self.bert.init_weights()
+                if hasattr(self, "cls"):
+                    self.cls.apply(self.bert._init_weights)
+
+            self.tie_weights()
+
+        # Classifier needs to be initialized always as it is task specific
+        if hasattr(self, "classifier"):
+            self.classifier.apply(self.bert._init_weights)
 
     def tie_weights(self):
         """ Make sure we are sharing the input and output embeddings.
