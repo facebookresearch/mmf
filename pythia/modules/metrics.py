@@ -50,7 +50,7 @@ import torch
 from sklearn.metrics import f1_score
 
 from pythia.common.registry import registry
-from pythia.tasks.processors import EvalAIAnswerProcessor
+from pythia.datasets.processors.processors import EvalAIAnswerProcessor
 
 
 class Metrics:

@@ -4,7 +4,7 @@ import argparse
 import json
 import os
 
-from pythia.tasks.processors import EvalAIAnswerProcessor
+from pythia.datasets.processors.processors import EvalAIAnswerProcessor
 
 
 def get_score(occurences):
