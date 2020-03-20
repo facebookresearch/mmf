@@ -373,6 +373,7 @@ class FastTextProcessor(VocabProcessor):
         self.config = config
         self._download_initially = config.get("download_initially", True)
         self._already_downloaded = False
+        self._already_loaded = False
 
         if self._download_initially:
             self._try_download()
@@ -382,9 +383,6 @@ class FastTextProcessor(VocabProcessor):
 
         if self._already_downloaded:
             return
-
-        if _is_master:
-            self.writer.write("Fetching fastText model for OCR processing")
 
         needs_download = False
 
@@ -405,14 +403,12 @@ class FastTextProcessor(VocabProcessor):
             needs_download = True
 
         if needs_download:
-            if _is_master:
-                self.writer.write("Downloading FastText bin", "info")
+            self.writer.write("Downloading FastText bin", "info")
             model_file = self._download_model()
 
-        synchronize()
-
-        self._load_fasttext_model(model_file)
+        self.model_file = model_file
         self._already_downloaded = True
+        synchronize()
 
     def _download_model(self):
         _is_master = is_master()
@@ -425,10 +421,9 @@ class FastTextProcessor(VocabProcessor):
             return model_file_path
 
         if os.path.exists(model_file_path):
-            if _is_master:
-                self.writer.write(
-                    "Vectors already present at {}.".format(model_file_path), "info"
-                )
+            self.writer.write(
+                "Vectors already present at {}.".format(model_file_path), "info"
+            )
             return model_file_path
 
         import requests
@@ -455,27 +450,26 @@ class FastTextProcessor(VocabProcessor):
 
             pbar.close()
 
-        if _is_master:
-            self.writer.write(
-                "fastText bin downloaded at {}.".format(model_file_path), "info"
-            )
+        self.writer.write(
+            "fastText bin downloaded at {}.".format(model_file_path), "info"
+        )
 
         return model_file_path
 
     def _load_fasttext_model(self, model_file):
+        if self._already_loaded:
+            return
+
         from fasttext import load_model
 
-        _is_master = is_master()
-
-        if _is_master:
-            self.writer.write("Loading fasttext model now from %s" % model_file)
+        self.writer.write("Loading fasttext model now from %s" % model_file)
 
         self.model = load_model(model_file)
         # String to Vector
         self.stov = WordToVectorDict(self.model)
+        self.writer.write("Finished loading fasttext model")
 
-        if _is_master:
-            self.writer.write("Finished loading fasttext model")
+        self._already_loaded = True
 
     def _map_strings_to_indices(self, tokens):
         length = min(len(tokens), self.max_length)
@@ -493,7 +487,7 @@ class FastTextProcessor(VocabProcessor):
         return output
 
     def __call__(self, item):
-        # self._try_download()
+        self._load_fasttext_model(self.model_file)
         return super().__call__(item)
 
 
