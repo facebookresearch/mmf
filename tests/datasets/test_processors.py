@@ -5,7 +5,7 @@ import unittest
 import yaml
 import torch
 
-from pythia.tasks.processors import (
+from pythia.datasets.processors.processors import (
     CaptionProcessor,
     MultiHotAnswerFromVocabProcessor,
     EvalAIAnswerProcessor,
@@ -15,7 +15,7 @@ from pythia.utils.configuration import ConfigNode
 from ..test_utils import compare_tensors
 
 
-class TestTaskProcessors(unittest.TestCase):
+class TestDatasetProcessors(unittest.TestCase):
     def _get_config(self, path):
         path = os.path.join(os.path.abspath(__file__), path)
         with open(os.path.abspath(path)) as f:
@@ -49,9 +49,9 @@ class TestTaskProcessors(unittest.TestCase):
 
     def test_multi_hot_answer_from_vocab_processor(self):
         config = self._get_config(
-            "../../../pythia/common/defaults/configs/tasks/vqa/clevr.yml"
+            "../../../pythia/common/defaults/configs/datasets/vqa/clevr.yml"
         )
-        clevr_config = config.task_attributes.vqa.dataset_attributes.clevr
+        clevr_config = config.dataset_attributes.clevr
         answer_processor_config = clevr_config.processors.answer_processor
 
         # Test num_answers==1 case
@@ -82,7 +82,10 @@ class TestTaskProcessors(unittest.TestCase):
         answers_indices = processed["answers_indices"]
         answers_scores = processed["answers_scores"]
         self.assertTrue(
-            compare_tensors(answers_indices, torch.tensor([2, 3, 15], dtype=torch.long))
+            compare_tensors(
+                answers_indices,
+                torch.tensor([2, 3, 15, 2, 3, 15, 2, 3, 15, 2], dtype=torch.long),
+            )
         )
         expected_answers_scores = torch.zeros(19, dtype=torch.float)
         expected_answers_scores[2] = 1.0
@@ -94,9 +97,12 @@ class TestTaskProcessors(unittest.TestCase):
         processed = answer_processor({"answers": ["test", "answer", "man"]})
         answers_indices = processed["answers_indices"]
         answers_scores = processed["answers_scores"]
-        self.assertTrue(compare_tensors(
-            answers_indices, torch.tensor([0, 0, 2, 0, 0, 2, 0, 0, 2, 0], dtype=torch.long)
-        ))
+        self.assertTrue(
+            compare_tensors(
+                answers_indices,
+                torch.tensor([0, 0, 2, 0, 0, 2, 0, 0, 2, 0], dtype=torch.long),
+            )
+        )
         expected_answers_scores = torch.zeros(19, dtype=torch.float)
         expected_answers_scores[2] = 1.0
         self.assertTrue(compare_tensors(answers_scores, expected_answers_scores))
