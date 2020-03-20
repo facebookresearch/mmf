@@ -19,7 +19,7 @@ dataset_attributes:
       - imdb/m4c_textvqa/imdb_test_ocr_ml.npy
     processors:
       text_processor:
-        type: bert_tokenizer
+        type: m4c_bert_tokenizer
         params:
           max_length: 20
       answer_processor:

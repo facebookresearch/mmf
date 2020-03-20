@@ -1156,7 +1156,7 @@ class CopyProcessor(BaseProcessor):
         return {"blob": torch.from_numpy(final_blob)}
 
 
-@registry.register_processor("bert_tokenizer")
+@registry.register_processor("m4c_bert_tokenizer")
 class BertTokenizerProcessor(BaseProcessor):
     """
     Tokenize a text string with BERT tokenizer
@@ -1164,11 +1164,17 @@ class BertTokenizerProcessor(BaseProcessor):
     def __init__(self, config, *args, **kwargs):
         self.max_length = config.max_length
         self.bert_tokenizer = BertTokenizer.from_pretrained(
-            'bert-base-uncased')
-        assert self.bert_tokenizer.encode(self.bert_tokenizer.pad_token) == [0]
-        self.get_qgen_inds = getattr(config, 'get_qgen_inds', False)
+            "bert-base-uncased"
+        )
+        assert (
+            self.bert_tokenizer.encode(
+                self.bert_tokenizer.pad_token,
+                add_special_tokens=False
+            ) == [0]
+        )
+        self.get_qgen_inds = getattr(config, "get_qgen_inds", False)
         if self.get_qgen_inds:
-            print('computing question generation indices in bert tokenizer')
+            print("computing question generation indices in bert tokenizer")
 
     def get_vocab_size(self):
         return len(self.bert_tokenizer)
@@ -1178,12 +1184,12 @@ class BertTokenizerProcessor(BaseProcessor):
         token_inds = torch.zeros(self.max_length, dtype=torch.long)
 
         indices = self.bert_tokenizer.encode(
-            item['question'], add_special_tokens=True)
+            item["question"], add_special_tokens=True)
         indices = indices[:self.max_length]
         token_inds[:len(indices)] = torch.tensor(indices)
         token_num = torch.tensor(len(indices), dtype=torch.long)
 
-        results = {'token_inds': token_inds, 'token_num': token_num}
+        results = {"token_inds": token_inds, "token_num": token_num}
 
         if self.get_qgen_inds:
             # default will be -1 (ignored labels in softmax loss)
@@ -1192,7 +1198,7 @@ class BertTokenizerProcessor(BaseProcessor):
             # then add two [PAD] at end (as stop tokens)
             indices_qgen = indices[1:-1] + [0, 0]
             qgen_inds[:len(indices_qgen)] = torch.tensor(indices_qgen)
-            results['qgen_inds'] = qgen_inds
+            results["qgen_inds"] = qgen_inds
 
         return results
 
@@ -1206,9 +1212,9 @@ class M4CAnswerProcessor(BaseProcessor):
         super().__init__(config, *args, **kwargs)
 
         self.answer_vocab = VocabDict(config.vocab_file, *args, **kwargs)
-        self.PAD_IDX = self.answer_vocab.word2idx('<pad>')
-        self.BOS_IDX = self.answer_vocab.word2idx('<s>')
-        self.EOS_IDX = self.answer_vocab.word2idx('</s>')
+        self.PAD_IDX = self.answer_vocab.word2idx("<pad>")
+        self.BOS_IDX = self.answer_vocab.word2idx("<s>")
+        self.EOS_IDX = self.answer_vocab.word2idx("</s>")
         self.UNK_IDX = self.answer_vocab.UNK_INDEX
 
         # make sure PAD_IDX, BOS_IDX and PAD_IDX are valid (not <unk>)
@@ -1255,7 +1261,7 @@ class M4CAnswerProcessor(BaseProcessor):
             )
             if len(matched_inds) == 0:
                 if self.match_answer_to_unk:
-                    matched_inds.append(vocab2idx_dict.get('<unk>'))
+                    matched_inds.append(vocab2idx_dict.get("<unk>"))
                 else:
                     return []
             answer_word_matches.append(matched_inds)
@@ -1368,11 +1374,11 @@ class M4CAnswerProcessor(BaseProcessor):
             idx_seq = ()
 
         answer_info = {
-            'answers': answers,
-            'answers_scores': scores,
-            'sampled_idx_seq': idx_seq,
-            'train_prev_inds': train_prev_inds,
-            'train_loss_mask': train_loss_mask,
+            "answers": answers,
+            "answers_scores": scores,
+            "sampled_idx_seq": idx_seq,
+            "train_prev_inds": train_prev_inds,
+            "train_loss_mask": train_loss_mask,
         }
         return answer_info
 
