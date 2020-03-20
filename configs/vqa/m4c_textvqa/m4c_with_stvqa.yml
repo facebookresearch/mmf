@@ -23,6 +23,10 @@ dataset_attributes:
       text_processor:
         type: m4c_bert_tokenizer
         params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
           max_length: 20
       answer_processor:
         type: m4c_answer
