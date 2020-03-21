@@ -142,27 +142,39 @@ class Checkpoint:
 
             if "best_update" in ckpt:
                 if tp.resume_best:
-                    self.trainer.num_updates = ckpt["best_update"]
-                    self.trainer.current_iteration = ckpt["best_iteration"]
+                    self.trainer.num_updates = ckpt.get(
+                        "best_update", self.trainer.num_updates
+                    )
+                    self.trainer.current_iteration = ckpt.get(
+                        "best_iteration", self.trainer.current_iteration
+                    )
                 else:
-                    self.trainer.num_updates = ckpt["num_updates"]
-                    self.trainer.current_iteration = ckpt["current_iteration"]
-                if "current_epoch" in ckpt:
-                    self.trainer.current_epoch = ckpt["current_epoch"]
+                    self.trainer.num_updates = ckpt.get(
+                        "num_updates", self.trainer.num_updates
+                    )
+                    self.trainer.current_iteration = ckpt.get(
+                        "current_iteration", self.trainer.current_iteration
+                    )
+
+                self.trainer.current_epoch = ckpt.get(
+                    "current_epoch", self.trainer.current_epoch
+                )
             elif "best_iteration" in ckpt:
-                if tp.resume_best and "current_iteration" not in ckpt:
-                    self.trainer.current_iteration = ckpt["best_iteration"]
-                else:
+                # Preserve old behavior for old checkpoints where we always load best iteration
+                if tp.resume_best and "current_iteration" in ckpt:
                     self.trainer.current_iteration = ckpt["current_iteration"]
+                else:
+                    self.trainer.current_iteration = ckpt.get(
+                        "best_iteration", self.trainer.current_iteration
+                    )
 
                 self.trainer.num_updates = self.trainer.current_iteration
 
             registry.register("current_iteration", self.trainer.current_iteration)
             registry.register("num_updates", self.trainer.num_updates)
 
-            if "best_epoch" in ckpt:
-                self.trainer.current_epoch = ckpt["best_epoch"]
-                registry.register("current_epoch", self.trainer.current_epoch)
+            self.trainer.current_epoch = ckpt.get("best_epoch", self.trainer.current_epoch)
+            registry.register("current_epoch", self.trainer.current_epoch)
         else:
             final_dict = {}
             model = self.trainer.model
