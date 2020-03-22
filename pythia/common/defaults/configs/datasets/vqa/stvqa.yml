@@ -1,5 +1,5 @@
 dataset_attributes:
-  m4c_ocrvqa:
+  stvqa:
       data_root_dir: ../data
       image_depth_first: false
       fast_read: false
