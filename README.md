@@ -50,17 +50,6 @@ Learn more about Pythia [here](https://learnpythia.readthedocs.io/en/latest/).
 If you use Pythia in your work, please cite:
 
 ```
-@inproceedings{singh2019TowardsVM,
-  title={Towards VQA Models That Can Read},
-  author={Singh, Amanpreet and Natarajan, Vivek and Shah, Meet and Jiang, Yu and Chen, Xinlei and Batra, Dhruv and Parikh, Devi and Rohrbach, Marcus},
-  booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
-  year={2019}
-}
-```
-
-and
-
-```
 @inproceedings{singh2018pythia,
   title={Pythia-a platform for vision \& language research},
   author={Singh, Amanpreet and Goswami, Vedanuj and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
