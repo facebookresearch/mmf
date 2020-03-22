@@ -1,22 +1,22 @@
 includes:
-- common/defaults/configs/datasets/vqa/m4c_stvqa.yml
+- common/defaults/configs/datasets/vqa/ocrvqa.yml
 # Use soft copy
 dataset_attributes:
-  m4c_stvqa:
+  ocrvqa:
     image_features:
       train:
-      - m4c_stvqa_obj_frcn_features/train,m4c_stvqa_ocr_en_frcn_features/train
+      - m4c_ocrvqa_obj_frcn_features/all,m4c_ocrvqa_ocr_en_frcn_features/all
       val:
-      - m4c_stvqa_obj_frcn_features/train,m4c_stvqa_ocr_en_frcn_features/train
+      - m4c_ocrvqa_obj_frcn_features/all,m4c_ocrvqa_ocr_en_frcn_features/all
       test:
-      - m4c_stvqa_obj_frcn_features/test_task3,m4c_stvqa_ocr_en_frcn_features/test_task3
+      - m4c_ocrvqa_obj_frcn_features/all,m4c_ocrvqa_ocr_en_frcn_features/all
     imdb_files:
       train:
-      - imdb/m4c_stvqa/imdb_subtrain.npy
+      - imdb/m4c_ocrvqa/imdb_train.npy
       val:
-      - imdb/m4c_stvqa/imdb_subval.npy
+      - imdb/m4c_ocrvqa/imdb_val.npy
       test:
-      - imdb/m4c_stvqa/imdb_test_task3.npy
+      - imdb/m4c_ocrvqa/imdb_test.npy
     processors:
       text_processor:
         type: m4c_bert_tokenizer
@@ -29,7 +29,7 @@ dataset_attributes:
       answer_processor:
         type: m4c_answer
         params:
-          vocab_file: m4c_vocabs/stvqa/fixed_answer_vocab_stvqa_5k.txt
+          vocab_file: m4c_vocabs/ocrvqa/fixed_answer_vocab_ocrvqa_82.txt
           preprocessor:
             type: simple_word
             params: {}
@@ -73,8 +73,7 @@ model_attributes:
       params: {}
     model_data_dir: ../data
     metrics:
-    - type: stvqa_accuracy
-    - type: stvqa_anls
+    - type: ocrvqa_accuracy
     losses:
     - type: m4c_decoding_bce_with_mask
 optimizer_attributes:
@@ -89,15 +88,15 @@ training_parameters:
     max_grad_l2_norm: 0.25
     lr_scheduler: true
     lr_steps:
-    - 14000
-    - 19000
+    - 28000
+    - 38000
     lr_ratio: 0.1
     use_warmup: true
     warmup_factor: 0.2
     warmup_iterations: 1000
-    max_iterations: 24000
+    max_iterations: 48000
     batch_size: 128
     num_workers: 8
     task_size_proportional_sampling: true
-    monitored_metric: m4c_stvqa/stvqa_accuracy
+    monitored_metric: m4c_ocrvqa/ocrvqa_accuracy
     metric_minimize: false
