@@ -141,7 +141,16 @@ class TestReporter(Dataset):
         else:
             report.scores = gather_tensor(report.scores).view(-1, report.scores.size(-1))
             report.question_id = gather_tensor(report.question_id).view(-1)
-            report.image_id = gather_tensor(report.image_id).view(-1)
+            if isinstance(report.image_id, torch.Tensor):
+                report.image_id = gather_tensor(report.image_id).view(-1)
+            if 'image_id_enc' in report:
+                _, enc_size = report.image_id_enc.size()
+                report.image_id_enc = gather_tensor(report.image_id_enc)
+                report.image_id_enc = report.image_id_enc.view(-1, enc_size)
+            if 'context_tokens_enc' in report:
+                _, enc_size = report.context_tokens_enc.size()
+                report.context_tokens_enc = gather_tensor(report.context_tokens_enc)
+                report.context_tokens_enc = report.context_tokens_enc.view(-1, enc_size)
 
         if not is_master():
             return

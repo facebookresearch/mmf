@@ -6,6 +6,7 @@ from pythia.datasets.vqa.textvqa.dataset import TextVQADataset
 from pythia.utils.text_utils import word_tokenize
 from pythia.common.sample import Sample
 from pythia.utils.objects_to_byte_tensor import enc_obj2bytes
+from pythia.utils.objects_to_byte_tensor import dec_bytes2obj
 
 
 class M4CTextVQADataset(TextVQADataset):
@@ -28,10 +29,13 @@ class M4CTextVQADataset(TextVQADataset):
         pred_answers = report.scores.argmax(dim=-1).view(batch_size, -1)
         answer_space_size = answer_processor.get_true_vocab_size()
 
+        image_id_enc = report.image_id_enc.cpu().numpy()
+        context_tokens_enc = report.context_tokens_enc.cpu().numpy()
         predictions = []
         for idx, question_id in enumerate(report.question_id):
             # collect VQA answers
-            context_tokens = report.context_tokens[idx]
+            image_id = dec_bytes2obj(image_id_enc[idx])
+            context_tokens = dec_bytes2obj(context_tokens_enc[idx])
             answer_words = []
             pred_source = []
             for answer_id in pred_answers[idx].tolist():
@@ -53,7 +57,7 @@ class M4CTextVQADataset(TextVQADataset):
             pred_answer = ' '.join(answer_words).replace(" 's", "'s")
             entry = {
                 "question_id": question_id.item(),
-                "image_id": report.image_id[idx],
+                "image_id": image_id,
                 "answer": pred_answer,
                 "pred_source": pred_source,
             }
@@ -97,6 +101,8 @@ class M4CTextVQADataset(TextVQADataset):
         return current_sample
 
     def add_sample_details(self, sample_info, sample):
+        sample.image_id_enc = enc_obj2bytes(sample_info['image_id'])
+
         # 1. Load text (question words)
         # breaking change from VQA2Dataset:
         # load the entire question string, not tokenized questions, since we
