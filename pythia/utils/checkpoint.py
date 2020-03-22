@@ -1,15 +1,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+
 import os
 import warnings
 
 import git
 import torch
-import yaml
 
 from pythia.common.registry import registry
 from pythia.utils.distributed_utils import is_master, synchronize
-from pythia.utils.general import (ckpt_name_from_core_args,
-                                  foldername_from_config_override, updir)
+from pythia.utils.general import updir
 
 
 class Checkpoint:
@@ -43,7 +42,11 @@ class Checkpoint:
 
         self.save_config()
         self.repo_path = updir(os.path.abspath(__file__), n=3)
-        self.repo = git.Repo(self.repo_path)
+        self.git_repo = None
+        try:
+            self.git_repo = git.Repo(self.repo_path)
+        except git.exc.InvalidGitRepositoryError:
+            self.git_repo = None
 
     def save_config(self):
         cfg_file = os.path.join(self.ckpt_foldername, "config.yaml")
@@ -58,16 +61,15 @@ class Checkpoint:
 
         suffix = "best.ckpt" if tp.resume_best else "current.ckpt"
         reverse_suffix = "best.ckpt" if not tp.resume_best else "current.ckpt"
-        ckpt_filepath = os.path.join(
-            self.ckpt_foldername, self.ckpt_prefix + suffix
-        )
+        ckpt_filepath = os.path.join(self.ckpt_foldername, self.ckpt_prefix + suffix)
 
         # In case of interrupts and resume, tp.resume_file would be there
         # But, if the checkpoints are already created in the save dir
         # and resume is true signifying the interrupt resume, we should skip
         # loading the resume file.
-        if tp.resume_file is not None and \
-            (tp.resume is False or not os.path.exists(ckpt_filepath)):
+        if tp.resume_file is not None and (
+            tp.resume is False or not os.path.exists(ckpt_filepath)
+        ):
             if os.path.exists(tp.resume_file):
                 self._load(tp.resume_file, load_pretrained=tp.load_pretrained)
                 return
@@ -189,7 +191,8 @@ class Checkpoint:
                         if (
                             key in formatted_attr
                             and value in own_attr
-                            and formatted_attr.replace(key, "") == own_attr.replace(value, "")
+                            and formatted_attr.replace(key, "")
+                            == own_attr.replace(value, "")
                         ):
                             self.trainer.writer.write(
                                 "Copying " + attr + " " + own_attr
@@ -238,11 +241,11 @@ class Checkpoint:
         """
 
         return {
-            "git/branch": self.repo.active_branch.name,
-            "git/commit_hash": self.repo.head.commit.name_rev,
-            "git/commit_author": self.repo.head.commit.author.name,
-            "git/commit_message": self.repo.head.commit.message,
-            "git/diff": self.repo.git.diff("--no-prefix"),
+            "git/branch": self.git_repo.active_branch.name,
+            "git/commit_hash": self.git_repo.head.commit.name_rev,
+            "git/commit_author": self.git_repo.head.commit.author.name,
+            "git/commit_message": self.git_repo.head.commit.message,
+            "git/diff": self.git_repo.git.diff("--no-prefix"),
         }
 
     def save(self, update, iteration, update_best=False):
@@ -250,9 +253,7 @@ class Checkpoint:
         if not is_master():
             return
 
-        ckpt_filepath = os.path.join(
-            self.models_foldername, "model_%d.ckpt" % update
-        )
+        ckpt_filepath = os.path.join(self.models_foldername, "model_%d.ckpt" % update)
         best_ckpt_filepath = os.path.join(
             self.ckpt_foldername, self.ckpt_prefix + "best.ckpt"
         )
@@ -281,8 +282,9 @@ class Checkpoint:
             "config": self.config,
         }
 
-        git_metadata_dict = self._get_vcs_fields()
-        ckpt.update(git_metadata_dict)
+        if self.git_repo:
+            git_metadata_dict = self._get_vcs_fields()
+            ckpt.update(git_metadata_dict)
 
         torch.save(ckpt, ckpt_filepath)
 
