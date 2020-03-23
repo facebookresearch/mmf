@@ -1,16 +1,15 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import collections
+
 import gc
 import os
+import tarfile
+import zipfile
 from bisect import bisect
 
 import requests
 import torch
 import tqdm
 import yaml
-import tarfile
-import zipfile
-
 from torch import nn
 
 from pythia.common.constants import DOWNLOAD_CHUNK_SIZE
@@ -56,15 +55,13 @@ def clip_gradients(model, i_iter, writer, config):
 def ckpt_name_from_core_args(config):
     seed = config["training_parameters"]["seed"]
 
-    ckpt_name = "{}_{}".format(
-        config["datasets"],
-        config["model"]
-    )
+    ckpt_name = "{}_{}".format(config["datasets"], config["model"])
 
     if seed is not None:
         ckpt_name += "_{:d}".format(seed)
 
     return ckpt_name
+
 
 def foldername_from_config_override(args):
     cfg_override = None
@@ -104,9 +101,11 @@ def download_file(url, output_dir=".", filename=""):
     filename = os.path.join(output_dir, filename)
     r = requests.get(url, stream=True)
 
-    if r.status_code != requests.codes['ok']:
-        print("The url {} is broken. If this is not your own url,"
-              " please open up an issue on GitHub.".format(url))
+    if r.status_code != requests.codes["ok"]:
+        print(
+            "The url {} is broken. If this is not your own url,"
+            " please open up an issue on GitHub.".format(url)
+        )
     file_size = int(r.headers["Content-Length"])
     num_bars = int(file_size / DOWNLOAD_CHUNK_SIZE)
 
@@ -128,8 +127,9 @@ def get_optimizer_parameters(model, config):
     if has_custom:
         parameters = model.get_optimizer_parameters(config)
 
-    is_parallel = (isinstance(model, nn.DataParallel) or
-        isinstance(model, nn.parallel.DistributedDataParallel))
+    is_parallel = isinstance(model, nn.DataParallel) or isinstance(
+        model, nn.parallel.DistributedDataParallel
+    )
 
     if is_parallel and hasattr(model.module, "get_optimizer_parameters"):
         parameters = model.module.get_optimizer_parameters(config)
@@ -230,6 +230,7 @@ def extract_file(path, output_dir="."):
     os.chdir(cwd)
     return output_dir
 
+
 def get_batch_size():
     from pythia.common.registry import registry
 
@@ -248,6 +249,7 @@ def get_batch_size():
 
 def print_model_parameters(model, return_only=False):
     from pythia.common.registry import registry
+
     writer = registry.get("writer")
     total_params = sum(p.numel() for p in model.parameters())
     trained_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -259,3 +261,28 @@ def print_model_parameters(model, return_only=False):
             )
         )
     return total_params, trained_params
+
+
+def get_sizes_list(dim, chunks):
+    split_size = (dim + chunks - 1) // chunks
+    sizes_list = [split_size] * chunks
+    sizes_list[-1] = sizes_list[-1] - (sum(sizes_list) - dim)  # Adjust last
+    assert sum(sizes_list) == dim
+    if sizes_list[-1] < 0:
+        n_miss = sizes_list[-2] - sizes_list[-1]
+        sizes_list[-1] = sizes_list[-2]
+        for j in range(n_miss):
+            sizes_list[-j - 1] -= 1
+        assert sum(sizes_list) == dim
+        assert min(sizes_list) > 0
+    return sizes_list
+
+
+def get_chunks(x, sizes):
+    out = []
+    begin = 0
+    for s in sizes:
+        y = x.narrow(1, begin, s)
+        out.append(y)
+        begin += s
+    return out

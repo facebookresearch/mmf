@@ -1,14 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+
 import unittest
 
 import torch
-import random
-import operator
-import functools
-import numpy as np
-import inspect
 
 import pythia.modules.fusions as fusions
+
 
 class TestModuleFusions(unittest.TestCase):
     def setUp(self):
@@ -23,7 +20,7 @@ class TestModuleFusions(unittest.TestCase):
         if torch.cuda.is_available():
             fusion.cuda()
             out = fusion([self.x[0].cuda(), self.x[1].cuda()])
-        assert torch.Size([2,2]) == out.shape
+        assert torch.Size([2, 2]) == out.shape
 
     def test_BlockTucker(self):
         fusion = fusions.BlockTucker(self.input_dims, self.output_dims, mm_dim=20)
@@ -31,7 +28,7 @@ class TestModuleFusions(unittest.TestCase):
         if torch.cuda.is_available():
             fusion.cuda()
             out = fusion([self.x[0].cuda(), self.x[1].cuda()])
-        assert torch.Size([2,2]) == out.shape
+        assert torch.Size([2, 2]) == out.shape
 
     def test_Mutan(self):
         fusion = fusions.Mutan(self.input_dims, self.output_dims, mm_dim=20)
@@ -39,7 +36,7 @@ class TestModuleFusions(unittest.TestCase):
         if torch.cuda.is_available():
             fusion.cuda()
             out = fusion([self.x[0].cuda(), self.x[1].cuda()])
-        assert torch.Size([2,2]) == out.shape
+        assert torch.Size([2, 2]) == out.shape
 
     def test_Tucker(self):
         fusion = fusions.Tucker(self.input_dims, self.output_dims, mm_dim=20)
@@ -47,7 +44,7 @@ class TestModuleFusions(unittest.TestCase):
         if torch.cuda.is_available():
             fusion.cuda()
             out = fusion([self.x[0].cuda(), self.x[1].cuda()])
-        assert torch.Size([2,2]) == out.shape
+        assert torch.Size([2, 2]) == out.shape
 
     def test_MLB(self):
         fusion = fusions.MLB(self.input_dims, self.output_dims, mm_dim=20)
@@ -55,7 +52,7 @@ class TestModuleFusions(unittest.TestCase):
         if torch.cuda.is_available():
             fusion.cuda()
             out = fusion([self.x[0].cuda(), self.x[1].cuda()])
-        assert torch.Size([2,2]) == out.shape
+        assert torch.Size([2, 2]) == out.shape
 
     def test_MFB(self):
         fusion = fusions.MFB(self.input_dims, self.output_dims, mm_dim=20)
@@ -63,7 +60,7 @@ class TestModuleFusions(unittest.TestCase):
         if torch.cuda.is_available():
             fusion.cuda()
             out = fusion([self.x[0].cuda(), self.x[1].cuda()])
-        assert torch.Size([2,2]) == out.shape
+        assert torch.Size([2, 2]) == out.shape
 
     def test_MFH(self):
         fusion = fusions.MFH(self.input_dims, self.output_dims, mm_dim=20)
@@ -71,7 +68,7 @@ class TestModuleFusions(unittest.TestCase):
         if torch.cuda.is_available():
             fusion.cuda()
             out = fusion([self.x[0].cuda(), self.x[1].cuda()])
-        assert torch.Size([2,2]) == out.shape
+        assert torch.Size([2, 2]) == out.shape
 
     def test_MCB(self):
         fusion = fusions.MCB(self.input_dims, self.output_dims, mm_dim=100)
@@ -79,7 +76,7 @@ class TestModuleFusions(unittest.TestCase):
         if torch.cuda.is_available():
             fusion.cuda()
             out = fusion([self.x[0].cuda(), self.x[1].cuda()])
-        assert torch.Size([2,2]) == out.shape
+        assert torch.Size([2, 2]) == out.shape
 
     def test_LinearSum(self):
         fusion = fusions.LinearSum(self.input_dims, self.output_dims, mm_dim=20)
@@ -87,15 +84,12 @@ class TestModuleFusions(unittest.TestCase):
         if torch.cuda.is_available():
             fusion.cuda()
             out = fusion([self.x[0].cuda(), self.x[1].cuda()])
-        assert torch.Size([2,2]) == out.shape
+        assert torch.Size([2, 2]) == out.shape
 
     def test_ConcatMLP(self):
-        fusion = fusions.ConcatMLP(self.input_dims, self.output_dims, dimensions=[5,5])
+        fusion = fusions.ConcatMLP(self.input_dims, self.output_dims, dimensions=[5, 5])
         out = fusion(self.x)
         if torch.cuda.is_available():
             fusion.cuda()
             out = fusion([self.x[0].cuda(), self.x[1].cuda()])
-        assert torch.Size([2,2]) == out.shape
-
-if __name__ == '__main__':
-    unittest.main()
+        assert torch.Size([2, 2]) == out.shape
