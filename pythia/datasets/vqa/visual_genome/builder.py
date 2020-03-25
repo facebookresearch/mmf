@@ -47,7 +47,7 @@ class VisualGenomeBuilder(VQA2Builder):
         if not os.path.exists(vocab_file):
             shutil.move(
                 os.path.join(extraction_folder, VISUAL_GENOME_CONSTS["synset_file"]),
-                vocab_file
+                vocab_file,
             )
 
     def _download_and_extract_features(self, data_folder):
@@ -62,8 +62,13 @@ class VisualGenomeBuilder(VQA2Builder):
         extraction_folder = os.path.join(download_folder, local_filename.split(".")[0])
         local_filename = os.path.join(download_folder, local_filename)
 
-        if os.path.exists(local_filename) or \
-            (os.path.exists(extraction_folder) and len(os.listdir(extraction_folder))) != 0:
+        if (
+            os.path.exists(local_filename)
+            or (
+                os.path.exists(extraction_folder) and len(os.listdir(extraction_folder))
+            )
+            != 0
+        ):
             self.writer.write(
                 "{} {} already present. Skipping download.".format(
                     self.dataset_proper_name, file_type
@@ -71,9 +76,8 @@ class VisualGenomeBuilder(VQA2Builder):
             )
             return extraction_folder
 
-
-        self.writer.write("Downloading the {} {} now.".format(
-            self.dataset_proper_name, file_type)
+        self.writer.write(
+            "Downloading the {} {} now.".format(self.dataset_proper_name, file_type)
         )
         download_file(url, output_dir=download_folder)
 
@@ -85,5 +89,3 @@ class VisualGenomeBuilder(VQA2Builder):
         extract_file(local_filename, output_dir=download_folder)
 
         return extraction_folder
-
-

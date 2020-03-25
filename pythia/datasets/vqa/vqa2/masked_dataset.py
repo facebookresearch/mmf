@@ -1,4 +1,5 @@
 import random
+
 import numpy as np
 
 from pythia.common.sample import Sample
@@ -45,11 +46,9 @@ class MaskedVQA2Dataset(VQA2Dataset):
         question = sample_info["question_str"]
         random_answer = random.choice(sample_info["all_answers"])
 
-        processed = self.masked_token_processor({
-            "text_a": question,
-            "text_b": random_answer,
-            "is_correct": -1
-        })
+        processed = self.masked_token_processor(
+            {"text_a": question, "text_b": random_answer, "is_correct": -1}
+        )
 
         processed.pop("tokens")
         current_sample.update(processed)

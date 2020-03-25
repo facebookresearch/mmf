@@ -30,7 +30,6 @@ import warnings
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import warnings
 from torch.nn.utils.rnn import pack_padded_sequence
 
 from pythia.common.registry import registry
@@ -484,7 +483,7 @@ class CombinedLoss(nn.Module):
 class M4CDecodingBCEWithMaskLoss(nn.Module):
     def __init__(self):
         super().__init__()
-        self.one = torch.Tensor([1.])
+        self.one = torch.Tensor([1.0])
 
     def forward(self, sample_list, model_output):
         scores = model_output["scores"]
@@ -492,14 +491,13 @@ class M4CDecodingBCEWithMaskLoss(nn.Module):
         loss_mask = sample_list["train_loss_mask"]
         assert scores.dim() == 3 and loss_mask.dim() == 2
 
-        losses = F.binary_cross_entropy_with_logits(
-            scores, targets, reduction="none"
-        )
+        losses = F.binary_cross_entropy_with_logits(scores, targets, reduction="none")
         losses *= loss_mask.unsqueeze(-1)
 
         count = torch.max(torch.sum(loss_mask), self.one.to(losses.device))
         loss = torch.sum(losses) / count
         return loss
+
 
 @registry.register_loss("cross_entropy")
 class CrossEntropyLoss(nn.Module):

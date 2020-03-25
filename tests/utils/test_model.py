@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+
 from pythia.common.registry import registry
 from pythia.models.base_model import BaseModel
 
@@ -9,6 +10,7 @@ class TestDecoderModel(nn.Module):
         super().__init__()
         self.config = config
         self.vocab = vocab
+
     def build(self):
         return
 
@@ -39,16 +41,17 @@ class TestDecoderModel(nn.Module):
 
         return data, batch_size_t
 
-
     def forward(self, sample_list):
         scores = torch.rand(sample_list.get_batch_size(), 3127)
-        decoder = registry.get_decoder_class(self.config["inference"]["type"])(self.vocab, self.config)
+        decoder = registry.get_decoder_class(self.config["inference"]["type"])(
+            self.vocab, self.config
+        )
         sample_list = decoder.init_batch(sample_list)
         batch_size = sample_list.image_feature_0.size(0)
         data = {}
         data["texts"] = sample_list.answers.new_full(
-                (batch_size, 1), self.vocab.SOS_INDEX, dtype=torch.long
-            )
+            (batch_size, 1), self.vocab.SOS_INDEX, dtype=torch.long
+        )
         timesteps = 10
         sample_list.add_field("targets", sample_list.answers[:, 0, 1:])
         output = None
@@ -56,9 +59,9 @@ class TestDecoderModel(nn.Module):
         for t in range(timesteps):
             data, batch_size_t = self.get_data_t(data, batch_size_t)
             output = torch.randn(1, 9491)
-            if (t == timesteps - 1):
-                output = torch.ones(1, 9491) * -30;
-                output[0][2] = 10;
+            if t == timesteps - 1:
+                output = torch.ones(1, 9491) * -30
+                output[0][2] = 10
             finish, data, batch_size_t = decoder.decode(t, data, output)
             if finish:
                 break

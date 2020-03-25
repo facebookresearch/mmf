@@ -1,29 +1,35 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import gc
 import math
-import time
 import random
+import time
 
 import torch
 import omegaconf
 from torch import optim
 from tqdm import tqdm
 
+from pythia.common.dataset_loader import DatasetLoader
 from pythia.common.meter import Meter
 from pythia.common.registry import registry
 from pythia.common.report import Report
-from pythia.common.dataset_loader import DatasetLoader
 from pythia.utils.build_utils import build_model, build_optimizer, build_scheduler
 from pythia.utils.checkpoint import Checkpoint
-from pythia.utils.distributed_utils import (broadcast_scalar, is_master, get_world_size,
-                                            reduce_dict, synchronize, distributed_init)
+from pythia.utils.distributed_utils import (
+    broadcast_scalar,
+    distributed_init,
+    get_world_size,
+    is_master,
+    reduce_dict,
+    synchronize,
+)
 from pythia.utils.early_stopping import EarlyStopping
 from pythia.utils.general import clip_gradients, print_model_parameters
 from pythia.utils.logger import Logger, TensorboardLogger
 from pythia.utils.timer import Timer
 
 
-@registry.register_trainer('base_trainer')
+@registry.register_trainer("base_trainer")
 class BaseTrainer:
     def __init__(self, configuration):
         self.configuration = configuration
@@ -126,16 +132,14 @@ class BaseTrainer:
             registry.register("data_parallel", True)
             self.model = torch.nn.DataParallel(self.model)
 
-        if (
-            "cuda" in str(self.device)
-            and self.distributed
-        ):
+        if "cuda" in str(self.device) and self.distributed:
             registry.register("distributed", True)
             self.model = torch.nn.parallel.DistributedDataParallel(
                 self.model,
-                device_ids=[self.local_rank], output_device=self.local_rank,
+                device_ids=[self.local_rank],
+                output_device=self.local_rank,
                 check_reduction=True,
-                find_unused_parameters=training_parameters.find_unused_parameters
+                find_unused_parameters=training_parameters.find_unused_parameters,
             )
 
     def load_extras(self):
@@ -186,10 +190,7 @@ class BaseTrainer:
             if self.training_parameters.tensorboard_logdir:
                 log_dir = self.training_parameters.tensorboard_logdir
 
-            self.tb_writer = TensorboardLogger(
-                log_dir,
-                self.current_iteration
-            )
+            self.tb_writer = TensorboardLogger(log_dir, self.current_iteration)
 
     def config_based_setup(self):
         seed = self.config.training_parameters.seed
@@ -282,7 +283,6 @@ class BaseTrainer:
         self.num_updates += 1
         self.profile("Backward time")
 
-
     def _extract_loss(self, report):
         loss_dict = report.losses
         loss = sum([loss.mean() for loss in loss_dict.values()])
@@ -294,7 +294,10 @@ class BaseTrainer:
         # Only do when run_type has train as it shouldn't happen on validation and inference runs
         # Inference will take care of this anyways. Also, don't run if current iteration
         # is divisble by snapshot interval as it will just be a repeat
-        if "train" in self.run_type and self.num_updates % self.evaluation_interval != 0:
+        if (
+            "train" in self.run_type
+            and self.num_updates % self.evaluation_interval != 0
+        ):
             self._try_full_validation(force=True)
 
         self.checkpoint.restore()
@@ -366,11 +369,7 @@ class BaseTrainer:
             self.train_timer.reset()
             self._update_meter(report, self.meter)
 
-            self._summarize_report(
-                self.meter,
-                should_print=should_print,
-                extra=extra
-            )
+            self._summarize_report(self.meter, should_print=should_print, extra=extra)
 
         self._try_snapshot()
         should_break = self._try_full_validation()
@@ -399,7 +398,7 @@ class BaseTrainer:
                 "epoch": self.current_epoch,
                 "iterations": self.current_iteration,
                 "max_updates": self.max_updates,
-                "val_time": self.snapshot_timer.get_time_since_start()
+                "val_time": self.snapshot_timer.get_time_since_start(),
             }
 
             stop = self.early_stopping(self.num_updates, self.current_iteration, meter)
@@ -448,9 +447,7 @@ class BaseTrainer:
 
         if not should_print:
             return
-        log_dict = {
-            "progress": "{}/{}".format(self.num_updates, self.max_updates)
-        }
+        log_dict = {"progress": "{}/{}".format(self.num_updates, self.max_updates)}
         log_dict.update(meter.get_log_dict())
         log_dict.update(extra)
 

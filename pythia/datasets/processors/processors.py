@@ -77,16 +77,15 @@ from collections import Counter, defaultdict
 
 import numpy as np
 import torch
-
 from transformers.tokenization_bert import BertTokenizer
 
 from pythia.common.registry import registry
 from pythia.utils.configuration import ConfigNode
 from pythia.utils.distributed_utils import is_master, synchronize
 from pythia.utils.general import get_pythia_root
+from pythia.utils.phoc import build_phoc
 from pythia.utils.text_utils import VocabDict
 from pythia.utils.vocab import Vocab, WordToVectorDict
-from pythia.utils.phoc import build_phoc
 
 
 class BaseProcessor:
@@ -157,8 +156,7 @@ class Processor:
         return self.processor(item, *args, **kwargs)
 
     def __getattr__(self, name):
-        if "_dir_representation" in self.__dict__ and  \
-            name in self._dir_representation:
+        if "_dir_representation" in self.__dict__ and name in self._dir_representation:
             return getattr(self, name)
         elif "processor" in self.__dict__ and hasattr(self.processor, name):
             return getattr(self.processor, name)
@@ -665,7 +663,7 @@ class VQAAnswerProcessor(BaseProcessor):
 
     def _increase_to_ten(self, tokens):
         while len(tokens) < self.DEFAULT_NUM_ANSWERS:
-            tokens += tokens[:self.DEFAULT_NUM_ANSWERS - len(tokens)]
+            tokens += tokens[: self.DEFAULT_NUM_ANSWERS - len(tokens)]
 
         return tokens
 
@@ -1108,11 +1106,14 @@ class EvalAIAnswerProcessor(BaseProcessor):
         item = self.process_punctuation(item)
         item = self.process_digit_article(item)
         return item
+
+
 @registry.register_processor("phoc")
 class PhocProcessor(VocabProcessor):
     """
     Compute PHOC features from text tokens
     """
+
     def __init__(self, config, *args, **kwargs):
         self._init_extras(config)
         self.config = config
@@ -1123,9 +1124,7 @@ class PhocProcessor(VocabProcessor):
 
         phoc_dim = 604
         output = torch.full(
-            (self.max_length, phoc_dim),
-            fill_value=self.PAD_INDEX,
-            dtype=torch.float,
+            (self.max_length, phoc_dim), fill_value=self.PAD_INDEX, dtype=torch.float
         )
 
         for idx, token in enumerate(tokens):
@@ -1139,13 +1138,14 @@ class CopyProcessor(BaseProcessor):
     """
     Copy boxes from numpy array
     """
+
     def __init__(self, config, *args, **kwargs):
         self.max_length = config.max_length
 
     def __call__(self, item):
         blob = item["blob"]
         final_blob = np.zeros((self.max_length,) + blob.shape[1:], blob.dtype)
-        final_blob[:len(blob)] = blob[:len(final_blob)]
+        final_blob[: len(blob)] = blob[: len(final_blob)]
 
         return {"blob": torch.from_numpy(final_blob)}
 
@@ -1155,6 +1155,7 @@ class M4CAnswerProcessor(BaseProcessor):
     """
     Process a TextVQA answer for iterative decoding in M4C
     """
+
     def __init__(self, config, *args, **kwargs):
         super().__init__(config, *args, **kwargs)
 
@@ -1203,9 +1204,7 @@ class M4CAnswerProcessor(BaseProcessor):
             # match answer word to OCR
             # we put OCR after the fixed vocabulary in the answer index space
             # so add num_vocab offset to the OCR index
-            matched_inds.extend(
-                [num_vocab + idx for idx in ocr2inds_dict[word]]
-            )
+            matched_inds.extend([num_vocab + idx for idx in ocr2inds_dict[word]])
             if len(matched_inds) == 0:
                 if self.match_answer_to_unk:
                     matched_inds.append(vocab2idx_dict.get("<unk>"))
@@ -1219,8 +1218,7 @@ class M4CAnswerProcessor(BaseProcessor):
         idx_seq_list = [()]
         for matched_inds in answer_word_matches:
             idx_seq_list = [
-                seq + (idx,)
-                for seq in idx_seq_list for idx in matched_inds
+                seq + (idx,) for seq in idx_seq_list for idx in matched_inds
             ]
             if len(idx_seq_list) > max_match_num:
                 idx_seq_list = idx_seq_list[:max_match_num]
@@ -1243,9 +1241,7 @@ class M4CAnswerProcessor(BaseProcessor):
         for idx, unique_answer in enumerate(unique_answers):
             accs = []
             for gt_answer in gt_answers:
-                other_answers = [
-                    item for item in gt_answers if item != gt_answer
-                ]
+                other_answers = [item for item in gt_answers if item != gt_answer]
                 matching_answers = [
                     item for item in other_answers if item[1] == unique_answer
                 ]
@@ -1259,9 +1255,7 @@ class M4CAnswerProcessor(BaseProcessor):
 
     def __call__(self, item):
         answers = item["answers"]
-        answers = [
-            self.answer_preprocessor({"text": a})["text"] for a in answers
-        ]
+        answers = [self.answer_preprocessor({"text": a})["text"] for a in answers]
         assert len(answers) == self.num_answers
 
         # Step 1: calculate the soft score of ground-truth answers
@@ -1269,9 +1263,7 @@ class M4CAnswerProcessor(BaseProcessor):
 
         # Step 2: fill the first step soft scores for tokens
         scores = torch.zeros(
-            self.max_copy_steps,
-            self.get_vocab_size(),
-            dtype=torch.float
+            self.max_copy_steps, self.get_vocab_size(), dtype=torch.float
         )
 
         # match answers to fixed vocabularies and OCR tokens.
@@ -1281,7 +1273,8 @@ class M4CAnswerProcessor(BaseProcessor):
         answer_dec_inds = [
             self.match_answer_to_vocab_ocr_seq(
                 a, self.answer_vocab.word2idx_dict, ocr2inds_dict
-            ) for a in answers
+            )
+            for a in answers
         ]
 
         # Collect all the valid decoding sequences for each answer.
@@ -1309,14 +1302,14 @@ class M4CAnswerProcessor(BaseProcessor):
         if len(all_idx_seq_list) > 0:
             # sample a random decoding answer sequence for teacher-forcing
             idx_seq = all_idx_seq_list[np.random.choice(len(all_idx_seq_list))]
-            dec_step_num = min(1+len(idx_seq), self.max_copy_steps)
-            train_loss_mask[:dec_step_num] = 1.
+            dec_step_num = min(1 + len(idx_seq), self.max_copy_steps)
+            train_loss_mask[:dec_step_num] = 1.0
 
             train_prev_inds[0] = self.BOS_IDX
             for t in range(1, dec_step_num):
-                train_prev_inds[t] = idx_seq[t-1]
+                train_prev_inds[t] = idx_seq[t - 1]
                 score_idx = idx_seq[t] if t < len(idx_seq) else self.EOS_IDX
-                scores[t, score_idx] = 1.
+                scores[t, score_idx] = 1.0
         else:
             idx_seq = ()
 
@@ -1335,18 +1328,23 @@ class M4CCaptionProcessor(M4CAnswerProcessor):
     def __init__(self, config, *args, **kwargs):
         super().__init__(config, *args, **kwargs)
         import re
+
         self.SENTENCE_SPLIT_REGEX = re.compile(r"(\W+)")
 
         self.match_answer_to_unk = True
 
     def tokenize(self, sentence):
         sentence = sentence.lower()
-        sentence = sentence.replace(",", "").replace("?", "").replace(".", "")\
+        sentence = (
+            sentence.replace(",", "")
+            .replace("?", "")
+            .replace(".", "")
             .replace("'s", " 's")
+        )
         tokens = self.SENTENCE_SPLIT_REGEX.split(sentence)
         tokens = [t.strip() for t in tokens if len(t.strip()) > 0]
         return tokens
 
     def compute_answer_scores(self, answers):
-        unique_answer2score = {a: 1. for a in answers}
+        unique_answer2score = {a: 1.0 for a in answers}
         return unique_answer2score

@@ -1,20 +1,16 @@
 import torch
-
 from torch import nn
 
 from pythia.common.registry import registry
 from pythia.models.base_model import BaseModel
 from pythia.modules.layers import ConvNet, Flatten
 
-
 _TEMPLATES = {
     "question_vocab_size": "{}_text_vocab_size",
-    "number_of_answers": "{}_num_final_outputs"
+    "number_of_answers": "{}_num_final_outputs",
 }
 
-_CONSTANTS = {
-    "hidden_state_warning": "hidden state (final) should have 1st dim as 2"
-}
+_CONSTANTS = {"hidden_state_warning": "hidden state (final) should have 1st dim as 2"}
 
 
 @registry.register_model("cnn_lstm")
@@ -32,6 +28,7 @@ class CNNLSTM(BaseModel):
         - **sample_list** should contain image attribute for image, text for question split into
           word indices, targets for answer scores
     """
+
     def __init__(self, config):
         super().__init__(config)
         self._global_config = registry.get("config")
@@ -58,13 +55,15 @@ class CNNLSTM(BaseModel):
                 ConvNet(
                     layers_config.input_dims[i],
                     layers_config.output_dims[i],
-                    kernel_size=layers_config.kernel_sizes[i]
+                    kernel_size=layers_config.kernel_sizes[i],
                 )
             )
         conv_layers.append(Flatten())
         self.cnn = nn.Sequential(*conv_layers)
 
-        self.classifier = nn.Linear(self.config.classifier.input_dim, num_answer_choices)
+        self.classifier = nn.Linear(
+            self.config.classifier.input_dim, num_answer_choices
+        )
 
     def forward(self, sample_list):
         self.lstm.flatten_parameters()
@@ -86,6 +85,5 @@ class CNNLSTM(BaseModel):
         # Fuse into single dimension
         fused = torch.cat([hidden, image], dim=-1)
         scores = self.classifier(fused)
-
 
         return {"scores": scores}

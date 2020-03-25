@@ -1,16 +1,21 @@
 import torch
-
 from torch import nn
-
 from transformers.modeling_bert import (
-    BertLayerNorm, BertEmbeddings, BertEncoder, BertPooler,
-    BertLayer, BertForPreTraining, BertPreTrainingHeads, BertConfig,
-    BertPredictionHeadTransform
+    BertConfig,
+    BertEmbeddings,
+    BertEncoder,
+    BertForPreTraining,
+    BertLayer,
+    BertLayerNorm,
+    BertPooler,
+    BertPredictionHeadTransform,
+    BertPreTrainingHeads,
 )
-from pythia.models.visual_bert import transform_to_batch_sequence
-from pythia.models.pythia import Pythia
-from pythia.modules.embeddings import ProjectionEmbedding
+
 from pythia.common.registry import registry
+from pythia.models.pythia import Pythia
+from pythia.models.visual_bert import transform_to_batch_sequence
+from pythia.modules.embeddings import ProjectionEmbedding
 
 
 @registry.register_model("pythia_bert")
@@ -39,7 +44,6 @@ class PythiaBert(Pythia):
             self.pooler = BertPooler(self.bert_config)
             self.word_embedding = BertEmbeddings(self.bert_config)
 
-
     def _init_classifier(self, hidden_size):
         if "pretraining" in self.config.training_head_type:
             self.classifier = BertPreTrainingHeads(self.bert_config)
@@ -48,7 +52,7 @@ class PythiaBert(Pythia):
             self.answer_space_size = 3129
             self.classifier = nn.Sequential(
                 BertPredictionHeadTransform(self.bert_config),
-                nn.Linear(self.bert_config.hidden_size, self.answer_space_size)
+                nn.Linear(self.bert_config.hidden_size, self.answer_space_size),
             )
             # self.classifier = nn.Linear(self.bert_config.hidden_size, self.answer_space_size)
         elif "vizwiz" in self.config.training_head_type:
@@ -56,22 +60,20 @@ class PythiaBert(Pythia):
             self.answer_space_size = 7371
             self.classifier = nn.Sequential(
                 BertPredictionHeadTransform(self.bert_config),
-                nn.Linear(self.bert_config.hidden_size, self.answer_space_size)
+                nn.Linear(self.bert_config.hidden_size, self.answer_space_size),
             )
             # self.classifier = nn.Linear(self.bert_config.hidden_size, self.answer_space_size)
         elif self.config.training_head_type == "visual_entailment":
             self.dropout = nn.Dropout(self.bert_config.hidden_dropout_prob)
             self.classifier = nn.Sequential(
                 BertPredictionHeadTransform(self.bert_config),
-                nn.Linear(self.bert_config.hidden_size, 3)
+                nn.Linear(self.bert_config.hidden_size, 3),
             )
             # self.classifier = nn.Linear(self.bert_config.hidden_size, 3)
 
     def _init_text_embeddings(self, attr="text"):
         self.text_embeddings_out_dim = self.bert_config.hidden_size
-        self.text_embedding = nn.MultiheadAttention(
-            **self.config.text_embeddings[0]
-        )
+        self.text_embedding = nn.MultiheadAttention(**self.config.text_embeddings[0])
 
     def _tie_or_clone_weights(self, first_module, second_module):
         """ Tie or clone module weights depending of weither we are using TorchScript or not
@@ -85,9 +87,10 @@ class PythiaBert(Pythia):
         """ Make sure we are sharing the input and output embeddings.
             Export to TorchScript can't handle parameter sharing so we are cloning them instead.
         """
-        if hasattr(self, 'cls'):
-            self._tie_or_clone_weights(self.cls.predictions.decoder,
-                                       self.word_embeddings.word_embeddings)
+        if hasattr(self, "cls"):
+            self._tie_or_clone_weights(
+                self.cls.predictions.decoder, self.word_embeddings.word_embeddings
+            )
 
     def _init_feature_embeddings(self, attr):
         feature_embeddings_list = []
@@ -95,7 +98,9 @@ class PythiaBert(Pythia):
             getattr(self.config, "{}_feature_encodings".format(attr))
         )
 
-        self.image_feature_projection = ProjectionEmbedding(**self.config.image_feature_projection)
+        self.image_feature_projection = ProjectionEmbedding(
+            **self.config.image_feature_projection
+        )
         self.feature_embeddings_out_dim = 0
 
         if self.config.image_intra_attention:
@@ -108,11 +113,11 @@ class PythiaBert(Pythia):
             feature_attn_model_list = self.config[attr + "_feature_embeddings"]
 
             for feature_attn_model_params in feature_attn_model_list:
-                feature_embedding = nn.MultiheadAttention(
-                    **feature_attn_model_params
-                )
+                feature_embedding = nn.MultiheadAttention(**feature_attn_model_params)
                 feature_embeddings.append(feature_embedding)
-                self.feature_embeddings_out_dim += feature_attn_model_params["embed_dim"]
+                self.feature_embeddings_out_dim += feature_attn_model_params[
+                    "embed_dim"
+                ]
 
             feature_embeddings = nn.ModuleList(feature_embeddings)
             feature_embeddings_list.append(feature_embeddings)
@@ -138,19 +143,23 @@ class PythiaBert(Pythia):
 
         no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
         optimizer_grouped_parameters = [
-            {"params": [
+            {
+                "params": [
                     p for n, p in param_optimizer if not any(nd in n for nd in no_decay)
-                ], "weight_decay": 0.01
+                ],
+                "weight_decay": 0.01,
             },
-            {"params": [
+            {
+                "params": [
                     p for n, p in param_optimizer if any(nd in n for nd in no_decay)
-                ], "weight_decay": 0.0
+                ],
+                "weight_decay": 0.0,
             },
             {
                 "params": [p for _, p in image_feature_encoders_params],
                 "lr": (config["optimizer_attributes"]["params"]["lr"] * 0.1),
-                "weight_decay": 0.01
-            }
+                "weight_decay": 0.01,
+            },
         ]
 
         return optimizer_grouped_parameters
@@ -160,15 +169,23 @@ class PythiaBert(Pythia):
     def process_text_embedding(self, text_embedding, key_padding_mask=None):
         text_embedding = text_embedding.transpose(0, 1)
         embedding, _ = self.text_embedding(
-            text_embedding, text_embedding, text_embedding, key_padding_mask=key_padding_mask
+            text_embedding,
+            text_embedding,
+            text_embedding,
+            key_padding_mask=key_padding_mask,
         )
 
         return embedding.transpose(0, 1)
 
     def process_feature_embedding(
-        self, attr, sample_list, text_embedding_total, key_padding_mask=None,
+        self,
+        attr,
+        sample_list,
+        text_embedding_total,
+        key_padding_mask=None,
         attn_mask=None,
-        extra=[], batch_size_t=None
+        extra=[],
+        batch_size_t=None,
     ):
         feature_embeddings = []
         feature_attentions = []
@@ -229,8 +246,11 @@ class PythiaBert(Pythia):
 
             if self.config.image_intra_attention:
                 encoded_feature, _ = self.image_feature_intra_attention(
-                    encoded_feature, encoded_feature, encoded_feature,
-                    key_padding_mask=key_padding_mask, attn_mask=attn_mask
+                    encoded_feature,
+                    encoded_feature,
+                    encoded_feature,
+                    key_padding_mask=key_padding_mask,
+                    attn_mask=attn_mask,
                 )
             # Forward through these embeddings one by one
             for feature_embedding_model in feature_embedding_models:
@@ -291,7 +311,9 @@ class PythiaBert(Pythia):
         attention_mask = (1.0 - attention_mask) * -10000.0
 
         text_embedding = self.word_embedding(input_ids, input_type_ids)
-        text_embedding_total = self.process_text_embedding(text_embedding, input_mask == 0)
+        text_embedding_total = self.process_text_embedding(
+            text_embedding, input_mask == 0
+        )
 
         image_embedding_total, _ = self.process_feature_embedding(
             "image", sample_list, text_embedding_total
@@ -324,11 +346,15 @@ class PythiaBert(Pythia):
             if masked_lm_labels is not None:
                 loss_fct = nn.CrossEntropyLoss(ignore_index=-1)
                 masked_lm_loss = loss_fct(
-                    prediction_scores.contiguous().view(-1, self.bert_config.vocab_size),
-                    masked_lm_labels.contiguous().view(-1)
+                    prediction_scores.contiguous().view(
+                        -1, self.bert_config.vocab_size
+                    ),
+                    masked_lm_labels.contiguous().view(-1),
                 )
                 # print(seq_relationship_score.argmax(dim=1), is_random_next)
-                loss_key = "{}/{}".format(sample_list.dataset_name, sample_list.dataset_type)
+                loss_key = "{}/{}".format(
+                    sample_list.dataset_name, sample_list.dataset_type
+                )
 
                 output_dict["losses"] = {}
                 output_dict["losses"][loss_key + "/masked_lm_loss"] = masked_lm_loss
@@ -338,18 +364,24 @@ class PythiaBert(Pythia):
 
                     next_sentence_loss = loss_fct(
                         seq_relationship_score.contiguous().view(-1, 2),
-                        is_random_next.contiguous().view(-1)
+                        is_random_next.contiguous().view(-1),
                     )
-                    output_dict["losses"][loss_key + "/next_sentence_loss"] = next_sentence_loss
+                    output_dict["losses"][
+                        loss_key + "/next_sentence_loss"
+                    ] = next_sentence_loss
             return output_dict
-        elif "vqa" in self.config.training_head_type or self.config.training_head_type == "vizwiz":
+        elif (
+            "vqa" in self.config.training_head_type
+            or self.config.training_head_type == "vizwiz"
+        ):
             index_to_gather = input_mask.sum(1) - 2
 
             pooled_output = torch.gather(
-                joint_embedding, 1,
-                index_to_gather.unsqueeze(-1).unsqueeze(-1).expand(
-                    index_to_gather.size(0), 1, joint_embedding.size(-1)
-                )
+                joint_embedding,
+                1,
+                index_to_gather.unsqueeze(-1)
+                .unsqueeze(-1)
+                .expand(index_to_gather.size(0), 1, joint_embedding.size(-1)),
             )
 
             pooled_output = self.dropout(pooled_output)
@@ -358,7 +390,10 @@ class PythiaBert(Pythia):
 
             output_dict["scores"] = reshaped_logits
             return output_dict
-        elif self.config.training_head_type == "nlvr2" or self.config.training_head_type == "visual_entailment":
+        elif (
+            self.config.training_head_type == "nlvr2"
+            or self.config.training_head_type == "visual_entailment"
+        ):
             pooled_output = self.dropout(pooled_output)
             logits = self.classifier(pooled_output)
             output_dict["scores"] = logits

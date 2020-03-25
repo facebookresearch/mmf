@@ -56,8 +56,7 @@ class Vocab:
         return self.vocab(*args, **kwargs)
 
     def __getattr__(self, name):
-        if "_dir_representation" in self.__dict__ and \
-            name in self._dir_representation:
+        if "_dir_representation" in self.__dict__ and name in self._dir_representation:
             return getattr(self, name)
         elif "vocab" in self.__dict__ and hasattr(self.vocab, name):
             return getattr(self.vocab, name)

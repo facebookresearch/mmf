@@ -16,4 +16,3 @@ class MMIMDbBuilder(VQA2Builder):
         super().__init__()
         self.dataset_name = "mmimdb"
         self.dataset_class = MMIMDbDataset
-

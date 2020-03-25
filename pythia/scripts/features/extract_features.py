@@ -40,15 +40,14 @@ import timeit
 from collections import defaultdict
 
 import caffe2
-import cv2  # NOQA (Must import before importing caffe2 due to bug in cv2)
-import numpy as np
-from caffe2.python import workspace
-
 import common.test_engine as infer_engine
+import cv2  # NOQA (Must import before importing caffe2 due to bug in cv2)
 import datasets.dummy_datasets as dummy_datasets
+import numpy as np
 import utils.c2 as c2_utils
 import utils.logging
 import utils.vis as vis_utils
+from caffe2.python import workspace
 from common.config import assert_and_infer_cfg, cfg, merge_cfg_from_file
 from utils.boxes import nms
 from utils.io import cache_url
@@ -149,8 +148,9 @@ def parse_args():
     parser.add_argument("im_or_folder", help="image or folder of images", default=None)
 
     parser.add_argument(
-        "--background", action="store_true",
-        help="The model will output predictions for the background class when set"
+        "--background",
+        action="store_true",
+        help="The model will output predictions for the background class when set",
     )
 
     if len(sys.argv) == 1:

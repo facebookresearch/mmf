@@ -20,8 +20,7 @@ class FeaturesDataset:
         self._dir_representation = dir(self)
 
     def __getattr__(self, name):
-        if "_dir_representations" in self.__dict__ and \
-            name in self._dir_representation:
+        if "_dir_representations" in self.__dict__ and name in self._dir_representation:
             return getattr(self, name)
         elif "features_db" in self.__dict__ and hasattr(self.features_db, name):
             return getattr(self.features_db, name)
@@ -118,7 +117,9 @@ class COCOFeaturesDataset(BaseFeaturesDataset):
             image_file_name = "{}.npy".format(image_info["image_id"])
 
         if "genome" in image_file_name:
-            image_file_name = str(int(image_file_name.split("_")[-1].split(".")[0])) + ".npy"
+            image_file_name = (
+                str(int(image_file_name.split("_")[-1].split(".")[0])) + ".npy"
+            )
 
         image_features, infos = self._get_image_features_and_info(image_file_name)
 

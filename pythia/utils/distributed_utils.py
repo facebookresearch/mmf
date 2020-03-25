@@ -1,11 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # Inspired from maskrcnn_benchmark, fairseq
-import torch
 import os
 import socket
 import subprocess
 import warnings
 
+import torch
 from torch import distributed as dist
 
 
@@ -120,9 +120,10 @@ def infer_init_method(config):
         return
 
     # support torch.distributed.launch
-    if all(key in os.environ for key in [
-        "MASTER_ADDR", "MASTER_PORT", "WORLD_SIZE", "RANK"
-    ]):
+    if all(
+        key in os.environ
+        for key in ["MASTER_ADDR", "MASTER_PORT", "WORLD_SIZE", "RANK"]
+    ):
         config.distributed_init_method = "env://"
         config.distributed_world_size = int(os.environ["WORLD_SIZE"])
         config.distributed_rank = int(os.environ["RANK"])
@@ -134,7 +135,9 @@ def infer_init_method(config):
             node_list = os.environ.get("SLURM_JOB_NODELIST")
         if node_list is not None:
             try:
-                hostnames = subprocess.check_output(["scontrol", "show", "hostnames", node_list])
+                hostnames = subprocess.check_output(
+                    ["scontrol", "show", "hostnames", node_list]
+                )
                 config.distributed_init_method = "tcp://{host}:{port}".format(
                     host=hostnames.split()[0].decode("utf-8"),
                     port=config.distributed_port,
@@ -171,16 +174,24 @@ def distributed_init(config):
     if dist.is_initialized():
         warnings.warn("Distributed is already initialized, cannot initialize twice!")
     else:
-        print("| distributed init (rank {}): {}".format(
-            config.distributed_rank, config.distributed_init_method), flush=True)
+        print(
+            "| distributed init (rank {}): {}".format(
+                config.distributed_rank, config.distributed_init_method
+            ),
+            flush=True,
+        )
         dist.init_process_group(
             backend=config.distributed_backend,
             init_method=config.distributed_init_method,
             world_size=config.distributed_world_size,
             rank=config.distributed_rank,
         )
-        print("| initialized host {} as rank {}".format(
-            socket.gethostname(), config.distributed_rank), flush=True)
+        print(
+            "| initialized host {} as rank {}".format(
+                socket.gethostname(), config.distributed_rank
+            ),
+            flush=True,
+        )
 
         # perform a dummy all-reduce to initialize the NCCL communicator
         dist.all_reduce(torch.zeros(1).cuda())
@@ -194,6 +205,7 @@ def distributed_init(config):
 def suppress_output(is_master):
     """Suppress printing on the current device. Force printing with `force=True`."""
     import builtins as __builtin__
+
     builtin_print = __builtin__.print
 
     def print(*args, **kwargs):
@@ -206,13 +218,16 @@ def suppress_output(is_master):
     import warnings
 
     builtin_warn = warnings.warn
+
     def warn(*args, **kwargs):
         force = kwargs.pop("force", False)
         if is_master or force:
             builtin_warn(*args, **kwargs)
+
     # Log warnings only once
     warnings.warn = warn
     warnings.simplefilter("once", UserWarning)
+
 
 # def is_master(config=None):
 #     if config is None:

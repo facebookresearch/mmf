@@ -1,9 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os
+import pickle
 
 import numpy as np
 import torch
-import pickle
 
 
 class FeatureReader:
@@ -101,18 +101,22 @@ class HWCFeatureReader:
         return image_feature, None
 
 
-
 class LMDBFeaturesReader:
     def __init__(self):
         import lmdb
+
         lmdb_path = "/checkpoint/vedanuj/datasets/coco/features_100/COCO_trainval_resnext152_faster_rcnn_genome.lmdb"
         self.env = lmdb.open(
-            lmdb_path, max_readers=16, readonly=True,
-            lock=False, readahead=False, meminit=False
+            lmdb_path,
+            max_readers=16,
+            readonly=True,
+            lock=False,
+            readahead=False,
+            meminit=False,
         )
 
         with self.env.begin(write=False) as txn:
-            self.image_ids = pickle.loads(txn.get('keys'.encode()))
+            self.image_ids = pickle.loads(txn.get("keys".encode()))
             self.reverse_map = {item: idx for idx, item in enumerate(self.image_ids)}
 
     def read(self, image_file_path):
@@ -158,7 +162,7 @@ class PaddedFasterRCNNFeatureReader:
 
         image_loc, image_dim = image_feature.shape
         tmp_image_feat = np.zeros((self.max_loc, image_dim), dtype=np.float32)
-        tmp_image_feat[0:image_loc,] = image_feature[:self.max_loc, :]
+        tmp_image_feat[0:image_loc,] = image_feature[: self.max_loc, :]
         image_feature = torch.from_numpy(tmp_image_feat)
 
         image_info["max_features"] = torch.tensor(image_loc, dtype=torch.long)

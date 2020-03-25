@@ -1,20 +1,22 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import functools
 import math
-import torch
-from torch import nn
-import torch.nn.functional as F
 
+import torch
+import torch.nn.functional as F
+from torch import nn
 from transformers.modeling_bert import (
-    BertLayerNorm, BertEmbeddings, BertEncoder, BertConfig,
-    BertPreTrainedModel
+    BertConfig,
+    BertEmbeddings,
+    BertEncoder,
+    BertLayerNorm,
+    BertPreTrainedModel,
 )
 
 from pythia.common.registry import registry
 from pythia.models.base_model import BaseModel
-from pythia.modules.layers import ClassifierLayer
-
 from pythia.modules.encoders import ImageEncoder
+from pythia.modules.layers import ClassifierLayer
 
 
 @registry.register_model("m4c")
@@ -41,16 +43,15 @@ class M4C(BaseModel):
         self.text_bert_config = BertConfig(**self.config.text_bert)
         if self.config.text_bert_init_from_bert_base:
             self.text_bert = TextBert.from_pretrained(
-                'bert-base-uncased', config=self.text_bert_config
+                "bert-base-uncased", config=self.text_bert_config
             )
             # Use a smaller learning rate on text bert when initializing
             # from BERT_BASE
-            self.finetune_modules.append({
-                'module': self.text_bert,
-                'lr_scale': self.config.lr_scale_text_bert,
-            })
+            self.finetune_modules.append(
+                {"module": self.text_bert, "lr_scale": self.config.lr_scale_text_bert}
+            )
         else:
-            self.writer.write('NOT initializing text_bert from BERT_BASE')
+            self.writer.write("NOT initializing text_bert from BERT_BASE")
             self.text_bert = TextBert(self.text_bert_config)
 
         # if the text bert output dimension doesn't match the
@@ -58,7 +59,7 @@ class M4C(BaseModel):
         # add a linear projection layer between the two
         if self.mmt_config.hidden_size != TEXT_BERT_HIDDEN_SIZE:
             self.writer.write(
-                'Projecting text_bert output to {} dim'.format(
+                "Projecting text_bert output to {} dim".format(
                     self.mmt_config.hidden_size
                 )
             )
@@ -71,25 +72,22 @@ class M4C(BaseModel):
     def _build_obj_encoding(self):
         # object appearance feature: Faster R-CNN
         self.obj_faster_rcnn_fc7 = ImageEncoder(
-            encoder_type='finetune_faster_rcnn_fpn_fc7',
+            encoder_type="finetune_faster_rcnn_fpn_fc7",
             in_dim=2048,
-            weights_file='detectron/fc6/fc7_w.pkl',
-            bias_file='detectron/fc6/fc7_b.pkl',
-            model_data_dir=self.config["model_data_dir"]
+            weights_file="detectron/fc6/fc7_w.pkl",
+            bias_file="detectron/fc6/fc7_b.pkl",
+            model_data_dir=self.config["model_data_dir"],
         )
         # apply smaller lr to pretrained Faster R-CNN fc7
-        self.finetune_modules.append({
-            'module': self.obj_faster_rcnn_fc7,
-            'lr_scale': self.config.lr_scale_frcn,
-        })
+        self.finetune_modules.append(
+            {"module": self.obj_faster_rcnn_fc7, "lr_scale": self.config.lr_scale_frcn}
+        )
         self.linear_obj_feat_to_mmt_in = nn.Linear(
             self.config.obj.mmt_in_dim, self.mmt_config.hidden_size
         )
 
         # object location feature: relative bounding box coordinates (4-dim)
-        self.linear_obj_bbox_to_mmt_in = nn.Linear(
-            4, self.mmt_config.hidden_size
-        )
+        self.linear_obj_bbox_to_mmt_in = nn.Linear(4, self.mmt_config.hidden_size)
 
         self.obj_feat_layer_norm = BertLayerNorm(self.mmt_config.hidden_size)
         self.obj_bbox_layer_norm = BertLayerNorm(self.mmt_config.hidden_size)
@@ -97,42 +95,33 @@ class M4C(BaseModel):
 
     def _build_ocr_encoding(self):
         self.remove_ocr_fasttext = getattr(
-            self.config.ocr, 'remove_ocr_fasttext', False
+            self.config.ocr, "remove_ocr_fasttext", False
         )
-        self.remove_ocr_phoc = getattr(
-            self.config.ocr, 'remove_ocr_phoc', False
-        )
-        self.remove_ocr_frcn = getattr(
-            self.config.ocr, 'remove_ocr_frcn', False
-        )
+        self.remove_ocr_phoc = getattr(self.config.ocr, "remove_ocr_phoc", False)
+        self.remove_ocr_frcn = getattr(self.config.ocr, "remove_ocr_frcn", False)
         self.remove_ocr_semantics = getattr(
-            self.config.ocr, 'remove_ocr_semantics', False
+            self.config.ocr, "remove_ocr_semantics", False
         )
-        self.remove_ocr_bbox = getattr(
-            self.config.ocr, 'remove_ocr_bbox', False
-        )
+        self.remove_ocr_bbox = getattr(self.config.ocr, "remove_ocr_bbox", False)
 
         # OCR appearance feature: Faster R-CNN
         self.ocr_faster_rcnn_fc7 = ImageEncoder(
-            encoder_type='finetune_faster_rcnn_fpn_fc7',
+            encoder_type="finetune_faster_rcnn_fpn_fc7",
             in_dim=2048,
-            weights_file='detectron/fc6/fc7_w.pkl',
-            bias_file='detectron/fc6/fc7_b.pkl',
-            model_data_dir=self.config["model_data_dir"]
+            weights_file="detectron/fc6/fc7_w.pkl",
+            bias_file="detectron/fc6/fc7_b.pkl",
+            model_data_dir=self.config["model_data_dir"],
         )
-        self.finetune_modules.append({
-            'module': self.ocr_faster_rcnn_fc7,
-            'lr_scale': self.config.lr_scale_frcn,
-        })
+        self.finetune_modules.append(
+            {"module": self.ocr_faster_rcnn_fc7, "lr_scale": self.config.lr_scale_frcn}
+        )
 
         self.linear_ocr_feat_to_mmt_in = nn.Linear(
             self.config.ocr.mmt_in_dim, self.mmt_config.hidden_size
         )
 
         # OCR location feature: relative bounding box coordinates (4-dim)
-        self.linear_ocr_bbox_to_mmt_in = nn.Linear(
-            4, self.mmt_config.hidden_size
-        )
+        self.linear_ocr_bbox_to_mmt_in = nn.Linear(4, self.mmt_config.hidden_size)
 
         self.ocr_feat_layer_norm = BertLayerNorm(self.mmt_config.hidden_size)
         self.ocr_bbox_layer_norm = BertLayerNorm(self.mmt_config.hidden_size)
@@ -142,10 +131,9 @@ class M4C(BaseModel):
         self.mmt = MMT(self.mmt_config)
 
         # allow specifying a different/scaled lr for multimodal transformer
-        self.finetune_modules.append({
-            'module': self.mmt,
-            'lr_scale': self.config.lr_scale_mmt,
-        })
+        self.finetune_modules.append(
+            {"module": self.mmt, "lr_scale": self.config.lr_scale_mmt}
+        )
 
     def _build_output(self):
         # dynamic OCR-copying scores with pointer network
@@ -163,9 +151,7 @@ class M4C(BaseModel):
             **self.config["classifier"]["params"]
         )
 
-        self.answer_processor = registry.get(
-            self._datasets[0] + "_answer_processor"
-        )
+        self.answer_processor = registry.get(self._datasets[0] + "_answer_processor")
 
     def forward(self, sample_list):
         # fwd_results holds intermediate forward pass results
@@ -181,10 +167,10 @@ class M4C(BaseModel):
         return results
 
     def _forward_txt_encoding(self, sample_list, fwd_results):
-        fwd_results['txt_inds'] = sample_list.text
+        fwd_results["txt_inds"] = sample_list.text
 
         # binary mask of valid text (question words) vs padding
-        fwd_results['txt_mask'] = _get_mask(
+        fwd_results["txt_mask"] = _get_mask(
             sample_list.text_len, sample_list.text.size(1)
         )
 
@@ -196,19 +182,15 @@ class M4C(BaseModel):
 
         obj_feat = obj_fc7
         obj_bbox = sample_list.obj_bbox_coordinates
-        obj_mmt_in = (
-            self.obj_feat_layer_norm(
-                self.linear_obj_feat_to_mmt_in(obj_feat)
-            ) + self.obj_bbox_layer_norm(
-                self.linear_obj_bbox_to_mmt_in(obj_bbox)
-            )
-        )
+        obj_mmt_in = self.obj_feat_layer_norm(
+            self.linear_obj_feat_to_mmt_in(obj_feat)
+        ) + self.obj_bbox_layer_norm(self.linear_obj_bbox_to_mmt_in(obj_bbox))
         obj_mmt_in = self.obj_drop(obj_mmt_in)
-        fwd_results['obj_mmt_in'] = obj_mmt_in
+        fwd_results["obj_mmt_in"] = obj_mmt_in
 
         # binary mask of valid object vs padding
         obj_nums = sample_list.image_info_0.max_features
-        fwd_results['obj_mask'] = _get_mask(obj_nums, obj_mmt_in.size(1))
+        fwd_results["obj_mask"] = _get_mask(obj_nums, obj_mmt_in.size(1))
 
     def _forward_ocr_encoding(self, sample_list, fwd_results):
         # OCR FastText feature (300-dim)
@@ -222,7 +204,7 @@ class M4C(BaseModel):
         assert ocr_phoc.size(-1) == 604
 
         # OCR appearance feature: Faster R-CNN fc7
-        ocr_fc6 = sample_list.image_feature_1[:, :ocr_fasttext.size(1), :]
+        ocr_fc6 = sample_list.image_feature_1[:, : ocr_fasttext.size(1), :]
         ocr_fc7 = self.ocr_faster_rcnn_fc7(ocr_fc6)
         ocr_fc7 = F.normalize(ocr_fc7, dim=-1)
 
@@ -237,72 +219,62 @@ class M4C(BaseModel):
         if self.remove_ocr_frcn:
             ocr_fc7 = torch.zeros_like(ocr_fc7)
         ocr_feat = torch.cat(
-            [ocr_fasttext, ocr_phoc, ocr_fc7, ocr_order_vectors],
-            dim=-1
+            [ocr_fasttext, ocr_phoc, ocr_fc7, ocr_order_vectors], dim=-1
         )
         ocr_bbox = sample_list.ocr_bbox_coordinates
         if self.remove_ocr_semantics:
             ocr_feat = torch.zeros_like(ocr_feat)
         if self.remove_ocr_bbox:
             ocr_bbox = torch.zeros_like(ocr_bbox)
-        ocr_mmt_in = (
-            self.ocr_feat_layer_norm(
-                self.linear_ocr_feat_to_mmt_in(ocr_feat)
-            ) + self.ocr_bbox_layer_norm(
-                self.linear_ocr_bbox_to_mmt_in(ocr_bbox)
-            )
-        )
+        ocr_mmt_in = self.ocr_feat_layer_norm(
+            self.linear_ocr_feat_to_mmt_in(ocr_feat)
+        ) + self.ocr_bbox_layer_norm(self.linear_ocr_bbox_to_mmt_in(ocr_bbox))
         ocr_mmt_in = self.ocr_drop(ocr_mmt_in)
-        fwd_results['ocr_mmt_in'] = ocr_mmt_in
+        fwd_results["ocr_mmt_in"] = ocr_mmt_in
 
         # binary mask of valid OCR vs padding
         ocr_nums = sample_list.context_info_0.max_features
-        fwd_results['ocr_mask'] = _get_mask(ocr_nums, ocr_mmt_in.size(1))
+        fwd_results["ocr_mask"] = _get_mask(ocr_nums, ocr_mmt_in.size(1))
 
     def _forward_mmt(self, sample_list, fwd_results):
         # first forward the text BERT layers
         text_bert_out = self.text_bert(
-            txt_inds=fwd_results['txt_inds'],
-            txt_mask=fwd_results['txt_mask']
+            txt_inds=fwd_results["txt_inds"], txt_mask=fwd_results["txt_mask"]
         )
-        fwd_results['txt_emb'] = self.text_bert_out_linear(text_bert_out)
+        fwd_results["txt_emb"] = self.text_bert_out_linear(text_bert_out)
 
         mmt_results = self.mmt(
-            txt_emb=fwd_results['txt_emb'],
-            txt_mask=fwd_results['txt_mask'],
-            obj_emb=fwd_results['obj_mmt_in'],
-            obj_mask=fwd_results['obj_mask'],
-            ocr_emb=fwd_results['ocr_mmt_in'],
-            ocr_mask=fwd_results['ocr_mask'],
+            txt_emb=fwd_results["txt_emb"],
+            txt_mask=fwd_results["txt_mask"],
+            obj_emb=fwd_results["obj_mmt_in"],
+            obj_mask=fwd_results["obj_mask"],
+            ocr_emb=fwd_results["ocr_mmt_in"],
+            ocr_mask=fwd_results["ocr_mask"],
             fixed_ans_emb=self.classifier.module.weight,
-            prev_inds=fwd_results['prev_inds'],
+            prev_inds=fwd_results["prev_inds"],
         )
         fwd_results.update(mmt_results)
 
     def _forward_output(self, sample_list, fwd_results):
-        mmt_dec_output = fwd_results['mmt_dec_output']
-        mmt_ocr_output = fwd_results['mmt_ocr_output']
-        ocr_mask = fwd_results['ocr_mask']
+        mmt_dec_output = fwd_results["mmt_dec_output"]
+        mmt_ocr_output = fwd_results["mmt_ocr_output"]
+        ocr_mask = fwd_results["ocr_mask"]
 
         fixed_scores = self.classifier(mmt_dec_output)
-        dynamic_ocr_scores = self.ocr_ptr_net(
-            mmt_dec_output, mmt_ocr_output, ocr_mask
-        )
+        dynamic_ocr_scores = self.ocr_ptr_net(mmt_dec_output, mmt_ocr_output, ocr_mask)
         scores = torch.cat([fixed_scores, dynamic_ocr_scores], dim=-1)
-        fwd_results['scores'] = scores
+        fwd_results["scores"] = scores
 
     def _forward_mmt_and_output(self, sample_list, fwd_results):
         if self.training:
-            fwd_results['prev_inds'] = sample_list.train_prev_inds.clone()
+            fwd_results["prev_inds"] = sample_list.train_prev_inds.clone()
             self._forward_mmt(sample_list, fwd_results)
             self._forward_output(sample_list, fwd_results)
         else:
             dec_step_num = sample_list.train_prev_inds.size(1)
             # fill prev_inds with BOS_IDX at index 0, and zeros elsewhere
-            fwd_results['prev_inds'] = torch.zeros_like(
-                sample_list.train_prev_inds
-            )
-            fwd_results['prev_inds'][:, 0] = self.answer_processor.BOS_IDX
+            fwd_results["prev_inds"] = torch.zeros_like(sample_list.train_prev_inds)
+            fwd_results["prev_inds"][:, 0] = self.answer_processor.BOS_IDX
 
             # greedy decoding at test time
             for t in range(dec_step_num):
@@ -313,7 +285,7 @@ class M4C(BaseModel):
                 # or an OCR), and add it to prev_inds for auto-regressive
                 # decoding
                 argmax_inds = fwd_results["scores"].argmax(dim=-1)
-                fwd_results['prev_inds'][:, 1:] = argmax_inds[:, :-1]
+                fwd_results["prev_inds"][:, 1:] = argmax_inds[:, :-1]
 
     def get_optimizer_parameters(self, config):
         optimizer_param_groups = []
@@ -322,11 +294,13 @@ class M4C(BaseModel):
         # collect all the parameters that need different/scaled lr
         finetune_params_set = set()
         for m in self.finetune_modules:
-            optimizer_param_groups.append({
-                "params": list(m['module'].parameters()),
-                "lr": base_lr * m['lr_scale']
-            })
-            finetune_params_set.update(list(m['module'].parameters()))
+            optimizer_param_groups.append(
+                {
+                    "params": list(m["module"].parameters()),
+                    "lr": base_lr * m["lr_scale"],
+                }
+            )
+            finetune_params_set.update(list(m["module"].parameters()))
         # remaining_params are those parameters w/ default lr
         remaining_params = [
             p for p in self.parameters() if p not in finetune_params_set
@@ -356,9 +330,7 @@ class TextBert(BertPreTrainedModel):
         head_mask = [None] * self.config.num_hidden_layers
 
         encoder_outputs = self.encoder(
-            encoder_inputs,
-            extended_attention_mask,
-            head_mask=head_mask
+            encoder_inputs, extended_attention_mask, head_mask=head_mask
         )
         seq_output = encoder_outputs[0]
 
@@ -373,15 +345,17 @@ class MMT(BertPreTrainedModel):
         self.encoder = BertEncoder(config)
         self.init_weights()
 
-    def forward(self,
-                txt_emb,
-                txt_mask,
-                obj_emb,
-                obj_mask,
-                ocr_emb,
-                ocr_mask,
-                fixed_ans_emb,
-                prev_inds):
+    def forward(
+        self,
+        txt_emb,
+        txt_mask,
+        obj_emb,
+        obj_mask,
+        ocr_emb,
+        ocr_mask,
+        fixed_ans_emb,
+        prev_inds,
+    ):
 
         # build embeddings for predictions in previous decoding steps
         # fixed_ans_emb is an embedding lookup table for each fixed vocabulary
@@ -392,19 +366,10 @@ class MMT(BertPreTrainedModel):
         # A triangular causal mask will be filled for the decoding steps
         # later in extended_attention_mask
         dec_mask = torch.zeros(
-            dec_emb.size(0),
-            dec_emb.size(1),
-            dtype=torch.float32,
-            device=dec_emb.device
+            dec_emb.size(0), dec_emb.size(1), dtype=torch.float32, device=dec_emb.device
         )
-        encoder_inputs = torch.cat(
-            [txt_emb, obj_emb, ocr_emb, dec_emb],
-            dim=1
-        )
-        attention_mask = torch.cat(
-            [txt_mask, obj_mask, ocr_mask, dec_mask],
-            dim=1
-        )
+        encoder_inputs = torch.cat([txt_emb, obj_emb, ocr_emb, dec_emb], dim=1)
+        attention_mask = torch.cat([txt_mask, obj_mask, ocr_mask, dec_mask], dim=1)
 
         # offsets of each modality in the joint embedding space
         txt_max_num = txt_mask.size(-1)
@@ -430,8 +395,9 @@ class MMT(BertPreTrainedModel):
             1, 1, from_seq_length, 1
         )
         # decoding step elements can attend to themselves in a causal manner
-        extended_attention_mask[:, :, -dec_max_num:, -dec_max_num:] = \
-            _get_causal_mask(dec_max_num, encoder_inputs.device)
+        extended_attention_mask[:, :, -dec_max_num:, -dec_max_num:] = _get_causal_mask(
+            dec_max_num, encoder_inputs.device
+        )
 
         # flip the mask, so that invalid attention pairs have -10000.
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
@@ -439,9 +405,7 @@ class MMT(BertPreTrainedModel):
         head_mask = [None] * self.config.num_hidden_layers
 
         encoder_outputs = self.encoder(
-            encoder_inputs,
-            extended_attention_mask,
-            head_mask=head_mask
+            encoder_inputs, extended_attention_mask, head_mask=head_mask
         )
 
         mmt_seq_output = encoder_outputs[0]
@@ -450,10 +414,10 @@ class MMT(BertPreTrainedModel):
         mmt_dec_output = mmt_seq_output[:, -dec_max_num:]
 
         results = {
-            'mmt_seq_output': mmt_seq_output,
-            'mmt_txt_output': mmt_txt_output,
-            'mmt_ocr_output': mmt_ocr_output,
-            'mmt_dec_output': mmt_dec_output,
+            "mmt_seq_output": mmt_seq_output,
+            "mmt_txt_output": mmt_txt_output,
+            "mmt_ocr_output": mmt_ocr_output,
+            "mmt_dec_output": mmt_dec_output,
         }
         return results
 
@@ -483,10 +447,7 @@ class OcrPtrNet(nn.Module):
             squeeze_result = False
         key_layer = self.key(key_inputs)
 
-        scores = torch.matmul(
-            query_layer,
-            key_layer.transpose(-1, -2)
-        )
+        scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
         scores = scores / math.sqrt(self.query_key_size)
         scores = scores + extended_attention_mask
         if squeeze_result:
@@ -530,11 +491,7 @@ class PrevPredEmbeddings(nn.Module):
         raw_dec_emb = _batch_gather(ans_ocr_emb_cat, prev_inds)
 
         # Add position and type embedding for previous predictions
-        position_ids = torch.arange(
-            seq_length,
-            dtype=torch.long,
-            device=ocr_emb.device
-        )
+        position_ids = torch.arange(seq_length, dtype=torch.long, device=ocr_emb.device)
         position_ids = position_ids.unsqueeze(0).expand(batch_size, seq_length)
         position_embeddings = self.position_embeddings(position_ids)
         # Token type ids: 0 -- vocab; 1 -- OCR
@@ -562,8 +519,8 @@ def _get_causal_mask(seq_length, device):
     # generate a lower triangular mask
     mask = torch.zeros(seq_length, seq_length, device=device)
     for i in range(seq_length):
-        for j in range(i+1):
-            mask[i, j] = 1.
+        for j in range(i + 1):
+            mask[i, j] = 1.0
     return mask
 
 
@@ -572,7 +529,7 @@ def _batch_gather(x, inds):
     batch_size = x.size(0)
     length = x.size(1)
     dim = x.size(2)
-    x_flat = x.view(batch_size*length, dim)
+    x_flat = x.view(batch_size * length, dim)
 
     batch_offsets = torch.arange(batch_size, device=inds.device) * length
     batch_offsets = batch_offsets.unsqueeze(-1)

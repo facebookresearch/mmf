@@ -6,11 +6,18 @@ from torch import nn
 
 from pythia.common.registry import registry
 from pythia.models.base_model import BaseModel
-from pythia.modules.embeddings import (ImageEmbedding, PreExtractedEmbedding,
-                                       TextEmbedding, MultiHeadImageEmbedding)
+from pythia.modules.embeddings import (
+    ImageEmbedding,
+    MultiHeadImageEmbedding,
+    PreExtractedEmbedding,
+    TextEmbedding,
+)
 from pythia.modules.encoders import ImageEncoder
-from pythia.modules.layers import (ClassifierLayer, ModalCombineLayer,
-                                   ReLUWithWeightNormFC)
+from pythia.modules.layers import (
+    ClassifierLayer,
+    ModalCombineLayer,
+    ReLUWithWeightNormFC,
+)
 from pythia.utils.configuration import ConfigNode
 
 

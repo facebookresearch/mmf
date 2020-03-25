@@ -226,6 +226,7 @@ class CaptionBleu4Metric(BaseMetric):
 
     def __init__(self):
         import nltk.translate.bleu_score as bleu_score
+
         self._bleu_score = bleu_score
         super().__init__("caption_bleu4")
         self.caption_processor = registry.get("coco_caption_processor")
@@ -569,13 +570,12 @@ class TextVQAAccuracy(BaseMetric):
     def __init__(self):
         super().__init__("textvqa_accuracy")
         import pythia.utils.m4c_evaluators as evaluators
+
         self.evaluator = evaluators.TextVQAAccuracyEvaluator()
-        self.gt_key = 'gt_answers_enc'
+        self.gt_key = "gt_answers_enc"
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
-        answer_processor = registry.get(
-            sample_list.dataset_name + "_answer_processor"
-        )
+        answer_processor = registry.get(sample_list.dataset_name + "_answer_processor")
 
         batch_size = sample_list.context_tokens_enc.size(0)
         pred_answers = model_output["scores"].argmax(dim=-1)
@@ -586,15 +586,14 @@ class TextVQAAccuracy(BaseMetric):
         predictions = []
         from pythia.utils.objects_to_byte_tensor import dec_bytes2obj
         from pythia.utils.text_utils import word_tokenize
+
         for idx in range(batch_size):
             context_tokens = dec_bytes2obj(context_tokens_enc[idx])
             answer_words = []
             for answer_id in pred_answers[idx].tolist():
                 if answer_id >= answer_space_size:
                     answer_id -= answer_space_size
-                    answer_words.append(
-                        word_tokenize(context_tokens[answer_id])
-                    )
+                    answer_words.append(word_tokenize(context_tokens[answer_id]))
                 else:
                     if answer_id == answer_processor.EOS_IDX:
                         break
@@ -602,12 +601,9 @@ class TextVQAAccuracy(BaseMetric):
                         answer_processor.answer_vocab.idx2word(answer_id)
                     )
 
-            pred_answer = ' '.join(answer_words).replace(" 's", "'s")
+            pred_answer = " ".join(answer_words).replace(" 's", "'s")
             gt_answers = dec_bytes2obj(gt_answers_enc[idx])
-            predictions.append({
-                "pred_answer": pred_answer,
-                "gt_answers": gt_answers,
-            })
+            predictions.append({"pred_answer": pred_answer, "gt_answers": gt_answers})
 
         accuracy = self.evaluator.eval_pred_list(predictions)
         accuracy = torch.tensor(accuracy).cuda()
@@ -621,6 +617,7 @@ class STVQAANLS(TextVQAAccuracy):
         super().__init__()
         self.name = "stvqa_anls"
         import pythia.utils.m4c_evaluators as evaluators
+
         self.evaluator = evaluators.STVQAANLSEvaluator()
 
 
@@ -630,6 +627,7 @@ class STVQAAccuracy(TextVQAAccuracy):
         super().__init__()
         self.name = "stvqa_accuracy"
         import pythia.utils.m4c_evaluators as evaluators
+
         self.evaluator = evaluators.STVQAAccuracyEvaluator()
 
 
@@ -646,9 +644,12 @@ class TextCapsBleu4(TextVQAAccuracy):
     def __init__(self):
         super().__init__()
         self.name = "textcaps_bleu4"
-        self.gt_key = 'ref_strs'
+        self.gt_key = "ref_strs"
         import pythia.utils.m4c_evaluators as evaluators
+
         self.evaluator = evaluators.TextCapsBleu4Evaluator()
+
+
 @registry.register_metric("macro_f1")
 class MacroF1(BaseMetric):
     """Metric for calculating Macro F1.
@@ -676,7 +677,9 @@ class MacroF1(BaseMetric):
         output = torch.round(output)
         expected = sample_list["targets"]
 
-        value = f1_score(expected.cpu(), output.cpu(), pos_label=self.pos_label, average='macro')
+        value = f1_score(
+            expected.cpu(), output.cpu(), pos_label=self.pos_label, average="macro"
+        )
         return expected.new_tensor(value, dtype=torch.float)
 
 
@@ -707,5 +710,7 @@ class MicroF1(BaseMetric):
         output = torch.round(output)
         expected = sample_list["targets"]
 
-        value = f1_score(expected.cpu(), output.cpu(), pos_label=self.pos_label, average='micro')
+        value = f1_score(
+            expected.cpu(), output.cpu(), pos_label=self.pos_label, average="micro"
+        )
         return expected.new_tensor(value, dtype=torch.float)

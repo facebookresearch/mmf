@@ -1,18 +1,17 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import os
+import random
 import unittest
 
-import torch
-import random
-import os
 import numpy as np
+import torch
 
 import pythia.utils.text_utils as text_utils
-
-from tests.utils.test_model import TestDecoderModel
 from pythia.common.registry import registry
 from pythia.common.sample import Sample, SampleList
 from pythia.utils.configuration import ConfigNode, Configuration
 from pythia.utils.general import get_pythia_root
+from tests.utils.test_model import TestDecoderModel
 
 
 class TestTextUtils(unittest.TestCase):
@@ -24,18 +23,25 @@ class TestTextUtils(unittest.TestCase):
         "Is the color of the large sphere the same as the large matte cube?"
         "What material is the big object that is right of the brown cylinder and "
         "left of the large brown sphere?",
-        "How big is the brown shiny sphere? ;"
+        "How big is the brown shiny sphere? ;",
     ]
 
     def setUp(self):
         torch.manual_seed(1234)
         config_path = os.path.join(
-            get_pythia_root(), "..", "configs", "captioning", "coco", "butd_nucleus_sampling.yml"
+            get_pythia_root(),
+            "..",
+            "configs",
+            "captioning",
+            "coco",
+            "butd_nucleus_sampling.yml",
         )
         config_path = os.path.abspath(config_path)
         configuration = Configuration(config_path)
         configuration.config["datasets"] = "coco"
-        configuration.config["model_attributes"]["butd"]["inference"]["params"]["sum_threshold"] = 0.5
+        configuration.config["model_attributes"]["butd"]["inference"]["params"][
+            "sum_threshold"
+        ] = 0.5
         configuration.freeze()
         self.config = configuration.config
         registry.register("config", self.config)
@@ -144,8 +150,18 @@ class TestTextUtils(unittest.TestCase):
         tokens = model(sample_list)["captions"]
 
         # these are expected tokens for sum_threshold = 0.5
-        expected_tokens = [1.0000e+00, 2.9140e+03, 5.9210e+03, 2.2040e+03, 5.0550e+03, 9.2240e+03,
-         4.5120e+03, 1.8200e+02, 3.6490e+03, 6.4090e+03, 2.0000e+00]
+        expected_tokens = [
+            1.0000e00,
+            2.9140e03,
+            5.9210e03,
+            2.2040e03,
+            5.0550e03,
+            9.2240e03,
+            4.5120e03,
+            1.8200e02,
+            3.6490e03,
+            6.4090e03,
+            2.0000e00,
+        ]
 
         self.assertEqual(tokens[0].tolist(), expected_tokens)
-

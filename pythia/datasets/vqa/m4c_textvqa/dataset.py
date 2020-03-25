@@ -2,18 +2,15 @@
 import numpy as np
 import torch
 
-from pythia.datasets.vqa.textvqa.dataset import TextVQADataset
-from pythia.utils.text_utils import word_tokenize
 from pythia.common.sample import Sample
-from pythia.utils.objects_to_byte_tensor import enc_obj2bytes
-from pythia.utils.objects_to_byte_tensor import dec_bytes2obj
+from pythia.datasets.vqa.textvqa.dataset import TextVQADataset
+from pythia.utils.objects_to_byte_tensor import dec_bytes2obj, enc_obj2bytes
+from pythia.utils.text_utils import word_tokenize
 
 
 class M4CTextVQADataset(TextVQADataset):
     def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__(
-            dataset_type, imdb_file_index, config, *args, **kwargs
-        )
+        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
         self._name = "m4c_textvqa"
 
     def preprocess_sample_info(self, sample_info):
@@ -41,20 +38,18 @@ class M4CTextVQADataset(TextVQADataset):
             for answer_id in pred_answers[idx].tolist():
                 if answer_id >= answer_space_size:
                     answer_id -= answer_space_size
-                    answer_words.append(
-                        word_tokenize(context_tokens[answer_id])
-                    )
-                    pred_source.append('OCR')
+                    answer_words.append(word_tokenize(context_tokens[answer_id]))
+                    pred_source.append("OCR")
                 else:
                     if answer_id == answer_processor.EOS_IDX:
                         break
                     answer_words.append(
                         answer_processor.answer_vocab.idx2word(answer_id)
                     )
-                    pred_source.append('VOCAB')
+                    pred_source.append("VOCAB")
             # join all the answer tokens with space
             # (this should be correct for almost all cases)
-            pred_answer = ' '.join(answer_words).replace(" 's", "'s")
+            pred_answer = " ".join(answer_words).replace(" 's", "'s")
             entry = {
                 "question_id": question_id.item(),
                 "image_id": image_id,
@@ -92,28 +87,29 @@ class M4CTextVQADataset(TextVQADataset):
         # only the 'max_features' key is needed
         # pop other keys to minimize data loading overhead
         for k in list(current_sample.image_info_0):
-            if k != 'max_features':
+            if k != "max_features":
                 current_sample.image_info_0.pop(k)
         for k in list(current_sample.image_info_1):
-            if k != 'max_features':
+            if k != "max_features":
                 current_sample.image_info_1.pop(k)
 
         return current_sample
 
     def add_sample_details(self, sample_info, sample):
-        sample.image_id_enc = enc_obj2bytes(sample_info['image_id'])
+        sample.image_id_enc = enc_obj2bytes(sample_info["image_id"])
 
         # 1. Load text (question words)
         # breaking change from VQA2Dataset:
         # load the entire question string, not tokenized questions, since we
         # switch to BERT tokenizer in M4C and do online tokenization
         question_str = (
-            sample_info['question'] if 'question' in sample_info
-            else sample_info['question_str']
+            sample_info["question"]
+            if "question" in sample_info
+            else sample_info["question_str"]
         )
         processed_question = self.text_processor({"question": question_str})
-        sample.text = processed_question['token_inds']
-        sample.text_len = processed_question['token_num']
+        sample.text = processed_question["token_inds"]
+        sample.text_len = processed_question["token_num"]
 
         # 2. Load object
         # object bounding box information
@@ -125,12 +121,10 @@ class M4CTextVQADataset(TextVQADataset):
         if not self.use_ocr:
             # remove all OCRs from the sample
             # (i.e. make an empty OCR list)
-            sample_info['ocr_tokens'] = []
-            sample_info['ocr_info'] = []
-            if 'ocr_normalized_boxes' in sample_info:
-                sample_info['ocr_normalized_boxes'] = np.zeros(
-                    (0, 4), np.float32
-                )
+            sample_info["ocr_tokens"] = []
+            sample_info["ocr_info"] = []
+            if "ocr_normalized_boxes" in sample_info:
+                sample_info["ocr_normalized_boxes"] = np.zeros((0, 4), np.float32)
             # clear OCR visual features
             sample.image_feature_1 = torch.zeros_like(sample.image_feature_1)
 
@@ -156,14 +150,14 @@ class M4CTextVQADataset(TextVQADataset):
         # TODO remove order_vectors -- it is no longer needed in M4C
         order_vectors = np.eye(len(sample.context_tokens), dtype=np.float32)
         order_vectors = torch.from_numpy(order_vectors)
-        order_vectors[context["length"]:] = 0
+        order_vectors[context["length"] :] = 0
         sample.order_vectors = order_vectors
         # OCR bounding box information
-        if 'ocr_normalized_boxes' in sample_info:
+        if "ocr_normalized_boxes" in sample_info:
             # New imdb format: OCR bounding boxes are already pre-computed
             max_len = self.config.processors.answer_processor.params.max_length
             sample.ocr_bbox_coordinates = self.copy_processor(
-                {"blob": sample_info['ocr_normalized_boxes']}
+                {"blob": sample_info["ocr_normalized_boxes"]}
             )["blob"][:max_len]
         else:
             # Old imdb format: OCR bounding boxes are computed on-the-fly
@@ -175,7 +169,7 @@ class M4CTextVQADataset(TextVQADataset):
         return sample
 
     def add_answer_info(self, sample_info, sample):
-        sample_has_answer = ("answers" in sample_info)
+        sample_has_answer = "answers" in sample_info
         if sample_has_answer:
             # Load real answers from sample_info
             answers = sample_info["answers"]
@@ -186,9 +180,10 @@ class M4CTextVQADataset(TextVQADataset):
             }
             processed_answers = self.answer_processor(answer_processor_arg)
 
-            assert not self.config.fast_read, \
-                'In M4CTextVQADataset, online OCR sampling is incompatible ' \
-                'with fast_read, so fast_read is currently not supported.'
+            assert not self.config.fast_read, (
+                "In M4CTextVQADataset, online OCR sampling is incompatible "
+                "with fast_read, so fast_read is currently not supported."
+            )
             sample.targets = processed_answers["answers_scores"]
             sample.sampled_idx_seq = processed_answers["sampled_idx_seq"]
             sample.train_prev_inds = processed_answers["train_prev_inds"]

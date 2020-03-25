@@ -123,8 +123,10 @@ class Flags:
             "--logger_level", type=str, default=None, help="Level of logging"
         )
         self.parser.add_argument(
-            "--log_detailed_config", type=int, default=None,
-            help="Log detailed final configuration parameters"
+            "--log_detailed_config",
+            type=int,
+            default=None,
+            help="Log detailed final configuration parameters",
         )
 
         self.parser.add_argument(
@@ -184,10 +186,7 @@ class Flags:
             help="Use when you want to clip gradients",
         )
         self.parser.add_argument(
-            "--tensorboard",
-            type=bool,
-            default=False,
-            help="Enable tensorboard",
+            "--tensorboard", type=bool, default=False, help="Enable tensorboard"
         )
         self.parser.add_argument(
             "--tensorboard_logdir",
@@ -201,35 +200,33 @@ class Flags:
             "--distributed_init_method",
             type=str,
             default=None,
-            help="Typically tcp://hostname:port that will be used to establish initial connection"
+            help="Typically tcp://hostname:port that will be used to establish initial connection",
         )
         self.parser.add_argument(
-            "--distributed_rank",
-            type=int,
-            default=0,
-            help="Rank of the current worker"
+            "--distributed_rank", type=int, default=0, help="Rank of the current worker"
         )
         self.parser.add_argument(
             "--distributed_port",
             type=int,
             default=-1,
-            help="Port number, not required if using --distributed-init-method"
+            help="Port number, not required if using --distributed-init-method",
         )
         self.parser.add_argument(
             "--distributed_world_size",
             type=int,
             default=max(1, torch.cuda.device_count()),
-            help="Total number of GPUs across all nodes (default: all visible GPUs)"
+            help="Total number of GPUs across all nodes (default: all visible GPUs)",
         )
         self.parser.add_argument(
             "--distributed_backend",
             type=str,
             default="nccl",
-            help="Backend for distributed setup"
+            help="Backend for distributed setup",
         )
         self.parser.add_argument(
-            "--distributed-no-spawn", action="store_true",
-            help="do not spawn multiple processes even if multiple GPUs are visible"
+            "--distributed-no-spawn",
+            action="store_true",
+            help="do not spawn multiple processes even if multiple GPUs are visible",
         )
 
         self.parser.add_argument(

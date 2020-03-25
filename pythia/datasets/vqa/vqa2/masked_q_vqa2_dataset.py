@@ -21,6 +21,8 @@ class MaskedQVQA2Dataset(VQA2Dataset):
         current_sample.answers = processed_soft_copy_answers["answers"]
         current_sample.targets = processed_soft_copy_answers["answers_scores"]
 
-        if self.answer_processor.word2idx(word) == self.answer_processor.word2idx("<unk>"):
+        if self.answer_processor.word2idx(word) == self.answer_processor.word2idx(
+            "<unk>"
+        ):
             current_sample.targets.zero_()
         return current_sample

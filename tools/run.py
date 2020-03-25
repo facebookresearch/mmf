@@ -1,14 +1,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import glob
 import importlib
 import os
-import glob
-
-import torch
-import numpy as np
 import random
 
-from pythia.utils import distributed_utils
+import numpy as np
+import torch
+
 from pythia.common.registry import registry
+from pythia.utils import distributed_utils
 from pythia.utils.build_utils import build_trainer
 from pythia.utils.flags import flags
 
@@ -39,9 +39,11 @@ def setup_imports():
 
     importlib.import_module("pythia.common.meter")
 
-    files = glob.glob(datasets_pattern, recursive=True) + \
-            glob.glob(model_pattern, recursive=True) + \
-            glob.glob(trainer_pattern, recursive=True)
+    files = (
+        glob.glob(datasets_pattern, recursive=True)
+        + glob.glob(model_pattern, recursive=True)
+        + glob.glob(trainer_pattern, recursive=True)
+    )
 
     for f in files:
         if f.find("models") != -1:
@@ -110,9 +112,7 @@ def run():
             args.start_rank = args.distributed_rank
             args.distributed_rank = None
             torch.multiprocessing.spawn(
-                fn=distributed_main,
-                args=(args, ),
-                nprocs=torch.cuda.device_count()
+                fn=distributed_main, args=(args,), nprocs=torch.cuda.device_count()
             )
         else:
             main(0, args)
@@ -122,10 +122,7 @@ def run():
         args.distributed_init_method = "tcp://localhost:{port}".format(port=port)
         args.distributed_rank = None
         torch.multiprocessing.spawn(
-            fn=distributed_main,
-            args=(args,),
-            nprocs=args.distributed_world_size,
-
+            fn=distributed_main, args=(args,), nprocs=args.distributed_world_size
         )
     else:
         args.device_id = 0

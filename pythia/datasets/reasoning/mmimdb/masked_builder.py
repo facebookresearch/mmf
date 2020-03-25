@@ -16,4 +16,3 @@ class MaskedMMImdbBuilder(VQA2Builder):
         super().__init__()
         self.dataset_name = "masked_mmimdb"
         self.dataset_class = MaskedMMImdbDataset
-

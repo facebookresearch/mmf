@@ -19,12 +19,16 @@ class CLEVRBuilder(BaseDatasetBuilder):
         self.dataset_class = CLEVRDataset
 
     def _build(self, dataset_type, config):
-        download_folder = os.path.join(get_pythia_root(), config.data_root_dir, config.data_folder)
+        download_folder = os.path.join(
+            get_pythia_root(), config.data_root_dir, config.data_folder
+        )
 
         file_name = CLEVR_DOWNLOAD_URL.split("/")[-1]
         local_filename = os.path.join(download_folder, file_name)
 
-        extraction_folder = os.path.join(download_folder, ".".join(file_name.split(".")[:-1]))
+        extraction_folder = os.path.join(
+            download_folder, ".".join(file_name.split(".")[:-1])
+        )
         self.data_folder = extraction_folder
 
         # Either if the zip file is already present or if there are some
@@ -33,8 +37,10 @@ class CLEVRBuilder(BaseDatasetBuilder):
             self.writer.write("CLEVR dataset is already present. Skipping download.")
             return
 
-        if os.path.exists(extraction_folder) and \
-            len(os.listdir(extraction_folder)) != 0:
+        if (
+            os.path.exists(extraction_folder)
+            and len(os.listdir(extraction_folder)) != 0
+        ):
             return
 
         self.writer.write("Downloading the CLEVR dataset now")
@@ -44,11 +50,8 @@ class CLEVRBuilder(BaseDatasetBuilder):
         with zipfile.ZipFile(local_filename, "r") as zip_ref:
             zip_ref.extractall(download_folder)
 
-
     def _load(self, dataset_type, config, *args, **kwargs):
-        self.dataset = CLEVRDataset(
-            dataset_type, config, data_folder=self.data_folder
-        )
+        self.dataset = CLEVRDataset(dataset_type, config, data_folder=self.data_folder)
         return self.dataset
 
     def update_registry_for_model(self, config):

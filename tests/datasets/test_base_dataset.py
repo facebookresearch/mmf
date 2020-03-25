@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import unittest
 import os
+import unittest
 
 from pythia.common.registry import registry
 from pythia.datasets.base_dataset import BaseDataset
@@ -19,7 +19,7 @@ class TestBaseDataset(unittest.TestCase):
         configuration.freeze()
 
         base_dataset = BaseDataset(
-            "vqa2", "train", configuration.get_config()["dataset_attributes"]["vqa2"],
+            "vqa2", "train", configuration.get_config()["dataset_attributes"]["vqa2"]
         )
         expected_processors = [
             "answer_processor",

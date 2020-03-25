@@ -1,7 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import json
+
 import numpy as np
 import torch
-import json
 
 
 class ImageDatabase(torch.utils.data.Dataset):
@@ -70,6 +71,7 @@ class ImageDatabase(torch.utils.data.Dataset):
 
     def _load_visual_dialog(self, imdb_path):
         from pythia.datasets.dialog.visual_dialog.database import VisualDialogDatabase
+
         self.data = VisualDialogDatabase(imdb_path)
         self.metadata = self.data.metadata
         self.start_idx = 0

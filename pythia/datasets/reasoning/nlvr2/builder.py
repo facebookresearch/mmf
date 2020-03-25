@@ -16,4 +16,3 @@ class NLVR2Builder(VQA2Builder):
         super().__init__()
         self.dataset_name = "nlvr2"
         self.dataset_class = NLVR2Dataset
-

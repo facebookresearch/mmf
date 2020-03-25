@@ -1,7 +1,7 @@
-import torch
 import random
-import numpy as np
 
+import numpy as np
+import torch
 
 from pythia.common.sample import Sample
 from pythia.datasets.captioning.coco import COCODataset
@@ -52,7 +52,9 @@ class MaskedCOCODataset(COCODataset):
         image_id = sample_info["image_id"]
         num_captions = len(captions)
         selected_caption_index = random.randint(0, num_captions - 1)
-        other_caption_indices = [i for i in range(num_captions) if i != selected_caption_index]
+        other_caption_indices = [
+            i for i in range(num_captions) if i != selected_caption_index
+        ]
         selected_caption = captions[selected_caption_index]
         other_caption = None
         is_correct = -1
@@ -72,11 +74,13 @@ class MaskedCOCODataset(COCODataset):
                 else:
                     is_correct = True
 
-        processed = self.masked_token_processor({
-            "text_a": selected_caption,
-            "text_b": other_caption,
-            "is_correct": is_correct
-        })
+        processed = self.masked_token_processor(
+            {
+                "text_a": selected_caption,
+                "text_b": other_caption,
+                "is_correct": is_correct,
+            }
+        )
         processed.pop("tokens")
         current_sample.update(processed)
 

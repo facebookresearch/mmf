@@ -16,4 +16,3 @@ class MaskedVQA2Builder(VQA2Builder):
         super().__init__()
         self.dataset_name = "masked_vqa2"
         self.dataset_class = MaskedVQA2Dataset
-

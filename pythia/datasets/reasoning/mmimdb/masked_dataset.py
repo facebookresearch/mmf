@@ -1,4 +1,5 @@
 import random
+
 import numpy as np
 
 from pythia.common.sample import Sample
@@ -48,11 +49,9 @@ class MaskedMMImdbDataset(VQA2Dataset):
         question = plot
         random_answer = random.choice(sample_info["genres"])
 
-        processed = self.masked_token_processor({
-            "text_a": question,
-            "text_b": random_answer,
-            "is_correct": -1
-        })
+        processed = self.masked_token_processor(
+            {"text_a": question, "text_b": random_answer, "is_correct": -1}
+        )
 
         processed.pop("tokens")
         current_sample.update(processed)
