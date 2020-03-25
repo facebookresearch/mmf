@@ -1,5 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import copy
 import torch
+
 from torch import nn
 
 from pythia.common.registry import registry
@@ -60,7 +62,7 @@ class Pythia(BaseModel):
 
     def _update_text_embedding_args(self, args):
         # Add model_data_dir to kwargs
-        args["model_data_dir"] = self.config["model_data_dir"]
+        args["model_data_dir"] = self.config.model_data_dir
 
     def _init_feature_encoders(self, attr):
         feat_encoders = []
@@ -69,9 +71,9 @@ class Pythia(BaseModel):
         setattr(self, attr + "_feature_dim", feature_dim)
 
         for feat_encoder in feat_encoders_list_config:
-            encoder_type = feat_encoder["type"]
-            encoder_kwargs = feat_encoder["params"]
-            encoder_kwargs["model_data_dir"] = self.config["model_data_dir"]
+            encoder_type = feat_encoder.type
+            encoder_kwargs = copy.deepcopy(feat_encoder.params)
+            encoder_kwargs.model_data_dir = self.config.model_data_dir
 
             feat_model = ImageEncoder(encoder_type, feature_dim, **encoder_kwargs)
 
@@ -129,10 +131,10 @@ class Pythia(BaseModel):
         config_attr = attr1 + "_" + attr2 + "_modal_combine"
 
         multi_modal_combine_layer = ModalCombineLayer(
-            self.config[config_attr]["type"],
+            self.config[config_attr].type,
             getattr(self, self._get_embeddings_attr(attr1)),
             getattr(self, self._get_embeddings_attr(attr2)),
-            **self.config[config_attr]["params"]
+            **self.config[config_attr].params
         )
 
         setattr(
@@ -146,10 +148,10 @@ class Pythia(BaseModel):
         num_choices = registry.get(self._datasets[0] + "_num_final_outputs")
 
         self.classifier = ClassifierLayer(
-            self.config["classifier"]["type"],
+            self.config.classifier.type,
             in_dim=combined_embedding_dim,
             out_dim=num_choices,
-            **self.config["classifier"]["params"]
+            **self.config.classifier.params
         )
 
     def _init_extras(self):
@@ -165,7 +167,7 @@ class Pythia(BaseModel):
             {"params": self.classifier.parameters()},
             {
                 "params": self.image_feature_encoders.parameters(),
-                "lr": (config["optimizer_attributes"]["params"]["lr"] * 0.1),
+                "lr": (config.optimizer_attributes.params.lr * 0.1),
             },
         ]
 
@@ -373,8 +375,8 @@ class PythiaMultiHead(Pythia):
         feat_dim = getattr(self, attr + "_feature_dim")
 
         for feat_encoder in feat_encoders_list_config:
-            encoder_type = feat_encoder["type"]
-            encoder_kwargs = feat_encoder["params"]
+            encoder_type = feat_encoder.type
+            encoder_kwargs = feat_encoder.params
 
             feat_model = ImageEncoder(encoder_type, feat_dim, **encoder_kwargs)
 

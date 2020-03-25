@@ -30,9 +30,8 @@ class Logger:
 
         self.log_folder = os.path.join(self.save_dir, "logs")
 
-        arg_log_dir = self.config.get("log_dir", None)
-        if arg_log_dir:
-            self.log_folder = arg_log_dir
+        if "log_dir" in self.config and self.config.log_dir is not None:
+            self.log_folder = self.config.log_dir
 
         if not os.path.exists(self.log_folder):
             os.makedirs(self.log_folder, exist_ok=True)

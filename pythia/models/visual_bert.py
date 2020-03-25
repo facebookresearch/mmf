@@ -173,8 +173,12 @@ class VisualBERT(BaseModel):
             )
 
         self.bert_config = self.bert.config
-        # Add bert config such as hidden_state to our main config
-        self.config.update(self.bert_config.to_dict())
+
+        # TODO: Once omegaconf fixes int keys issue, bring this back
+        # See https://github.com/omry/omegaconf/issues/149
+        # with omegaconf.open_dict(self.config):
+        #     # Add bert config such as hidden_state to our main config
+        #     self.config.update(self.bert_config.to_dict())
 
         if "pretraining" in self.training_head_type:
             if self.bert_model_name is None:
@@ -190,39 +194,39 @@ class VisualBERT(BaseModel):
 
         # TODO: Remove hard coded answer space sizes
         if "vqa" in self.training_head_type:
-            self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
+            self.dropout = nn.Dropout(self.bert_config.hidden_dropout_prob)
             self.answer_space_size = 3129
             self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(self.config),
-                nn.Linear(self.config.hidden_size, self.answer_space_size),
+                BertPredictionHeadTransform(self.bert_config),
+                nn.Linear(self.bert_config.hidden_size, self.answer_space_size),
             )
         elif "vizwiz" in self.training_head_type:
-            self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
+            self.dropout = nn.Dropout(self.bert_config.hidden_dropout_prob)
             self.answer_space_size = 7371
             self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(self.config),
-                nn.Linear(self.config.hidden_size, self.answer_space_size),
+                BertPredictionHeadTransform(self.bert_config),
+                nn.Linear(self.bert_config.hidden_size, self.answer_space_size),
             )
 
         elif self.training_head_type == "nlvr2":
-            self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
-            self.config.hidden_size *= 2
+            self.dropout = nn.Dropout(self.bert_config.hidden_dropout_prob)
+            self.bert_config.hidden_size *= 2
             self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(self.config),
-                nn.Linear(self.config.hidden_size, 2),
+                BertPredictionHeadTransform(self.bert_config),
+                nn.Linear(self.bert_config.hidden_size, 2),
             )
-            self.config.hidden_size /= 2
+            self.bert_config.hidden_size /= 2
         elif self.training_head_type == "visual_entailment":
-            self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
+            self.dropout = nn.Dropout(self.bert_config.hidden_dropout_prob)
             self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(self.config),
-                nn.Linear(self.config.hidden_size, 3),
+                BertPredictionHeadTransform(self.bert_config),
+                nn.Linear(self.bert_config.hidden_size, 3),
             )
         elif self.training_head_type == "mmimdb":
-            self.dropout = nn.Dropout(self.config.hidden_dropout_prob)
+            self.dropout = nn.Dropout(self.bert_config.hidden_dropout_prob)
             self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(self.config),
-                nn.Linear(self.config.hidden_size, 24),
+                BertPredictionHeadTransform(self.bert_config),
+                nn.Linear(self.bert_config.hidden_size, 24),
             )
 
         self.init_weights()
