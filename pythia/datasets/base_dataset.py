@@ -17,6 +17,7 @@ class BaseDataset(Dataset):
         dataset_type (str): Type of your dataset. Normally, train|val|test
         config (ConfigNode): Configuration for the current dataset
     """
+
     def __init__(self, name, dataset_type, config={}):
         super(BaseDataset, self).__init__()
         self.config = config

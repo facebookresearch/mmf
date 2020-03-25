@@ -100,7 +100,7 @@ class VQA2Dataset(BaseDataset):
         if "question_tokens" in sample_info:
             text_processor_argument = {
                 "tokens": sample_info["question_tokens"],
-                "text": sample_info["question_str"]
+                "text": sample_info["question_str"],
             }
         else:
             text_processor_argument = {"text": sample_info["question"]}
@@ -198,12 +198,14 @@ class VQA2Dataset(BaseDataset):
                 answer = self.answer_processor.idx2word(answer_id)
             # actual_answer = report.answers[idx]
 
-            predictions.append({
-                "question_id": question_id.item(),
-                "answer": answer,
-                # "actual_answers": actual_answer,
-                # "question_tokens": report.question_tokens[idx],
-                # "image_id": report.image_id[idx].item()
-            })
+            predictions.append(
+                {
+                    "question_id": question_id.item(),
+                    "answer": answer,
+                    # "actual_answers": actual_answer,
+                    # "question_tokens": report.question_tokens[idx],
+                    # "image_id": report.image_id[idx].item()
+                }
+            )
 
         return predictions

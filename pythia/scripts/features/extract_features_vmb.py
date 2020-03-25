@@ -13,13 +13,13 @@ import os
 import cv2
 import numpy as np
 import torch
-from PIL import Image
-
 from maskrcnn_benchmark.config import cfg
 from maskrcnn_benchmark.layers import nms
 from maskrcnn_benchmark.modeling.detector import build_detection_model
 from maskrcnn_benchmark.structures.image_list import to_image_list
 from maskrcnn_benchmark.utils.model_serialization import load_state_dict
+from PIL import Image
+
 from pythia.utils.general import download_file
 
 
@@ -58,28 +58,34 @@ class FeatureExtractor:
         parser.add_argument(
             "--start_index", default=0, type=int, help="Index to start from "
         )
-        parser.add_argument(
-            "--end_index", default=None, type=int, help=""
-        )
+        parser.add_argument("--end_index", default=None, type=int, help="")
         parser.add_argument("--batch_size", type=int, default=2, help="Batch size")
         parser.add_argument(
-            "--num_features", type=int, default=100, help="Number of features to extract."
+            "--num_features",
+            type=int,
+            default=100,
+            help="Number of features to extract.",
         )
         parser.add_argument(
             "--output_folder", type=str, default="./output", help="Output folder"
         )
         parser.add_argument("--image_dir", type=str, help="Image directory or file")
         parser.add_argument(
-            "--feature_name", type=str, help="The name of the feature to extract",
+            "--feature_name",
+            type=str,
+            help="The name of the feature to extract",
             default="fc6",
         )
         parser.add_argument(
-            "--confidence_threshold", type=float, default=0,
-            help="Threshold of detection confidence above which boxes will be selected"
+            "--confidence_threshold",
+            type=float,
+            default=0,
+            help="Threshold of detection confidence above which boxes will be selected",
         )
         parser.add_argument(
-            "--background", action="store_true",
-            help="The model will output predictions for the background class when set"
+            "--background",
+            action="store_true",
+            help="The model will output predictions for the background class when set",
         )
         return parser
 
@@ -128,10 +134,7 @@ class FeatureExtractor:
         )
         img = torch.from_numpy(im).permute(2, 0, 1)
 
-        im_info = {
-            "width": im_width,
-            "height": im_height
-        }
+        im_info = {"width": im_width, "height": im_height}
 
         return img, im_scale, im_info
 
@@ -162,14 +165,15 @@ class FeatureExtractor:
                 keep = nms(dets, cls_scores, 0.5)
                 max_conf[keep] = torch.where(
                     # Better than max one till now and minimally greater than conf_thresh
-                    (cls_scores[keep] > max_conf[keep]) &
-                    (cls_scores[keep] > conf_thresh_tensor[keep]),
-                    cls_scores[keep], max_conf[keep]
+                    (cls_scores[keep] > max_conf[keep])
+                    & (cls_scores[keep] > conf_thresh_tensor[keep]),
+                    cls_scores[keep],
+                    max_conf[keep],
                 )
 
             sorted_scores, sorted_indices = torch.sort(max_conf, descending=True)
-            num_boxes = (sorted_scores[:self.args.num_features] != 0).sum()
-            keep_boxes = sorted_indices[:self.args.num_features]
+            num_boxes = (sorted_scores[: self.args.num_features] != 0).sum()
+            keep_boxes = sorted_indices[: self.args.num_features]
             feat_list.append(feats[i][keep_boxes])
             bbox = output[0]["proposals"][i][keep_boxes].bbox / im_scales[i]
             # Predict the class label using the scores
@@ -205,8 +209,11 @@ class FeatureExtractor:
             output = self.detection_model(current_img_list)
 
         feat_list = self._process_feature_extraction(
-            output, im_scales, im_infos, self.args.feature_name,
-            self.args.confidence_threshold
+            output,
+            im_scales,
+            im_infos,
+            self.args.feature_name,
+            self.args.confidence_threshold,
         )
 
         return feat_list

@@ -1,18 +1,16 @@
-import os
 import json
+import os
 
 import numpy as np
 import torch
-
 from PIL import Image
 
 from pythia.common.registry import registry
 from pythia.common.sample import Sample
 from pythia.datasets.base_dataset import BaseDataset
+from pythia.utils.distributed_utils import is_master, synchronize
 from pythia.utils.general import get_pythia_root
 from pythia.utils.text_utils import VocabFromText, tokenize
-from pythia.utils.distributed_utils import is_master, synchronize
-
 
 _CONSTANTS = {
     "questions_folder": "questions",
@@ -23,13 +21,13 @@ _CONSTANTS = {
     "answer_key": "answer",
     "train_dataset_key": "train",
     "images_folder": "images",
-    "vocabs_folder": "vocabs"
+    "vocabs_folder": "vocabs",
 }
 
 _TEMPLATES = {
     "data_folder_missing_error": "Data folder {} for CLEVR is not present.",
     "question_json_file": "CLEVR_{}_questions.json",
-    "vocab_file_template": "{}_{}_vocab.txt"
+    "vocab_file_template": "{}_{}_vocab.txt",
 }
 
 
@@ -45,6 +43,7 @@ class CLEVRDataset(BaseDataset):
                      replaces default based on data_root_dir and data_folder in config.
 
     """
+
     def __init__(self, dataset_type, config, data_folder=None, *args, **kwargs):
         super().__init__(_CONSTANTS["dataset_key"], dataset_type, config)
         self._data_folder = data_folder
@@ -54,7 +53,9 @@ class CLEVRDataset(BaseDataset):
             self._data_folder = os.path.join(self._data_root_dir, config.data_folder)
 
         if not os.path.exists(self._data_folder):
-            raise RuntimeError(_TEMPLATES["data_folder_missing_error"].format(self._data_folder))
+            raise RuntimeError(
+                _TEMPLATES["data_folder_missing_error"].format(self._data_folder)
+            )
 
         # Check if the folder was actually extracted in the subfolder
         if config.data_folder in os.listdir(self._data_folder):
@@ -66,7 +67,9 @@ class CLEVRDataset(BaseDataset):
         self._load()
 
     def _load(self):
-        self.image_path = os.path.join(self._data_folder, _CONSTANTS["images_folder"], self._dataset_type)
+        self.image_path = os.path.join(
+            self._data_folder, _CONSTANTS["images_folder"], self._dataset_type
+        )
 
         with open(
             os.path.join(
@@ -88,8 +91,9 @@ class CLEVRDataset(BaseDataset):
 
     def _get_vocab_path(self, attribute):
         return os.path.join(
-            self._data_root_dir, _CONSTANTS["vocabs_folder"],
-            _TEMPLATES["vocab_file_template"].format(self._name, attribute)
+            self._data_root_dir,
+            _CONSTANTS["vocabs_folder"],
+            _TEMPLATES["vocab_file_template"].format(self._name, attribute),
         )
 
     def _build_vocab(self, questions, attribute):
@@ -113,7 +117,7 @@ class CLEVRDataset(BaseDataset):
         kwargs = {
             "min_count": build_attributes.get("min_count", 1),
             "keep": build_attributes.get("keep", [";", ","]),
-            "remove": build_attributes.get("remove", ["?", "."])
+            "remove": build_attributes.get("remove", ["?", "."]),
         }
 
         if attribute == _CONSTANTS["answer_key"]:
@@ -121,7 +125,7 @@ class CLEVRDataset(BaseDataset):
 
         vocab = VocabFromText(sentences, **kwargs)
 
-        with open(vocab_file,"w") as f:
+        with open(vocab_file, "w") as f:
             f.write("\n".join(vocab.word_list))
 
     def get_item(self, idx):

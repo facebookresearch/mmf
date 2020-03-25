@@ -1,9 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import torch
+
 from pythia.common.registry import registry
-from pythia.modules.layers import ClassifierLayer
 from pythia.models.pythia import Pythia
+from pythia.modules.layers import ClassifierLayer
 from pythia.utils.text_utils import BeamSearch, NucleusSampling
 
 
@@ -51,9 +52,8 @@ class BUTD(Pythia):
     def prepare_data(self, sample_list, batch_size):
         # turn off teacher forcing during beam search
         # (otherwise one cannot run beam search on val set)
-        self.teacher_forcing = (
-            self.config.inference.type != "beam_search" and
-            hasattr(sample_list, "text")
+        self.teacher_forcing = self.config.inference.type != "beam_search" and hasattr(
+            sample_list, "text"
         )
         data = {}
         if self.teacher_forcing:

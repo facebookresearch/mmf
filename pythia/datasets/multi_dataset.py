@@ -3,25 +3,26 @@
 MultiDataset class is used by DatasetLoader class to load multiple datasets and more granular
 """
 
-import sys
 import os
+import sys
 
 import numpy as np
-from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
-# from torch.utils.data.distributed import DistributedSampler
+from torch.utils.data import DataLoader, Dataset
 
 from pythia.common.batch_collator import BatchCollator
 from pythia.common.registry import registry
 from pythia.datasets.samplers import DistributedSampler
-from pythia.utils.distributed_utils import synchronize, is_master, broadcast_scalar
+from pythia.utils.distributed_utils import broadcast_scalar, is_master, synchronize
 from pythia.utils.general import get_batch_size
+
+# from torch.utils.data.distributed import DistributedSampler
 
 
 class MultiDataset:
     """
     MultiDataset class that is used for training on multiple datasets together.
     """
+
     def __init__(self, dataset_type="train"):
         self._dataset_type = dataset_type
         self.writer = registry.get("writer")
@@ -31,8 +32,7 @@ class MultiDataset:
     def _process_datasets(self):
         if "datasets" not in self.opts:
             self.writer.write(
-                "No datasets attribute present. Setting default to vqa2."
-                "warning",
+                "No datasets attribute present. Setting default to vqa2." "warning"
             )
             datasets = "vqa2"
         else:
@@ -77,7 +77,6 @@ class MultiDataset:
                 )
                 sys.exit(1)
 
-
             builder_instance.build(self._dataset_type, attributes)
             dataset_instance = builder_instance.load(self._dataset_type, attributes)
 
@@ -102,7 +101,9 @@ class MultiDataset:
         ]
 
         training_parameters = self._global_config.training_parameters
-        self._proportional_sampling = training_parameters.dataset_size_proportional_sampling
+        self._proportional_sampling = (
+            training_parameters.dataset_size_proportional_sampling
+        )
 
         if self._dataset_type != "train":
             # If it is val or test, it needs to be all datasets need to be fully iterated
@@ -158,8 +159,8 @@ class MultiDataset:
             next_batch = next(self._chosen_iterator)
         except StopIteration:
             if (
-                self._proportional_sampling is True or
-                len(self._used_once) != self._num_datasets
+                self._proportional_sampling is True
+                or len(self._used_once) != self._num_datasets
             ):
                 self._finished_iterators[self._loader_index] = 1
 
@@ -271,7 +272,7 @@ class MultiDataset:
 
         if num_workers >= 0:
             # Suppress leaking semaphore warning
-            os.environ['PYTHONWARNINGS'] = 'ignore:semaphore_tracker:UserWarning'
+            os.environ["PYTHONWARNINGS"] = "ignore:semaphore_tracker:UserWarning"
 
         loader.dataset_type = self._dataset_type
 
@@ -289,7 +290,9 @@ class MultiDataset:
             training_parameters.local_rank is not None
             and training_parameters.distributed
         ):
-            other_args["sampler"] = DistributedSampler(dataset, shuffle=other_args["shuffle"])
+            other_args["sampler"] = DistributedSampler(
+                dataset, shuffle=other_args["shuffle"]
+            )
             # Shuffle is mutually exclusive with sampler, let DistributedSampler take care of
             # shuffle and pop from main args
             other_args.pop("shuffle")
@@ -306,6 +309,7 @@ class MultiDataset:
             and training_parameters.distributed
         ):
             for sampler in self._samplers:
-                assert hasattr(sampler, "set_epoch"), "Can't seed without `set_epoch` method"
+                assert hasattr(
+                    sampler, "set_epoch"
+                ), "Can't seed without `set_epoch` method"
                 sampler.set_epoch(epoch)
-

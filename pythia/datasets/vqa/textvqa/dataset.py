@@ -16,7 +16,13 @@ class TextVQADataset(VizWizDataset):
 
         for idx, question_id in enumerate(report.question_id):
             answer_id = answers[idx].item()
-            print(answer_id, idx, len(answers), len(report.question_id), len(report.context_tokens))
+            print(
+                answer_id,
+                idx,
+                len(answers),
+                len(report.question_id),
+                len(report.context_tokens),
+            )
             if answer_id >= answer_space_size:
                 answer_id -= answer_space_size
                 answer = word_tokenize(report.context_tokens[idx][answer_id])

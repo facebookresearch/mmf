@@ -43,7 +43,11 @@ class VizWizDataset(VQA2Dataset):
             predictions.append(
                 {
                     # "image": "_".join(["VizWiz"] + image_id.split("_")[2:]) + ".jpg",
-                    "image": "VizWiz_" + self._dataset_type + "_" + str(image_id.item()).zfill(12) + ".jpg",
+                    "image": "VizWiz_"
+                    + self._dataset_type
+                    + "_"
+                    + str(image_id.item()).zfill(12)
+                    + ".jpg",
                     "answer": answer,
                 }
             )

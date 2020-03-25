@@ -15,5 +15,5 @@ class MaskedCOCOBuilder(COCOBuilder):
     def update_registry_for_model(self, config):
         registry.register(
             self.dataset_name + "_text_vocab_size",
-            self.dataset.masked_token_processor.get_vocab_size()
+            self.dataset.masked_token_processor.get_vocab_size(),
         )

@@ -2,17 +2,17 @@
 # TODO: Update kwargs with defaults
 import os
 import pickle
-from functools import lru_cache
 from copy import deepcopy
+from functools import lru_cache
 
 import numpy as np
 import torch
 from torch import nn
+from transformers.modeling_bert import BertEmbeddings
 
 from pythia.modules.attention import AttentionLayer
 from pythia.modules.layers import Identity
 from pythia.utils.vocab import Vocab
-from transformers.modeling_bert import BertEmbeddings
 
 
 class TextEmbedding(nn.Module):
@@ -193,10 +193,7 @@ class ProjectionEmbedding(nn.Module):
             last_out_channels = in_dim
             layers = []
             for conv in kwargs["convs"]:
-                layers.append(nn.Conv1d(
-                    in_channels=last_out_channels,
-                    **conv
-                ))
+                layers.append(nn.Conv1d(in_channels=last_out_channels, **conv))
                 last_out_channels = conv["out_channels"]
             self.layers = nn.ModuleList(*layers)
             self.out_dim = last_out_channels
@@ -252,24 +249,25 @@ class ImageEmbedding(nn.Module):
 
         return image_embedding, attention
 
+
 class MultiHeadImageEmbedding(nn.Module):
     def __init__(self, img_dim, question_dim, **kwargs):
         super().__init__()
         self.module = nn.MultiheadAttention(
-            embed_dim=question_dim,
-            kdim=img_dim,
-            vdim=img_dim,
-            **kwargs
+            embed_dim=question_dim, kdim=img_dim, vdim=img_dim, **kwargs
         )
         self.out_dim = question_dim
 
     def forward(self, image_feat_variable, question_embedding, image_dims, extra={}):
         image_feat_variable = image_feat_variable.transpose(0, 1)
         question_embedding = question_embedding.unsqueeze(1).transpose(0, 1)
-        output, weights = self.module(question_embedding, image_feat_variable, image_feat_variable)
+        output, weights = self.module(
+            question_embedding, image_feat_variable, image_feat_variable
+        )
         output = output.transpose(0, 1)
 
         return output.squeeze(), weights
+
 
 class ImageFinetune(nn.Module):
     def __init__(self, in_dim, weights_file, bias_file):
@@ -289,7 +287,6 @@ class ImageFinetune(nn.Module):
         i2 = self.lc(image)
         i3 = nn.functional.relu(i2)
         return i3
-
 
 
 class BertVisioLinguisticEmbeddings(BertEmbeddings):
@@ -313,19 +310,25 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
         )
 
     def forward(
-        self, input_ids, token_type_ids=None, visual_embeddings=None,
-        visual_embeddings_type=None, position_embeddings_visual=None,
-        image_text_alignment=None
+        self,
+        input_ids,
+        token_type_ids=None,
+        visual_embeddings=None,
+        visual_embeddings_type=None,
+        position_embeddings_visual=None,
+        image_text_alignment=None,
     ):
-        '''
+        """
         input_ids = [batch_size, sequence_length]
         token_type_ids = [batch_size, sequence_length]
         visual_embedding = [batch_size, image_feature_length, image_feature_dim]
         image_text_alignment = [batch_size, image_feature_length, alignment_dim]
-        '''
+        """
 
         seq_length = input_ids.size(1)
-        position_ids = torch.arange(seq_length, dtype=torch.long, device=input_ids.device)
+        position_ids = torch.arange(
+            seq_length, dtype=torch.long, device=input_ids.device
+        )
         position_ids = position_ids.unsqueeze(0).expand_as(input_ids)
         if token_type_ids is None:
             token_type_ids = torch.zeros_like(input_ids)
@@ -338,7 +341,9 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
 
         if visual_embeddings is not None:
             visual_embeddings = self.projection(visual_embeddings)
-            token_type_embeddings_visual = self.token_type_embeddings_visual(visual_embeddings_type)
+            token_type_embeddings_visual = self.token_type_embeddings_visual(
+                visual_embeddings_type
+            )
 
             if image_text_alignment is not None:
                 # image_text_alignment = Batch x image_length x alignment_number.
@@ -349,31 +354,61 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
                 image_text_alignment = image_text_alignment_mask * image_text_alignment
 
                 # position_embeddings_visual = Batch x image_length x alignment length x dim
-                position_embeddings_visual = self.position_embeddings(image_text_alignment) \
-                    * image_text_alignment_mask.to(dtype=next(self.parameters()).dtype).unsqueeze(-1)
+                position_embeddings_visual = self.position_embeddings(
+                    image_text_alignment
+                ) * image_text_alignment_mask.to(
+                    dtype=next(self.parameters()).dtype
+                ).unsqueeze(
+                    -1
+                )
                 position_embeddings_visual = position_embeddings_visual.sum(2)
 
                 # We want to averge along the alignment_number dimension.
-                image_text_alignment_mask = image_text_alignment_mask.to(dtype=next(self.parameters()).dtype).sum(2)
-                image_text_alignment_mask[image_text_alignment_mask==0] = 1 # Avoid devide by zero error
-                position_embeddings_visual = position_embeddings_visual / image_text_alignment_mask.unsqueeze(-1)
+                image_text_alignment_mask = image_text_alignment_mask.to(
+                    dtype=next(self.parameters()).dtype
+                ).sum(2)
+                image_text_alignment_mask[
+                    image_text_alignment_mask == 0
+                ] = 1  # Avoid devide by zero error
+                position_embeddings_visual = (
+                    position_embeddings_visual / image_text_alignment_mask.unsqueeze(-1)
+                )
 
-                position_ids_visual = torch.zeros(*visual_embeddings.size()[:-1], dtype = torch.long).cuda()
+                position_ids_visual = torch.zeros(
+                    *visual_embeddings.size()[:-1], dtype=torch.long
+                ).cuda()
 
                 # When fine-tuning the detector , the image_text_alignment is sometimes padded too long.
                 if position_embeddings_visual.size(1) != visual_embeddings.size(1):
-                    assert(position_embeddings_visual.size(1) >= visual_embeddings.size(1))
-                    position_embeddings_visual = position_embeddings_visual[:, :visual_embeddings.size(1), :]
+                    assert position_embeddings_visual.size(1) >= visual_embeddings.size(
+                        1
+                    )
+                    position_embeddings_visual = position_embeddings_visual[
+                        :, : visual_embeddings.size(1), :
+                    ]
 
-                position_embeddings_visual = position_embeddings_visual + self.position_embeddings_visual(position_ids_visual)
+                position_embeddings_visual = (
+                    position_embeddings_visual
+                    + self.position_embeddings_visual(position_ids_visual)
+                )
             else:
-                position_ids_visual = torch.zeros(*visual_embeddings.size()[:-1], dtype = torch.long).cuda()
-                position_embeddings_visual = self.position_embeddings_visual(position_ids_visual)
+                position_ids_visual = torch.zeros(
+                    *visual_embeddings.size()[:-1], dtype=torch.long
+                ).cuda()
+                position_embeddings_visual = self.position_embeddings_visual(
+                    position_ids_visual
+                )
 
-            v_embeddings = visual_embeddings + position_embeddings_visual + token_type_embeddings_visual
+            v_embeddings = (
+                visual_embeddings
+                + position_embeddings_visual
+                + token_type_embeddings_visual
+            )
 
             # Concate the two:
-            embeddings = torch.cat((embeddings, v_embeddings), dim = 1) # concat the visual embeddings after the attentions
+            embeddings = torch.cat(
+                (embeddings, v_embeddings), dim=1
+            )  # concat the visual embeddings after the attentions
 
         embeddings = self.LayerNorm(embeddings)
         embeddings = self.dropout(embeddings)

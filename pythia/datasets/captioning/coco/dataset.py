@@ -57,13 +57,13 @@ class COCODataset(VQA2Dataset):
         captions = report.captions.tolist()
         predictions = []
         remove_unk_from_caption_prediction = getattr(
-            self.config, 'remove_unk_from_caption_prediction', False
+            self.config, "remove_unk_from_caption_prediction", False
         )
         for idx, image_id in enumerate(report.image_id):
             caption = self.caption_processor(captions[idx])["caption"]
             if remove_unk_from_caption_prediction:
-                caption = caption.replace('<unk>', '')
-                caption = caption.replace('  ', ' ').strip()
+                caption = caption.replace("<unk>", "")
+                caption = caption.replace("  ", " ").strip()
             if isinstance(image_id, torch.Tensor):
                 image_id = image_id.item()
             predictions.append({"image_id": image_id, "caption": caption})

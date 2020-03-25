@@ -1,15 +1,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import json
-import torch
 import copy
+import json
 
-from pythia.datasets.vqa.vqa2 import VQA2Dataset
-from pythia.datasets.scene_graph_database import SceneGraphDatabase
+import torch
+
 from pythia.common.sample import Sample, SampleList
+from pythia.datasets.scene_graph_database import SceneGraphDatabase
+from pythia.datasets.vqa.vqa2 import VQA2Dataset
 
-_CONSTANTS = {
-    "image_id_key": "image_id"
-}
+_CONSTANTS = {"image_id_key": "image_id"}
 
 
 class VisualGenomeDataset(VQA2Dataset):
@@ -24,7 +23,8 @@ class VisualGenomeDataset(VQA2Dataset):
         self.scene_graph_db = None
 
         build_scene_graph_db = (
-            self._return_scene_graph or self._return_objects
+            self._return_scene_graph
+            or self._return_objects
             or self._return_relationships
         )
 
@@ -53,9 +53,12 @@ class VisualGenomeDataset(VQA2Dataset):
         return copy.deepcopy(self.scene_graph_db[self._get_image_id(idx)])
 
     def _preprocess_answer(self, sample_info):
-        sample_info["answers"] = [self.vg_answer_preprocessor({
-            "text": sample_info["answers"][0]
-        }, remove=["?", ",", ".", "a", "an", "the"])["text"]]
+        sample_info["answers"] = [
+            self.vg_answer_preprocessor(
+                {"text": sample_info["answers"][0]},
+                remove=["?", ",", ".", "a", "an", "the"],
+            )["text"]
+        ]
 
         return sample_info
 
@@ -106,9 +109,9 @@ class VisualGenomeDataset(VQA2Dataset):
             obj.pop("w")
             obj["y"] /= image_height
             obj["x"] /= image_width
-            obj["attributes"] = self.attribute_processor({
-                "tokens": obj["attributes"]
-            })["text"]
+            obj["attributes"] = self.attribute_processor({"tokens": obj["attributes"]})[
+                "text"
+            ]
             obj = Sample(obj)
             object_map[obj["object_id"]] = obj
             objects.append(obj)
@@ -125,12 +128,12 @@ class VisualGenomeDataset(VQA2Dataset):
         relationships = []
 
         for relationship in image_info["relationships"]:
-            relationship["synsets"] = self.synset_processor({
-                "tokens": relationship["synsets"]
-            })["text"]
-            relationship["predicate"] = self.predicate_processor({
-                "tokens": relationship["predicate"]
-            })["text"]
+            relationship["synsets"] = self.synset_processor(
+                {"tokens": relationship["synsets"]}
+            )["text"]
+            relationship["predicate"] = self.predicate_processor(
+                {"tokens": relationship["predicate"]}
+            )["text"]
             relationship["object"] = object_map[relationship["object_id"]]
             relationship["subject"] = object_map[relationship["subject_id"]]
 
@@ -153,12 +156,12 @@ class VisualGenomeDataset(VQA2Dataset):
 
         for region in image_info["regions"]:
             for synset in region["synsets"]:
-                synset["entity_name"] = self.name_processor({
-                    "tokens": [synset["entity_name"]]
-                })["text"]
-                synset["synset_name"] = self.synset_processor({
-                    "tokens": [synset["synset_name"]]
-                })["text"]
+                synset["entity_name"] = self.name_processor(
+                    {"tokens": [synset["entity_name"]]}
+                )["text"]
+                synset["synset_name"] = self.synset_processor(
+                    {"tokens": [synset["synset_name"]]}
+                )["text"]
 
             region["height"] /= image_height
             region["width"] /= image_width
@@ -176,9 +179,7 @@ class VisualGenomeDataset(VQA2Dataset):
 
             region["relationships"] = relationships
             region["objects"] = objects
-            region["phrase"] = self.text_processor({
-                "text": region["phrase"]
-            })["text"]
+            region["phrase"] = self.text_processor({"text": region["phrase"]})["text"]
 
             region = Sample(region)
             region_map[region["region_id"]] = region

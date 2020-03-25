@@ -1,11 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import functools
+import operator
+import random
 import unittest
 
-import torch
-import random
-import operator
-import functools
 import numpy as np
+import torch
 
 import pythia.modules.layers as layers
 
@@ -23,8 +23,9 @@ class TestModuleLayers(unittest.TestCase):
         self.assertEqual(output.size(), expected_size)
         # Since seed is fix we can check some of tensor values
         np.testing.assert_almost_equal(output[0][0][0][0].item(), 0.149190, decimal=5)
-        np.testing.assert_almost_equal(output[3][74][31][31].item(), -0.25199, decimal=5)
-
+        np.testing.assert_almost_equal(
+            output[3][74][31][31].item(), -0.25199, decimal=5
+        )
 
     def test_flatten(self):
         flatten = layers.Flatten()
@@ -43,7 +44,9 @@ class TestModuleLayers(unittest.TestCase):
 
         # Test 6 dim
         size_list = [random.randint(2, 4) for _ in range(7)]
-        expected_size = torch.Size((size_list[0], functools.reduce(operator.mul, size_list[1:])))
+        expected_size = torch.Size(
+            (size_list[0], functools.reduce(operator.mul, size_list[1:]))
+        )
         input_tensor = torch.randn(*size_list)
         actual_size = flatten(input_tensor).size()
         self.assertEqual(actual_size, expected_size)

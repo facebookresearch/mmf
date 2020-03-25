@@ -38,13 +38,15 @@ class VisualDialogBuilder(VisualGenomeBuilder):
         self._download_and_extract(
             "imdb_url",
             VISUAL_DIALOG_CONSTS["imdb_url"][self._dataset_type],
-            download_folder
+            download_folder,
         )
 
     def _download_and_extract_features(self, data_folder):
         # Visual Dialog features will contain val and test
         self._download_and_extract(
-            "features_url", VISUAL_DIALOG_CONSTS["features_url"]["visual_dialog"], data_folder
+            "features_url",
+            VISUAL_DIALOG_CONSTS["features_url"]["visual_dialog"],
+            data_folder,
         )
         # But since train is same as COCO, we reuse those features if already downloaded
         self._download_and_extract(

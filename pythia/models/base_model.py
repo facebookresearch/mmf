@@ -41,9 +41,9 @@ Example::
 
 import collections
 import warnings
+from copy import deepcopy
 
 from torch import nn
-from copy import deepcopy
 
 from pythia.common.registry import registry
 from pythia.common.report import Report
@@ -65,10 +65,7 @@ class BaseModel(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        self._logged_warning = {
-            "losses_present": False,
-            "metrics_present": False
-        }
+        self._logged_warning = {"losses_present": False, "metrics_present": False}
         self.writer = registry.get("writer")
 
     def build(self):
@@ -150,9 +147,9 @@ class BaseModel(nn.Module):
         model_output = super().__call__(sample_list, *args, **kwargs)
 
         # Make sure theat the output from the model is a Mapping
-        assert isinstance(model_output, collections.abc.Mapping), (
-            "A dict must be returned from the forward of the model."
-        )
+        assert isinstance(
+            model_output, collections.abc.Mapping
+        ), "A dict must be returned from the forward of the model."
 
         if "losses" in model_output:
             if not self._logged_warning["losses_present"]:

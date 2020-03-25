@@ -6,7 +6,7 @@ import torch
 from transformers.tokenization_auto import AutoTokenizer
 
 from pythia.common.registry import registry
-from pythia.datasets.processors import BaseProcessor
+from pythia.datasets.processors.processors import BaseProcessor
 
 
 @registry.register_processor("masked_token")
@@ -164,18 +164,16 @@ class M4CBertTokenizerProcessor(BaseProcessor):
     """
     Tokenize a text string with BERT tokenizer
     """
+
     def __init__(self, config, *args, **kwargs):
         self.max_length = config.max_length
         tokenizer_config = config.tokenizer_config
         self.bert_tokenizer = AutoTokenizer.from_pretrained(
             tokenizer_config.type, **tokenizer_config.params
         )
-        assert (
-            self.bert_tokenizer.encode(
-                self.bert_tokenizer.pad_token,
-                add_special_tokens=False
-            ) == [0]
-        )
+        assert self.bert_tokenizer.encode(
+            self.bert_tokenizer.pad_token, add_special_tokens=False
+        ) == [0]
         self.get_qgen_inds = getattr(config, "get_qgen_inds", False)
         if self.get_qgen_inds:
             print("computing question generation indices in bert tokenizer")
@@ -187,10 +185,9 @@ class M4CBertTokenizerProcessor(BaseProcessor):
         # [PAD] in self.bert_tokenizer is zero (as checked in assert above)
         token_inds = torch.zeros(self.max_length, dtype=torch.long)
 
-        indices = self.bert_tokenizer.encode(
-            item["question"], add_special_tokens=True)
-        indices = indices[:self.max_length]
-        token_inds[:len(indices)] = torch.tensor(indices)
+        indices = self.bert_tokenizer.encode(item["question"], add_special_tokens=True)
+        indices = indices[: self.max_length]
+        token_inds[: len(indices)] = torch.tensor(indices)
         token_num = torch.tensor(len(indices), dtype=torch.long)
 
         results = {"token_inds": token_inds, "token_num": token_num}
@@ -201,7 +198,7 @@ class M4CBertTokenizerProcessor(BaseProcessor):
             # stripping [CLS] at beginning and [SEP] at end
             # then add two [PAD] at end (as stop tokens)
             indices_qgen = indices[1:-1] + [0, 0]
-            qgen_inds[:len(indices_qgen)] = torch.tensor(indices_qgen)
+            qgen_inds[: len(indices_qgen)] = torch.tensor(indices_qgen)
             results["qgen_inds"] = qgen_inds
 
         return results

@@ -66,9 +66,11 @@ class Registry:
                 ...
 
         """
+
         def wrap(trainer_cls):
             cls.mapping["trainer_name_mapping"][name] = trainer_cls
             return trainer_cls
+
         return wrap
 
     @classmethod

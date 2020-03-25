@@ -65,9 +65,7 @@ def build_optimizer(model, config):
     optimizer_type = optimizer_config.type
 
     if not hasattr(optimizer_config, "params"):
-        warnings.warn(
-            "optimizer attributes has no params defined, defaulting to {}."
-        )
+        warnings.warn("optimizer attributes has no params defined, defaulting to {}.")
 
     params = getattr(optimizer_config, "params", {})
 
@@ -97,9 +95,7 @@ def build_scheduler(optimizer, config):
     scheduler_type = getattr(scheduler_config, "type", "pythia")
 
     if not hasattr(scheduler_config, "params"):
-        warnings.warn(
-            "scheduler attributes has no params defined, defaulting to {}."
-        )
+        warnings.warn("scheduler attributes has no params defined, defaulting to {}.")
     params = getattr(scheduler_config, "params", {})
     scheduler_class = registry.get_scheduler_class(scheduler_type)
     scheduler = scheduler_class(optimizer, **params)

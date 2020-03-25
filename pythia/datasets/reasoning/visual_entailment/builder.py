@@ -16,4 +16,3 @@ class VisualEntailmentBuilder(VQA2Builder):
         super().__init__()
         self.dataset_name = "visual_entailment"
         self.dataset_class = VisualEntailmentDataset
-

@@ -1,9 +1,10 @@
-import json
-import torch
 import copy
+import json
 
-from pythia.datasets.vqa.vqa2 import VQA2Dataset
+import torch
+
 from pythia.common.sample import Sample
+from pythia.datasets.vqa.vqa2 import VQA2Dataset
 
 
 class NLVR2Dataset(VQA2Dataset):
@@ -21,7 +22,6 @@ class NLVR2Dataset(VQA2Dataset):
         current_sample.text = processed_sentence["text"]
         if "input_ids" in processed_sentence:
             current_sample.update(processed_sentence)
-
 
         if self._use_features is True:
             # Remove sentence id from end

@@ -233,9 +233,7 @@ class TextVQAAccuracyEvaluator:
         for unique_answer in unique_answers:
             accs = []
             for gt_answer in gt_answers:
-                other_answers = [
-                    item for item in gt_answers if item != gt_answer
-                ]
+                other_answers = [item for item in gt_answers if item != gt_answer]
                 matching_answers = [
                     item for item in other_answers if item[1] == unique_answer
                 ]
@@ -248,11 +246,9 @@ class TextVQAAccuracyEvaluator:
     def eval_pred_list(self, pred_list):
         pred_scores = []
         for entry in pred_list:
-            pred_answer = self.answer_processor(entry['pred_answer'])
-            unique_answer_scores = self._compute_answer_scores(
-                entry['gt_answers']
-            )
-            score = unique_answer_scores.get(pred_answer, 0.)
+            pred_answer = self.answer_processor(entry["pred_answer"])
+            unique_answer_scores = self._compute_answer_scores(entry["gt_answers"])
+            score = unique_answer_scores.get(pred_answer, 0.0)
             pred_scores.append(score)
 
         accuracy = sum(pred_scores) / len(pred_scores)
@@ -266,9 +262,9 @@ class STVQAAccuracyEvaluator:
     def eval_pred_list(self, pred_list):
         pred_scores = []
         for entry in pred_list:
-            pred_answer = self.answer_processor(entry['pred_answer'])
-            gts = [self.answer_processor(a) for a in entry['gt_answers']]
-            score = (1. if pred_answer in gts else 0.)
+            pred_answer = self.answer_processor(entry["pred_answer"])
+            gts = [self.answer_processor(a) for a in entry["gt_answers"]]
+            score = 1.0 if pred_answer in gts else 0.0
             pred_scores.append(score)
 
         accuracy = sum(pred_scores) / len(pred_scores)
@@ -278,21 +274,21 @@ class STVQAAccuracyEvaluator:
 class STVQAANLSEvaluator:
     def __init__(self):
         import editdistance  # install with `pip install editdistance`
+
         self.get_edit_distance = editdistance.eval
 
     def get_anls(self, s1, s2):
         s1 = s1.lower().strip()
         s2 = s2.lower().strip()
         iou = 1 - self.get_edit_distance(s1, s2) / max(len(s1), len(s2))
-        anls = iou if iou >= .5 else 0.
+        anls = iou if iou >= 0.5 else 0.0
         return anls
 
     def eval_pred_list(self, pred_list):
         pred_scores = []
         for entry in pred_list:
             anls = max(
-                self.get_anls(entry['pred_answer'], gt)
-                for gt in entry['gt_answers']
+                self.get_anls(entry["pred_answer"], gt) for gt in entry["gt_answers"]
             )
             pred_scores.append(anls)
 
@@ -309,6 +305,7 @@ class TextCapsBleu4Evaluator:
         # but has no python3 support yet.
         from pycocoevalcap.tokenizer.ptbtokenizer import PTBTokenizer
         from pycocoevalcap.bleu.bleu import Bleu
+
         self.tokenizer = PTBTokenizer()
         self.scorer = Bleu(4)
 
@@ -317,8 +314,8 @@ class TextCapsBleu4Evaluator:
         gts = {}
         res = {}
         for idx, entry in enumerate(pred_list):
-            gts[idx] = [{'caption': a} for a in entry['gt_answers']]
-            res[idx] = [{'caption': entry['pred_answer']}]
+            gts[idx] = [{"caption": a} for a in entry["gt_answers"]]
+            res[idx] = [{"caption": entry["pred_answer"]}]
 
         gts = self.tokenizer.tokenize(gts)
         res = self.tokenizer.tokenize(res)

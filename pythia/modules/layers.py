@@ -2,6 +2,7 @@
 import torch
 from torch import nn
 from torch.nn.utils.weight_norm import weight_norm
+
 from pythia.common.registry import registry
 from pythia.modules.decoders import LanguageDecoder
 
@@ -20,7 +21,9 @@ class ConvNet(nn.Module):
 
         if padding_size == "same":
             padding_size = kernel_size // 2
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, padding=padding_size)
+        self.conv = nn.Conv2d(
+            in_channels, out_channels, kernel_size, padding=padding_size
+        )
         self.max_pool2d = nn.MaxPool2d(pool_stride, stride=pool_stride)
         self.batch_norm = batch_norm
 
@@ -42,6 +45,7 @@ class Flatten(nn.Module):
             input = input.view(input.size(0), -1)
 
         return input
+
 
 class UnFlatten(nn.Module):
     def forward(self, input, sizes=[]):

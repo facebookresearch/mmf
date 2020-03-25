@@ -1,16 +1,18 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import base64
+import collections
+import json
 import logging
 import os
 import sys
-import json
-import collections
 
 from torch.utils.tensorboard import SummaryWriter
 
 from pythia.utils.distributed_utils import is_master
-from pythia.utils.general import (ckpt_name_from_core_args,
-                                  foldername_from_config_override)
+from pythia.utils.general import (
+    ckpt_name_from_core_args,
+    foldername_from_config_override,
+)
 from pythia.utils.timer import Timer
 
 
@@ -35,7 +37,6 @@ class Logger:
 
         if not os.path.exists(self.log_folder):
             os.makedirs(self.log_folder, exist_ok=True)
-
 
         self.log_filename = os.path.join(self.log_folder, self.log_filename)
 
@@ -80,7 +81,6 @@ class Logger:
         # Single log wrapper map
         self._single_log_map = set()
 
-
     def write(self, x, level="info", donot_print=False, log_all=False):
         if self.logger is None:
             return
@@ -108,7 +108,9 @@ class Logger:
             return
 
         if self.log_format == "simple":
-            output = ", ".join(["{}: {}".format(key, value) for key, value in info.items()])
+            output = ", ".join(
+                ["{}: {}".format(key, value) for key, value in info.items()]
+            )
         elif self.log_format == "json":
             output = json.dumps(info)
         else:
@@ -134,7 +136,6 @@ class TensorboardLogger:
         self.timer = Timer()
         self.log_folder = log_folder
         self.time_format = "%Y-%m-%dT%H:%M:%S"
-
 
         if self._is_master:
             current_time = self.timer.get_time_hhmmss(None, format=self.time_format)
