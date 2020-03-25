@@ -5,6 +5,7 @@ import time
 import random
 
 import torch
+import omegaconf
 from torch import optim
 from tqdm import tqdm
 
@@ -90,7 +91,8 @@ class BaseTrainer:
         if isinstance(attributes, str):
             attributes = self.config.model_attributes[attributes]
 
-        attributes["model"] = self.config.model
+        with omegaconf.open_dict(attributes):
+            attributes.model = self.config.model
 
         self.dataset_loader.update_registry_for_model(attributes)
         self.model = build_model(attributes)

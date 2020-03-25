@@ -54,7 +54,7 @@ class Checkpoint:
             # Pop out config_override if present to remove clutter in
             # saved configuration yaml file
             self.config.pop("config_override", None)
-            f.write(str(self.config))
+            f.write(self.config.pretty())
 
     def load_state_dict(self):
         tp = self.config.training_parameters
@@ -175,7 +175,9 @@ class Checkpoint:
             registry.register("current_iteration", self.trainer.current_iteration)
             registry.register("num_updates", self.trainer.num_updates)
 
-            self.trainer.current_epoch = ckpt.get("best_epoch", self.trainer.current_epoch)
+            self.trainer.current_epoch = ckpt.get(
+                "best_epoch", self.trainer.current_epoch
+            )
             registry.register("current_epoch", self.trainer.current_epoch)
         else:
             final_dict = {}

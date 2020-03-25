@@ -7,6 +7,7 @@ from copy import deepcopy
 import numpy as np
 import torch
 import torch.nn.functional as F
+from omegaconf import OmegaConf
 from torch import nn
 from torch.nn import CrossEntropyLoss
 from transformers.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
@@ -788,7 +789,6 @@ class BertModel(BertPreTrainedModel):
         super(BertModel, self).__init__(config)
 
         # initilize word embedding
-        print(config)
         self.embeddings = BertEmbeddings(config)
 
         self.task_specific_tokens = config.task_specific_tokens
@@ -939,41 +939,42 @@ class BertForMultiModalPreTraining(BertPreTrainedModel):
         self.training_head_type = training_head_type
         self.fusion_method = config.fusion_method
         self.dropout = nn.Dropout(dropout_prob)
-        # config.defrost()
-        hidden_size = config.hidden_size
-        config.hidden_size = config.bi_hidden_size
+
+        # Create a copy of config since struct mode won't allow direct overrides
+        # classifier_config is only needed for initializing the classifier
+        classifier_config = deepcopy(config)
+        classifier_config.hidden_size = config.bi_hidden_size
 
         if "vqa" in self.training_head_type:
             self.answer_space_size = 3129
             self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(config), nn.Linear(config.hidden_size, 3129)
+                BertPredictionHeadTransform(classifier_config),
+                nn.Linear(classifier_config.hidden_size, 3129)
             )
-            # self.classifier = SimpleClassifier(config.bi_hidden_size, config.bi_hidden_size*2, self.answer_space_size, 0.5)
         elif "vizwiz" in self.training_head_type:
             self.answer_space_size = 7371
             self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(config), nn.Linear(config.hidden_size, 7371)
+                BertPredictionHeadTransform(classifier_config),
+                nn.Linear(classifier_config.hidden_size, 7371)
             )
-            # self.classifier = SimpleClassifier(config.bi_hidden_size, config.bi_hidden_size*2, self.answer_space_size, 0.5)
         elif self.training_head_type == "nlvr2":
-            config.hidden_size *= 2
+            classifier_config.hidden_size *= 2
             self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(config), nn.Linear(config.hidden_size, 2)
+                BertPredictionHeadTransform(classifier_config),
+                nn.Linear(classifier_config.hidden_size, 2)
             )
-            config.hidden_size /= 2
-            # self.classifier = SimpleClassifier(config.bi_hidden_size * 2, config.bi_hidden_size*2, 2, 0.5)
+            classifier_config.hidden_size /= 2
         elif self.training_head_type == "visual_entailment":
-            # self.classifier = nn.Linear(config.bi_hidden_size, 3)
             self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(config), nn.Linear(config.hidden_size, 3)
+                BertPredictionHeadTransform(classifier_config),
+                nn.Linear(classifier_config.hidden_size, 3)
             )
         elif self.training_head_type == "mmimdb":
             self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(config), nn.Linear(config.hidden_size, 24)
+                BertPredictionHeadTransform(classifier_config),
+                nn.Linear(classifier_config.hidden_size, 24)
             )
 
-        config.hidden_size = hidden_size
-        # config.freeze()
         self.init_weights()
         self.visual_target = config.visual_target
         self.num_negative = config.num_negative
@@ -1152,7 +1153,9 @@ class ViLBERT(BaseModel):
     def build(self):
         self.bert = BertForMultiModalPreTraining.from_pretrained(
             self.config.bert_model_name,
-            config=BertConfig.from_dict(self.config),
+            config=BertConfig.from_dict(
+                OmegaConf.to_container(self.config, resolve=True)
+            ),
             cache_dir=os.path.join(
                 str(PYTORCH_PRETRAINED_BERT_CACHE), "distributed_{}".format(-1)
             ),

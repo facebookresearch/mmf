@@ -5,10 +5,11 @@ import os
 import random
 from ast import literal_eval
 
-import yaml
-
 import demjson
 import torch
+import yaml
+from omegaconf import OmegaConf
+
 from pythia.common.registry import registry
 from pythia.utils.general import get_pythia_root
 
@@ -110,40 +111,38 @@ class Configuration:
         self._base_config = base_config
         self._user_config = user_config
 
-        self.config = self.nested_dict_update(base_config, user_config)
+        self.config = OmegaConf.merge(base_config, user_config)
 
     def get_config(self):
         return self.config
 
-    def load_yaml(self, file):
-        with open(file, "r") as stream:
-            mapping = yaml.safe_load(stream)
+    def load_yaml(self, f):
+        mapping = OmegaConf.load(f)
 
-            if mapping is None:
-                mapping = {}
+        if mapping is None:
+            mapping = OmegaConf.create()
 
-            includes = mapping.get("includes", [])
+        includes = mapping.get("includes", [])
 
-            if not isinstance(includes, list):
-                raise AttributeError(
-                    "Includes must be a list, {} provided".format(type(includes))
-                )
-            include_mapping = {}
+        if not isinstance(includes, collections.abc.Sequence):
+            raise AttributeError(
+                "Includes must be a list, {} provided".format(type(includes))
+            )
 
-            pythia_root_dir = get_pythia_root()
+        include_mapping = OmegaConf.create()
 
-            for include in includes:
-                include = os.path.join(pythia_root_dir, include)
-                current_include_mapping = self.load_yaml(include)
-                include_mapping = self.nested_dict_update(
-                    include_mapping, current_include_mapping
-                )
+        pythia_root_dir = get_pythia_root()
 
-            mapping.pop("includes", None)
+        for include in includes:
+            include = os.path.join(pythia_root_dir, include)
+            current_include_mapping = self.load_yaml(include)
+            include_mapping = OmegaConf.merge(include_mapping, current_include_mapping)
 
-            mapping = self.nested_dict_update(include_mapping, mapping)
+        mapping.pop("includes", None)
 
-            return mapping
+        mapping = OmegaConf.merge(include_mapping, mapping)
+
+        return mapping
 
     def update_with_args(self, args, force=False):
         args_dict = vars(args)
@@ -158,7 +157,7 @@ class Configuration:
             return
 
         cmd_config = demjson.decode(cmd_config)
-        self.config = self.nested_dict_update(self.config, cmd_config)
+        self.config = OmegaConf.merge(self.config, cmd_config)
 
     def nested_dict_update(self, dictionary, update):
         """Updates a dictionary with other dictionary recursively.
@@ -186,23 +185,34 @@ class Configuration:
         return dictionary
 
     def freeze(self):
-        self.config = ConfigNode(self.config)
-        self.config.freeze()
+        # self.config = ConfigNode(self.config)
+        # self.config.freeze()
+        OmegaConf.set_struct(self.config, True)
 
     def _merge_from_list(self, opts):
         if opts is None:
             opts = []
 
-        assert len(opts) % 2 == 0, "Number of opts should be multiple of 2"
+        if len(opts) == 0:
+            return
 
-        for opt, value in zip(opts[0::2], opts[1::2]):
+        # Support equal e.g. model=visual_bert for better future hydra support
+        has_equal = opts[0].find("=") != -1
+
+        if has_equal:
+            opt_values = [opt.split("=") for opt in opts]
+        else:
+            assert len(opts) % 2 == 0, "Number of opts should be multiple of 2"
+            opt_values = zip(opts[0::2], opts[1::2])
+
+        for opt, value in opt_values:
             splits = opt.split(".")
             current = self.config
             for idx, field in enumerate(splits):
                 array_index = -1
                 if field.find("[") != -1 and field.find("]") != -1:
-                    stripped_field = field[:field.find("[")]
-                    array_index = int(field[field.find("[") + 1: field.find("]")])
+                    stripped_field = field[: field.find("[")]
+                    array_index = int(field[field.find("[") + 1 : field.find("]")])
                 else:
                     stripped_field = field
                 if stripped_field not in current:
@@ -213,8 +223,22 @@ class Configuration:
                     )
                 if isinstance(current[stripped_field], collections.abc.Mapping):
                     current = current[stripped_field]
-                elif isinstance(current[stripped_field], list) and array_index != -1:
-                    current = current[stripped_field][array_index]
+                elif (
+                    isinstance(current[stripped_field], collections.abc.Sequence)
+                    and array_index != -1
+                ):
+                    current_value = current[stripped_field][array_index]
+
+                    # Case where array element to be updated is last element
+                    if not isinstance(
+                        current_value,
+                        (collections.abc.Mapping, collections.abc.Sequence),
+                    ):
+                        print("Overriding option {} to {}".format(opt, value))
+                        current[stripped_field][array_index] = self._decode_value(value)
+                    else:
+                        # Otherwise move on down the chain
+                        current = current_value
                 else:
                     if idx == len(splits) - 1:
                         print("Overriding option {} to {}".format(opt, value))
@@ -228,6 +252,18 @@ class Configuration:
 
     def override_with_cmd_opts(self, opts):
         self._merge_from_list(opts)
+        # TODO: Move to `_convert_to_dot_list` once we have
+        # support for https://github.com/omry/omegaconf/issues/179 and
+        # https://github.com/omry/omegaconf/issues/180
+        # dot_list = self._convert_to_dot_list(opts)
+        # self.config = OmegaConf.merge(
+        #     self.config, OmegaConf.from_dotlist(dot_list)
+        # )
+
+    def _convert_to_dot_list(self, opts):
+        if opts is None:
+            opts = []
+        return [(opt + "=" + value) for opt, value in zip(opts[0::2], opts[1::2])]
 
     def _decode_value(self, value):
         # https://github.com/rbgirshick/yacs/blob/master/yacs/config.py#L400
@@ -268,8 +304,7 @@ class Configuration:
 
         self.writer.write("=====  Training Parameters    =====", "info")
         self.writer.write(
-            json.dumps(self.config.training_parameters, indent=4, sort_keys=True),
-            "info",
+            self._convert_node_to_json(self.config.training_parameters), "info"
         )
 
         self.writer.write("======  Dataset Attributes  ======", "info")
@@ -277,23 +312,18 @@ class Configuration:
 
         for dataset in datasets:
             if dataset in self.config.dataset_attributes:
-                self.writer.write(
-                    "======== {} =======".format(dataset), "info"
-                )
+                self.writer.write("======== {} =======".format(dataset), "info")
                 dataset_config = self.config.dataset_attributes[dataset]
-                self.writer.write(
-                    json.dumps(dataset_config, indent=4, sort_keys=True), "info"
-                )
+                self.writer.write(self._convert_node_to_json(dataset_config), "info")
             else:
                 self.writer.write(
                     "No dataset named '{}' in config. Skipping".format(dataset),
-                    "warning"
+                    "warning",
                 )
 
         self.writer.write("======  Optimizer Attributes  ======", "info")
         self.writer.write(
-            json.dumps(self.config.optimizer_attributes, indent=4, sort_keys=True),
-            "info",
+            self._convert_node_to_json(self.config.optimizer_attributes), "info"
         )
 
         if self.config.model not in self.config.model_attributes:
@@ -305,13 +335,13 @@ class Configuration:
             "======  Model ({}) Attributes  ======".format(self.config.model), "info"
         )
         self.writer.write(
-            json.dumps(
-                self.config.model_attributes[self.config.model],
-                indent=4,
-                sort_keys=True,
-            ),
+            self._convert_node_to_json(self.config.model_attributes[self.config.model]),
             "info",
         )
+
+    def _convert_node_to_json(self, node):
+        container = OmegaConf.to_container(node, resolve=True)
+        return json.dumps(container, indent=4, sort_keys=True)
 
     def _get_default_config_path(self):
         directory = os.path.dirname(os.path.abspath(__file__))
