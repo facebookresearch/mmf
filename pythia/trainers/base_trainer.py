@@ -14,7 +14,7 @@ from pythia.common.report import Report
 from pythia.common.dataset_loader import DatasetLoader
 from pythia.utils.build_utils import build_model, build_optimizer, build_scheduler
 from pythia.utils.checkpoint import Checkpoint
-from pythia.utils.distributed_utils import (broadcast_scalar, is_master,
+from pythia.utils.distributed_utils import (broadcast_scalar, is_master, get_world_size,
                                             reduce_dict, synchronize, distributed_init)
 from pythia.utils.early_stopping import EarlyStopping
 from pythia.utils.general import clip_gradients, print_model_parameters
@@ -249,6 +249,9 @@ class BaseTrainer:
                 if should_break:
                     break
 
+            # In distributed, each worker will complete one epoch when we reach this
+            # as each worker is an individual instance
+            self.current_epoch += get_world_size() - 1
         self.finalize()
 
     def _run_scheduler(self):
