@@ -335,7 +335,7 @@ class Configuration:
             and "cuda" in self.config["training_parameters"]["device"]
         ):
             print(
-                    "WARNING: Device specified is 'cuda' but cuda is "
-                    "not present. Switching to CPU version"
-                )
+                "WARNING: Device specified is 'cuda' but cuda is "
+                "not present. Switching to CPU version"
+            )
             self.config["training_parameters"]["device"] = "cpu"
