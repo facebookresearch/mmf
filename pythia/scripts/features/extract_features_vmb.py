@@ -55,6 +55,12 @@ class FeatureExtractor:
         parser.add_argument(
             "--config_file", default=None, type=str, help="Detectron config file"
         )
+        parser.add_argument(
+            "--start_index", default=0, type=int, help="Index to start from "
+        )
+        parser.add_argument(
+            "--end_index", default=None, type=int, help=""
+        )
         parser.add_argument("--batch_size", type=int, default=2, help="Batch size")
         parser.add_argument(
             "--num_features", type=int, default=100, help="Number of features to extract."
@@ -93,9 +99,14 @@ class FeatureExtractor:
     def _image_transform(self, path):
         img = Image.open(path)
         im = np.array(img).astype(np.float32)
+
+        if im.shape[-1] > 3:
+            im = np.array(img.convert("RGB")).astype(np.float32)
+
         # IndexError: too many indices for array, grayscale images
         if len(im.shape) < 3:
             im = np.repeat(im[:, :, np.newaxis], 3, axis=2)
+
         im = im[:, :, ::-1]
         im -= np.array([102.9801, 115.9465, 122.7717])
         im_shape = im.shape
@@ -223,10 +234,44 @@ class FeatureExtractor:
             self._save_feature(image_dir, features[0], infos[0])
         else:
             files = glob.glob(os.path.join(image_dir, "*.jpg"))
-            for chunk in self._chunks(files, self.args.batch_size):
+            files = {f: 1 for f in files}
+            exclude = {}
+            with open("./list", "r") as f:
+                lines = f.readlines()
+                for line in lines:
+                    exclude[line.strip("\n").split(os.path.sep)[-1].split(".")[0]] = 1
+            output_files = glob.glob(os.path.join(self.args.output_folder, "*.npy"))
+            output_dict = {}
+            for f in output_files:
+                file_name = f.split(os.path.sep)[-1].split(".")[0]
+                output_dict[file_name] = 1
+
+            for f in list(files.keys()):
+                file_name = f.split(os.path.sep)[-1].split(".")[0]
+                if file_name in output_dict or file_name in exclude:
+                    files.pop(f)
+
+            files = list(files.keys())
+
+            finished = 0
+
+            end_index = self.args.end_index
+            if end_index is None:
+                end_index = len(files)
+            start_index = self.args.start_index
+
+            total = len(files[start_index:end_index])
+
+            for chunk in self._chunks(
+                files[start_index:end_index], self.args.batch_size
+            ):
                 features, infos = self.get_detectron_features(chunk)
                 for idx, file_name in enumerate(chunk):
                     self._save_feature(file_name, features[idx], infos[idx])
+                finished += len(chunk)
+
+                if finished % 200 == 0:
+                    print("Processed {}/{}".format(finished, total))
 
 
 if __name__ == "__main__":
