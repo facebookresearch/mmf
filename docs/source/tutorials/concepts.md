@@ -153,7 +153,7 @@ for most of the training parameters. You can then specify the config of the mode
 that you want to train using `--config [config_path]` option. The final config can be
 retrieved using `registry.get('config')` anywhere in your codebase. You can access
 the attributes from these configs by using `dot` notation. For e.g. if you want to
-get the value of maximum iterations, you can get that by `registry.get('config').training_parameters.max_iterations`.
+get the value of maximum iterations, you can get that by `registry.get('config').training_parameters.max_updates`.
 
 The values in the configuration can be overriden using two formats:
 
