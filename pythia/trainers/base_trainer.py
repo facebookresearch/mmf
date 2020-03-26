@@ -407,17 +407,13 @@ class BaseTrainer:
 
         if not should_print:
             return
+        log_dict = {
+            "progress": "{}/{}".format(self.num_updates, self.max_updates)
+        }
+        log_dict.update(meter.get_log_dict())
+        log_dict.update(extra)
 
-        print_str = []
-
-        if len(prefix):
-            print_str += [prefix + ":"]
-
-        print_str += ["{}/{}".format(self.current_iteration, self.max_iterations)]
-        print_str += [str(meter)]
-        print_str += ["{}: {}".format(key, value) for key, value in extra.items()]
-
-        self.writer.write(meter.delimiter.join(print_str))
+        self.writer.log_progress(log_dict)
 
     def inference(self):
         if "val" in self.run_type:
