@@ -1,5 +1,5 @@
 dataset_attributes:
-  vqa2:
+  masked_q_vqa2:             
       data_root_dir: ../data
       image_depth_first: false
       fast_read: false
@@ -26,14 +26,14 @@ dataset_attributes:
             vocab:
               type: intersected
               embedding_name: glove.6B.300d
-              vocab_file: vocabs/vocabulary_100k.txt
+              vocab_file: vocabs/vocabulary_100k_with_mask.txt
             preprocessor:
               type: simple_sentence
               params: {}
         answer_processor:
-          type: vqa_answer
+          type: multi_hot_answer_from_vocab
           params:
-            num_answers: 10
+            num_answers: 1
             vocab_file: vocabs/answers_vqa.txt
             preprocessor:
               type: simple_word
@@ -51,11 +51,11 @@ dataset_attributes:
           type: bbox
           params:
             max_length: 50
-      return_info: false
+      return_info: true
       # Return OCR information
       use_ocr: false
       # Return spatial information of OCR tokens if present
       use_ocr_info: false
 training_parameters:
-    monitored_metric: vqa2/vqa_accuracy
+    monitored_metric: masked_q_vqa2/accuracy
     metric_minimize: false
