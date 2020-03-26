@@ -8,7 +8,7 @@ from pythia.common.sample import Sample
 from pythia.datasets.base_dataset import BaseDataset
 from pythia.datasets.features_dataset import FeaturesDataset
 from pythia.datasets.image_database import ImageDatabase
-from pythia.utils.distributed_utils import is_main_process
+from pythia.utils.distributed_utils import is_master
 from pythia.utils.general import get_pythia_root
 
 
@@ -33,7 +33,6 @@ class VQA2Dataset(BaseDataset):
 
         self.use_ocr = self.config.use_ocr
         self.use_ocr_info = self.config.use_ocr_info
-
         self._use_features = False
         if hasattr(self.config, "image_features"):
             self._use_features = True
@@ -84,7 +83,7 @@ class VQA2Dataset(BaseDataset):
             )
             self.cache = {}
             for idx in tqdm.tqdm(
-                range(len(self.imdb)), miniters=100, disable=not is_main_process()
+                range(len(self.imdb)), miniters=100, disable=not is_master()
             ):
                 self.cache[idx] = self.load_item(idx)
 

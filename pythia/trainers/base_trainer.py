@@ -28,6 +28,7 @@ class BaseTrainer:
         self.configuration = configuration
         self.config = self.configuration.config
         self.profiler = Timer()
+        self.total_timer = Timer()
         if self.configuration is not None:
             self.args = self.configuration.args
 
@@ -292,6 +293,10 @@ class BaseTrainer:
         self.checkpoint.finalize()
         self.inference()
 
+        self.writer.write(
+            "Finished run in {}".format(self.total_timer.get_time_since_start())
+        )
+
     def _update_meter(self, report, meter=None, eval_mode=False):
         if meter is None:
             meter = self.meter
@@ -419,7 +424,7 @@ class BaseTrainer:
             return
 
         if self.training_parameters.tensorboard:
-        scalar_dict = meter.get_scalar_dict()
+            scalar_dict = meter.get_scalar_dict()
             self.tb_writer.add_scalars(scalar_dict, self.current_iteration)
 
         if not should_print:

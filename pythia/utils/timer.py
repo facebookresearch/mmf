@@ -18,6 +18,13 @@ class Timer:
     def get_time_since_start(self, format=None):
         return self.get_time_hhmmss(self.start, format)
 
+    def unix_time_since_start(self, in_seconds=True):
+        gap = time.time() * 1000 - self.start
+
+        if in_seconds:
+            gap = gap // 1000
+        return gap
+
     def get_time_hhmmss(self, start=None, end=None, gap=None, format=None):
         """
         Calculates time since `start` and formats as a string.
@@ -48,5 +55,9 @@ class Timer:
         for idx, item in enumerate(items):
             if item != 0:
                 time_str = format[idx] % item + " " + time_str
+
+        # Means no more time is left.
+        if len(time_str) == 0:
+            time_str = "0ms"
 
         return time_str.strip()
