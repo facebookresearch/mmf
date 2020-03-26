@@ -261,6 +261,9 @@ class Configuration:
         return dictionary
 
     def pretty_print(self):
+        if not self.config.training_parameters.log_detailed_config:
+            return
+
         self.writer = registry.get("writer")
 
         self.writer.write("=====  Training Parameters    =====", "info")
@@ -280,6 +283,11 @@ class Configuration:
                 dataset_config = self.config.dataset_attributes[dataset]
                 self.writer.write(
                     json.dumps(dataset_config, indent=4, sort_keys=True), "info"
+                )
+            else:
+                self.writer.write(
+                    "No dataset named '{}' in config. Skipping".format(dataset),
+                    "warning"
                 )
 
         self.writer.write("======  Optimizer Attributes  ======", "info")

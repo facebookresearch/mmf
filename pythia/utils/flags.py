@@ -122,6 +122,10 @@ class Flags:
         self.parser.add_argument(
             "--logger_level", type=str, default=None, help="Level of logging"
         )
+        self.parser.add_argument(
+            "--log_detailed_config", type=int, default=None,
+            help="Log detailed final configuration parameters"
+        )
 
         self.parser.add_argument(
             "--should_not_log",
@@ -147,6 +151,12 @@ class Flags:
             type=bool,
             default=None,
             help="Use when you want to restore from automatic checkpoint",
+        )
+        self.parser.add_argument(
+            "--resume_best",
+            type=bool,
+            default=None,
+            help="Use when you want to restore from last best checkpoint instead of last ckpt",
         )
         self.parser.add_argument(
             "--evalai_inference",
