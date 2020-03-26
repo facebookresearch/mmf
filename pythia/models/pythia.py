@@ -5,7 +5,7 @@ from torch import nn
 from pythia.common.registry import registry
 from pythia.models.base_model import BaseModel
 from pythia.modules.embeddings import (ImageEmbedding, PreExtractedEmbedding,
-                                       TextEmbedding)
+                                       TextEmbedding, MultiHeadImageEmbedding)
 from pythia.modules.encoders import ImageEncoder
 from pythia.modules.layers import (ClassifierLayer, ModalCombineLayer,
                                    ReLUWithWeightNormFC)
@@ -350,3 +350,142 @@ class PythiaImageOnly(Pythia):
         model_output = {"scores": self.calculate_logits(joint_embedding)}
 
         return model_output
+
+
+@registry.register_model("multihead")
+class PythiaMultiHead(Pythia):
+    def __init__(self, config):
+        super().__init__(config)
+
+    def build(self):
+        self._build_word_embedding()
+        self._init_text_embeddings("text")
+        self._init_feature_encoders("image")
+        self._init_feature_projectors("image")
+        self._init_feature_embeddings("image")
+        self._init_combine_layer("image", "text")
+        self._init_classifier(self._get_classifier_input_dim())
+        self._init_extras()
+
+    def _init_feature_projectors(self, attr):
+        feature_projectors = []
+        feat_encoders_list_config = self.config[attr + "_feature_projections"]
+        feat_dim = getattr(self, attr + "_feature_dim")
+
+        for feat_encoder in feat_encoders_list_config:
+            encoder_type = feat_encoder["type"]
+            encoder_kwargs = feat_encoder["params"]
+
+            feat_model = ImageEncoder(encoder_type, feat_dim, **encoder_kwargs)
+
+            feature_projectors.append(feat_model)
+            setattr(self, attr + "_feature_dim", feat_model.out_dim)
+
+        setattr(self, attr + "_feature_projectors", nn.ModuleList(feature_projectors))
+
+    def _init_feature_embeddings(self, attr):
+        feature_embeddings_list = []
+        num_feature_feat = len(
+            getattr(self.config, "{}_feature_encodings".format(attr))
+        )
+
+        self.feature_embeddings_out_dim = 0
+
+        for _ in range(num_feature_feat):
+            feature_embeddings = []
+            feature_attn_model_list = self.config[attr + "_feature_embeddings"]
+
+            for feature_attn_model_params in feature_attn_model_list:
+                feature_embedding = MultiHeadImageEmbedding(
+                    getattr(self, attr + "_feature_dim"),
+                    self.text_embeddings_out_dim,
+                    **feature_attn_model_params
+                )
+                feature_embeddings.append(feature_embedding)
+                self.feature_embeddings_out_dim += feature_embedding.out_dim
+
+            feature_embeddings = nn.ModuleList(feature_embeddings)
+            feature_embeddings_list.append(feature_embeddings)
+
+        setattr(
+            self, attr + "_feature_embeddings_out_dim", self.feature_embeddings_out_dim
+        )
+        del self.feature_embeddings_out_dim
+        setattr(
+            self,
+            attr + "_feature_embeddings_list",
+            nn.ModuleList(feature_embeddings_list),
+        )
+
+    def process_feature_embedding(
+        self, attr, sample_list, text_embedding_total, extra=[], batch_size_t=None
+    ):
+        feature_embeddings = []
+        feature_attentions = []
+        features = []
+        batch_size_t = (
+            sample_list.get_batch_size() if batch_size_t is None else batch_size_t
+        )
+
+        # Convert list of keys to the actual values
+        extra = sample_list.get_fields(extra)
+
+        feature_idx = 0
+
+        # Get all of the features, which are in the form, "image_feature_0"
+        # "image_feature_1" ...
+        while True:
+            feature = getattr(
+                sample_list, "{}_feature_{:d}".format(attr, feature_idx), None
+            )
+            if feature is None:
+                break
+            feature_idx += 1
+            feature = feature[:batch_size_t]
+            features.append(feature)
+
+        feature_encoders = getattr(self, attr + "_feature_encoders")
+        # Each feature should have a separate image feature encoders
+        assert len(features) == len(feature_encoders), (
+            "Number of feature encoders, {} are not equal "
+            "to number of features, {}.".format(len(feature_encoders), len(features))
+        )
+
+        # Now, iterate to get final attended image features
+        for i, feature in enumerate(features):
+            # Get info related to the current feature. info is generally
+            # in key of format "image_info_0" for 0th feature
+            feature_info = getattr(sample_list, "{}_info_{:d}".format(attr, i), {})
+            # For Pythia, we need max_features to mask attention
+            feature_dim = getattr(feature_info, "max_features", None)
+            if feature_dim is not None:
+                feature_dim = feature_dim[:batch_size_t]
+
+            # Attribute in which encoders are saved, for "image" it
+            # will be "image_feature_encoders", other example is
+            # "context_feature_encoders"
+            encoders_attr = attr + "_feature_encoders"
+            feature_encoder = getattr(self, encoders_attr)[i]
+
+            # Encode the features
+            encoded_feature = feature_encoder(feature)
+
+            projector_attr = attr + "_feature_projectors"
+            feature_projector = getattr(self, projector_attr)[i]
+
+            encoded_feature = feature_projector(encoded_feature)
+            # Get all of the feature embeddings
+            list_attr = attr + "_feature_embeddings_list"
+            feature_embedding_models = getattr(self, list_attr)[i]
+
+            # Forward through these embeddings one by one
+            for feature_embedding_model in feature_embedding_models:
+                inp = (encoded_feature, text_embedding_total, feature_dim, extra)
+
+                embedding, attention = feature_embedding_model(*inp)
+                feature_embeddings.append(embedding)
+                feature_attentions.append(attention.squeeze(-1))
+
+        # Concatenate all features embeddings and return along with attention
+        feature_embedding_total = torch.cat(feature_embeddings, dim=1)
+        return feature_embedding_total, feature_attentions

@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 
 from pythia.common.batch_collator import BatchCollator
 from pythia.common.test_reporter import TestReporter
+from pythia.common.sample import SampleList
 from pythia.datasets.multi_dataset import MultiDataset
 from pythia.datasets.samplers import DistributedSampler
 from pythia.utils.general import get_batch_size
@@ -68,6 +69,7 @@ class DatasetLoader:
         self.test_dataset.clean_config(config)
 
     def prepare_batch(self, batch, *args, **kwargs):
+        batch = SampleList(batch)
         return self.mapping[batch.dataset_type].prepare_batch(batch)
 
     def verbose_dump(self, report, *args, **kwargs):

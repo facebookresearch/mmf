@@ -6,6 +6,7 @@ import torch
 from torch import nn
 
 from pythia.modules.layers import Identity
+from pythia.modules.embeddings import ProjectionEmbedding
 from pythia.utils.general import get_pythia_root
 
 
@@ -17,6 +18,9 @@ class ImageEncoder(nn.Module):
             self.module = Identity()
             self.module.in_dim = in_dim
             self.module.out_dim = in_dim
+        elif encoder_type == "projection":
+            module_type = kwargs.pop("module", "linear")
+            self.module = ProjectionEmbedding(module_type, in_dim, **kwargs)
         elif encoder_type == "finetune_faster_rcnn_fpn_fc7":
             self.module = FinetuneFasterRcnnFpnFc7(in_dim, **kwargs)
         else:
