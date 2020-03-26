@@ -499,3 +499,8 @@ class M4CDecodingBCEWithMaskLoss(nn.Module):
         count = torch.max(torch.sum(loss_mask), self.one.to(losses.device))
         loss = torch.sum(losses) / count
         return loss
+
+@registry.register_loss("visual_bert_pretraining")
+class VisualBertPretrainingLoss(nn.Module):
+    def __init__(self, params={}):
+        self.loss_fn = nn.CrossEntropyLoss(**params)

@@ -76,6 +76,10 @@ def main(args, init_distributed=False):
             args.seed = random.randint(10000, 20000)
         np.random.seed(args.seed)
         torch.manual_seed(args.seed)
+        # TODO: Reenable after project
+        # random.seed(args.seed)
+        # torch.backends.cudnn.benchmark = False
+        # torch.backends.cudnn.deterministic = True
     if init_distributed:
         distributed_utils.distributed_init(args)
     print(args)
