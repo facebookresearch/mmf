@@ -71,6 +71,24 @@ def get_image_id(image_name):
 
 def extract_dataset_pool5(image_dir, save_dir, total_group, group_id, ext_filter):
     image_list = glob(image_dir + "/*." + ext_filter)
+    image_list = {f: 1 for f in image_list}
+    exclude = {}
+    with open("./list", "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            exclude[line.strip("\n").split(os.path.sep)[-1].split(".")[0]] = 1
+    output_files = glob(os.path.join(save_dir, "*.npy"))
+    output_dict = {}
+    for f in output_files:
+        file_name = f.split(os.path.sep)[-1].split(".")[0]
+        output_dict[file_name] = 1
+
+    for f in list(image_list.keys()):
+        file_name = f.split(os.path.sep)[-1].split(".")[0]
+        if file_name in output_dict or file_name in exclude:
+            image_list.pop(f)
+
+    image_list = list(image_list.keys())
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
