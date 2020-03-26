@@ -152,7 +152,7 @@ class TensorboardLogger:
         if self.summary_writer is None or not self._is_master:
             return False
         else:
-        return True
+            return True
 
     def add_scalar(self, key, value, iteration):
         if not self._should_log_tensorboard():

@@ -64,6 +64,10 @@ class BaseModel(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
+        self._logged_warning = {
+            "losses_present": False,
+            "metrics_present": False
+        }
         self.writer = registry.get("writer")
 
     def build(self):
@@ -93,6 +97,7 @@ class BaseModel(nn.Module):
                 "No metrics are defined in model configuration. You are expected "
                 "to return metrics in your return dict from forward."
             )
+
         self.losses = Losses(losses)
         self.metrics = Metrics(metrics)
 
@@ -125,10 +130,13 @@ class BaseModel(nn.Module):
         )
 
         if "losses" in model_output:
-            warnings.warn(
-                "'losses' already present in model output. "
-                "No calculation will be done in base model."
-            )
+            if not self._logged_warning["losses_present"]:
+                warnings.warn(
+                    "'losses' already present in model output. "
+                    "No calculation will be done in base model."
+                )
+                self._logged_warning["losses_present"] = True
+
             assert isinstance(
                 model_output["losses"], collections.abc.Mapping
             ), "'losses' must be a dict."
@@ -136,10 +144,13 @@ class BaseModel(nn.Module):
             model_output["losses"] = self.losses(sample_list, model_output)
 
         if "metrics" in model_output:
-            warnings.warn(
-                "'metrics' already present in model output. "
-                "No calculation will be done in base model."
-            )
+            if not self._logged_warning["metrics_present"]:
+                warnings.warn(
+                    "'metrics' already present in model output. "
+                    "No calculation will be done in base model."
+                )
+                self._logged_warning["metrics_present"] = True
+
             assert isinstance(
                 model_output["metrics"], collections.abc.Mapping
             ), "'metrics' must be a dict."
