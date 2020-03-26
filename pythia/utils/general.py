@@ -244,3 +244,18 @@ def get_batch_size():
         )
 
     return batch_size // world_size
+
+
+def print_model_parameters(model, return_only=False):
+    from pythia.common.registry import registry
+    writer = registry.get("writer")
+    total_params = sum(p.numel() for p in model.parameters())
+    trained_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+    if not return_only:
+        writer.write(
+            "Total Parameters: {}. Trained Parameters: {}".format(
+                total_params, trained_params
+            )
+        )
+    return total_params, trained_params
