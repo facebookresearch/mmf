@@ -17,8 +17,7 @@ from pythia.utils.checkpoint import Checkpoint
 from pythia.utils.distributed_utils import (broadcast_scalar, is_master,
                                             reduce_dict, synchronize, distributed_init)
 from pythia.utils.early_stopping import EarlyStopping
-from pythia.utils.general import clip_gradients, lr_lambda_update
-from pythia.utils.logger import Logger
+from pythia.utils.general import clip_gradients, print_model_parameters
 from pythia.utils.timer import Timer
 
 
@@ -187,6 +186,8 @@ class BaseTrainer:
     def train(self):
         self.writer.write("===== Model =====")
         self.writer.write(self.model)
+
+        print_model_parameters(self.model)
 
         if "train" not in self.run_type:
             self.inference()
