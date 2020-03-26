@@ -82,7 +82,7 @@ from pytorch_transformers.tokenization_bert import BertTokenizer
 
 from pythia.common.registry import registry
 from pythia.utils.configuration import ConfigNode
-from pythia.utils.distributed_utils import is_main_process, synchronize
+from pythia.utils.distributed_utils import is_master, synchronize
 from pythia.utils.general import get_pythia_root
 from pythia.utils.text_utils import VocabDict
 from pythia.utils.vocab import Vocab, WordToVectorDict
@@ -157,9 +157,10 @@ class Processor:
         return self.processor(item, *args, **kwargs)
 
     def __getattr__(self, name):
-        if name in self._dir_representation:
+        if "_dir_representation" in self.__dict__ and  \
+            name in self._dir_representation:
             return getattr(self, name)
-        elif hasattr(self.processor, name):
+        elif "processor" in self.__dict__ and hasattr(self.processor, name):
             return getattr(self.processor, name)
         else:
             raise AttributeError(name)
@@ -377,18 +378,18 @@ class FastTextProcessor(VocabProcessor):
             self._try_download()
 
     def _try_download(self):
-        _is_main_process = is_main_process()
+        _is_master = is_master()
 
         if self._already_downloaded:
             return
 
-        if _is_main_process:
+        if _is_master:
             self.writer.write("Fetching fastText model for OCR processing")
 
         needs_download = False
 
         if not hasattr(self.config, "model_file"):
-            if _is_main_process:
+            if _is_master:
                 warnings.warn(
                     "'model_file' key is required but missing "
                     "from FastTextProcessor's config."
@@ -399,12 +400,12 @@ class FastTextProcessor(VocabProcessor):
         model_file = os.path.join(get_pythia_root(), model_file)
 
         if not os.path.exists(model_file):
-            if _is_main_process:
+            if _is_master:
                 warnings.warn("No model file present at {}.".format(model_file))
             needs_download = True
 
         if needs_download:
-            if _is_main_process:
+            if _is_master:
                 self.writer.write("Downloading FastText bin", "info")
             model_file = self._download_model()
 
@@ -414,17 +415,17 @@ class FastTextProcessor(VocabProcessor):
         self._already_downloaded = True
 
     def _download_model(self):
-        _is_main_process = is_main_process()
+        _is_master = is_master()
 
         model_file_path = os.path.join(
             get_pythia_root(), ".vector_cache", "wiki.en.bin"
         )
 
-        if not _is_main_process:
+        if not _is_master:
             return model_file_path
 
         if os.path.exists(model_file_path):
-            if _is_main_process:
+            if _is_master:
                 self.writer.write(
                     "Vectors already present at {}.".format(model_file_path), "info"
                 )
@@ -441,7 +442,7 @@ class FastTextProcessor(VocabProcessor):
             pbar = tqdm(
                 total=int(response.headers["Content-Length"]) / 4096,
                 miniters=50,
-                disable=not _is_main_process,
+                disable=not _is_master,
             )
 
             idx = 0
@@ -454,7 +455,7 @@ class FastTextProcessor(VocabProcessor):
 
             pbar.close()
 
-        if _is_main_process:
+        if _is_master:
             self.writer.write(
                 "fastText bin downloaded at {}.".format(model_file_path), "info"
             )
@@ -464,16 +465,16 @@ class FastTextProcessor(VocabProcessor):
     def _load_fasttext_model(self, model_file):
         from fasttext import load_model
 
-        _is_main_process = is_main_process()
+        _is_master = is_master()
 
-        if _is_main_process:
+        if _is_master:
             self.writer.write("Loading fasttext model now from %s" % model_file)
 
         self.model = load_model(model_file)
         # String to Vector
         self.stov = WordToVectorDict(self.model)
 
-        if _is_main_process:
+        if _is_master:
             self.writer.write("Finished loading fasttext model")
 
     def _map_strings_to_indices(self, tokens):

@@ -235,7 +235,7 @@ class Registry:
         """
 
         def wrap(func):
-            from pythia.datasets.processors import BaseProcessor
+            from pythia.datasets.processors.processors import BaseProcessor
 
             assert issubclass(
                 func, BaseProcessor

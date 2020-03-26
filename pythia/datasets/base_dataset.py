@@ -3,7 +3,7 @@ from torch.utils.data.dataset import Dataset
 
 from pythia.common.registry import registry
 from pythia.common.sample import SampleList
-from pythia.datasets.processors import Processor
+from pythia.datasets.processors.processors import Processor
 
 
 class BaseDataset(Dataset):
