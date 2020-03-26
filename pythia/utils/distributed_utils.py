@@ -26,7 +26,7 @@ def get_rank():
     return dist.get_rank()
 
 
-def is_main_process():
+def is_master():
     return get_rank() == 0
 
 

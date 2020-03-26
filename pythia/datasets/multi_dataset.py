@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 from pythia.common.batch_collator import BatchCollator
 from pythia.common.registry import registry
 from pythia.datasets.samplers import DistributedSampler
-from pythia.utils.distributed_utils import synchronize, is_main_process, broadcast_scalar
+from pythia.utils.distributed_utils import synchronize, is_master, broadcast_scalar
 from pythia.utils.general import get_batch_size
 
 
@@ -24,9 +24,8 @@ class MultiDataset:
     def __init__(self, dataset_type="train"):
         self._dataset_type = dataset_type
         self.writer = registry.get("writer")
-        self._is_main_process = is_main_process()
         self._global_config = registry.get("config")
-
+        self._is_master = is_master()
 
     def _process_datasets(self):
         if "datasets" not in self.opts:
@@ -179,7 +178,7 @@ class MultiDataset:
             return
         choice = 0
 
-        if self._is_main_process:
+        if self._is_master:
             choice = np.random.choice(
                 self._num_datasets, 1, p=self._dataset_probablities
             )[0]

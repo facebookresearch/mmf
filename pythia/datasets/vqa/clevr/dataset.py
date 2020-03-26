@@ -11,7 +11,7 @@ from pythia.common.sample import Sample
 from pythia.datasets.base_dataset import BaseDataset
 from pythia.utils.general import get_pythia_root
 from pythia.utils.text_utils import VocabFromText, tokenize
-from pythia.utils.distributed_utils import is_main_process, synchronize
+from pythia.utils.distributed_utils import is_master, synchronize
 
 
 _CONSTANTS = {
@@ -78,7 +78,7 @@ class CLEVRDataset(BaseDataset):
             self.questions = json.load(f)[_CONSTANTS["questions_key"]]
 
             # Vocab should only be built in main process, as it will repetition of same task
-            if is_main_process():
+            if is_master():
                 self._build_vocab(self.questions, _CONSTANTS["question_key"])
                 self._build_vocab(self.questions, _CONSTANTS["answer_key"])
             synchronize()

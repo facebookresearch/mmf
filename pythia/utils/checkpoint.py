@@ -7,7 +7,7 @@ import torch
 import yaml
 
 from pythia.common.registry import registry
-from pythia.utils.distributed_utils import is_main_process, synchronize
+from pythia.utils.distributed_utils import is_master, synchronize
 from pythia.utils.general import (ckpt_name_from_core_args,
                                   foldername_from_config_override, updir)
 
@@ -205,7 +205,7 @@ class Checkpoint:
 
     def save(self, iteration, update_best=False):
         # Only save in main process
-        if not is_main_process():
+        if not is_master():
             return
 
         ckpt_filepath = os.path.join(

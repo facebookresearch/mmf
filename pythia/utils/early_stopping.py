@@ -3,7 +3,7 @@ import numpy as np
 import torch
 
 from pythia.common.registry import registry
-from pythia.utils.distributed_utils import is_main_process
+from pythia.utils.distributed_utils import is_master
 
 
 class EarlyStopping:
@@ -46,7 +46,7 @@ class EarlyStopping:
         Returns:
             bool -- Tells whether early stopping occurred or not
         """
-        if not is_main_process():
+        if not is_master():
             return False
 
         value = meter.meters.get(self.monitored_metric, None)

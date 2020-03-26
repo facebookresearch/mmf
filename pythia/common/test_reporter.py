@@ -9,7 +9,7 @@ from torch.utils.data.distributed import DistributedSampler
 from pythia.common.batch_collator import BatchCollator
 from pythia.common.registry import registry
 from pythia.utils.distributed_utils import (gather_tensor, get_world_size,
-                                            is_main_process)
+                                            is_master)
 from pythia.utils.general import (ckpt_name_from_core_args,
                                   foldername_from_config_override)
 from pythia.utils.timer import Timer
@@ -64,7 +64,7 @@ class TestReporter(Dataset):
             return True
 
     def flush_report(self):
-        if not is_main_process():
+        if not is_master():
             return
 
         name = self.current_dataset._name
@@ -144,7 +144,7 @@ class TestReporter(Dataset):
             report.question_id = gather_tensor(report.question_id).view(-1)
             report.image_id = gather_tensor(report.image_id).view(-1)
 
-        if not is_main_process():
+        if not is_master():
             return
 
         results = self.current_dataset.format_for_evalai(report)
