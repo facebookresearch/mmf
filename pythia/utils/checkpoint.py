@@ -24,8 +24,7 @@ class Checkpoint:
         self.save_dir = self.config.training_parameters.save_dir
         self.model_name = self.config.model
 
-        self.ckpt_foldername = ckpt_name_from_core_args(self.config)
-        self.ckpt_foldername += foldername_from_config_override(self.trainer.args)
+        self.ckpt_foldername = self.save_dir
 
         self.device = registry.get("current_device")
 
@@ -34,8 +33,6 @@ class Checkpoint:
         if hasattr(self.trainer.model, "get_ckpt_name"):
             self.ckpt_prefix = self.trainer.model.get_ckpt_name() + "_"
 
-        self.config["log_foldername"] = self.ckpt_foldername
-        self.ckpt_foldername = os.path.join(self.save_dir, self.ckpt_foldername)
         self.pth_filepath = os.path.join(
             self.ckpt_foldername, self.ckpt_prefix + self.model_name + "_final.pth"
         )
@@ -65,8 +62,10 @@ class Checkpoint:
             else:
                 raise RuntimeError("{} doesn't exist".format(tp.resume_file))
 
+        suffix = "best.ckpt" if tp.resume_best else "current.ckpt"
+        reverse_suffix = "best.ckpt" if not tp.resume_best else "current.ckpt"
         ckpt_filepath = os.path.join(
-            self.ckpt_foldername, self.ckpt_prefix + "best.ckpt"
+            self.ckpt_foldername, self.ckpt_prefix + suffix
         )
 
         if tp.resume is True:
@@ -75,11 +74,18 @@ class Checkpoint:
             else:
                 warnings.warn(
                     "Tried to resume but checkpoint filepath {} "
-                    "is not present. Skipping.".format(ckpt_filepath)
+                    "is not present. Trying {}, otherwise skipping.".format(
+                        ckpt_filepath, reverse_suffix
+                    )
                 )
+                ckpt_filepath = ckpt_filepath.replace(suffix, reverse_suffix)
+                if os.path.exists(ckpt_filepath):
+                    self._load(ckpt_filepath)
 
     def _load(self, file, force=False):
+        tp = self.config.training_parameters
         self.trainer.writer.write("Loading checkpoint")
+
         ckpt = self._torch_load(file)
 
         data_parallel = registry.get("data_parallel") or registry.get("distributed")
@@ -90,9 +96,9 @@ class Checkpoint:
             ckpt_model = ckpt
             ckpt = {"model": ckpt}
 
-        pretrained_mapping = self.config.training_parameters.pretrained_mapping
+        pretrained_mapping = tp.pretrained_mapping
 
-        if not self.config.training_parameters.load_pretrained or force is True:
+        if not tp.load_pretrained or force is True:
             pretrained_mapping = {}
 
         new_dict = {}
@@ -138,13 +144,13 @@ class Checkpoint:
                     self.trainer.current_epoch = ckpt["current_epoch"]
             elif "best_iteration" in ckpt:
                 if tp.resume_best and "current_iteration" not in ckpt:
-                self.trainer.current_iteration = ckpt["best_iteration"]
+                    self.trainer.current_iteration = ckpt["best_iteration"]
                 else:
                     self.trainer.current_iteration = ckpt["current_iteration"]
 
                 self.trainer.num_updates = self.trainer.current_iteration
 
-                registry.register("current_iteration", self.trainer.current_iteration)
+            registry.register("current_iteration", self.trainer.current_iteration)
             registry.register("num_updates", self.trainer.num_updates)
 
             if "best_epoch" in ckpt:
@@ -230,6 +236,9 @@ class Checkpoint:
         best_ckpt_filepath = os.path.join(
             self.ckpt_foldername, self.ckpt_prefix + "best.ckpt"
         )
+        current_ckpt_filepath = os.path.join(
+            self.ckpt_foldername, self.ckpt_prefix + "current.ckpt"
+        )
 
         best_iteration = self.trainer.early_stopping.best_monitored_iteration
         best_update = self.trainer.early_stopping.best_monitored_update
@@ -259,6 +268,9 @@ class Checkpoint:
 
         if update_best:
             torch.save(ckpt, best_ckpt_filepath)
+
+        # Save current always
+        torch.save(ckpt, current_ckpt_filepath)
 
     def restore(self):
         synchronize()
