@@ -145,6 +145,8 @@ class BaseTrainer:
         patience = self.training_parameters.patience
 
         self.log_interval = self.training_parameters.log_interval
+        self.evaluation_interval = self.training_parameters.evaluation_interval
+        self.checkpoint_interval = self.training_parameters.checkpoint_interval
         self.max_updates = self.training_parameters.max_updates
         self.should_clip_gradients = self.training_parameters.clip_gradients
         self.max_epochs = self.training_parameters.max_epochs
@@ -188,8 +190,6 @@ class BaseTrainer:
         if seed is None:
             return
 
-        random.seed(seed)
-        torch.manual_seed(seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
@@ -266,14 +266,13 @@ class BaseTrainer:
         loss.backward()
 
         if self.should_clip_gradients:
-            clip_gradients(self.model, self.current_iteration, self.writer, self.config)
+            clip_gradients(self.model, self.num_updates, self.tb_writer, self.config)
 
         self.optimizer.step()
         self._run_scheduler()
         self.num_updates += 1
         self.profile("Backward time")
 
-        self.profile("Backward time")
 
     def _extract_loss(self, report):
         loss_dict = report.losses
@@ -286,7 +285,7 @@ class BaseTrainer:
         # Only do when run_type has train as it shouldn't happen on validation and inference runs
         # Inference will take care of this anyways. Also, don't run if current iteration
         # is divisble by snapshot interval as it will just be a repeat
-        if "train" in self.run_type and self.current_iteration % self.snapshot_interval != 0:
+        if "train" in self.run_type and self.num_updates % self.evaluation_interval != 0:
             self._try_full_validation(force=True)
 
         self.checkpoint.restore()
@@ -322,7 +321,10 @@ class BaseTrainer:
             meter.update(meter_update_dict)
 
     def _logistics(self, report):
-        should_print = self.current_iteration % self.log_interval == 0
+        registry.register("current_iteration", self.current_iteration)
+        registry.register("num_updates", self.num_updates)
+
+        should_print = self.num_updates % self.log_interval == 0
         should_break = False
         extra = {}
 
@@ -354,21 +356,28 @@ class BaseTrainer:
             self.train_timer.reset()
             self._update_meter(report, self.meter)
 
-        # Don't print train metrics if it is not log interval
-        # so as to escape clutter
-        self._summarize_report(
-            self.meter,
-            should_print=should_print,
+            self._summarize_report(
+                self.meter,
+                should_print=should_print,
                 extra=extra
-        )
+            )
 
+        self._try_snapshot()
         should_break = self._try_full_validation()
 
         return should_break
 
+    def _try_snapshot(self):
+        if self.num_updates % self.checkpoint_interval == 0:
+            self.writer.write("Checkpoint time. Saving a checkpoint.")
+            self.checkpoint.save(
+                self.num_updates, self.current_iteration, update_best=False
+            )
+
     def _try_full_validation(self, force=False):
         should_break = False
 
+        if self.num_updates % self.evaluation_interval == 0 or force:
             self.snapshot_timer.reset()
             self.writer.write("Evaluation time. Running on full validation set...")
             # Validation and Early stopping
@@ -464,7 +473,7 @@ class BaseTrainer:
         time_left = num_logs_left * time_taken_for_log
 
         snapshot_iteration = self.snapshot_iterations / self.log_interval
-        snapshot_iteration *= iterations_left / self.snapshot_interval
+        snapshot_iteration *= iterations_left / self.evaluation_interval
         time_left += snapshot_iteration * time_taken_for_log
 
         return self.train_timer.get_time_hhmmss(gap=time_left)

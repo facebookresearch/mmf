@@ -78,10 +78,16 @@ class Flags:
             help="Number of iterations after which we should log validation results",
         )
         self.parser.add_argument(
-            "--snapshot_interval",
+            "--checkpoint_interval",
             type=int,
             default=None,
-            help="Number of iterations after which  we should save snapshots",
+            help="Number of iterations after which we should save snapshots",
+        )
+        self.parser.add_argument(
+            "--evaluation_interval",
+            type=int,
+            default=None,
+            help="Number of iterations after which we should save snapshots",
         )
         self.parser.add_argument(
             "--max_updates",
