@@ -92,7 +92,7 @@ training_parameters:
   - 20000
   - 21000
   max_grad_l2_norm: 0.25
-  max_iterations: 22000
+  max_updates: 22000
   log_interval: 100
   snapshot_interval: 3000
   wu_factor: 0.2
