@@ -35,7 +35,7 @@ Example::
 .. _here: https://github.com/facebookresearch/pythia/blob/master/pythia/datasets/vqa/vqa2/builder.py
 """
 
-from pythia.utils.distributed_utils import is_main_process, synchronize
+from pythia.utils.distributed_utils import is_master, synchronize
 
 
 class BaseDatasetBuilder:
@@ -103,7 +103,7 @@ class BaseDatasetBuilder:
             DO NOT OVERRIDE in child class. Instead override ``_build``.
         """
         # Only build in main process, so none of the others have to build
-        if is_main_process():
+        if is_master():
             self._build(dataset_type, config, *args, **kwargs)
         synchronize()
 

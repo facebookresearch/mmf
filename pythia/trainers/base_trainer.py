@@ -14,8 +14,7 @@ from pythia.common.report import Report
 from pythia.common.dataset_loader import DatasetLoader
 from pythia.utils.build_utils import build_model, build_optimizer
 from pythia.utils.checkpoint import Checkpoint
-from pythia.utils.distributed_utils import (broadcast_scalar, is_main_process,
-                                            reduce_dict, synchronize)
+from pythia.utils.distributed_utils import (broadcast_scalar, is_master,
 from pythia.utils.early_stopping import EarlyStopping
 from pythia.utils.general import clip_gradients, lr_lambda_update
 from pythia.utils.logger import Logger
@@ -386,8 +385,8 @@ class BaseTrainer:
 
         with torch.no_grad():
             self.model.eval()
-            # disable_tqdm = not use_tqdm or not is_main_process()
-            disable_tqdm = False
+            disable_tqdm = not use_tqdm or not is_master()
+
             for batch in tqdm(loader, disable=disable_tqdm):
                 report = self._forward_pass(batch)
                 self._update_meter(report, meter, eval_mode=True)
@@ -398,8 +397,7 @@ class BaseTrainer:
 
         return report, meter
 
-    def _summarize_report(self, meter, prefix="", should_print=True, extra={}):
-        if not is_main_process():
+        if not is_master():
             return
 
         scalar_dict = meter.get_scalar_dict()

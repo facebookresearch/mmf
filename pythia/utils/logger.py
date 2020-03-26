@@ -8,7 +8,7 @@ import collections
 
 from tensorboardX import SummaryWriter
 
-from pythia.utils.distributed_utils import is_main_process
+from pythia.utils.distributed_utils import is_master
 from pythia.utils.general import (ckpt_name_from_core_args,
                                   foldername_from_config_override)
 from pythia.utils.timer import Timer
@@ -17,8 +17,7 @@ from pythia.utils.timer import Timer
 class Logger:
     def __init__(self, config):
         self.logger = None
-        self.summary_writer = None
-        self._is_main_process = is_main_process()
+        self._is_master = is_master()
 
         self.timer = Timer()
         self.config = config
@@ -42,9 +41,9 @@ class Logger:
 
         self.log_filename = os.path.join(self.log_folder, self.log_filename)
 
-        if self._is_main_process:
-            tensorboard_folder = os.path.join(self.log_folder, "tensorboard")
-            self.summary_writer = SummaryWriter(tensorboard_folder)
+        if not self._is_master:
+            return
+        if self._is_master:
             print("Logging to:", self.log_filename)
 
         logging.captureWarnings(True)
@@ -128,12 +127,9 @@ class Logger:
             self.write(x, level)
 
     def _should_log_tensorboard(self):
-        if self.summary_writer is None:
+        if self.summary_writer is None or not self._is_master:
             return False
-
-        if not self._is_main_process:
-            return False
-
+        else:
         return True
 
     def add_scalar(self, key, value, iteration):

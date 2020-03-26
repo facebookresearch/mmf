@@ -6,7 +6,7 @@ import tqdm
 
 from pythia.common.registry import registry
 from pythia.datasets.feature_readers import FeatureReader
-from pythia.utils.distributed_utils import is_main_process
+from pythia.utils.distributed_utils import is_master
 
 
 class FeaturesDataset:
@@ -69,7 +69,7 @@ class COCOFeaturesDataset(BaseFeaturesDataset):
         elements = [idx for idx in range(1, len(self.imdb))]
         pool = ThreadPool(processes=4)
 
-        with tqdm.tqdm(total=len(elements), disable=not is_main_process()) as pbar:
+        with tqdm.tqdm(total=len(elements), disable=not is_master()) as pbar:
             for i, _ in enumerate(pool.imap_unordered(self._fill_cache, elements)):
                 if i % 100 == 0:
                     pbar.update(100)
