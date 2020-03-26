@@ -104,7 +104,6 @@ class VQA2Dataset(BaseDataset):
 
         processed_question = self.text_processor(text_processor_argument)
 
-        current_sample.question_tokens = sample_info["question_tokens"]
         current_sample.text = processed_question["text"]
         current_sample.question_id = torch.tensor(
             sample_info["question_id"], dtype=torch.int
@@ -130,7 +129,6 @@ class VQA2Dataset(BaseDataset):
         # Depending on whether we are using soft copy this can add
         # dynamic answer space
         current_sample = self.add_answer_info(sample_info, current_sample)
-
         return current_sample
 
     def add_ocr_details(self, sample_info, sample):
@@ -168,7 +166,7 @@ class VQA2Dataset(BaseDataset):
                 answer_processor_arg["tokens"] = sample_info["ocr_tokens"]
             processed_soft_copy_answers = self.answer_processor(answer_processor_arg)
 
-            sample.answers = processed_soft_copy_answers["answers"]
+            # sample.answers = processed_soft_copy_answers["answers"]
             sample.targets = processed_soft_copy_answers["answers_scores"]
 
         return sample
@@ -192,14 +190,14 @@ class VQA2Dataset(BaseDataset):
                     answer = "unanswerable"
             else:
                 answer = self.answer_processor.idx2word(answer_id)
-            actual_answer = report.answers[idx]
+            # actual_answer = report.answers[idx]
 
             predictions.append({
                 "question_id": question_id.item(),
                 "answer": answer,
-                "actual_answers": actual_answer,
-                "question_tokens": report.question_tokens[idx],
-                "image_id": report.image_id[idx].item()
+                # "actual_answers": actual_answer,
+                # "question_tokens": report.question_tokens[idx],
+                # "image_id": report.image_id[idx].item()
             })
 
         return predictions
