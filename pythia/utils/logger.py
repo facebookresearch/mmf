@@ -3,6 +3,8 @@ import base64
 import logging
 import os
 import sys
+import json
+import collections
 
 from tensorboardX import SummaryWriter
 
@@ -104,7 +106,22 @@ class Logger:
         else:
             print(str(x) + "\n")
 
-    def single_write(self, x, level="info"):
+    def log_progress(self, info):
+        if not isinstance(info, collections.Mapping):
+            self.write(info)
+
+        if not self._is_master:
+            return
+
+        if self.log_format == "simple":
+            output = ", ".join(["{}: {}".format(key, value) for key, value in info.items()])
+        elif self.log_format == "json":
+            output = json.dumps(info)
+        else:
+            output = str(info)
+
+        self.write(output)
+
         if x + "_" + level in self._single_log_map:
             return
         else:

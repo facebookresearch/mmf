@@ -79,6 +79,16 @@ class Meter:
 
         return scalar_dict
 
+    def get_log_dict(self):
+        log_dict = {}
+        for k, v in self.meters.items():
+            if "train" in k:
+                log_dict[k] = "{:.4f}".format(v.median)
+                log_dict["{}/avg".format(k)] = "{:.4f}".format(v.global_avg)
+            else:
+                log_dict[k] = "{:.4f}".format(v.global_avg)
+        return log_dict
+
     def __str__(self):
         loss_str = []
         for name, meter in self.meters.items():
