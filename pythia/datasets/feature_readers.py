@@ -3,6 +3,7 @@ import os
 
 import numpy as np
 import torch
+import pickle
 
 
 class FeatureReader:
@@ -98,6 +99,28 @@ class HWCFeatureReader:
         _, _, _, c_dim = tmp.shape
         image_feature = torch.from_numpy(np.reshape(tmp, (-1, c_dim)))
         return image_feature, None
+
+
+
+class LMDBFeaturesReader:
+    def __init__(self):
+        import lmdb
+        lmdb_path = "/checkpoint/vedanuj/datasets/coco/features_100/COCO_trainval_resnext152_faster_rcnn_genome.lmdb"
+        self.env = lmdb.open(
+            lmdb_path, max_readers=16, readonly=True,
+            lock=False, readahead=False, meminit=False
+        )
+
+        with self.env.begin(write=False) as txn:
+            self.image_ids = pickle.loads(txn.get('keys'.encode()))
+            self.reverse_map = {item: idx for idx, item in enumerate(self.image_ids)}
+
+    def read(self, image_file_path):
+        image_id = int(image_file_path.split(".npy")[0].split("_")[-1])
+        image_id = str(image_id).encode()
+        with self.env.begin(write=False) as txn:
+            feature = torch.from_numpy(pickle.loads(txn.get(image_id))["features"])
+            return feature, None
 
 
 class PaddedFasterRCNNFeatureReader:
