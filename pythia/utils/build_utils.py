@@ -84,3 +84,24 @@ def build_optimizer(model, config):
     parameters = get_optimizer_parameters(model, config)
     optimizer = optimizer_class(parameters, **params)
     return optimizer
+
+
+def build_scheduler(optimizer, config):
+    scheduler_config = config.get("scheduler_attributes", {})
+
+    if not hasattr(scheduler_config, "type"):
+        warnings.warn(
+            "No type for scheduler specified even though lr_scheduler is True, "
+            "setting default to 'Pythia'"
+        )
+    scheduler_type = getattr(scheduler_config, "type", "pythia")
+
+    if not hasattr(scheduler_config, "params"):
+        warnings.warn(
+            "scheduler attributes has no params defined, defaulting to {}."
+        )
+    params = getattr(scheduler_config, "params", {})
+    scheduler_class = registry.get_scheduler_class(scheduler_type)
+    scheduler = scheduler_class(optimizer, **params)
+
+    return scheduler
