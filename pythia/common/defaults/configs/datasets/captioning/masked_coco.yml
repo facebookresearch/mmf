@@ -1,0 +1,39 @@
+dataset_attributes:
+  masked_coco:
+    data_root_dir: ../data
+    image_depth_first: false
+    fast_read: false
+    image_features:
+        train:
+        - coco/detectron_fix_100/fc6/train_val_2014
+        val:
+        - coco/detectron_fix_100/fc6/train_val_2014
+        test:
+        - coco/detectron_fix_100/fc6/train_val_2014
+    imdb_files:
+        train:
+        - imdb/coco_captions/imdb_karpathy_train_by_image.npy
+        val:
+        - imdb/coco_captions/imdb_karpathy_val_by_image.npy
+        test:
+        - imdb/coco_captions/imdb_karpathy_test_by_image.npy
+    features_max_len: 100
+    two_sentence: true
+    two_sentence_probability: 0.5
+    false_caption: true
+    false_caption_probability: 0.5
+    processors:
+      masked_token_processor:
+        type: masked_token
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0.15
+          max_seq_length: 128
+    return_info: false
+    # Return OCR information
+    use_ocr: false
+    # Return spatial information of OCR tokens if present
+    use_ocr_info: false

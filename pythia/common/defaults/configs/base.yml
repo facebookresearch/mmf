@@ -6,7 +6,7 @@ training_parameters:
     # and generating reports
     experiment_name: run
     # Maximum number of iterations the training will run
-    max_iterations: 22000
+    max_updates: 22000
     # Maximum epochs in case you don't want to use iterations
     # Can be mixed with max iterations, so it will stop whichever is
     # completed first. Default: null means epochs won't be used
@@ -16,18 +16,19 @@ training_parameters:
     # loss and metrics on a single batch from validation set
     # to provide an estimate on validation side
     log_interval: 100
-    # After `snapshot_interval` iterations, pythia will make a snapshot
+    # After `checkpoint_interval` iterations, pythia will make a snapshot
     # which will involve creating a checkpoint for current training scenarios
-    # This will also evaluate validation metrics on whole validation set
-    # TODO: Change this to checkpoint_interval and create a new
-    # `validation_interval` for evaluating on validation set
-    snapshot_interval: 1000
+    checkpoint_interval: 1000
+    # This will evaluate validation metrics on whole validation set after evaluation interval
+    evaluation_interval: 1000
     # Whether gradients should be clipped
     clip_gradients: false
     # Mode for clip norm
     clip_norm_mode: all
-    # Device to be used, if cuda then GPUs will be used
-    device: cuda
+    # Tensorboard control
+    tensorboard: false
+    tensorboard_logdir: null
+
     # Seed to be used for training. -1 means random seed.
     # Either pass fixed through your config or command line arguments
     seed: null
@@ -71,15 +72,10 @@ training_parameters:
     run_type: train+inference
     # Level of logging, only logs which are >= to current level will be logged
     logger_level: info
-    # Whether to use distributed training, mutually exclusive with respected
-    # to `data_parallel` flag
-    distributed: false
+
     # Local rank of the GPU device
     local_rank: null
 
-    # Whether to use data parallel, mutually exclusive with respect to
-    # `distributed` flag
-    data_parallel: false
     # Whether JSON files for evalai evaluation should be generated
     evalai_inference: false
     # Use to load specific modules from checkpoint to your model,
@@ -95,6 +91,10 @@ training_parameters:
     save_dir: "./save"
     # Directory for saving logs
     log_dir: "./logs"
+    # Log format: json, simple
+    log_format: simple
+    # Whether to log detailed final configuration parameters
+    log_detailed_config: false
     # Whether Pythia should log or not, Default: False, which means
     # pythia will log by default
     should_not_log: false
@@ -107,11 +107,16 @@ training_parameters:
     resume: false
     # `resume_file` can be used to load a specific checkpoint from a file
     resume_file: null
+    # `resume_best` will load the best checkpoint according to monitored metric instead of
+    # the last saved ckpt
+    resume_best: false
     # Whether to pin memory in dataloader
     pin_memory: false
 
     # Use in multi-tasking, when you want to sample tasks proportional to their sizes
     dataset_size_proportional_sampling: true
+
+    find_unused_parameters: false
 
 # Attributes for model, default configuration files for various models
 # included in pythia can be found under configs directory in root folder
