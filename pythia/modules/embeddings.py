@@ -26,6 +26,9 @@ class TextEmbedding(nn.Module):
         elif emb_type == "vocab":
             self.module = VocabEmbedding(**kwargs)
             self.module.text_out_dim = self.embedding_dim
+        elif emb_type == "projection":
+            self.module = ProjectionEmbedding(**kwargs)
+            self.module.text_out_dim = self.module.out_dim
         elif emb_type == "preextracted":
             self.module = PreExtractedEmbedding(**kwargs)
         elif emb_type == "bilstm":
@@ -178,6 +181,32 @@ class AttentionTextEmbedding(nn.Module):
         return qtt_feature_concat
 
 
+class ProjectionEmbedding(nn.Module):
+    def __init__(self, module, in_dim, out_dim, **kwargs):
+        super().__init__()
+        if module == "linear":
+            self.layers = nn.Linear(in_dim, out_dim)
+            self.out_dim = out_dim
+        elif module == "conv":
+            last_out_channels = in_dim
+            layers = []
+            for conv in kwargs["convs"]:
+                layers.append(nn.Conv1d(
+                    in_channels=last_out_channels,
+                    **conv
+                ))
+                last_out_channels = conv["out_channels"]
+            self.layers = nn.ModuleList(*layers)
+            self.out_dim = last_out_channels
+        else:
+            raise TypeError(
+                "Unknown module type for 'ProjectionEmbedding', use either 'linear' or 'conv'"
+            )
+
+    def forward(self, x):
+        return self.layers(x)
+
+
 class ImageEmbedding(nn.Module):
     """
     parameters:
@@ -221,6 +250,24 @@ class ImageEmbedding(nn.Module):
 
         return image_embedding, attention
 
+class MultiHeadImageEmbedding(nn.Module):
+    def __init__(self, img_dim, question_dim, **kwargs):
+        super().__init__()
+        self.module = nn.MultiheadAttention(
+            embed_dim=question_dim,
+            kdim=img_dim,
+            vdim=img_dim,
+            **kwargs
+        )
+        self.out_dim = question_dim
+
+    def forward(self, image_feat_variable, question_embedding, image_dims, extra={}):
+        image_feat_variable = image_feat_variable.transpose(0, 1)
+        question_embedding = question_embedding.unsqueeze(1).transpose(0, 1)
+        output, weights = self.module(question_embedding, image_feat_variable, image_feat_variable)
+        output = output.transpose(0, 1)
+
+        return output.squeeze(), weights
 
 class ImageFinetune(nn.Module):
     def __init__(self, in_dim, weights_file, bias_file):

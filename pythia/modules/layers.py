@@ -302,7 +302,7 @@ class NonLinearElementMultiply(nn.Module):
         image_fa = self.fa_image(image_feat)
         question_fa = self.fa_txt(question_embedding)
 
-        if len(image_feat.size()) == 3:
+        if len(image_feat.size()) == 3 and len(question_fa.size()) != 3:
             question_fa_expand = question_fa.unsqueeze(1)
         else:
             question_fa_expand = question_fa
