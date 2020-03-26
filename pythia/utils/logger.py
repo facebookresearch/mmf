@@ -121,6 +121,11 @@ class Logger:
 
         self.write(output)
 
+    def single_write(self, x, level="info", log_all=False):
+        if self.logger is None:
+            return
+        if log_all is False and not self._is_master:
+            return
         if x + "_" + level in self._single_log_map:
             return
         else:

@@ -11,7 +11,6 @@ import demjson
 import torch
 from pythia.common.registry import registry
 from pythia.utils.general import get_pythia_root
-from pythia.utils.distributed_utils import is_main_process, print_only_main
 
 
 class ConfigNode(collections.OrderedDict):
@@ -218,9 +217,7 @@ class Configuration:
                     current = current[stripped_field][array_index]
                 else:
                     if idx == len(splits) - 1:
-                        if is_main_process():
-                            print_only_main("Overriding option {} to {}".format(opt, value))
-
+                        print("Overriding option {} to {}".format(opt, value))
                         current[stripped_field] = self._decode_value(value)
                     else:
                         raise AttributeError(
@@ -318,15 +315,15 @@ class Configuration:
         self.writer = registry.get("writer")
         tp = self.config["training_parameters"]
 
-        if args["seed"] is not None or tp['seed'] is not None:
-            print_only_main(
-                "You have chosen to seed the training. This will turn on CUDNN deterministic "
-                "setting which can slow down your training considerably! You may see unexpected "
-                "behavior when restarting from checkpoints."
-            )
+        # if args["seed"] is not None or tp['seed'] is not None:
+        #     print(
+        #         "You have chosen to seed the training. This will turn on CUDNN deterministic "
+        #         "setting which can slow down your training considerably! You may see unexpected "
+        #         "behavior when restarting from checkpoints."
+        #     )
 
-        if args["seed"] == -1:
-            self.config["training_parameters"]["seed"] = random.randint(1, 1000000)
+        # if args["seed"] == -1:
+        #     self.config["training_parameters"]["seed"] = random.randint(1, 1000000)
 
         if "learning_rate" in args:
             if "optimizer" in self.config and "params" in self.config["optimizer"]:
@@ -337,18 +334,8 @@ class Configuration:
             not torch.cuda.is_available()
             and "cuda" in self.config["training_parameters"]["device"]
         ):
-            if is_main_process():
-                print_only_main(
+            print(
                     "WARNING: Device specified is 'cuda' but cuda is "
                     "not present. Switching to CPU version"
                 )
             self.config["training_parameters"]["device"] = "cpu"
-
-        if tp["distributed"] is True and tp["data_parallel"] is True:
-            print_only_main(
-                "training_parameters.distributed and "
-                "training_parameters.data_parallel are "
-                "mutually exclusive. Setting "
-                "training_parameters.distributed to False"
-            )
-            tp["distributed"] = False

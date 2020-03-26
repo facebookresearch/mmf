@@ -234,11 +234,12 @@ class SampleList(OrderedDict):
         return self[field]
 
     def _get_data_copy(self, data):
-        if isinstance(data, torch.Tensor):
-            copy_ = data.clone()
-        else:
-            copy_ = deepcopy(data)
-        return copy_
+        # if isinstance(data, torch.Tensor):
+        #     copy_ = data.clone()
+        # else:
+        #     copy_ = deepcopy(data)
+        # return copy_
+        return data
 
     def _get_tensor_field(self):
         return self.__dict__.get(SampleList._TENSOR_FIELD_, None)

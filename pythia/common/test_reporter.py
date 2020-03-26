@@ -47,8 +47,7 @@ class TestReporter(Dataset):
         if self.report_folder_arg is not None:
             self.report_folder = self.report_folder_arg
 
-        if not os.path.exists(self.report_folder):
-            os.makedirs(self.report_folder)
+        os.makedirs(self.report_folder, exist_ok=True)
 
     def next_dataset(self):
         if self.current_dataset_idx >= 0:
