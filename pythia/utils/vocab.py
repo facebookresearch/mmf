@@ -316,7 +316,7 @@ class IntersectedVocab(BaseVocab):
             embedding_index = embedding.stoi.get(word, None)
 
             if embedding_index is None:
-                self.vectors[i] = self.vectors[self.UNK_INDEX].clone()
+                self.vectors[i] = self.vectors[self.UNK_INDEX]
             else:
                 self.vectors[i] = embedding.vectors[embedding_index]
 
