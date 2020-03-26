@@ -15,6 +15,7 @@ from pythia.common.dataset_loader import DatasetLoader
 from pythia.utils.build_utils import build_model, build_optimizer
 from pythia.utils.checkpoint import Checkpoint
 from pythia.utils.distributed_utils import (broadcast_scalar, is_master,
+                                            reduce_dict, synchronize, distributed_init)
 from pythia.utils.early_stopping import EarlyStopping
 from pythia.utils.general import clip_gradients, lr_lambda_update
 from pythia.utils.logger import Logger
@@ -23,12 +24,15 @@ from pythia.utils.timer import Timer
 
 @registry.register_trainer('base_trainer')
 class BaseTrainer:
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, configuration):
+        self.configuration = configuration
+        self.config = self.configuration.config
         self.profiler = Timer()
+        if self.configuration is not None:
+            self.args = self.configuration.args
 
     def load(self):
-        self._init_process_group()
+        self._set_device()
 
         self.run_type = self.config.training_parameters.get("run_type", "train")
         self.dataset_loader = DatasetLoader(self.config)
@@ -37,7 +41,6 @@ class BaseTrainer:
         self.writer = Logger(self.config)
         registry.register("writer", self.writer)
 
-        self.configuration = registry.get("configuration")
         self.configuration.pretty_print()
 
         self.config_based_setup()
@@ -47,25 +50,18 @@ class BaseTrainer:
         self.load_optimizer()
         self.load_extras()
 
-    def _init_process_group(self):
-        training_parameters = self.config.training_parameters
-        self.local_rank = training_parameters.local_rank
-        self.device = training_parameters.device
+    def _set_device(self):
+        self.local_rank = self.args.device_id
+        self.device = self.local_rank
+        self.distributed = False
 
-        if self.local_rank is not None and training_parameters.distributed:
-            if not torch.distributed.is_nccl_available():
-                raise RuntimeError(
-                    "Unable to initialize process group: NCCL is not available"
-                )
-            torch.distributed.init_process_group(backend="nccl", init_method="env://")
-            synchronize()
-
-        if (
-            "cuda" in self.device
-            and training_parameters.distributed
-            and self.local_rank is not None
-        ):
+        if self.args.distributed_init_method is not None:
+            self.distributed = True
             self.device = torch.device("cuda", self.local_rank)
+        elif torch.cuda.is_available():
+            self.device = torch.device("cuda")
+        else:
+            self.device = torch.device("cpu")
 
         registry.register("current_device", self.device)
 
@@ -99,16 +95,10 @@ class BaseTrainer:
         self.dataset_loader.clean_config(attributes)
         training_parameters = self.config.training_parameters
 
-        data_parallel = training_parameters.data_parallel
-        distributed = training_parameters.distributed
-
-        registry.register("data_parallel", data_parallel)
-        registry.register("distributed", distributed)
-
-        if "cuda" in str(self.config.training_parameters.device):
+        if "cuda" in str(self.device):
             rank = self.local_rank if self.local_rank is not None else 0
             device_info = "CUDA Device {} is: {}".format(
-                rank, torch.cuda.get_device_name(self.local_rank)
+                self.args.distributed_rank, torch.cuda.get_device_name(self.local_rank)
             )
 
             self.writer.write(device_info, log_all=True)
@@ -117,22 +107,26 @@ class BaseTrainer:
 
         self.writer.write("Torch version is: " + torch.__version__)
 
+        registry.register("data_parallel", False)
+        registry.register("distributed", False)
         if (
             "cuda" in str(self.device)
             and torch.cuda.device_count() > 1
-            and data_parallel is True
+            and not self.distributed
         ):
+            registry.register("data_parallel", True)
             self.model = torch.nn.DataParallel(self.model)
 
         if (
             "cuda" in str(self.device)
-            and self.local_rank is not None
-            and distributed is True
+            and self.distributed
         ):
-            torch.cuda.set_device(self.local_rank)
+            registry.register("distributed", True)
             self.model = torch.nn.parallel.DistributedDataParallel(
-                self.model, device_ids=[self.local_rank], output_device=self.local_rank,
-                check_reduction=True, find_unused_parameters=True
+                self.model,
+                device_ids=[self.local_rank], output_device=self.local_rank,
+                check_reduction=True,
+                find_unused_parameters=training_parameters.find_unused_parameters
             )
 
     def load_optimizer(self):
