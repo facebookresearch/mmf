@@ -150,8 +150,7 @@ class BaseTrainer:
         patience = self.training_parameters.patience
 
         self.log_interval = self.training_parameters.log_interval
-        self.snapshot_interval = self.training_parameters.snapshot_interval
-        self.max_iterations = self.training_parameters.max_iterations
+        self.max_updates = self.training_parameters.max_updates
         self.should_clip_gradients = self.training_parameters.clip_gradients
         self.max_epochs = self.training_parameters.max_epochs
 
@@ -165,6 +164,8 @@ class BaseTrainer:
         )
         self.current_epoch = 0
         self.current_iteration = 0
+        self.num_updates = 0
+
         self.checkpoint.load_state_dict()
 
         self.not_debug = self.training_parameters.logger_level != "debug"
@@ -202,7 +203,7 @@ class BaseTrainer:
         if self.max_epochs is None:
             self.max_epochs = math.inf
         else:
-            self.max_iterations = math.inf
+            self.max_updates = math.inf
 
         self.model.train()
         self.train_timer = Timer()
@@ -212,7 +213,8 @@ class BaseTrainer:
 
         torch.autograd.set_detect_anomaly(True)
         self.writer.write("Starting training...")
-        while self.current_iteration < self.max_iterations and not should_break:
+
+        while self.num_updates < self.max_updates and not should_break:
             self.current_epoch += 1
             registry.register("current_epoch", self.current_epoch)
 
@@ -225,18 +227,15 @@ class BaseTrainer:
             for batch in self.train_loader:
                 self.profile("Batch load time")
                 self.current_iteration += 1
-                self.writer.write(self.current_iteration, "debug")
-
-                registry.register("current_iteration", self.current_iteration)
-
-                if self.current_iteration > self.max_iterations:
-                    break
+                self.writer.write(self.num_updates + 1, "debug")
 
                 report = self._forward_pass(batch)
-                self._update_meter(report, self.meter)
                 loss = self._extract_loss(report)
                 self._backward(loss)
                 should_break = self._logistics(report)
+
+                if self.num_updates > self.max_updates:
+                    should_break = True
 
                 if should_break:
                     break
@@ -245,7 +244,7 @@ class BaseTrainer:
 
     def _run_scheduler(self):
         if self.lr_scheduler is not None:
-            self.lr_scheduler.step(self.current_iteration)
+            self.lr_scheduler.step(self.num_updates)
 
     def _forward_pass(self, batch):
         prepared_batch = self.dataset_loader.prepare_batch(batch)
@@ -266,6 +265,8 @@ class BaseTrainer:
 
         self.optimizer.step()
         self._run_scheduler()
+        self.num_updates += 1
+        self.profile("Backward time")
 
         self.profile("Backward time")
 
@@ -321,10 +322,20 @@ class BaseTrainer:
                 extra["max mem"] = torch.cuda.max_memory_allocated() / 1024
                 extra["max mem"] //= 1024
 
+            if self.training_parameters.experiment_name:
+                extra["experiment"] = self.training_parameters.experiment_name
+
             extra.update(
                 {
+                    "epoch": self.current_epoch,
+                    "num_updates": self.num_updates,
+                    "iterations": self.current_iteration,
+                    "max_updates": self.max_updates,
                     "lr": "{:.5f}".format(self.optimizer.param_groups[0]["lr"]).rstrip(
                         "0"
+                    ),
+                    "ups": "{:.2f}".format(
+                        self.log_interval / self.train_timer.unix_time_since_start()
                     ),
                     "time": self.train_timer.get_time_since_start(),
                     "eta": self._calculate_time_left(),
@@ -332,17 +343,14 @@ class BaseTrainer:
             )
 
             self.train_timer.reset()
-
-            _, meter = self.evaluate(self.val_loader, single_batch=True)
-            self.meter.update_from_meter(meter)
+            self._update_meter(report, self.meter)
 
         # Don't print train metrics if it is not log interval
         # so as to escape clutter
         self._summarize_report(
             self.meter,
             should_print=should_print,
-            extra=extra,
-            prefix=report.dataset_name,
+                extra=extra
         )
 
         should_break = self._try_full_validation()
@@ -352,23 +360,26 @@ class BaseTrainer:
     def _try_full_validation(self, force=False):
         should_break = False
 
-        if self.current_iteration % self.snapshot_interval == 0 or force:
+            self.snapshot_timer.reset()
             self.writer.write("Evaluation time. Running on full validation set...")
             # Validation and Early stopping
             # Create a new meter for this case
             report, meter = self.evaluate(self.val_loader)
 
-            extra = {"validation time": self.snapshot_timer.get_time_since_start()}
+            extra = {
+                "num_updates": self.num_updates,
+                "epoch": self.current_epoch,
+                "iterations": self.current_iteration,
+                "max_updates": self.max_updates,
+                "val_time": self.snapshot_timer.get_time_since_start()
+            }
 
-            stop = self.early_stopping(self.current_iteration, meter)
+            stop = self.early_stopping(self.num_updates, self.current_iteration, meter)
             stop = bool(broadcast_scalar(stop, src=0, device=self.device))
 
             extra.update(self.early_stopping.get_info())
 
-            prefix = "{}: full val".format(report.dataset_name)
-
-            self._summarize_report(meter, prefix=prefix, extra=extra)
-            self.snapshot_timer.reset()
+            self._summarize_report(meter, extra=extra)
             gc.collect()
 
             if "cuda" in str(self.device):
@@ -377,6 +388,8 @@ class BaseTrainer:
             if stop is True:
                 self.writer.write("Early stopping activated")
                 should_break = True
+
+            self.train_timer.reset()
 
         return should_break
 
@@ -435,7 +448,7 @@ class BaseTrainer:
 
     def _calculate_time_left(self):
         time_taken_for_log = time.time() * 1000 - self.train_timer.start
-        iterations_left = self.max_iterations - self.current_iteration
+        iterations_left = self.max_updates - self.num_updates
         num_logs_left = iterations_left / self.log_interval
         time_left = num_logs_left * time_taken_for_log
 

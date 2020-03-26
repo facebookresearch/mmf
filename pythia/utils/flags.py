@@ -83,7 +83,7 @@ class Flags:
             help="Number of iterations after which  we should save snapshots",
         )
         self.parser.add_argument(
-            "--max_iterations",
+            "--max_updates",
             type=int,
             default=None,
             help="Number of iterations after which  we should stop training",
@@ -94,7 +94,7 @@ class Flags:
             default=None,
             help="Number of epochs after which "
             " we should stop training"
-            " (mutually exclusive with max_iterations)",
+            " (mutually exclusive with max_updates)",
         )
         self.parser.add_argument(
             "--batch_size",

@@ -24,7 +24,7 @@ model_attributes:
         bias_file: detectron/fc6/fc7_b.pkl
         weights_file: detectron/fc6/fc7_w.pkl
 training_parameters:
-  max_iterations: 12000
+  max_updates: 12000
   lr_steps:
   - 5000
   - 7000

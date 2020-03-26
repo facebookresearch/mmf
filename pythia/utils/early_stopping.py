@@ -33,15 +33,17 @@ class EarlyStopping:
 
         self.best_monitored_value = -np.inf if not minimize else np.inf
         self.best_monitored_iteration = 0
+        self.best_monitored_update = 0
         self.should_stop = should_stop
         self.activated = False
         self.metric = self.monitored_metric
 
-    def __call__(self, iteration, meter):
+    def __call__(self, update, iteration, meter):
         """
         Method to be called everytime you need to check whether to
         early stop or not
         Arguments:
+            update {number}: Current update number
             iteration {number}: Current iteration number
         Returns:
             bool -- Tells whether early stopping occurred or not
@@ -66,9 +68,10 @@ class EarlyStopping:
         ):
             self.best_monitored_value = value
             self.best_monitored_iteration = iteration
-            self.checkpoint.save(iteration, update_best=True)
+            self.best_monitored_update = update
+            self.checkpoint.save(update, iteration, update_best=True)
 
-        elif self.best_monitored_iteration + self.patience < iteration:
+        elif self.best_monitored_update + self.patience < update:
             self.activated = True
             if self.should_stop is True:
                 self.checkpoint.restore()
@@ -77,7 +80,7 @@ class EarlyStopping:
             else:
                 return False
         else:
-            self.checkpoint.save(iteration, update_best=False)
+            self.checkpoint.save(update, iteration, update_best=False)
 
         return False
 
@@ -93,6 +96,7 @@ class EarlyStopping:
 
     def get_info(self):
         return {
-            "best iteration": self.best_monitored_iteration,
-            "best {}".format(self.metric): "{:.6f}".format(self.best_monitored_value),
+            "best_update": self.best_monitored_update,
+            "best_iteration": self.best_monitored_iteration,
+            "best_{}".format(self.metric): "{:.6f}".format(self.best_monitored_value),
         }
