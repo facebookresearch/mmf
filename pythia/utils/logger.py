@@ -6,7 +6,7 @@ import sys
 import json
 import collections
 
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 from pythia.utils.distributed_utils import is_master
 from pythia.utils.general import (ckpt_name_from_core_args,
@@ -22,14 +22,13 @@ class Logger:
         self.timer = Timer()
         self.config = config
         self.save_dir = config.training_parameters.save_dir
-        self.log_folder = ckpt_name_from_core_args(config)
-        self.log_folder += foldername_from_config_override(config)
-        time_format = "%Y-%m-%dT%H:%M:%S"
-        self.log_filename = ckpt_name_from_core_args(config) + "_"
-        self.log_filename += self.timer.get_time_hhmmss(None, format=time_format)
+        self.log_format = config.training_parameters.log_format
+        self.time_format = "%Y-%m-%dT%H:%M:%S"
+        self.log_filename = "train_"
+        self.log_filename += self.timer.get_time_hhmmss(None, format=self.time_format)
         self.log_filename += ".log"
 
-        self.log_folder = os.path.join(self.save_dir, self.log_folder, "logs")
+        self.log_folder = os.path.join(self.save_dir, "logs")
 
         arg_log_dir = self.config.get("log_dir", None)
         if arg_log_dir:
@@ -82,15 +81,12 @@ class Logger:
         # Single log wrapper map
         self._single_log_map = set()
 
-    def __del__(self):
-        if getattr(self, "summary_writer", None) is not None:
-            self.summary_writer.close()
 
     def write(self, x, level="info", donot_print=False, log_all=False):
         if self.logger is None:
             return
 
-        if log_all is False and not self._is_main_process:
+        if log_all is False and not self._is_master:
             return
 
         # if it should not log then just print it
@@ -130,6 +126,27 @@ class Logger:
             return
         else:
             self.write(x, level)
+
+
+class TensorboardLogger:
+    def __init__(self, log_folder="./logs", iteration=0):
+        self.summary_writer = None
+        self._is_master = is_master()
+        self.timer = Timer()
+        self.log_folder = log_folder
+        self.time_format = "%Y-%m-%dT%H:%M:%S"
+
+
+        if self._is_master:
+            current_time = self.timer.get_time_hhmmss(None, format=self.time_format)
+            tensorboard_folder = os.path.join(
+                self.log_folder, "tensorboard_{}".format(current_time)
+            )
+            self.summary_writer = SummaryWriter(tensorboard_folder)
+
+    def __del__(self):
+        if getattr(self, "summary_writer", None) is not None:
+            self.summary_writer.close()
 
     def _should_log_tensorboard(self):
         if self.summary_writer is None or not self._is_master:

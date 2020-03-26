@@ -18,6 +18,7 @@ from pythia.utils.distributed_utils import (broadcast_scalar, is_master,
                                             reduce_dict, synchronize, distributed_init)
 from pythia.utils.early_stopping import EarlyStopping
 from pythia.utils.general import clip_gradients, print_model_parameters
+from pythia.utils.logger import Logger, TensorboardLogger
 from pythia.utils.timer import Timer
 
 
@@ -167,10 +168,18 @@ class BaseTrainer:
 
         # TODO: Allow custom scheduler
         if self.training_parameters.lr_scheduler is True:
-            scheduler_class = optim.lr_scheduler.LambdaLR
-            scheduler_func = lambda x: lr_lambda_update(x, self.config)
-            self.lr_scheduler = scheduler_class(
-                self.optimizer, lr_lambda=scheduler_func
+
+        self.tb_writer = None
+
+        if self.training_parameters.tensorboard:
+            log_dir = self.writer.log_dir
+
+            if self.training_parameters.tensorboard_logdir:
+                log_dir = self.training_parameters.tensorboard_logdir
+
+            self.tb_writer = TensorboardLogger(
+                log_dir,
+                self.current_iteration
             )
 
     def config_based_setup(self):
@@ -405,11 +414,13 @@ class BaseTrainer:
 
         return report, meter
 
+    def _summarize_report(self, meter, should_print=True, extra={}):
         if not is_master():
             return
 
+        if self.training_parameters.tensorboard:
         scalar_dict = meter.get_scalar_dict()
-        self.writer.add_scalars(scalar_dict, registry.get("current_iteration"))
+            self.tb_writer.add_scalars(scalar_dict, self.current_iteration)
 
         if not should_print:
             return
