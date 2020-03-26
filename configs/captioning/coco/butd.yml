@@ -54,7 +54,7 @@ training_parameters:
   - 35000
   - 45000
   max_grad_l2_norm: 0.25
-  max_iterations: 50000
+  max_updates: 50000
   use_warmup: true
   warmup_factor: 0.2
   warmup_iterations: 1000

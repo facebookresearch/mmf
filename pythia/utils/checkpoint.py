@@ -127,9 +127,25 @@ class Checkpoint:
 
             self.trainer.writer.write("Checkpoint loaded")
 
-            if "best_iteration" in ckpt:
+            if "best_update" in ckpt:
+                if tp.resume_best:
+                    self.trainer.num_updates = ckpt["best_update"]
+                    self.trainer.current_iteration = ckpt["best_iteration"]
+                else:
+                    self.trainer.num_updates = ckpt["num_updates"]
+                    self.trainer.current_iteration = ckpt["current_iteration"]
+                if "current_epoch" in ckpt:
+                    self.trainer.current_epoch = ckpt["current_epoch"]
+            elif "best_iteration" in ckpt:
+                if tp.resume_best and "current_iteration" not in ckpt:
                 self.trainer.current_iteration = ckpt["best_iteration"]
+                else:
+                    self.trainer.current_iteration = ckpt["current_iteration"]
+
+                self.trainer.num_updates = self.trainer.current_iteration
+
                 registry.register("current_iteration", self.trainer.current_iteration)
+            registry.register("num_updates", self.trainer.num_updates)
 
             if "best_epoch" in ckpt:
                 self.trainer.current_epoch = ckpt["best_epoch"]
@@ -203,19 +219,20 @@ class Checkpoint:
             "git/diff": self.repo.git.diff("--no-prefix"),
         }
 
-    def save(self, iteration, update_best=False):
+    def save(self, update, iteration, update_best=False):
         # Only save in main process
         if not is_master():
             return
 
         ckpt_filepath = os.path.join(
-            self.models_foldername, "model_%d.ckpt" % iteration
+            self.models_foldername, "model_%d.ckpt" % update
         )
         best_ckpt_filepath = os.path.join(
             self.ckpt_foldername, self.ckpt_prefix + "best.ckpt"
         )
 
         best_iteration = self.trainer.early_stopping.best_monitored_iteration
+        best_update = self.trainer.early_stopping.best_monitored_update
         best_metric = self.trainer.early_stopping.best_monitored_value
         model = self.trainer.model
         data_parallel = registry.get("data_parallel") or registry.get("distributed")
@@ -227,6 +244,10 @@ class Checkpoint:
             "model": model.state_dict(),
             "optimizer": self.trainer.optimizer.state_dict(),
             "best_iteration": best_iteration,
+            "current_iteration": registry.get("current_iteration"),
+            "current_epoch": self.trainer.current_epoch,
+            "num_updates": registry.get("num_updates"),
+            "best_update": best_update,
             "best_metric_value": best_metric,
             "config": self.config,
         }
