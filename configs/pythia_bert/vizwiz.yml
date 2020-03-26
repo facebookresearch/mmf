@@ -36,3 +36,7 @@ dataset_attributes:
               do_lower_case: true
           mask_probability: 0
           max_seq_length: 128
+
+training_parameters:
+  monitored_metric: vizwiz/vqa_accuracy
+  metric_minimize: false

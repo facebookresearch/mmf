@@ -38,7 +38,9 @@ class MaskedCOCODataset(COCODataset):
                     # no masking token (will be ignored by loss function later)
                     image_labels.append(-1)
             item = {}
-            item["image_labels"] = image_labels
+
+            if self.config.get("use_image_feature_masks", False):
+                item["image_labels"] = image_labels
             current_sample.update(item)
             current_sample.update(features)
 
