@@ -4,6 +4,7 @@ MultiDataset class is used by DatasetLoader class to load multiple datasets and 
 """
 
 import sys
+import os
 
 import numpy as np
 from torch.utils.data import Dataset
@@ -267,6 +268,11 @@ class MultiDataset:
             num_workers=num_workers,
             **other_args
         )
+
+        if num_workers >= 0:
+            # Suppress leaking semaphore warning
+            os.environ['PYTHONWARNINGS'] = 'ignore:semaphore_tracker:UserWarning'
+
         loader.dataset_type = self._dataset_type
 
         return loader, other_args.get("sampler", None)

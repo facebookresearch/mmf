@@ -2,6 +2,7 @@
 import argparse
 import sys
 
+import torch
 from pythia.common.registry import registry
 
 
@@ -166,20 +167,57 @@ class Flags:
             help="Use when you want to clip gradients",
         )
         self.parser.add_argument(
-            "--data_parallel",
+            "--tensorboard",
             type=bool,
-            default=None,
-            help="Use when you want to use DataParallel",
+            default=False,
+            help="Enable tensorboard",
         )
         self.parser.add_argument(
-            "--distributed",
-            type=bool,
+            "--tensorboard_logdir",
+            type=str,
             default=None,
-            help="Use when you want to use DistributedDataParallel for training",
+            help="Default logdir for tensorboard",
         )
+
+        # Distributed Args
+        self.parser.add_argument(
+            "--distributed_init_method",
+            type=str,
+            default=None,
+            help="Typically tcp://hostname:port that will be used to establish initial connection"
+        )
+        self.parser.add_argument(
+            "--distributed_rank",
+            type=int,
+            default=0,
+            help="Rank of the current worker"
+        )
+        self.parser.add_argument(
+            "--distributed_port",
+            type=int,
+            default=-1,
+            help="Port number, not required if using --distributed-init-method"
+        )
+        self.parser.add_argument(
+            "--distributed_world_size",
+            type=int,
+            default=max(1, torch.cuda.device_count()),
+            help="Total number of GPUs across all nodes (default: all visible GPUs)"
+        )
+        self.parser.add_argument(
+            "--distributed_backend",
+            type=str,
+            default="nccl",
+            help="Backend for distributed setup"
+        )
+        self.parser.add_argument(
+            "--distributed-no-spawn", action="store_true",
+            help="do not spawn multiple processes even if multiple GPUs are visible"
+        )
+
         self.parser.add_argument(
             "-dev",
-            "--device",
+            "--device_id",
             type=str,
             default=None,
             help="Specify device to be used for training",

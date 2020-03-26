@@ -21,16 +21,19 @@ def build_trainer(args, *rest, **kwargs):
     configuration.update_with_args(args)
     configuration.freeze()
 
+    # Do set runtime args which can be changed by pythia
+    configuration.args = args
+
     config = configuration.get_config()
     registry.register("config", config)
     registry.register("configuration", configuration)
 
     trainer_type = config.training_parameters.trainer
     trainer_cls = registry.get_trainer_class(trainer_type)
-    trainer_obj = trainer_cls(config)
+    trainer_obj = trainer_cls(configuration)
 
     # Set args as an attribute for future use
-    setattr(trainer_obj, 'args', args)
+    setattr(trainer_obj, "args", args)
 
     return trainer_obj
 
