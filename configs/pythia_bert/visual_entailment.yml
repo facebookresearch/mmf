@@ -29,4 +29,8 @@ scheduler_attributes:
   params:
     warmup_steps: 6000
     t_total: 60000
+
+training_parameters:
+  monitored_metric: visual_entailment/accuracy
+  metric_minimize: false
     

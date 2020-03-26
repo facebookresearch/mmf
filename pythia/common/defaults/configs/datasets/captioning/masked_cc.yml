@@ -22,6 +22,7 @@ dataset_attributes:
     two_sentence_probability: -0.1
     false_caption: true
     false_caption_probability: 0.5
+    use_image_feature_masks: false
     processors:
       masked_token_processor:
         type: masked_token

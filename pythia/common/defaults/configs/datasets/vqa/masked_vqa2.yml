@@ -24,6 +24,7 @@ dataset_attributes:
         test:
         - imdb/vqa/imdb_test2015.npy
     features_max_len: 100
+    use_image_feature_masks: false
     processors:
       masked_token_processor:
         type: masked_token

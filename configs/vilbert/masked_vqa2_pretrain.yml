@@ -68,6 +68,7 @@ dataset_attributes:
       train:
       - imdb/vqa/imdb_train2014_len_coco.npy
     return_info: true
+    use_image_feature_masks: true
 
 optimizer_attributes:
   type: adam_w
@@ -80,7 +81,7 @@ scheduler_attributes:
   params:
     warmup_steps: 1000
     t_total: 11000
-    
+
 training_parameters:
   batch_size: 480
   lr_scheduler: true
