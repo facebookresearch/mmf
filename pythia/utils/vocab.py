@@ -56,13 +56,18 @@ class Vocab:
         return self.vocab(*args, **kwargs)
 
     def __getattr__(self, name):
-        if name in self._dir_representation:
+        if "_dir_representation" in self.__dict__ and \
+            name in self._dir_representation:
             return getattr(self, name)
-        elif hasattr(self.vocab, name):
+        elif "vocab" in self.__dict__ and hasattr(self.vocab, name):
             return getattr(self.vocab, name)
         else:
+            type_vocab = "Vocab"
+            if "vocab" in self.__dict__:
+                type_vocab = type(self.vocab)
+
             raise AttributeError(
-                "{} vocab type has no attribute {}.".format(type(self.vocab, name))
+                "{} vocab type has no attribute {}.".format(type_vocab, name)
             )
 
 
@@ -131,7 +136,7 @@ class BaseVocab:
         self.word_dict[self.PAD_TOKEN] = self.PAD_INDEX
         self.word_dict[self.UNK_TOKEN] = self.UNK_INDEX
         # Return unk index by default
-        self.stoi = defaultdict(lambda: self.UNK_INDEX)
+        self.stoi = defaultdict(self.get_unk_index)
         self.stoi.update(self.word_dict)
 
         self.vectors = torch.FloatTensor(self.get_size(), embedding_dim)

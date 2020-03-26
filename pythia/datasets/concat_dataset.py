@@ -14,9 +14,10 @@ class PythiaConcatDataset(ConcatDataset):
         self._dir_representation = dir(self)
 
     def __getattr__(self, name):
-        if name in self._dir_representation:
+        if "_dir_representation" in self.__dict__ and \
+            name in self._dir_representation:
             return getattr(self, name)
-        elif hasattr(self.datasets[0], name):
+        elif "datasets" in self.__dict__ and hasattr(self.datasets[0], name):
             attr = getattr(self.datasets[0], name)
             # Check if the current attribute is class method function
             if isinstance(attr, types.MethodType):

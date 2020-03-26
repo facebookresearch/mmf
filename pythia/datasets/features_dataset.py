@@ -17,11 +17,14 @@ class FeaturesDataset:
         else:
             raise ValueError("Unknown features' type {}".format(features_type))
 
+        self._dir_representation = dir(self)
+
     def __getattr__(self, name):
-        if hasattr(self.features_db, name):
-            return getattr(self.features_db, name)
-        elif name in dir(self):
+        if "_dir_representations" in self.__dict__ and \
+            name in self._dir_representation:
             return getattr(self, name)
+        elif "features_db" in self.__dict__ and hasattr(self.features_db, name):
+            return getattr(self.features_db, name)
         else:
             raise AttributeError(name)
 
