@@ -12,7 +12,7 @@ from pythia.common.meter import Meter
 from pythia.common.registry import registry
 from pythia.common.report import Report
 from pythia.common.dataset_loader import DatasetLoader
-from pythia.utils.build_utils import build_model, build_optimizer
+from pythia.utils.build_utils import build_model, build_optimizer, build_scheduler
 from pythia.utils.checkpoint import Checkpoint
 from pythia.utils.distributed_utils import (broadcast_scalar, is_master,
                                             reduce_dict, synchronize, distributed_init)
@@ -169,8 +169,8 @@ class BaseTrainer:
 
         self.lr_scheduler = None
 
-        # TODO: Allow custom scheduler
         if self.training_parameters.lr_scheduler is True:
+            self.lr_scheduler = build_scheduler(self.optimizer, self.config)
 
         self.tb_writer = None
 
