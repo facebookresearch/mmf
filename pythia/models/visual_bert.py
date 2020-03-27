@@ -234,6 +234,10 @@ class VisualBERT(BaseModel):
         if self.config.special_visual_initialize:
             self.bert.embeddings.initialize_visual_from_pretrained()
 
+        if getattr(self.config, "freeze_base", False):
+            for p in self.bert.parameters():
+                p.requires_grad = False
+
     def init_weights(self):
         if self.config.random_initialize is False:
             if self.bert_model_name is None:
