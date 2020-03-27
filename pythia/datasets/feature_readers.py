@@ -2,6 +2,7 @@
 import os
 import pickle
 
+import lmdb
 import numpy as np
 import torch
 
@@ -36,7 +37,10 @@ class FeatureReader:
         self.ndim = ndim
 
     def _init_reader(self):
-        if self.ndim == 2 or self.ndim == 0:
+        # Currently all lmdb features are with ndim == 2
+        if self.base_path.endswith(".lmdb"):
+            self.feat_reader = LMDBFeatureReader(self.max_features, self.base_path)
+        elif self.ndim == 2 or self.ndim == 0:
             if self.max_features is None:
                 self.feat_reader = FasterRCNNFeatureReader()
             else:
@@ -63,7 +67,9 @@ class FeatureReader:
         image_feat_path = os.path.join(self.base_path, image_feat_path)
 
         if self.feat_reader is None:
-            if self.ndim is None:
+            # Currently all lmdb features are with ndim == 2 so we are
+            # avoiding loading the lmdb to determine feature ndim
+            if not self.base_path.endswith(".lmdb") and self.ndim is None:
                 feat = np.load(image_feat_path)
                 self.ndim = feat.ndim
             self._init_reader()
@@ -101,45 +107,24 @@ class HWCFeatureReader:
         return image_feature, None
 
 
-class LMDBFeaturesReader:
-    def __init__(self):
-        import lmdb
-
-        lmdb_path = "/checkpoint/vedanuj/datasets/coco/features_100/COCO_trainval_resnext152_faster_rcnn_genome.lmdb"
-        self.env = lmdb.open(
-            lmdb_path,
-            max_readers=16,
-            readonly=True,
-            lock=False,
-            readahead=False,
-            meminit=False,
-        )
-
-        with self.env.begin(write=False) as txn:
-            self.image_ids = pickle.loads(txn.get("keys".encode()))
-            self.reverse_map = {item: idx for idx, item in enumerate(self.image_ids)}
-
-    def read(self, image_file_path):
-        image_id = int(image_file_path.split(".npy")[0].split("_")[-1])
-        image_id = str(image_id).encode()
-        with self.env.begin(write=False) as txn:
-            feature = torch.from_numpy(pickle.loads(txn.get(image_id))["features"])
-            return feature, None
-
-
 class PaddedFasterRCNNFeatureReader:
     def __init__(self, max_loc):
         self.max_loc = max_loc
         self.first = True
         self.take_item = False
 
-    def read(self, image_feat_path):
+    def _load(self, image_feat_path):
         content = np.load(image_feat_path, allow_pickle=True)
         info_path = "{}_info.npy".format(image_feat_path.split(".npy")[0])
         image_info = {}
 
         if os.path.exists(info_path):
             image_info.update(np.load(info_path, allow_pickle=True).item())
+
+        return content, image_info
+
+    def read(self, image_feat_path):
+        content, image_info = self._load(image_feat_path)
 
         if self.first:
             self.first = False
@@ -167,6 +152,46 @@ class PaddedFasterRCNNFeatureReader:
 
         image_info["max_features"] = torch.tensor(image_loc, dtype=torch.long)
         return image_feature, image_info
+
+
+class LMDBFeatureReader(PaddedFasterRCNNFeatureReader):
+    def __init__(self, max_loc, base_path):
+        super().__init__(max_loc)
+        self.db_path = base_path
+        self.env = None
+
+    def _init_db(self):
+        self.env = lmdb.open(
+            self.db_path,
+            subdir=os.path.isdir(self.db_path),
+            readonly=True,
+            lock=False,
+            readahead=False,
+            meminit=False,
+        )
+        with self.env.begin(write=False) as txn:
+            self.image_ids = pickle.loads(txn.get("keys".encode()))
+            self.image_id_indices = {
+                self.image_ids[i]: i for i in range(0, len(self.image_ids))
+            }
+
+    def _load(self, image_file_path):
+        if self.env is None:
+            self._init_db()
+        image_id = int(
+            os.path.basename(image_file_path).split(".npy")[0].split("_")[-1]
+        )
+        image_id = str(image_id).encode()
+        with self.env.begin(write=False) as txn:
+            all_info = pickle.loads(
+                txn.get(self.image_ids[self.image_id_indices[image_id]])
+            )
+
+        image_info = {}
+        content = all_info["features"]
+        del all_info["features"]
+        image_info.update(all_info)
+        return content, image_info
 
 
 class PaddedFeatureRCNNWithBBoxesFeatureReader:
