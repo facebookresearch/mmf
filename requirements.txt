@@ -15,3 +15,4 @@ editdistance==0.5.3
 transformers==2.5.1
 sklearn==0.0
 omegaconf==2.0.0rc16
+lmdb==0.98
