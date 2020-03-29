@@ -443,7 +443,9 @@ class VisualBERT(BaseModel):
                 output_dict["logits"] = prediction_scores
                 loss_fct = nn.CrossEntropyLoss(ignore_index=-1)
                 masked_lm_loss = loss_fct(
-                    prediction_scores.contiguous().view(-1, self.config.vocab_size),
+                    prediction_scores.contiguous().view(
+                        -1, self.bert_config.vocab_size
+                    ),
                     sample_list.masked_lm_labels.contiguous().view(-1),
                 )
                 output_dict["masked_lm_loss"] = masked_lm_loss
