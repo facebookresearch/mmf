@@ -114,27 +114,30 @@ class PaddedFasterRCNNFeatureReader:
         self.take_item = False
 
     def _load(self, image_feat_path):
-        content = np.load(image_feat_path, allow_pickle=True)
-        info_path = "{}_info.npy".format(image_feat_path.split(".npy")[0])
         image_info = {}
+        image_info["features"] = np.load(image_feat_path, allow_pickle=True)
 
+        info_path = "{}_info.npy".format(image_feat_path.split(".npy")[0])
         if os.path.exists(info_path):
             image_info.update(np.load(info_path, allow_pickle=True).item())
 
-        return content, image_info
+        return image_info
 
     def read(self, image_feat_path):
-        content, image_info = self._load(image_feat_path)
+        image_info = self._load(image_feat_path)
 
         if self.first:
             self.first = False
-            if content.size == 1 and "image_feat" in content.item():
+            if (
+                image_info["features"].size == 1
+                and "image_feat" in image_info["features"].item()
+            ):
                 self.take_item = True
 
-        image_feature = content
+        image_feature = image_info["features"]
 
         if self.take_item:
-            item = content.item()
+            item = image_info["features"].item()
             if "image_text" in item:
                 image_info["image_text"] = item["image_text"]
                 image_info["is_ocr"] = item["image_bbox_source"]
@@ -150,6 +153,7 @@ class PaddedFasterRCNNFeatureReader:
         tmp_image_feat[0:image_loc,] = image_feature[: self.max_loc, :]
         image_feature = torch.from_numpy(tmp_image_feat)
 
+        del image_info["features"]
         image_info["max_features"] = torch.tensor(image_loc, dtype=torch.long)
         return image_feature, image_info
 
@@ -169,7 +173,7 @@ class LMDBFeatureReader(PaddedFasterRCNNFeatureReader):
             readahead=False,
             meminit=False,
         )
-        with self.env.begin(write=False) as txn:
+        with self.env.begin(write=False, buffers=True) as txn:
             self.image_ids = pickle.loads(txn.get("keys".encode()))
             self.image_id_indices = {
                 self.image_ids[i]: i for i in range(0, len(self.image_ids))
@@ -182,16 +186,11 @@ class LMDBFeatureReader(PaddedFasterRCNNFeatureReader):
             os.path.basename(image_file_path).split(".npy")[0].split("_")[-1]
         )
         image_id = str(image_id).encode()
-        with self.env.begin(write=False) as txn:
-            all_info = pickle.loads(
+        with self.env.begin(write=False, buffers=True) as txn:
+            image_info = pickle.loads(
                 txn.get(self.image_ids[self.image_id_indices[image_id]])
             )
-
-        image_info = {}
-        content = all_info["features"]
-        del all_info["features"]
-        image_info.update(all_info)
-        return content, image_info
+        return image_info
 
 
 class PaddedFeatureRCNNWithBBoxesFeatureReader:
