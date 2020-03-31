@@ -4,8 +4,8 @@ import math
 import random
 import time
 
-import torch
 import omegaconf
+import torch
 from torch import optim
 from tqdm import tqdm
 
@@ -33,7 +33,7 @@ from pythia.utils.timer import Timer
 class BaseTrainer:
     def __init__(self, configuration):
         self.configuration = configuration
-        self.config = self.configuration.config
+        self.config = self.configuration.get_config()
         self.profiler = Timer()
         self.total_timer = Timer()
         if self.configuration is not None:
@@ -57,14 +57,14 @@ class BaseTrainer:
         self.load_model_and_optimizer()
 
     def _set_device(self):
-        self.local_rank = self.args.device_id
+        self.local_rank = self.config.device_id
         self.device = self.local_rank
         self.distributed = False
 
         # Will be updated later based on distributed setup
         registry.register("global_device", self.device)
 
-        if self.args.distributed_init_method is not None:
+        if self.config.distributed.init_method is not None:
             self.distributed = True
             self.device = torch.device("cuda", self.local_rank)
         elif torch.cuda.is_available():
@@ -103,14 +103,14 @@ class BaseTrainer:
         self.dataset_loader.update_registry_for_model(attributes)
         self.model = build_model(attributes)
         self.dataset_loader.clean_config(attributes)
-        training_parameters = self.config.training_parameters
 
         if "cuda" in str(self.device):
             rank = self.local_rank if self.local_rank is not None else 0
             device_info = "CUDA Device {} is: {}".format(
-                self.args.distributed_rank, torch.cuda.get_device_name(self.local_rank)
+                self.config.distributed.rank,
+                torch.cuda.get_device_name(self.local_rank),
             )
-            registry.register("global_device", self.args.distributed_rank)
+            registry.register("global_device", self.config.distributed.rank)
             self.writer.write(device_info, log_all=True)
 
         self.model = self.model.to(self.device)

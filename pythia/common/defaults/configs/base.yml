@@ -141,3 +141,18 @@ config: null
 # Attributes for optimizer, examples can be found in models' configs in
 # configs folder
 optimizer_attributes: {}
+
+distributed:
+    # Typically tcp://hostname:port that will be used to establish initial connection
+    init_method: null
+    # Rank of the current worker
+    rank: 0
+    # Port number, not required if using init_method,
+    port: -1
+    # Backend for distributed setup
+    backend: nccl
+    # Total number of GPUs across all nodes (default: all visible GPUs)
+    world_size: ${device_count:}
+    # Set if you do not want spawn multiple processes even if
+    # multiple GPUs are visible
+    no_spawn: false

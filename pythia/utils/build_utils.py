@@ -7,12 +7,8 @@ from pythia.common.registry import registry
 from pythia.utils.general import get_optimizer_parameters
 
 
-def build_trainer(args, *rest, **kwargs):
-    configuration = Configuration(args)
+def build_trainer(configuration, *rest, **kwargs):
     configuration.freeze()
-
-    # Do set runtime args which can be changed by pythia
-    configuration.args = args
 
     config = configuration.get_config()
     registry.register("config", config)
@@ -23,7 +19,7 @@ def build_trainer(args, *rest, **kwargs):
     trainer_obj = trainer_cls(configuration)
 
     # Set args as an attribute for future use
-    setattr(trainer_obj, "args", args)
+    setattr(trainer_obj, "args", configuration.args)
 
     return trainer_obj
 
