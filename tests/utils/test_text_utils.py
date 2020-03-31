@@ -11,6 +11,7 @@ from pythia.common.registry import registry
 from pythia.common.sample import Sample, SampleList
 from pythia.utils.configuration import ConfigNode, Configuration
 from pythia.utils.general import get_pythia_root
+from tests.test_utils import dummy_args
 from tests.utils.test_model import TestDecoderModel
 
 
@@ -37,7 +38,9 @@ class TestTextUtils(unittest.TestCase):
             "butd_nucleus_sampling.yml",
         )
         config_path = os.path.abspath(config_path)
-        configuration = Configuration(config_path)
+        args = dummy_args()
+        args.opts.append("config={}".format(config_path))
+        configuration = Configuration(args)
         configuration.config["datasets"] = "coco"
         configuration.config["model_attributes"]["butd"]["inference"]["params"][
             "sum_threshold"

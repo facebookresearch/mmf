@@ -3,6 +3,7 @@ import collections
 import json
 import os
 import random
+import warnings
 from ast import literal_eval
 
 import demjson
@@ -12,6 +13,35 @@ from omegaconf import OmegaConf
 
 from pythia.common.registry import registry
 from pythia.utils.general import get_pythia_root
+
+
+def load_yaml(f):
+    mapping = OmegaConf.load(f)
+
+    if mapping is None:
+        mapping = OmegaConf.create()
+
+    includes = mapping.get("includes", [])
+
+    if not isinstance(includes, collections.abc.Sequence):
+        raise AttributeError(
+            "Includes must be a list, {} provided".format(type(includes))
+        )
+
+    include_mapping = OmegaConf.create()
+
+    pythia_root_dir = get_pythia_root()
+
+    for include in includes:
+        include = os.path.join(pythia_root_dir, include)
+        current_include_mapping = load_yaml(include)
+        include_mapping = OmegaConf.merge(include_mapping, current_include_mapping)
+
+    mapping.pop("includes", None)
+
+    mapping = OmegaConf.merge(include_mapping, mapping)
+
+    return mapping
 
 
 class ConfigNode(collections.OrderedDict):
@@ -94,102 +124,137 @@ class ConfigNode(collections.OrderedDict):
 
 
 class Configuration:
-    def __init__(self, config_yaml_file):
-        self.config_path = config_yaml_file
-        self.default_config = self._get_default_config_path()
+    def __init__(self, args):
         self.config = {}
+        default_config = self._build_default_config()
+        opts_config = self._build_opt_list(args.opts)
+        user_config = self._build_user_config(opts_config)
+        model_config = self._build_model_config(opts_config)
+        dataset_config = self._build_dataset_config(opts_config)
+        args_overrides = self._build_args_overrides(args)
 
-        base_config = {}
+        self._default_config = default_config
+        self._user_config = user_config
+        self.config = OmegaConf.merge(
+            default_config, model_config, dataset_config, user_config, args_overrides
+        )
 
-        base_config = self.load_yaml(self.default_config)
+        # TODO: Remove in next iteration
+        self.config = self._update_with_args(self.config, args)
 
+        self.config = self._merge_with_dotlist(self.config, args.opts)
+        self._update_specific(self.config)
+
+    def _build_default_config(self):
+        self.default_config_path = self._get_default_config_path()
+        default_config = load_yaml(self.default_config_path)
+        return default_config
+
+    def _build_opt_list(self, opts):
+        opts_dot_list = self._convert_to_dot_list(opts)
+        return OmegaConf.from_dotlist(opts_dot_list)
+
+    def _build_user_config(self, opts):
         user_config = {}
 
+        # Update user_config with opts if passed
+        self.config_path = opts.config
         if self.config_path is not None:
-            user_config = self.load_yaml(self.config_path)
+            user_config = load_yaml(self.config_path)
 
-        self._base_config = base_config
-        self._user_config = user_config
+        return user_config
 
-        self.config = OmegaConf.merge(base_config, user_config)
+    def _build_args_overrides(self, args):
+        # Update with demjson if passed
+        demjson_config = self._get_demjson_config(args.config_override)
+        # TODO: Remove in next iteration
+        args_config = self._get_args_config(args)
+        return OmegaConf.merge(demjson_config, args_config)
+
+    def _build_model_config(self, config):
+        model = config.model
+        if model is None:
+            raise KeyError("Required argument 'model' not passed")
+        model_cls = registry.get_model_class(model)
+
+        if model_cls is None:
+            warnings.warn("No model named '{}' has been registered".format(model))
+            return OmegaConf.create()
+
+        default_model_config_path = model_cls.config_path()
+
+        if default_model_config_path is None:
+            warnings.warn(
+                "Model {}'s class has no default configuration provided".format(model)
+            )
+            return OmegaConf.create()
+
+        return load_yaml(default_model_config_path)
+
+    def _build_dataset_config(self, config):
+        dataset = config.dataset
+        datasets = config.datasets
+
+        if dataset is None and datasets is None:
+            raise KeyError("Required argument 'dataset|datasets' not passed")
+
+        if datasets is None:
+            config.datasets = dataset
+            datasets = dataset.split(",")
+        else:
+            datasets = datasets.split(",")
+
+        dataset_config = OmegaConf.create()
+
+        for dataset in datasets:
+            builder_cls = registry.get_builder_class(dataset)
+
+            if builder_cls is None:
+                warnings.warn(
+                    "No dataset named '{}' has been registered".format(dataset)
+                )
+                continue
+            default_dataset_config_path = builder_cls.config_path()
+            if default_dataset_config_path is None:
+                warnings.warn(
+                    "Dataset {}'s builder class has no default configuration provided".format(
+                        dataset
+                    )
+                )
+                continue
+            dataset_config = OmegaConf.merge(
+                dataset_config, load_yaml(default_dataset_config_path)
+            )
+
+        return dataset_config
 
     def get_config(self):
         return self.config
 
-    def load_yaml(self, f):
-        mapping = OmegaConf.load(f)
-
-        if mapping is None:
-            mapping = OmegaConf.create()
-
-        includes = mapping.get("includes", [])
-
-        if not isinstance(includes, collections.abc.Sequence):
-            raise AttributeError(
-                "Includes must be a list, {} provided".format(type(includes))
-            )
-
-        include_mapping = OmegaConf.create()
-
-        pythia_root_dir = get_pythia_root()
-
-        for include in includes:
-            include = os.path.join(pythia_root_dir, include)
-            current_include_mapping = self.load_yaml(include)
-            include_mapping = OmegaConf.merge(include_mapping, current_include_mapping)
-
-        mapping.pop("includes", None)
-
-        mapping = OmegaConf.merge(include_mapping, mapping)
-
-        return mapping
-
-    def update_with_args(self, args, force=False):
+    def _update_with_args(self, config, args, force=False):
         args_dict = vars(args)
 
-        self._update_key(self.config, args_dict)
+        self._update_key(config, args_dict)
         if force is True:
-            self.config.update(args_dict)
-        self._update_specific(args_dict)
+            config.update(args_dict)
 
-    def override_with_cmd_config(self, cmd_config):
-        if cmd_config is None:
-            return
+        return config
 
-        cmd_config = demjson.decode(cmd_config)
-        self.config = OmegaConf.merge(self.config, cmd_config)
+    def _get_demjson_config(self, demjson_string):
+        if demjson_string is None:
+            return OmegaConf.create()
 
-    def nested_dict_update(self, dictionary, update):
-        """Updates a dictionary with other dictionary recursively.
+        demjson_dict = demjson.decode(demjson_string)
+        return OmegaConf.create(demjson_dict)
 
-        Parameters
-        ----------
-        dictionary : dict
-            Dictionary to be updated.
-        update : dict
-            Dictionary which has to be added to original one.
+    def _get_args_config(self, args):
+        args_dict = vars(args)
+        return OmegaConf.create(args_dict)
 
-        Returns
-        -------
-        dict
-            Updated dictionary.
-        """
-        if dictionary is None:
-            dictionary = {}
-
-        for k, v in update.items():
-            if isinstance(v, collections.abc.Mapping):
-                dictionary[k] = self.nested_dict_update(dictionary.get(k, {}), v)
-            else:
-                dictionary[k] = self._decode_value(v)
-        return dictionary
-
-    def freeze(self):
-        # self.config = ConfigNode(self.config)
-        # self.config.freeze()
-        OmegaConf.set_struct(self.config, True)
-
-    def _merge_from_list(self, opts):
+    def _merge_with_dotlist(self, config, opts):
+        # TODO: To remove technical debt, a possible solution is to use
+        # struct mode to update with dotlist OmegaConf node. Look into this
+        # in next iteration
         if opts is None:
             opts = []
 
@@ -206,8 +271,11 @@ class Configuration:
             opt_values = zip(opts[0::2], opts[1::2])
 
         for opt, value in opt_values:
+            if opt == "dataset":
+                opt = "datasets"
+
             splits = opt.split(".")
-            current = self.config
+            current = config
             for idx, field in enumerate(splits):
                 array_index = -1
                 if field.find("[") != -1 and field.find("]") != -1:
@@ -250,20 +318,7 @@ class Configuration:
                             "after field {}".format(opt, stripped_field),
                         )
 
-    def override_with_cmd_opts(self, opts):
-        self._merge_from_list(opts)
-        # TODO: Move to `_convert_to_dot_list` once we have
-        # support for https://github.com/omry/omegaconf/issues/179 and
-        # https://github.com/omry/omegaconf/issues/180
-        # dot_list = self._convert_to_dot_list(opts)
-        # self.config = OmegaConf.merge(
-        #     self.config, OmegaConf.from_dotlist(dot_list)
-        # )
-
-    def _convert_to_dot_list(self, opts):
-        if opts is None:
-            opts = []
-        return [(opt + "=" + value) for opt, value in zip(opts[0::2], opts[1::2])]
+        return config
 
     def _decode_value(self, value):
         # https://github.com/rbgirshick/yacs/blob/master/yacs/config.py#L400
@@ -281,20 +336,24 @@ class Configuration:
             pass
         return value
 
-    def _update_key(self, dictionary, update_dict):
-        """
-        Takes a single depth dictionary update_dict and uses it to
-        update 'dictionary' whenever key in 'update_dict' is found at
-        any level in 'dictionary'
-        """
-        for key, value in dictionary.items():
-            if not isinstance(value, collections.abc.Mapping):
-                if key in update_dict and update_dict[key] is not None:
-                    dictionary[key] = update_dict[key]
-            else:
-                dictionary[key] = self._update_key(value, update_dict)
+    def freeze(self):
+        # self.config = ConfigNode(self.config)
+        OmegaConf.set_struct(self.config, True)
 
-        return dictionary
+    def _convert_to_dot_list(self, opts):
+        if opts is None:
+            opts = []
+
+        if len(opts) == 0:
+            return opts
+
+        # Support equal e.g. model=visual_bert for better future hydra support
+        has_equal = opts[0].find("=") != -1
+
+        if has_equal:
+            return opts
+
+        return [(opt + "=" + value) for opt, value in zip(opts[0::2], opts[1::2])]
 
     def pretty_print(self):
         if not self.config.training_parameters.log_detailed_config:
@@ -349,9 +408,24 @@ class Configuration:
             directory, "..", "common", "defaults", "configs", "base.yml"
         )
 
-    def _update_specific(self, args):
+    def _update_key(self, dictionary, update_dict):
+        """
+        Takes a single depth dictionary update_dict and uses it to
+        update 'dictionary' whenever key in 'update_dict' is found at
+        any level in 'dictionary'
+        """
+        for key, value in dictionary.items():
+            if not isinstance(value, collections.abc.Mapping):
+                if key in update_dict and update_dict[key] is not None:
+                    dictionary[key] = update_dict[key]
+            else:
+                dictionary[key] = self._update_key(value, update_dict)
+
+        return dictionary
+
+    def _update_specific(self, config):
         self.writer = registry.get("writer")
-        tp = self.config["training_parameters"]
+        tp = self.config.training_parameters
 
         # if args["seed"] is not None or tp['seed'] is not None:
         #     print(
@@ -363,17 +437,18 @@ class Configuration:
         # if args["seed"] == -1:
         #     self.config["training_parameters"]["seed"] = random.randint(1, 1000000)
 
-        if "learning_rate" in args:
-            if "optimizer" in self.config and "params" in self.config["optimizer"]:
-                lr = args["learning_rate"]
-                self.config["optimizer_attributes"]["params"]["lr"] = lr
+        if config.learning_rate:
+            if "optimizer" in config and "params" in config.optimizer:
+                lr = config.learning_rate
+                config.optimizer_attributes.params.lr = lr
 
         if (
             not torch.cuda.is_available()
-            and "cuda" in self.config["training_parameters"]["device"]
+            and "cuda" in config.training_parameters.device
         ):
-            print(
-                "WARNING: Device specified is 'cuda' but cuda is "
-                "not present. Switching to CPU version"
+            warnings.warn(
+                "Device specified is 'cuda' but cuda is not present. Switching to CPU version"
             )
-            self.config["training_parameters"]["device"] = "cpu"
+            config.training_parameters.device = "cpu"
+
+        return config

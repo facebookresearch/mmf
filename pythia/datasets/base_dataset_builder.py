@@ -72,6 +72,10 @@ class BaseDatasetBuilder:
             dataset.try_fast_read()
         return dataset
 
+    @classmethod
+    def config_path(cls):
+        return None
+
     def _load(self, dataset_type, config, *args, **kwargs):
         """
         This is used to prepare the dataset and load it from a path.

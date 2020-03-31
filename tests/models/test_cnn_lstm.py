@@ -11,6 +11,7 @@ from pythia.common.sample import Sample, SampleList
 from pythia.models.cnn_lstm import CNNLSTM
 from pythia.utils.configuration import ConfigNode, Configuration
 from pythia.utils.general import get_pythia_root
+from tests.test_utils import dummy_args
 
 
 class TestModelCNNLSTM(unittest.TestCase):
@@ -22,7 +23,9 @@ class TestModelCNNLSTM(unittest.TestCase):
             get_pythia_root(), "..", "configs", "vqa", "clevr", "cnn_lstm.yml"
         )
         config_path = os.path.abspath(config_path)
-        configuration = Configuration(config_path)
+        args = dummy_args()
+        args.opts.append("config={}".format(config_path))
+        configuration = Configuration(args)
         configuration.config["datasets"] = "clevr"
         configuration.freeze()
         self.config = configuration.config
