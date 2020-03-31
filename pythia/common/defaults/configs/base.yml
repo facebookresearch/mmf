@@ -73,6 +73,8 @@ training_parameters:
     # Level of logging, only logs which are >= to current level will be logged
     logger_level: info
 
+    device: cuda
+
     # Local rank of the GPU device
     local_rank: null
 
@@ -133,6 +135,8 @@ datasets: []
 
 # Defines which model you want to train on
 model: null
+
+config: null
 
 # Attributes for optimizer, examples can be found in models' configs in
 # configs folder

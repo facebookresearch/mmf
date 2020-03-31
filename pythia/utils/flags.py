@@ -34,9 +34,9 @@ class Flags:
             default="all",
             help="Datasets to be used for required task",
         )
-        self.parser.add_argument(
-            "--model", type=str, required=True, help="Model for training"
-        )
+        # self.parser.add_argument(
+        #     "--model", type=str, default="", help="Model for training"
+        # )
         self.parser.add_argument(
             "--run_type",
             type=str,

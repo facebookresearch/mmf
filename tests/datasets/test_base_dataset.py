@@ -6,6 +6,8 @@ from pythia.common.registry import registry
 from pythia.datasets.base_dataset import BaseDataset
 from pythia.utils.configuration import Configuration
 
+from ..test_utils import dummy_args
+
 
 class TestBaseDataset(unittest.TestCase):
     def test_init_processors(self):
@@ -13,8 +15,9 @@ class TestBaseDataset(unittest.TestCase):
             os.path.abspath(__file__),
             "../../../pythia/common/defaults/configs/datasets/vqa/vqa2.yml",
         )
-
-        configuration = Configuration(os.path.abspath(path))
+        args = dummy_args()
+        args.opts.append("config={}".format(path))
+        configuration = Configuration(args)
         self._fix_configuration(configuration)
         configuration.freeze()
 

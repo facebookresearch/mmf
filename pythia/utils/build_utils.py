@@ -8,17 +8,7 @@ from pythia.utils.general import get_optimizer_parameters
 
 
 def build_trainer(args, *rest, **kwargs):
-    configuration = Configuration(args.config)
-
-    # Update with the config override if passed
-    configuration.override_with_cmd_config(args.config_override)
-
-    # Now, update with opts args that were passed
-    configuration.override_with_cmd_opts(args.opts)
-
-    # Finally, update with args that were specifically passed
-    # as arguments
-    configuration.update_with_args(args)
+    configuration = Configuration(args)
     configuration.freeze()
 
     # Do set runtime args which can be changed by pythia
