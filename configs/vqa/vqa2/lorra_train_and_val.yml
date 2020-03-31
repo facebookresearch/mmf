@@ -2,7 +2,7 @@ includes:
 - ../configs/vqa/vqa2/lorra.yml
 task_attributes:
   vqa:
-    dataset_attributes:
+    dataset_config:
       vqa2:
         image_features:
           train:

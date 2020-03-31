@@ -1,10 +1,10 @@
 includes:
 - ../configs/captioning/coco/butd.yml
-model_attributes:
+model_config:
   butd: &butd
     inference:
       type: beam_search
       params:
         beam_length: 5
-training_parameters:
+training:
   batch_size: 1

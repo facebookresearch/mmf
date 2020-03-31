@@ -2,7 +2,7 @@ includes:
 - common/defaults/configs/datasets/reasoning/mmimdb.yml
 - common/defaults/configs/models/vilbert.yml
 
-model_attributes:
+model_config:
   vilbert:
     training_head_type: mmimdb
     losses:
@@ -12,7 +12,7 @@ model_attributes:
     - macro_f1
     - micro_f1
 
-dataset_attributes:
+dataset_config:
   mmimdb:
     return_info: true
     processors:
@@ -26,19 +26,19 @@ dataset_attributes:
           mask_probability: 0
           max_seq_length: 256
 
-optimizer_attributes:
+optimizer:
   type: adam_w
   params:
     lr: 5e-5
     eps: 1e-8
 
-scheduler_attributes:
+scheduler:
   type: warmup_linear
   params:
     num_warmup_steps: 2000
     num_training_steps: 88000
 
-training_parameters:
+training:
   batch_size: 480
   lr_scheduler: true
   # Don't forget to update schedule_attributes if you update this

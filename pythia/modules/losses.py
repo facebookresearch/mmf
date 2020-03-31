@@ -19,7 +19,7 @@ in the following way:
 
 .. code::
 
-   model_attributes:
+   model_config:
        some_model:
            losses:
                - type: custom
@@ -38,7 +38,7 @@ from pythia.common.registry import registry
 class Losses(nn.Module):
     """``Losses`` acts as an abstraction for instantiating and calculating
     losses. ``BaseModel`` instantiates this class based on the `losses`
-    attribute in the model's configuration `model_attributes`. ``loss_list``
+    attribute in the model's configuration `model_config`. ``loss_list``
     needs to be a list for each separate loss containing `type` and `params`
     attributes.
 
@@ -67,7 +67,7 @@ class Losses(nn.Module):
     def __init__(self, loss_list):
         super().__init__()
         self.losses = []
-        tp = registry.get("config").training_parameters
+        tp = registry.get("config").training
         self._evalai_inference = tp.evalai_inference
         for loss in loss_list:
             self.losses.append(PythiaLoss(loss))

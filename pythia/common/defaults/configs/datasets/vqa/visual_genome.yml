@@ -1,4 +1,4 @@
-dataset_attributes:
+dataset_config:
   visual_genome:
       data_root_dir: ../data
       image_depth_first: false
@@ -71,7 +71,7 @@ dataset_attributes:
               vocab_file: vocabs/vocabulary_100k.txt
         synset_processor:
           type: vocab
-          params: 
+          params:
             max_length: 1
             vocab:
               type: random
@@ -89,6 +89,6 @@ dataset_attributes:
       use_ocr: false
       # Return spatial information of OCR tokens if present
       use_ocr_info: false
-training_parameters:
+training:
     monitored_metric: visual_genome/vqa_accuracy
     metric_minimize: false

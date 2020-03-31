@@ -1,6 +1,6 @@
 includes:
 - common/defaults/configs/datasets/captioning/coco.yml
-model_attributes:
+model_config:
   butd: &butd
     model_data_dir: ../data/
     metrics:
@@ -35,13 +35,13 @@ model_attributes:
         weights_file: detectron/fc6/fc7_w.pkl
     inference:
       type: greedy
-optimizer_attributes:
+optimizer:
   type: Adamax
   params:
     eps: 1.0e-08
     lr: 0.01
     weight_decay: 0
-training_parameters:
+training:
   clip_norm_mode: all
   clip_gradients: true
   lr_ratio: 0.1

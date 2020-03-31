@@ -157,7 +157,7 @@ class PythiaBert(Pythia):
             },
             {
                 "params": [p for _, p in image_feature_encoders_params],
-                "lr": (config["optimizer_attributes"]["params"]["lr"] * 0.1),
+                "lr": (config["optimizer"]["params"]["lr"] * 0.1),
                 "weight_decay": 0.01,
             },
         ]

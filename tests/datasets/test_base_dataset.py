@@ -29,7 +29,7 @@ class TestBaseDataset(unittest.TestCase):
         configuration.freeze()
 
         base_dataset = BaseDataset(
-            "vqa2", "train", configuration.get_config()["dataset_attributes"]["vqa2"]
+            "vqa2", "train", configuration.get_config()["dataset_config"]["vqa2"]
         )
         expected_processors = [
             "answer_processor",
@@ -50,7 +50,7 @@ class TestBaseDataset(unittest.TestCase):
             self.assertIsNotNone(registry.get("{}_{}".format("vqa2", processor)))
 
     def _fix_configuration(self, configuration):
-        vqa2_config = configuration.config["dataset_attributes"]["vqa2"]
+        vqa2_config = configuration.config["dataset_config"]["vqa2"]
         processors = vqa2_config["processors"]
         processors.pop("text_processor")
         processors.pop("context_processor")

@@ -2,7 +2,7 @@ includes:
 - ../configs/pythia_bert/coco_pretrain.yml
 - common/defaults/configs/datasets/captioning/masked_cc.yml
 
-model_attributes:
+model_config:
   pythia_bert:
     combine_embeddings: true
     model_data_dir: ../data/
@@ -56,6 +56,6 @@ model_attributes:
       num_heads: 8
       dropout: 0.1
 
-dataset_attributes:
+dataset_config:
   masked_cc:
     return_info: true

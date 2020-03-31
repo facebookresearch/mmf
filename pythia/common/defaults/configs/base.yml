@@ -1,5 +1,5 @@
 # Configuration for training
-training_parameters:
+training:
     # Name of the trainer class used to define the training/evalution loop
     trainer: 'base_trainer'
     # Name of the experiment, will be used while saving checkpoints
@@ -120,15 +120,15 @@ training_parameters:
 
     find_unused_parameters: false
 
-# Attributes for model, default configuration files for various models
+# Configuration for models, default configuration files for various models
 # included in pythia can be found under configs directory in root folder
-model_attributes: {}
+model_config: {}
 
-# Attributes for datasets. Separate configuration
+# Configuration for datasets. Separate configuration
 # for different datasets included in pythia are included in dataset folder
 # which can be mixed and matched to train multiple datasets together
 # An example for mixing all vqa datasets is present under vqa folder
-dataset_attributes: {}
+dataset_config: {}
 
 # Defines which datasets from the above tasks you want to train on
 datasets: []
@@ -136,12 +136,17 @@ datasets: []
 # Defines which model you want to train on
 model: null
 
+# Config file to be optionally passed by the user
 config: null
 
-# Attributes for optimizer, examples can be found in models' configs in
+# Configuration for optimizer, examples can be found in models' configs in
 # configs folder
-optimizer_attributes: {}
+optimizer: {}
 
+# Configuration for scheduler, examples can be found in models' configs
+scheduler: {}
+
+# Configuration for the distributed setup
 distributed:
     # Typically tcp://hostname:port that will be used to establish initial connection
     init_method: null

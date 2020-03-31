@@ -77,13 +77,13 @@ For example:
 python -m torch.distributed.launch --nproc_per_node 4 tools/run.py --tasks vqa --datasets m4c_textvqa --model m4c \
 --config configs/vqa/m4c_textvqa/m4c.yml \
 --save_dir save/m4c \
-training_parameters.distributed True
+training.distributed True
 
 # alternative: Data Parallel (slower, but results should be the same)
 python tools/run.py --tasks vqa --datasets m4c_textvqa --model m4c \
 --config configs/vqa/m4c_textvqa/m4c.yml \
 --save_dir save/m4c \
-training_parameters.data_parallel True
+training.data_parallel True
 ```
 (Replace `m4c_textvqa` with other datasets and `configs/vqa/m4c_textvqa/m4c.yml` with other config files to train with other datasets and configurations. See the table above. You can also specify a different path to `--save_dir` to save to a location you prefer.)
 

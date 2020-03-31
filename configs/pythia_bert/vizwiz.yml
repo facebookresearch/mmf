@@ -2,7 +2,7 @@ includes:
 - common/defaults/configs/datasets/vqa/vizwiz.yml
 - ../configs/pythia_bert/vqa2.yml
 
-model_attributes:
+model_config:
   pythia_bert:
     hidden_size: 768
     hidden_dropout_prob: 0.1
@@ -12,7 +12,7 @@ model_attributes:
     metrics:
     - vqa_accuracy
 
-dataset_attributes:
+dataset_config:
   vizwiz:
     return_info: true
     image_features:
@@ -21,7 +21,7 @@ dataset_attributes:
           val:
           - /private/home/vedanuj/projects/pythia-internal/data/vizwiz/detectron_fix_100/fc6
           test:
-          - /private/home/vedanuj/projects/pythia-internal/data/vizwiz/detectron_fix_100/fc6      
+          - /private/home/vedanuj/projects/pythia-internal/data/vizwiz/detectron_fix_100/fc6
     processors:
       # Stop fasttext from loading by overriding the context_processor
       context_processor:
@@ -37,6 +37,6 @@ dataset_attributes:
           mask_probability: 0
           max_seq_length: 128
 
-training_parameters:
+training:
   monitored_metric: vizwiz/vqa_accuracy
   metric_minimize: false

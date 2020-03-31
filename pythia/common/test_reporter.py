@@ -24,11 +24,11 @@ class TestReporter(Dataset):
         self.writer = registry.get("writer")
         self.report = []
         self.timer = Timer()
-        self.training_parameters = self.config["training_parameters"]
-        self.num_workers = self.training_parameters["num_workers"]
-        self.batch_size = self.training_parameters["batch_size"]
+        self.training_config = self.config["training"]
+        self.num_workers = self.training_config["num_workers"]
+        self.batch_size = self.training_config["batch_size"]
         self.report_folder_arg = self.config.get("report_folder", None)
-        self.experiment_name = self.training_parameters.get("experiment_name", "")
+        self.experiment_name = self.training_config.get("experiment_name", "")
 
         self.datasets = []
 
@@ -38,7 +38,7 @@ class TestReporter(Dataset):
         self.current_dataset_idx = -1
         self.current_dataset = self.datasets[self.current_dataset_idx]
 
-        self.save_dir = self.config.training_parameters.save_dir
+        self.save_dir = self.config.training.save_dir
         self.report_folder = ckpt_name_from_core_args(self.config)
         self.report_folder += foldername_from_config_override(self.config)
 
@@ -95,22 +95,19 @@ class TestReporter(Dataset):
             dataset=self.current_dataset,
             collate_fn=BatchCollator(),
             num_workers=self.num_workers,
-            pin_memory=self.config.training_parameters.pin_memory,
+            pin_memory=self.config.training.pin_memory,
             **other_args
         )
 
     def _add_extra_args_for_dataloader(self, other_args={}):
-        training_parameters = self.config.training_parameters
+        training = self.config.training
 
-        if (
-            training_parameters.local_rank is not None
-            and training_parameters.distributed
-        ):
+        if training.local_rank is not None and training.distributed:
             other_args["sampler"] = DistributedSampler(self.current_dataset)
         else:
             other_args["shuffle"] = True
 
-        batch_size = training_parameters.batch_size
+        batch_size = training.batch_size
 
         world_size = get_world_size()
 

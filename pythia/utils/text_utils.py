@@ -8,7 +8,7 @@ in the following way:
 
 .. code::
 
-   model_attributes:
+   model_config:
        some_model:
            inference:
                - type: greedy
@@ -16,9 +16,10 @@ in the following way:
 """
 import os
 import re
-import torch
-from itertools import chain
 from collections import Counter
+from itertools import chain
+
+import torch
 
 from pythia.common.registry import registry
 from pythia.utils.general import get_pythia_root

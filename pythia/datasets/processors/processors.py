@@ -25,7 +25,7 @@ different moving parts.
 Config::
 
 
-    dataset_attributes:
+    dataset_config:
         vqa2:
             processors:
                 text_processor:

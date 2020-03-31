@@ -1,7 +1,7 @@
 includes:
 - common/defaults/configs/datasets/captioning/masked_coco.yml
 
-dataset_attributes:
+dataset_config:
   masked_coco:
     return_info: true
 
@@ -14,7 +14,7 @@ dataset_attributes:
         - imdb/coco_captions/imdb_karpathy_train_by_image.npy
         - imdb/coco_captions/imdb_coco_full_val.npy
 
-model_attributes:
+model_config:
   visual_bert:
     bert_model_name: bert-base-uncased
     training_head_type: pretraining
@@ -32,19 +32,19 @@ model_attributes:
     finetune_lr_multiplier: 1
     metrics: []
 
-optimizer_attributes:
+optimizer:
   type: adam_w
   params:
     lr: 5e-5
     eps: 1e-8
 
-scheduler_attributes:
+scheduler:
   type: warmup_linear
   params:
     num_warmup_steps: 1000
     num_training_steps: 11000
-    
-training_parameters:
+
+training:
   batch_size: 480
   lr_scheduler: true
   # Don't forget to update schedule_attributes if you update this

@@ -20,7 +20,7 @@ class Checkpoint:
         self.trainer = trainer
 
         self.config = self.trainer.config
-        self.save_dir = self.config.training_parameters.save_dir
+        self.save_dir = self.config.training.save_dir
         self.model_name = self.config.model
 
         self.ckpt_foldername = self.save_dir
@@ -57,7 +57,7 @@ class Checkpoint:
             f.write(self.config.pretty())
 
     def load_state_dict(self):
-        tp = self.config.training_parameters
+        tp = self.config.training
 
         suffix = "best.ckpt" if tp.resume_best else "current.ckpt"
         reverse_suffix = "best.ckpt" if not tp.resume_best else "current.ckpt"
@@ -91,7 +91,7 @@ class Checkpoint:
                     self._load(ckpt_filepath)
 
     def _load(self, file, force=False, load_pretrained=False):
-        tp = self.config.training_parameters
+        tp = self.config.training
         self.trainer.writer.write("Loading checkpoint")
 
         ckpt = self._torch_load(file)

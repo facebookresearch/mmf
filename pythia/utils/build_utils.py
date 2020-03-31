@@ -14,7 +14,7 @@ def build_trainer(configuration, *rest, **kwargs):
     registry.register("config", config)
     registry.register("configuration", configuration)
 
-    trainer_type = config.training_parameters.trainer
+    trainer_type = config.training.trainer
     trainer_cls = registry.get_trainer_class(trainer_type)
     trainer_obj = trainer_cls(configuration)
 
@@ -41,7 +41,7 @@ def build_model(config):
 
 
 def build_optimizer(model, config):
-    optimizer_config = config.optimizer_attributes
+    optimizer_config = config.optimizer
     if not hasattr(optimizer_config, "type"):
         raise ValueError(
             "Optimizer attributes must have a 'type' key "
@@ -71,7 +71,7 @@ def build_optimizer(model, config):
 
 
 def build_scheduler(optimizer, config):
-    scheduler_config = config.get("scheduler_attributes", {})
+    scheduler_config = config.get("scheduler", {})
 
     if not hasattr(scheduler_config, "type"):
         warnings.warn(

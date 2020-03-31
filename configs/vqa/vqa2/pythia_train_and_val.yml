@@ -1,6 +1,6 @@
 includes:
 - ../configs/vqa/vqa2/pythia.yml
-dataset_attributes:
+dataset_config:
   vqa2:
     image_features:
       train:

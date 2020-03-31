@@ -44,7 +44,7 @@ class BUTD(Pythia):
             {"params": self.classifier.parameters()},
             {
                 "params": self.image_feature_encoders.parameters(),
-                "lr": (config["optimizer_attributes"]["params"]["lr"] * 0.1),
+                "lr": (config["optimizer"]["params"]["lr"] * 0.1),
             },
         ]
         return params

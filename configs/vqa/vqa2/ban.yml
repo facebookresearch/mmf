@@ -1,6 +1,6 @@
 includes:
 - common/defaults/configs/datasets/vqa/vqa2.yml
-model_attributes:
+model_config:
   ban:
     metrics:
     - vqa_accuracy
@@ -29,13 +29,13 @@ model_attributes:
       # out dim will be taken from registry as set by dataset builder
       hidden_size: 600
       dropout: 0.5
-optimizer_attributes:
+optimizer:
   type: Adamax
   params:
     eps: 1.0e-08
     lr: 0.01
     weight_decay: 0
-training_parameters:
+training:
   clip_norm_mode: all
   clip_gradients: true
   lr_ratio: 0.1

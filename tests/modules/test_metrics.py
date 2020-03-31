@@ -22,7 +22,7 @@ class TestModuleMetrics(unittest.TestCase):
             config = yaml.load(f, Loader=yaml.FullLoader)
 
         config = ConfigNode(config)
-        captioning_config = config.dataset_attributes.coco
+        captioning_config = config.dataset_config.coco
         caption_processor_config = captioning_config.processors.caption_processor
         vocab_path = os.path.join(
             os.path.abspath(__file__), "..", "..", "data", "vocab.txt"

@@ -2,7 +2,7 @@ includes:
 - common/defaults/configs/datasets/vqa/masked_vqa2.yml
 - ../configs/pythia_bert/coco_pretrain.yml
 
-dataset_attributes:
+dataset_config:
   masked_vqa2:
     imdb_files:
       train:

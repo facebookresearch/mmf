@@ -1,7 +1,7 @@
 includes:
 - common/defaults/configs/datasets/captioning/m4c_textcaps.yml
 # Use soft copy
-dataset_attributes:
+dataset_config:
   m4c_textcaps:
     image_features:
       train:
@@ -44,7 +44,7 @@ dataset_attributes:
         params:
           max_length: 50
     use_ocr: False  # remove all the OCRs from each image
-model_attributes:
+model_config:
   m4c_captioner:
     lr_scale_frcn: 0.1
     lr_scale_text_bert: 0.1
@@ -74,13 +74,13 @@ model_attributes:
     losses:
     - type: m4c_decoding_bce_with_mask
     remove_unk_in_pred: true
-optimizer_attributes:
+optimizer:
   params:
     eps: 1.0e-08
     lr: 1e-4
     weight_decay: 0
   type: Adam
-training_parameters:
+training:
     clip_norm_mode: all
     clip_gradients: true
     max_grad_l2_norm: 0.25

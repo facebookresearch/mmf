@@ -1,6 +1,6 @@
 includes:
 - ../configs/vqa/textvqa/pythia.yml
-model_attributes:
+model_config:
   ban:
     metrics:
     - type: vqa_accuracy

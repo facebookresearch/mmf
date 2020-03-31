@@ -1,7 +1,7 @@
 includes:
 - common/defaults/configs/datasets/vqa/vizwiz.yml
 # Use soft copy
-dataset_attributes:
+dataset_config:
   vizwiz:
     use_ocr: true
     processors:
@@ -17,7 +17,7 @@ dataset_attributes:
             params: {}
           max_length: 50
           num_answers: 10
-model_attributes:
+model_config:
   lorra: &lorra
     model_data_dir: ../data
     metrics:
@@ -88,13 +88,13 @@ model_attributes:
       params:
         embedding_dim: 350
   lorra_with_glove: *lorra
-optimizer_attributes:
+optimizer:
   params:
     eps: 1.0e-08
     lr: 0.01
     weight_decay: 0
   type: Adamax
-training_parameters:
+training:
     clip_norm_mode: all
     clip_gradients: true
     max_grad_l2_norm: 0.25

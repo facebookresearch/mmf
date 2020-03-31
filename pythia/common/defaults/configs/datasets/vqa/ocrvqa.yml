@@ -1,4 +1,4 @@
-dataset_attributes:
+dataset_config:
   ocrvqa:
       data_root_dir: ../data
       image_depth_first: false

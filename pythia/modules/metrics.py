@@ -36,7 +36,7 @@ Example::
 
 Example config for above metric::
 
-    model_attributes:
+    model_config:
         pythia:
             metrics:
             - type: some

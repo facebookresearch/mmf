@@ -1,7 +1,7 @@
 includes:
 - common/defaults/configs/datasets/reasoning/masked_mmimdb.yml
 
-model_attributes:
+model_config:
   visual_bert:
     bert_model_name: bert-base-uncased
     training_head_type: pretraining
@@ -20,23 +20,23 @@ model_attributes:
     metrics:
     - vqa_accuracy
 
-dataset_attributes:
+dataset_config:
   masked_mmimdb:
     return_info: true
 
-optimizer_attributes:
+optimizer:
   type: adam_w
   params:
     lr: 5e-5
     eps: 1e-8
 
-scheduler_attributes:
+scheduler:
   type: warmup_linear
   params:
     num_warmup_steps: 1000
     num_training_steps: 11000
-    
-training_parameters:
+
+training:
   batch_size: 480
   lr_scheduler: true
   # Don't forget to update schedule_attributes if you update this

@@ -1,4 +1,4 @@
-dataset_attributes:
+dataset_config:
   coco:
     data_root_dir: ../data
     image_depth_first: false
@@ -43,6 +43,6 @@ dataset_attributes:
     use_ocr: false
     # Return spatial information of OCR tokens if present
     use_ocr_info: false
-training_parameters:
+training:
     monitored_metric: coco/caption_bleu4
     metric_minimize: false
