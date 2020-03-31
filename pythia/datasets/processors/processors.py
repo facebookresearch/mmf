@@ -393,7 +393,9 @@ class FastTextProcessor(VocabProcessor):
             needs_download = True
 
         model_file = self.config.model_file
-        model_file = os.path.join(get_pythia_root(), model_file)
+        # If model_file is a already an existing path don't join pythia root
+        if not os.path.exists(model_file):
+            model_file = os.path.join(get_pythia_root(), model_file)
 
         if not os.path.exists(model_file):
             if _is_master:
@@ -412,7 +414,7 @@ class FastTextProcessor(VocabProcessor):
         _is_master = is_master()
 
         model_file_path = os.path.join(
-            get_pythia_root(), ".vector_cache", "wiki.en.bin"
+            get_pythia_root(), ".pythia_cache", "wiki.en.bin"
         )
 
         if not _is_master:
