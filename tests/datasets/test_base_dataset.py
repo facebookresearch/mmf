@@ -18,6 +18,13 @@ class TestBaseDataset(unittest.TestCase):
         args = dummy_args()
         args.opts.append("config={}".format(path))
         configuration = Configuration(args)
+        answer_processor = configuration.get_config()["dataset_attributes"]["vqa2"][
+            "processors"
+        ]["answer_processor"]
+        vocab_path = os.path.join(
+            os.path.abspath(__file__), "..", "..", "data", "vocab.txt"
+        )
+        answer_processor["params"]["vocab_file"] = os.path.abspath(vocab_path)
         self._fix_configuration(configuration)
         configuration.freeze()
 
