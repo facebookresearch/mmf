@@ -2,13 +2,13 @@
 import os
 import unittest
 
-import yaml
 import torch
+import yaml
 
 from pythia.datasets.processors.processors import (
     CaptionProcessor,
-    MultiHotAnswerFromVocabProcessor,
     EvalAIAnswerProcessor,
+    MultiHotAnswerFromVocabProcessor,
 )
 from pythia.utils.configuration import ConfigNode
 
@@ -33,6 +33,7 @@ class TestDatasetProcessors(unittest.TestCase):
         vocab_path = os.path.join(
             os.path.abspath(__file__), "..", "..", "data", "vocab.txt"
         )
+        caption_processor_config.params.vocab.type = "random"
         caption_processor_config.params.vocab.vocab_file = os.path.abspath(vocab_path)
         caption_processor = CaptionProcessor(caption_processor_config.params)
 
