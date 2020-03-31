@@ -6,6 +6,7 @@ import os
 from copy import deepcopy
 
 import torch
+from omegaconf import OmegaConf
 from torch import nn
 from transformers.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
 from transformers.modeling_bert import (
@@ -148,9 +149,10 @@ class VisualBERT(BaseModel):
         # all of the required parameters for BERTConfig and a pretrained
         # model won't be loaded
         self.bert_model_name = getattr(self.config, "bert_model_name", None)
+        self.bert_config = BertConfig.from_dict(
+            OmegaConf.to_container(self.config, resolve=True)
+        )
         if self.bert_model_name is None:
-            self.bert_config = BertConfig.from_dict(self.config)
-
             self.bert = VisualBERTBase(
                 self.bert_config,
                 visual_embedding_dim=self.config.visual_embedding_dim,
@@ -162,6 +164,7 @@ class VisualBERT(BaseModel):
         else:
             self.bert = VisualBERTBase.from_pretrained(
                 self.config.bert_model_name,
+                config=self.bert_config,
                 cache_dir=os.path.join(
                     str(PYTORCH_PRETRAINED_BERT_CACHE), "distributed_{}".format(-1)
                 ),

@@ -43,7 +43,7 @@ dataset_attributes:
           params:
             download_initially: false
             max_length: 50
-            model_file: .vector_cache/wiki.en.bin
+            model_file: .pythia_cache/wiki.en.bin
         ocr_token_processor:
           type: simple_word
           params: {}

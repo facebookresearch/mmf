@@ -298,7 +298,10 @@ class IntersectedVocab(BaseVocab):
         if name == "glove":
             params.append(int(dim))
 
-        vector_cache = os.path.join(get_pythia_root(), ".vector_cache")
+        # For user defined vocab cache directory check `vocab_cache` arg
+        vector_cache = kwargs.get("vocab_cache", None)
+        if vector_cache is None or not os.path.exists(vector_cache):
+            vector_cache = os.path.join(get_pythia_root(), ".pythia_cache")
         embedding = getattr(vocab, class_name)(*params, cache=vector_cache)
 
         self.vectors = torch.empty(
@@ -345,7 +348,10 @@ class PretrainedVocab(BaseVocab):
                 writer.write(error, "error")
             raise RuntimeError(error)
 
-        vector_cache = os.path.join(get_pythia_root(), ".vector_cache")
+        # For user defined vocab cache directory check `vocab_cache` arg
+        vector_cache = kwargs.get("vocab_cache", None)
+        if vector_cache is None or not os.path.exists(vector_cache):
+            vector_cache = os.path.join(get_pythia_root(), ".pythia_cache")
 
         embedding = vocab.pretrained_aliases[embedding_name](cache=vector_cache)
 
@@ -418,8 +424,10 @@ class ModelVocab(BaseVocab):
         from fastText import load_model
         from pythia.common.registry import registry
 
-        pythia_root = get_pythia_root()
-        model_file = os.path.join(pythia_root, model_file)
+        # If model_file is a already an existing path don't join pythia root
+        if not os.path.exists(model_file):
+            pythia_root = get_pythia_root()
+            model_file = os.path.join(pythia_root, model_file)
 
         registry.get("writer").write("Loading fasttext model now from %s" % model_file)
 
