@@ -134,16 +134,13 @@ class Configuration:
         user_config = self._build_user_config(opts_config)
         model_config = self._build_model_config(opts_config)
         dataset_config = self._build_dataset_config(opts_config)
-        args_overrides = self._build_args_overrides(args)
+        args_overrides = self._build_demjson_config(args.config_override)
 
         self._default_config = default_config
         self._user_config = user_config
         self.config = OmegaConf.merge(
             default_config, model_config, dataset_config, user_config, args_overrides
         )
-
-        # TODO: Remove in next iteration
-        self.config = self._update_with_args(self.config, args)
 
         self.config = self._merge_with_dotlist(self.config, args.opts)
         self._update_specific(self.config)
@@ -167,13 +164,6 @@ class Configuration:
 
         return user_config
 
-    def _build_args_overrides(self, args):
-        # Update with demjson if passed
-        demjson_config = self._get_demjson_config(args.config_override)
-        # TODO: Remove in next iteration
-        args_config = self._get_args_config(args)
-        return OmegaConf.merge(demjson_config, args_config)
-
     def _build_model_config(self, config):
         model = config.model
         if model is None:
@@ -181,15 +171,17 @@ class Configuration:
         model_cls = registry.get_model_class(model)
 
         if model_cls is None:
-            warnings.warn("No model named '{}' has been registered".format(model))
+            warning = "No model named '{}' has been registered".format(model)
+            warnings.warn(warning)
             return OmegaConf.create()
 
         default_model_config_path = model_cls.config_path()
 
         if default_model_config_path is None:
-            warnings.warn(
-                "Model {}'s class has no default configuration provided".format(model)
+            warning = "Model {}'s class has no default configuration provided".format(
+                model
             )
+            warnings.warn(warning)
             return OmegaConf.create()
 
         return load_yaml(default_model_config_path)
@@ -213,17 +205,15 @@ class Configuration:
             builder_cls = registry.get_builder_class(dataset)
 
             if builder_cls is None:
-                warnings.warn(
-                    "No dataset named '{}' has been registered".format(dataset)
-                )
+                warning = "No dataset named '{}' has been registered".format(dataset)
+                warnings.warn(warning)
                 continue
             default_dataset_config_path = builder_cls.config_path()
             if default_dataset_config_path is None:
-                warnings.warn(
-                    "Dataset {}'s builder class has no default configuration provided".format(
-                        dataset
-                    )
+                warning = "Dataset {}'s builder class has no default configuration provided".format(
+                    dataset
                 )
+                warnings.warn(warning)
                 continue
             dataset_config = OmegaConf.merge(
                 dataset_config, load_yaml(default_dataset_config_path)
@@ -235,16 +225,7 @@ class Configuration:
         self._register_resolvers()
         return self.config
 
-    def _update_with_args(self, config, args, force=False):
-        args_dict = vars(args)
-
-        self._update_key(config, args_dict)
-        if force is True:
-            config.update(args_dict)
-
-        return config
-
-    def _get_demjson_config(self, demjson_string):
+    def _build_demjson_config(self, demjson_string):
         if demjson_string is None:
             return OmegaConf.create()
 
@@ -350,6 +331,9 @@ class Configuration:
         # self.config = ConfigNode(self.config)
         OmegaConf.set_struct(self.config, True)
 
+    def defrost(self):
+        OmegaConf.set_struct(self.config, False)
+
     def _convert_to_dot_list(self, opts):
         if opts is None:
             opts = []
@@ -413,21 +397,6 @@ class Configuration:
         return os.path.join(
             directory, "..", "common", "defaults", "configs", "base.yml"
         )
-
-    def _update_key(self, dictionary, update_dict):
-        """
-        Takes a single depth dictionary update_dict and uses it to
-        update 'dictionary' whenever key in 'update_dict' is found at
-        any level in 'dictionary'
-        """
-        for key, value in dictionary.items():
-            if not isinstance(value, collections.abc.Mapping):
-                if key in update_dict and update_dict[key] is not None:
-                    dictionary[key] = update_dict[key]
-            else:
-                dictionary[key] = self._update_key(value, update_dict)
-
-        return dictionary
 
     def _update_specific(self, config):
         self.writer = registry.get("writer")

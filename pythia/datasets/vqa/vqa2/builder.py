@@ -49,22 +49,6 @@ class VQA2Builder(BaseDatasetBuilder):
                 self.dataset.answer_processor.get_vocab_size(),
             )
 
-    def init_args(self, parser):
-        parser.add_argument_group("VQA2 task specific arguments")
-        parser.add_argument(
-            "--data_root_dir",
-            type=str,
-            default="../data",
-            help="Root directory for data",
-        )
-        parser.add_argument(
-            "-nfr",
-            "--fast_read",
-            type=bool,
-            default=None,
-            help="Disable fast read and load features on fly",
-        )
-
     def set_dataset_class(self, cls):
         self.dataset_class = cls
 

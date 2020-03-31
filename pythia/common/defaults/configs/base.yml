@@ -2,20 +2,65 @@
 training:
     # Name of the trainer class used to define the training/evalution loop
     trainer: 'base_trainer'
+    # Seed to be used for training. -1 means random seed between 1 and 100000.
+    # Either pass fixed through your config or command line arguments
+    seed: null
     # Name of the experiment, will be used while saving checkpoints
     # and generating reports
     experiment_name: run
     # Maximum number of iterations the training will run
     max_updates: 22000
-    # Maximum epochs in case you don't want to use iterations
+    # Maximum epochs in case you don't want to use max_updates
     # Can be mixed with max iterations, so it will stop whichever is
     # completed first. Default: null means epochs won't be used
     max_epochs: null
+
+    # Type of run, train+inference by default means both training and inference
+    # (test) stage will be run, if run_type contains 'val',
+    # inference will be run on val set also.
+    run_type: train_inference
+
+    # Directory for saving checkpoints and other metadata
+    save_dir: "./save"
+
     # After `log_interval` iterations, current iteration's training loss and
     # metrics will be reported. This will also report validation
     # loss and metrics on a single batch from validation set
     # to provide an estimate on validation side
     log_interval: 100
+    # Directory for saving logs, default is "logs" inside the save folder
+    # If log_dir is specifically passed, logs will be written inside that folder
+    log_dir: null
+    # Level of logging, only logs which are >= to current level will be logged
+    logger_level: info
+    # Log format: json, simple
+    log_format: simple
+    # Whether to log detailed final configuration parameters
+    log_detailed_config: false
+    # Whether Pythia should log or not, Default: False, which means
+    # pythia will log by default
+    should_not_log: false
+
+    # Tensorboard control, by default tensorboard is disabled
+    tensorboard: false
+    # Log directory for tensorboard, default points to same as logs
+    tensorboard_logdir: null
+
+    # Size of each batch. If distributed or data_parallel
+    # is used, this will be divided equally among GPUs
+    batch_size: 512
+    # Number of workers to be used in dataloaders
+    num_workers: 4
+    # Some datasets allow fast reading by loading everything in the memory
+    # Use this to enable it
+    fast_read: false
+    # Whether JSON files for evalai evaluation should be generated
+    evalai_inference: false
+    # Use in multi-tasking, when you want to sample tasks proportional to their sizes
+    dataset_size_proportional_sampling: true
+    # Whether to pin memory in dataloader
+    pin_memory: false
+
     # After `checkpoint_interval` iterations, pythia will make a snapshot
     # which will involve creating a checkpoint for current training scenarios
     checkpoint_interval: 1000
@@ -25,18 +70,6 @@ training:
     clip_gradients: false
     # Mode for clip norm
     clip_norm_mode: all
-    # Tensorboard control
-    tensorboard: false
-    tensorboard_logdir: null
-
-    # Seed to be used for training. -1 means random seed.
-    # Either pass fixed through your config or command line arguments
-    seed: null
-    # Size of each batch. If distributed or data_parallel
-    # is used, this will be divided equally among GPUs
-    batch_size: 512
-    # Number of workers to be used in dataloaders
-    num_workers: 4
 
     # Whether to use early stopping, (Default: false)
     should_early_stop: false
@@ -66,44 +99,20 @@ training:
     # Iteration until which warnup should be done
     warmup_iterations: 1000
 
-    # Type of run, train+inference by default means both training and inference
-    # (test) stage will be run, if run_type contains 'val',
-    # inference will be run on val set also.
-    run_type: train+inference
-    # Level of logging, only logs which are >= to current level will be logged
-    logger_level: info
-
-    device: cuda
-
     # Local rank of the GPU device
+    device: cuda
     local_rank: null
 
-    # Whether JSON files for evalai evaluation should be generated
-    evalai_inference: false
     # Use to load specific modules from checkpoint to your model,
     # this is helpful in finetuning. for e.g. you can specify
     # text_embeddings: text_embedding_pythia
     # for loading `text_embedding` module of your model
     # from `text_embedding_pythia`
     pretrained_mapping: {}
-    # Whether the above mentioned pretrained mapping should be loaded or not
+    # If using a pretrained model. Must be used with --resume_file parameter
+    # to specify pretrained model checkpoint. Will load only specific layers if
+    # pretrained mapping is specified in config
     load_pretrained: false
-
-    # Directory for saving checkpoints and other metadata
-    save_dir: "./save"
-    # Directory for saving logs
-    log_dir: "./logs"
-    # Log format: json, simple
-    log_format: simple
-    # Whether to log detailed final configuration parameters
-    log_detailed_config: false
-    # Whether Pythia should log or not, Default: False, which means
-    # pythia will log by default
-    should_not_log: false
-
-    # If verbose dump is active, pythia will dump dataset, model specific
-    # information which can be useful in debugging
-    verbose_dump: false
     # If resume is true, pythia will try to load automatically load
     # last of same parameters from save_dir
     resume: false
@@ -112,13 +121,14 @@ training:
     # `resume_best` will load the best checkpoint according to monitored metric instead of
     # the last saved ckpt
     resume_best: false
-    # Whether to pin memory in dataloader
-    pin_memory: false
 
-    # Use in multi-tasking, when you want to sample tasks proportional to their sizes
-    dataset_size_proportional_sampling: true
+    # If verbose dump is active, pythia will dump dataset, model specific
+    # information which can be useful in debugging
+    verbose_dump: false
 
+    # Turn on if you want to ignore unused parameters in case of DDP
     find_unused_parameters: false
+
 
 # Configuration for models, default configuration files for various models
 # included in pythia can be found under configs directory in root folder
