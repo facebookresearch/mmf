@@ -209,40 +209,6 @@ class MultiDataset:
         for builder in self._builders:
             builder.update_registry_for_model(config)
 
-    def init_args(self, parser):
-        parser.add_argument_group("General MultiDataset Arguments")
-        parser.add_argument(
-            "-dsp",
-            "--dataset_size_proportional_sampling",
-            type=bool,
-            default=0,
-            help="Pass if you want to sample from"
-            " dataset according to its size. Default: Equal "
-            " weighted sampling",
-        )
-
-        # TODO: Figure out later if we want to init args from datasets
-        # self._init_args(parser)
-
-    def _init_args(self, parser):
-        """Override this function to add extra parameters to
-        parser in your child task class.
-
-        Parameters
-        ----------
-        parser : ArgumentParser
-            Original parser object passed from the higher level classes like
-            trainer
-
-        Returns
-        -------
-        type
-            Description of returned object.
-
-        """
-        for builder in self._builders:
-            builder.init_args(parser)
-
     def clean_config(self, config):
         """
         Override this in case you want to clean the config you updated earlier

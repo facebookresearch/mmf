@@ -106,10 +106,6 @@ class BaseModel(nn.Module):
         return None
 
     @classmethod
-    def init_args(cls, parser):
-        return parser
-
-    @classmethod
     def format_state_key(cls, key):
         """Can be implemented if something special needs to be done
         key when pretrained model is being load. This will adapt and return
