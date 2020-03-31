@@ -935,10 +935,12 @@ class BertForMultiModalPreTraining(BertPreTrainedModel):
         super(BertForMultiModalPreTraining, self).__init__(config)
 
         self.bert = BertModel(config)
-        self.cls = BertPreTrainingHeads(config)
         self.training_head_type = training_head_type
         self.fusion_method = config.fusion_method
         self.dropout = nn.Dropout(dropout_prob)
+
+        if "pretraining" in self.training_head_type:
+            self.cls = BertPreTrainingHeads(config)
 
         # Create a copy of config since struct mode won't allow direct overrides
         # classifier_config is only needed for initializing the classifier
@@ -949,30 +951,30 @@ class BertForMultiModalPreTraining(BertPreTrainedModel):
             self.answer_space_size = 3129
             self.classifier = nn.Sequential(
                 BertPredictionHeadTransform(classifier_config),
-                nn.Linear(classifier_config.hidden_size, 3129)
+                nn.Linear(classifier_config.hidden_size, 3129),
             )
         elif "vizwiz" in self.training_head_type:
             self.answer_space_size = 7371
             self.classifier = nn.Sequential(
                 BertPredictionHeadTransform(classifier_config),
-                nn.Linear(classifier_config.hidden_size, 7371)
+                nn.Linear(classifier_config.hidden_size, 7371),
             )
         elif self.training_head_type == "nlvr2":
             classifier_config.hidden_size *= 2
             self.classifier = nn.Sequential(
                 BertPredictionHeadTransform(classifier_config),
-                nn.Linear(classifier_config.hidden_size, 2)
+                nn.Linear(classifier_config.hidden_size, 2),
             )
             classifier_config.hidden_size /= 2
         elif self.training_head_type == "visual_entailment":
             self.classifier = nn.Sequential(
                 BertPredictionHeadTransform(classifier_config),
-                nn.Linear(classifier_config.hidden_size, 3)
+                nn.Linear(classifier_config.hidden_size, 3),
             )
         elif self.training_head_type == "mmimdb":
             self.classifier = nn.Sequential(
                 BertPredictionHeadTransform(classifier_config),
-                nn.Linear(classifier_config.hidden_size, 24)
+                nn.Linear(classifier_config.hidden_size, 24),
             )
 
         self.init_weights()
@@ -993,9 +995,10 @@ class BertForMultiModalPreTraining(BertPreTrainedModel):
         """ Make sure we are sharing the input and output embeddings.
             Export to TorchScript can't handle parameter sharing so we are cloning them instead.
         """
-        self._tie_or_clone_weights(
-            self.cls.predictions.decoder, self.bert.embeddings.word_embeddings
-        )
+        if hasattr(self, "cls"):
+            self._tie_or_clone_weights(
+                self.cls.predictions.decoder, self.bert.embeddings.word_embeddings
+            )
 
     def forward(
         self,
@@ -1012,7 +1015,13 @@ class BertForMultiModalPreTraining(BertPreTrainedModel):
         output_all_attention_masks=False,
     ):
         # in this model, we first embed the images.
-        sequence_output_t, sequence_output_v, pooled_output_t, pooled_output_v, all_attention_mask = self.bert(
+        (
+            sequence_output_t,
+            sequence_output_v,
+            pooled_output_t,
+            pooled_output_v,
+            all_attention_mask,
+        ) = self.bert(
             input_ids,
             image_feat,
             image_loc,
@@ -1023,12 +1032,11 @@ class BertForMultiModalPreTraining(BertPreTrainedModel):
             output_all_attention_masks=output_all_attention_masks,
         )
 
-        prediction_scores_t, prediction_scores_v, seq_relationship_score = self.cls(
-            sequence_output_t, sequence_output_v, pooled_output_t, pooled_output_v
-        )
-
         output_dict = {}
         if "pretraining" in self.training_head_type:
+            prediction_scores_t, prediction_scores_v, seq_relationship_score = self.cls(
+                sequence_output_t, sequence_output_v, pooled_output_t, pooled_output_v
+            )
             if image_target is not None:
                 if self.visual_target == 1:
                     img_loss = self.vis_criterion(prediction_scores_v, image_target)
