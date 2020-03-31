@@ -42,7 +42,7 @@ class TestTextUtils(unittest.TestCase):
         args.opts.append("config={}".format(config_path))
         configuration = Configuration(args)
         configuration.config["datasets"] = "coco"
-        configuration.config["model_attributes"]["butd"]["inference"]["params"][
+        configuration.config["model_config"]["butd"]["inference"]["params"][
             "sum_threshold"
         ] = 0.5
         configuration.freeze()
@@ -137,7 +137,7 @@ class TestTextUtils(unittest.TestCase):
     def test_nucleus_sampling(self):
         vocab = text_utils.VocabFromText(self.VOCAB_EXAMPLE_SENTENCES)
 
-        model_config = self.config.model_attributes.butd
+        model_config = self.config.model_config.butd
         model = TestDecoderModel(model_config, vocab)
         model.build()
         model.to("cuda")

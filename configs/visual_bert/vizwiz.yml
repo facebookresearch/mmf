@@ -2,7 +2,7 @@ includes:
 - common/defaults/configs/datasets/vqa/vizwiz.yml
 - ../configs/visual_bert/coco_pretrain.yml
 
-model_attributes:
+model_config:
   visual_bert:
     hidden_size: 768
     hidden_dropout_prob: 0.1
@@ -12,7 +12,7 @@ model_attributes:
     metrics:
     - vqa_accuracy
 
-dataset_attributes:
+dataset_config:
   vizwiz:
     return_info: true
     image_features:
@@ -21,7 +21,7 @@ dataset_attributes:
           val:
           - /private/home/vedanuj/projects/pythia-internal/data/vizwiz/detectron_fix_100/fc6
           test:
-          - /private/home/vedanuj/projects/pythia-internal/data/vizwiz/detectron_fix_100/fc6      
+          - /private/home/vedanuj/projects/pythia-internal/data/vizwiz/detectron_fix_100/fc6
     processors:
       # Stop fasttext from loading by overriding the context_processor
       context_processor:
@@ -36,14 +36,14 @@ dataset_attributes:
               do_lower_case: true
           mask_probability: 0
           max_seq_length: 128
-        
-scheduler_attributes:
+
+scheduler:
   type: warmup_linear
   params:
     num_warmup_steps: 6000
     num_training_steps: 60000
-    
-training_parameters:
+
+training:
   batch_size: 480
   lr_scheduler: true
   # Don't forget to update schedule_attributes if you update this

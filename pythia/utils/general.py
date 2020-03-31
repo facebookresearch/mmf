@@ -18,20 +18,20 @@ from pythia.utils.distributed_utils import get_world_size
 
 def lr_lambda_update(i_iter, cfg):
     if (
-        cfg["training_parameters"]["use_warmup"] is True
-        and i_iter <= cfg["training_parameters"]["warmup_iterations"]
+        cfg["training"]["use_warmup"] is True
+        and i_iter <= cfg["training"]["warmup_iterations"]
     ):
-        alpha = float(i_iter) / float(cfg["training_parameters"]["warmup_iterations"])
-        return cfg["training_parameters"]["warmup_factor"] * (1.0 - alpha) + alpha
+        alpha = float(i_iter) / float(cfg["training"]["warmup_iterations"])
+        return cfg["training"]["warmup_factor"] * (1.0 - alpha) + alpha
     else:
-        idx = bisect(cfg["training_parameters"]["lr_steps"], i_iter)
-        return pow(cfg["training_parameters"]["lr_ratio"], idx)
+        idx = bisect(cfg["training"]["lr_steps"], i_iter)
+        return pow(cfg["training"]["lr_ratio"], idx)
 
 
 def clip_gradients(model, i_iter, writer, config):
     # TODO: Fix question model retrieval
-    max_grad_l2_norm = config["training_parameters"]["max_grad_l2_norm"]
-    clip_norm_mode = config["training_parameters"]["clip_norm_mode"]
+    max_grad_l2_norm = config["training"]["max_grad_l2_norm"]
+    clip_norm_mode = config["training"]["clip_norm_mode"]
 
     if max_grad_l2_norm is not None:
         if clip_norm_mode == "all":
@@ -53,7 +53,7 @@ def clip_gradients(model, i_iter, writer, config):
 
 
 def ckpt_name_from_core_args(config):
-    seed = config["training_parameters"]["seed"]
+    seed = config["training"]["seed"]
 
     ckpt_name = "{}_{}".format(config["datasets"], config["model"])
 
@@ -234,7 +234,7 @@ def extract_file(path, output_dir="."):
 def get_batch_size():
     from pythia.common.registry import registry
 
-    batch_size = registry.get("config").training_parameters.batch_size
+    batch_size = registry.get("config").training.batch_size
 
     world_size = get_world_size()
 

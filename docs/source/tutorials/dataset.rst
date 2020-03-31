@@ -6,7 +6,7 @@ Adding a dataset
 
 This is a tutorial on how to add a new dataset to Pythia.
 
-Pythia is agnostic to kind of datasets that can be added to it. On high level, adding a dataset requires 4 main components. 
+Pythia is agnostic to kind of datasets that can be added to it. On high level, adding a dataset requires 4 main components.
 
 - Dataset Builder
 - Default Configuration
@@ -25,7 +25,7 @@ user to implement following methods after inheriting the class.
 
 - ``__init__(self):``
 
-Inside this function call super().__init__("name") where "name" should your dataset's name like "vqa2". 
+Inside this function call super().__init__("name") where "name" should your dataset's name like "vqa2".
 
 - ``_load(self, dataset_type, config, *args, **kwargs)``
 
@@ -33,8 +33,8 @@ This function loads the dataset, builds an object of class inheriting |BaseDatas
 
 - ``_build(self, dataset_type, config, *args, **kwargs)``
 
-This function actually builds the data required for initializing the dataset for the first time. For e.g. if you need to download some data for your dataset, this 
-all should be done inside this function. 
+This function actually builds the data required for initializing the dataset for the first time. For e.g. if you need to download some data for your dataset, this
+all should be done inside this function.
 
 Finally, you need to register your dataset builder with a key to registry using ``pythia.common.registry.registry.register_builder("key")``.
 
@@ -43,7 +43,7 @@ That's it, that's all you require for inheriting |BaseDatasetBuilder|.
 Let's write down this using example of *CLEVR* dataset.
 
 .. code-block:: python
-    
+
     import json
     import math
     import os
@@ -105,8 +105,8 @@ Let's write down this using example of *CLEVR* dataset.
             return self.dataset
 
         def update_registry_for_model(self, config):
-            # Register both vocab (question and answer) sizes to registry for easy access to the 
-            # models. update_registry_for_model function if present is automatically called by 
+            # Register both vocab (question and answer) sizes to registry for easy access to the
+            # models. update_registry_for_model function if present is automatically called by
             # pythia
             registry.register(
                 self.dataset_name + "_text_vocab_size",
@@ -122,22 +122,22 @@ Default Configuration
 
 Some things to note about Pythia's configuration:
 
-- Each dataset in Pythia has its own default configuration which is usually under this structure 
+- Each dataset in Pythia has its own default configuration which is usually under this structure
   ``pythia/commmon/defaults/configs/datasets/[task]/[dataset].yml`` where ``task`` is the task your dataset belongs to.
 - These dataset configurations can be then included by the user in their end config using ``includes`` directive
 - This allows easy multi-tasking and management of configurations and user can also override the default configurations
   easily in their own config
 
-So, for CLEVR dataset also, we will need to create a default configuration. 
+So, for CLEVR dataset also, we will need to create a default configuration.
 
 The config node is directly passed to your builder which you can then pass to your dataset for any configuration that you need
-for building your dataset. 
+for building your dataset.
 
 Basic structure for a dataset configuration looks like below:
 
 .. code-block:: yaml
 
-    dataset_attributes:
+    dataset_config:
         [dataset]:
             ... your config here
 
@@ -150,8 +150,8 @@ Here, is a default configuration for CLEVR needed based on our dataset and build
 
 .. code-block:: yaml
 
-    dataset_attributes:
-        # You can specify any attributes you want, and you will get them as attributes 
+    dataset_config:
+        # You can specify any attributes you want, and you will get them as attributes
         # inside the config passed to the dataset. Check the Dataset implementation below.
         clevr:
             # Where your data is stored
@@ -192,13 +192,13 @@ Here, is a default configuration for CLEVR needed based on our dataset and build
                         vocab_file: vocabs/clevr_answer_vocab.txt
                         preprocessor:
                             type: simple_word
-                            params: {} 
-    training_parameters:
+                            params: {}
+    training:
         monitored_metric: clevr/clevr_accuracy
         metric_minimize: false
 
 
-Extra field that we have added here is ``training_parameters`` which specify the dataset specific training parameters and will 
+Extra field that we have added here is ``training`` which specify the dataset specific training parameters and will
 be merged with the rest of the training parameters coming from user's config. Your metrics are normally stored in registry as
 ``[dataset]/[metric_key]``, so to monitor accuracy on CLEVR, you need to set it as ``clevr/clevr_accuracy`` and we need to maximize it,
 we set ``metric_minimize`` to ``false``.
@@ -220,8 +220,8 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
 - Inherit :class:`pythia.datasets.base_dataset.BaseDataset`
 - Implement ``__init__(self, dataset_type, config)``. Call parent's init using ``super().__init__("name", dataset_type, config)``
   where "name" is the string representing the name of your dataset.
-- Implement ``get_item(self, idx)``, our replacement for normal ``__getitem__(self, idx)`` you would implement for a torch dataset. This needs to 
-  return an object of class :class:Sample. 
+- Implement ``get_item(self, idx)``, our replacement for normal ``__getitem__(self, idx)`` you would implement for a torch dataset. This needs to
+  return an object of class :class:Sample.
 - Implement ``__len__(self)`` method, which represents size of your dataset.
 - [Optional] Implement ``load_item(self, idx)`` if you need to load something or do something else with data and then call it inside ``get_item``.
 
@@ -299,8 +299,8 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
             ...
 
         def get_item(self, idx):
-            # Get item is like your normal __getitem__ in PyTorch Dataset. Based on id 
-            # return a sample. Check VQA2Dataset implementation if you want to see how 
+            # Get item is like your normal __getitem__ in PyTorch Dataset. Based on id
+            # return a sample. Check VQA2Dataset implementation if you want to see how
             # to do caching in Pythia
             data = self.questions[idx]
 
@@ -311,7 +311,7 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
 
             question = data["question"]
             tokens = tokenize(question, keep=[";", ","], remove=["?", "."])
-            
+
             # This processors are directly assigned as attributes to dataset based on the config
             # we created above
             processed = self.text_processor({"tokens": tokens})
@@ -330,7 +330,7 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
             # Process and add image as a tensor
             current_sample.image = torch.from_numpy(image.transpose(2, 0, 1))
 
-            # Return your sample and Pythia will automatically convert it to SampleList before 
+            # Return your sample and Pythia will automatically convert it to SampleList before
             # passing to the model
             return current_sample
 

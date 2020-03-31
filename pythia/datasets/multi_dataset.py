@@ -67,12 +67,11 @@ class MultiDataset:
                 continue
             builder_instance = builder_class()
 
-            if dataset in self.opts["dataset_attributes"]:
-                attributes = self.opts["dataset_attributes"][dataset]
+            if dataset in self.opts["dataset_config"]:
+                attributes = self.opts["dataset_config"][dataset]
             else:
                 self.writer.write(
-                    "Dataset %s is missing from "
-                    "dataset_attributes in config." % dataset,
+                    "Dataset %s is missing from " "dataset_config in config." % dataset,
                     "error",
                 )
                 sys.exit(1)
@@ -100,10 +99,8 @@ class MultiDataset:
             1 / self._num_datasets for _ in range(self._num_datasets)
         ]
 
-        training_parameters = self._global_config.training_parameters
-        self._proportional_sampling = (
-            training_parameters.dataset_size_proportional_sampling
-        )
+        training = self._global_config.training
+        self._proportional_sampling = training.dataset_size_proportional_sampling
 
         if self._dataset_type != "train":
             # If it is val or test, it needs to be all datasets need to be fully iterated
@@ -254,9 +251,9 @@ class MultiDataset:
         return config
 
     def build_dataloader(self, dataset, opts):
-        training_parameters = self._global_config.training_parameters
-        num_workers = training_parameters.num_workers
-        pin_memory = training_parameters.pin_memory
+        training = self._global_config.training
+        num_workers = training.num_workers
+        pin_memory = training.pin_memory
 
         other_args = {}
 
@@ -279,17 +276,14 @@ class MultiDataset:
         return loader, other_args.get("sampler", None)
 
     def _add_extra_args_for_dataloader(self, dataset, opts, other_args={}):
-        training_parameters = self._global_config.training_parameters
+        training = self._global_config.training
         dataset_type = self._dataset_type
 
         other_args["shuffle"] = False
         if dataset_type != "test":
             other_args["shuffle"] = True
 
-        if (
-            training_parameters.local_rank is not None
-            and training_parameters.distributed
-        ):
+        if training.local_rank is not None and training.distributed:
             other_args["sampler"] = DistributedSampler(
                 dataset, shuffle=other_args["shuffle"]
             )
@@ -302,12 +296,9 @@ class MultiDataset:
         return other_args
 
     def seed_sampler(self, epoch):
-        training_parameters = self._global_config.training_parameters
+        training = self._global_config.training
 
-        if (
-            training_parameters.local_rank is not None
-            and training_parameters.distributed
-        ):
+        if training.local_rank is not None and training.distributed:
             for sampler in self._samplers:
                 assert hasattr(
                     sampler, "set_epoch"

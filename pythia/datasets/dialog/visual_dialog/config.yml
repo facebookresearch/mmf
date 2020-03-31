@@ -34,7 +34,7 @@ task_attributes:
 exp_name: baseline
 loss: logit_bce
 lr_scheduler: true
-model_attributes:
+model_config:
   visdial_top_down_bottom_up:
     classifier:
       type: logit
@@ -75,14 +75,14 @@ model_attributes:
         embedding_init_file: vqa2.0_glove.6B.300d.txt.npy
         kernel_size: 1
         padding: 0
-optimizer_attributes:
+optimizer:
   type: Adamax
   params:
     eps: 1.0e-08
     lr: 0.01
     weight_decay: 0
 run: train+predict
-training_parameters:
+training:
   clip_norm_mode: all
   clip_gradients: true
   lr_ratio: 0.1

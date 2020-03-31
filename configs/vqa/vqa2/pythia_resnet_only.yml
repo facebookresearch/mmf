@@ -1,6 +1,6 @@
 includes:
 - ../configs/vqa/vqa2/pythia.yml
-dataset_attributes:
+dataset_config:
   vqa2:
     image_features:
       train:
@@ -16,7 +16,7 @@ dataset_attributes:
       - imdb/vqa/imdb_valminusminival2014.npy
       val:
       - imdb/vqa/imdb_minival2014.npy
-model_attributes:
+model_config:
   pythia:
     image_feature_encodings:
     - type: default

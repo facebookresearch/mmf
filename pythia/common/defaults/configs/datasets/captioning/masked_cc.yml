@@ -1,4 +1,4 @@
-dataset_attributes:
+dataset_config:
   masked_cc:
     data_root_dir: ../data
     image_depth_first: false

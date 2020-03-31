@@ -366,23 +366,21 @@ class Configuration:
         return [(opt + "=" + value) for opt, value in zip(opts[0::2], opts[1::2])]
 
     def pretty_print(self):
-        if not self.config.training_parameters.log_detailed_config:
+        if not self.config.training.log_detailed_config:
             return
 
         self.writer = registry.get("writer")
 
         self.writer.write("=====  Training Parameters    =====", "info")
-        self.writer.write(
-            self._convert_node_to_json(self.config.training_parameters), "info"
-        )
+        self.writer.write(self._convert_node_to_json(self.config.training), "info")
 
         self.writer.write("======  Dataset Attributes  ======", "info")
         datasets = self.config.datasets.split(",")
 
         for dataset in datasets:
-            if dataset in self.config.dataset_attributes:
+            if dataset in self.config.dataset_config:
                 self.writer.write("======== {} =======".format(dataset), "info")
-                dataset_config = self.config.dataset_attributes[dataset]
+                dataset_config = self.config.dataset_config[dataset]
                 self.writer.write(self._convert_node_to_json(dataset_config), "info")
             else:
                 self.writer.write(
@@ -391,11 +389,9 @@ class Configuration:
                 )
 
         self.writer.write("======  Optimizer Attributes  ======", "info")
-        self.writer.write(
-            self._convert_node_to_json(self.config.optimizer_attributes), "info"
-        )
+        self.writer.write(self._convert_node_to_json(self.config.optimizer), "info")
 
-        if self.config.model not in self.config.model_attributes:
+        if self.config.model not in self.config.model_config:
             raise ValueError(
                 "{} not present in model attributes".format(self.config.model)
             )
@@ -404,7 +400,7 @@ class Configuration:
             "======  Model ({}) Attributes  ======".format(self.config.model), "info"
         )
         self.writer.write(
-            self._convert_node_to_json(self.config.model_attributes[self.config.model]),
+            self._convert_node_to_json(self.config.model_config[self.config.model]),
             "info",
         )
 
@@ -435,7 +431,7 @@ class Configuration:
 
     def _update_specific(self, config):
         self.writer = registry.get("writer")
-        tp = self.config.training_parameters
+        tp = self.config.training
 
         # if args["seed"] is not None or tp['seed'] is not None:
         #     print(
@@ -445,20 +441,17 @@ class Configuration:
         #     )
 
         # if args["seed"] == -1:
-        #     self.config["training_parameters"]["seed"] = random.randint(1, 1000000)
+        #     self.config["training"]["seed"] = random.randint(1, 1000000)
 
         if config.learning_rate:
             if "optimizer" in config and "params" in config.optimizer:
                 lr = config.learning_rate
-                config.optimizer_attributes.params.lr = lr
+                config.optimizer.params.lr = lr
 
-        if (
-            not torch.cuda.is_available()
-            and "cuda" in config.training_parameters.device
-        ):
+        if not torch.cuda.is_available() and "cuda" in config.training.device:
             warnings.warn(
                 "Device specified is 'cuda' but cuda is not present. Switching to CPU version"
             )
-            config.training_parameters.device = "cpu"
+            config.training.device = "cpu"
 
         return config

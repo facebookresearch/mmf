@@ -1356,8 +1356,8 @@ class ViLBERT(BaseModel):
             return self.get_bert_configured_parameters(self)
 
         # For finetuning setup, we have classifier
-        lr = config.optimizer_attributes.params.lr
-        vb_config = getattr(config.model_attributes, "vilbert", {})
+        lr = config.optimizer.params.lr
+        vb_config = getattr(config.model_config, "vilbert", {})
         finetune_lr_multiplier = getattr(vb_config, "finetune_lr_multiplier", 1)
         # Finetune the bert pretrained part with finetune_lr_multiplier if it is set
         parameters = self.get_bert_configured_parameters(

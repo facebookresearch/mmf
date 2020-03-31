@@ -1,6 +1,6 @@
 includes:
 - common/defaults/configs/datasets/captioning/coco.yml
-dataset_attributes:
+dataset_config:
   coco:
     image_features:
       train:
@@ -43,7 +43,7 @@ dataset_attributes:
     use_ocr: false
     # Return spatial information of OCR tokens if present
     use_ocr_info: false
-model_attributes:
+model_config:
   butd: &butd
     model_data_dir: ../data/
     metrics:
@@ -78,13 +78,13 @@ model_attributes:
         weights_file: detectron/fc6/fc7_w.pkl
     inference:
       type: greedy
-optimizer_attributes:
+optimizer:
   type: Adamax
   params:
     eps: 1.0e-08
     lr: 0.01
     weight_decay: 0
-training_parameters:
+training:
   clip_norm_mode: all
   clip_gradients: true
   lr_ratio: 0.1

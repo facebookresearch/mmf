@@ -42,7 +42,7 @@ class BaseTrainer:
     def load(self):
         self._set_device()
 
-        self.run_type = self.config.training_parameters.get("run_type", "train")
+        self.run_type = self.config.training.get("run_type", "train")
         self.dataset_loader = DatasetLoader(self.config)
         self._datasets = self.config.datasets
 
@@ -83,7 +83,7 @@ class BaseTrainer:
 
         # Total iterations for snapshot
         self.snapshot_iterations = len(self.val_dataset)
-        self.snapshot_iterations //= self.config.training_parameters.batch_size
+        self.snapshot_iterations //= self.config.training.batch_size
 
         self.test_dataset = self.dataset_loader.test_dataset
 
@@ -92,10 +92,10 @@ class BaseTrainer:
         self.test_loader = self.dataset_loader.test_loader
 
     def load_model_and_optimizer(self):
-        attributes = self.config.model_attributes[self.config.model]
+        attributes = self.config.model_config[self.config.model]
         # Easy way to point to config for other model
         if isinstance(attributes, str):
-            attributes = self.config.model_attributes[attributes]
+            attributes = self.config.model_config[attributes]
 
         with omegaconf.open_dict(attributes):
             attributes.model = self.config.model
@@ -123,7 +123,7 @@ class BaseTrainer:
         self.parallelize_model()
 
     def parallelize_model(self):
-        training_parameters = self.config.training_parameters
+        training = self.config.training
         if (
             "cuda" in str(self.device)
             and torch.cuda.device_count() > 1
@@ -139,7 +139,7 @@ class BaseTrainer:
                 device_ids=[self.local_rank],
                 output_device=self.local_rank,
                 check_reduction=True,
-                find_unused_parameters=training_parameters.find_unused_parameters,
+                find_unused_parameters=training.find_unused_parameters,
             )
 
     def load_extras(self):
@@ -147,19 +147,19 @@ class BaseTrainer:
         self.checkpoint = Checkpoint(self)
         self.meter = Meter()
 
-        self.training_parameters = self.config.training_parameters
+        self.training_config = self.config.training
 
-        monitored_metric = self.training_parameters.monitored_metric
-        metric_minimize = self.training_parameters.metric_minimize
-        should_early_stop = self.training_parameters.should_early_stop
-        patience = self.training_parameters.patience
+        monitored_metric = self.training_config.monitored_metric
+        metric_minimize = self.training_config.metric_minimize
+        should_early_stop = self.training_config.should_early_stop
+        patience = self.training_config.patience
 
-        self.log_interval = self.training_parameters.log_interval
-        self.evaluation_interval = self.training_parameters.evaluation_interval
-        self.checkpoint_interval = self.training_parameters.checkpoint_interval
-        self.max_updates = self.training_parameters.max_updates
-        self.should_clip_gradients = self.training_parameters.clip_gradients
-        self.max_epochs = self.training_parameters.max_epochs
+        self.log_interval = self.training_config.log_interval
+        self.evaluation_interval = self.training_config.evaluation_interval
+        self.checkpoint_interval = self.training_config.checkpoint_interval
+        self.max_updates = self.training_config.max_updates
+        self.should_clip_gradients = self.training_config.clip_gradients
+        self.max_epochs = self.training_config.max_epochs
 
         self.early_stopping = EarlyStopping(
             self.model,
@@ -175,25 +175,25 @@ class BaseTrainer:
 
         self.checkpoint.load_state_dict()
 
-        self.not_debug = self.training_parameters.logger_level != "debug"
+        self.not_debug = self.training_config.logger_level != "debug"
 
         self.lr_scheduler = None
 
-        if self.training_parameters.lr_scheduler is True:
+        if self.training_config.lr_scheduler is True:
             self.lr_scheduler = build_scheduler(self.optimizer, self.config)
 
         self.tb_writer = None
 
-        if self.training_parameters.tensorboard:
+        if self.training_config.tensorboard:
             log_dir = self.writer.log_dir
 
-            if self.training_parameters.tensorboard_logdir:
-                log_dir = self.training_parameters.tensorboard_logdir
+            if self.training_config.tensorboard_logdir:
+                log_dir = self.training_config.tensorboard_logdir
 
             self.tb_writer = TensorboardLogger(log_dir, self.current_iteration)
 
     def config_based_setup(self):
-        seed = self.config.training_parameters.seed
+        seed = self.config.training.seed
         if seed is None:
             return
 
@@ -345,8 +345,8 @@ class BaseTrainer:
                 extra["max mem"] = torch.cuda.max_memory_allocated() / 1024
                 extra["max mem"] //= 1024
 
-            if self.training_parameters.experiment_name:
-                extra["experiment"] = self.training_parameters.experiment_name
+            if self.training_config.experiment_name:
+                extra["experiment"] = self.training_config.experiment_name
 
             extra.update(
                 {
@@ -441,7 +441,7 @@ class BaseTrainer:
         if not is_master():
             return
 
-        if self.training_parameters.tensorboard:
+        if self.training_config.tensorboard:
             scalar_dict = meter.get_scalar_dict()
             self.tb_writer.add_scalars(scalar_dict, self.current_iteration)
 
@@ -461,7 +461,7 @@ class BaseTrainer:
             self._inference_run("test")
 
     def _inference_run(self, dataset_type):
-        if self.config.training_parameters.evalai_inference is True:
+        if self.config.training.evalai_inference is True:
             self.predict_for_evalai(dataset_type)
             return
 

@@ -32,7 +32,7 @@ class TestModelCNNLSTM(unittest.TestCase):
         registry.register("config", self.config)
 
     def test_forward(self):
-        model_config = self.config.model_attributes.cnn_lstm
+        model_config = self.config.model_config.cnn_lstm
 
         cnn_lstm = CNNLSTM(model_config)
         cnn_lstm.build()

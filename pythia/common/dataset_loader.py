@@ -5,8 +5,8 @@ import yaml
 from torch.utils.data import DataLoader
 
 from pythia.common.batch_collator import BatchCollator
-from pythia.common.test_reporter import TestReporter
 from pythia.common.sample import SampleList
+from pythia.common.test_reporter import TestReporter
 from pythia.datasets.multi_dataset import MultiDataset
 from pythia.datasets.samplers import DistributedSampler
 from pythia.utils.general import get_batch_size
@@ -41,7 +41,7 @@ class DatasetLoader:
         }
 
         self.test_reporter = None
-        self.should_not_log = self.config.training_parameters.should_not_log
+        self.should_not_log = self.config.training.should_not_log
 
     @property
     def dataset_config(self):
@@ -73,7 +73,7 @@ class DatasetLoader:
         return self.mapping[batch.dataset_type].prepare_batch(batch)
 
     def verbose_dump(self, report, *args, **kwargs):
-        if self.config.training_parameters.verbose_dump:
+        if self.config.training.verbose_dump:
             dataset_type = report.dataset_type
             self.mapping[dataset_type].verbose_dump(report, *args, **kwargs)
 

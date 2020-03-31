@@ -26,7 +26,7 @@ Example::
 
     @registry.register("pythia")
     class Pythia(BaseModel):
-        # config is model_attributes from global config
+        # config is model_config from global config
         def __init__(self, config):
             super().__init__(config)
 
@@ -60,7 +60,7 @@ class BaseModel(nn.Module):
     dict as output and finally, register it using ``@registry.register_model``
 
     Args:
-        config (ConfigNode): ``model_attributes`` configuration from global config.
+        config (ConfigNode): ``model_config`` configuration from global config.
 
     """
 

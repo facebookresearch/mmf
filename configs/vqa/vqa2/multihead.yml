@@ -1,15 +1,15 @@
 includes:
 - ../configs/vqa/vqa2/pythia.yml
 - common/defaults/configs/datasets/vqa/visual_genome.yml
-dataset_attributes:
+dataset_config:
   visual_genome:
     return_scene_graph: false
     return_objects: false
     return_relationships: false
     return_info: false
-training_parameters:
+training:
   monitored_metric: vqa2/vqa_accuracy
-model_attributes:
+model_config:
   multihead:
     model_data_dir: ../data/
     metrics:

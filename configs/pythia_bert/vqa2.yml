@@ -2,7 +2,7 @@ includes:
 - common/defaults/configs/datasets/vqa/vqa2.yml
 - ../configs/pythia_bert/coco_pretrain.yml
 
-dataset_attributes:
+dataset_config:
   vqa2:
     return_info: true
     processors:
@@ -15,8 +15,8 @@ dataset_attributes:
                 do_lower_case: true
             mask_probability: 0
             max_seq_length: 128
- 
-model_attributes:
+
+model_config:
   pythia_bert:
     training_head_type: vqa
     losses:
@@ -24,13 +24,13 @@ model_attributes:
     metrics:
     - vqa_accuracy
 
-scheduler_attributes:
+scheduler:
   type: warmup_linear
   params:
     num_warmup_steps: 2400
     num_training_steps: 24000
-    
-training_parameters:
+
+training:
   batch_size: 512
   lr_scheduler: true
   # Don't forget to update schedule_attributes if you update this

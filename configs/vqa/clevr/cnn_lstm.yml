@@ -1,7 +1,7 @@
 includes:
 - common/defaults/configs/datasets/vqa/clevr.yml
 
-model_attributes:
+model_config:
   cnn_lstm:
     metrics:
     - type: accuracy
@@ -22,14 +22,14 @@ model_attributes:
     classifier:
       input_dim: 450
 
-optimizer_attributes:
+optimizer:
   type: Adamax
   params:
     eps: 1.0e-08
     lr: 0.01
     weight_decay: 0
-    
-training_parameters:
+
+training:
   batch_size: 128
   snapshot_interval: 6000
   monitored_metric: clevr/accuracy

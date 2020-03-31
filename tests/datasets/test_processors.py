@@ -27,7 +27,7 @@ class TestDatasetProcessors(unittest.TestCase):
         config = self._get_config(
             "../../../pythia/common/defaults/configs/datasets/captioning/coco.yml"
         )
-        captioning_config = config.dataset_attributes.coco
+        captioning_config = config.dataset_config.coco
         caption_processor_config = captioning_config.processors.caption_processor
 
         vocab_path = os.path.join(
@@ -52,7 +52,7 @@ class TestDatasetProcessors(unittest.TestCase):
         config = self._get_config(
             "../../../pythia/common/defaults/configs/datasets/vqa/clevr.yml"
         )
-        clevr_config = config.dataset_attributes.clevr
+        clevr_config = config.dataset_config.clevr
         answer_processor_config = clevr_config.processors.answer_processor
 
         # Test num_answers==1 case

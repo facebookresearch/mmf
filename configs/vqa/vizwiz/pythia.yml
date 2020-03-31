@@ -1,6 +1,6 @@
 includes:
 - common/defaults/configs/datasets/vqa/vizwiz.yml
-model_attributes:
+model_config:
   pythia: &pythia
     model_data_dir: ../data/
     metrics:
@@ -49,11 +49,11 @@ model_attributes:
         padding: 0
   pythia_image_only: *pythia
   pythia_question_only: *pythia
-optimizer_attributes:
+optimizer:
   type: Adamax
   params:
     lr: 0.005
-training_parameters:
+training:
     clip_norm_mode: all
     clip_gradients: true
     max_grad_l2_norm: 0.25

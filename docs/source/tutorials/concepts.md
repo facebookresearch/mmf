@@ -114,6 +114,7 @@ Registry object can be imported as the follow:
 
 ```
 from pythia.common.registry import registry
+
 ```
 
 Find more details about Registry class in its documentation [common/registry](../common/registry).
@@ -122,7 +123,7 @@ Find more details about Registry class in its documentation [common/registry](..
 ## Configuration
 
 As is necessary with research, most of the parameters/settings in Pythia are
-configurable. Pythia specific default values (`training_parameters`) are present
+configurable. Pythia specific default values (`training`) are present
 in [pythia/common/defaults/configs/base.yml](https://github.com/facebookresearch/pythia/blob/v0.3/pythia/common/defaults/configs/base.yml)
 with detailed comments delineating the usage of each parameter.
 
@@ -143,7 +144,7 @@ Thus, in Pythia config above you can include `vqa2`'s config like this:
 ```
 includes:
 - common/defaults/configs/datasets/vqa/vqa2.yml
-```  
+```
 
 Now, due to separate config per dataset this concept can be extended
 to do multi-tasking and include multiple dataset configs here.
@@ -153,17 +154,17 @@ for most of the training parameters. You can then specify the config of the mode
 that you want to train using `--config [config_path]` option. The final config can be
 retrieved using `registry.get('config')` anywhere in your codebase. You can access
 the attributes from these configs by using `dot` notation. For e.g. if you want to
-get the value of maximum iterations, you can get that by `registry.get('config').training_parameters.max_updates`.
+get the value of maximum iterations, you can get that by `registry.get('config').training.max_updates`.
 
 The values in the configuration can be overriden using two formats:
 
 - Individual Override: For e.g. you want to use `DataParallel` to train on multiple GPUs,
-you can override the default value of `False` by passing arguments `training_parameters.data_parallel True` at the end your command. This will override that option on the fly.
+you can override the default value of `False` by passing arguments `training.data_parallel True` at the end your command. This will override that option on the fly.
 - DemJSON based override: The above option gets clunky when you are trying to run the
 hyperparameters sweeps over model parameters. To avoid this, you can update a whole block
 using a demjson string. For e.g. to use early stopping as well update the patience, you
-can pass `--config_override "{training_parameters: {should_early_stop: True, patience: 5000}}"`. This demjson string is easier to generate programmatically than the individual
-override.  
+can pass `--config_override "{training: {should_early_stop: True, patience: 5000}}"`. This demjson string is easier to generate programmatically than the individual
+override.
 
 ```eval_rst
 .. note::
@@ -194,4 +195,4 @@ based on whether it is a tensor or a list and assigned back to that dict.
 So, end user gets these keys clubbed nicely together and can use them in their model.
 Models integrated with Pythia receive a ``SampleList`` as an argument which again
 makes the trainer unopinionated about the models as well as the datasets. Learn more
-about ``Sample`` and ``SampleList`` in their [documentation](../common/sample).   
+about ``Sample`` and ``SampleList`` in their [documentation](../common/sample).

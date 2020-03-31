@@ -23,8 +23,8 @@ class Logger:
 
         self.timer = Timer()
         self.config = config
-        self.save_dir = config.training_parameters.save_dir
-        self.log_format = config.training_parameters.log_format
+        self.save_dir = config.training.save_dir
+        self.log_format = config.training.log_format
         self.time_format = "%Y-%m-%dT%H:%M:%S"
         self.log_filename = "train_"
         self.log_filename += self.timer.get_time_hhmmss(None, format=self.time_format)
@@ -52,7 +52,7 @@ class Logger:
         warnings_logger = logging.getLogger("py.warnings")
 
         # Set level
-        level = config["training_parameters"].get("logger_level", "info")
+        level = config["training"].get("logger_level", "info")
         self.logger.setLevel(getattr(logging, level.upper()))
         self._file_only_logger.setLevel(getattr(logging, level.upper()))
 
@@ -75,7 +75,7 @@ class Logger:
         self.logger.addHandler(channel)
         warnings_logger.addHandler(channel)
 
-        should_not_log = self.config["training_parameters"]["should_not_log"]
+        should_not_log = self.config["training"]["should_not_log"]
         self.should_log = not should_not_log
 
         # Single log wrapper map

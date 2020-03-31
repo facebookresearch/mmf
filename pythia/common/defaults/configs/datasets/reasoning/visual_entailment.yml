@@ -1,4 +1,4 @@
-dataset_attributes:
+dataset_config:
   visual_entailment:
       data_root_dir: ../data
       image_depth_first: false
@@ -39,6 +39,6 @@ dataset_attributes:
       use_ocr: false
       # Return spatial information of OCR tokens if present
       use_ocr_info: false
-training_parameters:
+training:
     monitored_metric: visual_entailment/accuracy
     metric_minimize: false

@@ -31,7 +31,7 @@ class VisDialMultiModalModel(Pythia):
             {"params": self.decoder.projection_layer.parameters()},
             {
                 "params": self.img_feat_encoders.parameters(),
-                "lr": (config["optimizer_attributes"]["params"]["lr"] * 0.1),
+                "lr": (config["optimizer"]["params"]["lr"] * 0.1),
             },
         ]
 

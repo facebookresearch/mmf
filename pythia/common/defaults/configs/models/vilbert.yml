@@ -1,4 +1,4 @@
-model_attributes:
+model_config:
   vilbert:
     bert_model_name: bert-base-uncased
     visual_embedding_dim: 2048

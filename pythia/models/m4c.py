@@ -290,7 +290,7 @@ class M4C(BaseModel):
     def get_optimizer_parameters(self, config):
         optimizer_param_groups = []
 
-        base_lr = config.optimizer_attributes.params.lr
+        base_lr = config.optimizer.params.lr
         # collect all the parameters that need different/scaled lr
         finetune_params_set = set()
         for m in self.finetune_modules:

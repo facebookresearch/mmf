@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import copy
-import torch
 
+import torch
 from torch import nn
 
 from pythia.common.registry import registry
@@ -174,7 +174,7 @@ class Pythia(BaseModel):
             {"params": self.classifier.parameters()},
             {
                 "params": self.image_feature_encoders.parameters(),
-                "lr": (config.optimizer_attributes.params.lr * 0.1),
+                "lr": (config.optimizer.params.lr * 0.1),
             },
         ]
 

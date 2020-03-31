@@ -64,13 +64,13 @@ For example:
 python -m torch.distributed.launch --nproc_per_node 4 tools/run.py --tasks captioning --datasets m4c_textcaps --model m4c_captioner \
 --config configs/captioning/m4c_textcaps/m4c_captioner.yml \
 --save_dir save/m4c_captioner \
-training_parameters.distributed True
+training.distributed True
 
 # alternative: Data Parallel (slower, but results should be the same)
 python tools/run.py --tasks captioning --datasets m4c_textcaps --model m4c_captioner \
 --config configs/captioning/m4c_textcaps/m4c_captioner.yml \
 --save_dir save/m4c_captioner \
-training_parameters.data_parallel True
+training.data_parallel True
 ```
 (You can also specify a different path to `--save_dir` to save to a location you prefer. Replace `configs/captioning/m4c_textcaps/m4c_captioner.yml` with `configs/captioning/m4c_textcaps/m4c_captioner_without_ocr.yml` to train M4C-Captioner without using OCR inputs as an ablation study.)
 
@@ -107,7 +107,7 @@ For test set evaluation, please submit to the TextCaps EvalAI server.
 python -m torch.distributed.launch --nproc_per_node 4 tools/run.py --tasks captioning --datasets m4c_textcaps --model m4c_captioner \
 --config configs/captioning/m4c_textcaps/m4c_captioner_coco.yml \
 --save_dir save/m4c_captioner_coco \
-training_parameters.distributed True
+training.distributed True
 ```
 
 2) to generate prediction json files for the TextCaps:
@@ -157,7 +157,7 @@ python projects/M4C_Captioner/scripts/coco_eval.py \
 python -m torch.distributed.launch --nproc_per_node 4 tools/run.py --tasks captioning --datasets m4c_textcaps --model m4c_captioner \
 --config configs/captioning/m4c_textcaps/m4c_captioner_coco_textcaps_joint.yml \
 --save_dir save/m4c_captioner_coco_textcaps_joint \
-training_parameters.distributed True
+training.distributed True
 ```
 
 2) to generate prediction json files for the COCO Karpathy val split (in paper supplemental):
@@ -181,7 +181,7 @@ To train the BUTD model on TextCaps:
 python tools/run.py --tasks captioning --datasets coco --model butd \
 --config configs/captioning/m4c_textcaps/butd.yml \
 --save_dir save/butd \
-training_parameters.data_parallel True
+training.data_parallel True
 ```
 (Note that although we use `--datasets coco` here, it actually loads TextCaps imdb files. So we are training on TextCaps, not COCO.)
 
