@@ -126,6 +126,9 @@ class ConfigNode(collections.OrderedDict):
 class Configuration:
     def __init__(self, args):
         self.config = {}
+        self.args = args
+        self._register_resolvers()
+
         default_config = self._build_default_config()
         opts_config = self._build_opt_list(args.opts)
         user_config = self._build_user_config(opts_config)
@@ -229,6 +232,7 @@ class Configuration:
         return dataset_config
 
     def get_config(self):
+        self._register_resolvers()
         return self.config
 
     def _update_with_args(self, config, args, force=False):
@@ -250,6 +254,12 @@ class Configuration:
     def _get_args_config(self, args):
         args_dict = vars(args)
         return OmegaConf.create(args_dict)
+
+    def _register_resolvers(self):
+        OmegaConf.clear_resolvers()
+        # Device count resolver
+        device_count = max(1, torch.cuda.device_count())
+        OmegaConf.register_resolver("device_count", lambda: device_count)
 
     def _merge_with_dotlist(self, config, opts):
         # TODO: To remove technical debt, a possible solution is to use

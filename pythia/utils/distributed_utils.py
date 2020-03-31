@@ -116,7 +116,7 @@ def reduce_dict(dictionary):
 
 
 def infer_init_method(config):
-    if config.distributed_init_method is not None:
+    if config.distributed.init_method is not None:
         return
 
     # support torch.distributed.launch
@@ -124,12 +124,12 @@ def infer_init_method(config):
         key in os.environ
         for key in ["MASTER_ADDR", "MASTER_PORT", "WORLD_SIZE", "RANK"]
     ):
-        config.distributed_init_method = "env://"
-        config.distributed_world_size = int(os.environ["WORLD_SIZE"])
-        config.distributed_rank = int(os.environ["RANK"])
+        config.distributed.init_method = "env://"
+        config.distributed.world_size = int(os.environ["WORLD_SIZE"])
+        config.distributed.rank = int(os.environ["RANK"])
 
     # we can determine the init method automatically for Slurm
-    elif config.distributed_port > 0:
+    elif config.distributed.port > 0:
         node_list = os.environ.get("SLURM_STEP_NODELIST")
         if node_list is None:
             node_list = os.environ.get("SLURM_JOB_NODELIST")
@@ -138,9 +138,9 @@ def infer_init_method(config):
                 hostnames = subprocess.check_output(
                     ["scontrol", "show", "hostnames", node_list]
                 )
-                config.distributed_init_method = "tcp://{host}:{port}".format(
+                config.distributed.init_method = "tcp://{host}:{port}".format(
                     host=hostnames.split()[0].decode("utf-8"),
-                    port=config.distributed_port,
+                    port=config.distributed.port,
                 )
                 nnodes = int(os.environ.get("SLURM_NNODES"))
                 ntasks_per_node = os.environ.get("SLURM_NTASKS_PER_NODE")
@@ -152,14 +152,14 @@ def infer_init_method(config):
                     assert ntasks % nnodes == 0
                     ntasks_per_node = int(ntasks / nnodes)
                 if ntasks_per_node == 1:
-                    assert config.distributed_world_size % nnodes == 0
-                    gpus_per_node = config.distributed_world_size // nnodes
+                    assert config.distributed.world_size % nnodes == 0
+                    gpus_per_node = config.distributed.world_size // nnodes
                     node_id = int(os.environ.get("SLURM_NODEID"))
-                    config.distributed_rank = node_id * gpus_per_node
+                    config.distributed.rank = node_id * gpus_per_node
                 else:
-                    assert ntasks_per_node == config.distributed_world_size // nnodes
-                    config.distributed_no_spawn = True
-                    config.distributed_rank = int(os.environ.get("SLURM_PROCID"))
+                    assert ntasks_per_node == config.distributed.world_size // nnodes
+                    config.distributed.no_spawn = True
+                    config.distributed.rank = int(os.environ.get("SLURM_PROCID"))
                     config.device_id = int(os.environ.get("SLURM_LOCALID"))
             except subprocess.CalledProcessError as e:  # scontrol failed
                 raise e
@@ -168,7 +168,7 @@ def infer_init_method(config):
 
 
 def distributed_init(config):
-    if config.distributed_world_size == 1:
+    if config.distributed.world_size == 1:
         raise ValueError("Cannot initialize distributed with distributed_world_size=1")
 
     if dist.is_initialized():
@@ -176,19 +176,19 @@ def distributed_init(config):
     else:
         print(
             "| distributed init (rank {}): {}".format(
-                config.distributed_rank, config.distributed_init_method
+                config.distributed.rank, config.distributed.init_method
             ),
             flush=True,
         )
         dist.init_process_group(
-            backend=config.distributed_backend,
-            init_method=config.distributed_init_method,
-            world_size=config.distributed_world_size,
-            rank=config.distributed_rank,
+            backend=config.distributed.backend,
+            init_method=config.distributed.init_method,
+            world_size=config.distributed.world_size,
+            rank=config.distributed.rank,
         )
         print(
             "| initialized host {} as rank {}".format(
-                socket.gethostname(), config.distributed_rank
+                socket.gethostname(), config.distributed.rank
             ),
             flush=True,
         )
@@ -198,8 +198,8 @@ def distributed_init(config):
 
         suppress_output(is_master())
 
-    config.distributed_rank = dist.get_rank()
-    return config.distributed_rank
+    config.distributed.rank = dist.get_rank()
+    return config.distributed.rank
 
 
 def suppress_output(is_master):
@@ -234,4 +234,4 @@ def suppress_output(is_master):
 #         from pythia.common.registry import registry
 #         config = registry.get("configuration").args
 
-#     return config.distributed_rank == 0
+#     return config.distributed.rank == 0

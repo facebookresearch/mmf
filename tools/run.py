@@ -10,6 +10,7 @@ import torch
 from pythia.common.registry import registry
 from pythia.utils import distributed_utils
 from pythia.utils.build_utils import build_trainer
+from pythia.utils.configuration import Configuration
 from pythia.utils.flags import flags
 
 
@@ -69,64 +70,74 @@ def setup_imports():
             )
 
 
-def main(args, init_distributed=False):
+def main(configuration, init_distributed=False):
     setup_imports()
+    config = configuration.get_config()
     if torch.cuda.is_available():
-        torch.cuda.set_device(args.device_id)
-    if args.seed:
-        if args.seed == -1:
-            args.seed = random.randint(10000, 20000)
-        np.random.seed(args.seed)
-        torch.manual_seed(args.seed)
+        torch.cuda.set_device(config.device_id)
+    if config.seed:
+        if config.seed == -1:
+            config.seed = random.randint(10000, 20000)
+        np.random.seed(config.seed)
+        torch.manual_seed(config.seed)
         # TODO: Reenable after project
-        # random.seed(args.seed)
+        # random.seed(config.seed)
         # torch.backends.cudnn.benchmark = False
         # torch.backends.cudnn.deterministic = True
     if init_distributed:
-        distributed_utils.distributed_init(args)
-    print(args)
-    trainer = build_trainer(args)
+        distributed_utils.distributed_init(config)
+    trainer = build_trainer(configuration)
     trainer.load()
     trainer.train()
 
 
-def distributed_main(device_id, args):
-    args.device_id = device_id
+def distributed_main(device_id, configuration):
+    config = configuration.get_config()
+    config.device_id = device_id
 
-    if args.distributed_rank is None:
-        args.distributed_rank = args.start_rank + device_id
+    if config.distributed.rank is None:
+        config.distributed.rank = config.start_rank + device_id
 
-    main(args, init_distributed=True)
+    main(configuration, init_distributed=True)
 
 
 def run():
+    setup_imports()
     parser = flags.get_parser()
     args = parser.parse_args()
-    args.start_rank = 0
+    print(args)
+    configuration = Configuration(args)
+    # Do set runtime args which can be changed by pythia
+    configuration.args = args
+    config = configuration.get_config()
+    config.start_rank = 0
+    if config.distributed.init_method is None:
+        distributed_utils.infer_init_method(config)
 
-    if args.distributed_init_method is None:
-        distributed_utils.infer_init_method(args)
-
-    if args.distributed_init_method is not None:
-        if torch.cuda.device_count() > 1 and not args.distributed_no_spawn:
-            args.start_rank = args.distributed_rank
-            args.distributed_rank = None
+    if config.distributed.init_method is not None:
+        if torch.cuda.device_count() > 1 and not config.distributed.no_spawn:
+            config.start_rank = config.distributed.rank
+            config.distributed.rank = None
             torch.multiprocessing.spawn(
-                fn=distributed_main, args=(args,), nprocs=torch.cuda.device_count()
+                fn=distributed_main,
+                args=(configuration,),
+                nprocs=torch.cuda.device_count(),
             )
         else:
-            main(0, args)
-    elif args.distributed_world_size > 1:
-        assert args.distributed_world_size <= torch.cuda.device_count()
+            main(0, configuration)
+    elif config.distributed.world_size > 1:
+        assert config.distributed.world_size <= torch.cuda.device_count()
         port = random.randint(10000, 20000)
-        args.distributed_init_method = "tcp://localhost:{port}".format(port=port)
-        args.distributed_rank = None
+        config.distributed.init_method = "tcp://localhost:{port}".format(port=port)
+        config.distributed.rank = None
         torch.multiprocessing.spawn(
-            fn=distributed_main, args=(args,), nprocs=args.distributed_world_size
+            fn=distributed_main,
+            args=(configuration,),
+            nprocs=config.distributed.world_size,
         )
     else:
-        args.device_id = 0
-        main(args)
+        config.device_id = 0
+        main(configuration)
     # Log any errors that occur to log file
     # try:
     #     trainer.load()
