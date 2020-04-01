@@ -2,6 +2,16 @@
 
 This repository contains the code for M4C-Captioner model, released under the Pythia framework.
 
+* O. Sidorov, R. Hu, M. Rohrbach, A. Singh, *TextCaps: a Dataset for Image Captioning with Reading Comprehension*. arXiv preprint arXiv:2003.12462, 2020 ([PDF](https://arxiv.org/pdf/2003.12462.pdf))
+```
+@article{sidorov2019textcaps,
+    title={TextCaps: a Dataset for Image Captioningwith Reading Comprehension},
+    author={Sidorov, Oleksii and Hu, Ronghang and Rohrbach, Marcus and Singh, Amanpreet},
+    journal={arXiv preprint arXiv:2003.12462},
+    year={2020}
+}
+```
+
 Project Page: https://textvqa.org/textcaps/
 
 ## Installation
