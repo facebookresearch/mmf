@@ -1,4 +1,5 @@
 import json
+
 import torch
 
 
@@ -40,7 +41,6 @@ class VisualDialogDatabase(torch.utils.data.Dataset):
         data["id"] = idx
         data["dialog_id"] = dialog_id
         data["round_id"] = round_id
-        caption = dialog["caption"]
         round = dialog["dialog"][round_id]
         data["question"] = self._questions[round["question"]]
         # data["answers"] = [self.]

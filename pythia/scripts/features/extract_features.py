@@ -32,26 +32,20 @@ import argparse
 import base64
 import csv
 import glob
-import json
 import logging
 import os
 import sys
 import timeit
-from collections import defaultdict
 
-import caffe2
 import common.test_engine as infer_engine
 import cv2  # NOQA (Must import before importing caffe2 due to bug in cv2)
-import datasets.dummy_datasets as dummy_datasets
 import numpy as np
 import utils.c2 as c2_utils
 import utils.logging
-import utils.vis as vis_utils
 from caffe2.python import workspace
 from common.config import assert_and_infer_cfg, cfg, merge_cfg_from_file
 from utils.boxes import nms
 from utils.io import cache_url
-from utils.timer import Timer
 
 c2_utils.import_detectron_ops()
 # OpenCL may be enabled by default in OpenCV3; disable it because it's not
@@ -260,7 +254,7 @@ def main(args):
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
 
-    for i, im_name in enumerate(im_list):
+    for _, im_name in enumerate(im_list):
         im_base_name = os.path.basename(im_name)
         image_id = int(im_base_name.split(".")[0].split("_")[-1])  # for COCO
         if image_id % args.total_group == args.group_id:

@@ -18,8 +18,10 @@ class BaseDataset(Dataset):
         config (ConfigNode): Configuration for the current dataset
     """
 
-    def __init__(self, name, dataset_type, config={}):
+    def __init__(self, name, dataset_type, config=None):
         super(BaseDataset, self).__init__()
+        if config is None:
+            config = {}
         self.config = config
         self._name = name
         self._dataset_type = dataset_type

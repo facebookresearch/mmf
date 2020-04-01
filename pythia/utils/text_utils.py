@@ -65,7 +65,11 @@ def generate_ngrams_range(tokens, ngram_range=(1, 3)):
     return chain(*(generate_ngrams(tokens, i) for i in range(*ngram_range)))
 
 
-def tokenize(sentence, regex=SENTENCE_SPLIT_REGEX, keep=["'s"], remove=[",", "?"]):
+def tokenize(sentence, regex=SENTENCE_SPLIT_REGEX, keep=None, remove=None):
+    if keep is None:
+        keep = ["'s"]
+    if remove is None:
+        remove = [",", "?"]
     sentence = sentence.lower()
 
     for token in keep:
@@ -79,7 +83,9 @@ def tokenize(sentence, regex=SENTENCE_SPLIT_REGEX, keep=["'s"], remove=[",", "?"
     return tokens
 
 
-def word_tokenize(word, remove=[",", "?"]):
+def word_tokenize(word, remove=None):
+    if remove is None:
+        remove = [",", "?"]
     word = word.lower()
 
     for item in remove:
@@ -191,10 +197,14 @@ class VocabFromText(VocabDict):
         sentences,
         min_count=1,
         regex=SENTENCE_SPLIT_REGEX,
-        keep=[],
-        remove=[],
+        keep=None,
+        remove=None,
         only_unk_extra=False,
     ):
+        if keep is None:
+            keep = []
+        if remove is None:
+            remove = []
         token_counter = Counter()
 
         for sentence in sentences:
@@ -272,10 +282,8 @@ class BeamSearch(TextDecoder):
         self._decode_size = config["inference"]["params"]["beam_length"]
 
     def init_batch(self, sample_list):
-        setattr(
-            self,
-            "top_k_scores",
-            sample_list.answers.new_zeros((self._decode_size, 1), dtype=torch.float),
+        self.top_k_scores = sample_list.answers.new_zeros(
+            (self._decode_size, 1), dtype=torch.float
         )
         return super().init_batch(sample_list)
 

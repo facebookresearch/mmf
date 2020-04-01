@@ -86,7 +86,7 @@ def extract_dataset_pool5(image_dir, save_dir, prefix, ext_filter):
         # pool5_val = extract_image_feat(impath).permute(0, 2, 3, 1)
         try:
             pool5_val = extract_image_feat(impath).permute(0, 2, 3, 1)
-        except:
+        except Exception:
             print("error for" + image_name)
             continue
 

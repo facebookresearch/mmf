@@ -1,5 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import os
 
 imdb_version = 1
 FASTTEXT_WIKI_URL = (

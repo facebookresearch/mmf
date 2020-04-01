@@ -264,7 +264,11 @@ class VisualBERT(BaseModel):
                 self.cls.predictions.decoder, self.bert.embeddings.word_embeddings
             )
 
-    def flatten(self, sample_list, to_be_flattened={}, to_be_flattened_dim={}):
+    def flatten(self, sample_list, to_be_flattened=None, to_be_flattened_dim=None):
+        if to_be_flattened is None:
+            to_be_flattened = {}
+        if to_be_flattened_dim is None:
+            to_be_flattened_dim = {}
         for key in to_be_flattened:
             # Make sure these keys are present or otherwise set these keys to None
             sample_list[key] = getattr(sample_list, key, None)

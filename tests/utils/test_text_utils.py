@@ -1,15 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os
-import random
 import unittest
 
-import numpy as np
 import torch
 
 import pythia.utils.text_utils as text_utils
 from pythia.common.registry import registry
 from pythia.common.sample import Sample, SampleList
-from pythia.utils.configuration import ConfigNode, Configuration
+from pythia.utils.configuration import Configuration
 from pythia.utils.general import get_pythia_root
 from tests.test_utils import dummy_args
 from tests.utils.test_model import TestDecoderModel

@@ -204,7 +204,7 @@ def get_current_tensors():
                 hasattr(obj, "data") and torch.is_tensor(obj.data)
             ):
                 print(type(obj), obj.size())
-        except:
+        except Exception:
             pass
 
 

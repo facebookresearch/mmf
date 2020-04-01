@@ -1,5 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import base64
 import collections
 import json
 import logging
@@ -9,10 +8,6 @@ import sys
 from torch.utils.tensorboard import SummaryWriter
 
 from pythia.utils.distributed_utils import is_master
-from pythia.utils.general import (
-    ckpt_name_from_core_args,
-    foldername_from_config_override,
-)
 from pythia.utils.timer import Timer
 
 

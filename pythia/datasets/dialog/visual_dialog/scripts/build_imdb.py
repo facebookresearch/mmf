@@ -90,7 +90,7 @@ class IMDBBuilder:
         if not isinstance(sentences, list):
             sentences = [sentences]
         final_sentences = []
-        for idx, sentence in enumerate(sentences):
+        for _, sentence in enumerate(sentences):
             tokens = text_tokenize(sentence)
             final_sentences.append(tokens)
 

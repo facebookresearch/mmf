@@ -3,9 +3,7 @@ from torch import nn
 from transformers.modeling_bert import (
     BertConfig,
     BertEmbeddings,
-    BertEncoder,
     BertForPreTraining,
-    BertLayer,
     BertLayerNorm,
     BertPooler,
     BertPredictionHeadTransform,
@@ -184,9 +182,11 @@ class PythiaBert(Pythia):
         text_embedding_total,
         key_padding_mask=None,
         attn_mask=None,
-        extra=[],
+        extra=None,
         batch_size_t=None,
     ):
+        if extra is None:
+            extra = []
         feature_embeddings = []
         feature_attentions = []
         features = []
@@ -332,7 +332,6 @@ class PythiaBert(Pythia):
         else:
             joint_embedding = image_embedding_total
 
-        dataset_name = sample_list.dataset_name
         output_dict = {}
 
         pooled_output = self.pooler(joint_embedding)

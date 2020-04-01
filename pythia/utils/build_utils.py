@@ -2,7 +2,6 @@
 import torch
 import warnings
 
-from pythia.utils.configuration import Configuration
 from pythia.common.registry import registry
 from pythia.utils.general import get_optimizer_parameters
 
@@ -19,7 +18,7 @@ def build_trainer(configuration, *rest, **kwargs):
     trainer_obj = trainer_cls(configuration)
 
     # Set args as an attribute for future use
-    setattr(trainer_obj, "args", configuration.args)
+    trainer_obj.args = configuration.args
 
     return trainer_obj
 

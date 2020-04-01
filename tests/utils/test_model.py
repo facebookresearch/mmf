@@ -2,7 +2,6 @@ import torch
 from torch import nn
 
 from pythia.common.registry import registry
-from pythia.models.base_model import BaseModel
 
 
 class TestDecoderModel(nn.Module):

@@ -249,7 +249,7 @@ class CaptionBleu4Metric(BaseMetric):
 
         # References
         targets = sample_list.answers
-        for j, p in enumerate(targets):
+        for j, _ in enumerate(targets):
             img_captions = [
                 self.caption_processor(c)["tokens"] for c in targets[j].tolist()
             ]
@@ -259,7 +259,7 @@ class CaptionBleu4Metric(BaseMetric):
         scores = torch.max(model_output["scores"], dim=-1)[1]
         scores = scores.tolist()
         predictions = []
-        for j, p in enumerate(scores):
+        for j, _ in enumerate(scores):
             caption = self.caption_processor(scores[j])["tokens"]
             predictions.append(caption)
         hypotheses.extend(predictions)

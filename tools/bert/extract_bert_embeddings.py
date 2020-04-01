@@ -1,7 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import argparse
-import multiprocessing
-import os
 
 import numpy as np
 import torch

@@ -99,7 +99,9 @@ class TestReporter(Dataset):
             **other_args
         )
 
-    def _add_extra_args_for_dataloader(self, other_args={}):
+    def _add_extra_args_for_dataloader(self, other_args=None):
+        if other_args is None:
+            other_args = {}
         training = self.config.training
 
         if training.local_rank is not None and training.distributed:

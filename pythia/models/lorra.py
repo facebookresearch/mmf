@@ -1,9 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import torch
 
 from pythia.common.registry import registry
 from pythia.models.pythia import Pythia
-from pythia.modules.layers import ClassifierLayer
 
 
 @registry.register_model("lorra")

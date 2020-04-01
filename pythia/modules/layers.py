@@ -48,7 +48,9 @@ class Flatten(nn.Module):
 
 
 class UnFlatten(nn.Module):
-    def forward(self, input, sizes=[]):
+    def forward(self, input, sizes=None):
+        if sizes is None:
+            sizes = []
         return input.view(input.size(0), *sizes)
 
 
@@ -462,7 +464,7 @@ class BCNet(nn.Module):
     Simple class for non-linear bilinear connect network
     """
 
-    def __init__(self, v_dim, q_dim, h_dim, h_out, act="ReLU", dropout=[0.2, 0.5], k=3):
+    def __init__(self, v_dim, q_dim, h_dim, h_out, act="ReLU", dropout=None, k=3):
         super(BCNet, self).__init__()
 
         self.c = 32
@@ -471,6 +473,8 @@ class BCNet(nn.Module):
         self.q_dim = q_dim
         self.h_dim = h_dim
         self.h_out = h_out
+        if dropout is None:
+            dropout = [0.2, 0.5]
 
         self.v_net = FCNet([v_dim, h_dim * self.k], act=act, dropout=dropout[0])
         self.q_net = FCNet([q_dim, h_dim * self.k], act=act, dropout=dropout[0])
@@ -566,9 +570,10 @@ class FCNet(nn.Module):
 
 
 class BiAttention(nn.Module):
-    def __init__(self, x_dim, y_dim, z_dim, glimpse, dropout=[0.2, 0.5]):
+    def __init__(self, x_dim, y_dim, z_dim, glimpse, dropout=None):
         super(BiAttention, self).__init__()
-
+        if dropout is None:
+            dropout = [0.2, 0.5]
         self.glimpse = glimpse
         self.logits = weight_norm(
             BCNet(x_dim, y_dim, z_dim, glimpse, dropout=dropout, k=3),

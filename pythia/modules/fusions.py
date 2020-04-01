@@ -243,7 +243,6 @@ class BlockTucker(nn.Module):
     def forward(self, x):
         x0 = self.linear0(x[0])
         x1 = self.linear1(x[1])
-        bsize = x1.size(0)
         if self.dropout_input:
             x0 = F.dropout(x0, p=self.dropout_input, training=self.training)
             x1 = F.dropout(x1, p=self.dropout_input, training=self.training)
@@ -710,17 +709,14 @@ class LinearSum(nn.Module):
 @registry.register_fusion("concat_mlp")
 class ConcatMLP(nn.Module):
     def __init__(
-        self,
-        input_dims,
-        output_dim,
-        dimensions=[500, 500],
-        activation="relu",
-        dropout=0.0,
+        self, input_dims, output_dim, dimensions=None, activation="relu", dropout=0.0,
     ):
         super(ConcatMLP, self).__init__()
         self.input_dims = input_dims
         self.output_dim = output_dim
         self.input_dim = sum(input_dims)
+        if dimensions is None:
+            dimensions = [500, 500]
         self.dimensions = dimensions + [output_dim]
         self.activation = activation
         self.dropout = dropout

@@ -13,7 +13,6 @@ attributes from ``Sample`` while taking care of properly batching things.
 
 import collections
 from collections import OrderedDict
-from copy import deepcopy
 
 import torch
 
@@ -33,7 +32,9 @@ class Sample(OrderedDict):
         >>> sample.context = torch.tensor(4)
     """
 
-    def __init__(self, init_dict={}):
+    def __init__(self, init_dict=None):
+        if init_dict is None:
+            init_dict = {}
         super().__init__(init_dict)
 
     def __setattr__(self, key, value):
@@ -82,8 +83,10 @@ class SampleList(OrderedDict):
 
     _TENSOR_FIELD_ = "_tensor_field"
 
-    def __init__(self, samples=[]):
+    def __init__(self, samples=None):
         super().__init__(self)
+        if samples is None:
+            samples = []
 
         if len(samples) == 0:
             return

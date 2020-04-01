@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os
-import random
 import unittest
 
 import numpy as np
@@ -9,7 +8,7 @@ import torch
 from pythia.common.registry import registry
 from pythia.common.sample import Sample, SampleList
 from pythia.models.cnn_lstm import CNNLSTM
-from pythia.utils.configuration import ConfigNode, Configuration
+from pythia.utils.configuration import Configuration
 from pythia.utils.general import get_pythia_root
 from tests.test_utils import dummy_args
 

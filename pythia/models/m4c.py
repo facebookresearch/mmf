@@ -277,7 +277,7 @@ class M4C(BaseModel):
             fwd_results["prev_inds"][:, 0] = self.answer_processor.BOS_IDX
 
             # greedy decoding at test time
-            for t in range(dec_step_num):
+            for _ in range(dec_step_num):
                 self._forward_mmt(sample_list, fwd_results)
                 self._forward_output(sample_list, fwd_results)
 

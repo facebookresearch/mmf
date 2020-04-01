@@ -775,7 +775,7 @@ class BertPreTrainingHeads(nn.Module):
         elif self.fusion_method == "mul":
             pooled_output = self.dropout(pooled_output_t * pooled_output_v)
         else:
-            assert False
+            raise AssertionError
 
         prediction_scores_t = self.predictions(sequence_output_t)
         seq_relationship_score = self.bi_seq_relationship(pooled_output)
@@ -1132,7 +1132,7 @@ class BertForMultiModalPreTraining(BertPreTrainedModel):
             elif self.fusion_method == "mul":
                 pooled_output = self.dropout(pooled_output_t * pooled_output_v)
             else:
-                assert False
+                raise AssertionError
 
             if "vqa" in self.training_head_type or self.training_head_type == "vizwiz":
                 logits = self.classifier(pooled_output)
