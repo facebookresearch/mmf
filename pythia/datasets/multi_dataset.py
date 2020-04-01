@@ -7,12 +7,12 @@ import os
 import sys
 
 import numpy as np
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 
 from pythia.common.batch_collator import BatchCollator
 from pythia.common.registry import registry
 from pythia.datasets.samplers import DistributedSampler
-from pythia.utils.distributed_utils import broadcast_scalar, is_master, synchronize
+from pythia.utils.distributed_utils import broadcast_scalar, is_master
 from pythia.utils.general import get_batch_size
 
 # from torch.utils.data.distributed import DistributedSampler
@@ -241,7 +241,9 @@ class MultiDataset:
 
         return loader, other_args.get("sampler", None)
 
-    def _add_extra_args_for_dataloader(self, dataset, opts, other_args={}):
+    def _add_extra_args_for_dataloader(self, dataset, opts, other_args=None):
+        if other_args is None:
+            other_args = {}
         training = self._global_config.training
         dataset_type = self._dataset_type
 

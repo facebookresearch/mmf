@@ -43,14 +43,11 @@ import collections
 import warnings
 from copy import deepcopy
 
-from omegaconf import OmegaConf
 from torch import nn
 
 from pythia.common.registry import registry
-from pythia.common.report import Report
 from pythia.modules.losses import Losses
 from pythia.modules.metrics import Metrics
-from pythia.utils.configuration import load_yaml
 
 
 class BaseModel(nn.Module):

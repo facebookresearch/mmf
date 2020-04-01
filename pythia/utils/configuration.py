@@ -2,13 +2,11 @@
 import collections
 import json
 import os
-import random
 import warnings
 from ast import literal_eval
 
 import demjson
 import torch
-import yaml
 from omegaconf import OmegaConf
 
 from pythia.common.registry import registry
@@ -47,8 +45,10 @@ def load_yaml(f):
 class ConfigNode(collections.OrderedDict):
     IMMUTABLE = "__is_frozen"
 
-    def __init__(self, init_dict={}):
+    def __init__(self, init_dict=None):
         self.__dict__[ConfigNode.IMMUTABLE] = False
+        if init_dict is None:
+            init_dict = {}
         super().__init__(init_dict)
 
         for key in self:

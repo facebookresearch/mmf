@@ -1,3 +1,4 @@
+#!/bin/bash
 N_REM=`expr $3 - 1`
 
 for i in $(seq 0 $N_REM); do

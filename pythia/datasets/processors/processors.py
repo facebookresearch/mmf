@@ -69,7 +69,6 @@ Example::
             text = [t.strip() for t in text.split(" ")]
             return {"text": text}
 """
-import multiprocessing
 import os
 import re
 import warnings
@@ -77,7 +76,6 @@ from collections import Counter, defaultdict
 
 import numpy as np
 import torch
-from transformers.tokenization_bert import BertTokenizer
 
 from pythia.common.registry import registry
 from pythia.utils.configuration import ConfigNode
@@ -745,7 +743,6 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
         length = min(len(tokens), self.max_length)
 
         gt_answers = list(enumerate(answers))
-        unique_answers = set(answers)
 
         if self.context_preprocessor is not None:
             tokens = [

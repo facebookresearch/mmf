@@ -7,8 +7,10 @@ from pythia.common.registry import registry
 
 
 class Report(OrderedDict):
-    def __init__(self, batch, model_output={}, *args):
+    def __init__(self, batch, model_output=None, *args):
         super().__init__(self)
+        if model_output is None:
+            model_output = {}
         if self._check_and_load_tuple(batch):
             return
 

@@ -1,12 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import gc
 import math
-import random
 import time
 
 import omegaconf
 import torch
-from torch import optim
 from tqdm import tqdm
 
 from pythia.common.dataset_loader import DatasetLoader
@@ -17,11 +15,9 @@ from pythia.utils.build_utils import build_model, build_optimizer, build_schedul
 from pythia.utils.checkpoint import Checkpoint
 from pythia.utils.distributed_utils import (
     broadcast_scalar,
-    distributed_init,
     get_world_size,
     is_master,
     reduce_dict,
-    synchronize,
 )
 from pythia.utils.early_stopping import EarlyStopping
 from pythia.utils.general import clip_gradients, print_model_parameters
@@ -105,7 +101,6 @@ class BaseTrainer:
         self.dataset_loader.clean_config(attributes)
 
         if "cuda" in str(self.device):
-            rank = self.local_rank if self.local_rank is not None else 0
             device_info = "CUDA Device {} is: {}".format(
                 self.config.distributed.rank,
                 torch.cuda.get_device_name(self.local_rank),
@@ -437,7 +432,9 @@ class BaseTrainer:
 
         return report, meter
 
-    def _summarize_report(self, meter, should_print=True, extra={}):
+    def _summarize_report(self, meter, should_print=True, extra=None):
+        if extra is None:
+            extra = {}
         if not is_master():
             return
 

@@ -1,5 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from torch import nn
 from torch.optim.lr_scheduler import LambdaLR
 from transformers.optimization import (
     get_cosine_schedule_with_warmup,

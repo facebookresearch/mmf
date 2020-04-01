@@ -125,8 +125,10 @@ class PythiaLoss(nn.Module):
         doesn't need to worry about it.
     """
 
-    def __init__(self, params={}):
+    def __init__(self, params=None):
         super().__init__()
+        if params is None:
+            params = {}
         self.writer = registry.get("writer")
         if "type" not in params:
             raise ValueError(
@@ -501,8 +503,10 @@ class M4CDecodingBCEWithMaskLoss(nn.Module):
 
 @registry.register_loss("cross_entropy")
 class CrossEntropyLoss(nn.Module):
-    def __init__(self, params={}):
+    def __init__(self, params=None):
         super().__init__()
+        if params is None:
+            params = {}
         self.loss_fn = nn.CrossEntropyLoss(**params)
 
     def forward(self, sample_list, model_output):

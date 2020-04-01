@@ -197,7 +197,7 @@ def convert_gqa_to_vqa(gqa_dir, out_dir):
             answers = Counter()
             q_tokens = Counter()
 
-            for qs, q in tqdm.tqdm(questions.items()):
+            for _, q in tqdm.tqdm(questions.items()):
                 tokens = tokenize(q["question"])
                 q_tokens.update(tokens)
                 global_q.update(tokens)

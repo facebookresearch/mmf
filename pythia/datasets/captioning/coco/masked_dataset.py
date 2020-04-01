@@ -1,8 +1,5 @@
 import random
 
-import numpy as np
-import torch
-
 from pythia.common.sample import Sample
 from pythia.datasets.captioning.coco import COCODataset
 
@@ -23,7 +20,6 @@ class MaskedCOCODataset(COCODataset):
         if self._use_features is True:
             features = self.features_db[idx]
             image_labels = []
-            overlaps = np.ones((features["image_feature_0"].shape[0]))
 
             for i in range(features["image_feature_0"].shape[0]):
                 prob = random.random()

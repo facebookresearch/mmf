@@ -159,7 +159,7 @@ def main():
     print("Faster R-CNN OCR features")
     print("\textracting from", IMDB_FILE)
     print("\tsaving to", SAVE_DIR)
-    for n, info in enumerate(tqdm.tqdm(imdb)):
+    for _, info in enumerate(tqdm.tqdm(imdb)):
         image_path = os.path.join(IMAGE_DIR, info["image_path"])
         save_feat_path = os.path.join(SAVE_DIR, info["feature_path"])
         save_info_path = save_feat_path.replace(".npy", "_info.npy")

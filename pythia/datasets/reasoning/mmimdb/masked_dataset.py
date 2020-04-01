@@ -1,7 +1,5 @@
 import random
 
-import numpy as np
-
 from pythia.common.sample import Sample
 from pythia.datasets.vqa.vqa2.dataset import VQA2Dataset
 
@@ -20,7 +18,6 @@ class MaskedMMImdbDataset(VQA2Dataset):
             features = self.features_db[idx]
             current_sample.update(features)
             image_labels = []
-            overlaps = np.ones((features["image_feature_0"].shape[0]))
 
             for i in range(features["image_feature_0"].shape[0]):
                 prob = random.random()

@@ -36,7 +36,6 @@ Example::
 """
 
 from pythia.utils.distributed_utils import is_master, synchronize
-from pythia.common.registry import registry
 
 
 class BaseDatasetBuilder:

@@ -1,15 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import os
 
-import yaml
-from torch.utils.data import DataLoader
-
-from pythia.common.batch_collator import BatchCollator
 from pythia.common.sample import SampleList
 from pythia.common.test_reporter import TestReporter
 from pythia.datasets.multi_dataset import MultiDataset
-from pythia.datasets.samplers import DistributedSampler
-from pythia.utils.general import get_batch_size
 
 
 class DatasetLoader:

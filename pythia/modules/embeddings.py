@@ -228,7 +228,9 @@ class ImageEmbedding(nn.Module):
         self.image_attention_model = AttentionLayer(img_dim, question_dim, **kwargs)
         self.out_dim = self.image_attention_model.out_dim
 
-    def forward(self, image_feat_variable, question_embedding, image_dims, extra={}):
+    def forward(self, image_feat_variable, question_embedding, image_dims, extra=None):
+        if extra is None:
+            extra = {}
         # N x K x n_att
         attention = self.image_attention_model(
             image_feat_variable, question_embedding, image_dims
@@ -258,7 +260,9 @@ class MultiHeadImageEmbedding(nn.Module):
         )
         self.out_dim = question_dim
 
-    def forward(self, image_feat_variable, question_embedding, image_dims, extra={}):
+    def forward(self, image_feat_variable, question_embedding, image_dims, extra=None):
+        if extra is None:
+            extra = {}
         image_feat_variable = image_feat_variable.transpose(0, 1)
         question_embedding = question_embedding.unsqueeze(1).transpose(0, 1)
         output, weights = self.module(

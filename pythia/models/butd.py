@@ -27,7 +27,7 @@ class BUTD(Pythia):
         self.word_embedding = self.vocab.get_embedding(
             torch.nn.Embedding, embedding_dim=self.config["embedding_dim"]
         )
-        setattr(self, "text_embeddings_out_dim", self.config["embedding_dim"])
+        self.text_embeddings_out_dim = self.config["embedding_dim"]
 
     def _init_classifier(self):
         self.classifier = ClassifierLayer(

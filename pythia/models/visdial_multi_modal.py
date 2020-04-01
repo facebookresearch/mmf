@@ -1,5 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import torch
 
 from pythia.models.pythia import Pythia
 from pythia.modules.decoders import VisDialDiscriminator

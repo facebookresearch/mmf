@@ -49,7 +49,7 @@ class BAN(BaseModel):
         b_net = []
         q_prj = []
 
-        for i in range(module_config["gamma"]):
+        for _ in range(module_config["gamma"]):
             b_net.append(
                 BCNet(
                     v_dim, num_hidden, num_hidden, None, k=module_config["bc_net"]["k"]

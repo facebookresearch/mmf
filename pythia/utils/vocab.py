@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os
-import sys
 from collections import defaultdict
 
 import numpy as np

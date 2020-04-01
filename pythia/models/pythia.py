@@ -13,11 +13,7 @@ from pythia.modules.embeddings import (
     TextEmbedding,
 )
 from pythia.modules.encoders import ImageEncoder
-from pythia.modules.layers import (
-    ClassifierLayer,
-    ModalCombineLayer,
-    ReLUWithWeightNormFC,
-)
+from pythia.modules.layers import ClassifierLayer, ModalCombineLayer
 from pythia.utils.configuration import ConfigNode
 
 
@@ -208,8 +204,10 @@ class Pythia(BaseModel):
         return text_embeddding_total
 
     def process_feature_embedding(
-        self, attr, sample_list, text_embedding_total, extra=[], batch_size_t=None
+        self, attr, sample_list, text_embedding_total, extra=None, batch_size_t=None
     ):
+        if extra is None:
+            extra = []
         feature_embeddings = []
         feature_attentions = []
         features = []
@@ -427,8 +425,10 @@ class PythiaMultiHead(Pythia):
         )
 
     def process_feature_embedding(
-        self, attr, sample_list, text_embedding_total, extra=[], batch_size_t=None
+        self, attr, sample_list, text_embedding_total, extra=None, batch_size_t=None
     ):
+        if extra is None:
+            extra = []
         feature_embeddings = []
         feature_attentions = []
         features = []

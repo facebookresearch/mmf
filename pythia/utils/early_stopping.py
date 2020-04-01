@@ -2,7 +2,6 @@
 import numpy as np
 import torch
 
-from pythia.common.registry import registry
 from pythia.utils.distributed_utils import is_master
 
 
