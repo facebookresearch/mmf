@@ -16,11 +16,11 @@ class TestDecoderModel(nn.Module):
     def init_hidden_state(self, features):
 
         h = features.new_zeros(
-            (features.size(0), self.config["classifier"]["params"]["hidden_dim"]),
+            (features.size(0), self.config.classifier.params.hidden_dim),
             dtype=torch.float,
         )
         c = features.new_zeros(
-            (features.size(0), self.config["classifier"]["params"]["hidden_dim"]),
+            (features.size(0), self.config.classifier.params.hidden_dim),
             dtype=torch.float,
         )
         return h, c
@@ -42,7 +42,7 @@ class TestDecoderModel(nn.Module):
 
     def forward(self, sample_list):
         scores = torch.rand(sample_list.get_batch_size(), 3127)
-        decoder = registry.get_decoder_class(self.config["inference"]["type"])(
+        decoder = registry.get_decoder_class(self.config.inference.type)(
             self.vocab, self.config
         )
         sample_list = decoder.init_batch(sample_list)

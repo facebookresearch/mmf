@@ -30,21 +30,21 @@ class MultiDataset:
         self._is_master = is_master()
 
     def _process_datasets(self):
-        if "datasets" not in self.opts:
+        if "datasets" not in self.config:
             self.writer.write(
                 "No datasets attribute present. Setting default to vqa2." "warning"
             )
             datasets = "vqa2"
         else:
-            datasets = self.opts["datasets"]
+            datasets = self.config.datasets
 
         if type(datasets) == str:
             datasets = list(map(lambda x: x.strip(), datasets.split(",")))
 
         self._given_datasets = datasets
 
-    def load(self, **opts):
-        self.opts = opts
+    def load(self, config):
+        self.config = config
         self._process_datasets()
 
         self._datasets = []
@@ -67,8 +67,8 @@ class MultiDataset:
                 continue
             builder_instance = builder_class()
 
-            if dataset in self.opts["dataset_config"]:
-                attributes = self.opts["dataset_config"][dataset]
+            if dataset in self.config.dataset_config:
+                attributes = self.config.dataset_config[dataset]
             else:
                 self.writer.write(
                     "Dataset %s is missing from " "dataset_config in config." % dataset,
@@ -83,7 +83,7 @@ class MultiDataset:
                 continue
 
             loader_instance, sampler_instance = self.build_dataloader(
-                dataset_instance, self.opts
+                dataset_instance, self.config
             )
 
             self._builders.append(builder_instance)
@@ -216,14 +216,14 @@ class MultiDataset:
         """
         return config
 
-    def build_dataloader(self, dataset, opts):
+    def build_dataloader(self, dataset, config):
         training = self._global_config.training
         num_workers = training.num_workers
         pin_memory = training.pin_memory
 
         other_args = {}
 
-        self._add_extra_args_for_dataloader(dataset, opts, other_args)
+        self._add_extra_args_for_dataloader(dataset, config, other_args)
 
         loader = DataLoader(
             dataset=dataset,

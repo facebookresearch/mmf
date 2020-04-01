@@ -28,39 +28,37 @@ class BAN(BaseModel):
         self.word_embedding = vocab.get_embedding(torch.nn.Embedding, embedding_dim=300)
 
     def _init_text_embedding(self):
-        module_config = self.config["text_embedding"]
+        module_config = self.config.text_embedding
         q_mod = BiLSTMTextEmbedding(
-            module_config["num_hidden"],
-            module_config["emb_size"],
-            module_config["num_layers"],
-            module_config["dropout"],
-            module_config["bidirectional"],
-            module_config["rnn_type"],
+            module_config.num_hidden,
+            module_config.emb_size,
+            module_config.num_layers,
+            module_config.dropout,
+            module_config.bidirectional,
+            module_config.rnn_type,
         )
         self.q_emb = q_mod
 
     def _init_bilinear_attention(self):
-        module_config = self.config["bilinear_attention"]
-        num_hidden = self.config["text_embedding"]["num_hidden"]
-        v_dim = module_config["visual_feat_dim"]
+        module_config = self.config.bilinear_attention
+        num_hidden = self.config.text_embedding.num_hidden
+        v_dim = module_config.visual_feat_dim
 
-        v_att = BiAttention(v_dim, num_hidden, num_hidden, module_config["gamma"])
+        v_att = BiAttention(v_dim, num_hidden, num_hidden, module_config.gamma)
 
         b_net = []
         q_prj = []
 
-        for _ in range(module_config["gamma"]):
+        for _ in range(module_config.gamma):
             b_net.append(
-                BCNet(
-                    v_dim, num_hidden, num_hidden, None, k=module_config["bc_net"]["k"]
-                )
+                BCNet(v_dim, num_hidden, num_hidden, None, k=module_config.bc_net.k)
             )
 
             q_prj.append(
                 FCNet(
                     dims=[num_hidden, num_hidden],
-                    act=module_config["fc_net"]["activation"],
-                    dropout=module_config["fc_net"]["dropout"],
+                    act=module_config.fc_net.activation,
+                    dropout=module_config.fc_net.dropout,
                 )
             )
 
@@ -69,9 +67,9 @@ class BAN(BaseModel):
         self.v_att = v_att
 
     def _init_classifier(self):
-        num_hidden = self.config["text_embedding"]["num_hidden"]
+        num_hidden = self.config.text_embedding.num_hidden
         num_choices = registry.get(self._datasets[0] + "_num_final_outputs")
-        dropout = self.config["classifier"]["dropout"]
+        dropout = self.config.classifier.dropout
         self.classifier = WeightNormClassifier(
             num_hidden, num_choices, num_hidden * 2, dropout
         )
@@ -83,10 +81,10 @@ class BAN(BaseModel):
 
         q_emb = self.q_emb.forward_all(q)
 
-        b_emb = [0] * self.config["bilinear_attention"]["gamma"]
+        b_emb = [0] * self.config.bilinear_attention.gamma
         att, logits = self.v_att.forward_all(v, q_emb)
 
-        for g in range(self.config["bilinear_attention"]["gamma"]):
+        for g in range(self.config.bilinear_attention.gamma):
             g_att = att[:, g, :, :]
             b_emb[g] = self.b_net[g].forward_with_weights(v, q_emb, g_att)
             q_emb = self.q_prj[g](b_emb[g].unsqueeze(1)) + q_emb

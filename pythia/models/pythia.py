@@ -64,7 +64,7 @@ class Pythia(BaseModel):
 
     def _update_text_embedding_args(self, args):
         # Add model_data_dir to kwargs
-        args["model_data_dir"] = self.config.model_data_dir
+        args.model_data_dir = self.config.model_data_dir
 
     def _init_feature_encoders(self, attr):
         feat_encoders = []

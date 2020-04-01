@@ -25,16 +25,16 @@ class BUTD(Pythia):
         self.vocab = self.text_processor.vocab
         self.vocab_size = self.vocab.get_size()
         self.word_embedding = self.vocab.get_embedding(
-            torch.nn.Embedding, embedding_dim=self.config["embedding_dim"]
+            torch.nn.Embedding, embedding_dim=self.config.embedding_dim
         )
-        self.text_embeddings_out_dim = self.config["embedding_dim"]
+        self.text_embeddings_out_dim = self.config.embedding_dim
 
     def _init_classifier(self):
         self.classifier = ClassifierLayer(
-            self.config["classifier"]["type"],
-            in_dim=self.config["classifier"]["params"]["feature_dim"],
+            self.config.classifier.type,
+            in_dim=self.config.classifier.params.feature_dim,
             out_dim=self.vocab_size,
-            **self.config["classifier"]["params"]
+            **self.config.classifier.params
         )
 
     def get_optimizer_parameters(self, config):
@@ -44,7 +44,7 @@ class BUTD(Pythia):
             {"params": self.classifier.parameters()},
             {
                 "params": self.image_feature_encoders.parameters(),
-                "lr": (config["optimizer"]["params"]["lr"] * 0.1),
+                "lr": (config.optimizer.params.lr * 0.1),
             },
         ]
         return params
@@ -77,11 +77,11 @@ class BUTD(Pythia):
 
     def init_hidden_state(self, features):
         h = features.new_zeros(
-            (features.size(0), self.config["classifier"]["params"]["hidden_dim"]),
+            (features.size(0), self.config.classifier.params.hidden_dim),
             dtype=torch.float,
         )
         c = features.new_zeros(
-            (features.size(0), self.config["classifier"]["params"]["hidden_dim"]),
+            (features.size(0), self.config.classifier.params.hidden_dim),
             dtype=torch.float,
         )
         return h, c
@@ -90,7 +90,7 @@ class BUTD(Pythia):
         if self.teacher_forcing:
             # Modify batch_size for timestep t
             batch_size_t = sum([l > t for l in data["decode_lengths"]])
-        elif prev_output is not None and self.config["inference"]["type"] == "greedy":
+        elif prev_output is not None and self.config.inference.type == "greedy":
             # Adding t-1 output words to data["text"] for greedy decoding
             output_softmax = torch.log_softmax(prev_output, dim=1)
             _, indices = torch.max(output_softmax, dim=1, keepdim=True)
@@ -136,7 +136,7 @@ class BUTD(Pythia):
         batch_size_t = batch_size
         for t in range(timesteps):
             data, batch_size_t = self.get_data_t(t, data, batch_size_t, output)
-            if self.config["inference"]["type"] in ["beam_search", "nucleus_sampling"]:
+            if self.config.inference.type in ["beam_search", "nucleus_sampling"]:
                 pi_t = data["texts"]
             else:
                 pi_t = data["texts"][:, t].unsqueeze(-1)
@@ -146,7 +146,7 @@ class BUTD(Pythia):
             )
             output = self.classifier(attention_feature)
             # Compute decoding
-            if self.config["inference"]["type"] in ["beam_search", "nucleus_sampling"]:
+            if self.config.inference.type in ["beam_search", "nucleus_sampling"]:
                 finish, data, batch_size_t = decoder.decode(t, data, output)
                 if finish:
                     break
@@ -154,7 +154,7 @@ class BUTD(Pythia):
                 scores[:batch_size_t, t] = output
 
         model_output = {"scores": scores}
-        if self.config["inference"]["type"] in ["beam_search", "nucleus_sampling"]:
+        if self.config.inference.type in ["beam_search", "nucleus_sampling"]:
             model_output["captions"] = decoder.get_result()
 
         return model_output

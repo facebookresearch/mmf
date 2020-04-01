@@ -14,9 +14,9 @@ class DatasetLoader:
         self.val_dataset = MultiDataset("val")
         self.test_dataset = MultiDataset("test")
 
-        self.train_dataset.load(**self.config)
-        self.val_dataset.load(**self.config)
-        self.test_dataset.load(**self.config)
+        self.train_dataset.load(self.config)
+        self.val_dataset.load(self.config)
+        self.test_dataset.load(self.config)
 
         if self.train_dataset.num_datasets == 1:
             self.train_loader = self.train_dataset.first_loader
