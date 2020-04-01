@@ -48,7 +48,7 @@ Config::
 ``BaseDataset`` will init the processors and they will available inside your
 dataset with same attribute name as the key name, for e.g. `text_processor` will
 be available as `self.text_processor` inside your dataset. As is with every module
-in Pythia, processor also accept a ``ConfigNode`` with a `type` and `params`
+in Pythia, processor also accept a ``DictConfig`` with a `type` and `params`
 attributes. `params` defined the custom parameters for each of the processors.
 By default, processor initialization process will also init `preprocessor` attribute
 which can be a processor config in itself. `preprocessor` can be then be accessed
@@ -69,6 +69,9 @@ Example::
             text = [t.strip() for t in text.split(" ")]
             return {"text": text}
 """
+
+
+import copy
 import os
 import re
 import warnings
@@ -78,7 +81,6 @@ import numpy as np
 import torch
 
 from pythia.common.registry import registry
-from pythia.utils.configuration import ConfigNode
 from pythia.utils.distributed_utils import is_master, synchronize
 from pythia.utils.general import get_pythia_root
 from pythia.utils.phoc import build_phoc
@@ -91,7 +93,7 @@ class BaseProcessor:
     with Pythia. End user mainly needs to implement ``__call__`` function.
 
     Args:
-        config (ConfigNode): Config for this processor, containing `type` and
+        config (DictConfig): Config for this processor, containing `type` and
                              `params` attributes if available.
 
     """
@@ -121,7 +123,7 @@ class Processor:
     the processor initialized are directly available via this class.
 
     Args:
-        config (ConfigNode): ConfigNode containing ``type`` of the processor to
+        config (DictConfig): DictConfig containing ``type`` of the processor to
                              be initialized and ``params`` of that procesor.
 
     """
@@ -190,7 +192,7 @@ class VocabProcessor(BaseProcessor):
                             vocab_file: vocabs/vocabulary_100k.txt
 
     Args:
-        config (ConfigNode): node containing configuration parameters of
+        config (DictConfig): node containing configuration parameters of
                              the processor
 
     Attributes:
@@ -319,7 +321,7 @@ class GloVeProcessor(VocabProcessor):
     corresponding to those indices.
 
     Args:
-        config (ConfigNode): Configuration parameters for GloVe same as
+        config (DictConfig): Configuration parameters for GloVe same as
                              :func:`~VocabProcessor`.
 
     """
@@ -329,7 +331,7 @@ class GloVeProcessor(VocabProcessor):
             raise AttributeError(
                 "Config passed to the processor has no attribute vocab"
             )
-        vocab_processor_config = ConfigNode(config)
+        vocab_processor_config = copy.deepcopy(config)
         # GloVeProcessor needs vocab type to be "intersected"
         vocab_processor_config.vocab.type = "intersected"
 
@@ -360,7 +362,7 @@ class FastTextProcessor(VocabProcessor):
     """FastText processor, similar to GloVe processor but returns FastText vectors.
 
     Args:
-        config (ConfigNode): Configuration values for the processor.
+        config (DictConfig): Configuration values for the processor.
 
     """
 
@@ -499,7 +501,7 @@ class VQAAnswerProcessor(BaseProcessor):
     "answers_tokens" if passed.
 
     Args:
-        config (ConfigNode): Configuration for the processor
+        config (DictConfig): Configuration for the processor
 
     Attributes:
         answer_vocab (VocabDict): Class representing answer vocabulary
@@ -687,7 +689,7 @@ class SoftCopyAnswerProcessor(VQAAnswerProcessor):
     and LoRRA.
 
     Args:
-        config (ConfigNode): Configuration for soft copy processor.
+        config (DictConfig): Configuration for soft copy processor.
 
     """
 
@@ -867,7 +869,7 @@ class CaptionProcessor(BaseProcessor):
     """Processes a caption with start, end and pad tokens and returns raw string.
 
     Args:
-        config (ConfigNode): Configuration for caption processor.
+        config (DictConfig): Configuration for caption processor.
 
     """
 

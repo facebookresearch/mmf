@@ -43,7 +43,7 @@ class Losses(nn.Module):
     attributes.
 
     Args:
-        loss_list (List[ConfigNode]): Description of parameter `loss_list`.
+        loss_list (ListConfig): Description of parameter `loss_list`.
 
     Example::
 

@@ -21,7 +21,7 @@ class CNNLSTM(BaseModel):
     passes the fused representation from a MLP to generate scores for each of the possible answers.
 
     Args:
-        config (ConfigNode): Configuration node containing all of the necessary config required
+        config (DictConfig): Configuration node containing all of the necessary config required
                              to initialize CNNLSTM.
 
     Inputs: sample_list (SampleList)

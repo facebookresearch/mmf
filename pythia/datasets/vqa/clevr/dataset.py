@@ -37,7 +37,7 @@ class CLEVRDataset(BaseDataset):
 
     Args:
         dataset_type (str): type of dataset, train|val|test
-        config (ConfigNode): Configuration Node representing all of the data necessary
+        config (DictConfig): Configuration Node representing all of the data necessary
                              to initialize CLEVR dataset class
         data_folder: Root folder in which all of the data will be present if passed
                      replaces default based on data_root_dir and data_folder in config.

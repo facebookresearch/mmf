@@ -57,7 +57,7 @@ class BaseModel(nn.Module):
     dict as output and finally, register it using ``@registry.register_model``
 
     Args:
-        config (ConfigNode): ``model_config`` configuration from global config.
+        config (DictConfig): ``model_config`` configuration from global config.
 
     """
 

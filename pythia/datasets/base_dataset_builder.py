@@ -56,7 +56,7 @@ class BaseDatasetBuilder:
 
         Args:
             dataset_type (str): Type of dataset, train|val|test
-            config (ConfigNode): Configuration of this dataset loaded from config.
+            config (DictConfig): Configuration of this dataset loaded from config.
 
         Returns:
             dataset (BaseDataset): Dataset containing data to be trained on
@@ -82,7 +82,7 @@ class BaseDatasetBuilder:
 
         Args:
             dataset_type (str): Type of dataset, train|val|test
-            config (ConfigNode): Configuration of this dataset loaded from config.
+            config (DictConfig): Configuration of this dataset loaded from config.
 
         Returns:
             dataset (BaseDataset): Dataset containing data to be trained on
@@ -99,7 +99,7 @@ class BaseDatasetBuilder:
 
         Args:
             dataset_type (str): Type of dataset, train|val|test
-            config (ConfigNode): Configuration of this dataset loaded from
+            config (DictConfig): Configuration of this dataset loaded from
                                  config.
 
         .. warning::
@@ -118,7 +118,7 @@ class BaseDatasetBuilder:
 
         Args:
             dataset_type (str): Type of dataset, train|val|test
-            config (ConfigNode): Configuration of this dataset loaded from
+            config (DictConfig): Configuration of this dataset loaded from
                                  config.
         """
         raise NotImplementedError(

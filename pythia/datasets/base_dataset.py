@@ -15,7 +15,7 @@ class BaseDataset(Dataset):
     Args:
         name (str): Name of your dataset to be used a representative in text strings
         dataset_type (str): Type of your dataset. Normally, train|val|test
-        config (ConfigNode): Configuration for the current dataset
+        config (DictConfig): Configuration for the current dataset
     """
 
     def __init__(self, name, dataset_type, config=None):
