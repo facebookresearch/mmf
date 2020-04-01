@@ -10,7 +10,7 @@ from pythia.datasets.processors.processors import (
     EvalAIAnswerProcessor,
     MultiHotAnswerFromVocabProcessor,
 )
-from pythia.utils.configuration import ConfigNode
+from pythia.utils.configuration import load_yaml
 
 from ..test_utils import compare_tensors
 
@@ -18,9 +18,7 @@ from ..test_utils import compare_tensors
 class TestDatasetProcessors(unittest.TestCase):
     def _get_config(self, path):
         path = os.path.join(os.path.abspath(__file__), path)
-        with open(os.path.abspath(path)) as f:
-            config = yaml.load(f, Loader=yaml.FullLoader)
-        config = ConfigNode(config)
+        config = load_yaml(os.path.abspath(path))
         return config
 
     def test_caption_processor(self):

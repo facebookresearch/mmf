@@ -14,7 +14,6 @@ from pythia.modules.embeddings import (
 )
 from pythia.modules.encoders import ImageEncoder
 from pythia.modules.layers import ClassifierLayer, ModalCombineLayer
-from pythia.utils.configuration import ConfigNode
 
 
 @registry.register_model("pythia")
@@ -51,7 +50,7 @@ class Pythia(BaseModel):
 
         for text_embedding in text_embeddings_list_config:
             embedding_type = text_embedding.type
-            embedding_kwargs = ConfigNode(text_embedding.params)
+            embedding_kwargs = copy.deepcopy(text_embedding.params)
 
             self._update_text_embedding_args(embedding_kwargs)
 

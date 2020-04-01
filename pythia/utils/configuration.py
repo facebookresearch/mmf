@@ -42,87 +42,6 @@ def load_yaml(f):
     return mapping
 
 
-class ConfigNode(collections.OrderedDict):
-    IMMUTABLE = "__is_frozen"
-
-    def __init__(self, init_dict=None):
-        self.__dict__[ConfigNode.IMMUTABLE] = False
-        if init_dict is None:
-            init_dict = {}
-        super().__init__(init_dict)
-
-        for key in self:
-            if isinstance(self[key], collections.abc.Mapping):
-                self[key] = ConfigNode(self[key])
-            elif isinstance(self[key], list):
-                for idx, item in enumerate(self[key]):
-                    if isinstance(item, collections.abc.Mapping):
-                        self[key][idx] = ConfigNode(item)
-
-    def freeze(self):
-        for field in self.keys():
-            if isinstance(self[field], collections.abc.Mapping):
-                self[field].freeze()
-            elif isinstance(self[field], list):
-                for item in self[field]:
-                    if isinstance(item, collections.abc.Mapping):
-                        item.freeze()
-
-        self.__dict__[ConfigNode.IMMUTABLE] = True
-
-    def defrost(self):
-        for field in self.keys():
-            if isinstance(self[field], collections.abc.Mapping):
-                self[field].defrost()
-            elif isinstance(self[field], list):
-                for item in self[field]:
-                    if isinstance(item, collections.abc.Mapping):
-                        item.defrost()
-
-        self.__dict__[ConfigNode.IMMUTABLE] = False
-
-    def __getattr__(self, key):
-        if key not in self:
-            raise AttributeError(key)
-
-        return self[key]
-
-    def __setattr__(self, key, value):
-        if self.__dict__[ConfigNode.IMMUTABLE] is True:
-            raise AttributeError("ConfigNode has been frozen and can't be updated")
-
-        self[key] = value
-
-    def _indent(self, st, num_spaces):
-        st = st.split("\n")
-        first = st.pop(0)
-        st = [(num_spaces * " ") + line for line in st]
-        st = [first] + st
-        st = "\n".join(st)
-        return st
-
-    def __str__(self):
-        strs = []
-
-        if isinstance(self, collections.abc.Mapping):
-            for key, value in sorted(self.items()):
-                seperator = "\n" if isinstance(value, ConfigNode) else " "
-                if isinstance(value, list):
-                    attr_str = ["{}:".format(key)]
-                    for item in value:
-                        item_str = self._indent(str(item), 2)
-                        attr_str.append("- {}".format(item_str))
-                    attr_str = "\n".join(attr_str)
-                else:
-                    attr_str = "{}:{}{}".format(str(key), seperator, str(value))
-                    attr_str = self._indent(attr_str, 2)
-                strs.append(attr_str)
-        return "\n".join(strs)
-
-    def __repr__(self):
-        return "{}({})".format(self.__class__.__name__, super().__repr__())
-
-
 class Configuration:
     def __init__(self, args):
         self.config = {}
@@ -328,7 +247,6 @@ class Configuration:
         return value
 
     def freeze(self):
-        # self.config = ConfigNode(self.config)
         OmegaConf.set_struct(self.config, True)
 
     def defrost(self):

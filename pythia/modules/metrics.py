@@ -62,7 +62,7 @@ class Metrics:
     ``{'val/vqa_accuracy': 0.3, 'val/r@1': 0.8}``
 
     Args:
-        metric_list (List[ConfigNode]): List of ConfigNodes where each ConfigNode
+        metric_list (ListConfig): List of DictConfigs where each DictConfig
                                         specifies name and parameters of the
                                         metrics used.
     """

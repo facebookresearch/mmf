@@ -9,7 +9,7 @@ import pythia.modules.metrics as metrics
 from pythia.common.registry import registry
 from pythia.common.sample import Sample
 from pythia.datasets.processors import CaptionProcessor
-from pythia.utils.configuration import ConfigNode
+from pythia.utils.configuration import load_yaml
 
 
 class TestModuleMetrics(unittest.TestCase):
@@ -18,10 +18,7 @@ class TestModuleMetrics(unittest.TestCase):
             os.path.abspath(__file__),
             "../../../pythia/common/defaults/configs/datasets/captioning/coco.yml",
         )
-        with open(os.path.abspath(path)) as f:
-            config = yaml.load(f, Loader=yaml.FullLoader)
-
-        config = ConfigNode(config)
+        config = load_yaml(os.path.abspath(path))
         captioning_config = config.dataset_config.coco
         caption_processor_config = captioning_config.processors.caption_processor
         vocab_path = os.path.join(
