@@ -33,7 +33,7 @@ class TestTextUtils(unittest.TestCase):
             "configs",
             "captioning",
             "coco",
-            "butd_nucleus_sampling.yml",
+            "butd_nucleus_sampling.yaml",
         )
         config_path = os.path.abspath(config_path)
         args = dummy_args()

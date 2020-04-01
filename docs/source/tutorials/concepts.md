@@ -124,32 +124,32 @@ Find more details about Registry class in its documentation [common/registry](..
 
 As is necessary with research, most of the parameters/settings in Pythia are
 configurable. Pythia specific default values (`training`) are present
-in [pythia/common/defaults/configs/base.yml](https://github.com/facebookresearch/pythia/blob/v0.3/pythia/common/defaults/configs/base.yml)
+in [pythia/common/defaults/configs/base.yaml](https://github.com/facebookresearch/pythia/blob/v0.3/pythia/common/defaults/configs/base.yaml)
 with detailed comments delineating the usage of each parameter.
 
 For ease of usage and modularity, configuration for each dataset is kept separately in
-`pythia/common/defaults/configs/datasets/[task]/[dataset].yml` where you can get `[task]`
+`pythia/common/defaults/configs/datasets/[task]/[dataset].yaml` where you can get `[task]`
 value for the dataset from the tables in [Tasks and Datasets](#tasks-and-datasets) section.
 
 The most dynamic part, model configuration are also kept separate and are the one which
 need to be defined by the user if they are creating their own models. We include
 configurations for the models included in the model zoo of Pythia. For each model,
 there is a separate configuration for each dataset it can work on. See an example in
-[configs/vqa/vqa2/pythia.yml](https://github.com/facebookresearch/pythia/blob/v0.3/configs/vqa/vqa2/pythia.yml). The configuration in
-the configs folder are divided using the scheme `configs/[task]/[dataset]/[model].yml`.
+[configs/vqa/vqa2/pythia.yaml](https://github.com/facebookresearch/pythia/blob/v0.3/configs/vqa/vqa2/pythia.yaml). The configuration in
+the configs folder are divided using the scheme `configs/[task]/[dataset]/[model].yaml`.
 
 It is possible to include other configs into your config using `includes` directive.
 Thus, in Pythia config above you can include `vqa2`'s config like this:
 
 ```
 includes:
-- common/defaults/configs/datasets/vqa/vqa2.yml
+- common/defaults/configs/datasets/vqa/vqa2.yaml
 ```
 
 Now, due to separate config per dataset this concept can be extended
 to do multi-tasking and include multiple dataset configs here.
 
-`base.yml` file mentioned above is always included and provides sane defaults
+`base.yaml` file mentioned above is always included and provides sane defaults
 for most of the training parameters. You can then specify the config of the model
 that you want to train using `--config [config_path]` option. The final config can be
 retrieved using `registry.get('config')` anywhere in your codebase. You can access

@@ -123,7 +123,7 @@ Default Configuration
 Some things to note about Pythia's configuration:
 
 - Each dataset in Pythia has its own default configuration which is usually under this structure
-  ``pythia/commmon/defaults/configs/datasets/[task]/[dataset].yml`` where ``task`` is the task your dataset belongs to.
+  ``pythia/commmon/defaults/configs/datasets/[task]/[dataset].yaml`` where ``task`` is the task your dataset belongs to.
 - These dataset configurations can be then included by the user in their end config using ``includes`` directive
 - This allows easy multi-tasking and management of configurations and user can also override the default configurations
   easily in their own config

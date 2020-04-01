@@ -49,7 +49,7 @@ We release the following pretrained model for M4C-Captioner for the TextCaps dat
 
 | Datasets  | Config Files (under `configs/captioning/`)         | Pretrained Models | Metrics                     |
 |--------|------------------|----------------------------|-------------------------------|
-| TextCaps (`m4c_textcaps`) | `m4c_textcaps/m4c_captioner.yml` | [`download`](https://dl.fbaipublicfiles.com/pythia/m4c_captioner/m4c_captioner_release_models/m4c_textcaps/m4c_textcaps_m4c_captioner.ckpt) | val CIDEr -- 89.6; test CIDEr -- 81.0 |
+| TextCaps (`m4c_textcaps`) | `m4c_textcaps/m4c_captioner.yaml` | [`download`](https://dl.fbaipublicfiles.com/pythia/m4c_captioner/m4c_captioner_release_models/m4c_textcaps/m4c_textcaps_m4c_captioner.ckpt) | val CIDEr -- 89.6; test CIDEr -- 81.0 |
 
 ## Training and Evaluating M4C-Captioner
 
@@ -62,30 +62,30 @@ For example:
 # Distributed Data Parallel (on a 4-GPU machine)
 # (change `--nproc_per_node 4` to the actual GPU number on your machine)
 python -m torch.distributed.launch --nproc_per_node 4 tools/run.py --tasks captioning --datasets m4c_textcaps --model m4c_captioner \
---config configs/captioning/m4c_textcaps/m4c_captioner.yml \
+--config configs/captioning/m4c_textcaps/m4c_captioner.yaml \
 --save_dir save/m4c_captioner \
 training.distributed True
 
 # alternative: Data Parallel (slower, but results should be the same)
 python tools/run.py --tasks captioning --datasets m4c_textcaps --model m4c_captioner \
---config configs/captioning/m4c_textcaps/m4c_captioner.yml \
+--config configs/captioning/m4c_textcaps/m4c_captioner.yaml \
 --save_dir save/m4c_captioner \
 training.data_parallel True
 ```
-(You can also specify a different path to `--save_dir` to save to a location you prefer. Replace `configs/captioning/m4c_textcaps/m4c_captioner.yml` with `configs/captioning/m4c_textcaps/m4c_captioner_without_ocr.yml` to train M4C-Captioner without using OCR inputs as an ablation study.)
+(You can also specify a different path to `--save_dir` to save to a location you prefer. Replace `configs/captioning/m4c_textcaps/m4c_captioner.yaml` with `configs/captioning/m4c_textcaps/m4c_captioner_without_ocr.yaml` to train M4C-Captioner without using OCR inputs as an ablation study.)
 
 2) to generate prediction json files for the TextCaps (assuming the pretrained model is downloaded to `data/models/m4c_textcaps_m4c_captioner.ckpt`):
 ```
 # generate predictions on val
 python tools/run.py --tasks captioning --datasets m4c_textcaps --model m4c_captioner \
---config configs/captioning/m4c_textcaps/m4c_captioner.yml \
+--config configs/captioning/m4c_textcaps/m4c_captioner.yaml \
 --save_dir save/m4c_captioner \
 --run_type val --evalai_inference 1 \
 --resume_file data/models/m4c_textcaps_m4c_captioner.ckpt
 
 # generate predictions on test
 python tools/run.py --tasks captioning --datasets m4c_textcaps --model m4c_captioner \
---config configs/captioning/m4c_textcaps/m4c_captioner.yml \
+--config configs/captioning/m4c_textcaps/m4c_captioner.yaml \
 --save_dir save/m4c_captioner \
 --run_type inference --evalai_inference 1 \
 --resume_file data/models/m4c_textcaps_m4c_captioner.ckpt
@@ -105,7 +105,7 @@ For test set evaluation, please submit to the TextCaps EvalAI server.
 # Distributed Data Parallel (on a 4-GPU machine)
 # (change `--nproc_per_node 4` to the actual GPU number on your machine)
 python -m torch.distributed.launch --nproc_per_node 4 tools/run.py --tasks captioning --datasets m4c_textcaps --model m4c_captioner \
---config configs/captioning/m4c_textcaps/m4c_captioner_coco.yml \
+--config configs/captioning/m4c_textcaps/m4c_captioner_coco.yaml \
 --save_dir save/m4c_captioner_coco \
 training.distributed True
 ```
@@ -114,14 +114,14 @@ training.distributed True
 ```
 # generate predictions on TextCaps val
 python tools/run.py --tasks captioning --datasets m4c_textcaps --model m4c_captioner \
---config configs/captioning/m4c_textcaps/m4c_captioner_coco_eval_on_textcaps.yml \
+--config configs/captioning/m4c_textcaps/m4c_captioner_coco_eval_on_textcaps.yaml \
 --run_type val --evalai_inference 1 \
 --save_dir save/m4c_captioner_coco \
 --resume 1
 
 # generate predictions on TextCaps test
 python tools/run.py --tasks captioning --datasets m4c_textcaps --model m4c_captioner \
---config configs/captioning/m4c_textcaps/m4c_captioner_coco_eval_on_textcaps.yml \
+--config configs/captioning/m4c_textcaps/m4c_captioner_coco_eval_on_textcaps.yaml \
 --run_type inference --evalai_inference 1 \
 --save_dir save/m4c_captioner_coco \
 --resume 1
@@ -136,7 +136,7 @@ For test set evaluation, please submit to the TextCaps EvalAI server.
 ```
 # generate predictions on COCO Karpathy val
 python tools/run.py --tasks captioning --datasets m4c_textcaps --model m4c_captioner \
---config configs/captioning/m4c_textcaps/m4c_captioner_coco.yml \
+--config configs/captioning/m4c_textcaps/m4c_captioner_coco.yaml \
 --run_type val --evalai_inference 1 \
 --save_dir save/m4c_captioner_coco \
 --resume 1
@@ -155,7 +155,7 @@ python projects/M4C_Captioner/scripts/coco_eval.py \
 # Distributed Data Parallel (on a 4-GPU machine)
 # (change `--nproc_per_node 4` to the actual GPU number on your machine)
 python -m torch.distributed.launch --nproc_per_node 4 tools/run.py --tasks captioning --datasets m4c_textcaps --model m4c_captioner \
---config configs/captioning/m4c_textcaps/m4c_captioner_coco_textcaps_joint.yml \
+--config configs/captioning/m4c_textcaps/m4c_captioner_coco_textcaps_joint.yaml \
 --save_dir save/m4c_captioner_coco_textcaps_joint \
 training.distributed True
 ```
@@ -164,7 +164,7 @@ training.distributed True
 ```
 # generate predictions on COCO Karpathy val
 python tools/run.py --tasks captioning --datasets m4c_textcaps --model m4c_captioner \
---config configs/captioning/m4c_textcaps/m4c_captioner_coco_textcaps_joint.yml \
+--config configs/captioning/m4c_textcaps/m4c_captioner_coco_textcaps_joint.yaml \
 --run_type val --evalai_inference 1 \
 --save_dir save/m4c_captioner_coco_textcaps_joint \
 --resume 1
@@ -179,7 +179,7 @@ To train the BUTD model on TextCaps:
 ```
 # Data Parallel (Distributed Data Parallel doesn't work with BUTD for now)
 python tools/run.py --tasks captioning --datasets coco --model butd \
---config configs/captioning/m4c_textcaps/butd.yml \
+--config configs/captioning/m4c_textcaps/butd.yaml \
 --save_dir save/butd \
 training.data_parallel True
 ```
@@ -189,14 +189,14 @@ To evaluate the trained BUTD model on TextCaps:
 ```
 # generate predictions on val
 python tools/run.py --tasks captioning --datasets coco --model butd \
---config configs/captioning/m4c_textcaps/butd_beam_search.yml \
+--config configs/captioning/m4c_textcaps/butd_beam_search.yaml \
 --save_dir save/butd \
 --run_type val --evalai_inference 1 \
 --resume 1
 
 # generate predictions on test
 python tools/run.py --tasks captioning --datasets coco --model butd \
---config configs/captioning/m4c_textcaps/butd_beam_search.yml \
+--config configs/captioning/m4c_textcaps/butd_beam_search.yaml \
 --save_dir save/butd \
 --run_type inference --evalai_inference 1 \
 --resume 1
@@ -217,14 +217,14 @@ wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/coco_captions/butd.
 
 # generate predictions on val
 python tools/run.py --tasks captioning --datasets coco --model butd \
---config configs/captioning/m4c_textcaps/butd_eval_pretrained_coco_model.yml \
+--config configs/captioning/m4c_textcaps/butd_eval_pretrained_coco_model.yaml \
 --save_dir save/butd_eval_pretrained_coco_model \
 --run_type val --evalai_inference 1 \
 --resume_file data/coco_pretrained_butd.pth
 
 # generate predictions on test
 python tools/run.py --tasks captioning --datasets coco --model butd \
---config configs/captioning/m4c_textcaps/butd_eval_pretrained_coco_model.yml \
+--config configs/captioning/m4c_textcaps/butd_eval_pretrained_coco_model.yaml \
 --save_dir save/butd_eval_pretrained_coco_model \
 --run_type inference --evalai_inference 1 \
 --resume_file data/coco_pretrained_butd.pth

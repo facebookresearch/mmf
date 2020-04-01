@@ -23,7 +23,7 @@ class TestDatasetProcessors(unittest.TestCase):
 
     def test_caption_processor(self):
         config = self._get_config(
-            "../../../pythia/common/defaults/configs/datasets/captioning/coco.yml"
+            "../../../pythia/common/defaults/configs/datasets/captioning/coco.yaml"
         )
         captioning_config = config.dataset_config.coco
         caption_processor_config = captioning_config.processors.caption_processor
@@ -48,7 +48,7 @@ class TestDatasetProcessors(unittest.TestCase):
 
     def test_multi_hot_answer_from_vocab_processor(self):
         config = self._get_config(
-            "../../../pythia/common/defaults/configs/datasets/vqa/clevr.yml"
+            "../../../pythia/common/defaults/configs/datasets/vqa/clevr.yaml"
         )
         clevr_config = config.dataset_config.clevr
         answer_processor_config = clevr_config.processors.answer_processor
