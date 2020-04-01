@@ -1,0 +1,14 @@
+model_config:
+  visual_bert:
+    bert_model_name: bert-base-uncased
+    training_head_type: pretraining
+    visual_embedding_dim: 2048
+    special_visual_initialize: true
+    embedding_strategy: plain
+    bypass_transformer: false
+    output_attentions: false
+    output_hidden_states: false
+    random_initialize: false
+    freeze_base: false
+    finetune_lr_multiplier: 1
+    metrics: []

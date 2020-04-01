@@ -140,6 +140,10 @@ class VisualBERT(BaseModel):
         super().__init__(config)
         self.config = config
 
+    @classmethod
+    def config_path(cls):
+        return "configs/models/visual_bert/pretrain.yaml"
+
     def build(self):
         self.output_attentions = self.config.output_attentions
         self.output_hidden_states = self.config.output_hidden_states

@@ -1,0 +1,2 @@
+includes:
+- configs/models/visual_bert/default.yaml
