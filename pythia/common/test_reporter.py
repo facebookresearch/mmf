@@ -24,11 +24,11 @@ class TestReporter(Dataset):
         self.writer = registry.get("writer")
         self.report = []
         self.timer = Timer()
-        self.training_config = self.config["training"]
-        self.num_workers = self.training_config["num_workers"]
-        self.batch_size = self.training_config["batch_size"]
-        self.report_folder_arg = self.config.get("report_folder", None)
-        self.experiment_name = self.training_config.get("experiment_name", "")
+        self.training_config = self.config.training
+        self.num_workers = self.training_config.num_workers
+        self.batch_size = self.training_config.batch_size
+        self.report_folder_arg = self.config.report_folder
+        self.experiment_name = self.training_config.experiment_name
 
         self.datasets = []
 

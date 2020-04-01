@@ -30,7 +30,7 @@ class VisDialMultiModalModel(Pythia):
             {"params": self.decoder.projection_layer.parameters()},
             {
                 "params": self.img_feat_encoders.parameters(),
-                "lr": (config["optimizer"]["params"]["lr"] * 0.1),
+                "lr": (config.optimizer.params.lr * 0.1),
             },
         ]
 
@@ -40,7 +40,7 @@ class VisDialMultiModalModel(Pythia):
         parent = super(VisDialMultiModalModel, self)
         parent._update_text_embedding_args(args)
         # Add embedding vectors to args
-        args["embedding_vectors"] = self.config["embedding_vectors"]
+        args.embedding_vectors = self.config.embedding_vectors
 
     def _init_decoder(self):
         embedding = self.text_embeddings[0].module

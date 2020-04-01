@@ -25,7 +25,7 @@ class TestModelCNNLSTM(unittest.TestCase):
         args = dummy_args()
         args.opts.append("config={}".format(config_path))
         configuration = Configuration(args)
-        configuration.config["datasets"] = "clevr"
+        configuration.config.datasets = "clevr"
         configuration.freeze()
         self.config = configuration.config
         registry.register("config", self.config)

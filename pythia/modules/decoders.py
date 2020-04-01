@@ -2,6 +2,7 @@
 import torch
 from torch import nn
 from torch.nn.utils.weight_norm import weight_norm
+
 from pythia.common.registry import registry
 
 
@@ -12,7 +13,7 @@ class VisDialDiscriminator(nn.Module):
         self.embedding = embedding
 
         self.emb_out_dim = embedding.text_out_dim
-        self.hidden_dim = self.config["hidden_dim"]
+        self.hidden_dim = self.config.hidden_dim
 
         self.projection_layer = nn.Linear(self.emb_out_dim, self.hidden_dim)
 

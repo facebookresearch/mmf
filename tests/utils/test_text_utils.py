@@ -39,10 +39,8 @@ class TestTextUtils(unittest.TestCase):
         args = dummy_args()
         args.opts.append("config={}".format(config_path))
         configuration = Configuration(args)
-        configuration.config["datasets"] = "coco"
-        configuration.config["model_config"]["butd"]["inference"]["params"][
-            "sum_threshold"
-        ] = 0.5
+        configuration.config.datasets = "coco"
+        configuration.config.model_config.butd.inference.params.sum_threshold = 0.5
         configuration.freeze()
         self.config = configuration.config
         registry.register("config", self.config)

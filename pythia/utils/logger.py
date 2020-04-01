@@ -47,7 +47,7 @@ class Logger:
         warnings_logger = logging.getLogger("py.warnings")
 
         # Set level
-        level = config["training"].get("logger_level", "info")
+        level = config.training.logger_level
         self.logger.setLevel(getattr(logging, level.upper()))
         self._file_only_logger.setLevel(getattr(logging, level.upper()))
 
@@ -70,7 +70,7 @@ class Logger:
         self.logger.addHandler(channel)
         warnings_logger.addHandler(channel)
 
-        should_not_log = self.config["training"]["should_not_log"]
+        should_not_log = self.config.training.should_not_log
         self.should_log = not should_not_log
 
         # Single log wrapper map

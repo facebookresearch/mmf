@@ -76,7 +76,7 @@ class M4C(BaseModel):
             in_dim=2048,
             weights_file="detectron/fc6/fc7_w.pkl",
             bias_file="detectron/fc6/fc7_b.pkl",
-            model_data_dir=self.config["model_data_dir"],
+            model_data_dir=self.config.model_data_dir,
         )
         # apply smaller lr to pretrained Faster R-CNN fc7
         self.finetune_modules.append(
@@ -110,7 +110,7 @@ class M4C(BaseModel):
             in_dim=2048,
             weights_file="detectron/fc6/fc7_w.pkl",
             bias_file="detectron/fc6/fc7_b.pkl",
-            model_data_dir=self.config["model_data_dir"],
+            model_data_dir=self.config.model_data_dir,
         )
         self.finetune_modules.append(
             {"module": self.ocr_faster_rcnn_fc7, "lr_scale": self.config.lr_scale_frcn}
@@ -145,10 +145,10 @@ class M4C(BaseModel):
         # (OCR copying will be handled separately)
         num_choices -= self.config.classifier.ocr_max_num
         self.classifier = ClassifierLayer(
-            self.config["classifier"]["type"],
+            self.config.classifier.type,
             in_dim=self.mmt_config.hidden_size,
             out_dim=num_choices,
-            **self.config["classifier"]["params"]
+            **self.config.classifier.params
         )
 
         self.answer_processor = registry.get(self._datasets[0] + "_answer_processor")

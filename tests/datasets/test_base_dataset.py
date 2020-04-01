@@ -18,19 +18,18 @@ class TestBaseDataset(unittest.TestCase):
         args = dummy_args()
         args.opts.append("config={}".format(path))
         configuration = Configuration(args)
-        print(configuration.get_config())
-        answer_processor = configuration.get_config()["dataset_config"]["vqa2"][
-            "processors"
-        ]["answer_processor"]
+        answer_processor = (
+            configuration.get_config().dataset_config.vqa2.processors.answer_processor
+        )
         vocab_path = os.path.join(
             os.path.abspath(__file__), "..", "..", "data", "vocab.txt"
         )
-        answer_processor["params"]["vocab_file"] = os.path.abspath(vocab_path)
+        answer_processor.params.vocab_file = os.path.abspath(vocab_path)
         self._fix_configuration(configuration)
         configuration.freeze()
 
         base_dataset = BaseDataset(
-            "vqa2", "train", configuration.get_config()["dataset_config"]["vqa2"]
+            "vqa2", "train", configuration.get_config().dataset_config.vqa2
         )
         expected_processors = [
             "answer_processor",
@@ -51,7 +50,7 @@ class TestBaseDataset(unittest.TestCase):
             self.assertIsNotNone(registry.get("{}_{}".format("vqa2", processor)))
 
     def _fix_configuration(self, configuration):
-        vqa2_config = configuration.config["dataset_config"]["vqa2"]
-        processors = vqa2_config["processors"]
+        vqa2_config = configuration.config.dataset_config.vqa2
+        processors = vqa2_config.processors
         processors.pop("text_processor")
         processors.pop("context_processor")
