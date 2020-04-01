@@ -1,0 +1,42 @@
+includes:
+- common/defaults/configs/datasets/vqa/vizwiz.yaml
+- ../configs/pythia_bert/vqa2.yaml
+
+model_config:
+  pythia_bert:
+    hidden_size: 768
+    hidden_dropout_prob: 0.1
+    training_head_type: vizwiz
+    losses:
+    - type: logit_bce
+    metrics:
+    - vqa_accuracy
+
+dataset_config:
+  vizwiz:
+    return_info: true
+    image_features:
+          train:
+          - /private/home/vedanuj/projects/pythia-internal/data/vizwiz/detectron_fix_100/fc6
+          val:
+          - /private/home/vedanuj/projects/pythia-internal/data/vizwiz/detectron_fix_100/fc6
+          test:
+          - /private/home/vedanuj/projects/pythia-internal/data/vizwiz/detectron_fix_100/fc6
+    processors:
+      # Stop fasttext from loading by overriding the context_processor
+      context_processor:
+        type: simple_word
+        params: {}
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
+
+training:
+  monitored_metric: vizwiz/vqa_accuracy
+  metric_minimize: false

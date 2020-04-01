@@ -1,0 +1,46 @@
+includes:
+- common/defaults/configs/datasets/vqa/vqa2.yaml
+- ../configs/pythia_bert/coco_pretrain.yaml
+
+dataset_config:
+  vqa2:
+    return_info: true
+    processors:
+        text_processor:
+          type: bert_tokenizer
+          params:
+            tokenizer_config:
+              type: bert-base-uncased
+              params:
+                do_lower_case: true
+            mask_probability: 0
+            max_seq_length: 128
+
+model_config:
+  pythia_bert:
+    training_head_type: vqa
+    losses:
+    - type: logit_bce
+    metrics:
+    - vqa_accuracy
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 2400
+    num_training_steps: 24000
+
+training:
+  batch_size: 512
+  lr_scheduler: true
+  # Don't forget to update schedule_attributes if you update this
+  max_updates: 24000
+  pretrained_mapping:
+    word_embedding: word_embedding
+    text_embedding: text_embedding
+    image_feature_projection: image_feature_projection
+    image_feature_encoders: image_feature_encoders
+    image_feature_embeddings_list: image_feature_embeddings_list
+    image_feature_intra_attention: image_feature_intra_attention
+    image_text_multi_modal_combine_layer: image_text_multi_modal_combine_layer
+    pooler: pooler

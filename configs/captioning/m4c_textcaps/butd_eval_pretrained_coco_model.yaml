@@ -1,0 +1,13 @@
+includes:
+- ../configs/captioning/m4c_textcaps/butd_beam_search.yaml
+dataset_config:
+  coco:
+    processors:
+      text_processor:
+        params:
+          vocab:
+            vocab_file: vocabs/vocabulary_captioning_thresh5.txt
+      caption_processor:
+        params:
+          vocab:
+            vocab_file: vocabs/vocabulary_captioning_thresh5.txt

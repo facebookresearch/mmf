@@ -313,7 +313,7 @@ class Configuration:
     def _get_default_config_path(self):
         directory = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(
-            directory, "..", "common", "defaults", "configs", "base.yml"
+            directory, "..", "common", "defaults", "configs", "base.yaml"
         )
 
     def _update_specific(self, config):

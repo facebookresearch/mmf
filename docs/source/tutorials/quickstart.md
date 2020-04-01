@@ -8,7 +8,7 @@ to train other models in Pythia.
 
 ## Demo
 
-1. [Pythia VQA](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR) 
+1. [Pythia VQA](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR)
 2. [BUTD Captioning](https://colab.research.google.com/drive/1vzrxDYB0vxtuUy8KCaGxm--nDCJvyBSg)
 
 ## Citation
@@ -101,7 +101,7 @@ Once we have the data in-place, we can start training by running the following c
 ```bash
 cd ~/pythia;
 python tools/run.py --datasets textvqa --model lorra --config \
-configs/vqa/textvqa/lorra.yml
+configs/vqa/textvqa/lorra.yaml
 ```
 
 ## Inference
@@ -115,7 +115,7 @@ mkdir -p models && cd models;
 wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth
 cd ../..
 python tools/run.py --datasets textvqa --model lorra --config \
-configs/vqa/textvqa/lorra.yml --resume_file data/models/lorra_best.pth \
+configs/vqa/textvqa/lorra.yaml --resume_file data/models/lorra_best.pth \
 --evalai_inference 1 --run_type inference
 ```
 
@@ -166,7 +166,7 @@ pip install -e .
 .. _COCO Caption: https://dl.fbaipublicfiles.com/pythia/data/imdb/coco_captions.tar.gz
 ```
 
-After downloading the features, verify the download by checking the md5sum using 
+After downloading the features, verify the download by checking the md5sum using
 
 ```bash
 echo "<checksum>  <dataset_name>.tar.gz" | md5sum -c -
@@ -179,5 +179,3 @@ To dive deep into world of Pythia, you can move on the following next topics:
 - [Concepts and Terminology](./concepts)
 - [Using Pretrained Models](./pretrained_models)
 - [Challenge Participation](./challenge)
-
-

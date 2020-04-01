@@ -58,11 +58,11 @@ For the TextVQA dataset, we release three versions: M4C trained with ST-VQA as a
 
 | Datasets  | Config Files (under `configs/vqa/`)         | Pretrained Models | Metrics                     | Notes                         |
 |--------|------------------|----------------------------|-------------------------------|-------------------------------|
-| TextVQA (`m4c_textvqa`) | `m4c_textvqa/m4c_with_stvqa.yml` | [`m4c_textvqa_m4c_with_stvqa`](https://dl.fbaipublicfiles.com/pythia/m4c/m4c_release_models/m4c_textvqa/m4c_textvqa_m4c_with_stvqa.ckpt) | val accuracy - 40.55%; test accuracy - 40.46% | Rosetta-en OCRs; ST-VQA as additional data |
-| TextVQA (`m4c_textvqa`) | `m4c_textvqa/m4c.yml` | [`m4c_textvqa_m4c`](https://dl.fbaipublicfiles.com/pythia/m4c/m4c_release_models/m4c_textvqa/m4c_textvqa_m4c.ckpt) | val accuracy - 39.40%; test accuracy - 39.01% | Rosetta-en OCRs |
-| TextVQA (`m4c_textvqa`) | `m4c_textvqa/m4c_ocr_ml.yml` | [`m4c_textvqa_m4c_ocr_ml`](https://dl.fbaipublicfiles.com/pythia/m4c/m4c_release_models/m4c_textvqa/m4c_textvqa_m4c_ocr_ml.ckpt) | val accuracy - 37.06% | Rosetta-ml OCRs |
-| ST-VQA (`m4c_stvqa`)  | `m4c_stvqa/m4c.yml` | [`m4c_stvqa_m4c`](https://dl.fbaipublicfiles.com/pythia/m4c/m4c_release_models/m4c_stvqa/m4c_stvqa_m4c.ckpt) | val ANLS - 0.472 (accuracy - 38.05%); test ANLS - 0.462 | Rosetta-en OCRs |
-| OCR-VQA (`m4c_ocrvqa`) | `m4c_ocrvqa/m4c.yml` | [`m4c_ocrvqa_m4c`](https://dl.fbaipublicfiles.com/pythia/m4c/m4c_release_models/m4c_ocrvqa/m4c_ocrvqa_m4c.ckpt) | val accuracy - 63.52%; test accuracy - 63.87% | Rosetta-en OCRs |
+| TextVQA (`m4c_textvqa`) | `m4c_textvqa/m4c_with_stvqa.yaml` | [`m4c_textvqa_m4c_with_stvqa`](https://dl.fbaipublicfiles.com/pythia/m4c/m4c_release_models/m4c_textvqa/m4c_textvqa_m4c_with_stvqa.ckpt) | val accuracy - 40.55%; test accuracy - 40.46% | Rosetta-en OCRs; ST-VQA as additional data |
+| TextVQA (`m4c_textvqa`) | `m4c_textvqa/m4c.yaml` | [`m4c_textvqa_m4c`](https://dl.fbaipublicfiles.com/pythia/m4c/m4c_release_models/m4c_textvqa/m4c_textvqa_m4c.ckpt) | val accuracy - 39.40%; test accuracy - 39.01% | Rosetta-en OCRs |
+| TextVQA (`m4c_textvqa`) | `m4c_textvqa/m4c_ocr_ml.yaml` | [`m4c_textvqa_m4c_ocr_ml`](https://dl.fbaipublicfiles.com/pythia/m4c/m4c_release_models/m4c_textvqa/m4c_textvqa_m4c_ocr_ml.ckpt) | val accuracy - 37.06% | Rosetta-ml OCRs |
+| ST-VQA (`m4c_stvqa`)  | `m4c_stvqa/m4c.yaml` | [`m4c_stvqa_m4c`](https://dl.fbaipublicfiles.com/pythia/m4c/m4c_release_models/m4c_stvqa/m4c_stvqa_m4c.ckpt) | val ANLS - 0.472 (accuracy - 38.05%); test ANLS - 0.462 | Rosetta-en OCRs |
+| OCR-VQA (`m4c_ocrvqa`) | `m4c_ocrvqa/m4c.yaml` | [`m4c_ocrvqa_m4c`](https://dl.fbaipublicfiles.com/pythia/m4c/m4c_release_models/m4c_ocrvqa/m4c_ocrvqa_m4c.ckpt) | val accuracy - 63.52%; test accuracy - 63.87% | Rosetta-en OCRs |
 
 ## Training and Evaluation
 
@@ -75,22 +75,22 @@ For example:
 # Distributed Data Parallel (on a 4-GPU machine)
 # (change `--nproc_per_node 4` to the actual GPU number on your machine)
 python -m torch.distributed.launch --nproc_per_node 4 tools/run.py --tasks vqa --datasets m4c_textvqa --model m4c \
---config configs/vqa/m4c_textvqa/m4c.yml \
+--config configs/vqa/m4c_textvqa/m4c.yaml \
 --save_dir save/m4c \
 training.distributed True
 
 # alternative: Data Parallel (slower, but results should be the same)
 python tools/run.py --tasks vqa --datasets m4c_textvqa --model m4c \
---config configs/vqa/m4c_textvqa/m4c.yml \
+--config configs/vqa/m4c_textvqa/m4c.yaml \
 --save_dir save/m4c \
 training.data_parallel True
 ```
-(Replace `m4c_textvqa` with other datasets and `configs/vqa/m4c_textvqa/m4c.yml` with other config files to train with other datasets and configurations. See the table above. You can also specify a different path to `--save_dir` to save to a location you prefer.)
+(Replace `m4c_textvqa` with other datasets and `configs/vqa/m4c_textvqa/m4c.yaml` with other config files to train with other datasets and configurations. See the table above. You can also specify a different path to `--save_dir` to save to a location you prefer.)
 
 2) to evaluate the pretrained M4C model locally on the TextVQA validation set (assuming the pretrained model is downloaded to `data/models/m4c_textvqa_m4c.ckpt`):
 ```
 python tools/run.py --tasks vqa --datasets m4c_textvqa --model m4c \
---config configs/vqa/m4c_textvqa/m4c.yml \
+--config configs/vqa/m4c_textvqa/m4c.yaml \
 --save_dir save/m4c \
 --run_type val \
 --resume_file data/models/m4c_textvqa_m4c.ckpt
@@ -100,7 +100,7 @@ python tools/run.py --tasks vqa --datasets m4c_textvqa --model m4c \
 3) to generate the EvalAI prediction files for the TextVQA test set (assuming the pretrained model is downloaded to `data/models/m4c_textvqa_m4c.ckpt`):
 ```
 python tools/run.py --tasks vqa --datasets m4c_textvqa --model m4c \
---config configs/vqa/m4c_textvqa/m4c.yml \
+--config configs/vqa/m4c_textvqa/m4c.yaml \
 --save_dir save/m4c \
 --run_type inference --evalai_inference 1 \
 --resume_file data/models/m4c_textvqa_m4c.ckpt
