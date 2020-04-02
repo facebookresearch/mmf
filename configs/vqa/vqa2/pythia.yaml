@@ -1,76 +1,25 @@
-includes:
-- common/defaults/configs/datasets/vqa/vqa2.yaml
-task_attributes:
-  vqa:
-    dataset_config:
-      vqa2:
-        image_features:
-          train:
-          - /private/home/asg/datasets/COCO/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
-          val:
-          - /private/home/asg/datasets/COCO/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
-          test:
-          - /private/home/asg/datasets/COCO/detectron_fix_100/fc6/test2015,coco/resnet152/test2015
-        imdb_files:
-          train:
-          - imdb/vqa/imdb_train2014.npy
-          val:
-          - imdb/vqa/imdb_val2014.npy
-model_config:
-  pythia: &pythia
-    model_data_dir: ../data/
-    metrics:
-    - type: vqa_accuracy
-    losses:
-    - type: logit_bce
-    classifier:
-      type: logit
-      params:
-        img_hidden_dim: 5000
-        text_hidden_dim: 300
-    image_feature_embeddings:
-    - modal_combine:
-        type: non_linear_element_multiply
-        params:
-          dropout: 0
-          hidden_dim: 5000
-      normalization: softmax
-      transform:
-        type: linear
-        params:
-          out_dim: 1
-    image_feature_dim: 2048
-    image_feature_encodings:
-    - type: finetune_faster_rcnn_fpn_fc7
-      params:
-        bias_file: detectron/fc6/fc7_b.pkl
-        weights_file: detectron/fc6/fc7_w.pkl
-    - type: default
-      params: {}
-    image_text_modal_combine:
-      type: non_linear_element_multiply
-      params:
-        dropout: 0
-        hidden_dim: 5000
-    text_embeddings:
-    - type: attention
-      params:
-        hidden_dim: 1024
-        num_layers: 1
-        conv1_out: 512
-        conv2_out: 2
-        dropout: 0
-        embedding_dim: 300
-        kernel_size: 1
-        padding: 0
-  pythia_image_only: *pythia
-  pythia_question_only: *pythia
+dataset_config:
+  vqa2:
+    image_features:
+      train:
+      - /private/home/asg/datasets/COCO/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+      val:
+      - /private/home/asg/datasets/COCO/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+      test:
+      - /private/home/asg/datasets/COCO/detectron_fix_100/fc6/test2015,coco/resnet152/test2015
+    imdb_files:
+      train:
+      - imdb/vqa/imdb_train2014.npy
+      val:
+      - imdb/vqa/imdb_val2014.npy
+
 optimizer:
   type: Adamax
   params:
     eps: 1.0e-08
     lr: 0.01
     weight_decay: 0
+
 training:
   clip_norm_mode: all
   clip_gradients: true

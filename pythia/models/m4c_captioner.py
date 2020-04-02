@@ -9,6 +9,10 @@ class M4CCaptioner(M4C):
         super().__init__(config)
         self.remove_unk_in_pred = self.config.remove_unk_in_pred
 
+    @classmethod
+    def config_path(cls):
+        return "configs/models/m4c_captioner/defaults.yaml"
+
     def _forward_output(self, sample_list, fwd_results):
         super()._forward_output(sample_list, fwd_results)
 

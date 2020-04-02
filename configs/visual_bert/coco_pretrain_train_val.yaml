@@ -1,6 +1,3 @@
-includes:
-- common/defaults/configs/datasets/captioning/masked_coco.yaml
-
 dataset_config:
   masked_coco:
     return_info: true

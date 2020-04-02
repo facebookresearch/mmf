@@ -1,5 +1,4 @@
 includes:
-- common/defaults/configs/datasets/reasoning/visual_entailment.yaml
 - ../configs/pythia_bert/vqa2.yaml
 
 model_config:

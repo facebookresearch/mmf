@@ -16,7 +16,7 @@ class TestModuleMetrics(unittest.TestCase):
     def test_caption_bleu4(self):
         path = os.path.join(
             os.path.abspath(__file__),
-            "../../../pythia/common/defaults/configs/datasets/captioning/coco.yaml",
+            "../../../pythia/configs/datasets/coco/defaults.yaml",
         )
         config = load_yaml(os.path.abspath(path))
         captioning_config = config.dataset_config.coco

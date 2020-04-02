@@ -23,3 +23,7 @@ class COCOBuilder(VQA2Builder):
             self.dataset_name + "_text_vocab_size",
             self.dataset.text_processor.get_vocab_size(),
         )
+
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/coco/defaults.yaml"

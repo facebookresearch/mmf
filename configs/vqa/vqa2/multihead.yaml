@@ -1,6 +1,5 @@
 includes:
 - ../configs/vqa/vqa2/pythia.yaml
-- common/defaults/configs/datasets/vqa/visual_genome.yaml
 dataset_config:
   visual_genome:
     return_scene_graph: false

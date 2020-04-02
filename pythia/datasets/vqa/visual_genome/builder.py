@@ -18,6 +18,10 @@ class VisualGenomeBuilder(VQA2Builder):
         self.dataset_class = VisualGenomeDataset
         self.writer = registry.get("writer")
 
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/visual_genome/defaults.yaml"
+
     def _build(self, dataset_type, config):
         self._dataset_type = dataset_type
         self._config = config

@@ -13,7 +13,7 @@ class TestBaseDataset(unittest.TestCase):
     def test_init_processors(self):
         path = os.path.join(
             os.path.abspath(__file__),
-            "../../../pythia/common/defaults/configs/datasets/vqa/vqa2.yaml",
+            "../../../pythia/configs/datasets/vqa2/defaults.yaml",
         )
         args = dummy_args()
         args.opts.append("config={}".format(path))

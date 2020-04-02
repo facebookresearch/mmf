@@ -26,6 +26,10 @@ class M4C(BaseModel):
         self.mmt_config = BertConfig(**self.config.mmt)
         self._datasets = registry.get("config").datasets.split(",")
 
+    @classmethod
+    def config_path(cls):
+        return "configs/models/m4c/defaults.yaml"
+
     def build(self):
         # modules requiring custom learning rates (usually for finetuning)
         self.finetune_modules = []

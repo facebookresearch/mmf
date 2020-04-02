@@ -1,0 +1,20 @@
+model_config:
+  cnn_lstm:
+    metrics:
+    - type: accuracy
+    losses:
+    - type: logit_bce
+    text_embedding:
+      embedding_dim: 20
+    lstm:
+      input_size: 20
+      hidden_size: 50
+      bidirectional: true
+      batch_first: true
+    cnn:
+      layers:
+        input_dims: [3, 64, 128, 128, 64, 64]
+        output_dims: [64, 128, 128, 64, 64, 10]
+        kernel_sizes: [7, 5, 5, 5, 5, 1]
+    classifier:
+      input_dim: 450

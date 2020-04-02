@@ -10,3 +10,7 @@ class OCRVQABuilder(M4CTextVQABuilder):
         super().__init__()
         self.dataset_name = "ocrvqa"
         self.set_dataset_class(OCRVQADataset)
+
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/ocrvqa/defaults.yaml"

@@ -1,5 +1,4 @@
 includes:
-- common/defaults/configs/datasets/vqa/masked_vqa2.yaml
 - ../configs/pythia_bert/coco_pretrain.yaml
 
 dataset_config:

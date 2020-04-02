@@ -16,3 +16,7 @@ class VisualEntailmentBuilder(VQA2Builder):
         super().__init__()
         self.dataset_name = "visual_entailment"
         self.dataset_class = VisualEntailmentDataset
+
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/visual_entailment/defaults.yaml"

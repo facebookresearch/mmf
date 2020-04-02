@@ -16,3 +16,7 @@ class MaskedMMImdbBuilder(VQA2Builder):
         super().__init__()
         self.dataset_name = "masked_mmimdb"
         self.dataset_class = MaskedMMImdbDataset
+
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/mmimdb/masked.yaml"

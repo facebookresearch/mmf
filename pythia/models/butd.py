@@ -13,6 +13,10 @@ class BUTD(Pythia):
     def __init__(self, config):
         super().__init__(config)
 
+    @classmethod
+    def config_path(cls):
+        return "configs/models/butd/defaults.yaml"
+
     def build(self):
         self._build_word_embedding()
         self._init_feature_encoders("image")

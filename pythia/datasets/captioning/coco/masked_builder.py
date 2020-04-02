@@ -17,3 +17,7 @@ class MaskedCOCOBuilder(COCOBuilder):
             self.dataset_name + "_text_vocab_size",
             self.dataset.masked_token_processor.get_vocab_size(),
         )
+
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/coco/masked.yaml"

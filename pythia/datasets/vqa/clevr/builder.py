@@ -18,6 +18,10 @@ class CLEVRBuilder(BaseDatasetBuilder):
         self.writer = registry.get("writer")
         self.dataset_class = CLEVRDataset
 
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/clevr/defaults.yaml"
+
     def _build(self, dataset_type, config):
         download_folder = os.path.join(
             get_pythia_root(), config.data_root_dir, config.data_folder

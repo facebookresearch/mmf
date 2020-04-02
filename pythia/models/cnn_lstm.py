@@ -34,6 +34,10 @@ class CNNLSTM(BaseModel):
         self._global_config = registry.get("config")
         self._datasets = self._global_config.datasets.split(",")
 
+    @classmethod
+    def config_path(cls):
+        return "configs/models/cnn_lstm/defaults.yaml"
+
     def build(self):
         assert len(self._datasets) > 0
         num_question_choices = registry.get(

@@ -12,3 +12,7 @@ class MaskedCCBuilder(MaskedCOCOBuilder):
         super().__init__()
         self.dataset_name = "masked_cc"
         self.set_dataset_class(MaskedCCDataset)
+
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/conceptual_captions/masked.yaml"

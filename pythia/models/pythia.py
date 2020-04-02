@@ -24,6 +24,10 @@ class Pythia(BaseModel):
         self._global_config = registry.get("config")
         self._datasets = self._global_config.datasets.split(",")
 
+    @classmethod
+    def config_path(cls):
+        return "configs/models/pythia/defaults.yaml"
+
     def build(self):
         self._build_word_embedding()
         self._init_text_embeddings("text")

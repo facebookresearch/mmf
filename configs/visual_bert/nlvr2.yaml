@@ -1,5 +1,4 @@
 includes:
-- common/defaults/configs/datasets/reasoning/nlvr2.yaml
 - ../configs/visual_bert/coco_pretrain.yaml
 
 model_config:

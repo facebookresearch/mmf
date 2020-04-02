@@ -1,0 +1,29 @@
+model_config:
+  ban:
+    metrics:
+    - vqa_accuracy
+    losses:
+    - type: logit_bce
+    text_embedding:
+      num_hidden: 1280
+      vocab_size: 1280
+      emb_size: 300
+      num_layers: 1
+      dropout: 0.0
+      bidirectional: False
+      rnn_type: 'GRU'
+    bilinear_attention:
+      bc_net:
+        k: 1
+        dropout: [0.2, 0.5]
+        h_out:
+      fc_net:
+        dims: 600
+        activation:
+        dropout: 0.2
+      gamma: 4
+      visual_feat_dim: 2048
+    classifier:
+      # out dim will be taken from registry as set by dataset builder
+      hidden_size: 600
+      dropout: 0.5

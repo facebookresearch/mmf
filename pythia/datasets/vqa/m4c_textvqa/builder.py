@@ -10,3 +10,7 @@ class M4CTextVQABuilder(TextVQABuilder):
         super().__init__()
         self.dataset_name = "m4c_textvqa"
         self.set_dataset_class(M4CTextVQADataset)
+
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/m4c_textvqa/defaults.yaml"

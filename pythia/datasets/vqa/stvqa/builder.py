@@ -10,3 +10,7 @@ class STVQABuilder(M4CTextVQABuilder):
         super().__init__()
         self.dataset_name = "stvqa"
         self.set_dataset_class(STVQADataset)
+
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/stvqa/defaults.yaml"

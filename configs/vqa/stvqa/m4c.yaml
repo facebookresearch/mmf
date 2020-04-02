@@ -1,5 +1,3 @@
-includes:
-- common/defaults/configs/datasets/vqa/stvqa.yaml
 # Use soft copy
 dataset_config:
   stvqa:
