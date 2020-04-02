@@ -8,14 +8,12 @@ import sys
 
 import numpy as np
 from torch.utils.data import DataLoader
+from torch.utils.data.distributed import DistributedSampler
 
 from pythia.common.batch_collator import BatchCollator
 from pythia.common.registry import registry
-from pythia.datasets.samplers import DistributedSampler
 from pythia.utils.distributed_utils import broadcast_scalar, is_master
 from pythia.utils.general import get_batch_size
-
-# from torch.utils.data.distributed import DistributedSampler
 
 
 class MultiDataset:
