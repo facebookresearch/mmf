@@ -1,5 +1,3 @@
-includes:
-- ../configs/captioning/m4c_textcaps/m4c_captioner_coco.yaml
 dataset_config:
   m4c_textcaps:
     image_features:

@@ -1,6 +1,7 @@
 model_config:
   vilbert:
     bert_model_name: bert-base-uncased
+    training_head_type: pretraining
     visual_embedding_dim: 2048
     special_visual_initialize: true
     hard_cap_seq_len: null

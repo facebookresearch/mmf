@@ -16,3 +16,7 @@ class MaskedVQA2Builder(VQA2Builder):
         super().__init__()
         self.dataset_name = "masked_vqa2"
         self.dataset_class = MaskedVQA2Dataset
+
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/vqa2/masked.yaml"

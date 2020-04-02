@@ -9,6 +9,10 @@ class LoRRA(Pythia):
     def __init__(self, config):
         super().__init__(config)
 
+    @classmethod
+    def config_path(cls):
+        return "configs/models/lorra/defaults.yaml"
+
     def build(self):
         self._init_text_embeddings("text")
         # For LoRRA context feature and text embeddings would be identity

@@ -21,6 +21,10 @@ class VQA2Builder(BaseDatasetBuilder):
         super().__init__("vqa2")
         self.dataset_class = VQA2Dataset
 
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/vqa2/defaults.yaml"
+
     def _load(self, dataset_type, config, *args, **kwargs):
         self.config = config
 

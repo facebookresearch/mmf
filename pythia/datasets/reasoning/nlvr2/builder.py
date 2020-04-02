@@ -16,3 +16,7 @@ class NLVR2Builder(VQA2Builder):
         super().__init__()
         self.dataset_name = "nlvr2"
         self.dataset_class = NLVR2Dataset
+
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/nlvr2/defaults.yaml"

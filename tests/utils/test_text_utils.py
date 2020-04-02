@@ -8,7 +8,7 @@ import pythia.utils.text_utils as text_utils
 from pythia.common.registry import registry
 from pythia.common.sample import Sample, SampleList
 from pythia.utils.configuration import Configuration
-from pythia.utils.general import get_pythia_root
+from pythia.utils.general import get_pythia_root, setup_imports
 from tests.test_utils import dummy_args
 from tests.utils.test_model import TestDecoderModel
 
@@ -26,6 +26,7 @@ class TestTextUtils(unittest.TestCase):
     ]
 
     def setUp(self):
+        setup_imports()
         torch.manual_seed(1234)
         config_path = os.path.join(
             get_pythia_root(),
@@ -36,7 +37,7 @@ class TestTextUtils(unittest.TestCase):
             "butd_nucleus_sampling.yaml",
         )
         config_path = os.path.abspath(config_path)
-        args = dummy_args()
+        args = dummy_args(model="butd", dataset="coco")
         args.opts.append("config={}".format(config_path))
         configuration = Configuration(args)
         configuration.config.datasets = "coco"

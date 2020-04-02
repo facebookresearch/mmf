@@ -17,6 +17,10 @@ class VisualDialogBuilder(VisualGenomeBuilder):
         self.dataset_class = VisualDialogDataset
         self.writer = registry.get("writer")
 
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/visual_dialog/defaults.yaml"
+
     def _build(self, dataset_type, config):
         self._dataset_type = dataset_type
         self._config = config

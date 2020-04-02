@@ -1,5 +1,3 @@
-includes:
-- common/defaults/configs/datasets/vqa/m4c_textvqa.yaml
 # Use soft copy
 dataset_config:
   m4c_textvqa:

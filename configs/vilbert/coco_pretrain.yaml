@@ -1,7 +1,3 @@
-includes:
-- common/defaults/configs/datasets/captioning/masked_coco.yaml
-- common/defaults/configs/models/vilbert.yaml
-
 model_config:
   vilbert:
     training_head_type: pretraining

@@ -1158,6 +1158,10 @@ class ViLBERT(BaseModel):
         self.text_only = config.text_only
         self.training_head_type = config.training_head_type
 
+    @classmethod
+    def config_path(cls):
+        return "configs/models/vilbert/pretrain.yaml"
+
     def build(self):
         self.bert = BertForMultiModalPreTraining.from_pretrained(
             self.config.bert_model_name,

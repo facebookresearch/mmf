@@ -1,2 +1,2 @@
 includes:
-- configs/models/visual_bert/default.yaml
+- configs/models/visual_bert/defaults.yaml

@@ -1,5 +1,3 @@
-includes:
-- ../configs/vqa/vqa2/lorra.yaml
 dataset_config:
   vqa2:
     image_features:

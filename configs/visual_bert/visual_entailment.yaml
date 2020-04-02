@@ -1,5 +1,4 @@
 includes:
-- common/defaults/configs/datasets/reasoning/visual_entailment.yaml
 - ../configs/visual_bert/coco_pretrain.yaml
 
 model_config:

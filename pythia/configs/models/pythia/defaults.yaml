@@ -1,0 +1,49 @@
+model_config:
+  pythia: &pythia
+    model_data_dir: ../data/
+    metrics:
+    - type: vqa_accuracy
+    losses:
+    - type: logit_bce
+    classifier:
+      type: logit
+      params:
+        img_hidden_dim: 5000
+        text_hidden_dim: 300
+    image_feature_embeddings:
+    - modal_combine:
+        type: non_linear_element_multiply
+        params:
+          dropout: 0
+          hidden_dim: 5000
+      normalization: softmax
+      transform:
+        type: linear
+        params:
+          out_dim: 1
+    image_feature_dim: 2048
+    image_feature_encodings:
+    - type: finetune_faster_rcnn_fpn_fc7
+      params:
+        bias_file: detectron/fc6/fc7_b.pkl
+        weights_file: detectron/fc6/fc7_w.pkl
+    - type: default
+      params: {}
+    image_text_modal_combine:
+      type: non_linear_element_multiply
+      params:
+        dropout: 0
+        hidden_dim: 5000
+    text_embeddings:
+    - type: attention
+      params:
+        hidden_dim: 1024
+        num_layers: 1
+        conv1_out: 512
+        conv2_out: 2
+        dropout: 0
+        embedding_dim: 300
+        kernel_size: 1
+        padding: 0
+  pythia_image_only: *pythia
+  pythia_question_only: *pythia

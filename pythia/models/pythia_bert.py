@@ -12,14 +12,18 @@ from transformers.modeling_bert import (
 
 from pythia.common.registry import registry
 from pythia.models.pythia import Pythia
-from pythia.models.visual_bert import transform_to_batch_sequence
 from pythia.modules.embeddings import ProjectionEmbedding
+from pythia.utils.transform_utils import transform_to_batch_sequence
 
 
 @registry.register_model("pythia_bert")
 class PythiaBert(Pythia):
     def __init__(self, config):
         super().__init__(config)
+
+    @classmethod
+    def config_path(cls):
+        return "configs/models/pythia_bert/defaults.yaml"
 
     def build(self):
         super().build()

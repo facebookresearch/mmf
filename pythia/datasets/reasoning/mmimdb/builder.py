@@ -16,3 +16,7 @@ class MMIMDbBuilder(VQA2Builder):
         super().__init__()
         self.dataset_name = "mmimdb"
         self.dataset_class = MMIMDbDataset
+
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/mmimdb/defaults.yaml"

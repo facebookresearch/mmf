@@ -1,6 +1,5 @@
 includes:
 - ../configs/vqa/vqa2/pythia.yaml
-- common/defaults/configs/datasets/vqa/masked_q_vqa2.yaml
 model_config:
   pythia:
     metrics:

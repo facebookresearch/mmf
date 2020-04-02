@@ -1,0 +1,30 @@
+model_config:
+  m4c_captioner:
+    lr_scale_frcn: 0.1
+    lr_scale_text_bert: 0.1
+    lr_scale_mmt: 1.0  # no scaling
+    text_bert_init_from_bert_base: true
+    text_bert:
+      num_hidden_layers: 3
+    obj:
+      mmt_in_dim: 2048
+      dropout_prob: 0.1
+    ocr:
+      mmt_in_dim: 3002  # 300 (FastText) + 604 (PHOC) + 2048 (Faster R-CNN) + 50 (all zeros; legacy)
+      dropout_prob: 0.1
+    mmt:
+      hidden_size: 768
+      num_hidden_layers: 4
+    classifier:
+      type: linear
+      ocr_max_num: 50
+      ocr_ptr_net:
+        hidden_size: 768
+        query_key_size: 768
+      params: {}
+    model_data_dir: ../data
+    metrics:
+    - type: textcaps_bleu4
+    losses:
+    - type: m4c_decoding_bce_with_mask
+    remove_unk_in_pred: true

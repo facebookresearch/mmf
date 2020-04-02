@@ -13,3 +13,7 @@ class MaskedSBUBuilder(MaskedCOCOBuilder):
         super().__init__()
         self.dataset_name = "masked_sbu"
         self.set_dataset_class(MaskedSBUDataset)
+
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/sbu_captions/masked.yaml"

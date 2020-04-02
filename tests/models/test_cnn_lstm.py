@@ -22,7 +22,7 @@ class TestModelCNNLSTM(unittest.TestCase):
             get_pythia_root(), "..", "configs", "vqa", "clevr", "cnn_lstm.yaml"
         )
         config_path = os.path.abspath(config_path)
-        args = dummy_args()
+        args = dummy_args(model="cnn_lstm", dataset="clevr")
         args.opts.append("config={}".format(config_path))
         configuration = Configuration(args)
         configuration.config.datasets = "clevr"

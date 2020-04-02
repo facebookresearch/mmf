@@ -11,5 +11,9 @@ class VizWizBuilder(VQA2Builder):
         self.dataset_name = "vizwiz"
         self.set_dataset_class(VizWizDataset)
 
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/vizwiz/defaults.yaml"
+
     def update_registry_for_model(self, config):
         super().update_registry_for_model(config)

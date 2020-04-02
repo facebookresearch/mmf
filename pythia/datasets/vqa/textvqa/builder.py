@@ -10,3 +10,7 @@ class TextVQABuilder(VizWizBuilder):
         super().__init__()
         self.dataset_name = "textvqa"
         self.set_dataset_class(TextVQADataset)
+
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/textvqa/defaults.yaml"
