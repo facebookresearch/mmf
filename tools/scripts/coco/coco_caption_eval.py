@@ -6,15 +6,16 @@
 # Original pycocoevalcap code is at https://github.com/tylin/coco-caption
 # but has no python3 support yet.
 
-import json
 import argparse
+import json
 from builtins import dict
-from pycocoevalcap.tokenizer.ptbtokenizer import PTBTokenizer
+
 from pycocoevalcap.bleu.bleu import Bleu
+from pycocoevalcap.cider.cider import Cider
 from pycocoevalcap.meteor.meteor import Meteor
 from pycocoevalcap.rouge.rouge import Rouge
-from pycocoevalcap.cider.cider import Cider
 from pycocoevalcap.spice.spice import Spice
+from pycocoevalcap.tokenizer.ptbtokenizer import PTBTokenizer
 
 
 class COCOEvalCap:
