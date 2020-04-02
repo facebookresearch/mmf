@@ -1,5 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import argparse
 import os
@@ -63,8 +62,31 @@ def extract_image_feat(img_file):
     return img_feat
 
 
-def extract_dataset_pool5(image_dir, save_dir, prefix, ext_filter):
+def get_image_id(image_name):
+    image_id = int(image_name.split(".")[0].split("_")[-1])
+    return image_id
+
+
+def extract_dataset_pool5(image_dir, save_dir, total_group, group_id, ext_filter):
     image_list = glob(image_dir + "/*." + ext_filter)
+    image_list = {f: 1 for f in image_list}
+    exclude = {}
+    with open("./list", "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            exclude[line.strip("\n").split(os.path.sep)[-1].split(".")[0]] = 1
+    output_files = glob(os.path.join(save_dir, "*.npy"))
+    output_dict = {}
+    for f in output_files:
+        file_name = f.split(os.path.sep)[-1].split(".")[0]
+        output_dict[file_name] = 1
+
+    for f in list(image_list.keys()):
+        file_name = f.split(os.path.sep)[-1].split(".")[0]
+        if file_name in output_dict or file_name in exclude:
+            image_list.pop(f)
+
+    image_list = list(image_list.keys())
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
@@ -72,9 +94,11 @@ def extract_dataset_pool5(image_dir, save_dir, prefix, ext_filter):
         if (n_im + 1) % 100 == 0:
             print("processing %d / %d" % (n_im + 1, len(image_list)))
         image_name = os.path.basename(impath)
+        image_id = get_image_id(image_name)
+        if image_id % total_group != group_id:
+            continue
 
         feat_name = image_name.replace(ext_filter, "npy")
-        feat_name = prefix + feat_name
         save_path = os.path.join(save_dir, feat_name)
         tmp_lock = save_path + ".lock"
 
@@ -97,11 +121,14 @@ def extract_dataset_pool5(image_dir, save_dir, prefix, ext_filter):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--prefix", type=str, default="")
+    parser.add_argument("--total_group", type=int, default=1)
+    parser.add_argument("--group_id", type=int, default=0)
     parser.add_argument("--data_dir", type=str, required=True)
     parser.add_argument("--out_dir", type=str, required=True)
     parser.add_argument("--image_ext", type=str, default="jpg")
 
     args = parser.parse_args()
 
-    extract_dataset_pool5(args.data_dir, args.out_dir, args.prefix, args.image_ext)
+    extract_dataset_pool5(
+        args.data_dir, args.out_dir, args.total_group, args.group_id, args.image_ext
+    )

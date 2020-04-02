@@ -1,15 +1,17 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+
 import argparse
 
 import numpy as np
 import torch
-from pytorch_pretrained_bert import BertModel, BertTokenizer
 from tqdm import tqdm
+from transformers.modeling_bert import BertModel
+from transformers.tokenization_auto import AutoTokenizer
 
 
 class BertFeatExtractor(object):
     def __init__(self, model_name):
-        self.tokenizer = BertTokenizer.from_pretrained(model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = BertModel.from_pretrained(model_name).eval()
         self.model.cuda()
 
