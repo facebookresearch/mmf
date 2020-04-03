@@ -34,6 +34,7 @@ model_config:
       params:
         bias_file: /private/home/vedanuj/pythia/data/detectron/resnext152_fc6/fc7_b.pkl
         weights_file: /private/home/vedanuj/pythia/data/detectron/resnext152_fc6/fc7_w.pkl
+        model_data_dir: ${model_config.pythia_bert.model_data_dir}
     image_text_modal_combine:
       type: non_linear_element_multiply
       params:

@@ -41,11 +41,14 @@ model_config:
       params:
         bias_file: detectron/fc6/fc7_b.pkl
         weights_file: detectron/fc6/fc7_w.pkl
+        model_data_dir: ${model_config.lorra.model_data_dir}
     - type: default
-      params: {}
+      params:
+        model_data_dir: ${model_config.lorra.model_data_dir}
     context_feature_encodings:
     - type: default
-      params: {}
+      params:
+        model_data_dir: ${model_config.lorra.model_data_dir}
     image_text_modal_combine:
       type: non_linear_element_multiply
       params:
@@ -64,6 +67,7 @@ model_config:
         embedding_dim: 300
         kernel_size: 1
         padding: 0
+        model_data_dir: ${model_config.lorra.model_data_dir}
     context_embeddings:
     - type: identity
       params:
