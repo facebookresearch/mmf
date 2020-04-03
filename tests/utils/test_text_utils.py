@@ -31,10 +31,11 @@ class TestTextUtils(unittest.TestCase):
         config_path = os.path.join(
             get_pythia_root(),
             "..",
+            "projects",
+            "butd",
             "configs",
-            "captioning",
             "coco",
-            "butd_nucleus_sampling.yaml",
+            "nucleus_sampling.yaml",
         )
         config_path = os.path.abspath(config_path)
         args = dummy_args(model="butd", dataset="coco")

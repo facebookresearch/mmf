@@ -1,0 +1,13 @@
+includes:
+- ./defaults.yaml
+
+dataset_config:
+  m4c_textvqa:
+    image_features:
+      train:
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - m4c_stvqa_obj_frcn_features/train,m4c_stvqa_ocr_en_frcn_features/train
+    imdb_files:
+      train:
+      - imdb/m4c_textvqa/imdb_train_ocr_en.npy
+      - imdb/m4c_stvqa/imdb_subtrain.npy

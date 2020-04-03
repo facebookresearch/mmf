@@ -1,0 +1,3 @@
+dataset_config:
+  masked_mmimdb:
+    return_info: true

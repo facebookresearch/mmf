@@ -1,0 +1,6 @@
+includes:
+- ../../masked_coco/pretrain.yaml
+
+dataset_config:
+  masked_cc:
+    return_info: true

@@ -1,0 +1,32 @@
+model_config:
+  m4c:
+    metrics:
+    - type: ocrvqa_accuracy
+    losses:
+    - type: m4c_decoding_bce_with_mask
+
+optimizer:
+  params:
+    eps: 1.0e-08
+    lr: 1e-4
+    weight_decay: 0
+  type: Adam
+
+training:
+    clip_norm_mode: all
+    clip_gradients: true
+    max_grad_l2_norm: 0.25
+    lr_scheduler: true
+    lr_steps:
+    - 28000
+    - 38000
+    lr_ratio: 0.1
+    use_warmup: true
+    warmup_factor: 0.2
+    warmup_iterations: 1000
+    max_iterations: 48000
+    batch_size: 128
+    num_workers: 8
+    task_size_proportional_sampling: true
+    monitored_metric: m4c_ocrvqa/ocrvqa_accuracy
+    metric_minimize: false

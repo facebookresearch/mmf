@@ -1,0 +1,17 @@
+includes:
+- ./defaults.yaml
+
+dataset_config:
+  vqa2:
+    image_features:
+      train:
+      - coco/resnet152/train_val_2014
+      val:
+      - coco/resnet152/train_val_2014
+      test:
+      - coco/resnet152/test2015
+model_config:
+  pythia:
+    image_feature_encodings:
+    - type: default
+      params: {}

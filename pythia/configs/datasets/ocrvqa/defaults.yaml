@@ -1,22 +1,51 @@
 dataset_config:
   ocrvqa:
-      data_root_dir: ../data
-      image_depth_first: false
-      fast_read: false
-      features_max_len: 100
-      processors:
-        context_processor:
-          type: fasttext
-          params:
-            max_length: 50
-            model_file: .pythia_cache/wiki.en.bin
-        ocr_token_processor:
-          type: simple_word
-          params: {}
-        bbox_processor:
-          type: bbox
-          params:
-            max_length: 50
-      return_info: true
-      use_ocr: true
-      use_ocr_info: true
+    data_root_dir: ../data
+    image_features:
+      train:
+      - m4c_ocrvqa_obj_frcn_features/all,m4c_ocrvqa_ocr_en_frcn_features/all
+      val:
+      - m4c_ocrvqa_obj_frcn_features/all,m4c_ocrvqa_ocr_en_frcn_features/all
+      test:
+      - m4c_ocrvqa_obj_frcn_features/all,m4c_ocrvqa_ocr_en_frcn_features/all
+    imdb_files:
+      train:
+      - imdb/m4c_ocrvqa/imdb_train.npy
+      val:
+      - imdb/m4c_ocrvqa/imdb_val.npy
+      test:
+      - imdb/m4c_ocrvqa/imdb_test.npy
+    processors:
+      text_processor:
+        type: m4c_bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          max_length: 20
+      answer_processor:
+        type: m4c_answer
+        params:
+          vocab_file: m4c_vocabs/ocrvqa/fixed_answer_vocab_ocrvqa_82.txt
+          preprocessor:
+            type: simple_word
+            params: {}
+          context_preprocessor:
+            type: simple_word
+            params: {}
+          max_length: 50
+          max_copy_steps: 12
+          num_answers: 10
+      copy_processor:
+        type: copy
+        params:
+          max_length: 100
+      phoc_processor:
+        type: phoc
+        params:
+          max_length: 50
+
+training:
+  monitored_metric: m4c_ocrvqa/ocrvqa_accuracy
+  metric_minimize: false

@@ -1,0 +1,9 @@
+includes:
+- ../../masked_coco/pretrain.yaml
+
+dataset_config:
+  masked_vqa2:
+    imdb_files:
+      train:
+      - imdb/vqa/imdb_train2014_len_coco.npy
+    return_info: true

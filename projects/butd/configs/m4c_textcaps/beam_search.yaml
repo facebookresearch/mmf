@@ -1,0 +1,18 @@
+includes:
+- ./defaults.yaml
+
+dataset_config:
+  coco:
+    imdb_files:
+      val:
+      - imdb/m4c_textcaps/imdb_val_filtered_by_image_id.npy
+
+model_config:
+  butd: &butd
+    inference:
+      type: beam_search
+      params:
+        beam_length: 5
+
+training:
+  batch_size: 1

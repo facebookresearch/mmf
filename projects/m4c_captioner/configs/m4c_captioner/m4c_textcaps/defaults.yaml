@@ -1,0 +1,25 @@
+optimizer:
+  params:
+    eps: 1.0e-08
+    lr: 1e-4
+    weight_decay: 0
+  type: Adam
+
+training:
+    clip_norm_mode: all
+    clip_gradients: true
+    max_grad_l2_norm: 0.25
+    lr_scheduler: true
+    lr_steps:
+    - 10000
+    - 11000
+    lr_ratio: 0.1
+    use_warmup: true
+    warmup_factor: 0.2
+    warmup_iterations: 1000
+    max_iterations: 12000
+    batch_size: 128
+    num_workers: 8
+    task_size_proportional_sampling: true
+    monitored_metric: m4c_textcaps/textcaps_bleu4
+    metric_minimize: false

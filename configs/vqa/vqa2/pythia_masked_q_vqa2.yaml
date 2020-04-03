@@ -1,8 +1,0 @@
-includes:
-- ../configs/vqa/vqa2/pythia.yaml
-model_config:
-  pythia:
-    metrics:
-    - type: accuracy
-training:
-  monitored_metric: masked_q_vqa2/accuracy

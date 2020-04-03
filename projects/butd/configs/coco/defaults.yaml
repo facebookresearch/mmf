@@ -1,0 +1,28 @@
+optimizer:
+  type: Adamax
+  params:
+    eps: 1.0e-08
+    lr: 0.01
+    weight_decay: 0
+
+training:
+  clip_norm_mode: all
+  clip_gradients: true
+  lr_ratio: 0.1
+  lr_scheduler: true
+  lr_steps:
+  - 15000
+  - 25000
+  - 35000
+  - 45000
+  max_grad_l2_norm: 0.25
+  max_updates: 50000
+  use_warmup: true
+  warmup_factor: 0.2
+  warmup_iterations: 1000
+  patience: 4000
+  batch_size: 256
+  num_workers: 7
+  task_size_proportional_sampling: true
+  monitored_metric: coco/caption_bleu4
+  metric_minimize: false
