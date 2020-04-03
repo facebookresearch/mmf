@@ -14,6 +14,8 @@ from pythia.utils.general import get_pythia_root
 
 
 def load_yaml(f):
+    # Convert to absolute path for loading includes
+    f = os.path.abspath(f)
     mapping = OmegaConf.load(f)
 
     if mapping is None:
@@ -31,7 +33,13 @@ def load_yaml(f):
     pythia_root_dir = get_pythia_root()
 
     for include in includes:
+        original_include_path = include
         include = os.path.join(pythia_root_dir, include)
+
+        # If path doesn't exist relative to pythia root, try relative to current file
+        if not os.path.exists(include):
+            include = os.path.join(os.path.dirname(f), original_include_path)
+
         current_include_mapping = load_yaml(include)
         include_mapping = OmegaConf.merge(include_mapping, current_include_mapping)
 
