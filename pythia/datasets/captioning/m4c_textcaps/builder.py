@@ -10,3 +10,7 @@ class M4CTextCapsBuilder(M4CTextVQABuilder):
         super().__init__()
         self.dataset_name = "m4c_textcaps"
         self.set_dataset_class(M4CTextCapsDataset)
+
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/m4c_textcaps/defaults.yaml"

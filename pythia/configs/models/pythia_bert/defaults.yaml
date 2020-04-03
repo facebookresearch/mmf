@@ -51,5 +51,3 @@ model_config:
       vdim: 768
       num_heads: 8
       dropout: 0.1
-  pythia_image_only: *pythia
-  pythia_question_only: *pythia
