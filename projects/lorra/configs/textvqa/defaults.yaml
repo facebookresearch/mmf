@@ -1,0 +1,47 @@
+# Use soft copy
+dataset_config:
+  textvqa:
+    use_ocr: true
+    processors:
+      answer_processor:
+        type: soft_copy_answer
+        params:
+          vocab_file: vocabs/answers_textvqa_more_than_1.txt
+          preprocessor:
+            type: simple_word
+            params: {}
+          context_preprocessor:
+            type: simple_word
+            params: {}
+          max_length: 50
+          num_answers: 10
+
+optimizer:
+  params:
+    eps: 1.0e-08
+    lr: 0.01
+    weight_decay: 0
+  type: Adamax
+
+training:
+    clip_norm_mode: all
+    clip_gradients: true
+    max_grad_l2_norm: 0.25
+    lr_scheduler: true
+    lr_steps:
+    - 14000
+    lr_ratio: 0.01
+    use_warmup: true
+    warmup_factor: 0.2
+    warmup_iterations: 1000
+    max_updates: 24000
+    batch_size: 128
+    num_workers: 7
+    task_size_proportional_sampling: true
+    monitored_metric: textvqa/vqa_accuracy
+    pretrained_mapping:
+      text_embeddings: text_embeddings
+      image_feature_encoders: image_feature_encoders
+      image_feature_embeddings_list: image_feature_embeddings_list
+      image_text_multi_modal_combine_layer: image_text_multi_modal_combine_layer
+    metric_minimize: false

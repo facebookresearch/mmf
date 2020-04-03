@@ -1,0 +1,35 @@
+includes:
+- ./defaults.yaml
+
+dataset_config:
+  vqa2:
+    image_features:
+      train:
+      - coco/detectron_fix_100/fc6/train_val_2014
+      - coco/detectron_fix_100/fc6/train_val_2014
+      val:
+      - coco/detectron_fix_100/fc6/train_val_2014
+      test:
+      - coco/detectron_fix_100/fc6/test2015
+    imdb_files:
+      train:
+      - imdb/vqa/imdb_train2014.npy
+      - imdb/vqa/imdb_val2014.npy
+      val:
+      - imdb/vqa/imdb_minival2014.npy
+
+model_config:
+  pythia:
+    image_feature_encodings:
+    - type: finetune_faster_rcnn_fpn_fc7
+      params:
+        bias_file: detectron/fc6/fc7_b.pkl
+        weights_file: detectron/fc6/fc7_w.pkl
+
+training:
+  max_updates: 12000
+  lr_steps:
+  - 5000
+  - 7000
+  - 9000
+  - 11000

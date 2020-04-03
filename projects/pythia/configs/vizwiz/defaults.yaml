@@ -1,0 +1,28 @@
+optimizer:
+  type: Adamax
+  params:
+    lr: 0.005
+
+training:
+    clip_norm_mode: all
+    clip_gradients: true
+    max_grad_l2_norm: 0.25
+    lr_scheduler: true
+    lr_steps:
+    - 14000
+    lr_ratio: 0.01
+    use_warmup: true
+    warmup_factor: 0.2
+    warmup_iterations: 1000
+    max_updates: 24000
+    batch_size: 128
+    num_workers: 7
+    task_size_proportional_sampling: true
+    monitored_metric: vizwiz/vqa_accuracy
+    metric_minimize: false
+    pretrained_mapping:
+      word_embedding: word_embedding
+      text_embeddings: text_embeddings
+      image_feature_encoders: image_feature_encoders
+      image_feature_embeddings_list: image_feature_embeddings_list
+      image_text_multi_modal_combine_layer: image_text_multi_modal_combine_layer

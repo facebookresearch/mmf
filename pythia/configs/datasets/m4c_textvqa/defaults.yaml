@@ -1,22 +1,51 @@
 dataset_config:
   m4c_textvqa:
-      data_root_dir: ../data
-      image_depth_first: false
-      fast_read: false
-      features_max_len: 100
-      processors:
-        context_processor:
-          type: fasttext
-          params:
-            max_length: 50
-            model_file: .pythia_cache/wiki.en.bin
-        ocr_token_processor:
-          type: simple_word
-          params: {}
-        bbox_processor:
-          type: bbox
-          params:
-            max_length: 50
-      return_info: true
-      use_ocr: true
-      use_ocr_info: true
+    data_root_dir: ../data
+    image_features:
+      train:
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      val:
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      test:
+      - open_images/detectron_fix_100/fc6/test,m4c_textvqa_ocr_en_frcn_features/test_images
+    imdb_files:
+      train:
+      - imdb/m4c_textvqa/imdb_train_ocr_en.npy
+      val:
+      - imdb/m4c_textvqa/imdb_val_ocr_en.npy
+      test:
+      - imdb/m4c_textvqa/imdb_test_ocr_en.npy
+    processors:
+      text_processor:
+        type: m4c_bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          max_length: 20
+      answer_processor:
+        type: m4c_answer
+        params:
+          vocab_file: m4c_vocabs/textvqa/fixed_answer_vocab_textvqa_5k.txt
+          preprocessor:
+            type: simple_word
+            params: {}
+          context_preprocessor:
+            type: simple_word
+            params: {}
+          max_length: 50
+          max_copy_steps: 12
+          num_answers: 10
+      copy_processor:
+        type: copy
+        params:
+          max_length: 100
+      phoc_processor:
+        type: phoc
+        params:
+          max_length: 50
+
+training:
+  monitored_metric: m4c_textvqa/textvqa_accuracy
+  metric_minimize: false

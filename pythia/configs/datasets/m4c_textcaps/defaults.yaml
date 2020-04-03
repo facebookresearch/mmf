@@ -1,22 +1,47 @@
 dataset_config:
   m4c_textcaps:
-      data_root_dir: ../data
-      image_depth_first: false
-      fast_read: false
-      features_max_len: 100
-      processors:
-        context_processor:
-          type: fasttext
-          params:
-            max_length: 50
-            model_file: .pythia_cache/wiki.en.bin
-        ocr_token_processor:
-          type: simple_word
-          params: {}
-        bbox_processor:
-          type: bbox
-          params:
-            max_length: 50
-      return_info: true
-      use_ocr: true
-      use_ocr_info: true
+    data_root_dir: ../data
+    image_features:
+      train:
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      val:
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      test:
+      - open_images/detectron_fix_100/fc6/test,m4c_textvqa_ocr_en_frcn_features/test_images
+    imdb_files:
+      train:
+      - imdb/m4c_textcaps/imdb_train.npy
+      val:
+      - imdb/m4c_textcaps/imdb_val_filtered_by_image_id.npy  # only one sample per image_id
+      test:
+      - imdb/m4c_textcaps/imdb_test_filtered_by_image_id.npy  # only one sample per image_id
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          max_length: 1
+      answer_processor:
+        type: m4c_caption
+        params:
+          vocab_file: m4c_captioner_vocabs/textcaps/vocab_textcap_threshold_10.txt
+          preprocessor:
+            type: simple_word
+            params: {}
+          context_preprocessor:
+            type: simple_word
+            params: {}
+          max_length: 50
+          max_copy_steps: 30
+          num_answers: 1
+      copy_processor:
+        type: copy
+        params:
+          max_length: 100
+      phoc_processor:
+        type: phoc
+        params:
+          max_length: 50
+
+training:
+    monitored_metric: m4c_textcaps/textcaps_bleu4
+    metric_minimize: false

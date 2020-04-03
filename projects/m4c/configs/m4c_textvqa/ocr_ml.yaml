@@ -1,0 +1,12 @@
+includes:
+- ./defaults.yaml
+
+dataset_config:
+  m4c_textvqa:
+    imdb_files:
+      train:
+      - imdb/m4c_textvqa/imdb_train_ocr_ml.npy
+      val:
+      - imdb/m4c_textvqa/imdb_val_ocr_ml.npy
+      test:
+      - imdb/m4c_textvqa/imdb_test_ocr_ml.npy

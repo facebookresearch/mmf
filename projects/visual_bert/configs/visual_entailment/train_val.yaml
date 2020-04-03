@@ -1,0 +1,32 @@
+includes:
+- ./defaults.yaml
+
+dataset_config:
+  visual_entailment:
+    return_info: true
+    image_features:
+        train:
+        - /private/home/vedanuj/projects/pythia-internal/data/flickr30k/detectron_fix_100/fc6
+        - /private/home/vedanuj/projects/pythia-internal/data/flickr30k/detectron_fix_100/fc6
+        val:
+        - /private/home/vedanuj/projects/pythia-internal/data/flickr30k/detectron_fix_100/fc6
+        test:
+        - /private/home/vedanuj/projects/pythia-internal/data/flickr30k/detectron_fix_100/fc6
+    imdb_files:
+        train:
+        - imdb/visual_entailment/snli_ve_train.jsonl
+        - imdb/visual_entailment/snli_ve_dev.jsonl
+        val:
+        - imdb/visual_entailment/snli_ve_test.jsonl
+        test:
+        - imdb/visual_entailment/snli_ve_test.jsonl
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128

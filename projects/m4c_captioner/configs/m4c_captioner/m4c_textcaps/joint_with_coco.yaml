@@ -1,0 +1,107 @@
+# Use soft copy
+dataset_config:
+  m4c_textcaps:
+    image_features:
+      train:
+      # tile TextCaps imdb 32 times (to sample TextCaps more frequently than COCO)
+      # in order to better learn reading comprehension from TextCaps
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - coco_obj_frcn_features/trainval2014,coco_ocr_en_frcn_features/trainval2014
+      val:
+      - coco_obj_frcn_features/trainval2014,coco_ocr_en_frcn_features/trainval2014
+      test:
+      - coco_obj_frcn_features/trainval2014,coco_ocr_en_frcn_features/trainval2014
+    imdb_files:
+      train:
+      # tile TextCaps imdb 32 times (to sample TextCaps more frequently than COCO)
+      # in order to better learn reading comprehension from TextCaps
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_textcaps/imdb_train.npy
+      - imdb/m4c_coco/imdb_karpathy_train.npy
+      val:
+      - imdb/m4c_coco/imdb_karpathy_val_filtered_by_image_id.npy  # only one sample per image_id
+      test:
+      - imdb/m4c_coco/imdb_karpathy_test_filtered_by_image_id.npy  # only one sample per image_id
+    processors:
+      answer_processor:
+        type: m4c_caption
+        params:
+          vocab_file: m4c_captioner_vocabs/textcaps_coco_joint/vocab_joint_textcaps_coco_threshold_10.txt
+          preprocessor:
+            type: simple_word
+            params: {}
+          context_preprocessor:
+            type: simple_word
+            params: {}
+          max_length: 50
+          max_copy_steps: 30
+          num_answers: 1
+
+training:
+    lr_scheduler: true
+    lr_steps:
+    - 14000
+    - 19000
+    warmup_iterations: 1000
+    max_iterations: 24000

@@ -1,0 +1,26 @@
+includes:
+- ./defaults.yaml
+
+dataset_config:
+  vqa2:
+    image_features:
+        train:
+        -  /private/home/asg/features/coco/detectron_fix_100_resnext152/train_val_2014
+        -  /private/home/asg/features/coco/detectron_fix_100_resnext152/train_val_2014
+        -  /checkpoint/asg/features/visual_genome/detectron_fix_100/fc6
+    imdb_files:
+        train:
+        - imdb/vqa/imdb_train2014.npy
+        - imdb/vqa/imdb_val2014.npy
+        - imdb_old/imdb_genome.npy
+    return_info: true
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128

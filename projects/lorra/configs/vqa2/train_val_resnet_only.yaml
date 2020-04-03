@@ -1,0 +1,25 @@
+includes:
+- ./defaults.yaml
+
+dataset_config:
+  vqa2_train_val:
+    image_features:
+      train:
+      - coco/resnet152/train_val_2014
+      - coco/resnet152/train_val_2014
+      val:
+      - coco/resnet152/train_val_2014
+      test:
+      - coco/resnet152/test2015
+    imdb_files:
+      train:
+      - imdb/vqa/imdb_train2014.npy
+      - imdb/vqa/imdb_valminusminival2014.npy
+      val:
+      - imdb/vqa/imdb_minival2014.npy
+
+model_config:
+  lorra:
+    image_feature_encodings:
+    - type: default
+      params: {}

@@ -1,0 +1,18 @@
+includes:
+- ./defaults.yaml
+- ../masked_vqa2/defaults.yaml
+
+model_config:
+  visual_bert:
+    training_head_type: pretraining,vqa
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 3000
+    num_training_steps: 33000
+
+training:
+  max_updates: 34000
+  monitored_metric: vqa2/vqa_accuracy
+  metric_minimize: false

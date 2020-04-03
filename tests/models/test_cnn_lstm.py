@@ -19,7 +19,13 @@ class TestModelCNNLSTM(unittest.TestCase):
         registry.register("clevr_text_vocab_size", 80)
         registry.register("clevr_num_final_outputs", 32)
         config_path = os.path.join(
-            get_pythia_root(), "..", "configs", "vqa", "clevr", "cnn_lstm.yaml"
+            get_pythia_root(),
+            "..",
+            "projects",
+            "others",
+            "cnn_lstm",
+            "clevr",
+            "defaults.yaml",
         )
         config_path = os.path.abspath(config_path)
         args = dummy_args(model="cnn_lstm", dataset="clevr")

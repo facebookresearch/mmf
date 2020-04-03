@@ -1,0 +1,12 @@
+includes:
+- ./defaults.yaml
+
+model_config:
+  butd:
+    inference:
+      type: nucleus_sampling
+      params:
+        sum_threshold: 0.8
+
+training:
+  batch_size: 1

@@ -1,6 +1,0 @@
-includes:
-- ../configs/pythia_bert/coco_pretrain.yaml
-
-dataset_config:
-  masked_cc:
-    return_info: true

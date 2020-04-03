@@ -17,8 +17,8 @@ from pythia.datasets.vqa.vqa2.dataset import VQA2Dataset
 
 @registry.register_builder("vqa2")
 class VQA2Builder(BaseDatasetBuilder):
-    def __init__(self):
-        super().__init__("vqa2")
+    def __init__(self, dataset_name="vqa2"):
+        super().__init__(dataset_name)
         self.dataset_class = VQA2Dataset
 
     @classmethod
@@ -77,3 +77,13 @@ class VQA2Builder(BaseDatasetBuilder):
         dataset = PythiaConcatDataset(datasets)
 
         return dataset
+
+
+@registry.register_builder("vqa2_train_val")
+class VQA2TrainValBuilder(VQA2Builder):
+    def __init__(self, dataset_name="vqa2_train_val"):
+        super().__init__(dataset_name)
+
+    @classmethod
+    def config_path(self):
+        return "configs/datasets/vqa2/train_val.yaml"

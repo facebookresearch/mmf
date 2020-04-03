@@ -1,0 +1,72 @@
+# TODO: This needs to be fixed.
+# See how we are using COCO here which can cause a lot of confusion
+dataset_config:
+  coco:
+    image_features:
+      train:
+      - open_images/detectron_fix_100/fc6/train
+      val:
+      - open_images/detectron_fix_100/fc6/train
+      test:
+      - open_images/detectron_fix_100/fc6/test
+    imdb_files:
+      train:
+      - imdb/m4c_textcaps/imdb_train.npy
+      val:
+      - imdb/m4c_textcaps/imdb_val.npy
+      test:
+      - imdb/m4c_textcaps/imdb_test_filtered_by_image_id.npy
+    processors:
+      text_processor:
+        type: vocab
+        params:
+          max_length: 52
+          vocab:
+            type: intersected
+            embedding_name: glove.6B.300d
+            vocab_file: m4c_captioner_vocabs/textcaps/vocab_textcap_threshold_10.txt
+          preprocessor:
+            type: simple_sentence
+            params: {}
+      caption_processor:
+        type: caption
+        params:
+          vocab:
+            type: intersected
+            embedding_name: glove.6B.300d
+            vocab_file: m4c_captioner_vocabs/textcaps/vocab_textcap_threshold_10.txt
+    min_captions_per_img: 5
+    tile_captions_to_match_min_num: true
+    remove_unk_from_caption_prediction: true
+    return_info: false
+    # Return OCR information
+    use_ocr: false
+    # Return spatial information of OCR tokens if present
+    use_ocr_info: false
+
+optimizer:
+  type: Adamax
+  params:
+    eps: 1.0e-08
+    lr: 0.01
+    weight_decay: 0
+
+training:
+  clip_norm_mode: all
+  clip_gradients: true
+  lr_ratio: 0.1
+  lr_scheduler: true
+  lr_steps:
+  - 14000
+  - 19000
+  max_grad_l2_norm: 0.25
+  max_iterations: 24000
+  use_warmup: true
+  warmup_factor: 0.2
+  warmup_iterations: 1000
+  patience: 4000
+  batch_size: 256
+  num_workers: 7
+  task_size_proportional_sampling: true
+  monitored_metric: coco/caption_bleu4
+  metric_minimize: false

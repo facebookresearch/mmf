@@ -1,0 +1,26 @@
+includes:
+- ./defaults.yaml
+
+# Use soft copy
+dataset_config:
+  vqa2_train_val:
+    use_ocr: true
+    processors:
+      context_processor:
+        type: fasttext
+        params:
+          download_initially: true
+          max_length: 50
+          model_file: .pythia_cache/wiki.en.bin
+      answer_processor:
+        type: soft_copy_answer
+        params:
+          vocab_file: vocabs/answers_vqa.txt
+          preprocessor:
+            type: simple_word
+            params: {}
+          context_preprocessor:
+            type: simple_word
+            params: {}
+          max_length: 50
+          num_answers: 10

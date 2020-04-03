@@ -1,0 +1,10 @@
+dataset_config:
+  visual_genome:
+    return_scene_graph: false
+    return_objects: false
+    return_relationships: false
+    return_info: false
+    no_unk: true
+
+training:
+  monitored_metric: visual_genome/vqa_accuracy
