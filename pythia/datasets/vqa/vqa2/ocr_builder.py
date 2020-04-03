@@ -10,3 +10,7 @@ class TextVQABuilder(VizWizBuilder):
         super().__init__()
         self.dataset_name = "VQA2_OCR"
         self.set_dataset_class(VQA2OCRDataset)
+
+    @classmethod
+    def config_path(self):
+        return None

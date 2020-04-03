@@ -24,6 +24,10 @@ class TopDownBottomUp(BaseModel):
             image_feat_dim, joint_embedding_out_dim
         )
 
+    @classmethod
+    def config_path(self):
+        return None
+
     def build(self):
         return
 
