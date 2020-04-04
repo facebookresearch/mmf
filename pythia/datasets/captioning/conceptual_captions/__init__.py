@@ -1,5 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-__all__ = ["MaskedCCBuilder", "MaskedCCDataset"]
+__all__ = [
+    "ConceptualCaptionsBuilder",
+    "ConceptualCaptionsDataset",
+    "MaskedConceptualCaptionsBuilder",
+    "MaskedConceptualCaptionsDataset",
+]
 
-from .masked_builder import MaskedCCBuilder
-from .masked_dataset import MaskedCCDataset
+from .builder import ConceptualCaptionsBuilder
+from .dataset import ConceptualCaptionsDataset
+from .masked_builder import MaskedConceptualCaptionsBuilder
+from .masked_dataset import MaskedConceptualCaptionsDataset
