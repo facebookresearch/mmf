@@ -1,5 +1,5 @@
 dataset_config:
-  masked_cc:
+  masked_conceptual_captions:
     return_info: true
 
 optimizer:

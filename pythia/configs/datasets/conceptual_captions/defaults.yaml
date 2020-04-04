@@ -1,5 +1,5 @@
 dataset_config:
-  masked_conceptual_captions:
+  conceptual_captions:
     data_root_dir: ../data
     image_depth_first: false
     fast_read: false
@@ -18,23 +18,31 @@ dataset_config:
         test:
         - imdb/cc_captions/val.npy
     features_max_len: 100
-    two_sentence: true
-    two_sentence_probability: -0.1
-    false_caption: true
-    false_caption_probability: 0.5
-    use_image_feature_masks: false
     processors:
-      masked_token_processor:
-        type: masked_token
+      text_processor:
+        type: vocab
         params:
-          tokenizer_config:
-            type: bert-base-uncased
-            params:
-              do_lower_case: true
-          mask_probability: 0.15
-          max_seq_length: 128
+          max_length: 20
+          vocab:
+            type: intersected
+            embedding_name: glove.6B.300d
+            vocab_file: vocabs/vocabulary_conceptual_captioning_thresh5.txt
+          preprocessor:
+            type: simple_sentence
+            params: {}
+      caption_processor:
+        type: caption
+        params:
+          vocab:
+            type: intersected
+            embedding_name: glove.6B.300d
+            vocab_file: vocabs/vocabulary_conceptual_captioning_thresh5.txt
+    min_captions_per_img: 1
     return_info: false
     # Return OCR information
     use_ocr: false
     # Return spatial information of OCR tokens if present
     use_ocr_info: false
+training:
+    monitored_metric: conceptual_captions/caption_bleu4
+    metric_minimize: false
