@@ -6,8 +6,8 @@
 #
 
 from pythia.common.registry import registry
-from pythia.datasets.builders.vqa2.builder import VQA2Builder
 from pythia.datasets.builders.nlvr2.dataset import NLVR2Dataset
+from pythia.datasets.builders.vqa2.builder import VQA2Builder
 
 
 @registry.register_builder("nlvr2")

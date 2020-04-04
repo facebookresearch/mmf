@@ -1,10 +1,11 @@
-import json
-import torch
 import copy
+import json
 
-from pythia.datasets.builders.vqa2 import VQA2Dataset
-from pythia.datasets.builders.visual_dialog.database import VisualDialogDatabase
+import torch
+
 from pythia.common.sample import Sample
+from pythia.datasets.builders.visual_dialog.database import VisualDialogDatabase
+from pythia.datasets.builders.vqa2 import VQA2Dataset
 
 
 class VisualDialogDataset(VQA2Dataset):

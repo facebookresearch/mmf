@@ -1,38 +1,105 @@
+# Python CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-python/ for more details
+#
+# Adopted from
+# https://github.com/facebookresearch/detectron2/blob/master/.circleci/config.yml
+
 version: 2
+
+# -------------------------------------------------------------------------------------
+# Environments to run the jobs in
+# -------------------------------------------------------------------------------------
+cpu: &cpu
+  docker:
+    - image: circleci/python:3.7
+  resource_class: medium
+
+# -------------------------------------------------------------------------------------
+# Re-usable commands
+# -------------------------------------------------------------------------------------
+setup_venv: &setup_venv
+  - run:
+      name: Setup Virtual Env
+      working_directory: ~/
+      command: |
+        python -m venv ~/venv
+        echo ". ~/venv/bin/activate" >> $BASH_ENV
+        . ~/venv/bin/activate
+        python --version
+        which python
+        which pip
+        pip install --upgrade pip
+
+install_dep: &install_dep
+  - run:
+      name: Install Dependencies
+      command: |
+        pip install --progress-bar off -r requirements.txt
+        pip install --progress-bar off flake8
+        pip install --progress-bar off black
+        pip install --progress-bar off isort
+
+install_repo: &install_repo
+  - run:
+      name: Install Repository
+      command: |
+        python setup.py build develop
+
+run_unittests: &run_unittests
+  - run:
+      name: Run Unit Tests
+      command: |
+        cd tests
+        pytest -v .
+
+run_flake8: &run_flake8
+  - run:
+      name: Run Linter (flake8)
+      command: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings
+        flake8 . --count --exit-zero --max-complexity=18 --max-line-length=88 --statistics
+
+# -------------------------------------------------------------------------------------
+# Jobs to run
+# -------------------------------------------------------------------------------------
+
 jobs:
   build:
-    docker:
-      - image: circleci/python:3.7
+    <<: *cpu
+
     working_directory: ~/pythia
+
     steps:
       - checkout
+      - <<: *setup_venv
+
+      # Cache the venv directory that contains dependencies
+      - restore_cache:
+          keys:
+            - cache-key-{{ checksum "requirements.txt"}}-{{ checksum "setup.py"}}
+
+      - <<: *install_dep
+
+      - save_cache:
+          paths:
+            - ~/venv
+          key: cache-key-{{ checksum "requirements.txt"}}-{{ checksum "setup.py"}}
+
+      - <<: *install_repo
+
       - run:
-          name: Install Dependencies
+          name: Run Linter (isort)
           command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install --upgrade pip
-            python setup.py develop
+            isort -c -sp .
+
       - run:
-          name: Run linter (flake8)
+          name: Run Linter (black)
           command: |
-            . venv/bin/activate
-            pip install flake8
-            # stop the build if there are Python syntax errors or undefined names
-            flake8 . --count --exclude=./venv --select=E9,F63,F72,F82 --show-source --statistics
-            # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
-            flake8 . --count --exclude=./venv --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-      - run:
-          name: Download required data
-          command: |
-            mkdir data
-            cd data
-            wget http://dl.fbaipublicfiles.com/pythia/data/vocab.tar.gz
-            tar xf vocab.tar.gz
-            cd ..
-      - run:
-          name: Run Tests
-          command: |
-            . venv/bin/activate
-            cd tests
-            pytest -v .
+            black --check -l 88 .
+
+      - <<: *run_flake8
+
+      - <<: *run_unittests

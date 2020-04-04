@@ -5,8 +5,8 @@ import json
 import torch
 
 from pythia.common.sample import Sample, SampleList
-from pythia.datasets.databases.scene_graph_database import SceneGraphDatabase
 from pythia.datasets.builders.vqa2 import VQA2Dataset
+from pythia.datasets.databases.scene_graph_database import SceneGraphDatabase
 
 _CONSTANTS = {"image_id_key": "image_id"}
 

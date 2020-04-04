@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from pythia.common.registry import Registry
-from pythia.datasets.builders.ocrvqa.dataset import OCRVQADataset
 from pythia.datasets.builders.m4c_textvqa.builder import M4CTextVQABuilder
+from pythia.datasets.builders.ocrvqa.dataset import OCRVQADataset
 
 
 @Registry.register_builder("ocrvqa")

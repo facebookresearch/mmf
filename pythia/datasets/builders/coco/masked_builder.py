@@ -1,7 +1,6 @@
 from pythia.common.registry import registry
 from pythia.datasets.builders.coco.builder import COCOBuilder
 
-
 from .masked_dataset import MaskedCOCODataset
 
 

@@ -2,11 +2,11 @@
 import os
 import shutil
 
-from pythia.common.registry import registry
-from pythia.datasets.builders.vqa2.builder import VQA2Builder
-from pythia.datasets.builders.visual_genome.dataset import VisualGenomeDataset
-from pythia.utils.general import download_file, extract_file, get_pythia_root
 from pythia.common.constants import VISUAL_GENOME_CONSTS
+from pythia.common.registry import registry
+from pythia.datasets.builders.visual_genome.dataset import VisualGenomeDataset
+from pythia.datasets.builders.vqa2.builder import VQA2Builder
+from pythia.utils.general import download_file, extract_file, get_pythia_root
 
 
 @registry.register_builder("visual_genome")

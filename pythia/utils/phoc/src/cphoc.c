@@ -24,10 +24,10 @@ static PyObject* build_phoc(PyObject* self, PyObject* args)
     float phoc[604] = {.0};
 
     int index,level,region,i,k,l;
-    
+
     char *unigrams[36] = {"a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9"};
     char *bigrams[50]  = {"th","he","in","er","an","re","es","on","st","nt","en","at","ed","nd","to","or","ea","ti","ar","te","ng","al","it","as","is","ha","et","se","ou","of","le","sa","ve","ro","ra","ri","hi","ne","me","de","co","ta","ec","si","ll","so","na","li","la","el"};
-    
+
     int n = strlen(word);
     for (index=0; index < n; index++)
     {
@@ -64,7 +64,7 @@ static PyObject* build_phoc(PyObject* self, PyObject* args)
                     for (l=2; l<6; l++) if (l<level) sum+=l;
                     int feat_vec_index = sum * 36 + region * 36 + char_index;
                     phoc[feat_vec_index] = 1;
-                } 
+                }
             }
         }
     }

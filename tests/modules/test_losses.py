@@ -1,8 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
-import pythia.modules.losses as losses
 import torch
+
+import pythia.modules.losses as losses
 
 
 class TestModuleLosses(unittest.TestCase):

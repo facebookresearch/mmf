@@ -3,7 +3,6 @@
 from pythia.common.registry import registry
 from pythia.datasets.builders.coco import MaskedCOCOBuilder
 
-
 from .masked_dataset import MaskedSBUDataset
 
 
