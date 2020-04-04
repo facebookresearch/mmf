@@ -54,7 +54,7 @@ Let's write down this using example of *CLEVR* dataset.
     from pythia.common.registry import registry
     from pythia.datasets.base_dataset_builder import BaseDatasetBuilder
     # Let's assume for now that we have a dataset class called CLEVRDataset
-    from pythia.datasets.vqa.clevr.dataset import CLEVRDataset
+    from pythia.datasets.builders.clevr.dataset import CLEVRDataset
     from pythia.utils.general import download_file, get_pythia_root
 
     @registry.register_builder("clevr")
