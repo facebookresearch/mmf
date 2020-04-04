@@ -11,8 +11,8 @@ import warnings
 
 from pythia.common.registry import registry
 from pythia.datasets.builders.vqa2.builder import VQA2Builder
-from pythia.datasets.concat_dataset import PythiaConcatDataset
 from pythia.datasets.builders.vqa2.masked_q_vqa2_dataset import MaskedQVQA2Dataset
+from pythia.datasets.concat_dataset import PythiaConcatDataset
 
 
 @registry.register_builder("masked_q_vqa2")

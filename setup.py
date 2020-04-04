@@ -3,8 +3,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os.path
 import shutil
-from glob import glob
 import sys
+from glob import glob
 
 import setuptools
 from setuptools import Extension
@@ -31,9 +31,9 @@ REQUIREMENTS = (reqs.strip().split("\n"),)
 
 ext_modules = [
     Extension(
-        'cphoc',
-        sources=['pythia/utils/phoc/src/cphoc.c'],
-        language='c',
+        "cphoc",
+        sources=["pythia/utils/phoc/src/cphoc.c"],
+        language="c",
         libraries=["pthread", "dl", "util", "rt", "m"],
         extra_compile_args=["-O3"],
     ),
@@ -43,8 +43,8 @@ ext_modules = [
 class BuildExt(build_ext):
     def run(self):
         build_ext.run(self)
-        cphoc_lib = glob('build/lib.*/cphoc.*.so')[0]
-        shutil.copy(cphoc_lib, 'pythia/utils/phoc/cphoc.so')
+        cphoc_lib = glob("build/lib.*/cphoc.*.so")[0]
+        shutil.copy(cphoc_lib, "pythia/utils/phoc/cphoc.so")
 
 
 if __name__ == "__main__":
@@ -53,7 +53,7 @@ if __name__ == "__main__":
         install_requires=REQUIREMENTS,
         packages=setuptools.find_packages(),
         ext_modules=ext_modules,
-        cmdclass={'build_ext': BuildExt},
+        cmdclass={"build_ext": BuildExt},
         version="0.3",
         description=DESCRIPTION,
         long_description=LONG_DESCRIPTION,

@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import torch
 import warnings
+
+import torch
 
 from pythia.common.registry import registry
 from pythia.utils.general import get_optimizer_parameters

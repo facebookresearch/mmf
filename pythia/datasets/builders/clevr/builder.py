@@ -4,8 +4,8 @@ import os
 import zipfile
 from collections import Counter
 
-from pythia.common.registry import registry
 from pythia.common.constants import CLEVR_DOWNLOAD_URL
+from pythia.common.registry import registry
 from pythia.datasets.base_dataset_builder import BaseDatasetBuilder
 from pythia.datasets.builders.clevr.dataset import CLEVRDataset
 from pythia.utils.general import download_file, get_pythia_root

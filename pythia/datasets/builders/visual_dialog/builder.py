@@ -2,11 +2,11 @@
 import os
 import shutil
 
-from pythia.common.registry import registry
-from pythia.datasets.builders.visual_genome.builder import VisualGenomeBuilder
-from pythia.datasets.builders.visual_dialog.dataset import VisualDialogDataset
-from pythia.utils.general import download_file, extract_file, get_pythia_root
 from pythia.common.constants import VISUAL_DIALOG_CONSTS
+from pythia.common.registry import registry
+from pythia.datasets.builders.visual_dialog.dataset import VisualDialogDataset
+from pythia.datasets.builders.visual_genome.builder import VisualGenomeBuilder
+from pythia.utils.general import download_file, extract_file, get_pythia_root
 
 
 @registry.register_builder("visual_dialog")

@@ -6,8 +6,8 @@
 #
 
 from pythia.common.registry import registry
-from pythia.datasets.builders.vqa2.builder import VQA2Builder
 from pythia.datasets.builders.visual_entailment.dataset import VisualEntailmentDataset
+from pythia.datasets.builders.vqa2.builder import VQA2Builder
 
 
 @registry.register_builder("visual_entailment")

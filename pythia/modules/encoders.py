@@ -5,8 +5,8 @@ import pickle
 import torch
 from torch import nn
 
-from pythia.modules.layers import Identity
 from pythia.modules.embeddings import ProjectionEmbedding
+from pythia.modules.layers import Identity
 from pythia.utils.general import get_pythia_root
 
 
