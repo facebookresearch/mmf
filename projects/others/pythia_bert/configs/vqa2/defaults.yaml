@@ -20,6 +20,12 @@ model_config:
     metrics:
     - vqa_accuracy
 
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+
 scheduler:
   type: warmup_linear
   params:

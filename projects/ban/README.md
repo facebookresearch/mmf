@@ -24,5 +24,5 @@ python setup.py build develop
 ## Training
 To train BAN model on the VQA2 dataset, run the following command
 ```
-python tools/run.py config=configs/vqa/vqa2/ban.yaml run_type=train_val dataset=vqa2 model=ban
+python tools/run.py config=projects/ban/configs/vqa2/defaults.yaml training.run_type=train_val dataset=vqa2 model=ban
 ```

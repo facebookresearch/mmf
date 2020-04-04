@@ -24,7 +24,7 @@ python setup.py build develop
 ## Training
 To train ViLBERT model on the VQA2.0 dataset, run the following command
 ```
-python tools/run.py --config configs/vilbert/vqa2.yaml --run_type train_val --dataset vqa2 --model vilbert
+python tools/run.py config=projects/vilbert/configs/vqa2/defaults.yaml training.run_type=train_val dataset=vqa2 model=vilbert
 ```
 
 Based on the config used and `training_head_type` defined in the config, the model can use either pretraining head or donwstream task specific heads(VQA, Vizwiz, SNLI-VE, MM IMDB or NLVR2).

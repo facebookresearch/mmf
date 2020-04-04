@@ -25,6 +25,12 @@ dataset_config:
           mask_probability: 0
           max_seq_length: 128
 
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+
 scheduler:
   type: warmup_linear
   params:
