@@ -1,0 +1,58 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+import os
+import shutil
+
+from pythia.common.registry import registry
+from pythia.datasets.builders.visual_genome.builder import VisualGenomeBuilder
+from pythia.datasets.builders.visual_dialog.dataset import VisualDialogDataset
+from pythia.utils.general import download_file, extract_file, get_pythia_root
+from pythia.common.constants import VISUAL_DIALOG_CONSTS
+
+
+@registry.register_builder("visual_dialog")
+class VisualDialogBuilder(VisualGenomeBuilder):
+    def __init__(self):
+        super().__init__()
+        self.dataset_name = "visual_dialog"
+        self.dataset_class = VisualDialogDataset
+        self.writer = registry.get("writer")
+
+    @classmethod
+    def config_path(cls):
+        return "configs/datasets/visual_dialog/defaults.yaml"
+
+    def _build(self, dataset_type, config):
+        self._dataset_type = dataset_type
+        self._config = config
+        data_folder = os.path.join(get_pythia_root(), self._config.data_root_dir)
+
+        self._download_and_extract_imdb(data_folder)
+
+        if self._dataset_type != "train":
+            return
+
+        self._download_and_extract(
+            "vocabs", VISUAL_DIALOG_CONSTS["vocabs"], data_folder
+        )
+        self._download_and_extract_features(data_folder)
+
+    def _download_and_extract_imdb(self, data_folder):
+        download_folder = os.path.join(data_folder, "imdb")
+
+        self._download_and_extract(
+            "imdb_url",
+            VISUAL_DIALOG_CONSTS["imdb_url"][self._dataset_type],
+            download_folder,
+        )
+
+    def _download_and_extract_features(self, data_folder):
+        # Visual Dialog features will contain val and test
+        self._download_and_extract(
+            "features_url",
+            VISUAL_DIALOG_CONSTS["features_url"]["visual_dialog"],
+            data_folder,
+        )
+        # But since train is same as COCO, we reuse those features if already downloaded
+        self._download_and_extract(
+            "features_url", VISUAL_DIALOG_CONSTS["features_url"]["coco"], data_folder
+        )

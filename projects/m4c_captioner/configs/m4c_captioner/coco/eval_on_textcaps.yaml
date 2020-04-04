@@ -1,3 +1,6 @@
+includes:
+- ./defaults.yaml
+
 dataset_config:
   m4c_textcaps:
     image_features:
