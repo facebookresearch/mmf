@@ -1,5 +1,5 @@
 includes:
-- ../../masked_coco/pretrain.yaml
+- ../masked_coco/pretrain.yaml
 
 dataset_config:
   masked_vqa2:

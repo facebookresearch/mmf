@@ -23,5 +23,5 @@ python setup.py build develop
 ## Training
 To train LoRRA model on the TextVQA dataset, run the following command
 ```
-python tools/run.py --config configs/vqa/textvqa/lorra.yaml --run_type train_val --dataset textvqa --model lorra
+python tools/run.py config=projects/lorra/configs/textvqa/defaults.yaml training.run_type=train_val dataset=textvqa model=lorra
 ```

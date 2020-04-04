@@ -23,11 +23,11 @@ python setup.py build develop
 ## Training
 To train BUTD model on the COCO Captions dataset, run the following command
 ```
-python tools/run.py --config configs/captioning/coco/butd.yaml --run_type train_val --dataset coco --model butd
+python tools/run.py config=projects/butd/configs/coco/defaults.yaml training.run_type=train_val dataset=coco model=butd
 ```
 
-For training BUTD model use the config `butd.yaml` only. Training uses greedy decoding for validation. Currently we do not have support to train the model using beam search or nucleus sampling decoding. For inference, any of the following methods can be used:
+For training BUTD model use the config `defaults.yaml` only. Training uses greedy decoding for validation. Currently we do not have support to train the model using beam search or nucleus sampling decoding. For inference, any of the following methods can be used:
 
-- Greedy Decoding (`butd.yaml`)
-- Beam Search Decoding (`butd_beam_search.yaml`)
-- Nucleus Sampling Decoding (`butd_nucleus_sampling.yaml`)
+- Greedy Decoding (`defaults.yaml`)
+- Beam Search Decoding (`beam_search.yaml`)
+- Nucleus Sampling Decoding (`nucleus_sampling.yaml`)

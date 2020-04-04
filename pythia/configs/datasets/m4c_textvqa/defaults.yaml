@@ -1,6 +1,9 @@
 dataset_config:
   m4c_textvqa:
     data_root_dir: ../data
+    image_depth_first: false
+    fast_read: false
+    features_max_len: 100
     image_features:
       train:
       - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
@@ -45,6 +48,21 @@ dataset_config:
         type: phoc
         params:
           max_length: 50
+      context_processor:
+        type: fasttext
+        params:
+          max_length: 50
+          model_file: .vector_cache/wiki.en.bin
+      ocr_token_processor:
+        type: simple_word
+        params: {}
+      bbox_processor:
+        type: bbox
+        params:
+          max_length: 50
+    return_info: true
+    use_ocr: true
+    use_ocr_info: true
 
 training:
   monitored_metric: m4c_textvqa/textvqa_accuracy

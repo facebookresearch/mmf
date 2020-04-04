@@ -1,2 +1,2 @@
 includes:
-- ../../../pythia/vqa2/defaults.yaml
+- ../../../pythia/configs/vqa2/defaults.yaml
