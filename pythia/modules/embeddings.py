@@ -206,7 +206,7 @@ class ProjectionEmbedding(nn.Module):
         return self.layers(x)
 
 
-class ImageEmbedding(nn.Module):
+class ImageFeatureEmbedding(nn.Module):
     """
     parameters:
 
@@ -223,7 +223,7 @@ class ImageEmbedding(nn.Module):
     """
 
     def __init__(self, img_dim, question_dim, **kwargs):
-        super(ImageEmbedding, self).__init__()
+        super(ImageFeatureEmbedding, self).__init__()
 
         self.image_attention_model = AttentionLayer(img_dim, question_dim, **kwargs)
         self.out_dim = self.image_attention_model.out_dim
@@ -252,7 +252,7 @@ class ImageEmbedding(nn.Module):
         return image_embedding, attention
 
 
-class MultiHeadImageEmbedding(nn.Module):
+class MultiHeadImageFeatureEmbedding(nn.Module):
     def __init__(self, img_dim, question_dim, **kwargs):
         super().__init__()
         self.module = nn.MultiheadAttention(

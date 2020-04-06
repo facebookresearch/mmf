@@ -15,7 +15,7 @@ from transformers.modeling_bert import (
 
 from pythia.common.registry import registry
 from pythia.models.base_model import BaseModel
-from pythia.modules.encoders import ImageEncoder
+from pythia.modules.encoders import ImageFeatureEncoder
 from pythia.modules.layers import ClassifierLayer
 
 
@@ -75,7 +75,7 @@ class M4C(BaseModel):
 
     def _build_obj_encoding(self):
         # object appearance feature: Faster R-CNN
-        self.obj_faster_rcnn_fc7 = ImageEncoder(
+        self.obj_faster_rcnn_fc7 = ImageFeatureEncoder(
             encoder_type="finetune_faster_rcnn_fpn_fc7",
             in_dim=2048,
             weights_file="detectron/fc6/fc7_w.pkl",
@@ -109,7 +109,7 @@ class M4C(BaseModel):
         self.remove_ocr_bbox = getattr(self.config.ocr, "remove_ocr_bbox", False)
 
         # OCR appearance feature: Faster R-CNN
-        self.ocr_faster_rcnn_fc7 = ImageEncoder(
+        self.ocr_faster_rcnn_fc7 = ImageFeatureEncoder(
             encoder_type="finetune_faster_rcnn_fpn_fc7",
             in_dim=2048,
             weights_file="detectron/fc6/fc7_w.pkl",

@@ -7,12 +7,12 @@ from torch import nn
 from pythia.common.registry import registry
 from pythia.models.base_model import BaseModel
 from pythia.modules.embeddings import (
-    ImageEmbedding,
-    MultiHeadImageEmbedding,
+    ImageFeatureEmbedding,
+    MultiHeadImageFeatureEmbedding,
     PreExtractedEmbedding,
     TextEmbedding,
 )
-from pythia.modules.encoders import ImageEncoder
+from pythia.modules.encoders import ImageFeatureEncoder
 from pythia.modules.layers import ClassifierLayer, ModalCombineLayer
 
 
@@ -81,7 +81,9 @@ class Pythia(BaseModel):
             encoder_kwargs = copy.deepcopy(feat_encoder.params)
             encoder_kwargs.model_data_dir = self.config.model_data_dir
 
-            feat_model = ImageEncoder(encoder_type, feature_dim, **encoder_kwargs)
+            feat_model = ImageFeatureEncoder(
+                encoder_type, feature_dim, **encoder_kwargs
+            )
 
             feat_encoders.append(feat_model)
             setattr(self, attr + "_feature_dim", feat_model.out_dim)
@@ -101,7 +103,7 @@ class Pythia(BaseModel):
             feature_attn_model_list = self.config[attr + "_feature_embeddings"]
 
             for feature_attn_model_params in feature_attn_model_list:
-                feature_embedding = ImageEmbedding(
+                feature_embedding = ImageFeatureEmbedding(
                     getattr(self, attr + "_feature_dim"),
                     self.text_embeddings_out_dim,
                     **feature_attn_model_params
@@ -390,7 +392,7 @@ class PythiaMultiHead(Pythia):
             encoder_type = feat_encoder.type
             encoder_kwargs = feat_encoder.params
 
-            feat_model = ImageEncoder(encoder_type, feat_dim, **encoder_kwargs)
+            feat_model = ImageFeatureEncoder(encoder_type, feat_dim, **encoder_kwargs)
 
             feature_projectors.append(feat_model)
             setattr(self, attr + "_feature_dim", feat_model.out_dim)
@@ -410,7 +412,7 @@ class PythiaMultiHead(Pythia):
             feature_attn_model_list = self.config[attr + "_feature_embeddings"]
 
             for feature_attn_model_params in feature_attn_model_list:
-                feature_embedding = MultiHeadImageEmbedding(
+                feature_embedding = MultiHeadImageFeatureEmbedding(
                     getattr(self, attr + "_feature_dim"),
                     self.text_embeddings_out_dim,
                     **feature_attn_model_params
