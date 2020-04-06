@@ -77,6 +77,12 @@ class FeatureExtractor:
             default="fc6",
         )
         parser.add_argument(
+            "--exclude_list",
+            type=str,
+            help="List of images to be excluded from feature conversion. Each image on a new line",
+            default="./list",
+        )
+        parser.add_argument(
             "--confidence_threshold",
             type=float,
             default=0,
@@ -184,6 +190,7 @@ class FeatureExtractor:
                     "bbox": bbox.cpu().numpy(),
                     "num_boxes": num_boxes.item(),
                     "objects": objects.cpu().numpy(),
+                    "cls_prob": scores[keep_boxes][:, start_index:].cpu().numpy(),
                     "image_width": im_infos[i]["width"],
                     "image_height": im_infos[i]["height"],
                 }
@@ -240,13 +247,19 @@ class FeatureExtractor:
             features, infos = self.get_detectron_features([image_dir])
             self._save_feature(image_dir, features[0], infos[0])
         else:
-            files = glob.glob(os.path.join(image_dir, "*.jpg"))
+            files = glob.glob(os.path.join(image_dir, "*.png"))
+            files.extend(glob.glob(os.path.join(image_dir, "*.jpg")))
+            files.extend(glob.glob(os.path.join(image_dir, "*.jpeg")))
             files = {f: 1 for f in files}
             exclude = {}
-            with open("./list", "r") as f:
-                lines = f.readlines()
-                for line in lines:
-                    exclude[line.strip("\n").split(os.path.sep)[-1].split(".")[0]] = 1
+
+            if os.path.exists(self.args.exclude_list):
+                with open(self.args.exclude_list, "r") as f:
+                    lines = f.readlines()
+                    for line in lines:
+                        exclude[
+                            line.strip("\n").split(os.path.sep)[-1].split(".")[0]
+                        ] = 1
             output_files = glob.glob(os.path.join(self.args.output_folder, "*.npy"))
             output_dict = {}
             for f in output_files:
