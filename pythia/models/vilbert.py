@@ -794,7 +794,7 @@ class BertModel(BertPreTrainedModel):
         self.task_specific_tokens = config.task_specific_tokens
 
         # initlize the vision embedding
-        self.v_embeddings = BertImageEmbeddings(config)
+        self.v_embeddings = BertImageFeatureEmbeddings(config)
 
         self.encoder = BertEncoder(config)
         self.t_pooler = BertTextPooler(config)
@@ -902,12 +902,12 @@ class BertModel(BertPreTrainedModel):
         )
 
 
-class BertImageEmbeddings(nn.Module):
+class BertImageFeatureEmbeddings(nn.Module):
     """Construct the embeddings from image, spatial location (omit now) and token_type embeddings.
     """
 
     def __init__(self, config):
-        super(BertImageEmbeddings, self).__init__()
+        super(BertImageFeatureEmbeddings, self).__init__()
 
         self.image_embeddings = nn.Linear(config.v_feature_size, config.v_hidden_size)
         self.image_location_embeddings = nn.Linear(5, config.v_hidden_size)

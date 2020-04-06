@@ -10,9 +10,9 @@ from pythia.modules.layers import Identity
 from pythia.utils.general import get_pythia_root
 
 
-class ImageEncoder(nn.Module):
+class ImageFeatureEncoder(nn.Module):
     def __init__(self, encoder_type, in_dim, **kwargs):
-        super(ImageEncoder, self).__init__()
+        super(ImageFeatureEncoder, self).__init__()
 
         if encoder_type == "default":
             self.module = Identity()
