@@ -15,7 +15,7 @@ import yaml
 from torch import nn
 
 from pythia.common.constants import DOWNLOAD_CHUNK_SIZE
-from pythia.utils.distributed_utils import get_world_size
+from pythia.utils.distributed import get_world_size
 
 
 def lr_lambda_update(i_iter, cfg):

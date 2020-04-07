@@ -7,7 +7,7 @@ import git
 import torch
 
 from pythia.common.registry import registry
-from pythia.utils.distributed_utils import is_master, synchronize
+from pythia.utils.distributed import is_master, synchronize
 from pythia.utils.general import updir
 
 

@@ -8,7 +8,7 @@ from pythia.common.sample import Sample
 from pythia.datasets.base_dataset import BaseDataset
 from pythia.datasets.databases.features_database import FeaturesDatabase
 from pythia.datasets.databases.image_database import ImageDatabase
-from pythia.utils.distributed_utils import is_master
+from pythia.utils.distributed import is_master
 from pythia.utils.general import get_pythia_root
 
 

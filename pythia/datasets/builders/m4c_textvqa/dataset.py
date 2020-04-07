@@ -5,7 +5,7 @@ import torch
 from pythia.common.sample import Sample
 from pythia.datasets.builders.textvqa.dataset import TextVQADataset
 from pythia.utils.objects_to_byte_tensor import dec_bytes2obj, enc_obj2bytes
-from pythia.utils.text_utils import word_tokenize
+from pythia.utils.text import word_tokenize
 
 
 class M4CTextVQADataset(TextVQADataset):

@@ -243,7 +243,7 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
     from pythia.common.sample import Sample
     from pythia.datasets.base_dataset import BaseDataset
     from pythia.utils.general import get_pythia_root
-    from pythia.utils.text_utils import VocabFromText, tokenize
+    from pythia.utils.text import VocabFromText, tokenize
 
 
     class CLEVRDataset(BaseDataset):

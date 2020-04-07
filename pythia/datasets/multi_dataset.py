@@ -12,7 +12,7 @@ from torch.utils.data.distributed import DistributedSampler
 
 from pythia.common.batch_collator import BatchCollator
 from pythia.common.registry import registry
-from pythia.utils.distributed_utils import broadcast_scalar, is_master
+from pythia.utils.distributed import broadcast_scalar, is_master
 from pythia.utils.general import get_batch_size
 
 

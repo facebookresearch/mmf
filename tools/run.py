@@ -5,9 +5,9 @@ import numpy as np
 import torch
 
 from pythia.common.registry import registry
-from pythia.utils import distributed_utils
-from pythia.utils.build_utils import build_trainer
+from pythia.utils.build import build_trainer
 from pythia.utils.configuration import Configuration
+from pythia.utils.distributed import distributed_init, infer_init_method
 from pythia.utils.flags import flags
 from pythia.utils.general import setup_imports
 
@@ -27,7 +27,7 @@ def main(configuration, init_distributed=False):
         # torch.backends.cudnn.benchmark = False
         # torch.backends.cudnn.deterministic = True
     if init_distributed:
-        distributed_utils.distributed_init(config)
+        distributed_init(config)
     trainer = build_trainer(configuration)
     trainer.load()
     trainer.train()
@@ -54,7 +54,7 @@ def run():
     config = configuration.get_config()
     config.start_rank = 0
     if config.distributed.init_method is None:
-        distributed_utils.infer_init_method(config)
+        infer_init_method(config)
 
     if config.distributed.init_method is not None:
         if torch.cuda.device_count() > 1 and not config.distributed.no_spawn:
