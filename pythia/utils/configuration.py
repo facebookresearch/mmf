@@ -355,3 +355,9 @@ class Configuration:
             config.training.device = "cpu"
 
         return config
+
+
+# This is still here due to legacy reasons around
+# older checkpoint loading from v0.3
+class ConfigNode(collections.OrderedDict):
+    pass
