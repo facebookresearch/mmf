@@ -273,7 +273,7 @@ class Registry:
         Usage::
 
             from pythia.common.registry import registry
-            from pythia.utils.text_utils import TextDecoder
+            from pythia.utils.text import TextDecoder
 
 
             @registry.register_decoder("nucleus_sampling")
@@ -283,7 +283,7 @@ class Registry:
         """
 
         def wrap(decoder_cls):
-            from pythia.utils.text_utils import TextDecoder
+            from pythia.utils.text import TextDecoder
 
             assert issubclass(
                 decoder_cls, TextDecoder

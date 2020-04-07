@@ -8,9 +8,9 @@ from PIL import Image
 from pythia.common.registry import registry
 from pythia.common.sample import Sample
 from pythia.datasets.base_dataset import BaseDataset
-from pythia.utils.distributed_utils import is_master, synchronize
+from pythia.utils.distributed import is_master, synchronize
 from pythia.utils.general import get_pythia_root
-from pythia.utils.text_utils import VocabFromText, tokenize
+from pythia.utils.text import VocabFromText, tokenize
 
 _CONSTANTS = {
     "questions_folder": "questions",

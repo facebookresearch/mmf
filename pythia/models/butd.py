@@ -5,7 +5,7 @@ import torch
 from pythia.common.registry import registry
 from pythia.models.pythia import Pythia
 from pythia.modules.layers import ClassifierLayer
-from pythia.utils.text_utils import BeamSearch, NucleusSampling
+from pythia.utils.text import BeamSearch, NucleusSampling
 
 
 @registry.register_model("butd")

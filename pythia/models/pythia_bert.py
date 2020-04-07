@@ -13,7 +13,7 @@ from transformers.modeling_bert import (
 from pythia.common.registry import registry
 from pythia.models.pythia import Pythia
 from pythia.modules.embeddings import ProjectionEmbedding
-from pythia.utils.transform_utils import transform_to_batch_sequence
+from pythia.utils.transform import transform_to_batch_sequence
 
 
 @registry.register_model("pythia_bert")

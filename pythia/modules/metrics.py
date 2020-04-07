@@ -585,7 +585,7 @@ class TextVQAAccuracy(BaseMetric):
 
         predictions = []
         from pythia.utils.objects_to_byte_tensor import dec_bytes2obj
-        from pythia.utils.text_utils import word_tokenize
+        from pythia.utils.text import word_tokenize
 
         for idx in range(batch_size):
             context_tokens = dec_bytes2obj(context_tokens_enc[idx])

@@ -11,9 +11,9 @@ from pythia.common.dataset_loader import DatasetLoader
 from pythia.common.meter import Meter
 from pythia.common.registry import registry
 from pythia.common.report import Report
-from pythia.utils.build_utils import build_model, build_optimizer, build_scheduler
+from pythia.utils.build import build_model, build_optimizer, build_scheduler
 from pythia.utils.checkpoint import Checkpoint
-from pythia.utils.distributed_utils import (
+from pythia.utils.distributed import (
     broadcast_scalar,
     get_world_size,
     is_master,

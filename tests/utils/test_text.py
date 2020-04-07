@@ -4,7 +4,7 @@ import unittest
 
 import torch
 
-import pythia.utils.text_utils as text_utils
+import pythia.utils.text as text_utils
 from pythia.common.registry import registry
 from pythia.common.sample import Sample, SampleList
 from pythia.utils.configuration import Configuration
@@ -13,7 +13,7 @@ from tests.test_utils import dummy_args
 from tests.utils.test_model import TestDecoderModel
 
 
-class TestTextUtils(unittest.TestCase):
+class TestUtilsText(unittest.TestCase):
     TOKENS = ["this", "will", "be", "a", "test", "of", "tokens"]
     TOKENIZE_EXAMPLE = "This will be a test of tokens?"
     VOCAB_EXAMPLE_SENTENCES = [

@@ -1,5 +1,5 @@
-utils.text_utils
+utils.text
 ===============
 
-.. automodule:: pythia.utils.text_utils
+.. automodule:: pythia.utils.text
   :members:

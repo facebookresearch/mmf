@@ -81,10 +81,10 @@ import numpy as np
 import torch
 
 from pythia.common.registry import registry
-from pythia.utils.distributed_utils import is_master, synchronize
+from pythia.utils.distributed import is_master, synchronize
 from pythia.utils.general import get_pythia_root
 from pythia.utils.phoc import build_phoc
-from pythia.utils.text_utils import VocabDict
+from pythia.utils.text import VocabDict
 from pythia.utils.vocab import Vocab, WordToVectorDict
 
 
@@ -786,7 +786,7 @@ class SimpleWordProcessor(BaseProcessor):
     """
 
     def __init__(self, *args, **kwargs):
-        from pythia.utils.text_utils import word_tokenize
+        from pythia.utils.text import word_tokenize
 
         self.tokenizer = word_tokenize
 
@@ -804,7 +804,7 @@ class SimpleSentenceProcessor(BaseProcessor):
     """
 
     def __init__(self, *args, **kwargs):
-        from pythia.utils.text_utils import tokenize
+        from pythia.utils.text import tokenize
 
         self.tokenizer = tokenize
 
@@ -851,7 +851,7 @@ class BBoxProcessor(VocabProcessor):
     """
 
     def __init__(self, config, *args, **kwargs):
-        from pythia.utils.dataset_utils import build_bbox_tensors
+        from pythia.utils.dataset import build_bbox_tensors
 
         self.lambda_fn = build_bbox_tensors
         self._init_extras(config)

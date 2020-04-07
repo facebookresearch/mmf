@@ -6,7 +6,7 @@ import tqdm
 
 from pythia.common.registry import registry
 from pythia.datasets.readers.feature_readers import FeatureReader
-from pythia.utils.distributed_utils import is_master
+from pythia.utils.distributed import is_master
 
 
 class FeaturesDatabase:
@@ -102,8 +102,6 @@ class COCOFeaturesDatabase(BaseFeaturesDatabase):
         if image_feats is None:
             image_feats, infos = self._read_features_and_info(feat_file)
 
-        # TODO: Remove after standardization
-        # https://github.com/facebookresearch/pythia/blob/master/dataset_utils/dataSet.py#L226
         return image_feats, infos
 
     def __len__(self):

@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 
-from pythia.utils.distributed_utils import is_master
+from pythia.utils.distributed import is_master
 
 
 class EarlyStopping:

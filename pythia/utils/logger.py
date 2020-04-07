@@ -7,7 +7,7 @@ import sys
 
 from torch.utils.tensorboard import SummaryWriter
 
-from pythia.utils.distributed_utils import is_master
+from pythia.utils.distributed import is_master
 from pythia.utils.timer import Timer
 
 

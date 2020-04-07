@@ -35,7 +35,7 @@ Example::
 .. _here: https://github.com/facebookresearch/pythia/blob/master/pythia/datasets/vqa/vqa2/builder.py
 """
 
-from pythia.utils.distributed_utils import is_master, synchronize
+from pythia.utils.distributed import is_master, synchronize
 
 
 class BaseDatasetBuilder:

@@ -94,7 +94,7 @@ and
    tasks/base_dataset
    tasks/base_task
    tasks/processors
-   utils/text_utils
+   utils/text
 
 Indices and tables
 ==================

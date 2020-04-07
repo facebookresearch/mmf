@@ -22,7 +22,7 @@ from transformers.modeling_bert import (
 from pythia.common.registry import registry
 from pythia.models import BaseModel
 from pythia.modules.embeddings import BertVisioLinguisticEmbeddings
-from pythia.utils.transform_utils import (
+from pythia.utils.transform import (
     transform_to_batch_sequence,
     transform_to_batch_sequence_dim,
 )
