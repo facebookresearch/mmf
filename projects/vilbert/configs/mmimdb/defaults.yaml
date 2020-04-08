@@ -5,8 +5,8 @@ model_config:
     - type: logit_bce
     metrics:
     # - accuracy
-    - macro_f1
-    - micro_f1
+    - multilabel_macro_f1
+    - multilabel_micro_f1
 
 dataset_config:
   mmimdb:

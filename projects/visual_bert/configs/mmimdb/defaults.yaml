@@ -6,8 +6,8 @@ model_config:
     losses:
     - type: logit_bce
     metrics:
-    - macro_f1
-    - micro_f1
+    - multilabel_macro_f1
+    - multilabel_micro_f1
 
 dataset_config:
   mmimdb:
