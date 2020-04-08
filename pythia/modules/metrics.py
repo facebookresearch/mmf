@@ -47,7 +47,7 @@ Example config for above metric::
 import collections
 
 import torch
-from sklearn.metrics import f1_score
+from sklearn.metrics import average_precision_score, f1_score, roc_auc_score
 
 from pythia.common.registry import registry
 from pythia.datasets.processors.processors import EvalAIAnswerProcessor
@@ -650,67 +650,242 @@ class TextCapsBleu4(TextVQAAccuracy):
         self.evaluator = evaluators.TextCapsBleu4Evaluator()
 
 
+@registry.register_metric("f1")
+class F1(BaseMetric):
+    """Metric for calculating F1. Can be used with type and params
+    argument for customization. params will be directly passed to sklearn
+    f1 function.
+    **Key:** ``f1``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__("f1")
+        self._multilabel = kwargs.pop("multilabel", False)
+        self._sk_kwargs = kwargs
+
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate f1 and return it back.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration
+            model_output (Dict): Dict returned by model.
+
+        Returns:
+            torch.FloatTensor: f1.
+        """
+        scores = model_output["scores"]
+        expected = sample_list["targets"]
+
+        if self._multilabel:
+            output = torch.sigmoid(scores)
+            output = torch.round(output)
+            expected = _convert_to_one_hot(expected, output)
+        else:
+            # Multiclass, or binary case
+            output = scores.argmax(dim=-1)
+            if expected.dim() != 1:
+                # Probably one-hot, convert back to class indices array
+                expected = expected.argmax(dim=-1)
+
+        value = f1_score(expected.cpu(), output.cpu(), **self._sk_kwargs)
+
+        return expected.new_tensor(value, dtype=torch.float)
+
+
 @registry.register_metric("macro_f1")
-class MacroF1(BaseMetric):
+class MacroF1(F1):
     """Metric for calculating Macro F1.
 
     **Key:** ``macro_f1``
     """
 
-    def __init__(self, pos_label=1):
-        super().__init__("macro_f1")
-        self.pos_label = pos_label
-
-    def calculate(self, sample_list, model_output, *args, **kwargs):
-        """Calculate macro_f1 and return it back.
-
-        Args:
-            sample_list (SampleList): SampleList provided by DataLoader for
-                                current iteration
-            model_output (Dict): Dict returned by model.
-
-        Returns:
-            torch.FloatTensor: macro_f1.
-
-        """
-        output = torch.sigmoid(model_output["scores"])
-        output = torch.round(output)
-        expected = sample_list["targets"]
-
-        value = f1_score(
-            expected.cpu(), output.cpu(), pos_label=self.pos_label, average="macro"
-        )
-        return expected.new_tensor(value, dtype=torch.float)
+    def __init__(self, *args, **kwargs):
+        super().__init__(average="macro", **kwargs)
+        self.name = "macro_f1"
 
 
 @registry.register_metric("micro_f1")
-class MicroF1(BaseMetric):
+class MicroF1(F1):
     """Metric for calculating Micro F1.
 
     **Key:** ``micro_f1``
     """
 
-    def __init__(self, pos_label=1):
-        super().__init__("micro_f1")
-        self.pos_label = pos_label
+    def __init__(self, *args, **kwargs):
+        super().__init__(average="micro", **kwargs)
+        self.name = "micro_f1"
+
+
+@registry.register_metric("binary_f1")
+class BinaryF1(F1):
+    """Metric for calculating Binary F1.
+
+    **Key:** ``binary_f1``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(average="micro", labels=[1], **kwargs)
+        self.name = "binary_f1"
+
+
+@registry.register_metric("multilabel_f1")
+class MultiLabelF1(F1):
+    """Metric for calculating Multilabel F1.
+
+    **Key:** ``multilabel_f1``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(multilabel=True, **kwargs)
+        self.name = "multilabel_f1"
+
+
+@registry.register_metric("multilabel_micro_f1")
+class MultiLabelMicroF1(MultiLabelF1):
+    """Metric for calculating Multilabel Micro F1.
+
+    **Key:** ``multilabel_micro_f1``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(average="micro", **kwargs)
+        self.name = "multilabel_micro_f1"
+
+
+@registry.register_metric("multilabel_macro_f1")
+class MultiLabelMacroF1(F1):
+    """Metric for calculating Multilabel Macro F1.
+
+    **Key:** ``multilabel_macro_f1``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(average="macro", **kwargs)
+        self.name = "multilabel_macro_f1"
+
+
+@registry.register_metric("roc_auc")
+class ROC_AUC(BaseMetric):
+    """Metric for calculating ROC_AUC.
+    See more details at `sklearn.metrics.roc_auc_score <http://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html#sklearn.metrics.roc_auc_score>`_
+
+    **Key:** ``roc_auc``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__("roc_auc")
+        self._sk_kwargs = kwargs
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
-        """Calculate micro_f1 and return it back.
+        """Calculate ROC_AUC and returns it back. The function performs softmax
+        on the logits provided and then calculated the ROC_AUC.
 
         Args:
             sample_list (SampleList): SampleList provided by DataLoader for
-                                current iteration
-            model_output (Dict): Dict returned by model.
+                                current iteration.
+            model_output (Dict): Dict returned by model. This should contain "scores"
+                                 field pointing to logits returned from the model.
 
         Returns:
-            torch.FloatTensor: micro_f1.
+            torch.FloatTensor: ROC_AUC.
 
         """
-        output = torch.sigmoid(model_output["scores"])
-        output = torch.round(output)
-        expected = sample_list["targets"]
 
-        value = f1_score(
-            expected.cpu(), output.cpu(), pos_label=self.pos_label, average="micro"
-        )
+        output = torch.nn.functional.softmax(model_output["scores"], dim=-1)
+        expected = sample_list["targets"]
+        expected = _convert_to_one_hot(expected, output)
+        value = roc_auc_score(expected.cpu(), output.cpu(), **self._sk_kwargs)
         return expected.new_tensor(value, dtype=torch.float)
+
+
+@registry.register_metric("micro_roc_auc")
+class MicroROC_AUC(ROC_AUC):
+    """Metric for calculating Micro ROC_AUC.
+
+    **Key:** ``micro_roc_auc``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(average="micro", **kwargs)
+        self.name = "micro_roc_auc"
+
+
+@registry.register_metric("macro_roc_auc")
+class MacroROC_AUC(ROC_AUC):
+    """Metric for calculating Macro ROC_AUC.
+
+    **Key:** ``macro_roc_auc``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(average="macro", **kwargs)
+        self.name = "macro_roc_auc"
+
+
+@registry.register_metric("ap")
+class AveragePrecision(BaseMetric):
+    """Metric for calculating Average Precision.
+    See more details at `sklearn.metrics.average_precision_score <http://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score>`_
+
+    **Key:** ``ap``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__("ap")
+        self._sk_kwargs = kwargs
+
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate AP and returns it back. The function performs softmax
+        on the logits provided and then calculated the AP.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration.
+            model_output (Dict): Dict returned by model. This should contain "scores"
+                                 field pointing to logits returned from the model.
+
+        Returns:
+            torch.FloatTensor: AP.
+
+        """
+
+        output = torch.nn.functional.softmax(model_output["scores"], dim=-1)
+        expected = sample_list["targets"]
+        expected = _convert_to_one_hot(expected, output)
+        value = average_precision_score(expected.cpu(), output.cpu(), **self._sk_kwargs)
+        return expected.new_tensor(value, dtype=torch.float)
+
+
+@registry.register_metric("micro_ap")
+class MicroAP(ROC_AUC):
+    """Metric for calculating Micro Average Precision.
+
+    **Key:** ``micro_ap``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(average="micro", **kwargs)
+        self.name = "micro_ap"
+
+
+@registry.register_metric("macro_ap")
+class MacroAP(ROC_AUC):
+    """Metric for calculating Macro Average Precision.
+
+    **Key:** ``macro_ap``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(average="macro", **kwargs)
+        self.name = "macro_ap"
+
+
+def _convert_to_one_hot(expected, output):
+    # This won't get called in case of multilabel, only multiclass or binary
+    # as multilabel will anyways be multi hot vector
+    if output.squeeze().dim() != expected.squeeze().dim() and expected.dim() == 1:
+        expected = torch.nn.functional.one_hot(
+            expected.long(), num_classes=output.size(-1)
+        ).float()
+    return expected
