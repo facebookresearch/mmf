@@ -104,6 +104,12 @@ class ClassifierLayer(nn.Module):
             self.module = LogitClassifier(in_dim, out_dim, **kwargs)
         elif classifier_type == "language_decoder":
             self.module = LanguageDecoder(in_dim, out_dim, **kwargs)
+        elif classifier_type == "bert":
+            self.module = BertClassifierHead(
+                in_dim, out_dim, kwargs.get("config", None)
+            ).module
+        elif classifier_type == "mlp":
+            self.module = MLPClassifer(in_dim, out_dim, **kwargs)
         elif classifier_type == "linear":
             self.module = nn.Linear(in_dim, out_dim)
         else:
@@ -111,6 +117,65 @@ class ClassifierLayer(nn.Module):
 
     def forward(self, *args, **kwargs):
         return self.module(*args, **kwargs)
+
+
+class BertClassifierHead(nn.Module):
+    def __init__(self, in_dim=768, out_dim=2, config=None, *args, **kwargs):
+        super().__init__()
+        from transformers.modeling_bert import BertPredictionHeadTransform
+
+        if config is None:
+            from transformers.configuration_bert import BertConfig
+
+            config = BertConfig.from_pretrained("bert-base-uncased")
+
+        assert config.hidden_size == in_dim
+
+        self.module = nn.Sequential(
+            nn.Dropout(config.hidden_dropout_prob),
+            BertPredictionHeadTransform(config),
+            nn.Linear(in_dim, out_dim),
+        )
+
+    def forward(self, *args, **kwargs):
+        return self.module(*args, **kwargs)
+
+
+class MLPClassifer(nn.Module):
+    def __init__(
+        self,
+        in_dim,
+        out_dim,
+        hidden_dim=None,
+        num_layers=0,
+        dropout=0.5,
+        hidden_act="relu",
+        batch_norm=True,
+        **kwargs
+    ):
+        super().__init__()
+        from pythia.utils.modeling import ACT2FN
+
+        activation = ACT2FN[hidden_act]
+        self.layers = nn.ModuleList()
+
+        if hidden_dim is None:
+            hidden_dim = in_dim
+
+        for _ in range(num_layers):
+            self.layers.append(nn.Linear(in_dim, hidden_dim))
+            if batch_norm:
+                self.layers.append(nn.BatchNorm1d(hidden_dim))
+            self.layers.append(activation())
+            self.layers.append(nn.Dropout(dropout))
+            in_dim = hidden_dim
+
+        self.layers.append(nn.Linear(in_dim, out_dim))
+
+    def forward(self, x):
+        for layer in self.layers:
+            x = layer(x)
+        return x
 
 
 class LogitClassifier(nn.Module):

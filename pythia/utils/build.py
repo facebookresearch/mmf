@@ -87,3 +87,10 @@ def build_scheduler(optimizer, config):
     scheduler = scheduler_class(optimizer, **params)
 
     return scheduler
+
+
+def build_classifier_layer(config, *args, **kwargs):
+    from pythia.modules.layers import ClassifierLayer
+
+    classifier = ClassifierLayer(config.type, *args, **config.params, **kwargs)
+    return classifier.module

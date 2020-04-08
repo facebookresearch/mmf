@@ -65,3 +65,44 @@ class TestModuleLayers(unittest.TestCase):
         expected_size = torch.Size((5,))
         actual_size = unflatten(input_tensor, sizes=[]).size()
         self.assertEqual(expected_size, actual_size)
+
+    def test_mlp(self):
+        mlp = layers.ClassifierLayer("mlp", in_dim=300, out_dim=1)
+        self.assertEqual(len(list(mlp.module.layers.children())), 1)
+        self.assertEqual(len(list(mlp.parameters())), 2)
+
+        inp = torch.rand(3, 300)
+
+        output = mlp(inp)
+        self.assertEqual(output.size(), torch.Size((3, 1)))
+        np.testing.assert_almost_equal(
+            output.squeeze().tolist(), [0.1949174, 0.4030975, -0.0109139]
+        )
+
+        mlp = layers.ClassifierLayer(
+            "mlp", in_dim=300, out_dim=1, hidden_dim=150, num_layers=1
+        )
+
+        self.assertEqual(len(list(mlp.module.layers.children())), 5)
+        self.assertEqual(len(list(mlp.parameters())), 6)
+
+        inp = torch.rand(3, 300)
+
+        output = mlp(inp)
+        self.assertEqual(output.size(), torch.Size((3, 1)))
+        np.testing.assert_almost_equal(
+            output.squeeze().tolist(), [-0.503411, 0.1725615, -0.6833304], decimal=3
+        )
+
+    def test_bert_classifier_head(self):
+        clf = layers.ClassifierLayer("bert", 768, 1)
+        self.assertEqual(len(list(clf.module.children())), 3)
+        self.assertEqual(len(list(clf.parameters())), 6)
+
+        inp = torch.rand(3, 768)
+
+        output = clf(inp)
+        self.assertEqual(output.size(), torch.Size((3, 1)))
+        np.testing.assert_almost_equal(
+            output.squeeze().tolist(), [0.5452202, -0.0437842, -0.377468], decimal=3
+        )
