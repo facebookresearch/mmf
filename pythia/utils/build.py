@@ -94,3 +94,20 @@ def build_classifier_layer(config, *args, **kwargs):
 
     classifier = ClassifierLayer(config.type, *args, **config.params, **kwargs)
     return classifier.module
+
+
+def build_text_encoder(config, *args, **kwargs):
+    from pythia.modules.encoders import TextEncoder
+
+    text_encoder = TextEncoder(config, *args, **kwargs)
+    return text_encoder.module
+
+
+def build_image_encoder(config, direct_features=False, **kwargs):
+    from pythia.modules.encoders import ImageFeatureEncoder, ImageEncoder
+
+    if direct_features:
+        module = ImageFeatureEncoder(config.type, **config.params)
+    else:
+        module = ImageEncoder(config)
+    return module.module

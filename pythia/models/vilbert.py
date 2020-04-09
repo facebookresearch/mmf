@@ -26,6 +26,7 @@ from transformers.modeling_bert import (
 
 from pythia.common.registry import registry
 from pythia.models import BaseModel
+from pythia.utils.modeling import get_optimizer_parameters_for_bert
 
 
 class BertSelfAttention(nn.Module):
@@ -1355,44 +1356,4 @@ class ViLBERT(BaseModel):
         return {"accuracy": 0.0}
 
     def get_optimizer_parameters(self, config):
-        # Pretraining has same LR for all of the parts
-        if self.training_head_type == "pretraining":
-            return self.get_bert_configured_parameters(self)
-
-        # For finetuning setup, we have classifier
-        lr = config.optimizer.params.lr
-        vb_config = getattr(config.model_config, "vilbert", {})
-        finetune_lr_multiplier = getattr(vb_config, "finetune_lr_multiplier", 1)
-        # Finetune the bert pretrained part with finetune_lr_multiplier if it is set
-        parameters = self.get_bert_configured_parameters(
-            self.bert.bert, lr * finetune_lr_multiplier
-        )
-        # Classifier will be trained on the normal lr
-        parameters += self.get_bert_configured_parameters(self.bert.classifier, lr)
-
-        return parameters
-
-    def get_bert_configured_parameters(self, module, lr=None):
-        param_optimizer = list(module.named_parameters())
-
-        no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
-        optimizer_grouped_parameters = [
-            {
-                "params": [
-                    p for n, p in param_optimizer if not any(nd in n for nd in no_decay)
-                ],
-                "weight_decay": 0.01,
-            },
-            {
-                "params": [
-                    p for n, p in param_optimizer if any(nd in n for nd in no_decay)
-                ],
-                "weight_decay": 0.0,
-            },
-        ]
-
-        if lr is not None:
-            for p in optimizer_grouped_parameters:
-                p["lr"] = lr
-
-        return optimizer_grouped_parameters
+        return get_optimizer_parameters_for_bert(self.bert, config)
