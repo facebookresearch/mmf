@@ -5,3 +5,5 @@ from .multi_task import MultiTask
 from .base_dataset import BaseDataset
 
 __all__ = ["BaseTask", "BaseDatasetBuilder", "BaseDataset", "MultiTask"]
+
+print(" ## Test1 :  Checking whether this tasks is getting initialized  or not ## ")

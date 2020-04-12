@@ -58,7 +58,7 @@ task_attributes:
                 return_info: true
                 # Return OCR information
                 use_ocr: true
-                # Return spatial information of OCR tokens if present
+                # Return spatial information of OCR tokens if present (main)
                 use_ocr_info: false
 training_parameters:
     monitored_metric: textvqa_vqa_accuracy

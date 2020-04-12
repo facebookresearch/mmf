@@ -140,6 +140,8 @@ class VQA2Dataset(BaseDataset):
                 self.ocr_token_processor({"text": token})["text"]
                 for token in sample_info["ocr_tokens"]
             ]
+            print(" ## Test5 :  checking for OCR tokens # ")
+            print(ocr_tokens)
             # Get embeddings for tokens
             context = self.context_processor({"tokens": ocr_tokens})
             sample.context = context["text"]

@@ -6,6 +6,8 @@ from pythia.tasks.vqa.vqa2.ocr_dataset import VQA2OCRDataset
 
 @Registry.register_builder("vqa2_ocr")
 class TextVQABuilder(VizWizBuilder):
+	print(" ## Test6 :  VQA2OCRDataset # ")
+    #print(ocr_tokens)
     def __init__(self):
         super().__init__()
         self.dataset_name = "VQA2_OCR"
