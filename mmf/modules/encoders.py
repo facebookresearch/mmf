@@ -10,7 +10,7 @@ from transformers.configuration_auto import AutoConfig
 from transformers.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
 from transformers.modeling_auto import AutoModel
 
-from mmf.modules.embeddings import ProjectionEmbedding
+from mmf.modules.embeddings import ProjectionEmbedding, TextEmbedding
 from mmf.modules.layers import Identity
 from mmf.utils.build import build_image_encoder, build_text_encoder
 from mmf.utils.general import get_mmf_root
@@ -136,9 +136,35 @@ class TextEncoder(nn.Module):
         elif self._type == "transformer":
             self._module = TransformerEncoder(config.params)
             self.module = self._module.module
+        elif self._type == "embedding":
+            self.module = TextEmbeddingEncoder(config.params)
+        else:
+            raise NotImplementedError("Unknown Text Encoder {}".format(self._type))
 
     def forward(self, *args, **kwargs):
         return self.module(*args, **kwargs)
+
+
+class TextEmbeddingEncoder(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self._operator = config.operator
+        self._embedding_params = config.embedding_params
+
+        self.module = TextEmbedding(
+            self._embedding_params.type, **self._embedding_params.params
+        )
+
+    def forward(self, x):
+        x = self.module(x)
+        if self._operator == "sum":
+            x = x.sum(dim=1)
+        elif self._operator == "concat":
+            x = torch.cat(x, dim=1)
+        elif self._operator == "mul":
+            x = torch.prod(x, dim=1)
+
+        return x.squeeze()
 
 
 class TransformerEncoder(nn.Module):
