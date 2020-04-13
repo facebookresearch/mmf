@@ -1,5 +1,5 @@
 common.sample
 ===============
 
-.. automodule:: pythia.common.sample
+.. automodule:: mmf.common.sample
   :members:

@@ -2,16 +2,16 @@
 
 **Authors**: Amanpreet Singh
 
-To develop on top of Pythia, it is necessary to understand concepts and terminology
-used in Pythia codebase. Pythia has been very carefully designed from ground-up to be a
-multi-tasking framework. This means using Pythia you can train on multiple datasets/datasets
+To develop on top of MMF, it is necessary to understand concepts and terminology
+used in MMF codebase. MMF has been very carefully designed from ground-up to be a
+multi-tasking framework. This means using MMF you can train on multiple datasets/datasets
 together.
 
-To achieve this, Pythia has few opinions about architecture of your research project.
-But, being generic means Pythia abstracts a lot of concepts in its modules and it would
-be easy to develop on top of Pythia once a developer understands these simple concepts.
-Major concepts and terminology in Pythia that one needs to know in order to develop
-over Pythia are as follows:
+To achieve this, MMF has few opinions about architecture of your research project.
+But, being generic means MMF abstracts a lot of concepts in its modules and it would
+be easy to develop on top of MMF once a developer understands these simple concepts.
+Major concepts and terminology in MMF that one needs to know in order to develop
+over MMF are as follows:
 
 - [Tasks and Datasets](#tasks-and-datasets)
 - [Models](#models)
@@ -23,7 +23,7 @@ over Pythia are as follows:
 
 ## Tasks and Datasets
 
-In Pythia, we have divided datasets into a set category of tasks. Thus, a task corresponds
+In MMF, we have divided datasets into a set category of tasks. Thus, a task corresponds
 to a collection of datasets that belong to it. For example, VQA 2.0, VizWiz and TextVQA
 all belong VQA task. Each task and dataset has been assigned a unique key which is used
 to refer it in the command line arguments.
@@ -67,7 +67,7 @@ Following table shows the inverse of the above table, datasets along with their 
 ## Models
 
 Reference implementations for state-of-the-art models have been included to act as
-a base for reproduction of research papers and starting point of new research. Pythia has
+a base for reproduction of research papers and starting point of new research. MMF has
 been used in past for following papers:
 
 - [Towards VQA Models That Can Read (LoRRA model)](https://arxiv.org/abs/1904.08920)
@@ -101,8 +101,8 @@ key name and datasets it can be run on.
 
 ## Registry
 
-Registry acts as a central source of truth for Pythia. Inspired from Redux's global store,
-useful information needed by Pythia ecosystem is registered in the `registry`. Registry can be
+Registry acts as a central source of truth for MMF. Inspired from Redux's global store,
+useful information needed by MMF ecosystem is registered in the `registry`. Registry can be
 considered as a general purpose storage for information which is needed by multiple parts
 of the framework and acts source of information wherever that information is needed.
 
@@ -113,7 +113,7 @@ Registry's functions can be used as decorators over the classes which need to be
 Registry object can be imported as the follow:
 
 ```
-from pythia.common.registry import registry
+from mmf.common.registry import registry
 
 ```
 
@@ -122,24 +122,24 @@ Find more details about Registry class in its documentation [common/registry](..
 
 ## Configuration
 
-As is necessary with research, most of the parameters/settings in Pythia are
-configurable. Pythia specific default values (`training`) are present
-in [pythia/common/defaults/configs/base.yaml](https://github.com/facebookresearch/pythia/blob/v0.3/pythia/common/defaults/configs/base.yaml)
+As is necessary with research, most of the parameters/settings in MMF are
+configurable. MMF specific default values (`training`) are present
+in [mmf/common/defaults/configs/base.yaml](https://github.com/facebookresearch/mmf/blob/v0.3/mmf/common/defaults/configs/base.yaml)
 with detailed comments delineating the usage of each parameter.
 
 For ease of usage and modularity, configuration for each dataset is kept separately in
-`pythia/common/defaults/configs/datasets/[task]/[dataset].yaml` where you can get `[task]`
+`mmf/common/defaults/configs/datasets/[task]/[dataset].yaml` where you can get `[task]`
 value for the dataset from the tables in [Tasks and Datasets](#tasks-and-datasets) section.
 
 The most dynamic part, model configuration are also kept separate and are the one which
 need to be defined by the user if they are creating their own models. We include
-configurations for the models included in the model zoo of Pythia. For each model,
+configurations for the models included in the model zoo of MMF. For each model,
 there is a separate configuration for each dataset it can work on. See an example in
-[configs/vqa/vqa2/pythia.yaml](https://github.com/facebookresearch/pythia/blob/v0.3/configs/vqa/vqa2/pythia.yaml). The configuration in
+[configs/vqa/vqa2/pythia.yaml](https://github.com/facebookresearch/mmf/blob/v0.3/configs/vqa/vqa2/pythia.yaml). The configuration in
 the configs folder are divided using the scheme `configs/[task]/[dataset]/[model].yaml`.
 
 It is possible to include other configs into your config using `includes` directive.
-Thus, in Pythia config above you can include `vqa2`'s config like this:
+Thus, in MMF config above you can include `vqa2`'s config like this:
 
 ```
 includes:
@@ -184,10 +184,10 @@ to hand off the data processing needs. Learn more about processors in the
 
 ## Sample List
 
-[SampleList](../datasets/sample#pythia.common.sample.SampleList) has been inspired
+[SampleList](../datasets/sample#mmf.common.sample.SampleList) has been inspired
 from BBoxList in maskrcnn-benchmark, but is more generic. All datasets integrated
-with Pythia need to return a
-[Sample](../datasets/sample#pythia.common.sample.Sample) which will be collated into
+with MMF need to return a
+[Sample](../datasets/sample#mmf.common.sample.Sample) which will be collated into
 `SampleList`. Now, `SampleList` comes with a lot of handy functions which
 enable easy batching and access of things. For e.g. ``Sample`` is a dict with
 some keys. In ``SampleList``, values for these keys will be smartly clubbed

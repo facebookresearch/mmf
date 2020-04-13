@@ -1,5 +1,5 @@
 common.registry
 ===============
 
-.. automodule:: pythia.common.registry
+.. automodule:: mmf.common.registry
   :members:

@@ -7,7 +7,7 @@ import unittest
 import numpy as np
 import torch
 
-import pythia.modules.layers as layers
+import mmf.modules.layers as layers
 
 
 class TestModuleLayers(unittest.TestCase):

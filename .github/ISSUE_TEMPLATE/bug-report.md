@@ -1,6 +1,6 @@
 ---
 name: "\U0001F41B Bug Report"
-about: Submit a bug report to help us improve Pythia
+about: Submit a bug report to help us improve MMF
 
 ---
 

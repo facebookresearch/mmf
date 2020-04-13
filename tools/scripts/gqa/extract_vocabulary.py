@@ -11,7 +11,7 @@ import json
 import os
 from collections import Counter
 
-from pythia.utils.text import tokenize
+from mmf.utils.text import tokenize
 
 
 class ExtractVocabulary:

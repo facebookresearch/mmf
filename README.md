@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://readthedocs.org/projects/learnpythia/">
-    <img width="60%" alt="Pythia" src="https://i.imgur.com/wPgp4N4.png"/>
+    <img width="60%" alt="MMF" src="https://i.imgur.com/wPgp4N4.png"/>
   </a>
 </div>
 
@@ -11,12 +11,12 @@
   <a href="https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR">
   <img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg"/>
   </a>
-  <a href="https://circleci.com/gh/facebookresearch/pythia">
-  <img alt="CircleCI" src="https://circleci.com/gh/facebookresearch/pythia.svg?style=svg"/>
+  <a href="https://circleci.com/gh/facebookresearch/mmf">
+  <img alt="CircleCI" src="https://circleci.com/gh/facebookresearch/mmf.svg?style=svg"/>
   </a>
 </div>
 
-Pythia is a modular framework for vision and language multimodal research. Built on top
+MMF is a modular framework for vision and language multimodal research. Built on top
 of PyTorch, it features:
 
 - **Model Zoo**: Reference implementations for state-of-the-art vision and language model including
@@ -29,25 +29,25 @@ of PyTorch, it features:
 - **Unopinionated**: Unopinionated about the dataset and model implementations built on top of it.
 - **Customization**: Custom losses, metrics, scheduling, optimizers, tensorboard; suits all your custom needs.
 
-You can use Pythia to **_bootstrap_** for your next vision and language multimodal research project.
+You can use MMF to **_bootstrap_** for your next vision and language multimodal research project.
 
-Pythia can also act as **starter codebase** for challenges around vision and
+MMF can also act as **starter codebase** for challenges around vision and
 language datasets (TextVQA challenge, VQA challenge)
 
-![Pythia Examples](https://i.imgur.com/BP8sYnk.jpg)
+![MMF Examples](https://i.imgur.com/BP8sYnk.jpg)
 
 ## Demo
 
-1. [Pythia VQA](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR).
-2. [BUTD Captioning](https://colab.research.google.com/drive/1vzrxDYB0vxtuUy8KCaGxm--nDCJvyBSg).
+1. [VQA](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR).
+2. [Captioning](https://colab.research.google.com/drive/1vzrxDYB0vxtuUy8KCaGxm--nDCJvyBSg).
 
 ## Documentation
 
-Learn more about Pythia [here](https://learnpythia.readthedocs.io/en/latest/).
+Learn more about MMF [here](https://learnpythia.readthedocs.io/en/latest/).
 
 ## Citation
 
-If you use Pythia in your work, please cite:
+If you use MMF in your work, please cite:
 
 ```
 @inproceedings{singh2018pythia,
@@ -61,4 +61,4 @@ If you use Pythia in your work, please cite:
 
 ## License
 
-Pythia is licensed under BSD license available in [LICENSE](LICENSE) file
+MMF is licensed under BSD license available in [LICENSE](LICENSE) file

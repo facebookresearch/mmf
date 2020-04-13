@@ -9,8 +9,8 @@ import h5py
 import numpy as np
 import tqdm
 
-from pythia.utils.process_answers import preprocess_answer
-from pythia.utils.text_processing import text_tokenize as tokenize
+from mmf.utils.process_answers import preprocess_answer
+from mmf.utils.text_processing import text_tokenize as tokenize
 
 
 def merge_train(train_q_dir):

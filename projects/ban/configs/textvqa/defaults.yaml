@@ -1,2 +1,2 @@
 includes:
-- ../../../pythia/configs/textvqa/defaults.yaml
+- ../../../mmf/configs/textvqa/defaults.yaml

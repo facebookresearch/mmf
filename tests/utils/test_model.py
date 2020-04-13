@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from pythia.common.registry import registry
+from mmf.common.registry import registry
 
 
 class TestDecoderModel(nn.Module):

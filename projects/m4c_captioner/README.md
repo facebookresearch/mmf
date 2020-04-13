@@ -1,6 +1,6 @@
 # TextCaps: a Dataset for Image Captioning with Reading Comprehension
 
-This repository contains the code for M4C-Captioner model, released under the Pythia framework.
+This repository contains the code for M4C-Captioner model, released under the MMF.
 
 Project Page: https://textvqa.org/textcaps/
 
@@ -8,7 +8,7 @@ Project Page: https://textvqa.org/textcaps/
 
 Clone this repository, and build it with the following command.
 ```
-cd ~/pythia
+cd ~/mmf
 python setup.py build develop
 # install pycocoevalcap
 # use the repo below instead of https://github.com/tylin/coco-caption
@@ -21,7 +21,7 @@ This will install all M4C-Captioner dependencies such as `pytorch-transformers`,
 
 ## Getting Data
 
-This repo supports training and evaluation of the M4C-Captioner model. Please follow the [Pythia documentation](https://learnpythia.readthedocs.io/en/latest/tutorials/quickstart.html#getting-data) to get data for each dataset.
+This repo supports training and evaluation of the M4C-Captioner model. Please follow the [MMF documentation](https://learnpythia.readthedocs.io/en/latest/tutorials/quickstart.html#getting-data) to get data for each dataset.
 
 Below are the download links to the vocabulary files, imdbs and features. **Note that imdbs should be extracted under `data/imdb/`. All other files should be extracted under `data/`.**
 
@@ -53,7 +53,7 @@ We release the following pretrained model for M4C-Captioner for the TextCaps dat
 
 ## Training and Evaluating M4C-Captioner
 
-Please follow the [Pythia documentation](https://learnpythia.readthedocs.io/en/latest/tutorials/quickstart.html#training) for the training and evaluation of the M4C-Captioner model on each dataset.
+Please follow the [MMF documentation](https://learnpythia.readthedocs.io/en/latest/tutorials/quickstart.html#training) for the training and evaluation of the M4C-Captioner model on each dataset.
 
 For example:
 

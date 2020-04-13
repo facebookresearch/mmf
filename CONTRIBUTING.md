@@ -1,4 +1,4 @@
-# Contributing to Pythia
+# Contributing to MMF
 We want to make contributing to this project as easy and transparent as
 possible.
 
@@ -34,8 +34,8 @@ outlined on that page and do not file a public issue.
 * Ideally, run black and isort before opening up your PR.
 
 ```
-black ./(pythia|tests|tools)/**/*.py
-isort -rc (pythia|tests|tools)
+black ./(mmf|tests|tools)/**/*.py
+isort -rc (mmf|tests|tools)
 ```
 * Read the [editorconfig](.editorconfig) file to understand the exact coding style preferences.
 
@@ -69,5 +69,5 @@ generation
 * **docs**: Documentation only changes
 
 ## License
-By contributing to Pythia, you agree that your contributions will be licensed
+By contributing to MMF, you agree that your contributions will be licensed
 under the LICENSE file in the root directory of this source tree.

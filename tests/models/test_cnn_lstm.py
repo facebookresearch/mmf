@@ -5,11 +5,11 @@ import unittest
 import numpy as np
 import torch
 
-from pythia.common.registry import registry
-from pythia.common.sample import Sample, SampleList
-from pythia.models.cnn_lstm import CNNLSTM
-from pythia.utils.configuration import Configuration
-from pythia.utils.general import get_pythia_root
+from mmf.common.registry import registry
+from mmf.common.sample import Sample, SampleList
+from mmf.models.cnn_lstm import CNNLSTM
+from mmf.utils.configuration import Configuration
+from mmf.utils.general import get_mmf_root
 from tests.test_utils import dummy_args
 
 
@@ -19,7 +19,7 @@ class TestModelCNNLSTM(unittest.TestCase):
         registry.register("clevr_text_vocab_size", 80)
         registry.register("clevr_num_final_outputs", 32)
         config_path = os.path.join(
-            get_pythia_root(),
+            get_mmf_root(),
             "..",
             "projects",
             "others",

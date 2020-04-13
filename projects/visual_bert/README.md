@@ -1,6 +1,6 @@
 # VisualBERT
 
-This repository contains the code for pytorch implementation of VisualBERT model, released originally under this ([repo](https://github.com/uclanlp/visualbert)). Please cite the following paper if you are using VisualBERT model from pythia:
+This repository contains the code for pytorch implementation of VisualBERT model, released originally under this ([repo](https://github.com/uclanlp/visualbert)). Please cite the following paper if you are using VisualBERT model from mmf:
 
 * Li, L. H., Yatskar, M., Yin, D., Hsieh, C. J., & Chang, K. W. (2019). *Visualbert: A simple and performant baseline for vision and language*. arXiv preprint arXiv:1908.03557. ([arXiV](https://arxiv.org/abs/1908.03557))
 ```
@@ -16,7 +16,7 @@ This repository contains the code for pytorch implementation of VisualBERT model
 
 Clone this repository, and build it with the following command.
 ```
-cd ~/pythia
+cd ~/mmf
 python setup.py build develop
 ```
 

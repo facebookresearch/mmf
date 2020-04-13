@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
-from pythia.common.sample import Sample
+from mmf.common.sample import Sample
 
 
 class TestSample(unittest.TestCase):

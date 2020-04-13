@@ -1,6 +1,6 @@
 # Iterative Answer Prediction with Pointer-Augmented Multimodal Transformers for TextVQA
 
-This repository contains the code for M4C model from the following paper, released under the Pythia framework:
+This repository contains the code for M4C model from the following paper, released under the MMF:
 
 * R. Hu, A. Singh, T. Darrell, M. Rohrbach, *Iterative Answer Prediction with Pointer-Augmented Multimodal Transformers for TextVQA*. in CVPR, 2020 ([PDF](https://arxiv.org/pdf/1911.06258.pdf))
 ```
@@ -18,14 +18,14 @@ Project Page: http://ronghanghu.com/m4c
 
 Clone this repository, and build it with the following command.
 ```
-cd ~/pythia
+cd ~/mmf
 python setup.py build develop
 ```
 This will install all M4C dependencies such as `pytorch-transformers` and `editdistance` and will also compile the python interface for PHOC features.
 
 ## Getting Data
 
-This repo supports training and evaluation of the M4C model under three datasets: TextVQA, ST-VQA, and OCR-VQA. Please follow the [Pythia documentation](https://learnpythia.readthedocs.io/en/latest/tutorials/quickstart.html#getting-data) to get data for each dataset.
+This repo supports training and evaluation of the M4C model under three datasets: TextVQA, ST-VQA, and OCR-VQA. Please follow the [MMF documentation](https://learnpythia.readthedocs.io/en/latest/tutorials/quickstart.html#getting-data) to get data for each dataset.
 
 Below are the download links to the vocabulary files, imdbs and features of each dataset. **Note that imdbs should be extracted under `data/imdb/`. All other files should be extracted under `data/`.** For the ST-VQA dataset, we notice that many images from COCO-Text in the downloaded ST-VQA data (around 1/3 of all images) are resized to 256×256 for unknown reasons, which degrades the image quality and distorts their aspect ratios. In the released object and OCR features below, we replaced these images with their original versions from COCO-Text as inputs to object detection and OCR systems.
 

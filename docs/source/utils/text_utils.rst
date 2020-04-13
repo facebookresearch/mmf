@@ -1,5 +1,5 @@
 utils.text
 ===============
 
-.. automodule:: pythia.utils.text
+.. automodule:: mmf.utils.text
   :members:

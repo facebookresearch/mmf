@@ -2,9 +2,9 @@
 import os
 import unittest
 
-from pythia.common.registry import registry
-from pythia.datasets.base_dataset import BaseDataset
-from pythia.utils.configuration import Configuration
+from mmf.common.registry import registry
+from mmf.datasets.base_dataset import BaseDataset
+from mmf.utils.configuration import Configuration
 
 from ..test_utils import dummy_args
 
@@ -13,7 +13,7 @@ class TestBaseDataset(unittest.TestCase):
     def test_init_processors(self):
         path = os.path.join(
             os.path.abspath(__file__),
-            "../../../pythia/configs/datasets/vqa2/defaults.yaml",
+            "../../../mmf/configs/datasets/vqa2/defaults.yaml",
         )
         args = dummy_args()
         args.opts.append("config={}".format(path))
