@@ -15,6 +15,13 @@ cpu: &cpu
     - image: circleci/python:3.7
   resource_class: medium
 
+gpu: &gpu
+  environment:
+    CUDA_VERSION: "10.2"
+  machine:
+    image: ubuntu-1604:201903-01
+  resource_class: gpu.medium
+
 # -------------------------------------------------------------------------------------
 # Re-usable commands
 # -------------------------------------------------------------------------------------
@@ -39,6 +46,8 @@ install_dep: &install_dep
         pip install --progress-bar off flake8
         pip install --progress-bar off black
         pip install --progress-bar off isort
+        python -c 'import torch; print("Torch version:", torch.__version__)'
+        python -m torch.utils.collect_env
 
 install_repo: &install_repo
   - run:
@@ -51,7 +60,7 @@ run_unittests: &run_unittests
       name: Run Unit Tests
       command: |
         cd tests
-        pytest -v .
+        pytest --junitxml=test-results/junit.xml -v .
 
 run_flake8: &run_flake8
   - run:
@@ -62,12 +71,23 @@ run_flake8: &run_flake8
         # exit-zero treats all errors as warnings
         flake8 . --count --exit-zero --max-complexity=18 --max-line-length=88 --statistics
 
+install_nvidia_driver: &install_nvidia_driver
+  - run:
+      name: Install NVIDIA Driver
+      working_directory: ~/
+      command: |
+        wget -q --no-clobber -P ~/nvidia-downloads 'https://s3.amazonaws.com/ossci-linux/nvidia_driver/NVIDIA-Linux-x86_64-430.40.run'
+        sudo /bin/bash ~/nvidia-downloads/NVIDIA-Linux-x86_64-430.40.run -s --no-drm
+        pyenv versions
+        nvidia-smi
+        pyenv global 3.7.0
+
 # -------------------------------------------------------------------------------------
 # Jobs to run
 # -------------------------------------------------------------------------------------
 
 jobs:
-  build:
+  cpu_tests:
     <<: *cpu
 
     working_directory: ~/mmf
@@ -79,14 +99,14 @@ jobs:
       # Cache the venv directory that contains dependencies
       - restore_cache:
           keys:
-            - cache-key-{{ checksum "requirements.txt"}}-{{ checksum "setup.py"}}
+            - cache-key-cpu-{{ checksum "setup.py"}}-{{ checksum "requirements.txt"}}
 
       - <<: *install_dep
 
       - save_cache:
           paths:
             - ~/venv
-          key: cache-key-{{ checksum "requirements.txt"}}-{{ checksum "setup.py"}}
+          key: cache-key-cpu-{{ checksum "setup.py"}}-{{ checksum "requirements.txt"}}
 
       - <<: *install_repo
 
@@ -103,3 +123,54 @@ jobs:
       - <<: *run_flake8
 
       - <<: *run_unittests
+
+      - store_test_results:
+          path: test-results
+
+  gpu_tests:
+    <<: *gpu
+
+    working_directory: ~/mmf
+
+    steps:
+      - checkout
+
+      # Cache the nvidia driver downloads
+      - restore_cache:
+          key: nvidia-downloads-v4
+
+      - <<: *install_nvidia_driver
+
+      - save_cache:
+          key: nvidia-downloads-v4
+          paths:
+            - "~/nvidia-downloads/"
+
+      - <<: *setup_venv
+
+      # Cache the venv directory that contains dependencies
+      - restore_cache:
+          keys:
+            - cache-key-gpu-{{ checksum "setup.py"}}-{{ checksum "requirements.txt"}}
+
+      - <<: *install_dep
+
+      - save_cache:
+          paths:
+            - ~/venv
+          key: cache-key-gpu-{{ checksum "setup.py"}}-{{ checksum "requirements.txt"}}
+
+      - <<: *install_repo
+
+      - <<: *run_unittests
+
+      - store_test_results:
+          path: test-results
+
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - cpu_tests
+      - gpu_tests
