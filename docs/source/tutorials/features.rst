@@ -1,7 +1,7 @@
 Features
 ========
 
-Pythia features:
+MMF features:
 
 - **Model Zoo**: Reference implementations for state-of-the-art vision and language model including
   LoRRA_ (SoTA on VQA and TextVQA), Pythia_ model (VQA 2018 challenge winner), BAN and BUTD_.
@@ -18,10 +18,10 @@ Pythia features:
 - **Customization**: Custom losses, metrics, scheduling, optimizers, tensorboard;
   suits all your custom needs.
 
-You can use Pythia to **bootstrap** for your next vision and language multimodal
+You can use MMF to **bootstrap** for your next vision and language multimodal
 research project.
 
-Pythia can also act as **starter codebase** for challenges around vision and
+MMF can also act as **starter codebase** for challenges around vision and
 language datasets (TextVQA challenge, VQA challenge).
 
 .. _lorra: https://arxiv.org/abs/1904.08920

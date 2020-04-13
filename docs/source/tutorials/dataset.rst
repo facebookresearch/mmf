@@ -1,12 +1,12 @@
-:github_url: https://github.com/facebookresearch/pythia
+:github_url: https://github.com/facebookresearch/mmf
 
 ################
 Adding a dataset
 ################
 
-This is a tutorial on how to add a new dataset to Pythia.
+This is a tutorial on how to add a new dataset to MMF.
 
-Pythia is agnostic to kind of datasets that can be added to it. On high level, adding a dataset requires 4 main components.
+MMF is agnostic to kind of datasets that can be added to it. On high level, adding a dataset requires 4 main components.
 
 - Dataset Builder
 - Default Configuration
@@ -19,8 +19,8 @@ In most of the cases, you should be able to inherit one of the existing datasets
 Dataset Builder
 ===============
 
-Builder creates and returns an instance of :class:`pythia.datasets.base_dataset.BaseDataset` which is inherited from ``torch.utils.data.dataset.Dataset``.
-Any builder class in Pythia needs to be inherited from :class:`pythia.datasets.base_dataset_builder.BaseDatasetBuilder`. |BaseDatasetBuilder| requires
+Builder creates and returns an instance of :class:`mmf.datasets.base_dataset.BaseDataset` which is inherited from ``torch.utils.data.dataset.Dataset``.
+Any builder class in MMF needs to be inherited from :class:`mmf.datasets.base_dataset_builder.BaseDatasetBuilder`. |BaseDatasetBuilder| requires
 user to implement following methods after inheriting the class.
 
 - ``__init__(self):``
@@ -36,7 +36,7 @@ This function loads the dataset, builds an object of class inheriting |BaseDatas
 This function actually builds the data required for initializing the dataset for the first time. For e.g. if you need to download some data for your dataset, this
 all should be done inside this function.
 
-Finally, you need to register your dataset builder with a key to registry using ``pythia.common.registry.registry.register_builder("key")``.
+Finally, you need to register your dataset builder with a key to registry using ``mmf.common.registry.registry.register_builder("key")``.
 
 That's it, that's all you require for inheriting |BaseDatasetBuilder|.
 
@@ -51,11 +51,11 @@ Let's write down this using example of *CLEVR* dataset.
 
     from collections import Counter
 
-    from pythia.common.registry import registry
-    from pythia.datasets.base_dataset_builder import BaseDatasetBuilder
+    from mmf.common.registry import registry
+    from mmf.datasets.base_dataset_builder import BaseDatasetBuilder
     # Let's assume for now that we have a dataset class called CLEVRDataset
-    from pythia.datasets.builders.clevr.dataset import CLEVRDataset
-    from pythia.utils.general import download_file, get_pythia_root
+    from mmf.datasets.builders.clevr.dataset import CLEVRDataset
+    from mmf.utils.general import download_file, get_mmf_root
 
     @registry.register_builder("clevr")
     class CLEVRBuilder(BaseDatasetBuilder):
@@ -71,7 +71,7 @@ Let's write down this using example of *CLEVR* dataset.
 
         def _build(self, dataset_type, config):
             download_folder = os.path.join(
-                get_pythia_root(), config.data_root_dir, config.data_folder
+                get_mmf_root(), config.data_root_dir, config.data_folder
             )
 
             file_name = self.DOWNLOAD_URL.split("/")[-1]
@@ -107,7 +107,7 @@ Let's write down this using example of *CLEVR* dataset.
         def update_registry_for_model(self, config):
             # Register both vocab (question and answer) sizes to registry for easy access to the
             # models. update_registry_for_model function if present is automatically called by
-            # pythia
+            # MMF
             registry.register(
                 self.dataset_name + "_text_vocab_size",
                 self.dataset.text_processor.get_vocab_size(),
@@ -120,10 +120,10 @@ Let's write down this using example of *CLEVR* dataset.
 Default Configuration
 =====================
 
-Some things to note about Pythia's configuration:
+Some things to note about MMF's configuration:
 
-- Each dataset in Pythia has its own default configuration which is usually under this structure
-  ``pythia/commmon/defaults/configs/datasets/[task]/[dataset].yaml`` where ``task`` is the task your dataset belongs to.
+- Each dataset in MMF has its own default configuration which is usually under this structure
+  ``mmf/common/defaults/configs/datasets/[task]/[dataset].yaml`` where ``task`` is the task your dataset belongs to.
 - These dataset configurations can be then included by the user in their end config using ``includes`` directive
 - This allows easy multi-tasking and management of configurations and user can also override the default configurations
   easily in their own config
@@ -169,7 +169,7 @@ Here, is a default configuration for CLEVR needed based on our dataset and build
                     - "?"
                     - "."
             processors:
-            # The processors will be assigned to the datasets automatically by Pythia
+            # The processors will be assigned to the datasets automatically by MMF
             # For example if key is text_processor, you can access that processor inside
             # dataset object using self.text_processor
                 text_processor:
@@ -208,8 +208,8 @@ we set ``metric_minimize`` to ``false``.
     Since, in v0.3, models are expected to return the metrics, so these attributes will also need to be specified by the user
     in future based on the metrics they are optimizing. Thus, in future warnings, these will move to user configs for models.
 
-For processors, check :class:`pythia.datasets.processors` to understand how to create a processor and different processors that are
-already available in Pythia.
+For processors, check :class:`mmf.datasets.processors` to understand how to create a processor and different processors that are
+already available in MMF.
 
 Dataset Class
 =============
@@ -217,7 +217,7 @@ Dataset Class
 Next step is to actually build a dataset class which inherits |BaseDataset| so it can interact with PyTorch
 dataloaders. Follow the steps below to inherit and create your dataset's class.
 
-- Inherit :class:`pythia.datasets.base_dataset.BaseDataset`
+- Inherit :class:`mmf.datasets.base_dataset.BaseDataset`
 - Implement ``__init__(self, dataset_type, config)``. Call parent's init using ``super().__init__("name", dataset_type, config)``
   where "name" is the string representing the name of your dataset.
 - Implement ``get_item(self, idx)``, our replacement for normal ``__getitem__(self, idx)`` you would implement for a torch dataset. This needs to
@@ -239,18 +239,18 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
 
     from PIL import Image
 
-    from pythia.common.registry import registry
-    from pythia.common.sample import Sample
-    from pythia.datasets.base_dataset import BaseDataset
-    from pythia.utils.general import get_pythia_root
-    from pythia.utils.text import VocabFromText, tokenize
+    from mmf.common.registry import registry
+    from mmf.common.sample import Sample
+    from mmf.datasets.base_dataset import BaseDataset
+    from mmf.utils.general import get_mmf_root
+    from mmf.utils.text import VocabFromText, tokenize
 
 
     class CLEVRDataset(BaseDataset):
         def __init__(self, dataset_type, config, data_folder=None, *args, **kwargs):
             super().__init__("clevr", dataset_type, config)
             self._data_folder = data_folder
-            self._data_root_dir = os.path.join(get_pythia_root(), config.data_root_dir)
+            self._data_root_dir = os.path.join(get_mmf_root(), config.data_root_dir)
 
             if not self._data_folder:
                 self._data_folder = os.path.join(self._data_root_dir, config.data_folder)
@@ -301,7 +301,7 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
         def get_item(self, idx):
             # Get item is like your normal __getitem__ in PyTorch Dataset. Based on id
             # return a sample. Check VQA2Dataset implementation if you want to see how
-            # to do caching in Pythia
+            # to do caching in MMF
             data = self.questions[idx]
 
             # Each call to get_item from dataloader returns a Sample class object which
@@ -320,7 +320,7 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
 
             processed = self.answer_processor({"answers": [data["answer"]]})
             # Now add answers and then the targets. We normally use "targets" for what
-            # should be the final output from the model in Pythia
+            # should be the final output from the model in MMF
             current_sample.answers = processed["answers"]
             current_sample.targets = processed["answers_scores"]
 
@@ -330,7 +330,7 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
             # Process and add image as a tensor
             current_sample.image = torch.from_numpy(image.transpose(2, 0, 1))
 
-            # Return your sample and Pythia will automatically convert it to SampleList before
+            # Return your sample and MMF will automatically convert it to SampleList before
             # passing to the model
             return current_sample
 
@@ -340,7 +340,7 @@ Metrics
 =======
 
 For your dataset to be compatible out of the box, it is a good practice to also add the metrics your dataset requires.
-All metrics for now go inside ``pythia/modules/metrics.py``. All metrics inherit |BaseMetric| and implement a function ``calculate``
+All metrics for now go inside ``MMF/modules/metrics.py``. All metrics inherit |BaseMetric| and implement a function ``calculate``
 with signature ``calculate(self, sample_list, model_output, *args, **kwargs)`` where ``sample_list`` (|SampleList|) is the current batch and
 ``model_output`` is a dict return by your model for current ``sample_list``. Normally, you should define the keys you want inside
 ``model_output`` and ``sample_list``. Finally, you should register your metric to registry using ``@registry.register_metric('[key]')``
@@ -387,9 +387,9 @@ where '[key]' is the key for your metric. Here is a sample implementation of acc
             return value
 
 
-These are the common steps you need to follow when you are adding a dataset to Pythia.
+These are the common steps you need to follow when you are adding a dataset to MMF.
 
-.. |BaseDatasetBuilder| replace:: :class:`~pythia.datasets.base_dataset_builder.BaseDatasetBuilder`
-.. |BaseDataset| replace:: :class:`~pythia.datasets.base_dataset.BaseDataset`
-.. |SampleList| replace:: :class:`~pythia.common.sample.SampleList`
-.. |BaseMetric| replace:: :class:`~pythia.modules.metrics.BaseMetric`
+.. |BaseDatasetBuilder| replace:: :class:`~mmf.datasets.base_dataset_builder.BaseDatasetBuilder`
+.. |BaseDataset| replace:: :class:`~mmf.datasets.base_dataset.BaseDataset`
+.. |SampleList| replace:: :class:`~mmf.common.sample.SampleList`
+.. |BaseMetric| replace:: :class:`~mmf.modules.metrics.BaseMetric`

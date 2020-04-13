@@ -4,7 +4,7 @@ import unittest
 
 import torch
 
-import pythia.modules.fusions as fusions
+import mmf.modules.fusions as fusions
 
 
 class TestModuleFusions(unittest.TestCase):

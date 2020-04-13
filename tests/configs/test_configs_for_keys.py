@@ -4,9 +4,9 @@ import unittest
 import warnings
 from io import StringIO
 
-from pythia.common.registry import registry
-from pythia.utils.configuration import Configuration
-from pythia.utils.general import setup_imports
+from mmf.common.registry import registry
+from mmf.utils.configuration import Configuration
+from mmf.utils.general import setup_imports
 from tests.test_utils import dummy_args
 
 

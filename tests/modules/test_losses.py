@@ -3,7 +3,7 @@ import unittest
 
 import torch
 
-import pythia.modules.losses as losses
+import mmf.modules.losses as losses
 
 
 class TestModuleLosses(unittest.TestCase):

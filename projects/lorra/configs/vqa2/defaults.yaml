@@ -8,7 +8,7 @@ dataset_config:
         params:
           download_initially: true
           max_length: 50
-          model_file: .pythia_cache/wiki.en.bin
+          model_file: .mmf_cache/wiki.en.bin
       answer_processor:
         type: soft_copy_answer
         params:

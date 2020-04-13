@@ -31,12 +31,12 @@ and the original paper for old Pythia model:
 
 Clone this repository, and build it with the following command
 ```
-cd ~/pythia
+cd ~/mmf
 python setup.py build develop
 ```
 
 ## Training
 To train Pythia model on the VQA2.0 dataset, run the following command
 ```
-python tools/run.py config=projects/pythia/configs/vqa2/defaults.yaml training.run_type=train_val dataset=vqa2 model=pythia
+python tools/run.py config=projects/mmf/configs/vqa2/defaults.yaml training.run_type=train_val dataset=vqa2 model=pythia
 ```

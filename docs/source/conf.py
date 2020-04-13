@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# pythia documentation build configuration file, created by
+# mmf documentation build configuration file, created by
 # sphinx-quickstart on Tue Apr 23 10:42:55 2019.
 #
 # This file is execfile()d with the current directory set to its
@@ -61,7 +61,7 @@ source_suffix = [".rst", ".md"]
 master_doc = "index"
 
 # General information about the project.
-project = "Pythia"
+project = "MMF"
 copyright = "2019, Facebook AI Research"
 author = "Facebook AI Research"
 
@@ -152,13 +152,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (
-        master_doc,
-        "pythia.tex",
-        "Pythia Documentation",
-        "Facebook AI Research",
-        "manual",
-    ),
+    (master_doc, "mmf.tex", "MMF Documentation", "Facebook AI Research", "manual")
 ]
 
 
@@ -166,7 +160,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "pythia", "Pythia Documentation", [author], 1)]
+man_pages = [(master_doc, "mmf", "MMF Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output -------------------------------------------
@@ -177,16 +171,16 @@ man_pages = [(master_doc, "pythia", "Pythia Documentation", [author], 1)]
 texinfo_documents = [
     (
         master_doc,
-        "pythia",
-        "pythia Documentation",
+        "mmf",
+        "MMF Documentation",
         author,
-        "pythia",
+        "mmf",
         "One line description of project.",
         "Miscellaneous",
-    ),
+    )
 ]
 
-github_doc_root = "https://github.com/facebookresearch/pythia/blob/v0.3/"
+github_doc_root = "https://github.com/facebookresearch/mmf/blob/v0.3/"
 
 # At the bottom of conf.py
 def setup(app):

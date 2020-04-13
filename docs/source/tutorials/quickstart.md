@@ -1,19 +1,19 @@
-# Quickstart [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR) [![](https://circleci.com/gh/facebookresearch/pythia.svg?style=svg)](https://circleci.com/gh/facebookresearch/pythia)
+# Quickstart [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR) [![](https://circleci.com/gh/facebookresearch/mmf.svg?style=svg)](https://circleci.com/gh/facebookresearch/mmf)
 
 
 **Authors**: Amanpreet Singh
 
 In this quickstart, we are going to train LoRRA model on TextVQA. Follow instructions at the bottom
-to train other models in Pythia.
+to train other models in MMF.
 
 ## Demo
 
-1. [Pythia VQA](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR)
-2. [BUTD Captioning](https://colab.research.google.com/drive/1vzrxDYB0vxtuUy8KCaGxm--nDCJvyBSg)
+1. [VQA](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR)
+2. [Captioning](https://colab.research.google.com/drive/1vzrxDYB0vxtuUy8KCaGxm--nDCJvyBSg)
 
 ## Citation
 
-If you use Pythia in your work, please cite:
+If you use MMF in your work, please cite:
 
 ```text
 @inproceedings{Singh2019TowardsVM,
@@ -38,16 +38,16 @@ and
 
 ## Installation
 
-1. Clone Pythia repository
+1. Clone MMF repository
 
 ```bash
-git clone https://github.com/facebookresearch/pythia ~/pythia
+git clone https://github.com/facebookresearch/mmf ~/mmf
 ```
 
 2. Install dependencies and setup
 
 ```bash
-cd ~/pythia
+cd ~/mmf
 python setup.py develop
 ```
 
@@ -61,18 +61,18 @@ python setup.py develop
 
 ## Getting Data
 
-Datasets currently supported in Pythia require two parts of data, features and ImDB.
+Datasets currently supported in MMF require two parts of data, features and ImDB.
 Features correspond to pre-extracted object features from an object detector. ImDB
 is the image database for the datasets which contains information such as questions
 and answers in case of TextVQA.
 
 For TextVQA, we need to download features for OpenImages' images which are included
 in it and TextVQA 0.5 ImDB. We assume that all of the data is kept inside `data`
-folder under `pythia` root folder. Table in bottom shows corresponding features
-and ImDB links for datasets supported in pythia.
+folder under `mmf` root folder. Table in bottom shows corresponding features
+and ImDB links for datasets supported in MMF.
 
 ```bash
-cd ~/pythia;
+cd ~/mmf;
 # Create data folder
 mkdir -p data && cd data;
 
@@ -99,7 +99,7 @@ tar xf textvqa_0.5.tar.gz
 Once we have the data in-place, we can start training by running the following command:
 
 ```bash
-cd ~/pythia;
+cd ~/mmf;
 python tools/run.py --datasets textvqa --model lorra --config \
 configs/vqa/textvqa/lorra.yaml
 ```
@@ -110,7 +110,7 @@ For running inference or generating predictions for EvalAI, we can download
 a corresponding pretrained model and then run the following commands:
 
 ```bash
-cd ~/pythia/data
+cd ~/mmf/data
 mkdir -p models && cd models;
 wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth
 cd ../..

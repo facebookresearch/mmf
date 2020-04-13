@@ -1,5 +1,5 @@
 modules.metrics
 ===============
 
-.. automodule:: pythia.modules.metrics
+.. automodule:: mmf.modules.metrics
   :members:

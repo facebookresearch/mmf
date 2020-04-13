@@ -1,0 +1,8 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+from mmf.datasets.builders.m4c_textvqa.dataset import M4CTextVQADataset
+
+
+class STVQADataset(M4CTextVQADataset):
+    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
+        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
+        self._name = "stvqa"

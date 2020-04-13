@@ -1,9 +1,9 @@
-.. pythia documentation master file, created by
+.. mmf documentation master file, created by
    sphinx-quickstart on Tue Apr 23 10:42:55 2019.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-:github_url: https://github.com/facebookresearch/pythia
+:github_url: https://github.com/facebookresearch/mmf
 
 .. raw:: html
 
@@ -11,7 +11,7 @@
         <div>
         <div style="width: 50%; margin: 0 auto;">
             <a href="https://readthedocs.org/projects/learnpythia/">
-                <img style="width: 100%" alt="Pythia" src="https://i.imgur.com/wPgp4N4.png"/>
+                <img style="width: 100%" alt="MMF" src="https://i.imgur.com/wPgp4N4.png"/>
             </a>
         </div>
 
@@ -28,8 +28,8 @@
                 </a>
             </div>
             <div style="padding-right: 5px">
-                <a href="https://circleci.com/gh/facebookresearch/pythia">
-                    <img alt="CircleCI" src="https://circleci.com/gh/facebookresearch/pythia.svg?style=svg"/>
+                <a href="https://circleci.com/gh/facebookresearch/mmf">
+                    <img alt="CircleCI" src="https://circleci.com/gh/facebookresearch/mmf.svg?style=svg"/>
                 </a>
             </div>
         </div>
@@ -38,16 +38,16 @@
         </div>
     </embed>
 
-Pythia's Documentation
+MMF's Documentation
 ==================================
 
-Pythia is a modular framework for supercharging vision and language
+MMF is a modular framework for supercharging vision and language
 research built on top of PyTorch.
 
 Citation
 ========
 
-If you use Pythia in your work, please cite:
+If you use MMF in your work, please cite:
 
 ```text
 @inproceedings{Singh2019TowardsVM,

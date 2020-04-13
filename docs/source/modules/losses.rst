@@ -1,5 +1,5 @@
 modules.losses
 ===============
 
-.. automodule:: pythia.modules.losses
+.. automodule:: mmf.modules.losses
   :members:

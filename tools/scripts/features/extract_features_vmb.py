@@ -20,7 +20,7 @@ from maskrcnn_benchmark.structures.image_list import to_image_list
 from maskrcnn_benchmark.utils.model_serialization import load_state_dict
 from PIL import Image
 
-from pythia.utils.general import download_file
+from mmf.utils.general import download_file
 
 
 class FeatureExtractor:

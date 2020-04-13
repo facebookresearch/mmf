@@ -4,11 +4,11 @@ import unittest
 
 import torch
 
-import pythia.utils.text as text_utils
-from pythia.common.registry import registry
-from pythia.common.sample import Sample, SampleList
-from pythia.utils.configuration import Configuration
-from pythia.utils.general import get_pythia_root, setup_imports
+import mmf.utils.text as text_utils
+from mmf.common.registry import registry
+from mmf.common.sample import Sample, SampleList
+from mmf.utils.configuration import Configuration
+from mmf.utils.general import get_mmf_root, setup_imports
 from tests.test_utils import dummy_args
 from tests.utils.test_model import TestDecoderModel
 
@@ -29,7 +29,7 @@ class TestUtilsText(unittest.TestCase):
         setup_imports()
         torch.manual_seed(1234)
         config_path = os.path.join(
-            get_pythia_root(),
+            get_mmf_root(),
             "..",
             "projects",
             "butd",

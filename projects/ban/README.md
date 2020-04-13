@@ -1,6 +1,6 @@
 # BAN
 
-This repository contains the code for BAN model. Please cite the following paper if you are using BAN model from pythia:
+This repository contains the code for BAN model. Please cite the following paper if you are using BAN model from mmf:
 
 * Kim, J. H., Jun, J., & Zhang, B. T. (2018). *Bilinear attention networks*. In Advances in Neural Information Processing Systems (pp. 1564-1574). ([arXiV](https://arxiv.org/abs/1805.07932))
 ```
@@ -17,7 +17,7 @@ This repository contains the code for BAN model. Please cite the following paper
 
 Clone this repository, and build it with the following command.
 ```
-cd ~/pythia
+cd ~/mmf
 python setup.py build develop
 ```
 

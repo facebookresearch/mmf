@@ -4,12 +4,12 @@ import random
 import numpy as np
 import torch
 
-from pythia.common.registry import registry
-from pythia.utils.build import build_trainer
-from pythia.utils.configuration import Configuration
-from pythia.utils.distributed import distributed_init, infer_init_method
-from pythia.utils.flags import flags
-from pythia.utils.general import setup_imports
+from mmf.common.registry import registry
+from mmf.utils.build import build_trainer
+from mmf.utils.configuration import Configuration
+from mmf.utils.distributed import distributed_init, infer_init_method
+from mmf.utils.flags import flags
+from mmf.utils.general import setup_imports
 
 
 def main(configuration, init_distributed=False):
@@ -49,7 +49,7 @@ def run():
     args = parser.parse_args()
     print(args)
     configuration = Configuration(args)
-    # Do set runtime args which can be changed by pythia
+    # Do set runtime args which can be changed by MMF
     configuration.args = args
     config = configuration.get_config()
     config.start_rank = 0

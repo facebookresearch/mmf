@@ -1,6 +1,6 @@
 # LoRRA
 
-This repository contains the code for LoRRA model. Please cite the following paper if you are using LoRRA model from pythia:
+This repository contains the code for LoRRA model. Please cite the following paper if you are using LoRRA model from mmf:
 
 * Singh, A., Natarajan, V., Shah, M., Jiang, Y., Chen, X., Batra, D., ... & Rohrbach, M. (2019). *Towards vqa models that can read*. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (pp. 8317-8326). ([arXiV](https://arxiv.org/abs/1904.08920))
 ```
@@ -16,7 +16,7 @@ This repository contains the code for LoRRA model. Please cite the following pap
 
 Clone this repository, and build it with the following command.
 ```
-cd ~/pythia
+cd ~/mmf
 python setup.py build develop
 ```
 

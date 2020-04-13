@@ -1,10 +1,10 @@
 ```eval_rst
-:github_url: https://github.com/facebookresearch/pythia
+:github_url: https://github.com/facebookresearch/mmf
 ```
 
 # Challenge Participation
 
-Participating in EvalAI challenges is really easy using Pythia. We will show how to
+Participating in EvalAI challenges is really easy using MMF. We will show how to
 do inference for two challenges here:
 
 ```eval_rst
@@ -21,7 +21,7 @@ Currently, LoRRA is the SoTA on TextVQA. To do inference on val set using LoRRA,
 
 ```
 # Download the model first
-cd ~/pythia/data
+cd ~/mmf/data
 mkdir -p models && cd models;
 # Get link from the table above and extract if needed
 wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/lorra_best.pth
@@ -32,7 +32,7 @@ python tools/run.py --datasets textvqa --model lorra --config configs/vqa/textvq
 --run_type val --evalai_inference 1 --resume_file data/models/lorra_best.pth
 ```
 
-In the printed log, Pythia will mention where it wrote the JSON file it created.
+In the printed log, MMF will mention where it wrote the JSON file it created.
 Upload that file on EvalAI:
 ```
 > Go to https://evalai.cloudcv.org/web/challenges/challenge-page/244/overview
@@ -45,7 +45,7 @@ Upload that file on EvalAI:
 
 To check your results, go in 'My submissions' section and select 'Validation Phase' and click on 'Result file'.
 
-Now, you can either edit the LoRRA model to create your own model on top of it or create your own model inside Pythia to
+Now, you can either edit the LoRRA model to create your own model on top of it or create your own model inside MMF to
 beat LoRRA in challenge.
 
 
@@ -59,7 +59,7 @@ Also, replace the config accordingly. Here are example commands for using Pythia
 
 ```
 # Download the model first
-cd ~/pythia/data
+cd ~/mmf/data
 mkdir -p models && cd models;
 # Get link from the table above and extract if needed
 wget https://dl.fbaipublicfiles.com/pythia/pretrained_models/textvqa/pythia_train_val.pth

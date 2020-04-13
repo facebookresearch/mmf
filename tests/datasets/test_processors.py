@@ -5,12 +5,12 @@ import unittest
 import torch
 import yaml
 
-from pythia.datasets.processors.processors import (
+from mmf.datasets.processors.processors import (
     CaptionProcessor,
     EvalAIAnswerProcessor,
     MultiHotAnswerFromVocabProcessor,
 )
-from pythia.utils.configuration import load_yaml
+from mmf.utils.configuration import load_yaml
 
 from ..test_utils import compare_tensors
 
@@ -22,7 +22,7 @@ class TestDatasetProcessors(unittest.TestCase):
         return config
 
     def test_caption_processor(self):
-        config = self._get_config("../../../pythia/configs/datasets/coco/defaults.yaml")
+        config = self._get_config("../../../mmf/configs/datasets/coco/defaults.yaml")
         captioning_config = config.dataset_config.coco
         caption_processor_config = captioning_config.processors.caption_processor
 
@@ -45,9 +45,7 @@ class TestDatasetProcessors(unittest.TestCase):
         self.assertEqual(caption["caption"], "a man with a red helmet")
 
     def test_multi_hot_answer_from_vocab_processor(self):
-        config = self._get_config(
-            "../../../pythia/configs/datasets/clevr/defaults.yaml"
-        )
+        config = self._get_config("../../../mmf/configs/datasets/clevr/defaults.yaml")
         clevr_config = config.dataset_config.clevr
         answer_processor_config = clevr_config.processors.answer_processor
 

@@ -2,7 +2,7 @@
 import time
 import unittest
 
-from pythia.utils.timer import Timer
+from mmf.utils.timer import Timer
 
 
 class TestUtilsTimer(unittest.TestCase):
