@@ -1,6 +1,9 @@
 # Mostly same configs/models/mmbt/defaults.yaml config
+includes:
+- ./defaults.yaml
+
 model_config:
-  concat_bert:
+  concat_bow:
     # Either pretraining or classification
     bert_model_name: bert-base-uncased
     direct_features_input: false
@@ -11,7 +14,7 @@ model_config:
     # Dimension of the embedding finally returned by the modal encoder
     modal_hidden_size: 2048
     # Dimension of the embedding finally returned by the text encoder
-    text_hidden_size: 768
+    text_hidden_size: 300
     # Used when classification head is activated
     num_labels: 2
     # Number of features extracted out per image
@@ -26,22 +29,22 @@ model_config:
         num_output_features: 1
 
     text_encoder:
-      type: transformer
+      type: embedding
       params:
-        bert_model_name: ${model_config.concat_bert.bert_model_name}
-        hidden_size: 768
-        num_hidden_layers: 12
-        num_attention_heads: 12
-        output_attentions: false
-        output_hidden_states: false
+        operator: sum
+        embedding_params:
+          type: vocab
+          params:
+            type: intersected
+            embedding_name: glove.6B.300d
+            embedding_dim: 300
+            data_root_dir: ../data
+            vocab_file: vocabs/vocabulary_100k.txt
 
     classifier:
       type: mlp
       params:
-        # 2048 * 100 + 768 in case of features
-        # Modal_Dim * Number of embeddings + Text Dim
-        # This will be dynamically recalculated inside the model again
-        in_dim: 205568
+        in_dim: 205100
         out_dim: 2
         hidden_dim: 768
         num_layers: 0

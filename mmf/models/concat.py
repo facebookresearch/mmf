@@ -19,7 +19,7 @@ class ConcatBase(MultiModalEncoderBase):
 
         self._modal_encoder_config = self.config.modal_encoder
         self._is_direct_features_input = self.config.direct_features_input
-        self._encoder_config = text_encoder.config
+        self._encoder_config = text_encoder.get("config", None)
         self.text = text_encoder
         self.modal = modal_encoder
 
@@ -65,7 +65,7 @@ class ConcatBERT(BaseModel):
 
     def build(self):
         self.base = ConcatBase(self.config)
-        num_features = 100
+        num_features = self.config.num_features
         if not self._is_direct_features_input:
             num_features = self.config.modal_encoder.params.num_output_features
 
@@ -106,6 +106,41 @@ class ConcatBERT(BaseModel):
             modal = sample_list.image
 
         embedding = self.base(text, modal, [mask, segment])
+        output = {}
+        output["scores"] = self.classifier(embedding)
+        return output
+
+
+@registry.register_model("concat_bow")
+class ConcatBoW(BaseModel):
+    def __init__(self, config, *args, **kwargs):
+        super().__init__(config)
+        self._is_direct_features_input = config.direct_features_input
+
+    @classmethod
+    def config_path(cls):
+        return "configs/models/concat/concat_bow.yaml"
+
+    def build(self):
+        self.base = ConcatBase(self.config)
+        num_features = self.config.num_features
+        if not self._is_direct_features_input:
+            num_features = self.config.modal_encoder.params.num_output_features
+
+        # As the in_dim is dynamically calculated we need to copy classifier_config
+        classifier_config = deepcopy(self.config.classifier)
+        classifier_config.params.in_dim = num_features * self.config.modal_hidden_size
+        classifier_config.params.in_dim += self.config.text_hidden_size
+        self.classifier = build_classifier_layer(classifier_config)
+
+    def forward(self, sample_list):
+        text = sample_list.text
+        if self._is_direct_features_input:
+            modal = sample_list.image_features_0
+        else:
+            modal = sample_list.image
+
+        embedding = self.base(text, modal)
         output = {}
         output["scores"] = self.classifier(embedding)
         return output

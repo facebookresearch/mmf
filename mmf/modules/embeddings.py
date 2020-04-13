@@ -52,9 +52,12 @@ class TextEmbedding(nn.Module):
 
 
 class VocabEmbedding(nn.Module):
-    def __init__(self, embedding_dim, vocab_params):
+    def __init__(self, embedding_dim, **vocab_params):
+        super().__init__()
         self.vocab = Vocab(**vocab_params)
-        self.module = self.vocab.get_embedding(nn.Embedding, embedding_dim)
+        self.module = self.vocab.get_embedding(
+            nn.Embedding, embedding_dim=embedding_dim
+        )
 
     def forward(self, x):
         return self.module(x)
