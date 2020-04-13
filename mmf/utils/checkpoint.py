@@ -5,6 +5,7 @@ import warnings
 
 import git
 import torch
+from omegaconf import OmegaConf
 
 from mmf.common.registry import registry
 from mmf.utils.distributed import is_master, synchronize
@@ -54,7 +55,7 @@ class Checkpoint:
             # Pop out config_override if present to remove clutter in
             # saved configuration yaml file
             self.config.pop("config_override", None)
-            f.write(self.config.pretty())
+            f.write(self.config.pretty(resolve=True))
 
     def load_state_dict(self):
         tp = self.config.training
@@ -281,7 +282,8 @@ class Checkpoint:
             "num_updates": registry.get("num_updates"),
             "best_update": best_update,
             "best_metric_value": best_metric,
-            "config": self.config,
+            # Convert to container to avoid any dependencies
+            "config": OmegaConf.to_container(self.config, resolve=True),
         }
 
         if self.git_repo:
