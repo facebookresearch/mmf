@@ -331,7 +331,7 @@ class Configuration:
 
     def _update_specific(self, config):
         self.writer = registry.get("writer")
-        tp = self.config.training
+        # tp = self.config.training
 
         # if args["seed"] is not None or tp['seed'] is not None:
         #     print(
