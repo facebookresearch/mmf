@@ -10,12 +10,12 @@ dataset_config:
   vizwiz:
     return_info: true
     image_features:
-          train:
-          - /private/home/vedanuj/projects/pythia-internal/data/vizwiz/detectron_fix_100/fc6
-          val:
-          - /private/home/vedanuj/projects/pythia-internal/data/vizwiz/detectron_fix_100/fc6
-          test:
-          - /private/home/vedanuj/projects/pythia-internal/data/vizwiz/detectron_fix_100/fc6
+      train:
+      - datasets/vizwiz/features/lmdbs/vizwiz.lmdb
+      val:
+      - datasets/vizwiz/features/lmdbs/vizwiz.lmdb
+      test:
+      - datasets/vizwiz/features/lmdbs/vizwiz.lmdb
     processors:
       # Stop fasttext from loading by overriding the context_processor
       context_processor:

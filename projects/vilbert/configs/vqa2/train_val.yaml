@@ -4,11 +4,11 @@ includes:
 dataset_config:
   vqa2:
     image_features:
-        train:
-        -  /private/home/vedanuj/pythia/data/coco/detectron_fix_resnext152/features_train2014
-        -  /private/home/vedanuj/pythia/data/coco/detectron_fix_resnext152/features_val2014
+      train:
+      - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
+      - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
     imdb_files:
-        train:
-        - imdb/vqa/imdb_train2014.npy
-        - imdb/vqa/imdb_val2014.npy
+      train:
+      - datasets/vqa2/imdbs/imdb_train2014.npy
+      - datasets/vqa2/imdbs/imdb_val2014.npy
     return_info: true

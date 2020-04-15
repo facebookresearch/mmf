@@ -1,13 +1,11 @@
 dataset_config:
   masked_coco:
     return_info: true
-
     image_features:
-        train:
-        -  /private/home/asg/features/coco/detectron_fix_100_resnext152/train_val_2014
-        -  /private/home/asg/features/coco/detectron_fix_100_resnext152/train_val_2014
+      train:
+      - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
+      - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
     imdb_files:
-        train:
-        - imdb/coco_captions/imdb_karpathy_train_by_image.npy
-        - imdb/coco_captions/imdb_coco_full_val.npy
-/
+      train:
+      - datasets/coco/imdbs/imdb_karpathy_train_by_image.npy
+      - datasets/coco/imdbs/imdb_karpathy_val_by_image.npy

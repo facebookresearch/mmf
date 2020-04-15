@@ -2,12 +2,10 @@ dataset_config:
   vqa2_train_val:
     image_features:
       train:
-      - /private/home/asg/datasets/COCO/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
-      - /private/home/asg/datasets/COCO/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+      - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+      - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
       val:
-      - /private/home/asg/datasets/COCO/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
-      test:
-      - /private/home/asg/datasets/COCO/detectron_fix_100/fc6/test2015,coco/resnet152/test2015
+      - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
     imdb_files:
       train:
       - imdb/vqa/imdb_train2014.npy

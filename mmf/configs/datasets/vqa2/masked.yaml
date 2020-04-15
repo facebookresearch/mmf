@@ -4,25 +4,19 @@ dataset_config:
     image_depth_first: false
     fast_read: false
     image_features:
-        # train:
-        # - coco/detectron_fix_100/fc6/train_val_2014
-        # val:
-        # - coco/detectron_fix_100/fc6/train_val_2014
-        # test:
-        # - coco/detectron_fix_100/fc6/train_val_2014
-        train:
-        -  /private/home/asg/features/coco/detectron_fix_100_resnext152/train_val_2014
-        val:
-        -  /private/home/asg/features/coco/detectron_fix_100_resnext152/train_val_2014
-        test:
-        -  /private/home/asg/features/coco/detectron_fix_100_resnext152/train_val_2014
+      train:
+      - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
+      val:
+      - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
+      test:
+      - datasets/coco/features/lmdbs/coco_test2015.lmdb
     imdb_files:
-        train:
-        - imdb/vqa/imdb_train2014.npy
-        val:
-        - imdb/vqa/imdb_val2014.npy
-        test:
-        - imdb/vqa/imdb_test2015.npy
+      train:
+      - datasets/vqa2/imdbs/imdb_train2014.npy
+      val:
+      - datasets/vqa2/imdbs/imdb_val2014.npy
+      test:
+      - datasets/vqa2/imdbs/imdb_test2015.npy
     features_max_len: 100
     use_image_feature_masks: false
     processors:

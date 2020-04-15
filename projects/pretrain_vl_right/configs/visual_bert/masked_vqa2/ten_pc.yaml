@@ -1,0 +1,8 @@
+includes:
+- ../projects/visual_bert/configs/masked_vqa2/pretrain.yaml
+
+dataset_config:
+  masked_vqa2:
+    imdb_files:
+      train:
+      - datasets/vqa2/imdbs/imdb_train2014_len_coco_10_pc.npy

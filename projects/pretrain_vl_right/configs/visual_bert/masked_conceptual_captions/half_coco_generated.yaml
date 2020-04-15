@@ -1,0 +1,10 @@
+includes:
+- ../projects/visual_bert/configs/masked_conceptual_captions/pretrain.yaml
+
+dataset_config:
+  masked_conceptual_captions:
+    imdb_files:
+      train:
+      - datasets/cc/imdbs/coco_generated/train_mid.npy
+      val:
+      - datasets/cc/imdbs/coco_generated/val.npy
