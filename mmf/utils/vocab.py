@@ -6,6 +6,7 @@ import numpy as np
 import torch
 from torchtext import vocab
 
+from mmf.utils.distributed import is_master, synchronize
 from mmf.utils.general import get_mmf_root
 
 EMBEDDING_NAME_CLASS_MAPPING = {"glove": "GloVe", "fasttext": "FastText"}
@@ -301,6 +302,13 @@ class IntersectedVocab(BaseVocab):
         vector_cache = kwargs.get("vocab_cache", None)
         if vector_cache is None or not os.path.exists(vector_cache):
             vector_cache = os.path.join(get_mmf_root(), ".mmf_cache")
+
+        # First test loading the vectors in master so that everybody doesn't
+        # download it in case it doesn't exist
+        if is_master():
+            vocab.pretrained_aliases[embedding_name](cache=vector_cache)
+        synchronize()
+
         embedding = getattr(vocab, class_name)(*params, cache=vector_cache)
 
         self.vectors = torch.empty(
@@ -351,6 +359,12 @@ class PretrainedVocab(BaseVocab):
         vector_cache = kwargs.get("vocab_cache", None)
         if vector_cache is None or not os.path.exists(vector_cache):
             vector_cache = os.path.join(get_mmf_root(), ".mmf_cache")
+
+        # First test loading the vectors in master so that everybody doesn't
+        # download it in case it doesn't exist
+        if is_master():
+            vocab.pretrained_aliases[embedding_name](cache=vector_cache)
+        synchronize()
 
         embedding = vocab.pretrained_aliases[embedding_name](cache=vector_cache)
 
