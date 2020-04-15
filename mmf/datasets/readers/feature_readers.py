@@ -59,7 +59,7 @@ class FeatureReader:
         elif self.ndim == 4 and not self.depth_first:
             self.feat_reader = HWCFeatureReader()
         else:
-            raise TypeError("unkown image feature format")
+            raise TypeError("unknown image feature format")
 
     def read(self, image_feat_path):
         if not image_feat_path.endswith("npy"):

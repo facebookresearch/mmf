@@ -89,7 +89,7 @@ from mmf.utils.vocab import Vocab, WordToVectorDict
 
 
 class BaseProcessor:
-    """Every processor in MMF needs to inherit this class for compatability
+    """Every processor in MMF needs to inherit this class for compatibility
     with MMF. End user mainly needs to implement ``__call__`` function.
 
     Args:

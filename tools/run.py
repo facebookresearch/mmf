@@ -22,7 +22,7 @@ def main(configuration, init_distributed=False):
             config.seed = random.randint(10000, 20000)
         np.random.seed(config.seed)
         torch.manual_seed(config.seed)
-        # TODO: Reenable after project
+        # TODO: Re-enable after project
         # random.seed(config.seed)
         # torch.backends.cudnn.benchmark = False
         # torch.backends.cudnn.deterministic = True

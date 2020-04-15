@@ -85,7 +85,7 @@ class BaseDataset(Dataset):
 
     def prepare_batch(self, batch):
         """
-        Can be possibly overriden in your child class
+        Can be possibly overridden in your child class
 
         Prepare batch for passing to model. Whatever returned from here will
         be directly passed to model's forward function. Currently moves the batch to

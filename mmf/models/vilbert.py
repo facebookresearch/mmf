@@ -1104,7 +1104,7 @@ class BertForMultiModalPreTraining(BertPreTrainedModel):
                     neg_index_v = final_index[image_label == 1]
 
                     flat_image_target = image_target.view(batch_size * num_regions, -1)
-                    # we also need to append the target feature at the begining.
+                    # we also need to append the target feature at the beginning.
                     negative_v = flat_image_target[neg_index_v]
                     positive_v = image_target[image_label == 1]
                     sample_v = torch.cat((positive_v.unsqueeze(1), negative_v), dim=1)
