@@ -357,7 +357,7 @@ class Registry:
         r"""Get an item from registry with key 'name'
 
         Args:
-            name (string): Key whose value needs to be retreived.
+            name (string): Key whose value needs to be retrieved.
             default: If passed and key is not in registry, default value will
                      be returned with a warning. Default: None
             no_warning (bool): If passed as True, warning when key doesn't exist

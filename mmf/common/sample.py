@@ -1,11 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 """
-``Sample`` and ``SampleList`` are data structures for arbitary data returned from a
+``Sample`` and ``SampleList`` are data structures for arbitrary data returned from a
 dataset. To work with MMF, minimum requirement for datasets is to return
 an object of ``Sample`` class and for models to accept an object of type `SampleList`
 as an argument.
 
-``Sample`` is used to represent an arbitary sample from dataset, while ``SampleList``
+``Sample`` is used to represent an arbitrary sample from dataset, while ``SampleList``
 is list of Sample combined in an efficient way to be used by the model.
 In simple term, ``SampleList`` is a batch of Sample but allow easy access of
 attributes from ``Sample`` while taking care of properly batching things.
@@ -18,7 +18,7 @@ import torch
 
 
 class Sample(OrderedDict):
-    """Sample represent some arbitary data. All datasets in MMF must
+    """Sample represent some arbitrary data. All datasets in MMF must
     return an object of type ``Sample``.
 
     Args:
