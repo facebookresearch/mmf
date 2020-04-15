@@ -1,0 +1,8 @@
+includes:
+- ../projects/vilbert/configs/masked_conceptual_captions/pretrain.yaml
+
+dataset_config:
+  masked_conceptual_captions:
+    imdb_files:
+      train:
+      - datasets/cc/imdbs/train_small.npy

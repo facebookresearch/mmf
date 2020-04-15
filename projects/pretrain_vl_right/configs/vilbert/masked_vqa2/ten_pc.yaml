@@ -1,0 +1,12 @@
+includes:
+- ../projects/vilbert/configs/masked_vqa2/pretrain.yaml
+
+dataset_config:
+  masked_vqa2:
+    return_info: true
+    image_features:
+      train:
+      - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
+    imdb_files:
+      train:
+      - datasets/vqa2/imdbs/imdb_train2014_len_coco_10_pc.npy

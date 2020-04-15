@@ -1,0 +1,8 @@
+includes:
+- ../projects/visual_bert/configs/masked_coco/pretrain.yaml
+
+dataset_config:
+  masked_coco:
+    imdb_files:
+      train:
+      - datasets/coco/imdbs/imdb_karpathy_train_by_image_50_pc.npy

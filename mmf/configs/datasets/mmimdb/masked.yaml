@@ -4,19 +4,19 @@ dataset_config:
     image_depth_first: false
     fast_read: false
     image_features:
-        train:
-        - /private/home/asg/features/mm_imdb/detectron_fix_100_resnext152/
-        val:
-        - /private/home/asg/features/mm_imdb/detectron_fix_100_resnext152/
-        test:
-        - /private/home/asg/features/mm_imdb/detectron_fix_100_resnext152/
+      train:
+      - datasets/mmimdb/features/lmdbs/mmimdb.lmdb
+      val:
+      - datasets/mmimdb/features/lmdbs/mmimdb.lmdb
+      test:
+      - datasets/mmimdb/features/lmdbs/mmimdb.lmdb
     imdb_files:
-        train:
-        - /private/home/asg/pythia/data/imdb/mm_imdb/train.jsonl
-        val:
-        - /private/home/asg/pythia/data/imdb/mm_imdb/dev.jsonl
-        test:
-        - /private/home/asg/pythia/data/imdb/mm_imdb/test.jsonl
+      train:
+      - datasets/mmimdb/imdbs/train.jsonl
+      val:
+      - datasets/mmimdb/imdbs/dev.jsonl
+      test:
+      - datasets/mmimdb/imdbs/test.jsonl
     features_max_len: 100
     use_image_feature_masks: false
     processors:

@@ -4,19 +4,19 @@ dataset_config:
     image_depth_first: false
     fast_read: false
     image_features:
-        train:
-        -  cc_captions/detectron_fix_100/fc6/training
-        val:
-        -  cc_captions/detectron_fix_100/fc6/validation
-        test:
-        -  cc_captions/detectron_fix_100/fc6/validation
+      train:
+      - datasets/cc/features/lmdbs/cc_train.lmdb
+      val:
+      - datasets/cc/features/lmdbs/cc_val.lmdb
+      test:
+      - datasets/cc/features/lmdbs/cc_val.lmdb
     imdb_files:
-        train:
-        - imdb/cc_captions/train.npy
-        val:
-        - imdb/cc_captions/val.npy
-        test:
-        - imdb/cc_captions/val.npy
+      train:
+      - datasets/cc/imdbs/train_all.npy
+      val:
+      - datasets/cc/imdbs/val.npy
+      test:
+      - datasets/cc/imdbs/val.npy
     features_max_len: 100
     processors:
       text_processor:

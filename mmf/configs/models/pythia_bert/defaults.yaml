@@ -32,8 +32,8 @@ model_config:
     image_feature_encodings:
     - type: finetune_faster_rcnn_fpn_fc7
       params:
-        bias_file: /private/home/vedanuj/pythia/data/detectron/resnext152_fc6/fc7_b.pkl
-        weights_file: /private/home/vedanuj/pythia/data/detectron/resnext152_fc6/fc7_w.pkl
+        bias_file: detectron/resnext152_fc6/fc7_b.pkl
+        weights_file: detectron/resnext152_fc6/fc7_w.pkl
         model_data_dir: ${model_config.pythia_bert.model_data_dir}
     image_text_modal_combine:
       type: non_linear_element_multiply
