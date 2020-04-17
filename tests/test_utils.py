@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import argparse
 import socket
+import unittest
 
 import torch
 
@@ -28,3 +29,10 @@ def is_network_reachable():
         if e.errno == 101:
             pass
     return False
+
+
+NETWORK_AVAILABLE = is_network_reachable()
+
+
+def skip_if_no_network(testfn, reason="Network is not available"):
+    return unittest.skipUnless(NETWORK_AVAILABLE, reason)(testfn)
