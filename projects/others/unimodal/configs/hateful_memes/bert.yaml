@@ -1,0 +1,4 @@
+includes:
+- ./text.yaml
+- configs/datasets/hateful_memes/bert.yaml
+- configs/models/unimodal/bert.yaml

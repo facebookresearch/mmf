@@ -1,0 +1,30 @@
+model_config:
+  unimodal_text:
+    # Either pretraining or classification
+    bert_model_name: bert-base-uncased
+    freeze_base: false
+    finetune_lr_multiplier: 1
+    # Dimension of the embedding finally returned by the text encoder
+    text_hidden_size: 300
+    # Used when classification head is activated
+    num_labels: 2
+    text_encoder:
+      type: embedding
+      params:
+        operator: sum
+        embedding_params:
+          type: vocab
+          params:
+            type: intersected
+            embedding_name: glove.6B.300d
+            embedding_dim: 300
+            data_root_dir: ../data
+            vocab_file: vocabs/vocabulary_100k.txt
+
+    classifier:
+      type: mlp
+      params:
+        in_dim: 300
+        out_dim: 2
+        hidden_dim: 768
+        num_layers: 0

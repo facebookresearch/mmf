@@ -1,0 +1,11 @@
+model_config:
+  unimodal_image:
+    model_data_dir: ../data
+    direct_features_input: true
+    modal_encoder:
+      type: finetune_faster_rcnn_fpn_fc7
+      params:
+        in_dim: 2048
+        bias_file: detectron/fc6/fc7_b.pkl
+        weights_file: detectron/fc6/fc7_w.pkl
+        model_data_dir: ${model_config.unimodal_image.model_data_dir}

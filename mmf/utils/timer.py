@@ -23,6 +23,10 @@ class Timer:
 
         if in_seconds:
             gap = gap // 1000
+
+        # Prevent 0 division errors
+        if gap == 0:
+            gap = 1
         return gap
 
     def get_time_hhmmss(self, start=None, end=None, gap=None, format=None):

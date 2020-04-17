@@ -192,8 +192,10 @@ class MultiModalEncoderBase(nn.Module):
     def __init__(self, config, *args, **kwargs):
         super().__init__()
         self.config = config
-        self._modal_encoder_config = self.config.modal_encoder
-        self._is_direct_features_input = self.config.direct_features_input
+
+        self._modal_encoder_config = self.config.get("modal_encoder", None)
+
+        self._is_direct_features_input = self.config.get("direct_features_input", False)
 
         self.build()
         self.modal_hidden_size = self.config.get("modal_hidden_size", None)
@@ -202,17 +204,25 @@ class MultiModalEncoderBase(nn.Module):
     def build(self):
         encoders = self._build_encoders(self.config)
         self.text_encoder, self.modal_encoder = encoders[0], encoders[1]
-        self._encoder_config = self.text_encoder.config
+
+        self._encoder_config = None
+        if self.text_encoder:
+            self._encoder_config = self.text_encoder.config
 
     @property
     def encoder_config(self):
         return self._encoder_config
 
     def _build_encoders(self, config):
-        return (
-            build_text_encoder(config.text_encoder),
-            self._build_modal_encoder(config.modal_encoder),
-        )
+        text_encoder = None
+        if config.get("text_encoder", None):
+            text_encoder = build_text_encoder(config.text_encoder)
+
+        modal_encoder = None
+        if config.get("modal_encoder", None):
+            modal_encoder = self._build_modal_encoder(config.modal_encoder)
+
+        return (text_encoder, modal_encoder)
 
     def _build_modal_encoder(self, config):
         return build_image_encoder(

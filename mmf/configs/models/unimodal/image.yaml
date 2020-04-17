@@ -1,0 +1,24 @@
+model_config:
+  unimodal_image:
+    # Either pretraining or classification
+    direct_features_input: false
+    freeze_base: false
+    finetune_lr_multiplier: 1
+    # Dimension of the embedding finally returned by the modal encoder
+    modal_hidden_size: 2048
+    # Used when classification head is activated
+    num_labels: 2
+    modal_encoder:
+      type: resnet152
+      params:
+        pretrained: true
+        pool_type: avg
+        num_output_features: 1
+
+    classifier:
+      type: mlp
+      params:
+        in_dim: 2048
+        out_dim: 2
+        hidden_dim: 768
+        num_layers: 0
