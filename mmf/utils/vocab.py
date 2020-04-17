@@ -7,7 +7,7 @@ import torch
 from torchtext import vocab
 
 from mmf.utils.distributed import is_master, synchronize
-from mmf.utils.general import get_mmf_root
+from mmf.utils.general import get_mmf_cache_dir, get_mmf_root
 
 EMBEDDING_NAME_CLASS_MAPPING = {"glove": "GloVe", "fasttext": "FastText"}
 
@@ -298,10 +298,7 @@ class IntersectedVocab(BaseVocab):
         if name == "glove":
             params.append(int(dim))
 
-        # For user defined vocab cache directory check `vocab_cache` arg
-        vector_cache = kwargs.get("vocab_cache", None)
-        if vector_cache is None or not os.path.exists(vector_cache):
-            vector_cache = os.path.join(get_mmf_root(), ".mmf_cache")
+        vector_cache = get_mmf_cache_dir()
 
         # First test loading the vectors in master so that everybody doesn't
         # download it in case it doesn't exist
@@ -355,10 +352,7 @@ class PretrainedVocab(BaseVocab):
                 writer.write(error, "error")
             raise RuntimeError(error)
 
-        # For user defined vocab cache directory check `vocab_cache` arg
-        vector_cache = kwargs.get("vocab_cache", None)
-        if vector_cache is None or not os.path.exists(vector_cache):
-            vector_cache = os.path.join(get_mmf_root(), ".mmf_cache")
+        vector_cache = get_mmf_cache_dir()
 
         # First test loading the vectors in master so that everybody doesn't
         # download it in case it doesn't exist
@@ -437,10 +431,7 @@ class ModelVocab(BaseVocab):
         from fastText import load_model
         from mmf.common.registry import registry
 
-        # If model_file is a already an existing path don't join MMF root
-        if not os.path.exists(model_file):
-            pythia_root = get_mmf_root()
-            model_file = os.path.join(pythia_root, model_file)
+        model_file = os.path.join(get_mmf_cache_dir(), model_file)
 
         registry.get("writer").write("Loading fasttext model now from %s" % model_file)
 

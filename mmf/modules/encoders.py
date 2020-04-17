@@ -7,13 +7,12 @@ import torchvision
 from omegaconf import OmegaConf
 from torch import nn
 from transformers.configuration_auto import AutoConfig
-from transformers.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
 from transformers.modeling_auto import AutoModel
 
 from mmf.modules.embeddings import ProjectionEmbedding, TextEmbedding
 from mmf.modules.layers import Identity
 from mmf.utils.build import build_image_encoder, build_text_encoder
-from mmf.utils.general import get_mmf_root
+from mmf.utils.general import get_mmf_cache_dir, get_mmf_root
 
 
 class ImageFeatureEncoder(nn.Module):
@@ -174,9 +173,7 @@ class TransformerEncoder(nn.Module):
         self.module = AutoModel.from_pretrained(
             self.config.bert_model_name,
             config=self._build_encoder_config(config),
-            cache_dir=os.path.join(
-                str(PYTORCH_PRETRAINED_BERT_CACHE), "distributed_{}".format(-1)
-            ),
+            cache_dir=os.path.join(get_mmf_cache_dir(), "distributed_{}".format(-1)),
         )
         self.embeddings = self.module.embeddings
         self.config = self.module.config

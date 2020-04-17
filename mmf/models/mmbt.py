@@ -7,12 +7,12 @@ from copy import deepcopy
 
 import torch
 from torch import nn
-from transformers.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
 from transformers.modeling_bert import BertForPreTraining, BertPredictionHeadTransform
 
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
 from mmf.modules.encoders import MultiModalEncoderBase
+from mmf.utils.general import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
 
 
@@ -363,9 +363,7 @@ class MMBTForPreTraining(nn.Module):
         pretraining_module = BertForPreTraining.from_pretrained(
             self.config.bert_model_name,
             config=self.encoder_config,
-            cache_dir=os.path.join(
-                str(PYTORCH_PRETRAINED_BERT_CACHE), "distributed_{}".format(-1)
-            ),
+            cache_dir=os.path.join(get_mmf_cache_dir(), "distributed_{}".format(-1)),
         )
 
         self.cls = deepcopy(pretraining_module.cls)
