@@ -307,4 +307,5 @@ class Checkpoint:
             self._load(best_path, force=True)
 
     def finalize(self):
-        torch.save(self.trainer.model.state_dict(), self.pth_filepath)
+        if is_master():
+            torch.save(self.trainer.model.state_dict(), self.pth_filepath)
