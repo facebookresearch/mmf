@@ -22,7 +22,7 @@ class CLEVRBuilder(BaseDatasetBuilder):
     def config_path(cls):
         return "configs/datasets/clevr/defaults.yaml"
 
-    def _build(self, dataset_type, config):
+    def build(self, config, dataset_type):
         download_folder = os.path.join(
             get_mmf_root(), config.data_root_dir, config.data_folder
         )
@@ -54,8 +54,8 @@ class CLEVRBuilder(BaseDatasetBuilder):
         with zipfile.ZipFile(local_filename, "r") as zip_ref:
             zip_ref.extractall(download_folder)
 
-    def _load(self, dataset_type, config, *args, **kwargs):
-        self.dataset = CLEVRDataset(dataset_type, config, data_folder=self.data_folder)
+    def load(self, config, dataset_type, *args, **kwargs):
+        self.dataset = CLEVRDataset(config, dataset_type, data_folder=self.data_folder)
         return self.dataset
 
     def update_registry_for_model(self, config):

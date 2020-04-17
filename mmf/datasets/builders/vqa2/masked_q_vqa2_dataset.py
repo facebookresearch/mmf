@@ -6,7 +6,7 @@ from mmf.datasets.builders.vqa2.dataset import VQA2Dataset
 class MaskedQVQA2Dataset(VQA2Dataset):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._name = "masked_q_vqa2"
+        self.dataset_name = "masked_q_vqa2"
 
     def add_answer_info(self, sample_info, current_sample):
         length = min(len(current_sample.text), current_sample.text_len)

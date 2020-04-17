@@ -8,10 +8,15 @@ from mmf.datasets.builders.vqa2 import VQA2Dataset
 
 
 class MMIMDbDataset(VQA2Dataset):
-    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
-
-        self._name = "mmimdb"
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        super().__init__(
+            config,
+            dataset_type,
+            imdb_file_index,
+            dataset_name="mmimdb",
+            *args,
+            **kwargs
+        )
 
     def load_item(self, idx):
         sample_info = self.imdb[idx]

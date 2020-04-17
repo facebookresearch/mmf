@@ -9,9 +9,9 @@ from mmf.utils.text import word_tokenize
 
 
 class M4CTextVQADataset(TextVQADataset):
-    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
-        self._name = "m4c_textvqa"
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        super().__init__(config, dataset_type, imdb_file_index, *args, **kwargs)
+        self.dataset_name = "m4c_textvqa"
 
     def preprocess_sample_info(self, sample_info):
         return sample_info  # Do nothing

@@ -3,13 +3,13 @@ from mmf.common.sample import SampleList
 
 
 class BatchCollator:
-    # TODO: Think more if there is a better way to do this
-    _IDENTICAL_VALUE_KEYS = ["dataset_type", "dataset_name"]
+    def __init__(self, dataset_name, dataset_type):
+        self._dataset_name = dataset_name
+        self._dataset_type = dataset_type
 
     def __call__(self, batch):
+        # Create and return sample list with proper name and type set
         sample_list = SampleList(batch)
-        for key in self._IDENTICAL_VALUE_KEYS:
-            sample_list[key + "_"] = sample_list[key]
-            sample_list[key] = sample_list[key][0]
-
+        sample_list.dataset_name = self._dataset_name
+        sample_list.dataset_type = self._dataset_type
         return sample_list

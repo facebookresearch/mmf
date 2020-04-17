@@ -5,9 +5,15 @@ from mmf.datasets.builders.vqa2.dataset import VQA2Dataset
 
 
 class MaskedVQA2Dataset(VQA2Dataset):
-    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
-        self._name = "masked_vqa2"
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        super().__init__(
+            config,
+            dataset_type,
+            imdb_file_index,
+            dataset_name="masked_vqa2",
+            *args,
+            **kwargs
+        )
         self._add_answer = config.get("add_answer", True)
 
     def load_item(self, idx):

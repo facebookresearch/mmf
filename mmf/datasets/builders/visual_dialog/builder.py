@@ -21,7 +21,7 @@ class VisualDialogBuilder(VisualGenomeBuilder):
     def config_path(cls):
         return "configs/datasets/visual_dialog/defaults.yaml"
 
-    def _build(self, dataset_type, config):
+    def build(self, config, dataset_type):
         self._dataset_type = dataset_type
         self._config = config
         data_folder = os.path.join(get_mmf_root(), self._config.data_root_dir)

@@ -9,21 +9,21 @@ from mmf.datasets.processors.processors import Processor
 class BaseDataset(Dataset):
     """Base class for implementing a dataset. Inherits from PyTorch's Dataset class
     but adds some custom functionality on top. Instead of ``__getitem__`` you have to implement
-    ``get_item`` here. Processors mentioned in the configuration are automatically initialized for
+    ``__getitem__`` here. Processors mentioned in the configuration are automatically initialized for
     the end user.
 
     Args:
-        name (str): Name of your dataset to be used a representative in text strings
+        dataset_name (str): Name of your dataset to be used a representative in text strings
         dataset_type (str): Type of your dataset. Normally, train|val|test
         config (DictConfig): Configuration for the current dataset
     """
 
-    def __init__(self, name, dataset_type, config=None):
-        super(BaseDataset, self).__init__()
+    def __init__(self, dataset_name, config, dataset_type="train", *args, **kwargs):
+        super().__init__()
         if config is None:
             config = {}
         self.config = config
-        self._name = name
+        self._dataset_name = dataset_name
         self._dataset_type = dataset_type
         self.writer = registry.get("writer")
         self._global_config = registry.get("config")
@@ -39,7 +39,7 @@ class BaseDataset(Dataset):
         """
         return
 
-    def get_item(self, idx):
+    def __getitem__(self, idx):
         """
         Basically, __getitem__ of a torch dataset.
 
@@ -56,7 +56,7 @@ class BaseDataset(Dataset):
         for processor_key, processor_params in self.config.processors.items():
             if not processor_params:
                 continue
-            reg_key = "{}_{}".format(self._name, processor_key)
+            reg_key = "{}_{}".format(self._dataset_name, processor_key)
             reg_check = registry.get(reg_key, no_warning=True)
 
             if reg_check is None:
@@ -68,20 +68,6 @@ class BaseDataset(Dataset):
 
     def try_fast_read(self):
         return
-
-    def __getitem__(self, idx):
-        # TODO: Add warning about overriding
-        """
-        Internal __getitem__. Don't override, instead override ``get_item`` for your usecase.
-
-        .. warning::
-
-            DO NOT OVERRIDE in child class. Instead override ``get_item``.
-        """
-        sample = self.get_item(idx)
-        sample.dataset_type = self._dataset_type
-        sample.dataset_name = self._name
-        return sample
 
     def prepare_batch(self, batch):
         """
@@ -103,6 +89,22 @@ class BaseDataset(Dataset):
             batch = SampleList(batch)
         batch = batch.to(self._device)
         return batch
+
+    @property
+    def dataset_type(self):
+        return self._dataset_type
+
+    @property
+    def name(self):
+        return self._dataset_name
+
+    @property
+    def dataset_name(self):
+        return self._dataset_name
+
+    @dataset_name.setter
+    def dataset_name(self, name):
+        self._dataset_name = name
 
     def format_for_evalai(self, report):
         return []

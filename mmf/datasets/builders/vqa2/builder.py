@@ -19,13 +19,13 @@ from mmf.datasets.concat_dataset import MMFConcatDataset
 class VQA2Builder(BaseDatasetBuilder):
     def __init__(self, dataset_name="vqa2"):
         super().__init__(dataset_name)
-        self.dataset_class = VQA2Dataset
+        self._dataset_class = VQA2Dataset
 
     @classmethod
     def config_path(cls):
         return "configs/datasets/vqa2/defaults.yaml"
 
-    def _load(self, dataset_type, config, *args, **kwargs):
+    def load(self, config, dataset_type, *args, **kwargs):
         self.config = config
 
         image_features = config["image_features"]["train"][0].split(",")
@@ -33,11 +33,11 @@ class VQA2Builder(BaseDatasetBuilder):
 
         registry.register("num_image_features", self.num_image_features)
 
-        self.dataset = self.prepare_data_set(dataset_type, config)
+        self.dataset = self.prepare_data_set(config, dataset_type)
 
         return self.dataset
 
-    def _build(self, dataset_type, config):
+    def build(self, config, dataset_type):
         # TODO: Build actually here
         return
 
@@ -53,10 +53,18 @@ class VQA2Builder(BaseDatasetBuilder):
                 self.dataset.answer_processor.get_vocab_size(),
             )
 
-    def set_dataset_class(self, cls):
-        self.dataset_class = cls
+    @property
+    def dataset_class(self):
+        return self._dataset_class
 
-    def prepare_data_set(self, dataset_type, config):
+    @dataset_class.setter
+    def dataset_class(self, dataset_class):
+        self._dataset_class = dataset_class
+
+    def set_dataset_class(self, cls):
+        self._dataset_class = cls
+
+    def prepare_data_set(self, config, dataset_type):
         if dataset_type not in config.imdb_files:
             warnings.warn(
                 "Dataset type {} is not present in "
@@ -71,7 +79,7 @@ class VQA2Builder(BaseDatasetBuilder):
 
         for imdb_idx in range(len(imdb_files)):
             cls = self.dataset_class
-            dataset = cls(dataset_type, imdb_idx, config)
+            dataset = cls(config, dataset_type, imdb_idx)
             datasets.append(dataset)
 
         dataset = MMFConcatDataset(datasets)

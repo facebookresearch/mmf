@@ -6,11 +6,15 @@ from mmf.datasets.builders.vqa2 import VQA2Dataset
 
 
 class VizWizDataset(VQA2Dataset):
-    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
-
-        # Update name as default would be 'vqa2' due to inheritance
-        self._name = "vizwiz"
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        super().__init__(
+            config,
+            dataset_type,
+            imdb_file_index,
+            dataset_name="vizwiz",
+            *args,
+            **kwargs
+        )
 
     def load_item(self, idx):
         sample = super().load_item(idx)

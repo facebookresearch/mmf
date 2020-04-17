@@ -44,8 +44,8 @@ class CLEVRDataset(BaseDataset):
 
     """
 
-    def __init__(self, dataset_type, config, data_folder=None, *args, **kwargs):
-        super().__init__(_CONSTANTS["dataset_key"], dataset_type, config)
+    def __init__(self, config, dataset_type, data_folder=None, *args, **kwargs):
+        super().__init__(_CONSTANTS["dataset_key"], config, dataset_type)
         self._data_folder = data_folder
         self._data_root_dir = os.path.join(get_mmf_root(), config.data_root_dir)
 
@@ -64,9 +64,9 @@ class CLEVRDataset(BaseDataset):
         if len(os.listdir(self._data_folder)) == 0:
             raise FileNotFoundError(_CONSTANTS["empty_folder_error"])
 
-        self._load()
+        self.load()
 
-    def _load(self):
+    def load(self):
         self.image_path = os.path.join(
             self._data_folder, _CONSTANTS["images_folder"], self._dataset_type
         )
@@ -93,7 +93,7 @@ class CLEVRDataset(BaseDataset):
         return os.path.join(
             self._data_root_dir,
             _CONSTANTS["vocabs_folder"],
-            _TEMPLATES["vocab_file_template"].format(self._name, attribute),
+            _TEMPLATES["vocab_file_template"].format(self.dataset_name, attribute),
         )
 
     def _build_vocab(self, questions, attribute):
@@ -128,10 +128,10 @@ class CLEVRDataset(BaseDataset):
         with open(vocab_file, "w") as f:
             f.write("\n".join(vocab.word_list))
 
-    def get_item(self, idx):
+    def __getitem__(self, idx):
         data = self.questions[idx]
 
-        # Each call to get_item from dataloader returns a Sample class object which
+        # Each call to __getitem__ from dataloader returns a Sample class object which
         # collated by our special batch collator to a SampleList which is basically
         # a attribute based batch in layman terms
         current_sample = Sample()

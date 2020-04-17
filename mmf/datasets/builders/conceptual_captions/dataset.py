@@ -6,9 +6,9 @@ from mmf.datasets.builders.coco import COCODataset
 
 
 class ConceptualCaptionsDataset(COCODataset):
-    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
-        self._name = "conceptual_captions"
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        super().__init__(config, dataset_type, imdb_file_index, *args, **kwargs)
+        self.dataset_name = "conceptual_captions"
 
     def load_item(self, idx):
         sample_info = self.imdb[idx]

@@ -4,9 +4,9 @@ from mmf.utils.text import word_tokenize
 
 
 class TextVQADataset(VizWizDataset):
-    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
-        self._name = "textvqa"
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        super().__init__(config, dataset_type, imdb_file_index, *args, **kwargs)
+        self.dataset_name = "textvqa"
 
     def format_for_evalai(self, report):
         answers = report.scores.argmax(dim=1)
