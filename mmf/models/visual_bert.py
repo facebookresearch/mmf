@@ -8,7 +8,6 @@ from copy import deepcopy
 import torch
 from omegaconf import OmegaConf
 from torch import nn
-from transformers.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
 from transformers.modeling_bert import (
     BertConfig,
     BertEncoder,
@@ -22,6 +21,7 @@ from transformers.modeling_bert import (
 from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.modules.embeddings import BertVisioLinguisticEmbeddings
+from mmf.utils.general import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
 from mmf.utils.transform import (
     transform_to_batch_sequence,
@@ -171,7 +171,7 @@ class VisualBERT(BaseModel):
                 self.config.bert_model_name,
                 config=self.bert_config,
                 cache_dir=os.path.join(
-                    str(PYTORCH_PRETRAINED_BERT_CACHE), "distributed_{}".format(-1)
+                    get_mmf_cache_dir(), "distributed_{}".format(-1)
                 ),
                 visual_embedding_dim=self.config.visual_embedding_dim,
                 embedding_strategy=self.config.embedding_strategy,
@@ -195,7 +195,7 @@ class VisualBERT(BaseModel):
                 bert_masked_lm = BertForPreTraining.from_pretrained(
                     self.config.bert_model_name,
                     cache_dir=os.path.join(
-                        str(PYTORCH_PRETRAINED_BERT_CACHE), "distributed_{}".format(-1)
+                        get_mmf_cache_dir(), "distributed_{}".format(-1)
                     ),
                 )
             self.cls = deepcopy(bert_masked_lm.cls)

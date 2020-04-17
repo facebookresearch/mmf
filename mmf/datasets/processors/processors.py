@@ -82,7 +82,7 @@ import torch
 
 from mmf.common.registry import registry
 from mmf.utils.distributed import is_master, synchronize
-from mmf.utils.general import get_mmf_root
+from mmf.utils.general import get_mmf_cache_dir
 from mmf.utils.phoc import build_phoc
 from mmf.utils.text import VocabDict
 from mmf.utils.vocab import Vocab, WordToVectorDict
@@ -393,9 +393,9 @@ class FastTextProcessor(VocabProcessor):
             needs_download = True
 
         model_file = self.config.model_file
-        # If model_file is a already an existing path don't join mmf root
+        # If model_file is already an existing path don't join to cache dir
         if not os.path.exists(model_file):
-            model_file = os.path.join(get_mmf_root(), model_file)
+            model_file = os.path.join(get_mmf_cache_dir(), model_file)
 
         if not os.path.exists(model_file):
             if _is_master:
@@ -413,7 +413,7 @@ class FastTextProcessor(VocabProcessor):
     def _download_model(self):
         _is_master = is_master()
 
-        model_file_path = os.path.join(get_mmf_root(), ".mmf_cache", "wiki.en.bin")
+        model_file_path = os.path.join(get_mmf_cache_dir(), "wiki.en.bin")
 
         if not _is_master:
             return model_file_path

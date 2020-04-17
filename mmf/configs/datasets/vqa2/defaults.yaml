@@ -43,7 +43,7 @@ dataset_config:
           params:
             download_initially: false
             max_length: 50
-            model_file: .mmf_cache/wiki.en.bin
+            model_file: wiki.en.bin
         ocr_token_processor:
           type: simple_word
           params: {}

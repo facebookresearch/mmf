@@ -10,7 +10,6 @@ import torch.nn.functional as F
 from omegaconf import OmegaConf
 from torch import nn
 from torch.nn import CrossEntropyLoss
-from transformers.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
 from transformers.modeling_bert import (
     ACT2FN,
     BertConfig,
@@ -26,6 +25,7 @@ from transformers.modeling_bert import (
 
 from mmf.common.registry import registry
 from mmf.models import BaseModel
+from mmf.utils.general import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
 
 
@@ -1169,9 +1169,7 @@ class ViLBERT(BaseModel):
             config=BertConfig.from_dict(
                 OmegaConf.to_container(self.config, resolve=True)
             ),
-            cache_dir=os.path.join(
-                str(PYTORCH_PRETRAINED_BERT_CACHE), "distributed_{}".format(-1)
-            ),
+            cache_dir=os.path.join(get_mmf_cache_dir(), "distributed_{}".format(-1)),
             training_head_type=self.config.training_head_type,
         )
         # if self.config.special_visual_initialize:
