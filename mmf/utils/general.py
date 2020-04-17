@@ -102,34 +102,6 @@ def get_mmf_cache_dir():
     return cache_dir
 
 
-def download_file(url, output_dir=".", filename=""):
-    if len(filename) == 0:
-        filename = os.path.join(".", url.split("/")[-1])
-
-    os.makedirs(output_dir, exist_ok=True)
-
-    filename = os.path.join(output_dir, filename)
-    r = requests.get(url, stream=True)
-
-    if r.status_code != requests.codes["ok"]:
-        print(
-            "The url {} is broken. If this is not your own url,"
-            " please open up an issue on GitHub.".format(url)
-        )
-    file_size = int(r.headers["Content-Length"])
-    num_bars = int(file_size / DOWNLOAD_CHUNK_SIZE)
-
-    with open(filename, "wb") as fh:
-        for chunk in tqdm.tqdm(
-            r.iter_content(chunk_size=DOWNLOAD_CHUNK_SIZE),
-            total=num_bars,
-            unit="MB",
-            desc=filename,
-            leave=True,
-        ):
-            fh.write(chunk)
-
-
 def get_optimizer_parameters(model, config):
     parameters = model.parameters()
 
@@ -216,29 +188,6 @@ def get_current_tensors():
                 print(type(obj), obj.size())
         except Exception:
             pass
-
-
-def extract_file(path, output_dir="."):
-    _FILETYPE_TO_OPENER_MODE_MAPPING = {
-        ".zip": (zipfile.ZipFile, "r"),
-        ".tar.gz": (tarfile.open, "r:gz"),
-        ".tgz": (tarfile.open, "r:gz"),
-        ".tar": (tarfile.open, "r:"),
-        ".tar.bz2": (tarfile.open, "r:bz2"),
-        ".tbz": (tarfile.open, "r:bz2"),
-    }
-
-    cwd = os.getcwd()
-    os.chdir(output_dir)
-
-    extension = "." + ".".join(os.path.abspath(path).split(".")[1:])
-
-    opener, mode = _FILETYPE_TO_OPENER_MODE_MAPPING[extension]
-    with opener(path, mode) as f:
-        f.extractall()
-
-    os.chdir(cwd)
-    return output_dir
 
 
 def get_batch_size():

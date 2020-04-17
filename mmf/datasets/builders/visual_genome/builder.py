@@ -6,7 +6,8 @@ from mmf.common.constants import VISUAL_GENOME_CONSTS
 from mmf.common.registry import registry
 from mmf.datasets.builders.visual_genome.dataset import VisualGenomeDataset
 from mmf.datasets.builders.vqa2.builder import VQA2Builder
-from mmf.utils.general import download_file, extract_file, get_mmf_root
+from mmf.utils.download import decompress, download
+from mmf.utils.general import get_mmf_root
 
 
 @registry.register_builder("visual_genome")
@@ -83,13 +84,13 @@ class VisualGenomeBuilder(VQA2Builder):
         self.writer.write(
             "Downloading the {} {} now.".format(self.dataset_proper_name, file_type)
         )
-        download_file(url, output_dir=download_folder)
+        download(url, download_folder, url.split("/")[-1])
 
         self.writer.write(
             "Extracting the {} {} now. This may take time".format(
                 self.dataset_proper_name, file_type
             )
         )
-        extract_file(local_filename, output_dir=download_folder)
+        decompress(download_folder, url.split("/")[-1])
 
         return extraction_folder

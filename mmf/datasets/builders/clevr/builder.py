@@ -8,7 +8,8 @@ from mmf.common.constants import CLEVR_DOWNLOAD_URL
 from mmf.common.registry import registry
 from mmf.datasets.base_dataset_builder import BaseDatasetBuilder
 from mmf.datasets.builders.clevr.dataset import CLEVRDataset
-from mmf.utils.general import download_file, get_mmf_root
+from mmf.utils.download import download
+from mmf.utils.general import get_mmf_root
 
 
 @registry.register_builder("clevr")
@@ -48,7 +49,7 @@ class CLEVRBuilder(BaseDatasetBuilder):
             return
 
         self.writer.write("Downloading the CLEVR dataset now")
-        download_file(CLEVR_DOWNLOAD_URL, output_dir=download_folder)
+        download(CLEVR_DOWNLOAD_URL, download_folder, CLEVR_DOWNLOAD_URL.split("/")[-1])
 
         self.writer.write("Downloaded. Extracting now. This can take time.")
         with zipfile.ZipFile(local_filename, "r") as zip_ref:

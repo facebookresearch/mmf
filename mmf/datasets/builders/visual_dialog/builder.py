@@ -6,7 +6,7 @@ from mmf.common.constants import VISUAL_DIALOG_CONSTS
 from mmf.common.registry import registry
 from mmf.datasets.builders.visual_dialog.dataset import VisualDialogDataset
 from mmf.datasets.builders.visual_genome.builder import VisualGenomeBuilder
-from mmf.utils.general import download_file, extract_file, get_mmf_root
+from mmf.utils.general import get_mmf_root
 
 
 @registry.register_builder("visual_dialog")
