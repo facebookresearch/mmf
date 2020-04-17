@@ -4,7 +4,7 @@ The processors exist in MMF to make data processing pipelines in various
 datasets as similar as possible while allowing code reuse.
 
 The processors also help maintain proper abstractions to keep only what matters
-inside the dataset's code. This allows us to keep the dataset ``get_item``
+inside the dataset's code. This allows us to keep the dataset ``__getitem__``
 logic really clean and no need about maintaining opinions about data type.
 Processors can work on both images and text due to their generic structure.
 

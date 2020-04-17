@@ -10,10 +10,15 @@ LABEL_TO_INT_MAPPING = {"entailment": 0, "neutral": 1, "contradiction": 2}
 
 
 class VisualEntailmentDataset(VQA2Dataset):
-    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
-
-        self._name = "visual_entailment"
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        super().__init__(
+            config,
+            dataset_type,
+            imdb_file_index,
+            dataset_name="visual_entailment",
+            *args,
+            **kwargs
+        )
 
     def load_item(self, idx):
         sample_info = self.imdb[idx]

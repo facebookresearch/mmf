@@ -27,11 +27,11 @@ user to implement following methods after inheriting the class.
 
 Inside this function call super().__init__("name") where "name" should your dataset's name like "vqa2".
 
-- ``_load(self, dataset_type, config, *args, **kwargs)``
+- ``load(self, config, dataset_type, *args, **kwargs)``
 
 This function loads the dataset, builds an object of class inheriting |BaseDataset| which contains your dataset logic and returns it.
 
-- ``_build(self, dataset_type, config, *args, **kwargs)``
+- ``build(self, config, dataset_type, *args, **kwargs)``
 
 This function actually builds the data required for initializing the dataset for the first time. For e.g. if you need to download some data for your dataset, this
 all should be done inside this function.
@@ -69,7 +69,7 @@ Let's write down this using example of *CLEVR* dataset.
             # Assign the dataset class
             self.dataset_class = CLEVRDataset
 
-        def _build(self, dataset_type, config):
+        def build(self, config, dataset):
             download_folder = os.path.join(
                 get_mmf_root(), config.data_root_dir, config.data_folder
             )
@@ -97,10 +97,10 @@ Let's write down this using example of *CLEVR* dataset.
                 zip_ref.extractall(download_folder)
 
 
-        def _load(self, dataset_type, config, *args, **kwargs):
+        def load(self, config, dataset, *args, **kwargs):
             # Load the dataset using the CLEVRDataset class
             self.dataset = CLEVRDataset(
-                dataset_type, config, data_folder=self.data_folder
+                config, dataset, data_folder=self.data_folder
             )
             return self.dataset
 
@@ -218,12 +218,12 @@ Next step is to actually build a dataset class which inherits |BaseDataset| so i
 dataloaders. Follow the steps below to inherit and create your dataset's class.
 
 - Inherit :class:`mmf.datasets.base_dataset.BaseDataset`
-- Implement ``__init__(self, dataset_type, config)``. Call parent's init using ``super().__init__("name", dataset_type, config)``
+- Implement ``__init__(self, config, dataset)``. Call parent's init using ``super().__init__("name", config, dataset)``
   where "name" is the string representing the name of your dataset.
-- Implement ``get_item(self, idx)``, our replacement for normal ``__getitem__(self, idx)`` you would implement for a torch dataset. This needs to
+- Implement ``__getitem__(self, idx)``, our replacement for normal ``__getitem__(self, idx)`` you would implement for a torch dataset. This needs to
   return an object of class :class:Sample.
 - Implement ``__len__(self)`` method, which represents size of your dataset.
-- [Optional] Implement ``load_item(self, idx)`` if you need to load something or do something else with data and then call it inside ``get_item``.
+- [Optional] Implement ``load_item(self, idx)`` if you need to load something or do something else with data and then call it inside ``__getitem__``.
 
 .. note:
 
@@ -247,8 +247,8 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
 
 
     class CLEVRDataset(BaseDataset):
-        def __init__(self, dataset_type, config, data_folder=None, *args, **kwargs):
-            super().__init__("clevr", dataset_type, config)
+        def __init__(self, config, dataset, data_folder=None, *args, **kwargs):
+            super().__init__("clevr", config, dataset)
             self._data_folder = data_folder
             self._data_root_dir = os.path.join(get_mmf_root(), config.data_root_dir)
 
@@ -290,7 +290,7 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
         def _get_vocab_path(self, attribute):
             return os.path.join(
                 self._data_root_dir, "vocabs",
-                "{}_{}_vocab.txt".format(self._name, attribute)
+                "{}_{}_vocab.txt".format(self.dataset_name, attribute)
             )
 
         def _build_vocab(self, questions, attribute):
@@ -298,13 +298,13 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
             # tutorial
             ...
 
-        def get_item(self, idx):
+        def __getitem__(self, idx):
             # Get item is like your normal __getitem__ in PyTorch Dataset. Based on id
             # return a sample. Check VQA2Dataset implementation if you want to see how
             # to do caching in MMF
             data = self.questions[idx]
 
-            # Each call to get_item from dataloader returns a Sample class object which
+            # Each call to __getitem__ from dataloader returns a Sample class object which
             # collated by our special batch collator to a SampleList which is basically
             # a attribute based batch in layman terms
             current_sample = Sample()

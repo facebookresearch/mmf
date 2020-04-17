@@ -9,10 +9,15 @@ from mmf.datasets.builders.vqa2 import VQA2Dataset
 
 
 class VisualDialogDataset(VQA2Dataset):
-    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
-
-        self._name = "visual_dialog"
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        super().__init__(
+            config,
+            dataset_type,
+            imdb_file_index,
+            dataset_name="visual_dialog",
+            *args,
+            **kwargs
+        )
 
         discriminative = config.discriminative
         self._discriminative = discriminative.enabled

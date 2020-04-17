@@ -6,9 +6,10 @@ from mmf.datasets.builders.vqa2 import VQA2Dataset
 
 
 class COCODataset(VQA2Dataset):
-    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
-        self._name = "coco"
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        super().__init__(
+            config, dataset_type, imdb_file_index, dataset_name="coco", *args, **kwargs
+        )
 
     def load_item(self, idx):
         sample_info = self.imdb[idx]

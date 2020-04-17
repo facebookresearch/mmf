@@ -12,9 +12,15 @@ _CONSTANTS = {"image_id_key": "image_id"}
 
 
 class VisualGenomeDataset(VQA2Dataset):
-    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
-        self._name = "visual_genome"
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        super().__init__(
+            config,
+            dataset_type,
+            imdb_file_index,
+            dataset_name="visual_genome",
+            *args,
+            **kwargs
+        )
 
         self._return_scene_graph = config.return_scene_graph
         self._return_objects = config.return_objects

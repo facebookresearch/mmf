@@ -4,9 +4,9 @@ from mmf.utils.objects_to_byte_tensor import enc_obj2bytes
 
 
 class M4CTextCapsDataset(M4CTextVQADataset):
-    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
-        self._name = "m4c_textcaps"
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        super().__init__(config, dataset_type, imdb_file_index, *args, **kwargs)
+        self.dataset_name = "m4c_textcaps"
 
     def preprocess_sample_info(self, sample_info):
         # add dummy questions to train with M4C (for TextVQA)

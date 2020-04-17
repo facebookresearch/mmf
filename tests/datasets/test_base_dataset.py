@@ -29,7 +29,7 @@ class TestBaseDataset(unittest.TestCase):
         configuration.freeze()
 
         base_dataset = BaseDataset(
-            "vqa2", "train", configuration.get_config().dataset_config.vqa2
+            "vqa2", configuration.get_config().dataset_config.vqa2, "train"
         )
         expected_processors = [
             "answer_processor",

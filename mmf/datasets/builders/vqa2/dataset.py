@@ -13,8 +13,14 @@ from mmf.utils.general import get_mmf_root
 
 
 class VQA2Dataset(BaseDataset):
-    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__("vqa2", dataset_type, config)
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        if "name" in kwargs:
+            name = kwargs["name"]
+        elif "dataset_name" in kwargs:
+            name = kwargs["dataset_name"]
+        else:
+            name = "vqa2"
+        super().__init__(name, config, dataset_type)
         imdb_files = self.config.imdb_files
 
         if dataset_type not in imdb_files:
@@ -78,7 +84,7 @@ class VQA2Dataset(BaseDataset):
         if hasattr(self, "_should_fast_read") and self._should_fast_read is True:
             self.writer.write(
                 "Starting to fast read {} {} dataset".format(
-                    self._name, self._dataset_type
+                    self.dataset_name, self.dataset_type
                 )
             )
             self.cache = {}
@@ -87,7 +93,7 @@ class VQA2Dataset(BaseDataset):
             ):
                 self.cache[idx] = self.load_item(idx)
 
-    def get_item(self, idx):
+    def __getitem__(self, idx):
         if self._should_fast_read is True and self._dataset_type != "test":
             return self.cache[idx]
         else:

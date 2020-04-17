@@ -18,14 +18,10 @@ class DatasetLoader:
         self.val_dataset.load(self.config)
         self.test_dataset.load(self.config)
 
-        if self.train_dataset.num_datasets == 1:
-            self.train_loader = self.train_dataset.first_loader
-            self.val_loader = self.val_dataset.first_loader
-            self.test_loader = self.test_dataset.first_loader
-        else:
-            self.train_loader = self.train_dataset
-            self.val_loader = self.val_dataset
-            self.test_loader = self.test_dataset
+        # If number of datasets is one, this will return the first loader
+        self.train_loader = self.train_dataset
+        self.val_loader = self.val_dataset
+        self.test_loader = self.test_dataset
 
         self.mapping = {
             "train": self.train_dataset,

@@ -66,7 +66,7 @@ class MultiDataset:
             builder_instance = builder_class()
 
             if dataset in self.config.dataset_config:
-                attributes = self.config.dataset_config[dataset]
+                dataset_config = self.config.dataset_config[dataset]
             else:
                 self.writer.write(
                     "Dataset %s is missing from " "dataset_config in config." % dataset,
@@ -74,14 +74,16 @@ class MultiDataset:
                 )
                 sys.exit(1)
 
-            builder_instance.build(self._dataset_type, attributes)
-            dataset_instance = builder_instance.load(self._dataset_type, attributes)
+            builder_instance.build_dataset(dataset_config, self._dataset_type)
+            dataset_instance = builder_instance.load_dataset(
+                dataset_config, self._dataset_type
+            )
 
             if dataset_instance is None:
                 continue
 
             loader_instance, sampler_instance = self.build_dataloader(
-                dataset_instance, self.config
+                self.config, dataset_instance
             )
 
             self._builders.append(builder_instance)
@@ -118,6 +120,10 @@ class MultiDataset:
     @property
     def dataset_type(self):
         return self._dataset_type
+
+    @property
+    def current_dataset_name(self):
+        return self._chosen_dataset.name
 
     @property
     def num_datasets(self):
@@ -214,7 +220,7 @@ class MultiDataset:
         """
         return config
 
-    def build_dataloader(self, dataset, config):
+    def build_dataloader(self, config, dataset):
         training = self._global_config.training
         num_workers = training.num_workers
         pin_memory = training.pin_memory
@@ -226,7 +232,7 @@ class MultiDataset:
         loader = DataLoader(
             dataset=dataset,
             pin_memory=pin_memory,
-            collate_fn=BatchCollator(),
+            collate_fn=BatchCollator(dataset.name, dataset.dataset_type),
             num_workers=num_workers,
             **other_args
         )

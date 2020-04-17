@@ -8,10 +8,10 @@ from mmf.datasets.builders.vqa2 import VQA2Dataset
 
 
 class NLVR2Dataset(VQA2Dataset):
-    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
-
-        self._name = "nlvr2"
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        super().__init__(
+            config, dataset_type, imdb_file_index, dataset_name="nlvr2", *args, **kwargs
+        )
 
     def load_item(self, idx):
         sample_info = self.imdb[idx]

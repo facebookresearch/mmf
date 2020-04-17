@@ -5,9 +5,9 @@ from mmf.datasets.builders.coco import COCODataset
 
 
 class MaskedCOCODataset(COCODataset):
-    def __init__(self, dataset_type, imdb_file_index, config, *args, **kwargs):
-        super().__init__(dataset_type, imdb_file_index, config, *args, **kwargs)
-        self._name = "masked_coco"
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        super().__init__(config, dataset_type, imdb_file_index, *args, **kwargs)
+        self.dataset_name = "masked_coco"
         self._two_sentence = config.get("two_sentence", True)
         self._false_caption = config.get("false_caption", True)
         self._two_sentence_probability = config.get("two_sentence_probability", 0.5)
