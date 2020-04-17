@@ -1,0 +1,4 @@
+includes:
+- ./image.yaml
+- configs/datasets/hateful_memes/with_features.yaml
+- configs/models/unimodal/with_features.yaml
