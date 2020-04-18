@@ -175,7 +175,7 @@ def distributed_init(config):
         warnings.warn("Distributed is already initialized, cannot initialize twice!")
     else:
         print(
-            "| distributed init (rank {}): {}".format(
+            "Distributed Init (Rank {}): {}".format(
                 config.distributed.rank, config.distributed.init_method
             ),
             flush=True,
@@ -187,7 +187,7 @@ def distributed_init(config):
             rank=config.distributed.rank,
         )
         print(
-            "| initialized host {} as rank {}".format(
+            "Initialized Host {} as Rank {}".format(
                 socket.gethostname(), config.distributed.rank
             ),
             flush=True,
