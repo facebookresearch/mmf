@@ -1,6 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import importlib
 import os
+import sys
 import warnings
 
 import git
@@ -224,10 +226,21 @@ class Checkpoint:
             getattr(model, key).load_state_dict(ckpt_model[attr_mapping[key]])
 
     def _torch_load(self, file):
+        # Backwards compatibility to Pythia
+        self._hack_config_node()
+
         if "cuda" in str(self.device):
             return torch.load(file, map_location=self.device)
         else:
             return torch.load(file, map_location=lambda storage, loc: storage)
+
+    def _hack_config_node(self):
+        # NOTE: This can probably be made universal to support backwards
+        # compatability with name "pythia" if needed.
+        sys.modules["pythia"] = importlib.import_module("mmf")
+        sys.modules["pythia.utils.configuration"] = importlib.import_module(
+            "mmf.utils.configuration"
+        )
 
     def _get_vcs_fields(self):
         """Returns a dict with git fields of the current repository
