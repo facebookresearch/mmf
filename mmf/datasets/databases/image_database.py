@@ -1,99 +1,200 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import json
+import collections
+import os
+import warnings
 
-import numpy as np
 import torch
+import torchvision
+import torchvision.datasets.folder as tv_helpers
+
+from mmf.utils.general import get_absolute_path
+
+
+def get_possible_image_paths(path):
+    for ext in tv_helpers.IMG_EXTENSIONS:
+        image_ext = ".".join(path.split(".")[:-1]) + ext
+        if os.path.isfile(image_ext):
+            path = image_ext
+            break
+    return path
 
 
 class ImageDatabase(torch.utils.data.Dataset):
-    """
-    Dataset for IMDB used in MMF
-    General format that we have standardize follows:
-    {
-        metadata: {
-            'version': x
-        },
-        data: [
-            {
-                'id': DATASET_SET_ID,
-                'set_folder': <directory>,
-                'feature_path': <file_path>,
-                'info': {
-                    // Extra information
-                    'questions_tokens': [],
-                    'answer_tokens': []
-                }
-            }
-        ]
-    }
+    """ImageDatabase can be used to load images in MMF.
+    This goes either in conjunction with AnnotationDatabase or
+    can be separately used with function such as `from_path`.
+    MMFDataset initializes its own copy of ImageDatabase if `use_images`
+    is True. Rest everything works same as a normal torch Dataset if
+    you pass the annotation_db as a parameter. For example for item
+    1 from annotation db, you can pass same id to ImageDatabase to loads
+    its image. If you don't pass it, you have two options. Either use
+    .get which takes in an annotation db item or .from_path which directly
+    takes in an image path. You are free to use your own dataset instead
+    of image database or free to update or ignore MMFDataset's ImageDataset
+    initiliazation. You can either reinitializ with transform and other
+    params or use any of torchvision's datasets.
     """
 
-    def __init__(self, imdb_path):
+    def __init__(
+        self,
+        config,
+        path,
+        annotation_db=None,
+        transform=None,
+        loader=tv_helpers.default_loader,
+        is_valid_file=None,
+        image_key=None,
+        *args,
+        **kwargs
+    ):
+        """Initialize an instance of ImageDatabase
+
+        Args:
+            torch ([type]): [description]
+            config (DictConfig): Config object from dataset_config
+            path (str): Path to images folder
+            annotation_db (AnnotationDB, optional): Annotation DB to be used
+                to be figure out image paths. Defaults to None.
+            transform (callable, optional): Transform to be called upon loaded image.
+                Defaults to None.
+            loader (callable, optional): Custom loader for image which given a path
+                returns a PIL Image. Defaults to torchvision's default loader.
+            is_valid_file (callable, optional): Custom callable to filter out invalid
+                files. If image is invalid, {"images": []} will returned which you can
+                filter out in your dataset. Defaults to None.
+            image_key (str, optional): Key that points to image path in annotation db.
+                If not specified, ImageDatabase will make some intelligent guesses
+                about the possible key. Defaults to None.
+        """
         super().__init__()
-        self.metadata = {}
-        self._load_imdb(imdb_path)
+        self.config = config
+        self.base_path = get_absolute_path(path)
+        self.transform = transform
+        self.annotation_db = annotation_db
+        self.loader = loader
+        self.image_key = image_key
+        self.is_valid_file = is_valid_file
 
-    def _load_imdb(self, imdb_path):
-        if imdb_path.endswith(".npy"):
-            self._load_npy(imdb_path)
-        elif imdb_path.endswith(".jsonl"):
-            self._load_jsonl(imdb_path)
-        elif imdb_path.contains("visdial") or imdb_path.contains("visual_dialog"):
-            self._load_visual_dialog(imdb_path)
-        else:
-            raise ValueError("Unknown file format for imdb")
+        if self.image_key:
+            assert (
+                self.annotation_db is not None
+            ), "Annotation DB should be specified with image key"
 
-    def _load_jsonl(self, imdb_path):
-        with open(imdb_path, "r") as f:
-            db = f.readlines()
-            for idx, line in enumerate(db):
-                db[idx] = json.loads(line.strip("\n"))
-            self.data = db
-            self.start_idx = 0
+        if self.transform is None:
+            warnings.warn(
+                "No transform has been provided to Image Database. "
+                + "Raw images will be returned. "
+                + "User is expected to post process them. "
+                + "Either use 'set_transforms' or pass transform to init."
+            )
 
-    def _load_npy(self, imdb_path):
-        self.db = np.load(imdb_path, allow_pickle=True)
-        self.start_idx = 0
+    def set_annotation_db(self, annotation_db):
+        self.annotation_db = annotation_db
 
-        if type(self.db) == dict:
-            self.metadata = self.db.get("metadata", {})
-            self.data = self.db.get("data", [])
-        else:
-            # TODO: Deprecate support for this
-            self.metadata = {"version": 1}
-            self.data = self.db
-            # Handle old imdb support
-            if "image_id" not in self.data[0]:
-                self.start_idx = 1
-
-        if len(self.data) == 0:
-            self.data = self.db
-
-    def _load_visual_dialog(self, imdb_path):
-        from mmf.datasets.builders.visual_dialog.database import VisualDialogDatabase
-
-        self.data = VisualDialogDatabase(imdb_path)
-        self.metadata = self.data.metadata
-        self.start_idx = 0
+    def set_transforms(self, transform):
+        if isinstance(transform, collections.abc.MutableSequence):
+            transform = torchvision.Compose(transform)
+        self.transform = transform
 
     def __len__(self):
-        return len(self.data) - self.start_idx
+        self._check_annotation_db_present()
+        return len(self.annotation_db)
 
     def __getitem__(self, idx):
-        data = self.data[idx + self.start_idx]
+        self._check_annotation_db_present()
+        item = self.annotation_db[idx]
+        return self.get(item)
 
-        # Hacks for older IMDBs
-        if "answers" not in data:
-            if "all_answers" in data and "valid_answers" not in data:
-                data["answers"] = data["all_answers"]
-            if "valid_answers" in data:
-                data["answers"] = data["valid_answers"]
+    def _check_annotation_db_present(self):
+        if not self.annotation_db:
+            raise AttributeError(
+                "'annotation_db' must be set for the database to use __getitem__."
+                + " Use set_annotation_db."
+            )
 
-        # TODO: Later clean up VizWIz IMDB from copy tokens
-        if "answers" in data and data["answers"][-1] == "<copy>":
-            data["answers"] = data["answers"][:-1]
+    def get(self, item):
+        possible_images = self._get_attrs(item)
+        return self.from_path(possible_images)
 
-        return data
+    def from_path(self, paths):
+        if isinstance(paths, str):
+            paths = [paths]
 
-    def get_version(self):
-        return self.metadata.get("version", None)
+        assert isinstance(
+            paths, collections.abc.Iterable
+        ), "Path needs to a string or an iterable"
+
+        loaded_images = []
+        for image in paths:
+            path = None
+            path = get_possible_image_paths(image)
+
+            valid = self.is_valid_file(path) if self.is_valid_file is not None else True
+
+            if not valid:
+                continue
+
+            if not path:
+                possible_path = os.path.join(
+                    self.base_path, ".".join(image.split(".")[:-1])
+                )
+
+                raise RuntimeError(
+                    "Image not found at path {}\{.jpeg|.jpg|.svg|.png\}.".format(
+                        possible_path
+                    )
+                )
+
+            image = self.open_image(path)
+            if self.transform:
+                image = self.transform(image)
+            loaded_images.append(image)
+
+        return {"images": loaded_images}
+
+    def open_image(self, path):
+        return self.loader(path)
+
+    def _get_attrs(self, item):
+        """Returns possible attribute that can point to image id
+
+        Args:
+            item (Object): Object from the DB
+
+        Returns:
+            List[str]: List of possible images that will be copied later
+        """
+        if self.image_key:
+            image = item[self.image_key]
+            if isinstance(image, str):
+                image = [image]
+            return image
+
+        image = None
+        pick = None
+        attrs = self._get_possible_attrs()
+
+        for attr in attrs:
+            image = item.get(attr, None)
+            if image is not None:
+                pick = attr
+                break
+
+        # Check if first one is nlvr2
+        if pick == "identifier" and "left_url" in item and "right_url" in item:
+            return [image + "-img0.jpg", image + "-img1.jpg"]
+        elif pick == "image_name" or pick == "image_id":
+            return [image + ".jpg"]
+        else:
+            return [image]
+
+    def _get_possible_attrs(self):
+        return [
+            "Flickr30kID",
+            "Flikr30kID",
+            "identifier",
+            "image_path",
+            "image_name",
+            "img",
+            "image_id",
+        ]
