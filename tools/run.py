@@ -8,6 +8,7 @@ from mmf.common.registry import registry
 from mmf.utils.build import build_trainer
 from mmf.utils.configuration import Configuration
 from mmf.utils.distributed import distributed_init, infer_init_method
+from mmf.utils.env import set_seed
 from mmf.utils.flags import flags
 from mmf.utils.general import setup_imports
 
@@ -15,19 +16,18 @@ from mmf.utils.general import setup_imports
 def main(configuration, init_distributed=False):
     setup_imports()
     config = configuration.get_config()
+
     if torch.cuda.is_available():
         torch.cuda.set_device(config.device_id)
-    if config.seed:
-        if config.seed == -1:
-            config.seed = random.randint(10000, 20000)
-        np.random.seed(config.seed)
-        torch.manual_seed(config.seed)
-        # TODO: Re-enable after project
-        # random.seed(config.seed)
-        # torch.backends.cudnn.benchmark = False
-        # torch.backends.cudnn.deterministic = True
+        torch.cuda.init()
+
     if init_distributed:
         distributed_init(config)
+
+    config.training.seed = set_seed(config.training.seed)
+    registry.register("seed", config.training.seed)
+    print("Using seed {}".format(config.training.seed))
+
     trainer = build_trainer(configuration)
     trainer.load()
     trainer.train()
@@ -80,17 +80,6 @@ def run():
     else:
         config.device_id = 0
         main(configuration)
-    # Log any errors that occur to log file
-    # try:
-    #     trainer.load()
-    #     trainer.train()
-    # except Exception as e:
-    #     writer = getattr(trainer, "writer", None)
-
-    #     if writer is not None:
-    #         writer.write(e, "error", donot_print=True)
-    #     if is_main_process():
-    #         raise
 
 
 if __name__ == "__main__":
