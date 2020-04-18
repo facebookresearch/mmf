@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import collections
 import gc
 import glob
 import importlib
@@ -100,6 +101,19 @@ def get_mmf_cache_dir():
     if not os.path.exists(cache_dir):
         cache_dir = os.path.join(get_mmf_root(), cache_dir)
     return cache_dir
+
+
+def get_absolute_path(paths):
+    # String check should be first as Sequence would pass for string too
+    if isinstance(paths, str):
+        if not os.path.isabs(paths):
+            mmf_root = get_mmf_root()
+            paths = os.path.join(mmf_root, paths)
+        return paths
+    elif isinstance(paths, collections.abc.Iterable):
+        return [get_absolute_path(path) for path in paths]
+    else:
+        raise TypeError("Paths passed to dataset should either be " "string or list")
 
 
 def get_optimizer_parameters(model, config):

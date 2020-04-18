@@ -1,10 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from mmf.datasets.databases.image_database import ImageDatabase
+from mmf.datasets.databases.annotation_database import AnnotationDatabase
 
 
-class SceneGraphDatabase(ImageDatabase):
-    def __init__(self, scene_graph_path):
-        super().__init__(scene_graph_path)
+class SceneGraphDatabase(AnnotationDatabase):
+    def __init__(self, config, scene_graph_path, *args, **kwargs):
+        super().__init__(config, scene_graph_path, *args, **kwargs)
         self.data_dict = {}
         for item in self.data:
             self.data_dict[item["image_id"]] = item

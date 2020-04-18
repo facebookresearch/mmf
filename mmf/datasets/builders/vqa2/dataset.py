@@ -6,8 +6,8 @@ import tqdm
 
 from mmf.common.sample import Sample
 from mmf.datasets.base_dataset import BaseDataset
+from mmf.datasets.databases.annotation_database import AnnotationDatabase
 from mmf.datasets.databases.features_database import FeaturesDatabase
-from mmf.datasets.databases.image_database import ImageDatabase
 from mmf.utils.distributed import is_master
 from mmf.utils.general import get_mmf_root
 
@@ -31,7 +31,7 @@ class VQA2Dataset(BaseDataset):
 
         self.imdb_file = imdb_files[dataset_type][imdb_file_index]
         self.imdb_file = self._get_absolute_path(self.imdb_file)
-        self.imdb = ImageDatabase(self.imdb_file)
+        self.imdb = AnnotationDatabase(config, self.imdb_file)
 
         self.kwargs = kwargs
         self.image_depth_first = self.config.image_depth_first
