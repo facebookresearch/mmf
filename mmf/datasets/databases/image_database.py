@@ -72,21 +72,14 @@ class ImageDatabase(torch.utils.data.Dataset):
         self.transform = transform
         self.annotation_db = annotation_db
         self.loader = loader
-        self.image_key = image_key
+        self.image_key = config.get("image_key", None)
+        self.image_key = image_key if image_key else self.image_key
         self.is_valid_file = is_valid_file
 
         if self.image_key:
             assert (
                 self.annotation_db is not None
             ), "Annotation DB should be specified with image key"
-
-        if self.transform is None:
-            warnings.warn(
-                "No transform has been provided to Image Database. "
-                + "Raw images will be returned. "
-                + "User is expected to post process them. "
-                + "Either use 'set_transforms' or pass transform to init."
-            )
 
     def set_annotation_db(self, annotation_db):
         self.annotation_db = annotation_db
