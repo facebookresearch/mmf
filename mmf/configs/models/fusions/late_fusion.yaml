@@ -1,0 +1,52 @@
+# Mostly same configs/models/mmbt/defaults.yaml config
+model_config:
+  late_fusion:
+    # Either pretraining or classification
+    bert_model_name: bert-base-uncased
+    direct_features_input: false
+    freeze_text: false
+    freeze_modal: false
+    freeze_complete_base: false
+    finetune_lr_multiplier: 1
+    # Dimension of the embedding finally returned by the modal encoder
+    modal_hidden_size: 2048
+    # Dimension of the embedding finally returned by the text encoder
+    text_hidden_size: 768
+    # Used when classification head is activated
+    num_labels: 2
+    # Number of features extracted out per image
+    num_features: 100
+
+    modal_encoder:
+      type: resnet152
+      params:
+        pretrained: true
+        pool_type: avg
+        num_output_features: 1
+
+    text_encoder:
+      type: transformer
+      params:
+        bert_model_name: ${model_config.late_fusion.bert_model_name}
+        hidden_size: 768
+        num_hidden_layers: 12
+        num_attention_heads: 12
+        output_attentions: false
+        output_hidden_states: false
+
+    modal_classifier:
+      type: mlp
+      params:
+        in_dim: 2048
+        out_dim: 2
+        hidden_dim: 768
+        num_layers: 0
+
+
+    text_classifier:
+      type: mlp
+      params:
+        in_dim: 768
+        out_dim: 2
+        hidden_dim: 768
+        num_layers: 0
