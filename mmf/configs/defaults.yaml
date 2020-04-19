@@ -158,10 +158,10 @@ optimizer: {}
 # Configuration for scheduler, examples can be found in models' configs
 scheduler: {}
 
-# Common configurations for MMF
-mmf_config:
+# Common environment configurations for MMF
+env:
     # Universal cache directory for mmf
-    cache_dir: ./mmf_cache
+    cache_dir: .mmf_cache
 
 # Configuration for the distributed setup
 distributed:
