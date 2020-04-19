@@ -25,6 +25,7 @@ in the following way:
                - type: custom
                - params: {}
 """
+import collections
 import warnings
 
 import torch
@@ -113,8 +114,8 @@ class MMFLoss(nn.Module):
     contain proper dataset type in keys, so that it is easy to figure out
     which one is the val loss and which one is train loss.
 
-    For example: it will return ``{"val/logit_bce": 27.4}``, in case
-    `logit_bce` is used and SampleList is from `val` set.
+    For example: it will return ``{"val/vqa2/logit_bce": 27.4}``, in case
+    `logit_bce` is used and SampleList is from `val` set of dataset `vqa2`.
 
     Args:
         params (type): Description of parameter `params`.
@@ -130,13 +131,23 @@ class MMFLoss(nn.Module):
         if params is None:
             params = {}
         self.writer = registry.get("writer")
-        if "type" not in params:
-            raise ValueError(
-                "Parameters to loss must have 'type' field to"
-                "specify type of loss to instantiate"
-            )
 
-        loss_name = params["type"]
+        is_mapping = isinstance(params, collections.abc.MutableMapping)
+
+        if is_mapping:
+            if "type" not in params:
+                raise ValueError(
+                    "Parameters to loss must have 'type' field to"
+                    "specify type of loss to instantiate"
+                )
+            else:
+                loss_name = params["type"]
+        else:
+            assert isinstance(
+                params, str
+            ), "loss must be a string or dictionary with 'type' key"
+            loss_name = params
+
         self.name = loss_name
 
         loss_class = registry.get_loss_class(loss_name)
@@ -147,9 +158,13 @@ class MMFLoss(nn.Module):
             )
         # Special case of multi as it requires an array
         if loss_name == "multi":
+            assert is_mapping
             self.loss_criterion = loss_class(params)
         else:
-            loss_params = params.get("params", {})
+            if is_mapping:
+                loss_params = params.get("params", {})
+            else:
+                loss_params = {}
             self.loss_criterion = loss_class(**loss_params)
 
     def forward(self, sample_list, model_output, *args, **kwargs):
