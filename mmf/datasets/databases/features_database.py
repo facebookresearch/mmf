@@ -5,70 +5,44 @@ import torch
 import tqdm
 
 from mmf.common.registry import registry
-from mmf.datasets.readers.feature_readers import FeatureReader
+from mmf.datasets.databases.image_database import ImageDatabase
+from mmf.datasets.databases.readers.feature_readers import FeatureReader
 from mmf.utils.distributed import is_master
+from mmf.utils.general import get_absolute_path
 
 
-class FeaturesDatabase:
-    def __init__(self, features_type, *args, **kwargs):
-        self.features_db = None
-        if features_type == "coco":
-            self.features_db = COCOFeaturesDatabase(*args, **kwargs)
-        else:
-            raise ValueError("Unknown features' type {}".format(features_type))
-
-        self._dir_representation = dir(self)
-
-    def __getattr__(self, name):
-        if "_dir_representations" in self.__dict__ and name in self._dir_representation:
-            return getattr(self, name)
-        elif "features_db" in self.__dict__ and hasattr(self.features_db, name):
-            return getattr(self.features_db, name)
-        else:
-            raise AttributeError(name)
-
-    def __getitem__(self, idx):
-        return self.features_db[idx]
-
-    def __len__(self):
-        return len(self.features_db)
-
-
-class BaseFeaturesDatabase(torch.utils.data.Dataset):
-    def __init__(self):
-        super(BaseFeaturesDatabase, self).__init__()
-
-
-class COCOFeaturesDatabase(BaseFeaturesDatabase):
-    def __init__(self, *args, **kwargs):
-        super(COCOFeaturesDatabase, self).__init__()
+class FeaturesDatabase(ImageDatabase):
+    def __init__(
+        self, config, path, annotation_db=None, feature_key=None, *args, **kwargs
+    ):
+        super().__init__()
         self.feature_readers = []
         self.feature_dict = {}
-
-        self.fast_read = kwargs["fast_read"]
+        self.feature_key = config.get("feature_key", "feature_path")
+        self.feature_key = feature_key if feature_key else self.feature_key
+        self._fast_read = config.get("fast_read", False)
         self.writer = registry.get("writer")
 
-        for image_feature_dir in kwargs["directories"]:
+        path = path.split(",")
+
+        for image_feature_dir in path:
             feature_reader = FeatureReader(
-                base_path=image_feature_dir,
-                depth_first=kwargs["depth_first"],
-                max_features=kwargs["max_features"],
+                base_path=get_absolute_path(image_feature_dir),
+                depth_first=config.get("depth_first", False),
+                max_features=config.get("max_features", 100),
             )
             self.feature_readers.append(feature_reader)
 
-        self.imdb = kwargs["imdb"]
-        self.kwargs = kwargs
-        self.should_return_info = kwargs.get("return_info", True)
+        self.annotation_db = annotation_db
+        self._should_return_info = config.get("return_features_info", True)
 
-        if self.fast_read:
-            self.writer.write(
-                "Fast reading features from %s" % (", ".join(kwargs["directories"]))
-            )
+        if self._fast_read:
+            self.writer.write("Fast reading features from {}".format(", ".join(path)))
             self.writer.write("Hold tight, this may take a while...")
             self._threaded_read()
 
     def _threaded_read(self):
-        elements = [idx for idx in range(1, len(self.imdb))]
+        elements = [idx for idx in range(1, len(self.annotation_db))]
         pool = ThreadPool(processes=4)
 
         with tqdm.tqdm(total=len(elements), disable=not is_master()) as pbar:
@@ -78,7 +52,7 @@ class COCOFeaturesDatabase(BaseFeaturesDatabase):
         pool.close()
 
     def _fill_cache(self, idx):
-        feat_file = self.imdb[idx]["feature_path"]
+        feat_file = self.annotation_db[idx]["feature_path"]
         features, info = self._read_features_and_info(feat_file)
         self.feature_dict[feat_file] = (features, info)
 
@@ -92,11 +66,12 @@ class COCOFeaturesDatabase(BaseFeaturesDatabase):
             features.append(feature)
             infos.append(info)
 
-        if not self.should_return_info:
+        if not self._should_return_info:
             infos = None
         return features, infos
 
     def _get_image_features_and_info(self, feat_file):
+        assert isinstance(feat_file, str)
         image_feats, infos = self.feature_dict.get(feat_file, (None, None))
 
         if image_feats is None:
@@ -105,27 +80,40 @@ class COCOFeaturesDatabase(BaseFeaturesDatabase):
         return image_feats, infos
 
     def __len__(self):
-        return len(self.imdb) - 1
+        self._test_annotation_db_present()
+        return len(self.annotation_db)
 
     def __getitem__(self, idx):
-        image_info = self.imdb[idx]
-        image_file_name = image_info.get("feature_path", None)
+        self._test_annotation_db_present()
+        image_info = self.annotation_db[idx]
+        return self.get(image_info)
 
-        if image_file_name is None:
-            image_file_name = "{}.npy".format(image_info["image_id"])
+    def get(self, item):
+        feature_path = item.get(self.feature_key, None)
 
-        if "genome" in image_file_name:
-            image_file_name = (
-                str(int(image_file_name.split("_")[-1].split(".")[0])) + ".npy"
-            )
+        if feature_path is None:
+            feature_path = self._get_feature_path_based_on_image(item)
 
-        image_features, infos = self._get_image_features_and_info(image_file_name)
+        return self.from_path(feature_path)
+
+    def from_path(self, path):
+        assert isinstance(path, str)
+
+        if "genome" in path:
+            path = str(int(path.split("_")[-1].split(".")[0])) + ".npy"
+
+        features, infos = self._get_image_features_and_info(path)
 
         item = {}
-        for idx, image_feature in enumerate(image_features):
+        for idx, image_feature in enumerate(features):
             item["image_feature_%s" % idx] = image_feature
             if infos is not None:
                 # infos[idx].pop("cls_prob", None)
                 item["image_info_%s" % idx] = infos[idx]
 
         return item
+
+    def _get_feature_path_based_on_image(self, item):
+        image_path = self._get_attrs(item)[0]
+        feature_path = ".".join(image_path.split(".")[:-1]) + ".npy"
+        return feature_path
