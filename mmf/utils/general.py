@@ -5,17 +5,12 @@ import gc
 import glob
 import importlib
 import os
-import tarfile
-import zipfile
 from bisect import bisect
 
-import requests
 import torch
-import tqdm
 import yaml
 from torch import nn
 
-from mmf.common.constants import DOWNLOAD_CHUNK_SIZE
 from mmf.utils.distributed import get_world_size
 
 

@@ -3,7 +3,6 @@ import os
 import unittest
 
 import torch
-import yaml
 
 import mmf.modules.metrics as metrics
 from mmf.common.registry import registry
