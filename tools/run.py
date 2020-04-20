@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import random
 
-import numpy as np
 import torch
 
 from mmf.common.registry import registry

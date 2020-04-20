@@ -32,7 +32,6 @@
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 
-import recommonmark
 import sphinx_rtd_theme
 from recommonmark.transform import AutoStructify
 
@@ -181,6 +180,7 @@ texinfo_documents = [
 ]
 
 github_doc_root = "https://github.com/facebookresearch/mmf/blob/v0.3/"
+
 
 # At the bottom of conf.py
 def setup(app):

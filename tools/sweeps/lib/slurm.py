@@ -1,5 +1,4 @@
 # Copied from fairseq. Mostly written by @myleott. Adapted accordingly for pythia
-import argparse
 import datetime
 import itertools
 import os

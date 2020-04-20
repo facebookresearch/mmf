@@ -1,8 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import argparse
-import sys
-
-from mmf.common.registry import registry
 
 
 class Flags:
