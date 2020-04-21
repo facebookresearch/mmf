@@ -19,10 +19,12 @@ checkpoint
 .cache
 data
 save
+*.eggs
 .eggs
 eggs/
 *.egg
 .DS_Store
+.vscode
 .vscode/*
 *.so
 *-checkpoint.ipynb

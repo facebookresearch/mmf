@@ -1,8 +1,10 @@
 :github_url: https://github.com/facebookresearch/mmf
 
-################
-Adding a dataset
-################
+##########################
+Tutorial: Adding a dataset
+##########################
+
+# MMF
 
 This is a tutorial on how to add a new dataset to MMF.
 

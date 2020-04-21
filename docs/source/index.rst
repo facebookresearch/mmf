@@ -38,63 +38,60 @@
         </div>
     </embed>
 
-MMF's Documentation
-==================================
 
 MMF is a modular framework for supercharging vision and language
-research built on top of PyTorch.
+research built on top of PyTorch. Using MMF, researchers and devlopers can train
+custom models for VQA, Image Captioning, Visual Dialog, Hate Detection and other vision
+and language tasks.
+
 
 Citation
 ========
 
 If you use MMF in your work, please cite:
 
-```text
-@inproceedings{Singh2019TowardsVM,
-  title={Towards VQA Models That Can Read},
-  author={Singh, Amanpreet and Natarajan, Vivek and Shah, Meet and Jiang, Yu and Chen, Xinlei and Batra, Dhruv and Parikh, Devi and Rohrbach, Marcus},
-  booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
-  year={2019}
-}
-```
+.. code-block:: text
 
-and
-
-```text
-@inproceedings{singh2019pythia,
-  title={Pythia-a platform for vision \& language research},
-  author={Singh, Amanpreet and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
-  booktitle={SysML Workshop, NeurIPS},
-  volume={2018},
-  year={2019}
-}
-```
+    @inproceedings{singh2019pythia,
+        title={Pythia-a platform for vision \& language research},
+        author={Singh, Amanpreet and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
+        booktitle={SysML Workshop, NeurIPS},
+        volume={2018},
+        year={2019}
+    }
 
 .. toctree::
    :maxdepth: 1
-   :caption: Tutorials
+   :caption: Getting Started
 
-   tutorials/quickstart
+   notes/installation
+   notes/quickstart
+   notes/features
+   notes/pretrained_models
+   notes/challenge
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Extending MMF
+
    tutorials/concepts
-   tutorials/features
    tutorials/dataset
-   tutorials/pretrained_models
-   tutorials/challenge
+   tutorials/late_fusion
+   tutorials/mmf_bert
 
 .. toctree::
    :maxdepth: 1
-   :caption: Library
+   :caption: Library Reference
 
-   common/registry
-   common/sample
-   models/base_model
-   modules/losses
-   modules/metrics
-   tasks/base_dataset_builder
-   tasks/base_dataset
-   tasks/base_task
-   tasks/processors
-   utils/text
+   lib/common/registry
+   lib/common/sample
+   lib/models/base_model
+   lib/modules/losses
+   lib/modules/metrics
+   lib/datasets/base_dataset_builder
+   lib/datasets/base_dataset
+   lib/datasets/processors
+   lib/utils/text
 
 Indices and tables
 ==================
