@@ -4,10 +4,10 @@ model_config:
 
 dataset_config:
   masked_vqa2:
-    imdb_files:
+    annotations:
       train:
       - datasets/vqa2/imdbs/imdb_train2014.npy
-    return_info: true
+    return_features_info: true
     use_image_feature_masks: true
 
 optimizer:

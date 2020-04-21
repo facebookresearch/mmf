@@ -1,23 +1,25 @@
 dataset_config:
   coco:
     data_root_dir: ../data
-    image_depth_first: false
+    depth_first: false
     fast_read: false
-    image_features:
+    use_images: false
+    use_features: true
+    features:
         train:
         - coco/detectron_fix_100/fc6/train_val_2014
         val:
         - coco/detectron_fix_100/fc6/train_val_2014
         test:
         - coco/detectron_fix_100/fc6/train_val_2014
-    imdb_files:
+    annotations:
         train:
         - imdb/coco_captions/imdb_karpathy_train.npy
         val:
         - imdb/coco_captions/imdb_karpathy_val.npy
         test:
         - imdb/coco_captions/imdb_karpathy_test.npy
-    features_max_len: 100
+    max_features: 100
     processors:
       text_processor:
         type: vocab
@@ -38,7 +40,7 @@ dataset_config:
             embedding_name: glove.6B.300d
             vocab_file: vocabs/vocabulary_captioning_thresh5.txt
     min_captions_per_img: 5
-    return_info: false
+    return_features_info: false
     # Return OCR information
     use_ocr: false
     # Return spatial information of OCR tokens if present

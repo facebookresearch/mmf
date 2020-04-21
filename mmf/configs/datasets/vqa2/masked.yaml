@@ -1,23 +1,25 @@
 dataset_config:
   masked_vqa2:
     data_root_dir: ../data
-    image_depth_first: false
+    depth_first: false
     fast_read: false
-    image_features:
+    use_images: false
+    use_features: true
+    features:
       train:
       - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
       val:
       - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
       test:
       - datasets/coco/features/lmdbs/coco_test2015.lmdb
-    imdb_files:
+    annotations:
       train:
       - datasets/vqa2/imdbs/imdb_train2014.npy
       val:
       - datasets/vqa2/imdbs/imdb_val2014.npy
       test:
       - datasets/vqa2/imdbs/imdb_test2015.npy
-    features_max_len: 100
+    max_features: 100
     use_image_feature_masks: false
     processors:
       masked_token_processor:
@@ -29,7 +31,7 @@ dataset_config:
               do_lower_case: true
           mask_probability: 0.15
           max_seq_length: 128
-    return_info: false
+    return_features_info: false
     # Return OCR information
     use_ocr: false
     # Return spatial information of OCR tokens if present

@@ -11,7 +11,7 @@ model_config:
 
 dataset_config:
   mmimdb:
-    return_info: true
+    return_features_info: true
     processors:
       text_processor:
         type: bert_tokenizer

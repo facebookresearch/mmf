@@ -4,7 +4,7 @@ model_config:
 
 dataset_config:
   masked_coco:
-    return_info: true
+    return_features_info: true
     use_image_feature_masks: true
 
 optimizer:

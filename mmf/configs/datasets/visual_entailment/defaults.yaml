@@ -1,23 +1,25 @@
 dataset_config:
   visual_entailment:
       data_root_dir: ../data
-      image_depth_first: false
+      depth_first: false
       fast_read: false
-      image_features:
+      use_images: false
+      use_features: true
+      features:
         train:
         - datasets/visual_entailment/features/lmdbs/flickr30k.lmdb
         val:
         - datasets/visual_entailment/features/lmdbs/flickr30k.lmdb
         test:
         - datasets/visual_entailment/features/lmdbs/flickr30k.lmdb
-      imdb_files:
+      annotations:
         train:
         - datasets/visual_entailment/imdbs/snli_ve_train.jsonl
         val:
         - datasets/visual_entailment/imdbs/snli_ve_dev.jsonl
         test:
         - datasets/visual_entailment/imdbs/snli_ve_test.jsonl
-      features_max_len: 100
+      max_features: 100
       processors:
         text_processor:
           type: vocab
@@ -34,7 +36,7 @@ dataset_config:
           type: bbox
           params:
             max_length: 50
-      return_info: false
+      return_features_info: false
       # Return OCR information
       use_ocr: false
       # Return spatial information of OCR tokens if present

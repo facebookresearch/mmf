@@ -1,17 +1,19 @@
 dataset_config:
   m4c_textvqa:
     data_root_dir: ../data
-    image_depth_first: false
+    depth_first: false
     fast_read: false
-    features_max_len: 100
-    image_features:
+    max_features: 100
+    use_images: false
+    use_features: true
+    features:
       train:
       - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
       val:
       - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
       test:
       - open_images/detectron_fix_100/fc6/test,m4c_textvqa_ocr_en_frcn_features/test_images
-    imdb_files:
+    annotations:
       train:
       - imdb/m4c_textvqa/imdb_train_ocr_en.npy
       val:
@@ -60,7 +62,7 @@ dataset_config:
         type: bbox
         params:
           max_length: 50
-    return_info: true
+    return_features_info: true
     use_ocr: true
     use_ocr_info: true
 

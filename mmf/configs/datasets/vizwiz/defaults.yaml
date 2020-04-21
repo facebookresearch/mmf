@@ -1,23 +1,25 @@
 dataset_config:
   vizwiz:
       data_root_dir: ../data
-      image_depth_first: false
+      depth_first: false
       fast_read: false
-      image_features:
+      use_images: false
+      use_features: true
+      features:
           train:
           - vizwiz/detectron_fix_100/fc6/train,vizwiz/resnet152/train
           val:
           - vizwiz/detectron_fix_100/fc6/val,vizwiz/resnet152/val
           test:
           - vizwiz/detectron_fix_100/fc6/test,vizwiz/resnet152/test
-      imdb_files:
+      annotations:
           train:
           - imdb/vizwiz/imdb_vizwiz_train.npy
           val:
           - imdb/vizwiz/imdb_vizwiz_val.npy
           test:
           - imdb/vizwiz/imdb_vizwiz_test.npy
-      features_max_len: 100
+      max_features: 100
       processors:
         text_processor:
           type: vocab
@@ -50,7 +52,7 @@ dataset_config:
           type: bbox
           params:
             max_length: 50
-      return_info: true
+      return_features_info: true
       # Return OCR information
       use_ocr: false
       # Return spatial information of OCR tokens if present

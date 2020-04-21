@@ -2,14 +2,16 @@
 # See how we are using COCO here which can cause a lot of confusion
 dataset_config:
   coco:
-    image_features:
+    use_images: false
+    use_features: true
+    features:
       train:
       - open_images/detectron_fix_100/fc6/train
       val:
       - open_images/detectron_fix_100/fc6/train
       test:
       - open_images/detectron_fix_100/fc6/test
-    imdb_files:
+    annotations:
       train:
       - imdb/m4c_textcaps/imdb_train.npy
       val:
@@ -38,7 +40,7 @@ dataset_config:
     min_captions_per_img: 5
     tile_captions_to_match_min_num: true
     remove_unk_from_caption_prediction: true
-    return_info: false
+    return_features_info: false
     # Return OCR information
     use_ocr: false
     # Return spatial information of OCR tokens if present

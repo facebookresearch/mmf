@@ -5,14 +5,11 @@ import torch
 import tqdm
 
 from mmf.common.sample import Sample
-from mmf.datasets.base_dataset import BaseDataset
-from mmf.datasets.databases.annotation_database import AnnotationDatabase
-from mmf.datasets.databases.features_database import FeaturesDatabase
+from mmf.datasets.mmf_dataset import MMFDataset
 from mmf.utils.distributed import is_master
-from mmf.utils.general import get_mmf_root
 
 
-class VQA2Dataset(BaseDataset):
+class VQA2Dataset(MMFDataset):
     def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
         if "name" in kwargs:
             name = kwargs["name"]
@@ -21,60 +18,10 @@ class VQA2Dataset(BaseDataset):
         else:
             name = "vqa2"
         super().__init__(name, config, dataset_type)
-        imdb_files = self.config.imdb_files
 
-        if dataset_type not in imdb_files:
-            raise ValueError(
-                "Dataset type {} is not present in "
-                "imdb_files of dataset config".format(dataset_type)
-            )
-
-        self.imdb_file = imdb_files[dataset_type][imdb_file_index]
-        self.imdb_file = self._get_absolute_path(self.imdb_file)
-        self.imdb = AnnotationDatabase(config, self.imdb_file)
-
-        self.kwargs = kwargs
-        self.image_depth_first = self.config.image_depth_first
-        self._should_fast_read = self.config.fast_read
-
+        self._should_fast_read = self.config.get("fast_read", False)
         self.use_ocr = self.config.use_ocr
         self.use_ocr_info = self.config.use_ocr_info
-        self._use_features = False
-        if hasattr(self.config, "image_features"):
-            self._use_features = True
-            self.features_max_len = self.config.features_max_len
-            self._return_info = self.config.get("return_info", True)
-
-            all_image_feature_dirs = self.config.image_features[dataset_type]
-            curr_image_features_dir = all_image_feature_dirs[imdb_file_index]
-            curr_image_features_dir = curr_image_features_dir.split(",")
-            curr_image_features_dir = self._get_absolute_path(curr_image_features_dir)
-
-            self.features_db = FeaturesDatabase(
-                "coco",
-                directories=curr_image_features_dir,
-                depth_first=self.image_depth_first,
-                max_features=self.features_max_len,
-                fast_read=self._should_fast_read,
-                imdb=self.imdb,
-                return_info=self._return_info,
-            )
-
-    def _get_absolute_path(self, paths):
-        if isinstance(paths, list):
-            return [self._get_absolute_path(path) for path in paths]
-        elif isinstance(paths, str):
-            if not os.path.isabs(paths):
-                pythia_root = get_mmf_root()
-                paths = os.path.join(pythia_root, self.config.data_root_dir, paths)
-            return paths
-        else:
-            raise TypeError(
-                "Paths passed to dataset should either be " "string or list"
-            )
-
-    def __len__(self):
-        return len(self.imdb)
 
     def try_fast_read(self):
         # Don't fast read in case of test set.
@@ -89,7 +36,7 @@ class VQA2Dataset(BaseDataset):
             )
             self.cache = {}
             for idx in tqdm.tqdm(
-                range(len(self.imdb)), miniters=100, disable=not is_master()
+                range(len(self.annotation_db)), miniters=100, disable=not is_master()
             ):
                 self.cache[idx] = self.load_item(idx)
 
@@ -100,7 +47,7 @@ class VQA2Dataset(BaseDataset):
             return self.load_item(idx)
 
     def load_item(self, idx):
-        sample_info = self.imdb[idx]
+        sample_info = self.annotation_db[idx]
         current_sample = Sample()
 
         if "question_tokens" in sample_info:

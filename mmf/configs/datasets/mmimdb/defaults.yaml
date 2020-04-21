@@ -1,23 +1,25 @@
 dataset_config:
   mmimdb:
       data_root_dir: ../data
-      image_depth_first: false
+      depth_first: false
       fast_read: false
-      image_features:
+      use_images: false
+      use_features: true
+      features:
         train:
         - datasets/mmimdb/features/lmdbs/mmimdb.lmdb
         val:
         - datasets/mmimdb/features/lmdbs/mmimdb.lmdb
         test:
         - datasets/mmimdb/features/lmdbs/mmimdb.lmdb
-      imdb_files:
+      annotations:
         train:
         - datasets/mmimdb/imdbs/train.jsonl
         val:
         - datasets/mmimdb/imdbs/dev.jsonl
         test:
         - datasets/mmimdb/imdbs/test.jsonl
-      features_max_len: 100
+      max_features: 100
       processors:
         text_processor:
           type: vocab
@@ -43,7 +45,7 @@ dataset_config:
               preprocessor:
                   type: simple_word
                   params: {}
-      return_info: false
+      return_features_info: false
       # Return OCR information
       use_ocr: false
       # Return spatial information of OCR tokens if present

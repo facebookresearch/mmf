@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from multiprocessing.pool import ThreadPool
 
-import torch
 import tqdm
 
 from mmf.common.registry import registry
@@ -15,7 +14,7 @@ class FeaturesDatabase(ImageDatabase):
     def __init__(
         self, config, path, annotation_db=None, feature_key=None, *args, **kwargs
     ):
-        super().__init__()
+        super().__init__(config, path, annotation_db, *args, **kwargs)
         self.feature_readers = []
         self.feature_dict = {}
         self.feature_key = config.get("feature_key", "feature_path")
@@ -80,11 +79,11 @@ class FeaturesDatabase(ImageDatabase):
         return image_feats, infos
 
     def __len__(self):
-        self._test_annotation_db_present()
+        self._check_annotation_db_present()
         return len(self.annotation_db)
 
     def __getitem__(self, idx):
-        self._test_annotation_db_present()
+        self._check_annotation_db_present()
         image_info = self.annotation_db[idx]
         return self.get(image_info)
 

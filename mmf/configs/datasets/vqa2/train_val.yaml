@@ -1,21 +1,23 @@
 dataset_config:
   vqa2_train_val:
-    image_features:
+    use_images: false
+    use_features: true
+    features:
       train:
       - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
       - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
       val:
       - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
-    imdb_files:
+    annotations:
       train:
       - imdb/vqa/imdb_train2014.npy
       - imdb/vqa/imdb_val2014.npy
       val:
       - imdb/vqa/imdb_minival2014.npy
     data_root_dir: ../data
-    image_depth_first: false
+    depth_first: false
     fast_read: false
-    features_max_len: 100
+    max_features: 100
     processors:
       text_processor:
         type: vocab
@@ -49,7 +51,7 @@ dataset_config:
         type: bbox
         params:
           max_length: 50
-    return_info: false
+    return_features_info: false
     # Return OCR information
     use_ocr: false
     # Return spatial information of OCR tokens if present

@@ -16,7 +16,7 @@ model_config:
 
 dataset_config:
   masked_sbu:
-    return_info: true
+    return_features_info: true
 
 optimizer:
   type: adam_w

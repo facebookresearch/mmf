@@ -1,23 +1,25 @@
 dataset_config:
   masked_conceptual_captions:
     data_root_dir: ../data
-    image_depth_first: false
+    depth_first: false
     fast_read: false
-    image_features:
+    use_images: false
+    use_features: true
+    features:
       train:
       - datasets/cc/features/lmdbs/cc_train.lmdb
       val:
       - datasets/cc/features/lmdbs/cc_val.lmdb
       test:
       - datasets/cc/features/lmdbs/cc_val.lmdb
-    imdb_files:
+    annotations:
       train:
       - datasets/cc/imdbs/train_all.npy
       val:
       - datasets/cc/imdbs/val.npy
       test:
       - datasets/cc/imdbs/val.npy
-    features_max_len: 100
+    max_features: 100
     two_sentence: true
     two_sentence_probability: -0.1
     false_caption: true
@@ -33,7 +35,7 @@ dataset_config:
               do_lower_case: true
           mask_probability: 0.15
           max_seq_length: 128
-    return_info: false
+    return_features_info: false
     # Return OCR information
     use_ocr: false
     # Return spatial information of OCR tokens if present

@@ -3,7 +3,7 @@ includes:
 
 dataset_config:
   m4c_textvqa:
-    imdb_files:
+    annotations:
       train:
       - imdb/m4c_textvqa/imdb_train_ocr_ml.npy
       val:

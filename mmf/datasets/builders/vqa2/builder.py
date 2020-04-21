@@ -28,8 +28,8 @@ class VQA2Builder(BaseDatasetBuilder):
     def load(self, config, dataset_type, *args, **kwargs):
         self.config = config
 
-        image_features = config["image_features"]["train"][0].split(",")
-        self.num_image_features = len(image_features)
+        features = config["features"]["train"][0].split(",")
+        self.num_image_features = len(features)
 
         registry.register("num_image_features", self.num_image_features)
 
@@ -65,19 +65,19 @@ class VQA2Builder(BaseDatasetBuilder):
         self._dataset_class = cls
 
     def prepare_data_set(self, config, dataset_type):
-        if dataset_type not in config.imdb_files:
+        if dataset_type not in config.annotations:
             warnings.warn(
                 "Dataset type {} is not present in "
-                "imdb_files of dataset config. Returning None. "
+                "annotations of dataset config. Returning None. "
                 "This dataset won't be used.".format(dataset_type)
             )
             return None
 
-        imdb_files = config["imdb_files"][dataset_type]
+        annotations = config["annotations"][dataset_type]
 
         datasets = []
 
-        for imdb_idx in range(len(imdb_files)):
+        for imdb_idx in range(len(annotations)):
             cls = self.dataset_class
             dataset = cls(config, dataset_type, imdb_idx)
             datasets.append(dataset)

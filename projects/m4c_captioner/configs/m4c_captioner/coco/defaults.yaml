@@ -1,13 +1,15 @@
 dataset_config:
   m4c_textcaps:
-    image_features:
+    use_images: false
+    use_features: true
+    features:
       train:
       - coco_obj_frcn_features/trainval2014,coco_ocr_en_frcn_features/trainval2014
       val:
       - coco_obj_frcn_features/trainval2014,coco_ocr_en_frcn_features/trainval2014
       test:
       - coco_obj_frcn_features/trainval2014,coco_ocr_en_frcn_features/trainval2014
-    imdb_files:
+    annotations:
       train:
       - imdb/m4c_coco/imdb_karpathy_train.npy
       val:

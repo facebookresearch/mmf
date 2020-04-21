@@ -3,8 +3,10 @@ includes:
 
 dataset_config:
   visual_entailment:
-    return_info: true
-    image_features:
+    return_features_info: true
+    use_images: false
+    use_features: true
+    features:
         train:
         - datasets/visual_entailment/features/lmdbs/flickr30k.lmdb
         - datasets/visual_entailment/features/lmdbs/flickr30k.lmdb
@@ -12,7 +14,7 @@ dataset_config:
         - datasets/visual_entailment/features/lmdbs/flickr30k.lmdb
         test:
         - datasets/visual_entailment/features/lmdbs/flickr30k.lmdb
-    imdb_files:
+    annotations:
         train:
         - datasets/visual_entailment/imdbs/snli_ve_train.jsonl
         - datasets/visual_entailment/imdbs/snli_ve_dev.jsonl
