@@ -1,6 +1,6 @@
 dataset_config:
   masked_coco:
-    return_info: true
+    return_features_info: true
 
 optimizer:
   type: adam_w

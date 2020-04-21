@@ -22,7 +22,7 @@ class VisualDialogTask(VQA2Task):
         embedding_name = data_config["embedding_name"]
         max_seq_len = data_config["max_seq_len"]
         max_history_len = data_config["max_history_len"]
-        image_depth_first = data_config["image_depth_first"]
+        depth_first = data_config["depth_first"]
         image_fast_reader = data_config["image_fast_reader"]
 
         if "verbose" in data_config:
@@ -40,17 +40,17 @@ class VisualDialogTask(VQA2Task):
         else:
             image_max_loc = False
 
-        imdb_files = data_config[imdb_file_label]
+        annotations = data_config[imdb_file_label]
         image_feat_dirs = data_config[image_feature_dir_label]
 
-        condition = len(imdb_files) == len(image_feat_dirs)
+        condition = len(annotations) == len(image_feat_dirs)
         error = imdb_file_label + "length != " + image_feature_dir_label
         error += "length"
         assert condition, error
 
         datasets = []
 
-        for imdb_file, image_feature_dir in zip(imdb_files, image_feat_dirs):
+        for imdb_file, image_feature_dir in zip(annotations, image_feat_dirs):
             imdb_file = os.path.join(data_root_dir, imdb_file)
             image_feat_dirs = [
                 os.path.join(data_root_dir, d) for d in image_feature_dir.split(",")
@@ -61,7 +61,7 @@ class VisualDialogTask(VQA2Task):
                 "max_seq_len": max_seq_len,
                 "max_history_len": max_history_len,
                 "vocab_file": vocab_file,
-                "image_depth_first": image_depth_first,
+                "depth_first": depth_first,
                 "fast_read": image_fast_reader,
                 "verbose": verbose,
                 "test_mode": test_mode,
@@ -123,7 +123,7 @@ class VisualDialogTask(VQA2Task):
             "texts": questions,
             "answer_options": answer_options,
             "histories": histories,
-            "image_features": image_feature_variables,
+            "features": image_feature_variables,
             "image_dims": image_dim_variable,
             "texts_len": batch["questions_len"],
             "answer_options_len": batch["answer_options_len"],

@@ -8,15 +8,17 @@ model_config:
 
 dataset_config:
   vqa2:
-    return_info: true
-    image_features:
+    return_features_info: true
+    use_images: false
+    use_features: true
+    features:
       train:
       - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
       val:
       - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
       test:
       - datasets/coco/features/lmdbs/coco_test2015.lmdb
-    imdb_files:
+    annotations:
       train:
       - datasets/vqa2/imdbs/imdb_train2014.npy
       val:

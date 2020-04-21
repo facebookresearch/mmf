@@ -1,5 +1,5 @@
 dataset_config:
   conceptual_captions:
-    imdb_files:
+    annotations:
       train:
       - datasets/cc/imdbs/train_small.npy

@@ -1,23 +1,25 @@
 dataset_config:
   visual_dialog:
       data_root_dir: ../data
-      image_depth_first: false
+      depth_first: false
       fast_read: false
-      image_features:
+      use_images: false
+      use_features: true
+      features:
           train:
           - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
           val:
           - visual_dialog/detectron_fix_100/fc6/val2018,visual_dialog/resnet152/
           test:
           - visual_dialog/detectron_fix_100/fc6/test2018,visual_dialog/resnet152/
-      imdb_files:
+      annotations:
           train:
           - imdb/visual_dialog/visdial_1.0_train.json
           val:
           - imdb/visual_dialog/visdial_1.0_val.json
           test:
           - imdb/visual_dialog/visdial_1.0_test.json
-      features_max_len: 100
+      max_features: 100
       processors:
         text_processor:
           type: vocab

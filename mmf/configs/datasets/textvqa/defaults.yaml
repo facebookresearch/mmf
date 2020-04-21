@@ -1,23 +1,25 @@
 dataset_config:
   textvqa:
       data_root_dir: ../data
-      image_depth_first: false
+      depth_first: false
       fast_read: false
-      image_features:
+      use_images: false
+      use_features: true
+      features:
           train:
           - /private/home/asg/datasets/open_images/detectron_fix_100/fc6/train,open_images/resnet152/train
           val:
           - /private/home/asg/datasets/open_images/detectron_fix_100/fc6/train,open_images/resnet152/train
           test:
           - /private/home/asg/datasets/open_images/detectron_fix_100/fc6/test,open_images/resnet152/test
-      imdb_files:
+      annotations:
           train:
           - imdb/textvqa_0.5/imdb_textvqa_train.npy
           val:
           - imdb/textvqa_0.5/imdb_textvqa_val.npy
           test:
           - imdb/textvqa_0.5/imdb_textvqa_test.npy
-      features_max_len: 137
+      max_features: 137
       processors:
         text_processor:
           type: vocab
@@ -50,7 +52,7 @@ dataset_config:
           type: bbox
           params:
             max_length: 50
-      return_info: true
+      return_features_info: true
       # Return OCR information
       use_ocr: true
       # Return spatial information of OCR tokens if present

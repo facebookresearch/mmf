@@ -1,23 +1,25 @@
 dataset_config:
   masked_sbu:
     data_root_dir: ../data
-    image_depth_first: false
+    depth_first: false
     fast_read: false
-    image_features:
+    use_images: false
+    use_features: true
+    features:
         train:
         -  sbu_captions/detectron_fix_100/fc6/train_val
         val:
         -  sbu_captions/detectron_fix_100/fc6/train_val
         test:
         -  sbu_captions/detectron_fix_100/fc6/train_val
-    imdb_files:
+    annotations:
         train:
         - imdb/sbu_captions/train.npy
         val:
         - imdb/sbu_captions/val.npy
         test:
         - imdb/sbu_captions/val.npy
-    features_max_len: 100
+    max_features: 100
     two_sentence: true
     two_sentence_probability: -0.1
     false_caption: true
@@ -32,7 +34,7 @@ dataset_config:
               do_lower_case: true
           mask_probability: 0.15
           max_seq_length: 128
-    return_info: false
+    return_features_info: false
     # Return OCR information
     use_ocr: false
     # Return spatial information of OCR tokens if present

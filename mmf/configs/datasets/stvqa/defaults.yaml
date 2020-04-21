@@ -1,17 +1,19 @@
 dataset_config:
   stvqa:
     data_root_dir: ../data
-    image_depth_first: false
+    depth_first: false
     fast_read: false
-    features_max_len: 100
-    image_features:
+    max_features: 100
+    use_images: false
+    use_features: true
+    features:
       train:
       - m4c_stvqa_obj_frcn_features/train,m4c_stvqa_ocr_en_frcn_features/train
       val:
       - m4c_stvqa_obj_frcn_features/train,m4c_stvqa_ocr_en_frcn_features/train
       test:
       - m4c_stvqa_obj_frcn_features/test_task3,m4c_stvqa_ocr_en_frcn_features/test_task3
-    imdb_files:
+    annotations:
       train:
       - imdb/m4c_stvqa/imdb_subtrain.npy
       val:
@@ -60,7 +62,7 @@ dataset_config:
         type: bbox
         params:
           max_length: 50
-    return_info: true
+    return_features_info: true
     use_ocr: true
     use_ocr_info: true
 

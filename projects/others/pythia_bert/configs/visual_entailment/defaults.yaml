@@ -8,7 +8,7 @@ model_config:
 
 dataset_config:
   visual_entailment:
-    return_info: true
+    return_features_info: true
     processors:
       text_processor:
         type: bert_tokenizer

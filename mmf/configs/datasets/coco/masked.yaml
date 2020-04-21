@@ -1,23 +1,25 @@
 dataset_config:
   masked_coco:
     data_root_dir: ../data
-    image_depth_first: false
+    depth_first: false
     fast_read: false
-    image_features:
+    use_images: false
+    use_features: true
+    features:
       train:
       - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
       val:
       - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
       test:
       - datasets/coco/features/lmdbs/coco_test2015.lmdb
-    imdb_files:
+    annotations:
       train:
       - datasets/coco/imdbs/imdb_karpathy_train_by_image.npy
       val:
       - datasets/coco/imdbs/imdb_karpathy_val_by_image.npy
       test:
       - datasets/coco/imdbs/imdb_karpathy_test_by_image.npy
-    features_max_len: 100
+    max_features: 100
     two_sentence: false
     two_sentence_probability: 0.5
     false_caption: false
@@ -33,7 +35,7 @@ dataset_config:
               do_lower_case: true
           mask_probability: 0.15
           max_seq_length: 128
-    return_info: false
+    return_features_info: false
     # Return OCR information
     use_ocr: false
     # Return spatial information of OCR tokens if present

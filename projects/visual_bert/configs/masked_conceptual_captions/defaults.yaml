@@ -1,6 +1,6 @@
 dataset_config:
   masked_conceptual_captions:
-    return_info: true
+    return_features_info: true
 
 optimizer:
   type: adam_w

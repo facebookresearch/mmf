@@ -1,16 +1,18 @@
 dataset_config:
   visual_genome:
       data_root_dir: ../data
-      image_depth_first: false
+      depth_first: false
       fast_read: false
-      image_features:
+      use_images: false
+      use_features: true
+      features:
           train:
           - visual_genome/detectron_fix_100/fc6/,visual_genome/resnet152/
           val:
           - visual_genome/detectron_fix_100/fc6/,visual_genome/resnet152/
           test:
           - visual_genome/detectron_fix_100/fc6/,visual_genome/resnet152/
-      imdb_files:
+      annotations:
           train:
           - imdb/visual_genome/vg_question_answers.jsonl
           val:
@@ -24,7 +26,7 @@ dataset_config:
           - imdb/visual_genome/vg_scene_graphs_placeholder.jsonl
           test:
           - imdb/visual_genome/vg_scene_graphs_placeholder.jsonl
-      features_max_len: 100
+      max_features: 100
       processors:
         text_processor:
           type: vocab
@@ -83,7 +85,7 @@ dataset_config:
       return_scene_graph: true
       return_objects: true
       return_relationships: true
-      return_info: true
+      return_features_info: true
       no_unk: false
       # Return OCR information
       use_ocr: false

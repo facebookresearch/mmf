@@ -3,6 +3,6 @@ includes:
 
 dataset_config:
   masked_coco:
-    imdb_files:
+    annotations:
       train:
       - datasets/coco/imdbs/imdb_karpathy_train_by_image_10_pc.npy

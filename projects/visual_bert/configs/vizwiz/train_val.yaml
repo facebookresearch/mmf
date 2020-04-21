@@ -1,7 +1,9 @@
 dataset_config:
   vizwiz:
-    return_info: true
-    image_features:
+    return_features_info: true
+    use_images: false
+    use_features: true
+    features:
       train:
       - datasets/vizwiz/features/lmdbs/vizwiz.lmdb
       - datasets/vizwiz/features/lmdbs/vizwiz.lmdb
@@ -9,7 +11,7 @@ dataset_config:
       - datasets/vizwiz/features/lmdbs/vizwiz.lmdb
       test:
       - datasets/vizwiz/features/lmdbs/vizwiz.lmdb
-    imdb_files:
+    annotations:
       train:
       - datasets/vizwiz/imdbs/imdb_vizwiz_train.npy
       - datasets/vizwiz/imdbs/imdb_vizwiz_val.npy

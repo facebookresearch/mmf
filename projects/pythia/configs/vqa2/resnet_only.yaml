@@ -3,7 +3,9 @@ includes:
 
 dataset_config:
   vqa2:
-    image_features:
+    use_images: false
+    use_features: true
+    features:
       train:
       - coco/resnet152/train_val_2014
       val:

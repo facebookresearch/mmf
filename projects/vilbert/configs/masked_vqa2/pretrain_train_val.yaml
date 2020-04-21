@@ -3,13 +3,15 @@ includes:
 
 dataset_config:
   masked_vqa2:
-    image_features:
+    use_images: false
+    use_features: true
+    features:
       train:
       - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
       - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
-    imdb_files:
+    annotations:
       train:
       - datasets/vqa2/imdbs/imdb_train2014.npy
       - datasets/vqa2/imdbs/imdb_val2014.npy
-    return_info: true
+    return_features_info: true
     use_image_feature_masks: true

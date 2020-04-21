@@ -3,7 +3,7 @@ dataset_config:
     return_scene_graph: false
     return_objects: false
     return_relationships: false
-    return_info: false
+    return_features_info: false
     no_unk: true
 
 training:

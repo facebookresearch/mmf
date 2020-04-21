@@ -3,6 +3,6 @@ includes:
 
 dataset_config:
   masked_conceptual_captions:
-    imdb_files:
+    annotations:
       train:
       - datasets/cc/imdbs/train_small_10_pc.npy

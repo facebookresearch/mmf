@@ -1,9 +1,9 @@
 dataset_config:
   masked_vqa2:
-    imdb_files:
+    annotations:
       train:
       - datasets/vqa2/imdbs/imdb_train2014.npy
-    return_info: true
+    return_features_info: true
 
 optimizer:
   type: adam_w
