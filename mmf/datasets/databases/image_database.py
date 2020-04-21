@@ -133,7 +133,7 @@ class ImageDatabase(torch.utils.data.Dataset):
                 )
 
                 raise RuntimeError(
-                    "Image not found at path {}\{.jpeg|.jpg|.svg|.png\}.".format(
+                    "Image not found at path {}.{{jpeg|jpg|svg|png}}.".format(
                         possible_path
                     )
                 )

@@ -29,16 +29,13 @@ SENTENCE_SPLIT_REGEX = re.compile(r"(\W+)")
 
 def generate_ngrams(tokens, n=1):
     """Generate ngrams for particular 'n' from a list of tokens
-    Parameters
-    ----------
-    tokens : List[str]
-        List of tokens for which the ngram are to be generated
-    n : int
-        n for which ngrams are to be generated
-    Returns
-    -------
-    List[str]
-        List of ngrams generated
+
+    Args:
+        tokens (List[str]): List of tokens for which the ngram are to be generated
+        n (int, optional): n for which ngrams are to be generated. Defaults to 1.
+
+    Returns:
+        List[str]: List of ngrams generated.
     """
     shifted_tokens = (tokens[i:] for i in range(n))
     tuple_ngrams = zip(*shifted_tokens)
@@ -46,18 +43,16 @@ def generate_ngrams(tokens, n=1):
 
 
 def generate_ngrams_range(tokens, ngram_range=(1, 3)):
-    """Generates and returns a list of ngrams for all n present in ngram_range.
-    Parameters
-    ----------
-    tokens : List[str]
-        List of string tokens for which ngram are to be generated
-    ngram_range : List[int]
-        List of 'n' for which ngrams are to be generated. For e.g. if
-        ngram_range = (1, 4) then it will returns 1grams, 2grams and 3grams
-    Returns
-    -------
-    List[str]
-        List of ngrams for each n in ngram_range.
+    """Generates and returns a list of ngrams for all n present in ngram_range
+
+    Args:
+        tokens (List[str]): List of string tokens for which ngram are to be generated
+        ngram_range (List[int], optional): List of 'n' for which ngrams are to be
+            generated. For e.g. if ngram_range = (1, 4) then it will returns
+            1grams, 2grams and 3grams. Defaults to (1, 3).
+
+    Returns:
+        List[str]: List of ngrams for each n in ngram_range
     """
     assert len(ngram_range) == 2, (
         "'ngram_range' should be a tuple" " of two elements which is range of numbers"

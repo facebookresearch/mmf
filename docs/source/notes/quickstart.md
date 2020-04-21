@@ -176,6 +176,6 @@ echo "<checksum>  <dataset_name>.tar.gz" | md5sum -c -
 
 To dive deep into world of Pythia, you can move on the following next topics:
 
-- [Concepts and Terminology](./concepts)
+- [Concepts and Terminology](../tutorials/concepts)
 - [Using Pretrained Models](./pretrained_models)
 - [Challenge Participation](./challenge)

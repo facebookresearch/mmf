@@ -117,7 +117,7 @@ from mmf.common.registry import registry
 
 ```
 
-Find more details about Registry class in its documentation [common/registry](../common/registry).
+Find more details about Registry class in its documentation [common/registry](../lib/common/registry).
 
 
 ## Configuration
@@ -180,14 +180,14 @@ a dict with keys corresponding to data they need and return back a dict with
 processed data. This helps keep processors independent of the rest of the logic
 by fixing the signatures they require. Processors are used in all of the datasets
 to hand off the data processing needs. Learn more about processors in the
-[documentation for processors](../datasets/processors).
+[documentation for processors](../lib/datasets/processors).
 
 ## Sample List
 
-[SampleList](../datasets/sample#mmf.common.sample.SampleList) has been inspired
+[SampleList](../lib/datasets/sample#mmf.common.sample.SampleList) has been inspired
 from BBoxList in maskrcnn-benchmark, but is more generic. All datasets integrated
 with MMF need to return a
-[Sample](../datasets/sample#mmf.common.sample.Sample) which will be collated into
+[Sample](../lib/datasets/sample#mmf.common.sample.Sample) which will be collated into
 `SampleList`. Now, `SampleList` comes with a lot of handy functions which
 enable easy batching and access of things. For e.g. ``Sample`` is a dict with
 some keys. In ``SampleList``, values for these keys will be smartly clubbed
@@ -195,4 +195,4 @@ based on whether it is a tensor or a list and assigned back to that dict.
 So, end user gets these keys clubbed nicely together and can use them in their model.
 Models integrated with Pythia receive a ``SampleList`` as an argument which again
 makes the trainer unopinionated about the models as well as the datasets. Learn more
-about ``Sample`` and ``SampleList`` in their [documentation](../common/sample).
+about ``Sample`` and ``SampleList`` in their [documentation](../lib/common/sample).
