@@ -17,8 +17,10 @@ class MMFDataset(BaseDataset):
     to download data. More details to come.
     """
 
-    def __init__(self, name, config, dataset_type="train", index=0, *args, **kwargs):
-        super().__init__(name, config, dataset_type, *args, **kwargs)
+    def __init__(
+        self, dataset_name, config, dataset_type="train", index=0, *args, **kwargs
+    ):
+        super().__init__(dataset_name, config, dataset_type, *args, **kwargs)
         self._index = index
         self.annotation_db = self._build_annotation_db()
 

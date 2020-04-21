@@ -7,18 +7,18 @@ dataset_config:
       use_features: true
       features:
         train:
-        - datasets/mmimdb/features/lmdbs/mmimdb.lmdb
+        - datasets/mmimdb/features/features.lmdb
         val:
-        - datasets/mmimdb/features/lmdbs/mmimdb.lmdb
+        - datasets/mmimdb/features/features.lmdb
         test:
-        - datasets/mmimdb/features/lmdbs/mmimdb.lmdb
+        - datasets/mmimdb/features/features.lmdb
       annotations:
         train:
-        - datasets/mmimdb/imdbs/train.jsonl
+        - datasets/mmimdb/annotations/mmimdb/train.jsonl
         val:
-        - datasets/mmimdb/imdbs/dev.jsonl
+        - datasets/mmimdb/annotations/mmimdb/dev.jsonl
         test:
-        - datasets/mmimdb/imdbs/test.jsonl
+        - datasets/mmimdb/annotations/mmimdb/test.jsonl
       max_features: 100
       processors:
         text_processor:
@@ -28,7 +28,7 @@ dataset_config:
             vocab:
               type: intersected
               embedding_name: glove.6B.300d
-              vocab_file: /private/home/asg/pythia/data/imdb/mm_imdb/vocab_mmimdb.txt
+              vocab_file: datasets/mmimdb/extras/vocab_mmimdb.txt
             preprocessor:
               type: simple_sentence
               params: {}
@@ -40,16 +40,11 @@ dataset_config:
           type: multi_hot_answer_from_vocab
           params:
               num_answers: 1
-              # Vocab file is relative to [data_root_dir]/[data_folder]
-              vocab_file: /private/home/asg/pythia/data/imdb/mm_imdb/classes_mm_imdb.txt
+              vocab_file: datasets/mmimdb/extras/classes_mm_imdb.txt
               preprocessor:
                   type: simple_word
                   params: {}
       return_features_info: false
-      # Return OCR information
-      use_ocr: false
-      # Return spatial information of OCR tokens if present
-      use_ocr_info: false
 training:
     monitored_metric: mmimdb/multilabel_micro_f1
     metric_minimize: false

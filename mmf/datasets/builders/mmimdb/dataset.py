@@ -4,22 +4,17 @@ import json
 import torch
 
 from mmf.common.sample import Sample
-from mmf.datasets.builders.vqa2 import VQA2Dataset
+from mmf.datasets.mmf_dataset import MMFDataset
 
 
-class MMIMDbDataset(VQA2Dataset):
+class MMIMDbDataset(MMFDataset):
     def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
         super().__init__(
-            config,
-            dataset_type,
-            imdb_file_index,
-            dataset_name="mmimdb",
-            *args,
-            **kwargs
+            "mmimdb", config, dataset_type, imdb_file_index, *args, **kwargs
         )
 
-    def load_item(self, idx):
-        sample_info = self.imdb[idx]
+    def __getitem__(self, idx):
+        sample_info = self.annotation_db[idx]
         current_sample = Sample()
         plot = sample_info["plot"]
         if isinstance(plot, list):

@@ -9,7 +9,7 @@ Utilities for downloading and building data.
 
 These can be replaced if your particular file system does not support them.
 """
-
+import collections
 import datetime
 import hashlib
 import json
@@ -295,6 +295,29 @@ def download(url, path, fname, redownload=True):
         pbar.close()
 
     return download
+
+
+def download_resources(resources, download_path, version):
+    is_built = built(download_path, version_string=version)
+
+    if not is_built:
+        make_dir(download_path)
+
+        # Make it list if it isn't
+        if not isinstance(resources, collections.abc.Sequence):
+            resources = [resources]
+
+        if len(resources) == 0:
+            return
+
+        for resource in resources:
+            download_resource(resource, download_path)
+        mark_done(download_path, version_string=version)
+
+
+def download_resource(resource, download_path):
+    assert isinstance(resource, DownloadableFile)
+    resource.download_file(download_path)
 
 
 def make_dir(path):

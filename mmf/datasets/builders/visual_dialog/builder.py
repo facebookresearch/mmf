@@ -6,6 +6,7 @@ from mmf.common.constants import VISUAL_DIALOG_CONSTS
 from mmf.common.registry import registry
 from mmf.datasets.builders.visual_dialog.dataset import VisualDialogDataset
 from mmf.datasets.builders.visual_genome.builder import VisualGenomeBuilder
+from mmf.utils.download import decompress, download
 from mmf.utils.general import get_mmf_root
 
 
