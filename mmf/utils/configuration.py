@@ -15,8 +15,19 @@ from mmf.utils.general import get_mmf_root
 
 def load_yaml(f):
     # Convert to absolute path for loading includes
-    f = os.path.abspath(f)
-    mapping = OmegaConf.load(f)
+    abs_f = os.path.abspath(f)
+
+    try:
+        mapping = OmegaConf.load(abs_f)
+        f = abs_f
+    except FileNotFoundError as e:
+        # Check if this file might be relative to root?
+        relative = os.path.abspath(os.path.join(get_mmf_root(), f))
+        if not os.path.isfile(relative):
+            raise e
+        else:
+            f = relative
+            mapping = OmegaConf.load(f)
 
     if mapping is None:
         mapping = OmegaConf.create()
@@ -50,6 +61,53 @@ def load_yaml(f):
     return mapping
 
 
+def get_zoo_config(
+    key, variation="defaults", zoo_config_path=None, zoo_type="datasets"
+):
+    version = None
+    resources = None
+    if zoo_config_path is None:
+        zoo_config_path = os.path.join("configs", "zoo", "{}.yaml".format(zoo_type))
+    zoo = load_yaml(zoo_config_path)
+
+    if key not in zoo:
+        return version, resources
+    else:
+        item = zoo[key]
+        if variation not in item:
+            # If variation is not present, then key value should
+            # be directly returned if "defaults" was selected as the variation
+            assert (
+                variation == "defaults"
+            ), "'{}' variation not present in zoo config".format(variation)
+            return _get_version_and_resources(item)
+        else:
+            return _get_version_and_resources(item[variation])
+
+
+def _get_version_and_resources(item):
+    assert "version" in item, "'version' key should be present in zoo config {}".format(
+        item._get_full_key("")
+    )
+    assert (
+        "resources" in item
+    ), "'resources' key should be present in zoo config {}".format(
+        item._get_full_key("")
+    )
+
+    return item["version"], item["resources"]
+
+
+def get_global_config(key=None):
+    config = registry.get("config")
+    if config is None:
+        raise RuntimeError("Global config hasn't been registered")
+
+    if key:
+        config = OmegaConf.select(config, key)
+    return config
+
+
 class Configuration:
     def __init__(self, args):
         self.config = {}
@@ -71,6 +129,7 @@ class Configuration:
 
         self.config = self._merge_with_dotlist(self.config, args.opts)
         self._update_specific(self.config)
+        registry.register("config", self.config)
 
     def _build_default_config(self):
         self.default_config_path = self._get_default_config_path()
@@ -140,8 +199,9 @@ class Configuration:
                 continue
             default_dataset_config_path = builder_cls.config_path()
             if default_dataset_config_path is None:
-                warning = "Dataset {}'s builder class has no default configuration provided".format(
-                    dataset
+                warning = (
+                    "Dataset {}'s builder class has no default configuration "
+                    + "provided".format(dataset)
                 )
                 warnings.warn(warning)
                 continue
@@ -335,9 +395,10 @@ class Configuration:
 
         # if args["seed"] is not None or tp['seed'] is not None:
         #     print(
-        #         "You have chosen to seed the training. This will turn on CUDNN deterministic "
-        #         "setting which can slow down your training considerably! You may see unexpected "
-        #         "behavior when restarting from checkpoints."
+        #         "You have chosen to seed the training. This will turn on CUDNN "
+        #         "deterministic setting which can slow down your training "
+        #         "considerably! You may see unexpected behavior when restarting "
+        #         "from checkpoints."
         #     )
 
         # if args["seed"] == -1:
@@ -350,7 +411,8 @@ class Configuration:
 
         if not torch.cuda.is_available() and "cuda" in config.training.device:
             warnings.warn(
-                "Device specified is 'cuda' but cuda is not present. Switching to CPU version"
+                "Device specified is 'cuda' but cuda is not present. "
+                + "Switching to CPU version."
             )
             config.training.device = "cpu"
 
