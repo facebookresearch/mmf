@@ -6,13 +6,11 @@ tqdm==4.43.0
 demjson==2.2.4
 torchtext==0.5.0
 GitPython==3.1.0
-PyYAML==5.1.2
-pytest==5.4.1
 requests==2.23.0
 fasttext==0.9.1
 nltk==3.4.1
 editdistance==0.5.3
 transformers==2.3.0
 sklearn==0.0
-omegaconf==2.0.0rc16
+omegaconf==2.0.0rc25
 lmdb==0.98

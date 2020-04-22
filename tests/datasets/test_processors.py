@@ -3,7 +3,6 @@ import os
 import unittest
 
 import torch
-import yaml
 
 from mmf.datasets.processors.processors import (
     CaptionProcessor,

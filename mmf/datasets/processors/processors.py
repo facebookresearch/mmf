@@ -83,7 +83,6 @@ import torch
 from mmf.common.registry import registry
 from mmf.utils.distributed import is_master, synchronize
 from mmf.utils.general import get_mmf_cache_dir
-from mmf.utils.phoc import build_phoc
 from mmf.utils.text import VocabDict
 from mmf.utils.vocab import Vocab, WordToVectorDict
 
@@ -1114,6 +1113,9 @@ class PhocProcessor(VocabProcessor):
     """
 
     def __init__(self, config, *args, **kwargs):
+        from mmf.utils.phoc import build_phoc
+
+        self._build_phoc = build_phoc
         self._init_extras(config)
         self.config = config
 
@@ -1127,7 +1129,7 @@ class PhocProcessor(VocabProcessor):
         )
 
         for idx, token in enumerate(tokens):
-            output[idx] = torch.from_numpy(build_phoc(token))
+            output[idx] = torch.from_numpy(self._build_phoc(token))
 
         return output
 
