@@ -8,7 +8,6 @@ import os
 from bisect import bisect
 
 import torch
-import yaml
 from torch import nn
 
 from mmf.utils.distributed import get_world_size
@@ -67,7 +66,7 @@ def foldername_from_config_override(args):
 
     folder_name = ""
     if cfg_override is not None and len(cfg_override) > 0:
-        folder_name = yaml.safe_dump(cfg_override, default_flow_style=True)
+        folder_name = str(cfg_override)
         folder_name = folder_name.replace(":", ".").replace("\n", " ")
         folder_name = folder_name.replace("/", "_")
         folder_name = " ".join(folder_name.split())

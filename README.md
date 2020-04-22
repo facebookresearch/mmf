@@ -16,12 +16,13 @@
   </a>
 </div>
 
-MMF is a modular framework for vision and language multimodal research. Built on top
-of PyTorch, it features:
+# MMF
+
+MMF is a modular framework for vision and language multimodal research. Built on top of PyTorch, it features:
 
 - **Model Zoo**: Reference implementations for state-of-the-art vision and language model including
 [LoRRA](https://arxiv.org/abs/1904.08920) (SoTA on VQA and TextVQA),
-[Pythia](https://arxiv.org/abs/1807.09956) model (VQA 2018 challenge winner) , [BAN](https://arxiv.org/abs/1805.07932) and [BUTD](https://arxiv.org/abs/1707.07998).
+[Pythia](https://arxiv.org/abs/1807.09956) model (VQA 2018 challenge winner), [BAN](https://arxiv.org/abs/1805.07932) and [BUTD](https://arxiv.org/abs/1707.07998).
 - **Multi-Tasking**: Support for multi-tasking which allows training on multiple dataset together.
 - **Datasets**: Includes support for various datasets built-in including VQA, VizWiz, TextVQA, VisualDialog and COCO Captioning.
 - **Modules**: Provides implementations for many commonly used layers in vision and language domain
