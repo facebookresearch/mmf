@@ -162,6 +162,9 @@ scheduler: {}
 env:
     # Universal cache directory for mmf
     cache_dir: .mmf_cache
+    # Config path for dataset zoo, can be overridden via environment
+    # variable MMF_DATASET_ZOO as well.
+    dataset_zoo: ${env:MMF_DATASET_ZOO,configs/zoo/datasets.yaml}
 
 # Configuration for the distributed setup
 distributed:

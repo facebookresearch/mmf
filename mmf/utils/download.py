@@ -316,6 +316,9 @@ def download_resources(resources, download_path, version):
 
 
 def download_resource(resource, download_path):
+    if isinstance(resource, collections.abc.Mapping):
+        # Try building DownloadableFile class object from resource dict
+        resource = DownloadableFile(**resource)
     assert isinstance(resource, DownloadableFile)
     resource.download_file(download_path)
 
