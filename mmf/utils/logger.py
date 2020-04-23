@@ -9,6 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import is_master
+from mmf.utils.file_io import PathManager
 from mmf.utils.timer import Timer
 
 
@@ -32,8 +33,8 @@ class Logger:
         if env_log_dir:
             self.log_folder = env_log_dir
 
-        if not os.path.exists(self.log_folder):
-            os.makedirs(self.log_folder, exist_ok=True)
+        if not PathManager.exists(self.log_folder):
+            PathManager.mkdirs(self.log_folder)
 
         self.log_filename = os.path.join(self.log_folder, self.log_filename)
 

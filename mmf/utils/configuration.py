@@ -10,6 +10,7 @@ import torch
 from omegaconf import OmegaConf
 
 from mmf.common.registry import registry
+from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_mmf_root
 
 
@@ -23,7 +24,7 @@ def load_yaml(f):
     except FileNotFoundError as e:
         # Check if this file might be relative to root?
         relative = os.path.abspath(os.path.join(get_mmf_root(), f))
-        if not os.path.isfile(relative):
+        if not PathManager.isfile(relative):
             raise e
         else:
             f = relative
@@ -48,7 +49,7 @@ def load_yaml(f):
         include = os.path.join(pythia_root_dir, include)
 
         # If path doesn't exist relative to MMF root, try relative to current file
-        if not os.path.exists(include):
+        if not PathManager.exists(include):
             include = os.path.join(os.path.dirname(f), original_include_path)
 
         current_include_mapping = load_yaml(include)
@@ -133,12 +134,12 @@ def resolve_cache_dir(env_variable="MMF_CACHE_DIR", default="mmf"):
 
     cache_path = os.getenv(env_variable, default_cache_path)
 
-    if not os.path.exists(cache_path):
+    if not PathManager.exists(cache_path):
         try:
-            os.makedirs(cache_path, exist_ok=True)
+            PathManager.mkdirs(cache_path)
         except PermissionError:
             cache_path = os.path.join(get_mmf_root(), ".mmf_cache")
-            os.makedirs(cache_path, exist_ok=True)
+            PathManager.mkdirs(cache_path)
 
     return cache_path
 
@@ -147,8 +148,8 @@ def resolve_dir(env_variable, default="data"):
     default_dir = os.path.join(resolve_cache_dir(), default)
     dir_path = os.getenv(env_variable, default_dir)
 
-    if not os.path.exists(dir_path):
-        os.makedirs(dir_path, exist_ok=True)
+    if not PathManager.exists(dir_path):
+        PathManager.mkdirs(dir_path)
 
     return dir_path
 

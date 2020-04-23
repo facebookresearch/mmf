@@ -82,6 +82,7 @@ import torch
 
 from mmf.common.registry import registry
 from mmf.utils.distributed import is_master, synchronize
+from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_mmf_cache_dir
 from mmf.utils.text import VocabDict
 from mmf.utils.vocab import Vocab, WordToVectorDict
@@ -142,7 +143,7 @@ class Processor:
             self.writer.write(
                 "Config doesn't have 'params' attribute to "
                 "specify parameters of the processor "
-                "of type {}. Setting to default \{\}".format(config.type)
+                r"of type {}. Setting to default \{\}".format(config.type)
             )
         else:
             params = config.params
@@ -393,10 +394,10 @@ class FastTextProcessor(VocabProcessor):
 
         model_file = self.config.model_file
         # If model_file is already an existing path don't join to cache dir
-        if not os.path.exists(model_file):
+        if not PathManager.exists(model_file):
             model_file = os.path.join(get_mmf_cache_dir(), model_file)
 
-        if not os.path.exists(model_file):
+        if not PathManager.exists(model_file):
             if _is_master:
                 warnings.warn("No model file present at {}.".format(model_file))
             needs_download = True
@@ -417,7 +418,7 @@ class FastTextProcessor(VocabProcessor):
         if not _is_master:
             return model_file_path
 
-        if os.path.exists(model_file_path):
+        if PathManager.exists(model_file_path):
             self.writer.write(
                 "Vectors already present at {}.".format(model_file_path), "info"
             )
@@ -427,10 +428,10 @@ class FastTextProcessor(VocabProcessor):
         from mmf.common.constants import FASTTEXT_WIKI_URL
         from tqdm import tqdm
 
-        os.makedirs(os.path.dirname(model_file_path), exist_ok=True)
+        PathManager.mkdirs(os.path.dirname(model_file_path))
         response = requests.get(FASTTEXT_WIKI_URL, stream=True)
 
-        with open(model_file_path, "wb") as f:
+        with PathManager.open(model_file_path, "wb") as f:
             pbar = tqdm(
                 total=int(response.headers["Content-Length"]) / 4096,
                 miniters=50,
@@ -1037,8 +1038,8 @@ class EvalAIAnswerProcessor(BaseProcessor):
         "ten": "10",
     }
     ARTICLES = ["a", "an", "the"]
-    PERIOD_STRIP = re.compile("(?!<=\d)(\.)(?!\d)")
-    COMMA_STRIP = re.compile("(?<=\d)(\,)+(?=\d)")
+    PERIOD_STRIP = re.compile(r"(?!<=\d)(\.)(?!\d)")
+    COMMA_STRIP = re.compile(r"(?<=\d)(\,)+(?=\d)")
     PUNCTUATIONS = [
         ";",
         r"/",

@@ -7,6 +7,7 @@ import torch
 from torchtext import vocab
 
 from mmf.utils.distributed import is_master, synchronize
+from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_mmf_cache_dir, get_mmf_root
 
 EMBEDDING_NAME_CLASS_MAPPING = {"glove": "GloVe", "fasttext": "FastText"}
@@ -121,10 +122,10 @@ class BaseVocab:
             if not os.path.isabs(vocab_file) and data_dir is not None:
                 pythia_root = get_mmf_root()
                 vocab_file = os.path.join(pythia_root, data_dir, vocab_file)
-            if not os.path.exists(vocab_file):
+            if not PathManager.exists(vocab_file):
                 raise RuntimeError("Vocab not found at " + vocab_file)
 
-            with open(vocab_file, "r") as f:
+            with PathManager.open(vocab_file, "r") as f:
                 for line in f:
                     self.itos[index] = line.strip()
                     self.word_dict[line.strip()] = index
@@ -233,7 +234,7 @@ class CustomVocab(BaseVocab):
             pythia_root = get_mmf_root()
             embedding_file = os.path.join(pythia_root, data_dir, embedding_file)
 
-        if not os.path.exists(embedding_file):
+        if not PathManager.exists(embedding_file):
             from mmf.common.registry import registry
 
             writer = registry.get("writer")

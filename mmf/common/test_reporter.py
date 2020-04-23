@@ -10,6 +10,7 @@ from mmf.common.batch_collator import BatchCollator
 from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import gather_tensor, get_world_size, is_master
+from mmf.utils.file_io import PathManager
 from mmf.utils.general import ckpt_name_from_core_args, foldername_from_config_override
 from mmf.utils.timer import Timer
 
@@ -46,7 +47,7 @@ class TestReporter(Dataset):
         if self.report_folder_arg:
             self.report_folder = self.report_folder_arg
 
-        os.makedirs(self.report_folder, exist_ok=True)
+        PathManager.mkdirs(self.report_folder)
 
     def next_dataset(self):
         if self.current_dataset_idx >= 0:
@@ -79,7 +80,7 @@ class TestReporter(Dataset):
         filename += time + ".json"
         filepath = os.path.join(self.report_folder, filename)
 
-        with open(filepath, "w") as f:
+        with PathManager.open(filepath, "w") as f:
             json.dump(self.report, f)
 
         self.writer.write(
