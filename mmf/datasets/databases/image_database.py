@@ -1,19 +1,19 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import collections
 import os
-import warnings
 
 import torch
 import torchvision
 import torchvision.datasets.folder as tv_helpers
 
+from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path
 
 
 def get_possible_image_paths(path):
     for ext in tv_helpers.IMG_EXTENSIONS:
         image_ext = ".".join(path.split(".")[:-1]) + ext
-        if os.path.isfile(image_ext):
+        if PathManager.isfile(image_ext):
             path = image_ext
             break
     return path

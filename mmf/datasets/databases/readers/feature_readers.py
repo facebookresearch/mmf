@@ -6,6 +6,8 @@ import lmdb
 import numpy as np
 import torch
 
+from mmf.utils.file_io import PathManager
+
 
 class FeatureReader:
     def __init__(self, base_path, depth_first, max_features=None):
@@ -118,7 +120,7 @@ class PaddedFasterRCNNFeatureReader:
         image_info["features"] = np.load(image_feat_path, allow_pickle=True)
 
         info_path = "{}_info.npy".format(image_feat_path.split(".npy")[0])
-        if os.path.exists(info_path):
+        if PathManager.exists(info_path):
             image_info.update(np.load(info_path, allow_pickle=True).item())
 
         return image_info
@@ -150,7 +152,7 @@ class PaddedFasterRCNNFeatureReader:
 
         image_loc, image_dim = image_feature.shape
         tmp_image_feat = np.zeros((self.max_loc, image_dim), dtype=np.float32)
-        tmp_image_feat[0:image_loc,] = image_feature[: self.max_loc, :]
+        tmp_image_feat[0:image_loc,] = image_feature[: self.max_loc, :]  # noqa
         image_feature = torch.from_numpy(tmp_image_feat)
 
         del image_info["features"]
@@ -203,7 +205,7 @@ class PaddedFeatureRCNNWithBBoxesFeatureReader:
         tmp_image_feat = image_feat_bbox.item().get("image_feature")
         image_loc, image_dim = tmp_image_feat.shape
         tmp_image_feat_2 = np.zeros((self.max_loc, image_dim), dtype=np.float32)
-        tmp_image_feat_2[0:image_loc,] = tmp_image_feat
+        tmp_image_feat_2[0:image_loc,] = tmp_image_feat  # noqa
         tmp_image_feat_2 = torch.from_numpy(tmp_image_feat_2)
         tmp_image_box = np.zeros((self.max_loc, 4), dtype=np.int32)
         tmp_image_box[0:image_loc] = image_boxes

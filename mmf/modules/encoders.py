@@ -12,6 +12,7 @@ from transformers.modeling_auto import AutoModel
 from mmf.modules.embeddings import ProjectionEmbedding, TextEmbedding
 from mmf.modules.layers import Identity
 from mmf.utils.build import build_image_encoder, build_text_encoder
+from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_mmf_cache_dir, get_mmf_root
 
 
@@ -49,9 +50,9 @@ class FinetuneFasterRcnnFpnFc7(nn.Module):
             weights_file = os.path.join(model_data_dir, weights_file)
         if not os.path.isabs(bias_file):
             bias_file = os.path.join(model_data_dir, bias_file)
-        with open(weights_file, "rb") as w:
+        with PathManager.open(weights_file, "rb") as w:
             weights = pickle.load(w)
-        with open(bias_file, "rb") as b:
+        with PathManager.open(bias_file, "rb") as b:
             bias = pickle.load(b)
         out_dim = bias.shape[0]
 

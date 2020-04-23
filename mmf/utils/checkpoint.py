@@ -5,14 +5,19 @@ import os
 import sys
 import warnings
 
-import git
 import torch
 from omegaconf import OmegaConf
 
 from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import is_master, synchronize
+from mmf.utils.file_io import PathManager
 from mmf.utils.general import updir
+
+try:
+    import git
+except ImportError:
+    git = None
 
 
 class Checkpoint:
@@ -41,20 +46,18 @@ class Checkpoint:
         )
 
         self.models_foldername = os.path.join(self.ckpt_foldername, "models")
-        if not os.path.exists(self.models_foldername):
-            os.makedirs(self.models_foldername, exist_ok=True)
+        if not PathManager.exists(self.models_foldername):
+            PathManager.mkdirs(self.models_foldername)
 
         self.save_config()
         self.repo_path = updir(os.path.abspath(__file__), n=3)
         self.git_repo = None
-        try:
+        if git:
             self.git_repo = git.Repo(self.repo_path)
-        except git.exc.InvalidGitRepositoryError:
-            self.git_repo = None
 
     def save_config(self):
         cfg_file = os.path.join(self.ckpt_foldername, "config.yaml")
-        with open(cfg_file, "w") as f:
+        with PathManager.open(cfg_file, "w") as f:
             # Pop out config_override if present to remove clutter in
             # saved configuration yaml file
             self.config.pop("config_override", None)
@@ -72,16 +75,16 @@ class Checkpoint:
         # and resume is true signifying the interrupt resume, we should skip
         # loading the resume file.
         if tp.resume_file is not None and (
-            tp.resume is False or not os.path.exists(ckpt_filepath)
+            tp.resume is False or not PathManager.exists(ckpt_filepath)
         ):
-            if os.path.exists(tp.resume_file):
+            if PathManager.exists(tp.resume_file):
                 self._load(tp.resume_file, load_pretrained=tp.load_pretrained)
                 return
             else:
                 raise RuntimeError("{} doesn't exist".format(tp.resume_file))
 
         if tp.resume is True:
-            if os.path.exists(ckpt_filepath):
+            if PathManager.exists(ckpt_filepath):
                 self._load(ckpt_filepath)
             else:
                 warnings.warn(
@@ -91,7 +94,7 @@ class Checkpoint:
                     )
                 )
                 ckpt_filepath = ckpt_filepath.replace(suffix, reverse_suffix)
-                if os.path.exists(ckpt_filepath):
+                if PathManager.exists(ckpt_filepath):
                     self._load(ckpt_filepath)
 
     def _load(self, file, force=False, load_pretrained=False):
@@ -318,7 +321,7 @@ class Checkpoint:
         self.trainer.writer.write("Restoring checkpoint")
         best_path = os.path.join(self.ckpt_foldername, self.ckpt_prefix + "best.ckpt")
 
-        if os.path.exists(best_path):
+        if PathManager.exists(best_path):
             self._load(best_path, force=True)
 
     def finalize(self):

@@ -12,6 +12,7 @@ from transformers.modeling_bert import BertEmbeddings
 
 from mmf.modules.attention import AttentionLayer
 from mmf.modules.layers import Identity
+from mmf.utils.file_io import PathManager
 from mmf.utils.vocab import Vocab
 
 
@@ -202,7 +203,8 @@ class ProjectionEmbedding(nn.Module):
             self.out_dim = last_out_channels
         else:
             raise TypeError(
-                "Unknown module type for 'ProjectionEmbedding', use either 'linear' or 'conv'"
+                "Unknown module type for 'ProjectionEmbedding',"
+                "use either 'linear' or 'conv'"
             )
 
     def forward(self, x):
@@ -279,9 +281,9 @@ class MultiHeadImageFeatureEmbedding(nn.Module):
 class ImageFinetune(nn.Module):
     def __init__(self, in_dim, weights_file, bias_file):
         super(ImageFinetune, self).__init__()
-        with open(weights_file, "rb") as w:
+        with PathManager.open(weights_file, "rb") as w:
             weights = pickle.load(w)
-        with open(bias_file, "rb") as b:
+        with PathManager.open(bias_file, "rb") as b:
             bias = pickle.load(b)
         out_dim = bias.shape[0]
 
@@ -354,13 +356,14 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
 
             if image_text_alignment is not None:
                 # image_text_alignment = Batch x image_length x alignment_number.
-                # Each element denotes the position of the word corresponding to the image
-                # feature. -1 is the padding value.
+                # Each element denotes the position of the word corresponding to the
+                # image feature. -1 is the padding value.
                 image_text_alignment_mask = (image_text_alignment != -1).long()
                 # Get rid of the -1.
                 image_text_alignment = image_text_alignment_mask * image_text_alignment
 
-                # position_embeddings_visual = Batch x image_length x alignment length x dim
+                # position_embeddings_visual
+                # = Batch x image_length x alignment length x dim
                 position_embeddings_visual = self.position_embeddings(
                     image_text_alignment
                 ) * image_text_alignment_mask.to(
@@ -385,7 +388,8 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
                     *visual_embeddings.size()[:-1], dtype=torch.long
                 ).cuda()
 
-                # When fine-tuning the detector , the image_text_alignment is sometimes padded too long.
+                # When fine-tuning the detector , the image_text_alignment is
+                # sometimes padded too long.
                 if position_embeddings_visual.size(1) != visual_embeddings.size(1):
                     assert position_embeddings_visual.size(1) >= visual_embeddings.size(
                         1

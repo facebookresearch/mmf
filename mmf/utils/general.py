@@ -11,6 +11,7 @@ import torch
 from torch import nn
 
 from mmf.utils.distributed import get_world_size
+from mmf.utils.file_io import PathManager
 
 
 def lr_lambda_update(i_iter, cfg):
@@ -92,7 +93,7 @@ def get_mmf_cache_dir():
     config = registry.get("config")
     cache_dir = config.env.cache_dir
     # If cache_dir path exists do not join to mmf root
-    if not os.path.exists(cache_dir):
+    if not PathManager.exists(cache_dir):
         cache_dir = os.path.join(get_mmf_root(), ".mmf_cache")
     return cache_dir
 

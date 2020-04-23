@@ -20,6 +20,8 @@ import time
 import requests
 import tqdm
 
+from mmf.utils.file_io import PathManager
+
 
 class DownloadableFile:
     """
@@ -85,11 +87,11 @@ class DownloadableFile:
         sha256_hash = hashlib.sha256()
         destination = os.path.join(download_path, self._file_name)
 
-        if not os.path.isfile(destination):
+        if not PathManager.isfile(destination):
             # File is not present, nothing to checksum
             return
 
-        with open(destination, "rb") as f:
+        with PathManager.open(destination, "rb") as f:
             print("[ Starting checksum for {}]".format(self._file_name))
             for byte_block in iter(lambda: f.read(65536), b""):
                 sha256_hash.update(byte_block)
@@ -172,14 +174,14 @@ def built(path, version_string=None):
     """
     if version_string:
         fname = os.path.join(path, ".built.json")
-        if not os.path.isfile(fname):
+        if not PathManager.isfile(fname):
             return False
         else:
-            with open(fname, "r") as read:
+            with PathManager.open(fname, "r") as read:
                 text = json.load(read)
             return text.get("version", None) == version_string
     else:
-        return os.path.isfile(os.path.join(path, ".built.json"))
+        return PathManager.isfile(os.path.join(path, ".built.json"))
 
 
 def mark_done(path, version_string=None):
@@ -196,7 +198,7 @@ def mark_done(path, version_string=None):
     data = {}
     data["created_at"] = str(datetime.datetime.today())
     data["version"] = version_string
-    with open(os.path.join(path, ".built.json"), "w") as f:
+    with PathManager.open(os.path.join(path, ".built.json"), "w") as f:
         json.dump(data, f)
 
 
@@ -210,7 +212,7 @@ def download(url, path, fname, redownload=True):
     Returns whether download actually happened or not
     """
     outfile = os.path.join(path, fname)
-    download = not os.path.isfile(outfile) or redownload
+    download = not PathManager.isfile(outfile) or redownload
     retry = 5
     exp_backoff = [2 ** r for r in reversed(range(retry))]
 
@@ -221,7 +223,7 @@ def download(url, path, fname, redownload=True):
 
     while download and retry >= 0:
         resume_file = outfile + ".part"
-        resume = os.path.isfile(resume_file)
+        resume = PathManager.isfile(resume_file)
         if resume:
             resume_pos = os.path.getsize(resume_file)
             mode = "ab"
@@ -251,7 +253,7 @@ def download(url, path, fname, redownload=True):
                 pbar.total = total_size
                 done = resume_pos
 
-                with open(resume_file, mode) as f:
+                with PathManager.open(resume_file, mode) as f:
                     for chunk in response.iter_content(CHUNK_SIZE):
                         if chunk:  # filter out keep-alive new chunks
                             f.write(chunk)
@@ -329,7 +331,7 @@ def make_dir(path):
     """
     # the current working directory is a fine path
     if path != "":
-        os.makedirs(path, exist_ok=True)
+        PathManager.mkdirs(path)
 
 
 def move(path1, path2):
@@ -374,7 +376,7 @@ def download_from_google_drive(gd_id, destination, redownload=True):
     """
     Use the requests package to download a file from Google Drive.
     """
-    download = not os.path.isfile(destination) or redownload
+    download = not PathManager.isfile(destination) or redownload
 
     URL = "https://docs.google.com/uc?export=download"
 
@@ -388,7 +390,7 @@ def download_from_google_drive(gd_id, destination, redownload=True):
             response = session.get(URL, params=params, stream=True)
 
         CHUNK_SIZE = 32768
-        with open(destination, "wb") as f:
+        with PathManager.open(destination, "wb") as f:
             for chunk in response.iter_content(CHUNK_SIZE):
                 if chunk:  # filter out keep-alive new chunks
                     f.write(chunk)

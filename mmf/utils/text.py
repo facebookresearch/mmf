@@ -22,6 +22,7 @@ from itertools import chain
 import torch
 
 from mmf.common.registry import registry
+from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_mmf_root
 
 SENTENCE_SPLIT_REGEX = re.compile(r"(\W+)")
@@ -91,7 +92,7 @@ def word_tokenize(word, remove=None):
 
 
 def load_str_list(fname):
-    with open(fname) as f:
+    with PathManager.open(fname) as f:
         lines = f.readlines()
     lines = [l.strip() for l in lines]
     return lines
@@ -115,7 +116,7 @@ class VocabDict:
                 os.path.join(pythia_root, data_dir, vocab_file)
             )
 
-        if not os.path.exists(vocab_file):
+        if not PathManager.exists(vocab_file):
             raise RuntimeError(
                 "Vocab file {} for vocab dict doesn't exist".format(vocab_file)
             )
