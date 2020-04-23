@@ -16,9 +16,9 @@ class VisualDialogTask(VQA2Task):
         self.task_name = "VisualDialog"
 
     def prepare_data_set(self, imdb_file_label, image_feature_dir_label, **data_config):
-        data_root_dir = data_config["data_root_dir"]
+        data_dir = data_config["data_dir"]
 
-        vocab_file = os.path.join(data_root_dir, data_config["vocab_file"])
+        vocab_file = os.path.join(data_dir, data_config["vocab_file"])
         embedding_name = data_config["embedding_name"]
         max_seq_len = data_config["max_seq_len"]
         max_history_len = data_config["max_history_len"]
@@ -51,9 +51,9 @@ class VisualDialogTask(VQA2Task):
         datasets = []
 
         for imdb_file, image_feature_dir in zip(annotations, image_feat_dirs):
-            imdb_file = os.path.join(data_root_dir, imdb_file)
+            imdb_file = os.path.join(data_dir, imdb_file)
             image_feat_dirs = [
-                os.path.join(data_root_dir, d) for d in image_feature_dir.split(",")
+                os.path.join(data_dir, d) for d in image_feature_dir.split(",")
             ]
             args = {
                 "imdb_file": imdb_file,

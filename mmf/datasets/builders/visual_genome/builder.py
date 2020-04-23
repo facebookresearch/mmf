@@ -26,7 +26,7 @@ class VisualGenomeBuilder(VQA2Builder):
     def build(self, config, dataset_type):
         self._dataset_type = dataset_type
         self._config = config
-        data_folder = os.path.join(get_mmf_root(), self._config.data_root_dir)
+        data_folder = os.path.join(get_mmf_root(), self._config.data_dir)
 
         # Since the imdb tar file contains all of the sets, we won't download them
         # except in case of train

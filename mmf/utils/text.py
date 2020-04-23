@@ -108,11 +108,11 @@ class VocabDict:
     EOS_INDEX = 2
     UNK_INDEX = 3
 
-    def __init__(self, vocab_file, data_root_dir=None):
-        if not os.path.isabs(vocab_file) and data_root_dir is not None:
+    def __init__(self, vocab_file, data_dir=None):
+        if not os.path.isabs(vocab_file) and data_dir is not None:
             pythia_root = get_mmf_root()
             vocab_file = os.path.abspath(
-                os.path.join(pythia_root, data_root_dir, vocab_file)
+                os.path.join(pythia_root, data_dir, vocab_file)
             )
 
         if not os.path.exists(vocab_file):
@@ -350,24 +350,29 @@ class BeamSearch(TextDecoder):
 
 @registry.register_decoder("nucleus_sampling")
 class NucleusSampling(TextDecoder):
-    """Nucleus Sampling is a new text decoding strategy that avoids likelihood maximization.
-    Rather, it works by sampling from the smallest set of top tokens which have a cumulative
-    probability greater than a specified threshold.
+    """Nucleus Sampling is a new text decoding strategy that avoids likelihood
+    maximization. Rather, it works by sampling from the smallest set of top
+    tokens which have a cumulative probability greater than a specified
+    threshold.
 
     Present text decoding strategies like beam search do not work well on open-ended
-    generation tasks (even on strong language models like GPT-2). They tend to repeat text
-    a lot and the main reason behind it is that they try to maximize likelihood, which is a
-    contrast from human-generated text which has a mix of high and low probability tokens.
+    generation tasks (even on strong language models like GPT-2). They tend to repeat
+    text a lot and the main reason behind it is that they try to maximize likelihood,
+    which is a contrast from human-generated text which has a mix of high and low
+    probability tokens.
 
-    Nucleus Sampling is a stochastic approach and resolves this issue. Moreover, it improves
-    upon other stochastic methods like top-k sampling by choosing the right amount of tokens
-    to sample from. The overall result is better text generation on the same language model.
+    Nucleus Sampling is a stochastic approach and resolves this issue. Moreover,
+    it improves upon other stochastic methods like top-k sampling by choosing the
+    right amount of tokens to sample from. The overall result is better text
+    generation on the same language model.
 
-    Link to the paper introducing Nucleus Sampling (Section 6) - https://arxiv.org/pdf/1904.09751.pdf
+    Link to the paper introducing Nucleus Sampling (Section 6) -
+    https://arxiv.org/pdf/1904.09751.pdf
 
     Args:
         vocab (list): Collection of all words in vocabulary.
-        sum_threshold (float): Ceiling of sum of probabilities of tokens to sample from.
+        sum_threshold (float): Ceiling of sum of probabilities of tokens to
+            sample from.
     """
 
     def __init__(self, vocab, config):
@@ -379,7 +384,8 @@ class NucleusSampling(TextDecoder):
     def decode(self, t, data, scores):
         # Convert scores to probabilities
         scores = torch.nn.functional.softmax(scores, dim=1)
-        # Sort scores in descending order and then select the top m elements having sum more than threshold.
+        # Sort scores in descending order and then select the top m elements having
+        # sum more than threshold.
         # We get the top_m_scores and their indices top_m_words
         if t == 0:
             top_m_scores, top_m_words = scores[0].sort(0, True)
@@ -397,7 +403,8 @@ class NucleusSampling(TextDecoder):
         top_m_scores = torch.div(top_m_scores[:last_index], score_sum)
         top_m_words = top_m_words[:last_index]
 
-        # Zero value inside prev_word_inds because we are predicting a single stream of output.
+        # Zero value inside prev_word_inds because we are predicting a single
+        # stream of output.
         prev_word_ind = torch.tensor([0])
         # Get next word based on probabilities of top m words.
         next_word_ind = top_m_words[torch.multinomial(top_m_scores, 1)]

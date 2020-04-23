@@ -22,17 +22,12 @@ training:
     # inference will be run on val set also.
     run_type: train_inference
 
-    # Directory for saving checkpoints and other metadata
-    save_dir: "./save"
 
     # After `log_interval` iterations, current iteration's training loss and
     # metrics will be reported. This will also report validation
     # loss and metrics on a single batch from validation set
     # to provide an estimate on validation side
     log_interval: 100
-    # Directory for saving logs, default is "logs" inside the save folder
-    # If log_dir is specifically passed, logs will be written inside that folder
-    log_dir: null
     # Level of logging, only logs which are >= to current level will be logged
     logger_level: info
     # Log format: json, simple
@@ -45,8 +40,6 @@ training:
 
     # Tensorboard control, by default tensorboard is disabled
     tensorboard: false
-    # Log directory for tensorboard, default points to same as logs
-    tensorboard_logdir: null
 
     # Size of each batch. If distributed or data_parallel
     # is used, this will be divided equally among GPUs
@@ -161,10 +154,39 @@ scheduler: {}
 # Common environment configurations for MMF
 env:
     # Universal cache directory for mmf
-    cache_dir: .mmf_cache
+    # This can be overridden by using MMF_CACHE_DIR environment variable
+    # or by directly setting this configuration attribute env.cache_dir
+    # If nothing is specified, default is set to "mmf" inside
+    # pytorch's cache folder
+    cache_dir: ${resolve_cache_dir:MMF_CACHE_DIR}
+
     # Config path for dataset zoo, can be overridden via environment
     # variable MMF_DATASET_ZOO as well.
     dataset_zoo: ${env:MMF_DATASET_ZOO,configs/zoo/datasets.yaml}
+
+    # Similar to cache dir, but can be used if specifically want to override
+    # where MMF stores your data. Default would be cache_dir/data.
+    # We will auto download models and datasets in this folder
+    data_dir: ${resolve_dir:MMF_DATA_DIR, data}
+
+    # Directory for saving checkpoints and other metadata
+    # Use MMF_SAVE_DIR or env.save_dir to override
+    save_dir: ${env:MMF_SAVE_DIR, ./save}
+
+    # Directory for saving logs, default is "logs" inside the save folder
+    # If log_dir is specifically passed, logs will be written inside that folder
+    # Use MMF_LOG_DIR or env.log_dir to override
+    log_dir: ${env:MMF_LOG_DIR,}
+
+    # Directory for saving reports, if not passed a opts based folder will be generated
+    # inside save_dir/reports and reports will be saved there
+    # Use MMF_REPORT_DIR or env.report_dir to override
+    report_dir: ${env:MMF_REPORT_DIR,}
+
+    # Log directory for tensorboard, default points to same as logs
+    # Only used when training.tensorboard is enabled.
+    # Use MMF_TENSORBOARD_LOGDIR or env.tensorboard_logdir to override
+    tensorboard_logdir: ${env:MMF_TENSORBOARD_LOGDIR,}
 
 # Configuration for the distributed setup
 distributed:

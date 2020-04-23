@@ -1,6 +1,6 @@
 model_config:
   unimodal_image:
-    model_data_dir: ../data
+    model_data_dir: ${env.data_dir}
     direct_features_input: true
     modal_encoder:
       type: finetune_faster_rcnn_fpn_fc7

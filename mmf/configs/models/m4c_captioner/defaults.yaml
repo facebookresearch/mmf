@@ -22,7 +22,7 @@ model_config:
         hidden_size: 768
         query_key_size: 768
       params: {}
-    model_data_dir: ../data
+    model_data_dir: ${env.data_dir}
     metrics:
     - type: textcaps_bleu4
     losses:

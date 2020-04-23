@@ -25,7 +25,7 @@ class CLEVRBuilder(BaseDatasetBuilder):
 
     def build(self, config, dataset_type):
         download_folder = os.path.join(
-            get_mmf_root(), config.data_root_dir, config.data_folder
+            get_mmf_root(), config.data_dir, config.data_folder
         )
 
         file_name = CLEVR_DOWNLOAD_URL.split("/")[-1]

@@ -145,10 +145,10 @@ def launch_train(args, config):
     if args.config is not None:
         train_cmd.extend(["config", args.config])
     train_cmd.extend(["training.resume", "1"])
-    train_cmd.extend(["training.save_dir", save_dir])
+    train_cmd.extend(["env.save_dir", save_dir])
     if args.tensorboard:
         train_cmd.extend(["training.tensorboard", "1"])
-        train_cmd.extend(["training.tensorboard_logdir", tensorboard_logdir])
+        train_cmd.extend(["env.tensorboard_logdir", tensorboard_logdir])
     for hp in config.values():
         train_cmd.extend(map(str, hp.get_cli_args()))
     if args.dry_run:

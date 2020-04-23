@@ -1,6 +1,6 @@
 dataset_config:
   m4c_textvqa:
-    data_root_dir: ../data
+    data_dir: ${env.data_dir}
     depth_first: false
     fast_read: false
     max_features: 100

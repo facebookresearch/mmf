@@ -40,17 +40,17 @@ class CLEVRDataset(BaseDataset):
         config (DictConfig): Configuration Node representing all of the data necessary
                              to initialize CLEVR dataset class
         data_folder: Root folder in which all of the data will be present if passed
-                     replaces default based on data_root_dir and data_folder in config.
+                     replaces default based on data_dir and data_folder in config.
 
     """
 
     def __init__(self, config, dataset_type, data_folder=None, *args, **kwargs):
         super().__init__(_CONSTANTS["dataset_key"], config, dataset_type)
         self._data_folder = data_folder
-        self._data_root_dir = os.path.join(get_mmf_root(), config.data_root_dir)
+        self._data_dir = os.path.join(get_mmf_root(), config.data_dir)
 
         if not self._data_folder:
-            self._data_folder = os.path.join(self._data_root_dir, config.data_folder)
+            self._data_folder = os.path.join(self._data_dir, config.data_folder)
 
         if not os.path.exists(self._data_folder):
             raise RuntimeError(
@@ -91,7 +91,7 @@ class CLEVRDataset(BaseDataset):
 
     def _get_vocab_path(self, attribute):
         return os.path.join(
-            self._data_root_dir,
+            self._data_dir,
             _CONSTANTS["vocabs_folder"],
             _TEMPLATES["vocab_file_template"].format(self.dataset_name, attribute),
         )

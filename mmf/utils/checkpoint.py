@@ -10,6 +10,7 @@ import torch
 from omegaconf import OmegaConf
 
 from mmf.common.registry import registry
+from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import is_master, synchronize
 from mmf.utils.general import updir
 
@@ -23,7 +24,7 @@ class Checkpoint:
         self.trainer = trainer
 
         self.config = self.trainer.config
-        self.save_dir = self.config.training.save_dir
+        self.save_dir = get_mmf_env(key="save_dir")
         self.model_name = self.config.model
 
         self.ckpt_foldername = self.save_dir
@@ -165,7 +166,8 @@ class Checkpoint:
                     "current_epoch", self.trainer.current_epoch
                 )
             elif "best_iteration" in ckpt:
-                # Preserve old behavior for old checkpoints where we always load best iteration
+                # Preserve old behavior for old checkpoints where we always
+                # load best iteration
                 if tp.resume_best and "current_iteration" in ckpt:
                     self.trainer.current_iteration = ckpt["current_iteration"]
                 else:

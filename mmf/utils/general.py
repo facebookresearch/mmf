@@ -93,7 +93,7 @@ def get_mmf_cache_dir():
     cache_dir = config.env.cache_dir
     # If cache_dir path exists do not join to mmf root
     if not os.path.exists(cache_dir):
-        cache_dir = os.path.join(get_mmf_root(), cache_dir)
+        cache_dir = os.path.join(get_mmf_root(), ".mmf_cache")
     return cache_dir
 
 
