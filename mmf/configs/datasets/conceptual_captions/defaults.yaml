@@ -1,6 +1,6 @@
 dataset_config:
   conceptual_captions:
-    data_root_dir: ../data
+    data_dir: ${env.data_dir}
     depth_first: false
     fast_read: false
     use_images: false

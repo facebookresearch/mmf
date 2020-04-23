@@ -1,6 +1,6 @@
 model_config:
   lorra: &lorra
-    model_data_dir: ../data
+    model_data_dir: ${env.data_dir}
     metrics:
     - type: vqa_accuracy
     losses:

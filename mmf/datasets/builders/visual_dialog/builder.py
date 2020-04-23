@@ -25,7 +25,7 @@ class VisualDialogBuilder(VisualGenomeBuilder):
     def build(self, config, dataset_type):
         self._dataset_type = dataset_type
         self._config = config
-        data_folder = os.path.join(get_mmf_root(), self._config.data_root_dir)
+        data_folder = os.path.join(get_mmf_root(), self._config.data_dir)
 
         self._download_and_extract_imdb(data_folder)
 

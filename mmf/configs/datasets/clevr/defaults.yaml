@@ -1,6 +1,6 @@
 dataset_config:
   clevr:
-    data_root_dir: ../data
+    data_dir: ${env.data_dir}
     data_folder: CLEVR_v1.0
     build_attributes:
       min_count: 1
@@ -26,7 +26,7 @@ dataset_config:
         type: multi_hot_answer_from_vocab
         params:
           num_answers: 1
-          # Vocab file is relative to [data_root_dir]/[data_folder]
+          # Vocab file is relative to [data_dir]/[data_folder]
           vocab_file: vocabs/clevr_answer_vocab.txt
           preprocessor:
             type: simple_word

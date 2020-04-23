@@ -18,7 +18,7 @@ model_config:
             type: intersected
             embedding_name: glove.6B.300d
             embedding_dim: 300
-            data_root_dir: ../data
+            data_dir: ${env.data_dir}
             vocab_file: vocabs/vocabulary_100k.txt
 
     classifier:

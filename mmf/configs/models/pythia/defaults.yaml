@@ -1,6 +1,6 @@
 model_config:
   pythia: &pythia
-    model_data_dir: ../data/
+    model_data_dir: ${env.data_dir}
     metrics:
     - type: vqa_accuracy
     losses:

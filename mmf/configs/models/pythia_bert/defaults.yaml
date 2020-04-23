@@ -1,7 +1,7 @@
 model_config:
   pythia_bert:
     combine_embeddings: true
-    model_data_dir: ../data/
+    model_data_dir: ${env.data_dir}
     bert_model_name: bert-base-uncased
     training_head_type: pretraining
     visual_embedding_dim: 2048

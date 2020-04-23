@@ -130,9 +130,7 @@ class MMFDatasetBuilder(BaseDatasetBuilder):
         if resources is None:
             return
 
-        download_path = os.path.join(
-            config.data_root_dir, "datasets", self.dataset_name
-        )
+        download_path = os.path.join(config.data_dir, "datasets", self.dataset_name)
         download_path = get_absolute_path(download_path)
 
         if not isinstance(resources, collections.abc.Mapping):

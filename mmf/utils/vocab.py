@@ -82,7 +82,7 @@ class BaseVocab:
     UNK_INDEX = 3
 
     def __init__(
-        self, vocab_file=None, embedding_dim=300, data_root_dir=None, *args, **kwargs
+        self, vocab_file=None, embedding_dim=300, data_dir=None, *args, **kwargs
     ):
         """Vocab class to be used when you want to train word embeddings from
         scratch based on a custom vocab. This will initialize the random
@@ -118,9 +118,9 @@ class BaseVocab:
         self.total_predefined = len(self.itos.keys())
 
         if vocab_file is not None:
-            if not os.path.isabs(vocab_file) and data_root_dir is not None:
+            if not os.path.isabs(vocab_file) and data_dir is not None:
                 pythia_root = get_mmf_root()
-                vocab_file = os.path.join(pythia_root, data_root_dir, vocab_file)
+                vocab_file = os.path.join(pythia_root, data_dir, vocab_file)
             if not os.path.exists(vocab_file):
                 raise RuntimeError("Vocab not found at " + vocab_file)
 
@@ -206,7 +206,7 @@ class BaseVocab:
 
 
 class CustomVocab(BaseVocab):
-    def __init__(self, vocab_file, embedding_file, data_root_dir=None, *args, **kwargs):
+    def __init__(self, vocab_file, embedding_file, data_dir=None, *args, **kwargs):
         """Use this vocab class when you have a custom vocab as well as a
         custom embeddings file.
 
@@ -222,16 +222,16 @@ class CustomVocab(BaseVocab):
             Path of custom vocabulary
         embedding_file : str
             Path to custom embedding inititalization file
-        data_root_dir : str
+        data_dir : str
             Path to data directory if embedding file is not an absolute path.
             Default: None
         """
         super(CustomVocab, self).__init__(vocab_file)
         self.type = "custom"
 
-        if not os.path.isabs(embedding_file) and data_root_dir is not None:
+        if not os.path.isabs(embedding_file) and data_dir is not None:
             pythia_root = get_mmf_root()
-            embedding_file = os.path.join(pythia_root, data_root_dir, embedding_file)
+            embedding_file = os.path.join(pythia_root, data_dir, embedding_file)
 
         if not os.path.exists(embedding_file):
             from mmf.common.registry import registry

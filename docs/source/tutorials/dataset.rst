@@ -73,7 +73,7 @@ Let's write down this using example of *CLEVR* dataset.
 
         def build(self, config, dataset):
             download_folder = os.path.join(
-                get_mmf_root(), config.data_root_dir, config.data_folder
+                get_mmf_root(), config.data_dir, config.data_folder
             )
 
             file_name = self.DOWNLOAD_URL.split("/")[-1]
@@ -157,7 +157,7 @@ Here, is a default configuration for CLEVR needed based on our dataset and build
         # inside the config passed to the dataset. Check the Dataset implementation below.
         clevr:
             # Where your data is stored
-            data_root_dir: ../data
+            data_dir: ${env.data_dir}
             data_folder: CLEVR_v1.0
             # Any attribute that you require to build your dataset but are configurable
             # For CLEVR, we have attributes that can be passed to vocab building class
@@ -190,7 +190,7 @@ Here, is a default configuration for CLEVR needed based on our dataset and build
                     type: multi_hot_answer_from_vocab
                     params:
                         num_answers: 1
-                        # Vocab file is relative to [data_root_dir]/[data_folder]
+                        # Vocab file is relative to [data_dir]/[data_folder]
                         vocab_file: vocabs/clevr_answer_vocab.txt
                         preprocessor:
                             type: simple_word
@@ -252,10 +252,10 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
         def __init__(self, config, dataset, data_folder=None, *args, **kwargs):
             super().__init__("clevr", config, dataset)
             self._data_folder = data_folder
-            self._data_root_dir = os.path.join(get_mmf_root(), config.data_root_dir)
+            self._data_dir = os.path.join(get_mmf_root(), config.data_dir)
 
             if not self._data_folder:
-                self._data_folder = os.path.join(self._data_root_dir, config.data_folder)
+                self._data_folder = os.path.join(self._data_dir, config.data_folder)
 
             if not os.path.exists(self._data_folder):
                 raise RuntimeError(
@@ -291,7 +291,7 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
 
         def _get_vocab_path(self, attribute):
             return os.path.join(
-                self._data_root_dir, "vocabs",
+                self._data_dir, "vocabs",
                 "{}_{}_vocab.txt".format(self.dataset_name, attribute)
             )
 

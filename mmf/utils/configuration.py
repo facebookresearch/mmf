@@ -108,6 +108,51 @@ def get_global_config(key=None):
     return config
 
 
+def get_mmf_env(key=None):
+    config = get_global_config()
+    if key:
+        return OmegaConf.select(config.env, key)
+    else:
+        return config.env
+
+
+def resolve_cache_dir(env_variable="MMF_CACHE_DIR", default="mmf"):
+    # Some of this follow what "transformers" does for there cache resolving
+    try:
+        from torch.hub import _get_torch_home
+
+        torch_cache_home = _get_torch_home()
+    except ImportError:
+        torch_cache_home = os.path.expanduser(
+            os.getenv(
+                "TORCH_HOME",
+                os.path.join(os.getenv("XDG_CACHE_HOME", "~/.cache"), "torch"),
+            )
+        )
+    default_cache_path = os.path.join(torch_cache_home, default)
+
+    cache_path = os.getenv(env_variable, default_cache_path)
+
+    if not os.path.exists(cache_path):
+        try:
+            os.makedirs(cache_path, exist_ok=True)
+        except PermissionError:
+            cache_path = os.path.join(get_mmf_root(), ".mmf_cache")
+            os.makedirs(cache_path, exist_ok=True)
+
+    return cache_path
+
+
+def resolve_dir(env_variable, default="data"):
+    default_dir = os.path.join(resolve_cache_dir(), default)
+    dir_path = os.getenv(env_variable, default_dir)
+
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path, exist_ok=True)
+
+    return dir_path
+
+
 class Configuration:
     def __init__(self, args):
         self.config = {}
@@ -198,6 +243,7 @@ class Configuration:
                 warnings.warn(warning)
                 continue
             default_dataset_config_path = builder_cls.config_path()
+
             if default_dataset_config_path is None:
                 warning = (
                     "Dataset {}'s builder class has no default configuration "
@@ -235,6 +281,8 @@ class Configuration:
         # Device count resolver
         device_count = max(1, torch.cuda.device_count())
         OmegaConf.register_resolver("device_count", lambda: device_count)
+        OmegaConf.register_resolver("resolve_cache_dir", resolve_cache_dir)
+        OmegaConf.register_resolver("resolve_dir", resolve_dir)
 
     def _merge_with_dotlist(self, config, opts):
         # TODO: To remove technical debt, a possible solution is to use

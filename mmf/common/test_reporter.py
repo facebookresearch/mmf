@@ -8,6 +8,7 @@ from torch.utils.data.distributed import DistributedSampler
 
 from mmf.common.batch_collator import BatchCollator
 from mmf.common.registry import registry
+from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import gather_tensor, get_world_size, is_master
 from mmf.utils.general import ckpt_name_from_core_args, foldername_from_config_override
 from mmf.utils.timer import Timer
@@ -24,7 +25,7 @@ class TestReporter(Dataset):
         self.training_config = self.config.training
         self.num_workers = self.training_config.num_workers
         self.batch_size = self.training_config.batch_size
-        self.report_folder_arg = self.config.report_folder
+        self.report_folder_arg = get_mmf_env(key="report_dir")
         self.experiment_name = self.training_config.experiment_name
 
         self.datasets = []
@@ -35,14 +36,14 @@ class TestReporter(Dataset):
         self.current_dataset_idx = -1
         self.current_dataset = self.datasets[self.current_dataset_idx]
 
-        self.save_dir = self.config.training.save_dir
+        self.save_dir = get_mmf_env(key="save_dir")
         self.report_folder = ckpt_name_from_core_args(self.config)
         self.report_folder += foldername_from_config_override(self.config)
 
         self.report_folder = os.path.join(self.save_dir, self.report_folder)
         self.report_folder = os.path.join(self.report_folder, "reports")
 
-        if self.report_folder_arg is not None:
+        if self.report_folder_arg:
             self.report_folder = self.report_folder_arg
 
         os.makedirs(self.report_folder, exist_ok=True)

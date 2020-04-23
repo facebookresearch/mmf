@@ -8,12 +8,12 @@ from mmf.datasets.processors.processors import Processor
 
 class BaseDataset(Dataset):
     """Base class for implementing a dataset. Inherits from PyTorch's Dataset class
-    but adds some custom functionality on top. Instead of ``__getitem__`` you have to implement
-    ``__getitem__`` here. Processors mentioned in the configuration are automatically initialized for
-    the end user.
+    but adds some custom functionality on top. Processors mentioned in the
+    configuration are automatically initialized for the end user.
 
     Args:
-        dataset_name (str): Name of your dataset to be used a representative in text strings
+        dataset_name (str): Name of your dataset to be used a representative
+            in text strings
         dataset_type (str): Type of your dataset. Normally, train|val|test
         config (DictConfig): Configuration for the current dataset
     """
@@ -52,7 +52,7 @@ class BaseDataset(Dataset):
     def init_processors(self):
         if not hasattr(self.config, "processors"):
             return
-        extra_params = {"data_root_dir": self.config.data_root_dir}
+        extra_params = {"data_dir": self.config.data_dir}
         for processor_key, processor_params in self.config.processors.items():
             if not processor_params:
                 continue
@@ -81,7 +81,8 @@ class BaseDataset(Dataset):
             batch (SampleList): sample list containing the currently loaded batch
 
         Returns:
-            sample_list (SampleList): Returns a sample representing current batch loaded
+            sample_list (SampleList): Returns a sample representing current
+                batch loaded
         """
         # Should be a SampleList
         if not isinstance(batch, SampleList):

@@ -13,6 +13,7 @@ from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.utils.build import build_model, build_optimizer, build_scheduler
 from mmf.utils.checkpoint import Checkpoint
+from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import (
     broadcast_scalar,
     get_world_size,
@@ -181,9 +182,9 @@ class BaseTrainer:
 
         if self.training_config.tensorboard:
             log_dir = self.writer.log_dir
-
-            if self.training_config.tensorboard_logdir:
-                log_dir = self.training_config.tensorboard_logdir
+            env_tb_logdir = get_mmf_env(key="tensorboard_logdir")
+            if env_tb_logdir:
+                log_dir = env_tb_logdir
 
             self.tb_writer = TensorboardLogger(log_dir, self.current_iteration)
 
@@ -286,9 +287,10 @@ class BaseTrainer:
     def finalize(self):
         self.writer.write("Stepping into final validation check")
 
-        # Only do when run_type has train as it shouldn't happen on validation and inference runs
-        # Inference will take care of this anyways. Also, don't run if current iteration
-        # is divisble by snapshot interval as it will just be a repeat
+        # Only do when run_type has train as it shouldn't happen on validation and
+        # inference runs. Inference will take care of this anyways. Also, don't run
+        # if current iteration is divisble by snapshot interval as it will just
+        # be a repeat
         if (
             "train" in self.run_type
             and self.num_updates % self.evaluation_interval != 0

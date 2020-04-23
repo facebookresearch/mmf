@@ -7,6 +7,7 @@ import sys
 
 from torch.utils.tensorboard import SummaryWriter
 
+from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import is_master
 from mmf.utils.timer import Timer
 
@@ -18,7 +19,7 @@ class Logger:
 
         self.timer = Timer()
         self.config = config
-        self.save_dir = config.training.save_dir
+        self.save_dir = get_mmf_env(key="save_dir")
         self.log_format = config.training.log_format
         self.time_format = "%Y-%m-%dT%H:%M:%S"
         self.log_filename = "train_"
@@ -27,8 +28,9 @@ class Logger:
 
         self.log_folder = os.path.join(self.save_dir, "logs")
 
-        if "log_dir" in self.config and self.config.log_dir is not None:
-            self.log_folder = self.config.log_dir
+        env_log_dir = get_mmf_env(key="log_dir")
+        if env_log_dir:
+            self.log_folder = env_log_dir
 
         if not os.path.exists(self.log_folder):
             os.makedirs(self.log_folder, exist_ok=True)
