@@ -1,4 +1,4 @@
-# Copied from fairseq. Mostly written by @myleott. Adapted accordingly for pythia
+# Copied from fairseq. Mostly written by @myleott. Adapted accordingly for mmf
 import argparse
 import datetime
 import os
@@ -68,8 +68,32 @@ def get_args():
             ),
             help="save checkpoints and logs in <checkpoints-dir>/<prefix>.<save_dir_key>",
         )
+    else:
+        default_backend = "fblearner"
+        parser.add_argument(
+            "--checkpoints-dir",
+            default=os.path.join(
+                "/mnt/vol/gfsai-east/ai-group/users",
+                os.environ["USER"],
+                "checkpoints",
+                str(datetime.date.today()),
+            ),
+            help="save checkpoints and logs in <checkpoints-dir>/<prefix>.<save_dir_key>",
+        )
 
-    parser.add_argument("--backend", choices=["slurm"], default=default_backend)
+    parser.add_argument(
+        "--backend", choices=["slurm", "fblearner"], default=default_backend
+    )
+
+    # FBLearner params
+    parser.add_argument(
+        "--entitlement", help="entitlement to use", default="bigbasin_atn_fair"
+    )
+    parser.add_argument(
+        "--run-as-secure-group",
+        help="secure group to use",
+        default="fair_research_and_engineering",
+    )
 
     # Slurm params
     parser.add_argument(
@@ -175,5 +199,7 @@ def main(get_grid, postprocess_hyperparams):
 
     if args.backend == "slurm":
         from .slurm import main as backend_main
+    elif args.backend == "fblearner":
+        from .fblearner import main as backend_main
 
     backend_main(get_grid, postprocess_hyperparams, args)
