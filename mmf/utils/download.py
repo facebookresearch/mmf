@@ -48,6 +48,8 @@ class DownloadableFile:
     """
 
     GOOGLE_DRIVE_SUBSTR = "drive.google"
+    MMF_PREFIX = "mmf://"
+    MMF_PREFIX_REPLACEMENT = "https://dl.fbaipublicfiles.com/mmf/data/"
 
     def __init__(
         self, url, file_name, hashcode=None, compressed=True, delete_original=False
@@ -66,12 +68,18 @@ class DownloadableFile:
             delete_original (bool, optional): If compressed whether to delete original.
                                               Defaults to False.
         """
-        self._url = url
+        self._url = self._parse_url(url)
         self._file_name = file_name
         self._hashcode = hashcode
         self._compressed = compressed
         self._from_google = self._url.find(self.GOOGLE_DRIVE_SUBSTR) != -1
         self._delete_original = delete_original
+
+    def _parse_url(self, url):
+        if url.find(self.MMF_PREFIX) == -1:
+            return url
+        else:
+            return self.MMF_PREFIX_REPLACEMENT + url[len(self.MMF_PREFIX) :]
 
     def checksum(self, download_path):
         """
@@ -105,9 +113,6 @@ class DownloadableFile:
                 print("[ Checksum successful for {}]".format(self._file_name))
 
     def download_file(self, download_path):
-        # First test if the link is actually downloadable
-        self.check_header()
-
         downloaded = False
         redownload = False
 
@@ -135,29 +140,6 @@ class DownloadableFile:
 
             if self._compressed:
                 decompress(download_path, self._file_name, self._delete_original)
-
-    def check_header(self):
-        """
-        Performs a HEAD request to check if the URL / Google Drive ID is live.
-        """
-        session = requests.Session()
-        if self._from_google:
-            URL = "https://docs.google.com/uc?export=download"
-            response = session.head(URL, params={"id": self._url}, stream=True)
-        else:
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) "
-                + "AppleWebKit/537.36 (KHTML, like Gecko) "
-                + "Chrome/77.0.3865.90 Safari/537.36"
-            }
-            response = session.head(self._url, allow_redirects=True, headers=headers)
-        status = response.status_code
-        session.close()
-
-        assert status == 200, (
-            "The url {} is broken. If this is not your own url,"
-            + " please open up an issue on GitHub"
-        ).format(self._url)
 
 
 def built(path, version_string=None):
@@ -218,6 +200,8 @@ def download(url, path, fname, redownload=True):
 
     pbar = None
     if download:
+        # First test if the link is actually downloadable
+        check_header(url)
         print("[ Downloading: " + url + " to " + outfile + " ]")
         pbar = tqdm.tqdm(unit="B", unit_scale=True, desc="Downloading {}".format(fname))
 
@@ -297,6 +281,68 @@ def download(url, path, fname, redownload=True):
         pbar.close()
 
     return download
+
+
+def check_header(url, from_google=False):
+    """
+    Performs a HEAD request to check if the URL / Google Drive ID is live.
+    """
+    session = requests.Session()
+    if from_google:
+        URL = "https://docs.google.com/uc?export=download"
+        response = session.head(URL, params={"id": url}, stream=True)
+    else:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) "
+            + "AppleWebKit/537.36 (KHTML, like Gecko) "
+            + "Chrome/77.0.3865.90 Safari/537.36"
+        }
+        response = session.head(url, allow_redirects=True, headers=headers)
+    status = response.status_code
+    session.close()
+
+    assert status == 200, (
+        "The url {} is broken. If this is not your own url,"
+        + " please open up an issue on GitHub"
+    ).format(url)
+
+
+def download_pretrained_model(model_name, *args, **kwargs):
+    import omegaconf
+    from omegaconf import OmegaConf
+
+    from mmf.utils.configuration import load_yaml, get_mmf_env, get_mmf_cache_dir
+
+    model_zoo = load_yaml(get_mmf_env(key="model_zoo"))
+    OmegaConf.set_struct(model_zoo, True)
+    OmegaConf.set_readonly(model_zoo, True)
+
+    cache_dir = get_mmf_cache_dir()
+    model_cache_dir = os.path.join(cache_dir, "models")
+    download_path = os.path.join(model_cache_dir, model_name)
+
+    try:
+        model_config = OmegaConf.select(model_zoo, model_name)
+    except omegaconf.errors.OmegaConfBaseException as e:
+        print(f"No such model name {model_name} defined in mmf zoo")
+        raise e
+
+    if "version" not in model_config or "resources" not in model_config:
+        # Version and Resources are not present time to try the defaults
+        try:
+            model_config = model_config.defaults
+        except omegaconf.errors.OmegaConfBaseException as e:
+            print(
+                f"model name {model_name} doesn't specify 'resources' and 'version' "
+                "while no defaults have been provided"
+            )
+            raise e
+
+    version = model_config.version
+    resources = model_config.resources
+
+    download_resources(resources, download_path, version)
+    return download_path
 
 
 def download_resources(resources, download_path, version):
@@ -379,6 +425,12 @@ def download_from_google_drive(gd_id, destination, redownload=True):
     download = not PathManager.isfile(destination) or redownload
 
     URL = "https://docs.google.com/uc?export=download"
+
+    if not download:
+        return download
+    else:
+        # Check first if link is live
+        check_header(gd_id, from_google=True)
 
     with requests.Session() as session:
         response = session.get(URL, params={"id": gd_id}, stream=True)

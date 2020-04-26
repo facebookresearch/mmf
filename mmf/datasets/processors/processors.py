@@ -81,9 +81,9 @@ import numpy as np
 import torch
 
 from mmf.common.registry import registry
+from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.distributed import is_master, synchronize
 from mmf.utils.file_io import PathManager
-from mmf.utils.general import get_mmf_cache_dir
 from mmf.utils.text import VocabDict
 from mmf.utils.vocab import Vocab, WordToVectorDict
 
@@ -143,7 +143,7 @@ class Processor:
             self.writer.write(
                 "Config doesn't have 'params' attribute to "
                 "specify parameters of the processor "
-                r"of type {}. Setting to default \{\}".format(config.type)
+                "of type {}. Setting to default {{}}".format(config.type)
             )
         else:
             params = config.params

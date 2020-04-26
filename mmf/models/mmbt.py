@@ -1,6 +1,7 @@
-# MMBTModel, ModalEmbeddings is copied from https://github.com/huggingface/transformers/blob/master/src/transformers/modeling_mmbt.py
+# MMBTModel, ModalEmbeddings is copied from [1]
 # as we have internal dependency on transformers v2.3.
 # These will be removed when we upgrade to package v2.5+.
+# [1]: https://github.com/huggingface/transformers/blob/master/src/transformers/modeling_mmbt.py # noqa
 
 import os
 from copy import deepcopy
@@ -12,7 +13,7 @@ from transformers.modeling_bert import BertForPreTraining, BertPredictionHeadTra
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
 from mmf.modules.encoders import MultiModalEncoderBase
-from mmf.utils.general import get_mmf_cache_dir
+from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
 
 
@@ -103,23 +104,33 @@ class ModalEmbeddings(nn.Module):
 # TODO: Remove after transformers package upgrade to 2.5
 class MMBTModel(nn.Module):
     r"""
-        Outputs: `Tuple` comprising various elements depending on the configuration (config) and inputs:
-            **last_hidden_state**: ``torch.FloatTensor`` of shape ``(batch_size, sequence_length, hidden_size)``
-                Sequence of hidden-states at the output of the last layer of the model.
-            **pooler_output**: ``torch.FloatTensor`` of shape ``(batch_size, hidden_size)``
-                Last layer hidden-state of the first token of the sequence (classification token)
-                further processed by a Linear layer and a Tanh activation function. The Linear
-                layer weights are trained from the next sentence prediction (classification)
-                objective during Bert pretraining. This output is usually *not* a good summary
-                of the semantic content of the input, you're often better with averaging or pooling
+        Outputs: `Tuple` comprising various elements depending on the configuration
+            (config) and inputs:
+            **last_hidden_state**: ``torch.FloatTensor`` of shape
+                ``(batch_size, sequence_length, hidden_size)``. Sequence of
+                hidden-states at the output of the last layer of the model.
+            **pooler_output**: ``torch.FloatTensor`` of shape
+                ``(batch_size, hidden_size)``. Last layer hidden-state of the
+                first token of the sequence (classification token) further processed
+                by a Linear layer and a Tanh activation function. The Linear
+                layer weights are trained from the next sentence prediction
+                (classification) objective during Bert pretraining. This output
+                is usually *not* a good summary of the semantic content of the
+                input, you're often better with averaging or pooling
                 the sequence of hidden-states for the whole input sequence.
-            **hidden_states**: (`optional`, returned when ``config.output_hidden_states=True``)
-                list of ``torch.FloatTensor`` (one for the output of each layer + the output of the embeddings)
+            **hidden_states**: (`optional`, returned when
+                ``config.output_hidden_states=True``)
+                list of ``torch.FloatTensor`` (one for the output of each layer +
+                the output of the embeddings)
                 of shape ``(batch_size, sequence_length, hidden_size)``:
-                Hidden-states of the model at the output of each layer plus the initial embedding outputs.
-            **attentions**: (`optional`, returned when ``config.output_attentions=True``)
-                list of ``torch.FloatTensor`` (one for each layer) of shape ``(batch_size, num_heads, sequence_length, sequence_length)``:
-                Attentions weights after the attention softmax, used to compute the weighted average in the self-attention heads.
+                Hidden-states of the model at the output of each layer plus the
+                initial embedding outputs.
+            **attentions**: (`optional`, returned when
+                ``config.output_attentions=True``) list of ``torch.FloatTensor``
+                (one for each layer) of shape ``(batch_size, num_heads,
+                sequence_length, sequence_length)``: Attentions weights after
+                the attention softmax, used to compute the weighted average in the
+                self-attention heads.
         Examples::
             # For example purposes. Not runnable.
             transformer = BertModel.from_pretrained('bert-base-uncased')
@@ -208,14 +219,17 @@ class MMBTModel(nn.Module):
                 dim=1,
             )
 
-        # We can provide a self-attention mask of dimensions [batch_size, from_seq_length, to_seq_length]
+        # We can provide a self-attention mask of dimensions
+        # [batch_size, from_seq_length, to_seq_length]
         # ourselves in which case we just need to make it broadcastable to all heads.
         if attention_mask.dim() == 3:
             extended_attention_mask = attention_mask[:, None, :, :]
 
         # Provided a padding mask of dimensions [batch_size, seq_length]
-        # - if the model is a decoder, apply a causal mask in addition to the padding mask
-        # - if the model is an encoder, make the mask broadcastable to [batch_size, num_heads, seq_length, seq_length]
+        # - if the model is a decoder, apply a causal mask in addition to the
+        #   padding mask
+        # - if the model is an encoder, make the mask broadcastable to
+        # [batch_size, num_heads, seq_length, seq_length]
         if attention_mask.dim() == 2:
             if self.config.is_decoder:
                 batch_size, seq_length = input_shape
@@ -241,7 +255,8 @@ class MMBTModel(nn.Module):
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
 
         # If a 2D ou 3D attention mask is provided for the cross-attention
-        # we need to make broadcastabe to [batch_size, num_heads, seq_length, seq_length]
+        # we need to make broadcastabe to
+        # [batch_size, num_heads, seq_length, seq_length]
         if encoder_attention_mask.dim() == 3:
             encoder_extended_attention_mask = encoder_attention_mask[:, None, :, :]
         if encoder_attention_mask.dim() == 2:
@@ -258,7 +273,8 @@ class MMBTModel(nn.Module):
         # 1.0 in head_mask indicate we keep the head
         # attention_probs has shape bsz x n_heads x N x N
         # input head_mask has shape [num_heads] or [num_hidden_layers x num_heads]
-        # and head_mask is converted to shape [num_hidden_layers x batch x num_heads x seq_length x seq_length]
+        # and head_mask is converted to shape
+        # [num_hidden_layers x batch x num_heads x seq_length x seq_length]
         if head_mask is not None:
             if head_mask.dim() == 1:
                 head_mask = (
@@ -288,7 +304,7 @@ class MMBTModel(nn.Module):
         sequence_output = encoder_outputs[0]
         pooled_output = self.transformer.pooler(sequence_output)
 
-        outputs = (sequence_output, pooled_output,) + encoder_outputs[
+        outputs = (sequence_output, pooled_output) + encoder_outputs[
             1:
         ]  # add hidden_states and attentions if they are here
         return outputs  # sequence_output, pooled_output, (hidden_states), (attentions)
@@ -332,7 +348,7 @@ class MMBTBase(MultiModalEncoderBase):
             modal_end_token = sample_list.input_ids[:, -1].clone().detach()
 
         # See details of inputs at
-        # https://github.com/huggingface/transformers/blob/1789c7/src/transformers/modeling_mmbt.py#L101
+        # https://github.com/huggingface/transformers/blob/1789c7/src/transformers/modeling_mmbt.py#L101 # noqa
         output = self.mmbt(
             input_modal,
             input_ids=sample_list.input_ids,
@@ -359,7 +375,8 @@ class MMBTForPreTraining(nn.Module):
         self.bert = MMBTBase(config, *args, **kwargs)
         self.encoder_config = self.bert.encoder_config
 
-        # TODO : Switch to AutoModelForPreTraining after transformers package upgrade to 2.5
+        # TODO : Switch to AutoModelForPreTraining after transformers
+        # package upgrade to 2.5
         pretraining_module = BertForPreTraining.from_pretrained(
             self.config.bert_model_name,
             config=self.encoder_config,
@@ -372,7 +389,8 @@ class MMBTForPreTraining(nn.Module):
 
     def tie_weights(self):
         """ Make sure we are sharing the input and output embeddings.
-            Export to TorchScript can't handle parameter sharing so we are cloning them instead.
+            Export to TorchScript can't handle parameter sharing so we
+            are cloning them instead.
         """
         if hasattr(self, "cls"):
             self.bert.mmbt.transformer._tie_or_clone_weights(

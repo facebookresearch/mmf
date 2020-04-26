@@ -102,11 +102,23 @@ def _get_version_and_resources(item):
 def get_global_config(key=None):
     config = registry.get("config")
     if config is None:
-        raise RuntimeError("Global config hasn't been registered")
+        configuration = Configuration()
+        config = configuration.get_config()
+        registry.register("config", config)
 
     if key:
         config = OmegaConf.select(config, key)
+
     return config
+
+
+def get_mmf_cache_dir():
+    config = get_global_config()
+    cache_dir = config.env.cache_dir
+    # If cache_dir path exists do not join to mmf root
+    if not os.path.exists(cache_dir):
+        cache_dir = os.path.join(get_mmf_root(), cache_dir)
+    return cache_dir
 
 
 def get_mmf_env(key=None):
@@ -155,23 +167,27 @@ def resolve_dir(env_variable, default="data"):
 
 
 class Configuration:
-    def __init__(self, args):
+    def __init__(self, args=None, default_only=False):
         self.config = {}
+
+        if not args:
+            import argparse
+
+            args = argparse.Namespace(opts=[])
+            default_only = True
+
         self.args = args
         self._register_resolvers()
 
         default_config = self._build_default_config()
-        opts_config = self._build_opt_list(args.opts)
-        user_config = self._build_user_config(opts_config)
-        model_config = self._build_model_config(opts_config)
-        dataset_config = self._build_dataset_config(opts_config)
-        args_overrides = self._build_demjson_config(args.config_override)
+
+        if default_only:
+            other_configs = {}
+        else:
+            other_configs = self._build_other_configs()
 
         self._default_config = default_config
-        self._user_config = user_config
-        self.config = OmegaConf.merge(
-            default_config, model_config, dataset_config, user_config, args_overrides
-        )
+        self.config = OmegaConf.merge(default_config, other_configs)
 
         self.config = self._merge_with_dotlist(self.config, args.opts)
         self._update_specific(self.config)
@@ -181,6 +197,21 @@ class Configuration:
         self.default_config_path = self._get_default_config_path()
         default_config = load_yaml(self.default_config_path)
         return default_config
+
+    def _build_other_configs(self):
+        opts_config = self._build_opt_list(self.args.opts)
+        user_config = self._build_user_config(opts_config)
+
+        self._user_config = user_config
+
+        model_config = self._build_model_config(opts_config)
+        dataset_config = self._build_dataset_config(opts_config)
+        args_overrides = self._build_demjson_config(self.args.config_override)
+        other_configs = OmegaConf.merge(
+            model_config, dataset_config, user_config, args_overrides
+        )
+
+        return other_configs
 
     def _build_opt_list(self, opts):
         opts_dot_list = self._convert_to_dot_list(opts)
@@ -293,7 +324,7 @@ class Configuration:
             opts = []
 
         if len(opts) == 0:
-            return
+            return config
 
         # Support equal e.g. model=visual_bert for better future hydra support
         has_equal = opts[0].find("=") != -1

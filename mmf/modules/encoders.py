@@ -12,8 +12,9 @@ from transformers.modeling_auto import AutoModel
 from mmf.modules.embeddings import ProjectionEmbedding, TextEmbedding
 from mmf.modules.layers import Identity
 from mmf.utils.build import build_image_encoder, build_text_encoder
+from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.file_io import PathManager
-from mmf.utils.general import get_mmf_cache_dir, get_mmf_root
+from mmf.utils.general import get_mmf_root
 
 
 class ImageFeatureEncoder(nn.Module):

@@ -6,9 +6,10 @@ import numpy as np
 import torch
 from torchtext import vocab
 
+from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.distributed import is_master, synchronize
 from mmf.utils.file_io import PathManager
-from mmf.utils.general import get_mmf_cache_dir, get_mmf_root
+from mmf.utils.general import get_mmf_root
 
 EMBEDDING_NAME_CLASS_MAPPING = {"glove": "GloVe", "fasttext": "FastText"}
 

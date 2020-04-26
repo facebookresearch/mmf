@@ -87,17 +87,6 @@ def get_mmf_root():
     return pythia_root
 
 
-def get_mmf_cache_dir():
-    from mmf.common.registry import registry
-
-    config = registry.get("config")
-    cache_dir = config.env.cache_dir
-    # If cache_dir path exists do not join to mmf root
-    if not PathManager.exists(cache_dir):
-        cache_dir = os.path.join(get_mmf_root(), ".mmf_cache")
-    return cache_dir
-
-
 def get_absolute_path(paths):
     # String check should be first as Sequence would pass for string too
     if isinstance(paths, str):
@@ -200,9 +189,9 @@ def get_current_tensors():
 
 
 def get_batch_size():
-    from mmf.common.registry import registry
+    from mmf.utils.configuration import get_global_config
 
-    batch_size = registry.get("config").training.batch_size
+    batch_size = get_global_config("training.batch_size")
 
     world_size = get_world_size()
 

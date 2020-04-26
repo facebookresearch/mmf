@@ -21,7 +21,7 @@ from transformers.modeling_bert import (
 from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.modules.embeddings import BertVisioLinguisticEmbeddings
-from mmf.utils.general import get_mmf_cache_dir
+from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
 from mmf.utils.transform import (
     transform_to_batch_sequence,
@@ -70,8 +70,9 @@ class VisualBERTBase(BertPreTrainedModel):
         # We create a 3D attention mask from a 2D tensor mask.
         # Sizes are [batch_size, 1, 1, to_seq_length]
         # So we can broadcast to [batch_size, num_heads, from_seq_length, to_seq_length]
-        # this attention mask is more simple than the triangular masking of causal attention
-        # used in OpenAI GPT, we just need to prepare the broadcast dimension here.
+        # this attention mask is more simple than the triangular masking of
+        # causal attention used in OpenAI GPT, we just need to prepare the
+        # broadcast dimension here.
         extended_attention_mask = sample_list.attention_mask.unsqueeze(1).unsqueeze(2)
 
         # Since attention_mask is 1.0 for positions we want to attend and 0.0 for
@@ -262,7 +263,8 @@ class VisualBERT(BaseModel):
 
     def tie_weights(self):
         """ Make sure we are sharing the input and output embeddings.
-            Export to TorchScript can't handle parameter sharing so we are cloning them instead.
+            Export to TorchScript can't handle parameter sharing so we are cloning
+            them instead.
         """
         if hasattr(self, "cls"):
             self.bert._tie_or_clone_weights(
