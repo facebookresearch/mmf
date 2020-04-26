@@ -48,6 +48,7 @@ from torch import nn
 from mmf.common.registry import registry
 from mmf.modules.losses import Losses
 from mmf.modules.metrics import Metrics
+from mmf.utils.checkpoint import load_pretrained_model
 
 
 class BaseModel(nn.Module):
@@ -66,6 +67,15 @@ class BaseModel(nn.Module):
         self.config = config
         self._logged_warning = {"losses_present": False, "metrics_present": False}
         self.writer = registry.get("writer")
+        self._is_pretrained = False
+
+    @property
+    def is_pretrained(self):
+        return self._is_pretrained
+
+    @is_pretrained.setter
+    def is_pretrained(self, x):
+        self._is_pretrained = x
 
     def build(self):
         """Function to be implemented by the child class, in case they need to
@@ -83,13 +93,13 @@ class BaseModel(nn.Module):
         """
         losses = self.config.get("losses", [])
         metrics = self.config.get("metrics", [])
-        if len(losses) == 0:
+        if len(losses) == 0 and not self.is_pretrained:
             warnings.warn(
                 "No losses are defined in model configuration. You are expected "
                 "to return loss in your return dict from forward."
             )
 
-        if len(metrics) == 0:
+        if len(metrics) == 0 and not self.is_pretrained:
             warnings.warn(
                 "No metrics are defined in model configuration. You are expected "
                 "to return metrics in your return dict from forward."
@@ -145,6 +155,10 @@ class BaseModel(nn.Module):
     def __call__(self, sample_list, *args, **kwargs):
         model_output = super().__call__(sample_list, *args, **kwargs)
 
+        # Don't do anything fancy to output if it is pretrained
+        if self.is_pretrained:
+            return model_output
+
         # Make sure theat the output from the model is a Mapping
         assert isinstance(
             model_output, collections.abc.Mapping
@@ -179,3 +193,21 @@ class BaseModel(nn.Module):
             model_output["metrics"] = self.metrics(sample_list, model_output)
 
         return model_output
+
+    @classmethod
+    def from_pretrained(cls, model_name, *args, **kwargs):
+        model_key = model_name.split(".")[0]
+        model_cls = registry.get_model_class(model_key)
+        assert (
+            model_cls == cls
+        ), f"Incorrect pretrained model key {model_name} for class {cls.__name__}"
+        output = load_pretrained_model(model_name, *args, **kwargs)
+        config, checkpoint = output["config"], output["checkpoint"]
+
+        instance = cls(config)
+        instance.is_pretrained = True
+        instance.build()
+        instance.load_state_dict(checkpoint)
+        instance.eval()
+
+        return instance

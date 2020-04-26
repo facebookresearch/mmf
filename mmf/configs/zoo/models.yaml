@@ -1,0 +1,9 @@
+visual_bert:
+  pretrained:
+    coco:
+      version:
+      resources:
+      - url: mmf://models/visual_bert/visual_bert.pretrained.coco.tar.gz
+        file_name: visual_bert.pretrained.coco.tar.gz
+        hashcode: 9af0b8101579d7587d70d7315940310c7fc5ef7269cba497780922e65e4e000d
+    defaults: ${visual_bert.pretrained.coco}

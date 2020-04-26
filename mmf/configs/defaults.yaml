@@ -163,6 +163,7 @@ env:
     # Config path for dataset zoo, can be overridden via environment
     # variable MMF_DATASET_ZOO as well.
     dataset_zoo: ${env:MMF_DATASET_ZOO,configs/zoo/datasets.yaml}
+    model_zoo: ${env:MMF_MODEL_ZOO, configs/zoo/models.yaml}
 
     # Similar to cache dir, but can be used if specifically want to override
     # where MMF stores your data. Default would be cache_dir/data.

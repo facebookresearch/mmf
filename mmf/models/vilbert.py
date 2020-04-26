@@ -25,7 +25,7 @@ from transformers.modeling_bert import (
 
 from mmf.common.registry import registry
 from mmf.models import BaseModel
-from mmf.utils.general import get_mmf_cache_dir
+from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
 
 
@@ -66,10 +66,12 @@ class BertSelfAttention(nn.Module):
         key_layer = self.transpose_for_scores(mixed_key_layer)
         value_layer = self.transpose_for_scores(mixed_value_layer)
 
-        # Take the dot product between "query" and "key" to get the raw attention scores.
+        # Take the dot product between "query" and "key" to get the raw
+        # attention scores.
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
         attention_scores = attention_scores / math.sqrt(self.attention_head_size)
-        # Apply the attention mask is (precomputed for all layers in BertModel forward() function)
+        # Apply the attention mask is (precomputed for all layers in
+        # BertModel forward() function)
         attention_scores = attention_scores + attention_mask
 
         # Normalize the attention scores to probabilities.
@@ -180,10 +182,12 @@ class BertImageSelfAttention(nn.Module):
         key_layer = self.transpose_for_scores(mixed_key_layer)
         value_layer = self.transpose_for_scores(mixed_value_layer)
 
-        # Take the dot product between "query" and "key" to get the raw attention scores.
+        # Take the dot product between "query" and "key" to get the
+        # raw attention scores.
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
         attention_scores = attention_scores / math.sqrt(self.attention_head_size)
-        # Apply the attention mask is (precomputed for all layers in BertModel forward() function)
+        # Apply the attention mask is (precomputed for all layers in BertModel
+        # forward() function)
         attention_scores = attention_scores + attention_mask
 
         # Normalize the attention scores to probabilities.
@@ -356,7 +360,8 @@ class BertBiAttention(nn.Module):
         value_layer2 = self.transpose_for_scores(mixed_value_layer2)
         # logit_layer2 = self.transpose_for_logits(mixed_logit_layer2)
 
-        # Take the dot product between "query2" and "key1" to get the raw attention scores for value 1.
+        # Take the dot product between "query2" and "key1" to get the raw
+        # attention scores for value 1.
         attention_scores1 = torch.matmul(query_layer2, key_layer1.transpose(-1, -2))
         attention_scores1 = attention_scores1 / math.sqrt(self.attention_head_size)
         attention_scores1 = attention_scores1 + attention_mask1
@@ -375,10 +380,12 @@ class BertBiAttention(nn.Module):
         new_context_layer_shape1 = context_layer1.size()[:-2] + (self.all_head_size,)
         context_layer1 = context_layer1.view(*new_context_layer_shape1)
 
-        # Take the dot product between "query1" and "key2" to get the raw attention scores for value 2.
+        # Take the dot product between "query1" and "key2" to get the
+        # raw attention scores for value 2.
         attention_scores2 = torch.matmul(query_layer1, key_layer2.transpose(-1, -2))
         attention_scores2 = attention_scores2 / math.sqrt(self.attention_head_size)
-        # Apply the attention mask is (precomputed for all layers in BertModel forward() function)
+        # Apply the attention mask is (precomputed for all layers in BertModel
+        # forward() function)
 
         # we can comment this line for single flow.
         attention_scores2 = attention_scores2 + attention_mask2
@@ -833,8 +840,9 @@ class BertModel(BertPreTrainedModel):
         # We create a 3D attention mask from a 2D tensor mask.
         # Sizes are [batch_size, 1, 1, to_seq_length]
         # So we can broadcast to [batch_size, num_heads, from_seq_length, to_seq_length]
-        # this attention mask is more simple than the triangular masking of causal attention
-        # used in OpenAI GPT, we just need to prepare the broadcast dimension here.
+        # this attention mask is more simple than the triangular masking of
+        # causal attention used in OpenAI GPT, we just need to prepare the
+        # broadcast dimension here.
         extended_attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
         extended_image_attention_mask = image_attention_mask.unsqueeze(1).unsqueeze(2)
 
@@ -904,7 +912,8 @@ class BertModel(BertPreTrainedModel):
 
 
 class BertImageFeatureEmbeddings(nn.Module):
-    """Construct the embeddings from image, spatial location (omit now) and token_type embeddings.
+    """Construct the embeddings from image, spatial location (omit now) and
+    token_type embeddings.
     """
 
     def __init__(self, config):
@@ -920,7 +929,8 @@ class BertImageFeatureEmbeddings(nn.Module):
         img_embeddings = self.image_embeddings(input_ids)
         loc_embeddings = self.image_location_embeddings(input_loc)
 
-        # TODO: we want to make the padding_idx == 0, however, with custom initilization, it seems it will have a bias.
+        # TODO: we want to make the padding_idx == 0, however, with custom
+        # initilization, it seems it will have a bias.
         # Let's do masking for now
         embeddings = self.LayerNorm(img_embeddings + loc_embeddings)
         embeddings = self.dropout(embeddings)
@@ -994,7 +1004,8 @@ class BertForMultiModalPreTraining(BertPreTrainedModel):
 
     def tie_weights(self):
         """ Make sure we are sharing the input and output embeddings.
-            Export to TorchScript can't handle parameter sharing so we are cloning them instead.
+            Export to TorchScript can't handle parameter sharing so we are cloning
+            them instead.
         """
         if hasattr(self, "cls"):
             self._tie_or_clone_weights(
@@ -1217,7 +1228,9 @@ class ViLBERT(BaseModel):
                 "masked_img_loss"
             )
             # if params["is_random_next"] is not None:
-            #     output_dict["losses"][loss_key + "/next_sentence_loss"] = output_dict.pop("next_sentence_loss")
+            #     output_dict["losses"][
+            #       loss_key + "/next_sentence_loss"
+            #     ] = output_dict.pop("next_sentence_loss")
 
         return output_dict
 
