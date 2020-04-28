@@ -483,24 +483,33 @@ class MMBT(BaseModel):
 
     def build(self):
         if self.config.training_head_type == "pretraining":
-            self.base = MMBTForPreTraining(self.config)
+            self.model = MMBTForPreTraining(self.config)
         else:
-            self.base = MMBTForClassification(self.config)
+            self.model = MMBTForClassification(self.config)
 
         if self.config.freeze_complete_base or self.config.freeze_text:
-            for p in self.base.bert.mmbt.transformer.parameters():
+            for p in self.model.bert.mmbt.transformer.parameters():
                 p.requires_grad = False
 
         if self.config.freeze_complete_base or self.config.freeze_modal:
-            for p in self.base.bert.mmbt.modal_encoder.parameters():
+            for p in self.model.bert.mmbt.modal_encoder.parameters():
                 p.requires_grad = False
+
+    # Backward compatibility for code from older mmbt
+    @classmethod
+    def format_state_key(cls, key):
+        return (
+            key.replace("base.bert", "model.bert")
+            .replace("base.cls", "model.cls")
+            .replace("base.classifier", "model.classifier")
+        )
 
     @classmethod
     def config_path(cls):
         return "configs/models/mmbt/pretrain.yaml"
 
     def forward(self, sample_list):
-        return self.base(sample_list)
+        return self.model(sample_list)
 
     def get_optimizer_parameters(self, config):
-        return get_optimizer_parameters_for_bert(self.base, config)
+        return get_optimizer_parameters_for_bert(self.model, config)
