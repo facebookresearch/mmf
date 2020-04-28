@@ -1,6 +1,7 @@
 model_config:
   vilbert:
-    training_head_type: vqa
+    training_head_type: classification
+    num_labels: 3129
     losses:
     - type: logit_bce
     metrics:
@@ -54,5 +55,5 @@ training:
   # Don't forget to update schedule_attributes if you update this
   max_updates: 60000
   pretrained_mapping:
-    bert.bert: bert.bert
+    model.bert: model.bert
   find_unused_parameters: true
