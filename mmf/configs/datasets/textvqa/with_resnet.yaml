@@ -1,0 +1,9 @@
+dataset_config:
+  textvqa:
+    features:
+      train:
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/defaults/features/open_images/resnet152.lmdb
+      val:
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/defaults/features/open_images/resnet152.lmdb
+      test:
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/defaults/features/open_images/resnet152.lmdb

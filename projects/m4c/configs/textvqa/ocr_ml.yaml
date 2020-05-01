@@ -1,0 +1,23 @@
+includes:
+- ./defaults.yaml
+
+dataset_config:
+  textvqa:
+    zoo_requirements:
+    - textvqa.defaults
+    - textvqa.ocr_ml
+    features:
+      train:
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_ml/features/ocr_ml_frcn_features.lmdb
+      val:
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_ml/features/ocr_ml_frcn_features.lmdb
+      test:
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_ml/features/ocr_ml_frcn_features.lmdb
+
+    annotations:
+      train:
+      - textvqa/defaults/annotations/imdb_train_ocr_ml.npy
+      val:
+      - textvqa/defaults/annotations/imdb_val_ocr_ml.npy
+      test:
+      - textvqa/defaults/annotations/imdb_test_ocr_ml.npy

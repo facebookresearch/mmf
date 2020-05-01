@@ -1,12 +1,16 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # Inspired from maskrcnn_benchmark, fairseq
 import os
+import pickle
 import socket
 import subprocess
 import warnings
 
 import torch
 from torch import distributed as dist
+
+MAX_SIZE_LIMIT = 65533
+BYTE_SIZE = 256
 
 
 def synchronize():
@@ -113,6 +117,40 @@ def reduce_dict(dictionary):
             values /= world_size
         reduced_dict = {k: v for k, v in zip(keys, values)}
     return reduced_dict
+
+
+# Object byte tensor utilities have been adopted from
+# https://github.com/pytorch/fairseq/blob/master/fairseq/distributed_utils.py
+def object_to_byte_tensor(obj, max_size=4094):
+    """
+    Encode Python objects to PyTorch byte tensors
+    """
+    assert max_size <= MAX_SIZE_LIMIT
+    byte_tensor = torch.zeros(max_size, dtype=torch.uint8)
+
+    obj_enc = pickle.dumps(obj)
+    obj_size = len(obj_enc)
+    if obj_size > max_size:
+        raise Exception(
+            "objects too large: object size {}, max size {}".format(obj_size, max_size)
+        )
+
+    byte_tensor[0] = obj_size // 256
+    byte_tensor[1] = obj_size % 256
+    byte_tensor[2 : 2 + obj_size] = torch.ByteTensor(list(obj_enc))
+    return byte_tensor
+
+
+def byte_tensor_to_object(byte_tensor, max_size=4094):
+    """
+    Decode PyTorch byte tensors to Python objects
+    """
+    assert max_size <= MAX_SIZE_LIMIT
+
+    obj_size = byte_tensor[0].item() * 256 + byte_tensor[1].item()
+    obj_enc = bytes(byte_tensor[2 : 2 + obj_size].tolist())
+    obj = pickle.loads(obj_enc)
+    return obj
 
 
 def infer_init_method(config):

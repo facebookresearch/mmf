@@ -17,7 +17,7 @@ class VQA2Dataset(MMFDataset):
             name = kwargs["dataset_name"]
         else:
             name = "vqa2"
-        super().__init__(name, config, dataset_type)
+        super().__init__(name, config, dataset_type, index=imdb_file_index)
 
         self._should_fast_read = self.config.get("fast_read", False)
         self.use_ocr = self.config.use_ocr

@@ -1,9 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from mmf.datasets.builders.m4c_textvqa.dataset import M4CTextVQADataset
-from mmf.utils.objects_to_byte_tensor import enc_obj2bytes
+from mmf.datasets.builders.textvqa.dataset import TextVQADataset
+from mmf.utils.distributed import object_to_byte_tensor
 
 
-class M4CTextCapsDataset(M4CTextVQADataset):
+class M4CTextCapsDataset(TextVQADataset):
     def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
         super().__init__(config, dataset_type, imdb_file_index, *args, **kwargs)
         self.dataset_name = "m4c_textcaps"
@@ -31,8 +31,8 @@ class M4CTextCapsDataset(M4CTextVQADataset):
         sample = super().add_answer_info(sample_info, sample)
 
         if sample_has_caption:
-            sample.caption_str = enc_obj2bytes(sample_info["caption_str"])
-            sample.ref_strs = enc_obj2bytes(sample_info["reference_strs"])
-            sample.pop("gt_answers_enc")
+            sample.caption_str = object_to_byte_tensor(sample_info["caption_str"])
+            sample.ref_strs = object_to_byte_tensor(sample_info["reference_strs"])
+            sample.pop("answers")
 
         return sample

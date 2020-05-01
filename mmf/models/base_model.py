@@ -204,6 +204,11 @@ class BaseModel(nn.Module):
         output = load_pretrained_model(model_name, *args, **kwargs)
         config, checkpoint = output["config"], output["checkpoint"]
 
+        # Some models need registry updates to be load pretrained model
+        # If they have this method, call it so they can update accordingly
+        if hasattr(cls, "update_registry_for_pretrained"):
+            cls.update_registry_for_pretrained(config, checkpoint, output)
+
         instance = cls(config)
         instance.is_pretrained = True
         instance.build()

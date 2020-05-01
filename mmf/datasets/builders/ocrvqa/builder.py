@@ -1,11 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from mmf.common.registry import Registry
-from mmf.datasets.builders.m4c_textvqa.builder import M4CTextVQABuilder
 from mmf.datasets.builders.ocrvqa.dataset import OCRVQADataset
+from mmf.datasets.builders.textvqa.builder import TextVQABuilder
 
 
 @Registry.register_builder("ocrvqa")
-class OCRVQABuilder(M4CTextVQABuilder):
+class OCRVQABuilder(TextVQABuilder):
     def __init__(self):
         super().__init__()
         self.dataset_name = "ocrvqa"

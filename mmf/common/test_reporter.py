@@ -59,14 +59,14 @@ class TestReporter(Dataset):
             return False
         else:
             self.current_dataset = self.datasets[self.current_dataset_idx]
-            self.writer.write("Predicting for " + self.current_dataset._name)
+            self.writer.write("Predicting for " + self.current_dataset.dataset_name)
             return True
 
     def flush_report(self):
         if not is_master():
             return
 
-        name = self.current_dataset._name
+        name = self.current_dataset.dataset_name
         time_format = "%Y-%m-%dT%H:%M:%S"
         time = self.timer.get_time_hhmmss(None, format=time_format)
 
@@ -92,7 +92,9 @@ class TestReporter(Dataset):
         other_args = self._add_extra_args_for_dataloader()
         return DataLoader(
             dataset=self.current_dataset,
-            collate_fn=BatchCollator(),
+            collate_fn=BatchCollator(
+                self.current_dataset.dataset_name, self.current_dataset.dataset_type
+            ),
             num_workers=self.num_workers,
             pin_memory=self.config.training.pin_memory,
             **other_args
@@ -133,7 +135,7 @@ class TestReporter(Dataset):
 
     def add_to_report(self, report):
         # TODO: Later gather whole report for no opinions
-        if self.current_dataset._name == "coco":
+        if self.current_dataset.dataset_name == "coco":
             report.captions = gather_tensor(report.captions)
             if isinstance(report.image_id, torch.Tensor):
                 report.image_id = gather_tensor(report.image_id).view(-1)
@@ -142,16 +144,14 @@ class TestReporter(Dataset):
                 -1, report.scores.size(-1)
             )
             report.question_id = gather_tensor(report.question_id).view(-1)
-            if isinstance(report.image_id, torch.Tensor):
-                report.image_id = gather_tensor(report.image_id).view(-1)
-            if "image_id_enc" in report:
-                _, enc_size = report.image_id_enc.size()
-                report.image_id_enc = gather_tensor(report.image_id_enc)
-                report.image_id_enc = report.image_id_enc.view(-1, enc_size)
-            if "context_tokens_enc" in report:
-                _, enc_size = report.context_tokens_enc.size()
-                report.context_tokens_enc = gather_tensor(report.context_tokens_enc)
-                report.context_tokens_enc = report.context_tokens_enc.view(-1, enc_size)
+            if "image_id" in report:
+                _, enc_size = report.image_id.size()
+                report.image_id = gather_tensor(report.image_id)
+                report.image_id = report.image_id.view(-1, enc_size)
+            if "context_tokens" in report:
+                _, enc_size = report.context_tokens.size()
+                report.context_tokens = gather_tensor(report.context_tokens)
+                report.context_tokens = report.context_tokens.view(-1, enc_size)
 
         if not is_master():
             return

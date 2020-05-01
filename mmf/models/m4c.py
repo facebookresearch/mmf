@@ -315,6 +315,25 @@ class M4C(BaseModel):
 
         return optimizer_param_groups
 
+    @classmethod
+    def update_registry_for_pretrained(cls, config, checkpoint, full_output):
+        from omegaconf import OmegaConf
+
+        # Hack datasets using OmegaConf
+        datasets = full_output["full_config"].datasets
+        dataset = datasets.split(",")[0]
+        config_mock = OmegaConf.create({"datasets": datasets})
+        registry.register("config", config_mock)
+        registry.register(
+            "{}_num_final_outputs".format(dataset),
+            # Need to add as it is subtracted
+            checkpoint["classifier.module.weight"].size(0)
+            + config.classifier.ocr_max_num,
+        )
+        # Fix this later, when processor pipeline is available
+        answer_processor = OmegaConf.create({"BOS_IDX": 1})
+        registry.register("{}_answer_processor".format(dataset), answer_processor)
+
 
 class TextBert(BertPreTrainedModel):
     def __init__(self, config):

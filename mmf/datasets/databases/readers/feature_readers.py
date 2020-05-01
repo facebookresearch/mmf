@@ -127,7 +127,6 @@ class PaddedFasterRCNNFeatureReader:
 
     def read(self, image_feat_path):
         image_info = self._load(image_feat_path)
-
         if self.first:
             self.first = False
             if (
@@ -150,6 +149,11 @@ class PaddedFasterRCNNFeatureReader:
                     image_info.update(item["info"])
                 image_feature = item["feature"]
 
+        # Handle the case of ResNet152 features
+        if len(image_feature.shape) > 2:
+            shape = image_feature.shape
+            image_feature = image_feature.reshape(-1, shape[-1])
+
         image_loc, image_dim = image_feature.shape
         tmp_image_feat = np.zeros((self.max_loc, image_dim), dtype=np.float32)
         tmp_image_feat[0:image_loc,] = image_feature[: self.max_loc, :]  # noqa
@@ -164,6 +168,13 @@ class LMDBFeatureReader(PaddedFasterRCNNFeatureReader):
     def __init__(self, max_loc, base_path):
         super().__init__(max_loc)
         self.db_path = base_path
+
+        if not os.path.exists(self.db_path):
+            raise RuntimeError(
+                "{} path specified for LMDB features doesn't exists.".format(
+                    self.db_path
+                )
+            )
         self.env = None
 
     def _init_db(self):
@@ -184,14 +195,24 @@ class LMDBFeatureReader(PaddedFasterRCNNFeatureReader):
     def _load(self, image_file_path):
         if self.env is None:
             self._init_db()
-        image_id = int(
-            os.path.basename(image_file_path).split(".npy")[0].split("_")[-1]
-        )
+
+        split = os.path.relpath(image_file_path, self.db_path).split(".npy")[0]
+
+        try:
+            image_id = int(split.split("_")[-1])
+            # Try fetching to see if it actually exists otherwise fall back to
+            # default
+            _ = self.image_id_indices[image_id]
+        except (ValueError, KeyError):
+            # The image id is complex or involves folder, use it directly
+            image_id = split
         image_id = str(image_id).encode()
+
         with self.env.begin(write=False, buffers=True) as txn:
             image_info = pickle.loads(
                 txn.get(self.image_ids[self.image_id_indices[image_id]])
             )
+
         return image_info
 
 

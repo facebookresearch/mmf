@@ -6,7 +6,7 @@ import warnings
 import mmf.utils.download as download
 from mmf.datasets.base_dataset_builder import BaseDatasetBuilder
 from mmf.datasets.concat_dataset import MMFConcatDataset
-from mmf.utils.configuration import get_global_config, get_zoo_config
+from mmf.utils.configuration import get_global_config, get_mmf_env, get_zoo_config
 from mmf.utils.general import get_absolute_path
 
 ResourcesType = typing.NewType(
@@ -45,32 +45,6 @@ class MMFDatasetBuilder(BaseDatasetBuilder):
         self.zoo_variation = zoo_variation
 
     @property
-    def version(self):
-        if self.VERSION is None:
-            version, resources = get_zoo_config(
-                self.dataset_name,
-                self.zoo_variation,
-                self.zoo_config_path,
-                self.zoo_type,
-            )
-            self.VERSION = version
-            self.RESOURCES = resources
-
-            if version is None:
-                # TODO: Convert this later to NotImplementedError once
-                # all datasets have been migrated.
-                warnings.warn(
-                    "Dataset builder must define a version as class attribute "
-                    + "'VERSION' or in dataset configuration."
-                )
-        return self.VERSION
-
-    @version.setter
-    def version(self, x):
-        # Shouldn't be used, but just in case if needed
-        self.VERSION = x
-
-    @property
     def dataset_class(self):
         return self._dataset_class
 
@@ -96,61 +70,76 @@ class MMFDatasetBuilder(BaseDatasetBuilder):
     def zoo_config_path(self, zoo_config_path):
         self.ZOO_CONFIG_PATH = zoo_config_path
 
-    @property
-    def resources(self):
-        if self.RESOURCES is None:
-            version, resources = get_zoo_config(
-                self.dataset_name,
-                self.zoo_variation,
-                self.zoo_config_path,
-                self.zoo_type,
-            )
-            self.VERSION = version
-            self.RESOURCES = resources
-            if resources is None:
-                warnings.warn(
-                    "'RESOURCES' classes property has not been defined for the dataset "
-                    + "builder. Nothing will be downloaded. "
-                    + "Set 'RESOURCES' if you want to download or defined your "
-                    + "zoo config in configs/zoo/datasets.yaml."
-                )
-                return {"features": [], "annotations": [], "images": [], "extras": []}
-        return self.RESOURCES
-
-    @resources.setter
-    def resources(self, resources: ResourcesType):
-        self.RESOURCES = resources
-
     def set_dataset_class(self, dataset_cls):
         self.dataset_class = dataset_cls
 
     def build(self, config, dataset_type="train", *args, **kwargs):
-        resources: ResourcesType = self.resources
+        requirements = config.get("zoo_requirements", [])
+
+        if len(requirements) == 0:
+            # If nothing is specified, build the default requirement
+            self._download_requirement(config, self.dataset_name, self.zoo_variation)
+        else:
+            # Else build all of the requirements one by one
+            # Default must also be specified in these requirements if needed
+            for requirement in requirements:
+                self._download_requirement(config, requirement)
+
+    def _download_requirement(
+        self, config, requirement_key, requirement_variation="defaults"
+    ):
+        version, resources = get_zoo_config(
+            requirement_key, requirement_variation, self.zoo_config_path, self.zoo_type
+        )
 
         if resources is None:
             return
 
-        download_path = os.path.join(config.data_dir, "datasets", self.dataset_name)
+        requirement_split = requirement_key.split(".")
+        dataset_name = requirement_split[0]
+
+        if len(requirement_split) == 2:
+            dataset_variation = requirement_split[1]
+        else:
+            dataset_variation = requirement_variation
+
+        # We want to use root env data_dir so that we don't mix up our download
+        # root dir with the dataset ones
+        download_path = os.path.join(
+            get_mmf_env("data_dir"), "datasets", dataset_name, dataset_variation
+        )
         download_path = get_absolute_path(download_path)
 
         if not isinstance(resources, collections.abc.Mapping):
-            self._download_resources(resources, download_path)
+            self._download_resources(resources, download_path, version)
         else:
             use_features = config.get("use_features", False)
             use_images = config.get("use_images", False)
 
             if use_features:
-                self._download_based_on_attribute(resources, download_path, "features")
+                self._download_based_on_attribute(
+                    resources, download_path, version, "features"
+                )
 
             if use_images:
-                self._download_based_on_attribute(resources, download_path, "images")
+                self._download_based_on_attribute(
+                    resources, download_path, version, "images"
+                )
 
-            self._download_based_on_attribute(resources, download_path, "annotations")
-            self._download_resources(resources.get("extras", []), download_path)
+            self._download_based_on_attribute(
+                resources, download_path, version, "annotations"
+            )
+            self._download_resources(
+                resources.get("extras", []), download_path, version
+            )
 
     def load(self, config, dataset_type, *args, **kwargs):
         self.config = config
         annotations = config.get("annotations", {}).get(dataset_type, [])
+
+        # User can pass a single string as well
+        if isinstance(annotations, str):
+            annotations = [annotations]
 
         if len(annotations) == 0:
             warnings.warn(
@@ -172,9 +161,11 @@ class MMFDatasetBuilder(BaseDatasetBuilder):
         self.dataset = dataset
         return self.dataset
 
-    def _download_based_on_attribute(self, resources, download_path, attribute):
+    def _download_based_on_attribute(
+        self, resources, download_path, version, attribute
+    ):
         path = os.path.join(download_path, attribute)
-        self._download_resources(resources.get(attribute, []), path)
+        self._download_resources(resources.get(attribute, []), path, version)
 
-    def _download_resources(self, resources, path):
-        download.download_resources(resources, path, self.version)
+    def _download_resources(self, resources, path, version):
+        download.download_resources(resources, path, version)

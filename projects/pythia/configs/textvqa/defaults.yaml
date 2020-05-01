@@ -1,3 +1,5 @@
+includes:
+- configs/datasets/textvqa/with_resnet.yaml
 optimizer:
   type: Adamax
   params:

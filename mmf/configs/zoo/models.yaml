@@ -1,9 +1,46 @@
 visual_bert:
   pretrained:
     coco:
-      version:
+      version: 1.0_2020_04_20
       resources:
       - url: mmf://models/visual_bert/visual_bert.pretrained.coco.tar.gz
         file_name: visual_bert.pretrained.coco.tar.gz
         hashcode: 9af0b8101579d7587d70d7315940310c7fc5ef7269cba497780922e65e4e000d
     defaults: ${visual_bert.pretrained.coco}
+
+m4c:
+  defaults: ${m4c.textvqa.defaults}
+  textvqa:
+    with_stvqa:
+      version: 1.0_2020_04_29
+      resources:
+      - url: mmf://models/m4c/m4c.textvqa.with_stvqa.tar.gz
+        file_name: m4c.textvqa.with_stvqa.tar.gz
+        hashcode: 2dfd024cb144bb70843033d11dec064bc84937f22fd6561653ce1acd7610285e
+    ocr_ml:
+      version: 1.0_2020_04_29
+      resources:
+      - url: mmf://models/m4c/m4c.textvqa.ocr_ml.tar.gz
+        file_name: m4c.textvqa.ocr_ml.tar.gz
+        hashcode: 4734dbf1816ffe378f08e69bd85b8cc0e4b2abe9564626505ff93e1ea7aea741
+    alone:
+      version: 1.0_2020_04_29
+      resources:
+      - url: mmf://models/m4c/m4c.textvqa.alone.tar.gz
+        file_name: m4c.textvqa.alone.tar.gz
+        hashcode: 84243f5d626a8211ea6a1ae409c72aaa24645ccd43883d4af4aa903d70d45f06
+    defaults: ${m4c.textvqa.with_stvqa}
+  stvqa:
+    defaults:
+      version: 1.0_2020_04_29
+      resources:
+      - url: mmf://models/m4c/m4c.stvqa.tar.gz
+        file_name: m4c.stvqa.tar.gz
+        hashcode: ea4af8737dc04753727b596cefb262afaa1ebdd8f4b9476c4a53d06088cedfb8
+  ocrvqa:
+    defaults:
+      version: 1.0_2020_04_29
+      resources:
+      - url: mmf://models/m4c/m4c.ocrvqa.tar.gz
+        file_name: m4c.ocrvqa.tar.gz
+        hashcode: 062d8ca7f47f942c47756574aa5944f3136cef7226173d59fcbd1e00f1a3c42d
