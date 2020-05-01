@@ -72,4 +72,6 @@ model_config:
     - type: identity
       params:
         embedding_dim: 350
+        model_data_dir: ${model_config.lorra.model_data_dir}
+
   lorra_with_glove: *lorra

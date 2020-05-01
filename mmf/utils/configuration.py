@@ -71,19 +71,30 @@ def get_zoo_config(
         zoo_config_path = os.path.join("configs", "zoo", "{}.yaml".format(zoo_type))
     zoo = load_yaml(zoo_config_path)
 
-    if key not in zoo:
+    # Set struct on zoo so that unidentified access is not allowed
+    OmegaConf.set_struct(zoo, True)
+
+    try:
+        item = OmegaConf.select(zoo, key)
+    except Exception:
+        # Key wasn't present or something else happened, return None, None
         return version, resources
+
+    if not item:
+        return version, resources
+
+    if variation not in item:
+        # If variation is not present, then key value should
+        # be directly returned if "defaults" was selected as the variation
+        assert (
+            variation == "defaults"
+        ), "'{}' variation not present in zoo config".format(variation)
+        return _get_version_and_resources(item)
+    elif "resources" in item:
+        # Case where full key is directly passed
+        return _get_version_and_resources(item)
     else:
-        item = zoo[key]
-        if variation not in item:
-            # If variation is not present, then key value should
-            # be directly returned if "defaults" was selected as the variation
-            assert (
-                variation == "defaults"
-            ), "'{}' variation not present in zoo config".format(variation)
-            return _get_version_and_resources(item)
-        else:
-            return _get_version_and_resources(item[variation])
+        return _get_version_and_resources(item[variation])
 
 
 def _get_version_and_resources(item):
@@ -96,7 +107,7 @@ def _get_version_and_resources(item):
         item._get_full_key("")
     )
 
-    return item["version"], item["resources"]
+    return item.version, item.resources
 
 
 def get_global_config(key=None):

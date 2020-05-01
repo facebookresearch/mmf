@@ -40,18 +40,97 @@ mmimdb:
   version: 1.0_2020_04_16
   resources:
     features:
-    - url: mmf://datasets/mmimdb/features/features.lmdb.tar.gz
-      file_name: features.lmdb.tar.gz
+    - url: mmf://datasets/mmimdb/defaults/features/features.tar.gz
+      file_name: features.tar.gz
       hashcode: dab8ef859d872fa42f84eb6f710d408929bc35f056ca699b47e8a43d0657f3f1
     images:
     - url: https://archive.org/download/mmimdb/mmimdb.tar.gz
       file_name: mmimdb.tar.gz
       hashcode: 7facb412f84e8e707cf5c15bb58e4cf3ac12d33e6e944e1bdefebada1259a253
     annotations:
-    - url: mmf://datasets/mmimdb/annotations/mmimdb.tar.gz
+    - url: mmf://datasets/mmimdb/defaults/annotations/mmimdb.tar.gz
       file_name: mmimdb.tar.gz
       hashcode: 5df7486bf143b073b7fb8a1738ce806876529d30a8aa13b967614d8a6c72a360
     extras:
-    - url: mmf://datasets/mmimdb/extras.tar.gz
+    - url: mmf://datasets/mmimdb/defaults/extras.tar.gz
       file_name: extras.tar.gz
       hashcode: 08dd544c152c54ca37330f77d4ed40a29ab0646afea855568e9c0e6ffd86b935
+
+stvqa:
+  defaults:
+    version: 1.0_2020_04_28
+    resources:
+      features:
+      - url: mmf://datasets/stvqa/defaults/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: bdf983470c37b5db2643b61acc5ccbb5d01588d91029c56927a1ee0655bff4b0
+      annotations:
+      - url: mmf://datasets/stvqa/defaults/annotations/annotations.tar.gz
+        file_name: annotations.tar.gz
+        hashcode: c2b1168542babbccb966bd2f33c7e10d2238aa27cfef17d8f447df96056afbe7
+      extras:
+      - url: mmf://datasets/stvqa/defaults/extras.tar.gz
+        file_name: extras.tar.gz
+        hashcode: 0f963b083e3f1c8c67b290fdb76cd1d0239f97857a5566d9f8f6b046c77a5b1b
+  ocr_en:
+    version: 1.0_2020_04_28
+    resources:
+      features:
+      - url: mmf://datasets/stvqa/ocr_en/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: f45a7572f013cae16897f2cf93bd062c6b6f9d35d2c6fb2d8067a039019b27b8
+
+textvqa:
+  defaults:
+    version: 0.5.5_2020_04_28
+    resources:
+      features:
+      - url: mmf://datasets/textvqa/defaults/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: f78f6a8e3c7c9c40c8034303457ebcbd5f2bf999cf8aeeba0f6b6f5403dd7bcf
+      annotations:
+      - url: mmf://datasets/textvqa/defaults/annotations/annotations.tar.gz
+        file_name: annotations.tar.gz
+        hashcode: a72e43e19b4fd1b4b96e45de71a7d0fab0d860cd36ccf12b597c2c6a202eb10b
+      extras:
+      - url: mmf://datasets/textvqa/defaults/extras.tar.gz
+        file_name: extras.tar.gz
+        hashcode: 68dc3b4aeffe4dce24ebb5d373baf0c304fbfbec73f0c1550118a85e90286e38
+  ocr_en:
+    version: 0.5.5_2020_04_28
+    resources:
+      features:
+      - url: mmf://datasets/textvqa/ocr_en/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: 3542dff9338540ff2add59bb2db290d9ea5f82a4f21ab07fe39351a82b699ee0
+  ocr_ml:
+    version: 0.5.5_2020_04_28
+    resources:
+      features:
+      - url: mmf://datasets/textvqa/ocr_ml/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: 98d361e64d88df93483847c3e271b0337e149c6ff1a461e6913809d3457649ce
+
+ocrvqa:
+  defaults:
+    version: 1.0_2020_04_28
+    resources:
+      features:
+      - url: mmf://datasets/ocrvqa/defaults/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: 346d302aba4445ab49ff4924c112491541aec59e95b63d2e2c0061a4ae4f3a84
+      annotations:
+      - url: mmf://datasets/ocrvqa/defaults/annotations/annotations.tar.gz
+        file_name: annotations.tar.gz
+        hashcode: 885a20440ae5886bf16c1dc98a53a0382c3b370b0950beb546d9e1fd1e5a9e78
+      extras:
+      - url: mmf://datasets/ocrvqa/defaults/extras.tar.gz
+        file_name: extras.tar.gz
+        hashcode: e09ecf613f34569b49ef4c60da0849aa0f9bc8d9853b123be82bf3821414c760
+  ocr_en:
+    version: 1.0_2020_04_28
+    resources:
+      features:
+      - url: mmf://datasets/ocrvqa/ocr_en/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: 1c9eb9df544d431f438d340afe493a4d3db759eedd485033f88fc639106edeb8

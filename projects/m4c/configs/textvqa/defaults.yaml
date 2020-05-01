@@ -1,22 +1,22 @@
 model_config:
   m4c:
     metrics:
-    - type: ocrvqa_accuracy
+    - type: textvqa_accuracy
     losses:
     - type: m4c_decoding_bce_with_mask
 
 dataset_config:
-  ocrvqa:
+  textvqa:
     zoo_requirements:
-    - ocrvqa.defaults
-    - ocrvqa.ocr_en
+    - textvqa.defaults
+    - textvqa.ocr_en
     features:
       train:
-      - ocrvqa/defaults/features/detectron.lmdb,ocrvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
       val:
-      - ocrvqa/defaults/features/detectron.lmdb,ocrvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
       test:
-      - ocrvqa/defaults/features/detectron.lmdb,ocrvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
     processors:
       text_processor:
         type: bert_tokenizer
@@ -29,7 +29,7 @@ dataset_config:
       answer_processor:
         type: m4c_answer
         params:
-          vocab_file: ocrvqa/defaults/extras/vocabs/fixed_answer_vocab_ocrvqa_82.txt
+          vocab_file: textvqa/defaults/extras/vocabs/fixed_answer_vocab_textvqa_5k.txt
           preprocessor:
             type: simple_word
             params: {}
@@ -77,15 +77,15 @@ training:
     max_grad_l2_norm: 0.25
     lr_scheduler: true
     lr_steps:
-    - 28000
-    - 38000
+    - 14000
+    - 19000
     lr_ratio: 0.1
     use_warmup: true
     warmup_factor: 0.2
     warmup_iterations: 1000
-    max_iterations: 48000
+    max_iterations: 24000
     batch_size: 128
     num_workers: 8
     task_size_proportional_sampling: true
-    monitored_metric: ocrvqa/ocrvqa_accuracy
+    monitored_metric: textvqa/textvqa_accuracy
     metric_minimize: false

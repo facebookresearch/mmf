@@ -36,26 +36,41 @@ class LMDBConversion:
     def convert(self):
         env = lmdb.open(self.args.lmdb_path, map_size=1099511627776)
         id_list = []
-        features = glob.glob(os.path.join(self.args.features_folder, "*_info.npy"))
+        all_features = glob.glob(
+            os.path.join(self.args.features_folder, "**", "*.npy"), recursive=True
+        )
+
+        features = []
+        for feature in all_features:
+            if not feature.endswith("_info.npy"):
+                features.append(feature)
+
         with env.begin(write=True) as txn:
             for infile in tqdm.tqdm(features):
                 reader = np.load(infile, allow_pickle=True)
                 item = {}
-                item["image_id"] = int(
-                    os.path.basename(infile).split("_info")[0].split("_")[-1]
-                )
-                img_id = str(item["image_id"]).encode()
-                id_list.append(img_id)
+                split = os.path.relpath(infile, self.args.features_folder).split(
+                    ".npy"
+                )[0]
+                item["feature_path"] = split
+                key = split.encode()
+                id_list.append(key)
+                item["features"] = reader
+                info_file = infile.split(".npy")[0] + "_info.npy"
+                if not os.path.isfile(info_file):
+                    txn.put(key, pickle.dumps(item))
+                    continue
+
+                reader = np.load(info_file, allow_pickle=True)
                 item["image_height"] = reader.item().get("image_height")
                 item["image_width"] = reader.item().get("image_width")
                 item["num_boxes"] = reader.item().get("num_boxes")
                 item["objects"] = reader.item().get("objects")
-                item["cls_prob"] = reader.item().get("cls_prob")
+                item["cls_prob"] = reader.item().get("cls_prob", None)
                 item["bbox"] = reader.item().get("bbox")
-                item["features"] = np.load(
-                    infile.split("_info")[0] + ".npy", allow_pickle=True
-                )
-                txn.put(img_id, pickle.dumps(item))
+
+                txn.put(key, pickle.dumps(item))
+
             txn.put("keys".encode(), pickle.dumps(id_list))
 
     def extract(self):

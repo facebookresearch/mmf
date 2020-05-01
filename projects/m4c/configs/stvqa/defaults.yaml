@@ -6,6 +6,65 @@ model_config:
     losses:
     - type: m4c_decoding_bce_with_mask
 
+dataset_config:
+  stvqa:
+    zoo_requirements:
+    - stvqa.defaults
+    - stvqa.ocr_en
+    features:
+      train:
+      - stvqa/defaults/features/detectron.lmdb,stvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      val:
+      - stvqa/defaults/features/detectron.lmdb,stvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      test:
+      - stvqa/defaults/features/detectron.lmdb,stvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          max_seq_length: 20
+      answer_processor:
+        type: m4c_answer
+        params:
+          vocab_file: stvqa/defaults/extras/vocabs/fixed_answer_vocab_stvqa_5k.txt
+          preprocessor:
+            type: simple_word
+            params: {}
+          context_preprocessor:
+            type: simple_word
+            params: {}
+          max_length: 50
+          max_copy_steps: 12
+          num_answers: 10
+      copy_processor:
+        type: copy
+        params:
+          max_length: 100
+      phoc_processor:
+        type: phoc
+        params:
+          max_length: 50
+      context_processor:
+        type: fasttext
+        params:
+          max_length: 50
+          model_file: wiki.en.bin
+      ocr_token_processor:
+        type: simple_word
+        params: {}
+      bbox_processor:
+        type: bbox
+        params:
+          max_length: 50
+    return_features_info: true
+    use_ocr: true
+    use_ocr_info: true
+    use_order_vectors: true
+
 optimizer:
   params:
     eps: 1.0e-08
@@ -29,5 +88,5 @@ training:
     batch_size: 128
     num_workers: 8
     task_size_proportional_sampling: true
-    monitored_metric: m4c_stvqa/stvqa_accuracy
+    monitored_metric: stvqa/stvqa_accuracy
     metric_minimize: false

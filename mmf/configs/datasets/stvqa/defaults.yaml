@@ -1,6 +1,6 @@
 dataset_config:
   stvqa:
-    data_dir: ${env.data_dir}
+    data_dir: ${env.data_dir}/datasets
     depth_first: false
     fast_read: false
     max_features: 100
@@ -8,48 +8,38 @@ dataset_config:
     use_features: true
     features:
       train:
-      - m4c_stvqa_obj_frcn_features/train,m4c_stvqa_ocr_en_frcn_features/train
+      - stvqa/defaults/features/detectron.lmdb
       val:
-      - m4c_stvqa_obj_frcn_features/train,m4c_stvqa_ocr_en_frcn_features/train
+      - stvqa/defaults/features/detectron.lmdb
       test:
-      - m4c_stvqa_obj_frcn_features/test_task3,m4c_stvqa_ocr_en_frcn_features/test_task3
+      - stvqa/defaults/features/detectron.lmdb
     annotations:
       train:
-      - imdb/m4c_stvqa/imdb_subtrain.npy
+      - stvqa/defaults/annotations/imdb_subtrain.npy
       val:
-      - imdb/m4c_stvqa/imdb_subval.npy
+      - stvqa/defaults/annotations/imdb_subval.npy
       test:
-      - imdb/m4c_stvqa/imdb_test_task3.npy
+      - stvqa/defaults/annotations/imdb_test_task3.npy
     processors:
       text_processor:
-        type: m4c_bert_tokenizer
+        type: vocab
         params:
-          tokenizer_config:
-            type: bert-base-uncased
-            params:
-              do_lower_case: true
-          max_length: 20
+          max_length: 14
+          vocab:
+            type: intersected
+            embedding_name: glove.6B.300d
+            vocab_file: stvqa/defaults/extras/vocabs/vocabulary_100k.txt
+          preprocessor:
+            type: simple_sentence
+            params: {}
       answer_processor:
-        type: m4c_answer
+        type: vqa_answer
         params:
-          vocab_file: m4c_vocabs/stvqa/fixed_answer_vocab_stvqa_5k.txt
+          vocab_file: stvqa/defaults/extras/vocabs/fixed_answer_vocab_stvqa_5k.txt
           preprocessor:
             type: simple_word
             params: {}
-          context_preprocessor:
-            type: simple_word
-            params: {}
-          max_length: 50
-          max_copy_steps: 12
           num_answers: 10
-      copy_processor:
-        type: copy
-        params:
-          max_length: 100
-      phoc_processor:
-        type: phoc
-        params:
-          max_length: 50
       context_processor:
         type: fasttext
         params:
@@ -64,8 +54,8 @@ dataset_config:
           max_length: 50
     return_features_info: true
     use_ocr: true
-    use_ocr_info: true
+    use_ocr_info: false
 
 training:
-    monitored_metric: m4c_stvqa/stvqa_accuracy
+    monitored_metric: stvqa/stvqa_accuracy
     metric_minimize: false

@@ -1257,6 +1257,13 @@ class M4CAnswerProcessor(BaseProcessor):
 
     def __call__(self, item):
         answers = item["answers"]
+
+        if not answers:
+            return {
+                "sampled_idx_seq": None,
+                "train_prev_inds": torch.zeros(self.max_copy_steps, dtype=torch.long),
+            }
+
         answers = [self.answer_preprocessor({"text": a})["text"] for a in answers]
         assert len(answers) == self.num_answers
 
@@ -1270,7 +1277,7 @@ class M4CAnswerProcessor(BaseProcessor):
 
         # match answers to fixed vocabularies and OCR tokens.
         ocr2inds_dict = defaultdict(list)
-        for idx, token in enumerate(item["context_tokens"]):
+        for idx, token in enumerate(item["tokens"]):
             ocr2inds_dict[token].append(idx)
         answer_dec_inds = [
             self.match_answer_to_vocab_ocr_seq(

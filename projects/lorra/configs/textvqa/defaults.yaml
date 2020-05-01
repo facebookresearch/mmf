@@ -1,12 +1,15 @@
+includes:
+- configs/datasets/textvqa/with_resnet.yaml
 # Use soft copy
 dataset_config:
   textvqa:
     use_ocr: true
+    use_order_vectors: true
     processors:
       answer_processor:
         type: soft_copy_answer
         params:
-          vocab_file: vocabs/answers_textvqa_more_than_1.txt
+          vocab_file: textvqa/defaults/extras/vocabs/answers_textvqa_more_than_1.txt
           preprocessor:
             type: simple_word
             params: {}

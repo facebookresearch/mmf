@@ -572,28 +572,28 @@ class TextVQAAccuracy(BaseMetric):
         import mmf.utils.m4c_evaluators as evaluators
 
         self.evaluator = evaluators.TextVQAAccuracyEvaluator()
-        self.gt_key = "gt_answers_enc"
+        self.gt_key = "answers"
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
         answer_processor = registry.get(sample_list.dataset_name + "_answer_processor")
 
-        batch_size = sample_list.context_tokens_enc.size(0)
+        batch_size = sample_list.context_tokens.size(0)
         pred_answers = model_output["scores"].argmax(dim=-1)
-        context_tokens_enc = sample_list.context_tokens_enc.cpu().numpy()
-        gt_answers_enc = sample_list[self.gt_key].cpu().numpy()
+        context_tokens = sample_list.context_tokens.cpu().numpy()
+        answers = sample_list.get(self.gt_key).cpu().numpy()
         answer_space_size = answer_processor.get_true_vocab_size()
 
         predictions = []
-        from mmf.utils.objects_to_byte_tensor import dec_bytes2obj
+        from mmf.utils.distributed import byte_tensor_to_object
         from mmf.utils.text import word_tokenize
 
         for idx in range(batch_size):
-            context_tokens = dec_bytes2obj(context_tokens_enc[idx])
+            tokens = byte_tensor_to_object(context_tokens[idx])
             answer_words = []
             for answer_id in pred_answers[idx].tolist():
                 if answer_id >= answer_space_size:
                     answer_id -= answer_space_size
-                    answer_words.append(word_tokenize(context_tokens[answer_id]))
+                    answer_words.append(word_tokenize(tokens[answer_id]))
                 else:
                     if answer_id == answer_processor.EOS_IDX:
                         break
@@ -602,11 +602,11 @@ class TextVQAAccuracy(BaseMetric):
                     )
 
             pred_answer = " ".join(answer_words).replace(" 's", "'s")
-            gt_answers = dec_bytes2obj(gt_answers_enc[idx])
+            gt_answers = byte_tensor_to_object(answers[idx])
             predictions.append({"pred_answer": pred_answer, "gt_answers": gt_answers})
 
         accuracy = self.evaluator.eval_pred_list(predictions)
-        accuracy = torch.tensor(accuracy).cuda()
+        accuracy = torch.tensor(accuracy).to(sample_list.context_tokens.device)
 
         return accuracy
 
@@ -768,7 +768,7 @@ class MultiLabelMacroF1(F1):
 @registry.register_metric("roc_auc")
 class ROC_AUC(BaseMetric):
     """Metric for calculating ROC_AUC.
-    See more details at `sklearn.metrics.roc_auc_score <http://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html#sklearn.metrics.roc_auc_score>`_
+    See more details at `sklearn.metrics.roc_auc_score <http://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html#sklearn.metrics.roc_auc_score>`_ # noqa
 
     **Key:** ``roc_auc``
     """
@@ -826,7 +826,7 @@ class MacroROC_AUC(ROC_AUC):
 @registry.register_metric("ap")
 class AveragePrecision(BaseMetric):
     """Metric for calculating Average Precision.
-    See more details at `sklearn.metrics.average_precision_score <http://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score>`_
+    See more details at `sklearn.metrics.average_precision_score <http://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score>`_ # noqa
 
     **Key:** ``ap``
     """

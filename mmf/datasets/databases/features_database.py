@@ -32,6 +32,7 @@ class FeaturesDatabase(ImageDatabase):
             )
             self.feature_readers.append(feature_reader)
 
+        self.paths = path
         self.annotation_db = annotation_db
         self._should_return_info = config.get("return_features_info", True)
 

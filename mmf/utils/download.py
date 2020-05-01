@@ -89,7 +89,7 @@ class DownloadableFile:
             download_path (string): path to the downloaded file.
         """
         if self._hashcode is None:
-            print("[ Checksum not provided, skipping ]")
+            print("[ Checksum not provided, skipping for {}]".format(self._file_name))
             return
 
         sha256_hash = hashlib.sha256()
