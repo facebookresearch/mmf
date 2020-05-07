@@ -6,5 +6,11 @@ dataset_config:
     return_features_info: false
     no_unk: true
 
+evaluation:
+  metrics:
+  - vqa_accuracy
+
 training:
-  monitored_metric: visual_genome/vqa_accuracy
+  early_stop:
+    criteria: visual_genome/vqa_accuracy
+    minimize: false

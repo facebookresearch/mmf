@@ -5,8 +5,13 @@ optimizer:
     lr: 0.01
     weight_decay: 0
 
+evaluation:
+  metrics:
+  - accuracy
+
 training:
   batch_size: 128
   snapshot_interval: 6000
-  monitored_metric: clevr/accuracy
-  metric_minimize: false
+  early_stop:
+    criteria: clevr/accuracy
+    minimize: false

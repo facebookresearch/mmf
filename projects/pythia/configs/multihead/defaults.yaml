@@ -7,14 +7,18 @@ dataset_config:
     return_relationships: false
     return_features_info: false
 
+evaluation:
+  metrics:
+  - vqa_accuracy
+
 training:
-  monitored_metric: vqa2/vqa_accuracy
+  early_stop:
+    criteria: vqa2/vqa_accuracy
+    minimize: false
 
 model_config:
   multihead:
     model_data_dir: ${env.data_dir}
-    metrics:
-    - type: vqa_accuracy
     losses:
     - type: logit_bce
     classifier:

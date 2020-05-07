@@ -6,8 +6,6 @@ model_config:
     num_labels: 2
     losses:
     - type: cross_entropy
-    metrics:
-    - accuracy
 
 dataset_config:
   nlvr2:
@@ -35,6 +33,10 @@ scheduler:
     num_warmup_steps: 6000
     num_training_steps: 60000
 
+evaluation:
+  metrics:
+  - accuracy
+
 training:
   batch_size: 480
   lr_scheduler: true
@@ -42,3 +44,6 @@ training:
   max_updates: 60000
   pretrained_mapping:
     model.bert: model.bert
+  early_stop:
+    criteria: nlvr2/accuracy
+    minimize: false

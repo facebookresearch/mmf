@@ -11,4 +11,3 @@ model_config:
     random_initialize: false
     freeze_base: false
     finetune_lr_multiplier: 1
-    metrics: []

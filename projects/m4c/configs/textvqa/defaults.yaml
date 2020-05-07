@@ -1,7 +1,5 @@
 model_config:
   m4c:
-    metrics:
-    - type: textvqa_accuracy
     losses:
     - type: m4c_decoding_bce_with_mask
 
@@ -71,6 +69,10 @@ optimizer:
     weight_decay: 0
   type: Adam
 
+evaluation:
+  metrics:
+  - textvqa_accuracy
+
 training:
     clip_norm_mode: all
     clip_gradients: true
@@ -87,5 +89,6 @@ training:
     batch_size: 128
     num_workers: 8
     task_size_proportional_sampling: true
-    monitored_metric: textvqa/textvqa_accuracy
-    metric_minimize: false
+    early_stop:
+      criteria: textvqa/textvqa_accuracy
+      minimize: false

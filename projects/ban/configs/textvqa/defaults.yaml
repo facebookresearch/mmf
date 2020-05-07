@@ -1,2 +1,11 @@
 includes:
 - ../../../mmf/configs/textvqa/defaults.yaml
+
+evaluation:
+  metrics:
+  - vqa_accuracy
+
+training:
+  early_stop:
+    criteria: textvqa/vqa_accuracy
+    minimize: false

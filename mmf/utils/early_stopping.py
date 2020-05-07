@@ -7,7 +7,7 @@ from mmf.utils.distributed import is_master
 
 class EarlyStopping:
     """
-    Provides early stopping functionality. Keeps track of model metrics,
+    Provides early stopping functionality. Keeps track of an early stop criteria,
     and if it doesn't improve over time restores last best performing
     parameters.
     """
@@ -16,7 +16,7 @@ class EarlyStopping:
         self,
         model,
         checkpoint_instance,
-        monitored_metric="total_loss",
+        early_stop_criteria="total_loss",
         patience=1000,
         minimize=False,
         should_stop=True,
@@ -25,17 +25,17 @@ class EarlyStopping:
         self.patience = patience
         self.model = model
         self.checkpoint = checkpoint_instance
-        self.monitored_metric = monitored_metric
+        self.early_stop_criteria = early_stop_criteria
 
-        if "val" not in self.monitored_metric:
-            self.monitored_metric = "val/{}".format(self.monitored_metric)
+        if "val" not in self.early_stop_criteria:
+            self.early_stop_criteria = "val/{}".format(self.early_stop_criteria)
 
         self.best_monitored_value = -np.inf if not minimize else np.inf
         self.best_monitored_iteration = 0
         self.best_monitored_update = 0
         self.should_stop = should_stop
         self.activated = False
-        self.metric = self.monitored_metric
+        self.metric = self.early_stop_criteria
 
     def __call__(self, update, iteration, meter):
         """
@@ -50,11 +50,11 @@ class EarlyStopping:
         if not is_master():
             return False
 
-        value = meter.meters.get(self.monitored_metric, None)
+        value = meter.meters.get(self.early_stop_criteria, None)
         if value is None:
             raise ValueError(
-                "Metric used for early stopping ({}) is not "
-                "present in meter.".format(self.monitored_metric)
+                "Criteria used for early stopping ({}) is not "
+                "present in meter.".format(self.early_stop_criteria)
             )
 
         value = value.global_avg

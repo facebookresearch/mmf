@@ -33,8 +33,6 @@ model_config:
     training_head_type: vqa
     losses:
     - type: logit_bce
-    metrics:
-    - vqa_accuracy
 
 optimizer:
   type: adam_w
@@ -48,11 +46,18 @@ scheduler:
     num_warmup_steps: 2400
     num_training_steps: 24000
 
+evaluation:
+  metrics:
+  - vqa_accuracy
+
 training:
   batch_size: 512
   lr_scheduler: true
   # Don't forget to update schedule_attributes if you update this
   max_updates: 24000
+  early_stop:
+    criteria: vqa2/vqa_accuracy
+    minimize: false
   pretrained_mapping:
     word_embedding: word_embedding
     text_embedding: text_embedding

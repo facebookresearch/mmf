@@ -6,8 +6,6 @@ model_config:
     num_labels: 3129
     losses:
     - type: logit_bce
-    metrics:
-    - vqa_accuracy
 
 dataset_config:
   vqa2:
@@ -51,6 +49,10 @@ scheduler:
     num_warmup_steps: 6000
     num_training_steps: 60000
 
+evaluation:
+  metrics:
+  - vqa_accuracy
+
 training:
   batch_size: 480
   lr_scheduler: true
@@ -58,3 +60,6 @@ training:
   max_updates: 60000
   pretrained_mapping:
     model.bert: model.bert
+  early_stop:
+    criteria: vqa2/vqa_accuracy
+    minimize: false

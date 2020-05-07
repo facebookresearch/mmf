@@ -3,6 +3,8 @@ import collections
 import warnings
 from collections import OrderedDict
 
+import torch
+
 from mmf.common.registry import registry
 
 
@@ -23,7 +25,7 @@ class Report(OrderedDict):
                 )
 
         self.writer = registry.get("writer")
-        self._batch_size = batch.get_batch_size()
+        self.batch_size = batch.get_batch_size()
         self.warning_string = (
             "Updating forward report with key {}"
             "{}, but it already exists in {}. "
@@ -42,7 +44,15 @@ class Report(OrderedDict):
                 self[key] = item
 
     def get_batch_size(self):
+        return self.batch_size
+
+    @property
+    def batch_size(self):
         return self._batch_size
+
+    @batch_size.setter
+    def batch_size(self, batch_size):
+        self._batch_size = batch_size
 
     def _check_and_load_tuple(self, batch):
         if isinstance(batch, collections.abc.Mapping):
@@ -66,3 +76,10 @@ class Report(OrderedDict):
 
     def fields(self):
         return list(self.keys())
+
+    def accumulate_tensor_fields(self, report, field_list):
+        for key in field_list:
+            if key not in self.keys():
+                raise AttributeError(key)
+            if isinstance(self[key], torch.Tensor):
+                self[key] = torch.cat((self[key], report[key]), dim=0)

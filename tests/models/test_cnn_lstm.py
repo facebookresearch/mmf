@@ -41,7 +41,7 @@ class TestModelCNNLSTM(unittest.TestCase):
 
         cnn_lstm = CNNLSTM(model_config)
         cnn_lstm.build()
-        cnn_lstm.init_losses_and_metrics()
+        cnn_lstm.init_losses()
 
         self.assertTrue(isinstance(cnn_lstm, torch.nn.Module))
 
@@ -57,10 +57,8 @@ class TestModelCNNLSTM(unittest.TestCase):
 
         scores = output["scores"]
         loss = output["losses"]["train/clevr/logit_bce"]
-        accuracy = output["metrics"]["train/clevr/accuracy"]
 
         np.testing.assert_almost_equal(loss.item(), 19.2635, decimal=4)
-        np.testing.assert_almost_equal(accuracy.item(), 0)
         self.assertEqual(scores.size(), torch.Size((1, 32)))
 
         expected_scores = [

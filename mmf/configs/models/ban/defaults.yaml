@@ -1,7 +1,5 @@
 model_config:
   ban:
-    metrics:
-    - vqa_accuracy
     losses:
     - type: logit_bce
     text_embedding:

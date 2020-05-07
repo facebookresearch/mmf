@@ -5,8 +5,6 @@ model_config:
     training_head_type: vizwiz
     losses:
     - type: logit_bce
-    metrics:
-    - vqa_accuracy
 
 dataset_config:
   vizwiz:
@@ -47,6 +45,11 @@ scheduler:
     num_warmup_steps: 2400
     num_training_steps: 24000
 
+evaluation:
+  metrics:
+  - vqa_accuracy
+
 training:
-  monitored_metric: vizwiz/vqa_accuracy
-  metric_minimize: false
+  early_stop:
+    criteria: vizwiz/vqa_accuracy
+    minimize: false

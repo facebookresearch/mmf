@@ -3,8 +3,6 @@ includes:
 
 model_config:
   concat_bert:
-    metrics:
-    - accuracy
     losses:
     - type: cross_entropy
 
@@ -20,10 +18,18 @@ optimizer:
     lr: 5e-5
     eps: 1e-8
 
+evaluation:
+  metrics:
+  - accuracy
+  - binary_f1
+  - roc_auc
+
 training:
   batch_size: 128
   lr_scheduler: true
   max_updates: 22000
-  monitored_metric: hateful_memes/accuracy
+  early_stop:
+    criteria: hateful_memes/roc_auc
+    minimize: false
   pretrained_mapping:
     base: base

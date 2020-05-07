@@ -19,6 +19,9 @@ dataset_config:
       test:
       - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
 
+evaluation:
+  metrics:
+  - textcaps_bleu4
 
 training:
     clip_norm_mode: all
@@ -36,5 +39,6 @@ training:
     batch_size: 128
     num_workers: 8
     task_size_proportional_sampling: true
-    monitored_metric: textcaps/textcaps_bleu4
-    metric_minimize: false
+    early_stop:
+      criteria: textcaps/textcaps_bleu4
+      minimize: false

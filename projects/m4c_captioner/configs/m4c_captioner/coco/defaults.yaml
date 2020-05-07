@@ -6,6 +6,11 @@ optimizer:
     lr: 1e-4
     weight_decay: 0
   type: Adam
+
+evaluation:
+  metrics:
+  - textcaps_bleu4
+
 training:
     clip_norm_mode: all
     clip_gradients: true
@@ -21,5 +26,6 @@ training:
     max_iterations: 24000
     batch_size: 128
     num_workers: 8
-    monitored_metric: coco/textcaps_bleu4
-    metric_minimize: false
+    early_stop:
+      criteria: coco/textcaps_bleu4
+      minimize: false

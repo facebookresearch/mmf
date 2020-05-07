@@ -195,20 +195,7 @@ Here, is a default configuration for CLEVR needed based on our dataset and build
                         preprocessor:
                             type: simple_word
                             params: {}
-    training:
-        monitored_metric: clevr/clevr_accuracy
-        metric_minimize: false
 
-
-Extra field that we have added here is ``training`` which specify the dataset specific training parameters and will
-be merged with the rest of the training parameters coming from user's config. Your metrics are normally stored in registry as
-``[dataset]/[metric_key]``, so to monitor accuracy on CLEVR, you need to set it as ``clevr/clevr_accuracy`` and we need to maximize it,
-we set ``metric_minimize`` to ``false``.
-
-.. note:
-
-    Since, in v0.3, models are expected to return the metrics, so these attributes will also need to be specified by the user
-    in future based on the metrics they are optimizing. Thus, in future warnings, these will move to user configs for models.
 
 For processors, check :class:`mmf.datasets.processors` to understand how to create a processor and different processors that are
 already available in MMF.

@@ -29,6 +29,10 @@ optimizer:
     lr: 0.01
     weight_decay: 0
 
+evaluation:
+  metrics:
+  - vqa_accuracy
+
 training:
   clip_norm_mode: all
   clip_gradients: true
@@ -44,15 +48,15 @@ training:
   use_warmup: true
   warmup_factor: 0.2
   warmup_iterations: 1000
-  patience: 4000
   batch_size: 512
   num_workers: 7
   task_size_proportional_sampling: true
-  monitored_metric: vqa2/vqa_accuracy
+  early_stop:
+    criteria: vqa2/vqa_accuracy
+    minimize: false
   pretrained_mapping:
     text_embeddings: text_embeddings
     context_embeddings: context_embeddings
     image_feature_encoders: image_feature_encoders
     image_feature_embeddings_list: image_feature_embeddings_list
     image_text_multi_modal_combine_layer: image_text_multi_modal_combine_layer
-  metric_minimize: false

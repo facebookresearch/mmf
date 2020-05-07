@@ -4,10 +4,6 @@ model_config:
     num_labels: 24
     losses:
     - type: logit_bce
-    metrics:
-    # - accuracy
-    - multilabel_macro_f1
-    - multilabel_micro_f1
 
 dataset_config:
   mmimdb:
@@ -35,6 +31,12 @@ scheduler:
     num_warmup_steps: 2000
     num_training_steps: 88000
 
+evaluation:
+  metrics:
+  - accuracy
+  - multilabel_macro_f1
+  - multilabel_micro_f1
+
 training:
   batch_size: 480
   lr_scheduler: true
@@ -43,3 +45,6 @@ training:
   pretrained_mapping:
     model.bert: model.bert
   find_unused_parameters: true
+  early_stop:
+    criteria: mmimdb/multilabel_micro_f1
+    minimize: false

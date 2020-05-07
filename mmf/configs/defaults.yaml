@@ -23,9 +23,8 @@ training:
     run_type: train_inference
 
 
-    # After `log_interval` iterations, current iteration's training loss and
-    # metrics will be reported. This will also report validation
-    # loss and metrics on a single batch from validation set
+    # After `log_interval` iterations, current iteration's training loss will be
+    # reported. This will also report validation on a single batch from validation set
     # to provide an estimate on validation side
     log_interval: 100
     # Level of logging, only logs which are >= to current level will be logged
@@ -59,25 +58,28 @@ training:
     # After `checkpoint_interval` iterations, MMF will make a snapshot
     # which will involve creating a checkpoint for current training scenarios
     checkpoint_interval: 1000
-    # This will evaluate validation metrics on whole validation set after evaluation interval
+    # This will evaluate evaluation metrics on whole validation set after
+    # evaluation interval
     evaluation_interval: 1000
     # Whether gradients should be clipped
     clip_gradients: false
     # Mode for clip norm
     clip_norm_mode: all
 
-    # Whether to use early stopping, (Default: false)
-    should_early_stop: false
-    # Patience for early stopping
-    patience: 4000
-    # Metric to be monitored for early stopping
-    # loss will monitor combined loss from all of the tasks
-    # Usually, it will be of the form `dataset_metric`
-    # for e.g. vqa2_vqa_accuracy
-    monitored_metric: total_loss
-    # Whether the monitored metric should be minimized for early stopping
-    # or not, for e.g. you would want to minimize loss but maximize accuracy
-    metric_minimize: true
+    early_stop:
+        # Whether to use early stopping, (Default: false)
+        enabled: false
+        # Patience for early stoppings
+        patience: 4000
+        # Criteria to be monitored for early stopping
+        # total_loss will monitor combined loss from all of the tasks
+        # Criteria can also be an evaluation metric in this format `dataset/metric`
+        # for e.g. vqa2/vqa_accuracy
+        criteria: total_loss
+        # Whether the monitored criteria should be minimized for early stopping
+        # or not, for e.g. you would want to minimize loss but maximize an evaluation
+        # metric like accuracy etc.
+        minimize: true
 
     # Should a lr scheduler be used
     lr_scheduler: false
@@ -125,6 +127,14 @@ training:
     # Turn on if you want to ignore unused parameters in case of DDP
     find_unused_parameters: false
 
+    # By default metrics evaluation is turned off during training. Set this to true
+    # to enable evaluation every log_interval
+    evaluate_metrics: false
+
+# Configuration for evaluation
+evaluation:
+    # Metrics for evaluation
+    metrics: []
 
 # Configuration for models, default configuration files for various models
 # included in MMF can be found under configs directory in root folder

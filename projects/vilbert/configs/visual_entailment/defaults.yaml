@@ -4,8 +4,6 @@ model_config:
     num_labels: 3
     losses:
     - type: cross_entropy
-    metrics:
-    - accuracy
 
 dataset_config:
   visual_entailment:
@@ -33,6 +31,10 @@ scheduler:
     num_warmup_steps: 6000
     num_training_steps: 60000
 
+evaluation:
+  metrics:
+  - accuracy
+
 training:
   batch_size: 480
   lr_scheduler: true
@@ -41,3 +43,6 @@ training:
   pretrained_mapping:
     model.bert: model.bert
   find_unused_parameters: true
+  early_stop:
+    criteria: visual_entailment/accuracy
+    minimize: false

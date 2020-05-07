@@ -45,6 +45,3 @@ dataset_config:
                   type: simple_word
                   params: {}
       return_features_info: false
-training:
-    monitored_metric: mmimdb/multilabel_micro_f1
-    metric_minimize: false

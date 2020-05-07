@@ -3,6 +3,10 @@ optimizer:
   params:
     lr: 0.005
 
+evaluation:
+  metrics:
+  - vqa_accuracy
+
 training:
     clip_norm_mode: all
     clip_gradients: true
@@ -18,8 +22,9 @@ training:
     batch_size: 128
     num_workers: 7
     task_size_proportional_sampling: true
-    monitored_metric: vizwiz/vqa_accuracy
-    metric_minimize: false
+    early_stop:
+      criteria: vizwiz/vqa_accuracy
+      minimize: false
     pretrained_mapping:
       word_embedding: word_embedding
       text_embeddings: text_embeddings

@@ -4,9 +4,9 @@ includes:
 model_config:
   butd:
     inference:
-      type: nucleus_sampling
+      type: beam_search
       params:
-        sum_threshold: 0.8
+        beam_length: 5
 
 training:
   batch_size: 1
