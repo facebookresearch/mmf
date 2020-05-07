@@ -202,16 +202,14 @@ class LMDBFeatureReader(PaddedFasterRCNNFeatureReader):
             image_id = int(split.split("_")[-1])
             # Try fetching to see if it actually exists otherwise fall back to
             # default
-            _ = self.image_id_indices[image_id]
+            img_id_idx = self.image_id_indices[str(image_id).encode()]
         except (ValueError, KeyError):
             # The image id is complex or involves folder, use it directly
-            image_id = split
-        image_id = str(image_id).encode()
+            image_id = str(split).encode()
+            img_id_idx = self.image_id_indices[image_id]
 
         with self.env.begin(write=False, buffers=True) as txn:
-            image_info = pickle.loads(
-                txn.get(self.image_ids[self.image_id_indices[image_id]])
-            )
+            image_info = pickle.loads(txn.get(self.image_ids[img_id_idx]))
 
         return image_info
 
