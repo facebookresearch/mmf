@@ -3,6 +3,7 @@ import torch
 
 from mmf.common.sample import Sample
 from mmf.datasets.builders.vqa2 import VQA2Dataset
+from mmf.utils.distributed import byte_tensor_to_object, object_to_byte_tensor
 
 
 class COCODataset(VQA2Dataset):
@@ -11,8 +12,17 @@ class COCODataset(VQA2Dataset):
             config, dataset_type, imdb_file_index, dataset_name="coco", *args, **kwargs
         )
 
+    def preprocess_sample_info(self, sample_info):
+        # COCO Annotation DBs have corrext feature_path
+        if "COCO" not in sample_info["feature_path"]:
+            sample_info["feature_path"] = sample_info["image_path"].replace(
+                ".jpg", ".npy"
+            )
+        return sample_info
+
     def load_item(self, idx):
-        sample_info = self.imdb[idx]
+        sample_info = self.annotation_db[idx]
+        sample_info = self.preprocess_sample_info(sample_info)
         current_sample = Sample()
 
         if self._dataset_type != "test":
@@ -31,7 +41,7 @@ class COCODataset(VQA2Dataset):
                 sample_info["image_id"], dtype=torch.int
             )
         else:
-            current_sample.image_id = sample_info["image_id"]
+            current_sample.image_id = object_to_byte_tensor(sample_info["image_id"])
 
         if self._use_features is True:
             features = self.features_db[idx]
@@ -60,7 +70,9 @@ class COCODataset(VQA2Dataset):
         remove_unk_from_caption_prediction = getattr(
             self.config, "remove_unk_from_caption_prediction", False
         )
+
         for idx, image_id in enumerate(report.image_id):
+            image_id = byte_tensor_to_object(image_id)
             caption = self.caption_processor(captions[idx])["caption"]
             if remove_unk_from_caption_prediction:
                 caption = caption.replace("<unk>", "")

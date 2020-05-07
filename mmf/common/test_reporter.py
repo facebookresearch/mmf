@@ -9,9 +9,13 @@ from torch.utils.data.distributed import DistributedSampler
 from mmf.common.batch_collator import BatchCollator
 from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env
-from mmf.utils.distributed import gather_tensor, get_world_size, is_master
+from mmf.utils.distributed import gather_tensor, is_master
 from mmf.utils.file_io import PathManager
-from mmf.utils.general import ckpt_name_from_core_args, foldername_from_config_override
+from mmf.utils.general import (
+    ckpt_name_from_core_args,
+    foldername_from_config_override,
+    get_batch_size,
+)
 from mmf.utils.timer import Timer
 
 
@@ -103,24 +107,15 @@ class TestReporter(Dataset):
     def _add_extra_args_for_dataloader(self, other_args=None):
         if other_args is None:
             other_args = {}
-        training = self.config.training
 
-        if training.local_rank is not None and training.distributed:
-            other_args["sampler"] = DistributedSampler(self.current_dataset)
-        else:
-            other_args["shuffle"] = True
-
-        batch_size = training.batch_size
-
-        world_size = get_world_size()
-
-        if batch_size % world_size != 0:
-            raise RuntimeError(
-                "Batch size {} must be divisible by number "
-                "of GPUs {} used.".format(batch_size, world_size)
+        if torch.distributed.is_initialized():
+            other_args["sampler"] = DistributedSampler(
+                self.current_dataset, shuffle=False
             )
+        else:
+            other_args["shuffle"] = False
 
-        other_args["batch_size"] = batch_size // world_size
+        other_args["batch_size"] = get_batch_size()
 
         return other_args
 
@@ -143,7 +138,8 @@ class TestReporter(Dataset):
             report.scores = gather_tensor(report.scores).view(
                 -1, report.scores.size(-1)
             )
-            report.question_id = gather_tensor(report.question_id).view(-1)
+            if "question_id" in report:
+                report.question_id = gather_tensor(report.question_id).view(-1)
             if "image_id" in report:
                 _, enc_size = report.image_id.size()
                 report.image_id = gather_tensor(report.image_id)

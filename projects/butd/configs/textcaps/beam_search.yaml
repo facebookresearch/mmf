@@ -2,10 +2,13 @@ includes:
 - ./defaults.yaml
 
 dataset_config:
-  coco:
+  textcaps:
+    zoo_requirements:
+    - textvqa.defaults
+    - textcaps.defaults
     annotations:
       val:
-      - imdb/m4c_textcaps/imdb_val_filtered_by_image_id.npy
+      - textcaps/defaults/annotations/imdb_val_filtered_by_image_id.npy
 
 model_config:
   butd: &butd

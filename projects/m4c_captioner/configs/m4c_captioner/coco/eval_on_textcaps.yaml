@@ -2,16 +2,20 @@ includes:
 - ./defaults.yaml
 
 dataset_config:
-  m4c_textcaps:
+  textcaps:
+    zoo_requirements:
+    - textvqa.defaults
+    - textvqa.ocr_en
+    - textcaps.defaults
     use_images: false
     use_features: true
     features:
       val:
-      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
       test:
-      - open_images/detectron_fix_100/fc6/test,m4c_textvqa_ocr_en_frcn_features/test_images
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
     annotations:
       val:
-      - imdb/m4c_textcaps/imdb_val_filtered_by_image_id.npy  # only one sample per image_id
+      - textcaps/defaults/annotations/imdb_val_filtered_by_image_id.npy  # only one sample per image_id
       test:
-      - imdb/m4c_textcaps/imdb_test_filtered_by_image_id.npy  # only one sample per image_id
+      - textcaps/defaults/annotations/imdb_test_filtered_by_image_id.npy  # only one sample per image_id

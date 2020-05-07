@@ -1,12 +1,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 """
-MultiDataset class is used by DatasetLoader class to load multiple datasets and more granular
+MultiDataset class is used by DatasetLoader class to load multiple datasets
+and more granular
 """
 
 import os
 import sys
 
 import numpy as np
+import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
@@ -103,8 +105,9 @@ class MultiDataset:
         self._proportional_sampling = training.dataset_size_proportional_sampling
 
         if self._dataset_type != "train":
-            # If it is val or test, it needs to be all datasets need to be fully iterated
-            # as metrics will be calculated in eval mode over complete datasets
+            # If it is val or test, it needs to be all datasets need to be
+            # fully iterated as metrics will be calculated in eval mode
+            # over complete datasets
             self._proportional_sampling = True
 
         if self._proportional_sampling is True:
@@ -248,19 +251,19 @@ class MultiDataset:
     def _add_extra_args_for_dataloader(self, dataset, opts, other_args=None):
         if other_args is None:
             other_args = {}
-        training = self._global_config.training
         dataset_type = self._dataset_type
 
         other_args["shuffle"] = False
         if dataset_type != "test":
             other_args["shuffle"] = True
 
-        if training.local_rank is not None and training.distributed:
+        # In distributed mode, we use DistributedSampler from PyTorch
+        if torch.distributed.is_initialized():
             other_args["sampler"] = DistributedSampler(
                 dataset, shuffle=other_args["shuffle"]
             )
-            # Shuffle is mutually exclusive with sampler, let DistributedSampler take care of
-            # shuffle and pop from main args
+            # Shuffle is mutually exclusive with sampler, let DistributedSampler
+            # take care of shuffle and pop from main args
             other_args.pop("shuffle")
 
         other_args["batch_size"] = get_batch_size()
@@ -268,9 +271,7 @@ class MultiDataset:
         return other_args
 
     def seed_sampler(self, epoch):
-        training = self._global_config.training
-
-        if training.local_rank is not None and training.distributed:
+        if torch.distributed.is_initialized():
             for sampler in self._samplers:
                 assert hasattr(
                     sampler, "set_epoch"

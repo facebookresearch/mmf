@@ -3,12 +3,13 @@ from mmf.datasets.builders.textvqa.dataset import TextVQADataset
 from mmf.utils.distributed import object_to_byte_tensor
 
 
-class M4CTextCapsDataset(TextVQADataset):
+class TextCapsDataset(TextVQADataset):
     def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
         super().__init__(config, dataset_type, imdb_file_index, *args, **kwargs)
-        self.dataset_name = "m4c_textcaps"
+        self.dataset_name = "textcaps"
 
     def preprocess_sample_info(self, sample_info):
+        sample_info = super().preprocess_sample_info(sample_info)
         # add dummy questions to train with M4C (for TextVQA)
         sample_info["question_str"] = ""  # empty question
         sample_info["question_id"] = sample_info["caption_id"]

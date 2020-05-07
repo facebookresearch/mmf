@@ -94,8 +94,9 @@ training:
     # Iteration until which warnup should be done
     warmup_iterations: 1000
 
-    # Local rank of the GPU device
+    # Device on which the model will be trained. Set 'cpu' to train/infer on CPU
     device: cuda
+    # Local rank of the GPU device
     local_rank: null
 
     # Use to load specific modules from checkpoint to your model,

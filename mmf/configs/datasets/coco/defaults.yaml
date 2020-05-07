@@ -5,6 +5,7 @@ dataset_config:
     fast_read: false
     use_images: false
     use_features: true
+    annotation_style: coco
     features:
         train:
         - coco/detectron_fix_100/fc6/train_val_2014

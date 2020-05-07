@@ -1,48 +1,5 @@
-dataset_config:
-  m4c_textcaps:
-    use_images: false
-    use_features: true
-    features:
-      train:
-      - coco_obj_frcn_features/trainval2014,coco_ocr_en_frcn_features/trainval2014
-      val:
-      - coco_obj_frcn_features/trainval2014,coco_ocr_en_frcn_features/trainval2014
-      test:
-      - coco_obj_frcn_features/trainval2014,coco_ocr_en_frcn_features/trainval2014
-    annotations:
-      train:
-      - imdb/m4c_coco/imdb_karpathy_train.npy
-      val:
-      - imdb/m4c_coco/imdb_karpathy_val_filtered_by_image_id.npy  # only one sample per image_id
-      test:
-      - imdb/m4c_coco/imdb_karpathy_test_filtered_by_image_id.npy  # only one sample per image_id
-    processors:
-      text_processor:
-        type: bert_tokenizer
-        params:
-          max_length: 1
-      answer_processor:
-        type: m4c_caption
-        params:
-          vocab_file: m4c_captioner_vocabs/textcaps_coco_joint/vocab_joint_textcaps_coco_threshold_10.txt
-          preprocessor:
-            type: simple_word
-            params: {}
-          context_preprocessor:
-            type: simple_word
-            params: {}
-          max_length: 50
-          max_copy_steps: 30
-          num_answers: 1
-      copy_processor:
-        type: copy
-        params:
-          max_length: 100
-      phoc_processor:
-        type: phoc
-        params:
-          max_length: 50
-
+includes:
+- configs/datasets/coco/ocr_en.yaml
 optimizer:
   params:
     eps: 1.0e-08
@@ -64,6 +21,5 @@ training:
     max_iterations: 24000
     batch_size: 128
     num_workers: 8
-    task_size_proportional_sampling: true
-    monitored_metric: m4c_textcaps/textcaps_bleu4
+    monitored_metric: coco/textcaps_bleu4
     metric_minimize: false

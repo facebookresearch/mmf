@@ -25,8 +25,8 @@ model_config:
     image_feature_encodings:
     - type: finetune_faster_rcnn_fpn_fc7
       params:
-        bias_file: detectron/fc6/fc7_b.pkl
-        weights_file: detectron/fc6/fc7_w.pkl
+        bias_file: models/detectron.defaults/fc7_b.pkl
+        weights_file: models/detectron.defaults/fc7_w.pkl
 
 training:
   max_updates: 12000

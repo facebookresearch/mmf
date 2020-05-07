@@ -1,0 +1,63 @@
+dataset_config:
+  coco:
+    data_dir: ${env.data_dir}/datasets
+    use_images: false
+    use_features: true
+    use_ocr: true
+    use_ocr_info: true
+    use_order_vectors: true
+    return_features_info: true
+    zoo_requirements:
+    - coco.m4c_captioner
+    - coco.ocr_en
+    annotation_style: textcaps
+    features:
+      train:
+      - coco/m4c_captioner/features/detectron.lmdb,coco/ocr_en/features/ocr_en_frcn_features.lmdb
+      val:
+      - coco/m4c_captioner/features/detectron.lmdb,coco/ocr_en/features/ocr_en_frcn_features.lmdb
+      test:
+      - coco/m4c_captioner/features/detectron.lmdb,coco/ocr_en/features/ocr_en_frcn_features.lmdb
+    annotations:
+      train:
+      - coco/m4c_captioner/annotations/imdb_karpathy_train.npy
+      val:
+      - coco/m4c_captioner/annotations/imdb_karpathy_val_filtered_by_image_id.npy  # only one sample per image_id
+      test:
+      - coco/m4c_captioner/annotations/imdb_karpathy_test_filtered_by_image_id.npy  # only one sample per image_id
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          max_seq_length: 3
+      answer_processor:
+        type: m4c_caption
+        params:
+          vocab_file: coco/m4c_captioner/extras/vocabs/vocab_joint_textcaps_coco_threshold_10.txt
+          preprocessor:
+            type: simple_word
+            params: {}
+          context_preprocessor:
+            type: simple_word
+            params: {}
+          max_length: 50
+          max_copy_steps: 30
+          num_answers: 1
+      caption_processor: null
+      context_processor:
+        type: fasttext
+        params:
+          max_length: 50
+          model_file: wiki.en.bin
+      copy_processor:
+        type: copy
+        params:
+          max_length: 100
+      phoc_processor:
+        type: phoc
+        params:
+          max_length: 50

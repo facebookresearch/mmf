@@ -1,0 +1,118 @@
+includes:
+- ./defaults.yaml
+
+# Use soft copy
+dataset_config:
+  textcaps:
+    use_images: false
+    use_features: true
+    zoo_requirements:
+    - textvqa.defaults
+    - textvqa.ocr_en
+    - textcaps.defaults
+    - coco.m4c_captioner
+    - coco.ocr_en
+    features:
+      train:
+      # tile TextCaps imdb 32 times (to sample TextCaps more frequently than COCO)
+      # in order to better learn reading comprehension from TextCaps
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - textvqa/defaults/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      - coco/m4c_captioner/features/detectron.lmdb,coco/ocr_en/features/ocr_en_frcn_features.lmdb
+      val:
+      - coco/m4c_captioner/features/detectron.lmdb,coco/ocr_en/features/ocr_en_frcn_features.lmdb
+      test:
+      - coco/m4c_captioner/features/detectron.lmdb,coco/ocr_en/features/ocr_en_frcn_features.lmdb
+    annotations:
+      train:
+      # tile TextCaps imdb 32 times (to sample TextCaps more frequently than COCO)
+      # in order to better learn reading comprehension from TextCaps
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
+      - coco/m4c_captioner/annotations/imdb_karpathy_train.npy
+      val:
+      - coco/m4c_captioner/annotations/imdb_karpathy_val_filtered_by_image_id.npy  # only one sample per image_id
+      test:
+      - coco/m4c_captioner/annotations/imdb_karpathy_test_filtered_by_image_id.npy  # only one sample per image_id
+    processors:
+      answer_processor:
+        type: m4c_caption
+        params:
+          vocab_file: coco/m4c_captioner/extras/vocabs/vocab_joint_textcaps_coco_threshold_10.txt
+          preprocessor:
+            type: simple_word
+            params: {}
+          context_preprocessor:
+            type: simple_word
+            params: {}
+          max_length: 50
+          max_copy_steps: 30
+          num_answers: 1
+
+training:
+    lr_scheduler: true
+    lr_steps:
+    - 14000
+    - 19000
+    warmup_iterations: 1000
+    max_iterations: 24000

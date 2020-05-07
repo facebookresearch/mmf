@@ -78,8 +78,8 @@ class M4C(BaseModel):
         self.obj_faster_rcnn_fc7 = ImageFeatureEncoder(
             encoder_type="finetune_faster_rcnn_fpn_fc7",
             in_dim=2048,
-            weights_file="detectron/fc6/fc7_w.pkl",
-            bias_file="detectron/fc6/fc7_b.pkl",
+            weights_file="models/detectron.defaults/fc7_w.pkl",
+            bias_file="models/detectron.defaults/fc7_b.pkl",
             model_data_dir=self.config.model_data_dir,
         )
         # apply smaller lr to pretrained Faster R-CNN fc7
@@ -112,8 +112,8 @@ class M4C(BaseModel):
         self.ocr_faster_rcnn_fc7 = ImageFeatureEncoder(
             encoder_type="finetune_faster_rcnn_fpn_fc7",
             in_dim=2048,
-            weights_file="detectron/fc6/fc7_w.pkl",
-            bias_file="detectron/fc6/fc7_b.pkl",
+            weights_file="models/detectron.defaults/fc7_w.pkl",
+            bias_file="models/detectron.defaults/fc7_b.pkl",
             model_data_dir=self.config.model_data_dir,
         )
         self.finetune_modules.append(

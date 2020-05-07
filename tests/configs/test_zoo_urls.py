@@ -14,7 +14,7 @@ class TestConfigsForKeys(unittest.TestCase):
         self._recurse_on_config(zoo_config)
 
     def _recurse_on_config(self, config):
-        if OmegaConf.is_list(config) and "url" in config[0]:
+        if OmegaConf.is_list(config) and len(config) > 0 and "url" in config[0]:
             # Found the urls, let's test them
             for item in config:
                 # First try making the DownloadableFile class to make sure

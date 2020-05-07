@@ -1,0 +1,14 @@
+includes:
+- ./beam_search.yaml
+
+dataset_config:
+  textcaps:
+    processors:
+      text_processor:
+        params:
+          vocab:
+            vocab_file: textcaps/defaults/extras/vocabs/coco_vocabulary_captioning_thresh5.txt
+      caption_processor:
+        params:
+          vocab:
+            vocab_file: textcaps/defaults/extras/vocabs/coco_vocabulary_captioning_thresh5.txt
