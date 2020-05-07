@@ -2,10 +2,14 @@
 
 This repository contains the code for modified implementation of VisualBERT and ViLBERT used in the folowwing paper. Please cite this paper if you are using these models:
 
-* Singh, A., Goswami, V., & Parikh, D. (2019). *Are we pretraining it right? Digging deeper into visio-linguistic pretraining*.
-
-TODO: Update citation bibtex once uplaoded to ArXiv.
+* Singh, A., Goswami, V., & Parikh, D. (2019). *Are we pretraining it right? Digging deeper into visio-linguistic pretraining*. arXiv preprint arXiv:2004.08744. ([arXiV](https://arxiv.org/abs/2004.08744))
 ```
+@article{singh2020we,
+  title={Are we pretraining it right? Digging deeper into visio-linguistic pretraining},
+  author={Singh, Amanpreet and Goswami, Vedanuj and Parikh, Devi},
+  journal={arXiv preprint arXiv:2004.08744},
+  year={2020}
+}
 ```
 
 ## Installation

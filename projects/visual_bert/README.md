@@ -1,6 +1,6 @@
 # VisualBERT
 
-This repository contains the code for pytorch implementation of VisualBERT model, released originally under this ([repo](https://github.com/uclanlp/visualbert)). Please cite the following paper if you are using VisualBERT model from mmf:
+This repository contains the code for pytorch implementation of VisualBERT model, released originally under this ([repo](https://github.com/uclanlp/visualbert)). Please cite the following papers if you are using VisualBERT model from mmf:
 
 * Li, L. H., Yatskar, M., Yin, D., Hsieh, C. J., & Chang, K. W. (2019). *Visualbert: A simple and performant baseline for vision and language*. arXiv preprint arXiv:1908.03557. ([arXiV](https://arxiv.org/abs/1908.03557))
 ```
@@ -9,6 +9,18 @@ This repository contains the code for pytorch implementation of VisualBERT model
   author={Li, Liunian Harold and Yatskar, Mark and Yin, Da and Hsieh, Cho-Jui and Chang, Kai-Wei},
   journal={arXiv preprint arXiv:1908.03557},
   year={2019}
+}
+```
+
+and
+
+* Singh, A., Goswami, V., & Parikh, D. (2019). *Are we pretraining it right? Digging deeper into visio-linguistic pretraining*. arXiv preprint arXiv:2004.08744. ([arXiV](https://arxiv.org/abs/2004.08744))
+```
+@article{singh2020we,
+  title={Are we pretraining it right? Digging deeper into visio-linguistic pretraining},
+  author={Singh, Amanpreet and Goswami, Vedanuj and Parikh, Devi},
+  journal={arXiv preprint arXiv:2004.08744},
+  year={2020}
 }
 ```
 
