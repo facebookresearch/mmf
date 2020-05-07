@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+
 """
 Models built on top of Pythia need to inherit ``BaseModel`` class and adhere to
 some format. To create a model for MMF, follow this quick cheatsheet.
@@ -13,8 +14,8 @@ some format. To create a model for MMF, follow this quick cheatsheet.
    class.
 
 If you are doing logits based predictions, the dict you return from your model
-should contain a `scores` field. Losses and Metrics are automatically
-calculated by the ``BaseModel`` class and added to this dict if not present.
+should contain a `scores` field. Losses are automatically calculated by the
+``BaseModel`` class and added to this dict if not present.
 
 Example::
 
@@ -47,7 +48,6 @@ from torch import nn
 
 from mmf.common.registry import registry
 from mmf.modules.losses import Losses
-from mmf.modules.metrics import Metrics
 from mmf.utils.checkpoint import load_pretrained_model
 
 
@@ -65,7 +65,7 @@ class BaseModel(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        self._logged_warning = {"losses_present": False, "metrics_present": False}
+        self._logged_warning = {"losses_present": False}
         self.writer = registry.get("writer")
         self._is_pretrained = False
 
@@ -86,27 +86,18 @@ class BaseModel(nn.Module):
             "Build method not implemented in the child model class."
         )
 
-    def init_losses_and_metrics(self):
-        """Initializes loss and metrics for the model based ``losses`` key
-        and ``metrics`` keys. Automatically called by MMF internally after
-        building the model.
+    def init_losses(self):
+        """Initializes loss for the model based ``losses`` key. Automatically called by
+        MMF internally after building the model.
         """
         losses = self.config.get("losses", [])
-        metrics = self.config.get("metrics", [])
         if len(losses) == 0 and not self.is_pretrained:
             warnings.warn(
                 "No losses are defined in model configuration. You are expected "
                 "to return loss in your return dict from forward."
             )
 
-        if len(metrics) == 0 and not self.is_pretrained:
-            warnings.warn(
-                "No metrics are defined in model configuration. You are expected "
-                "to return metrics in your return dict from forward."
-            )
-
         self.losses = Losses(losses)
-        self.metrics = Metrics(metrics)
 
     @classmethod
     def config_path(cls):
@@ -177,20 +168,6 @@ class BaseModel(nn.Module):
             ), "'losses' must be a dict."
         else:
             model_output["losses"] = self.losses(sample_list, model_output)
-
-        if "metrics" in model_output:
-            if not self._logged_warning["metrics_present"]:
-                warnings.warn(
-                    "'metrics' already present in model output. "
-                    "No calculation will be done in base model."
-                )
-                self._logged_warning["metrics_present"] = True
-
-            assert isinstance(
-                model_output["metrics"], collections.abc.Mapping
-            ), "'metrics' must be a dict."
-        else:
-            model_output["metrics"] = self.metrics(sample_list, model_output)
 
         return model_output
 

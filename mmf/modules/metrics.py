@@ -76,6 +76,7 @@ class Metrics:
 
     def _init_metrics(self, metric_list):
         metrics = {}
+        self.required_params = set(["dataset_name", "dataset_type"])
         for metric in metric_list:
             params = {}
             if isinstance(metric, collections.abc.Mapping):
@@ -98,13 +99,12 @@ class Metrics:
                     "No metric named {} registered to registry".format(metric)
                 )
             metrics[metric] = metric_cls(**params)
+            self.required_params.update(metrics[metric].required_params)
 
         return metrics
 
     def __call__(self, sample_list, model_output, *args, **kwargs):
         values = {}
-        if not hasattr(sample_list, "targets"):
-            return values
 
         dataset_type = sample_list.dataset_type
         dataset_name = sample_list.dataset_name
@@ -143,6 +143,7 @@ class BaseMetric:
 
     def __init__(self, name, *args, **kwargs):
         self.name = name
+        self.required_params = ["scores", "targets"]
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
         """Abstract method to be implemented by the child class. Takes
@@ -230,6 +231,7 @@ class CaptionBleu4Metric(BaseMetric):
         self._bleu_score = bleu_score
         super().__init__("caption_bleu4")
         self.caption_processor = registry.get("coco_caption_processor")
+        self.required_params = ["scores", "answers"]
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
         """Calculate accuracy and return it back.
@@ -332,6 +334,7 @@ class VQAEvalAIAccuracy(BaseMetric):
     def __init__(self):
         super().__init__("vqa_evalai_accuracy")
         self.evalai_answer_processor = EvalAIAnswerProcessor()
+        self.required_params = ["scores", "answers", "context_tokens"]
 
     def _masked_unk_softmax(self, x, dim, mask_idx):
         x1 = torch.nn.functional.softmax(x, dim=dim)
@@ -572,6 +575,7 @@ class TextVQAAccuracy(BaseMetric):
         import mmf.utils.m4c_evaluators as evaluators
 
         self.evaluator = evaluators.TextVQAAccuracyEvaluator()
+        self.required_params = ["scores", "answers", "context_tokens"]
         self.gt_key = "answers"
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
@@ -644,6 +648,7 @@ class TextCapsBleu4(TextVQAAccuracy):
     def __init__(self):
         super().__init__()
         self.name = "textcaps_bleu4"
+        self.required_params = ["scores", "ref_strs", "context_tokens"]
         self.gt_key = "ref_strs"
         import mmf.utils.m4c_evaluators as evaluators
 

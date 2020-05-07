@@ -35,7 +35,7 @@ def build_model(config):
 
     if hasattr(model, "build"):
         model.build()
-        model.init_losses_and_metrics()
+        model.init_losses()
 
     return model
 

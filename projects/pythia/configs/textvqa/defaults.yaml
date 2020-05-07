@@ -4,6 +4,11 @@ optimizer:
   type: Adamax
   params:
     lr: 0.005
+
+evaluation:
+  metrics:
+  - vqa_accuracy
+
 training:
     clip_norm_mode: all
     clip_gradients: false
@@ -19,10 +24,11 @@ training:
     batch_size: 128
     num_workers: 7
     task_size_proportional_sampling: true
-    monitored_metric: textvqa/vqa_accuracy
+    early_stop:
+      criteria: textvqa/vqa_accuracy
+      minimize: false
     pretrained_mapping:
       text_embeddings: text_embeddings
       image_feature_encoders: image_feature_encoders
       image_feature_embeddings_list: image_feature_embeddings_list
       image_text_multi_modal_combine_layer: image_text_multi_modal_combine_layer
-    metric_minimize: false

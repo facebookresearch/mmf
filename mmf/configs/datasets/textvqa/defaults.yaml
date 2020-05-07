@@ -57,6 +57,3 @@ dataset_config:
       # Return spatial information of OCR tokens if present
       use_ocr_info: false
       use_order_vectors: false
-training:
-    monitored_metric: textvqa/vqa_accuracy
-    metric_minimize: false

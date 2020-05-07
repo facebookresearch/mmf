@@ -1,2 +1,11 @@
 includes:
 - ../../../mmf/configs/vizwiz/defaults.yaml
+
+evaluation:
+  metrics:
+  - vqa_accuracy
+
+training:
+  early_stop:
+    criteria: vizwiz/vqa_accuracy
+    minimize: false

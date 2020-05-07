@@ -55,7 +55,3 @@ dataset_config:
     return_features_info: true
     use_ocr: true
     use_ocr_info: false
-
-training:
-  monitored_metric: ocrvqa/ocrvqa_accuracy
-  metric_minimize: false

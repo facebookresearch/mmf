@@ -23,8 +23,6 @@ model_config:
         query_key_size: 768
       params: {}
     model_data_dir: ${env.data_dir}
-    metrics:
-    - type: textcaps_bleu4
     losses:
     - type: m4c_decoding_bce_with_mask
     remove_unk_in_pred: true

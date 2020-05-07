@@ -1,8 +1,6 @@
 model_config:
   butd: &butd
     model_data_dir: ${env.data_dir}
-    metrics:
-    - type: caption_bleu4
     losses:
     - type: caption_cross_entropy
     classifier:

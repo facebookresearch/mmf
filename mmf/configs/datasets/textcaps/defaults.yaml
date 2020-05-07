@@ -70,7 +70,3 @@ dataset_config:
     return_features_info: true
     use_ocr: true
     use_ocr_info: true
-
-training:
-    monitored_metric: textcaps/textcaps_bleu4
-    metric_minimize: false

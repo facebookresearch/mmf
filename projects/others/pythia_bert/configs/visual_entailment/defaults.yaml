@@ -3,8 +3,6 @@ model_config:
     training_head_type: visual_entailment
     losses:
     - type: cross_entropy
-    metrics:
-    - accuracy
 
 dataset_config:
   visual_entailment:
@@ -32,6 +30,11 @@ scheduler:
     num_warmup_steps: 6000
     num_training_steps: 60000
 
+evaluation:
+  metrics:
+  - accuracy
+
 training:
-  monitored_metric: visual_entailment/accuracy
-  metric_minimize: false
+  early_stop:
+    criteria: visual_entailment/accuracy
+    minimize: false

@@ -12,7 +12,6 @@ model_config:
     output_hidden_states: false
     text_only: false
     random_initialize: false
-    metrics: []
 
 dataset_config:
   masked_sbu:

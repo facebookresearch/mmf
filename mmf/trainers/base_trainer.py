@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+
 import gc
 import math
 import time
@@ -11,6 +12,7 @@ from mmf.common.dataset_loader import DatasetLoader
 from mmf.common.meter import Meter
 from mmf.common.registry import registry
 from mmf.common.report import Report
+from mmf.modules.metrics import Metrics
 from mmf.utils.build import build_model, build_optimizer, build_scheduler
 from mmf.utils.checkpoint import Checkpoint
 from mmf.utils.configuration import get_mmf_env
@@ -52,6 +54,7 @@ class BaseTrainer:
 
         self.load_datasets()
         self.load_model_and_optimizer()
+        self.load_metrics()
 
     def _set_device(self):
         self.local_rank = self.config.device_id
@@ -87,6 +90,11 @@ class BaseTrainer:
         self.train_loader = self.dataset_loader.train_loader
         self.val_loader = self.dataset_loader.val_loader
         self.test_loader = self.dataset_loader.test_loader
+
+    def load_metrics(self):
+        metrics = self.config.evaluation.get("metrics", [])
+        self.metrics = Metrics(metrics)
+        self.metrics_params = self.metrics.required_params
 
     def load_model_and_optimizer(self):
         attributes = self.config.model_config[self.config.model]
@@ -145,10 +153,10 @@ class BaseTrainer:
 
         self.training_config = self.config.training
 
-        monitored_metric = self.training_config.monitored_metric
-        metric_minimize = self.training_config.metric_minimize
-        should_early_stop = self.training_config.should_early_stop
-        patience = self.training_config.patience
+        early_stop_criteria = self.training_config.early_stop.criteria
+        early_stop_minimize = self.training_config.early_stop.minimize
+        early_stop_enabled = self.training_config.early_stop.enabled
+        early_stop_patience = self.training_config.early_stop.patience
 
         self.log_interval = self.training_config.log_interval
         self.evaluation_interval = self.training_config.evaluation_interval
@@ -160,10 +168,10 @@ class BaseTrainer:
         self.early_stopping = EarlyStopping(
             self.model,
             self.checkpoint,
-            monitored_metric,
-            patience=patience,
-            minimize=metric_minimize,
-            should_stop=should_early_stop,
+            early_stop_criteria,
+            patience=early_stop_patience,
+            minimize=early_stop_minimize,
+            should_stop=early_stop_enabled,
         )
         self.current_epoch = 0
         self.current_iteration = 0
@@ -309,25 +317,29 @@ class BaseTrainer:
         if meter is None:
             meter = self.meter
 
-        loss_dict = report.losses
-        metrics_dict = report.metrics
+        if hasattr(report, "metrics"):
+            metrics_dict = report.metrics
+            reduced_metrics_dict = reduce_dict(metrics_dict)
 
-        reduced_loss_dict = reduce_dict(loss_dict)
-        reduced_metrics_dict = reduce_dict(metrics_dict)
-
-        loss_key = report.dataset_type + "/total_loss"
+        if not eval_mode:
+            loss_dict = report.losses
+            reduced_loss_dict = reduce_dict(loss_dict)
 
         with torch.no_grad():
-            reduced_loss = sum([loss.mean() for loss in reduced_loss_dict.values()])
-            if hasattr(reduced_loss, "item"):
-                reduced_loss = reduced_loss.item()
+            # Add metrics to meter only when mode is `eval`
+            meter_update_dict = {}
+            if not eval_mode:
+                loss_key = report.dataset_type + "/total_loss"
+                reduced_loss = sum([loss.mean() for loss in reduced_loss_dict.values()])
+                if hasattr(reduced_loss, "item"):
+                    reduced_loss = reduced_loss.item()
 
-            registry.register(loss_key, reduced_loss)
-
-            meter_update_dict = {loss_key: reduced_loss}
-            meter_update_dict.update(reduced_loss_dict)
-            meter_update_dict.update(reduced_metrics_dict)
-            meter.update(meter_update_dict, report.get_batch_size())
+                registry.register(loss_key, reduced_loss)
+                meter_update_dict.update({loss_key: reduced_loss})
+                meter_update_dict.update(reduced_loss_dict)
+            if hasattr(report, "metrics"):
+                meter_update_dict.update(reduced_metrics_dict)
+            meter.update(meter_update_dict, report.batch_size)
 
     def _logistics(self, report):
         registry.register("current_iteration", self.current_iteration)
@@ -364,6 +376,9 @@ class BaseTrainer:
             )
 
             self.train_timer.reset()
+            # Calculate metrics every log interval for debugging
+            if self.training_config.evaluate_metrics:
+                report.metrics = self.metrics(report, report)
             self._update_meter(report, self.meter)
 
             self._summarize_report(self.meter, should_print=should_print, extra=extra)
@@ -423,16 +438,30 @@ class BaseTrainer:
         with torch.no_grad():
             self.model.eval()
             disable_tqdm = not use_tqdm or not is_master()
+            combined_report = None
 
             for batch in tqdm(loader, disable=disable_tqdm):
                 report = self._forward_pass(batch)
-                self._update_meter(report, meter, eval_mode=True)
+                self._update_meter(report, meter)
+
+                # accumulate necessary params for metric calculation
+                if combined_report is None:
+                    combined_report = report
+                else:
+                    combined_report.accumulate_tensor_fields(
+                        report, self.metrics.required_params
+                    )
+                    combined_report.batch_size += report.batch_size
 
                 if single_batch is True:
                     break
+
+            combined_report.metrics = self.metrics(combined_report, combined_report)
+            self._update_meter(combined_report, meter, eval_mode=True)
+
             self.model.train()
 
-        return report, meter
+        return combined_report, meter
 
     def _summarize_report(self, meter, should_print=True, extra=None):
         if extra is None:

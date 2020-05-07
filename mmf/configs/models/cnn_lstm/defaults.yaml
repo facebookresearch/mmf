@@ -1,7 +1,5 @@
 model_config:
   cnn_lstm:
-    metrics:
-    - type: accuracy
     losses:
     - type: logit_bce
     text_embedding:
