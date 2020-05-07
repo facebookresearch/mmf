@@ -90,9 +90,14 @@ def get_mmf_root():
 def get_absolute_path(paths):
     # String check should be first as Sequence would pass for string too
     if isinstance(paths, str):
-        if not os.path.isabs(paths):
-            mmf_root = get_mmf_root()
-            paths = os.path.join(mmf_root, paths)
+        # If path is absolute or if  exists, return it directly
+        if os.path.isabs(paths) or PathManager.exists(paths):
+            return paths
+
+        # Neither absolute, nor does it directly exists, return it relative to
+        # mmf root
+        mmf_root = get_mmf_root()
+        paths = os.path.join(mmf_root, paths)
         return paths
     elif isinstance(paths, collections.abc.Iterable):
         return [get_absolute_path(path) for path in paths]

@@ -15,7 +15,11 @@ class TextVQADataset(MMFDataset):
         self.use_ocr_info = self.config.use_ocr_info
 
     def preprocess_sample_info(self, sample_info):
-        sample_info["feature_path"] = sample_info["image_path"].replace(".jpg", ".npy")
+        # COCO Annotation DBs have corrext feature_path
+        if "COCO" not in sample_info["feature_path"]:
+            sample_info["feature_path"] = sample_info["image_path"].replace(
+                ".jpg", ".npy"
+            )
         return sample_info
 
     def postprocess_evalai_entry(self, entry):
@@ -198,8 +202,7 @@ class TextVQADataset(MMFDataset):
         answers = sample_info.get("answers", None)
         answer_processor_arg = {"answers": answers}
 
-        if self.use_ocr:
-            answer_processor_arg["tokens"] = sample.pop("ocr_tokens", None)
+        answer_processor_arg["tokens"] = sample.pop("ocr_tokens", [])
 
         processed_answers = self.answer_processor(answer_processor_arg)
 

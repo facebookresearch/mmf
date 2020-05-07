@@ -50,7 +50,7 @@ class BaseTrainer:
 
         self.config_based_setup()
 
-        self.load_task()
+        self.load_datasets()
         self.load_model_and_optimizer()
 
     def _set_device(self):
@@ -71,7 +71,7 @@ class BaseTrainer:
 
         registry.register("current_device", self.device)
 
-    def load_task(self):
+    def load_datasets(self):
         self.writer.write("Loading datasets", "info")
         self.dataset_loader.load_datasets()
 

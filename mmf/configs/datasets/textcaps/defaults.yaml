@@ -1,38 +1,43 @@
 dataset_config:
-  m4c_textcaps:
-    data_dir: ${env.data_dir}
+  textcaps:
+    data_dir: ${env.data_dir}/datasets
     depth_first: false
     fast_read: false
+    zoo_requirements:
+    - textcaps.defaults
+    - textvqa.defaults
     max_features: 100
     use_images: false
     use_features: true
+    use_order_vectors: true
+    annotation_style: textcaps
     features:
       train:
-      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - textvqa/defaults/features/open_images/detectron.lmdb
       val:
-      - open_images/detectron_fix_100/fc6/train,m4c_textvqa_ocr_en_frcn_features/train_images
+      - textvqa/defaults/features/open_images/detectron.lmdb
       test:
-      - open_images/detectron_fix_100/fc6/test,m4c_textvqa_ocr_en_frcn_features/test_images
+      - textvqa/defaults/features/open_images/detectron.lmdb
     annotations:
       train:
-      - imdb/m4c_textcaps/imdb_train.npy
+      - textcaps/defaults/annotations/imdb_train.npy
       val:
-      - imdb/m4c_textcaps/imdb_val_filtered_by_image_id.npy  # only one sample per image_id
+      - textcaps/defaults/annotations/imdb_val_filtered_by_image_id.npy  # only one sample per image_id
       test:
-      - imdb/m4c_textcaps/imdb_test_filtered_by_image_id.npy  # only one sample per image_id
+      - textcaps/defaults/annotations/imdb_test_filtered_by_image_id.npy  # only one sample per image_id
     processors:
       text_processor:
-        type: m4c_bert_tokenizer
+        type: bert_tokenizer
         params:
           tokenizer_config:
             type: bert-base-uncased
             params:
               do_lower_case: true
-          max_length: 1
+          max_seq_length: 3
       answer_processor:
         type: m4c_caption
         params:
-          vocab_file: m4c_captioner_vocabs/textcaps/vocab_textcap_threshold_10.txt
+          vocab_file: textcaps/defaults/extras/vocabs/vocab_textcaps_threshold_10.txt
           preprocessor:
             type: simple_word
             params: {}
@@ -67,5 +72,5 @@ dataset_config:
     use_ocr_info: true
 
 training:
-    monitored_metric: m4c_textcaps/textcaps_bleu4
+    monitored_metric: textcaps/textcaps_bleu4
     metric_minimize: false

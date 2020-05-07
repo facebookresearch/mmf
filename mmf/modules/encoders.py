@@ -13,8 +13,9 @@ from mmf.modules.embeddings import ProjectionEmbedding, TextEmbedding
 from mmf.modules.layers import Identity
 from mmf.utils.build import build_image_encoder, build_text_encoder
 from mmf.utils.configuration import get_mmf_cache_dir
+from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
-from mmf.utils.general import get_mmf_root
+from mmf.utils.general import get_absolute_path
 
 
 class ImageFeatureEncoder(nn.Module):
@@ -43,14 +44,19 @@ class FinetuneFasterRcnnFpnFc7(nn.Module):
     def __init__(
         self, in_dim, weights_file, bias_file, model_data_dir, *args, **kwargs
     ):
-        super(FinetuneFasterRcnnFpnFc7, self).__init__()
-        pythia_root = get_mmf_root()
-        model_data_dir = os.path.join(pythia_root, model_data_dir)
+        super().__init__()
+        model_data_dir = get_absolute_path(model_data_dir)
 
         if not os.path.isabs(weights_file):
             weights_file = os.path.join(model_data_dir, weights_file)
         if not os.path.isabs(bias_file):
             bias_file = os.path.join(model_data_dir, bias_file)
+
+        if not PathManager.exists(bias_file) or not PathManager.exists(weights_file):
+            download_path = download_pretrained_model("detectron")
+            weights_file = get_absolute_path(os.path.join(download_path, "fc7_w.pkl"))
+            bias_file = get_absolute_path(os.path.join(download_path, "fc7_b.pkl"))
+
         with PathManager.open(weights_file, "rb") as w:
             weights = pickle.load(w)
         with PathManager.open(bias_file, "rb") as b:

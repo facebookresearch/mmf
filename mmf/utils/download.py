@@ -21,6 +21,7 @@ import requests
 import tqdm
 
 from mmf.utils.file_io import PathManager
+from mmf.utils.general import get_absolute_path
 
 
 class DownloadableFile:
@@ -311,15 +312,15 @@ def download_pretrained_model(model_name, *args, **kwargs):
     import omegaconf
     from omegaconf import OmegaConf
 
-    from mmf.utils.configuration import load_yaml, get_mmf_env, get_mmf_cache_dir
+    from mmf.utils.configuration import load_yaml, get_mmf_env
 
     model_zoo = load_yaml(get_mmf_env(key="model_zoo"))
     OmegaConf.set_struct(model_zoo, True)
     OmegaConf.set_readonly(model_zoo, True)
 
-    cache_dir = get_mmf_cache_dir()
-    model_cache_dir = os.path.join(cache_dir, "models")
-    download_path = os.path.join(model_cache_dir, model_name)
+    data_dir = get_absolute_path(get_mmf_env("data_dir"))
+    model_data_dir = os.path.join(data_dir, "models")
+    download_path = os.path.join(model_data_dir, model_name)
 
     try:
         model_config = OmegaConf.select(model_zoo, model_name)
@@ -331,12 +332,22 @@ def download_pretrained_model(model_name, *args, **kwargs):
         # Version and Resources are not present time to try the defaults
         try:
             model_config = model_config.defaults
+            download_path = os.path.join(model_data_dir, model_name + ".defaults")
         except omegaconf.errors.OmegaConfBaseException as e:
             print(
-                f"model name {model_name} doesn't specify 'resources' and 'version' "
+                f"Model name {model_name} doesn't specify 'resources' and 'version' "
                 "while no defaults have been provided"
             )
             raise e
+
+    # Download requirements if any specified by "zoo_requirements" field
+    # This can either be a list or a string
+    if "zoo_requirements" in model_config:
+        requirements = model_config.zoo_requirements
+        if isinstance(requirements, str):
+            requirements = [requirements]
+        for item in requirements:
+            download_pretrained_model(item, *args, **kwargs)
 
     version = model_config.version
     resources = model_config.resources

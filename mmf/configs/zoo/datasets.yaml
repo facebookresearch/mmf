@@ -134,3 +134,46 @@ ocrvqa:
       - url: mmf://datasets/ocrvqa/ocr_en/features/features.tar.gz
         file_name: features.tar.gz
         hashcode: 1c9eb9df544d431f438d340afe493a4d3db759eedd485033f88fc639106edeb8
+
+
+textcaps:
+  defaults:
+    version: 1.0_2020_05_04
+    resources:
+      annotations:
+      - url: mmf://datasets/textcaps/defaults/annotations/annotations.tar.gz
+        file_name: annotations.tar.gz
+        hashcode: cfbe34a0653d18155e5b7de37724888e51c6b0e573fe436bc22ec074338d5456
+      extras:
+      - url: mmf://datasets/textcaps/defaults/extras.tar.gz
+        file_name: extras.tar.gz
+        hashcode: 6a92426b646b61eefef8d42ca38bd852375d13c7edd3cf511201633bc16aa14c
+
+coco:
+  # TODO: Fill defaults for COCO later
+  defaults:
+    version: 1.0_2020_05_04
+    resources: []
+  m4c_captioner:
+    version: 1.0_2020_05_04
+    resources:
+      features:
+      - url: mmf://datasets/coco/m4c_captioner/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: b36428b7aac2c1b46d4fa75155ea7cd0f9a94444481563c87a5af64dd05e315f
+      annotations:
+      - url: mmf://datasets/coco/m4c_captioner/annotations/annotations.tar.gz
+        file_name: annotations.tar.gz
+        hashcode: 828a7a4310a6eddf2d13b9a6b11ca6877cb988680f2fbc838b600f6d8e4dcbfc
+      extras:
+      - url: mmf://datasets/coco/m4c_captioner/extras.tar.gz
+        file_name: extras.tar.gz
+        hashcode: a859c41693abb40362b5d0a2d844e612713103ff4fef1159e0351c34e5e6fb46
+
+  ocr_en:
+    version: 1.0_2020_05_04
+    resources:
+      features:
+      - url: mmf://datasets/coco/ocr_en/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: 8d4d67e878208568934c2c3fb1c304f5073b5a89a25a59938d182e360e23473f

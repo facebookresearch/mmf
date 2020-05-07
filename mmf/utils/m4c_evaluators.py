@@ -147,8 +147,8 @@ class EvalAIAnswerProcessor:
         "ten": "10",
     }
     ARTICLES = ["a", "an", "the"]
-    PERIOD_STRIP = re.compile("(?!<=\d)(\.)(?!\d)")
-    COMMA_STRIP = re.compile("(?<=\d)(\,)+(?=\d)")
+    PERIOD_STRIP = re.compile(r"(?!<=\d)(\.)(?!\d)")
+    COMMA_STRIP = re.compile(r"(?<=\d)(\,)+(?=\d)")
     PUNCTUATIONS = [
         ";",
         r"/",
@@ -303,8 +303,15 @@ class TextCapsBleu4Evaluator:
         # pip install git+https://github.com/ronghanghu/coco-caption.git@python23
         # Original pycocoevalcap code is at https://github.com/tylin/coco-caption
         # but has no python3 support yet.
-        from pycocoevalcap.tokenizer.ptbtokenizer import PTBTokenizer
-        from pycocoevalcap.bleu.bleu import Bleu
+        try:
+            from pycocoevalcap.tokenizer.ptbtokenizer import PTBTokenizer
+            from pycocoevalcap.bleu.bleu import Bleu
+        except ModuleNotFoundError:
+            print(
+                "Please install pycocoevalcap module using "
+                "pip install git+https://github.com/ronghanghu/coco-caption.git@python23"  # noqa
+            )
+            raise
 
         self.tokenizer = PTBTokenizer()
         self.scorer = Bleu(4)

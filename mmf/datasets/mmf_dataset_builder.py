@@ -9,25 +9,8 @@ from mmf.datasets.concat_dataset import MMFConcatDataset
 from mmf.utils.configuration import get_global_config, get_mmf_env, get_zoo_config
 from mmf.utils.general import get_absolute_path
 
-ResourcesType = typing.NewType(
-    "ResourcesType",
-    typing.Union[
-        typing.Mapping[
-            str,
-            typing.Union[
-                download.DownloadableFile, typing.List[download.DownloadableFile]
-            ],
-        ],
-        download.DownloadableFile,
-        typing.Sequence[download.DownloadableFile],
-        None,
-    ],
-)
-
 
 class MMFDatasetBuilder(BaseDatasetBuilder):
-    VERSION = None
-    RESOURCES: ResourcesType = None
     ZOO_CONFIG_PATH = None
     ZOO_VARIATION = None
 
@@ -98,7 +81,8 @@ class MMFDatasetBuilder(BaseDatasetBuilder):
         requirement_split = requirement_key.split(".")
         dataset_name = requirement_split[0]
 
-        if len(requirement_split) == 2:
+        # The dataset variation has been directly passed in the key so use it instead
+        if len(requirement_split) >= 2:
             dataset_variation = requirement_split[1]
         else:
             dataset_variation = requirement_variation

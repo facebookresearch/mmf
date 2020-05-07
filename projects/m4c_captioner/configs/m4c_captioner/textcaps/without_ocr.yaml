@@ -1,5 +1,5 @@
 includes:
 - ./defaults.yaml
 dataset_config:
-  m4c_textcaps:
+  textcaps:
     use_ocr: False  # remove all the OCRs from each image

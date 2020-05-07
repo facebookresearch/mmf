@@ -1,11 +1,8 @@
 import json
-import os
-import sys
 
-import coco_caption_eval  # NoQA
 import numpy as np
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../../tools/scripts/coco/"))
+import tools.scripts.coco.coco_caption_eval as coco_caption_eval
 
 
 def print_metrics(res_metrics):
@@ -30,6 +27,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--pred_file", type=str, required=True)
+    parser.add_argument("--annotation_file", type=str, required=True)
     parser.add_argument("--set", type=str, default="val")
     args = parser.parse_args()
 
@@ -41,11 +39,8 @@ if __name__ == "__main__":
 
     with open(args.pred_file) as f:
         preds = json.load(f)
-    imdb_file = os.path.join(
-        os.path.dirname(__file__),
-        "../../../data/imdb/m4c_textcaps/imdb_{}.npy".format(args.set),
-    )
-    imdb = np.load(imdb_file, allow_pickle=True)
+    annotation_file = args.annotation_file
+    imdb = np.load(annotation_file, allow_pickle=True)
     imdb = imdb[1:]
 
     gts = [

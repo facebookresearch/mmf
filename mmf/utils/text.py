@@ -278,6 +278,10 @@ class BeamSearch(TextDecoder):
         self._decode_size = config["inference"]["params"]["beam_length"]
 
     def init_batch(self, sample_list):
+        assert sample_list.get_batch_size() == 1, (
+            "Beam Search can only work with batch size = 1 "
+            + "Use training.batch_size=1"
+        )
         self.top_k_scores = sample_list.answers.new_zeros(
             (self._decode_size, 1), dtype=torch.float
         )
