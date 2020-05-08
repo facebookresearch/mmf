@@ -1,0 +1,7 @@
+dataset_config:
+  hateful_memes:
+    use_images: false
+    use_features: true
+    # Disable this in your config if you do not need features info
+    # and are running out of memory
+    return_features_info: true

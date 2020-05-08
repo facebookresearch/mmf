@@ -775,6 +775,9 @@ class ROC_AUC(BaseMetric):
     """Metric for calculating ROC_AUC.
     See more details at `sklearn.metrics.roc_auc_score <http://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html#sklearn.metrics.roc_auc_score>`_ # noqa
 
+    **Note**: ROC_AUC is not defined when expected tensor only contains one
+    label. Make sure you have both labels always or use it on full val only
+
     **Key:** ``roc_auc``
     """
 

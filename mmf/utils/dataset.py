@@ -1,4 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import warnings
+
 import torch
 
 from mmf.common.sample import Sample
@@ -36,3 +38,27 @@ def build_bbox_tensors(infos, max_length):
     sample.bbox_types = bbox_types
 
     return sample
+
+
+def build_dataset_from_multiple_imdbs(config, dataset_cls, dataset_type):
+    from mmf.datasets.concat_dataset import MMFConcatDataset
+
+    if dataset_type not in config.imdb_files:
+        warnings.warn(
+            "Dataset type {} is not present in "
+            "imdb_files of dataset config. Returning None. "
+            "This dataset won't be used.".format(dataset_type)
+        )
+        return None
+
+    imdb_files = config["imdb_files"][dataset_type]
+
+    datasets = []
+
+    for imdb_idx in range(len(imdb_files)):
+        dataset = dataset_cls(dataset_type, imdb_idx, config)
+        datasets.append(dataset)
+
+    dataset = MMFConcatDataset(datasets)
+
+    return dataset

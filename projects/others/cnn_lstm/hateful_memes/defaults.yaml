@@ -1,0 +1,35 @@
+model_config:
+  cnn_lstm:
+    losses:
+    - type: cross_entropy
+    classifier:
+      type: mlp
+      params:
+        in_dim: 190
+        out_dim: 2
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 2000
+    num_training_steps: ${training.max_updates}
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+
+evaluation:
+  metrics:
+  - accuracy
+  - binary_f1
+  - roc_auc
+
+training:
+  batch_size: 480
+  lr_scheduler: true
+  max_updates: 60000
+  early_stop:
+    criteria: hateful_memes/roc_auc
+    minimize: false
