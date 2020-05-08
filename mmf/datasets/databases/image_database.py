@@ -76,18 +76,23 @@ class ImageDatabase(torch.utils.data.Dataset):
         self.image_key = image_key if image_key else self.image_key
         self.is_valid_file = is_valid_file
 
-        if self.image_key:
-            assert (
-                self.annotation_db is not None
-            ), "Annotation DB should be specified with image key"
+    @property
+    def annotation_db(self):
+        return self._annotation_db
 
-    def set_annotation_db(self, annotation_db):
-        self.annotation_db = annotation_db
+    @annotation_db.setter
+    def annotation_db(self, annotation_db):
+        self._annotation_db = annotation_db
 
-    def set_transforms(self, transform):
+    @property
+    def transform(self):
+        return self._transform
+
+    @transform.setter
+    def transform(self, transform):
         if isinstance(transform, collections.abc.MutableSequence):
             transform = torchvision.Compose(transform)
-        self.transform = transform
+        self._transform = transform
 
     def __len__(self):
         self._check_annotation_db_present()
@@ -102,7 +107,7 @@ class ImageDatabase(torch.utils.data.Dataset):
         if not self.annotation_db:
             raise AttributeError(
                 "'annotation_db' must be set for the database to use __getitem__."
-                + " Use set_annotation_db."
+                + " Use image_database.annotation_db to set it."
             )
 
     def get(self, item):
@@ -128,6 +133,8 @@ class ImageDatabase(torch.utils.data.Dataset):
                 continue
 
             if not path:
+                # Create the full path without extension so it can be printed
+                # for the error
                 possible_path = os.path.join(
                     self.base_path, ".".join(image.split(".")[:-1])
                 )
@@ -137,8 +144,9 @@ class ImageDatabase(torch.utils.data.Dataset):
                         possible_path
                     )
                 )
-
+            path = os.path.join(self.base_path, path)
             image = self.open_image(path)
+
             if self.transform:
                 image = self.transform(image)
             loaded_images.append(image)

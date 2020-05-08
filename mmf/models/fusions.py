@@ -20,7 +20,7 @@ class FusionBase(MultiModalEncoderBase):
 
         self._modal_encoder_config = self.config.modal_encoder
         self._is_direct_features_input = self.config.direct_features_input
-        self._encoder_config = text_encoder.get("config", None)
+        self._encoder_config = getattr(text_encoder, "config", None)
         self.text = text_encoder
         self.modal = modal_encoder
 

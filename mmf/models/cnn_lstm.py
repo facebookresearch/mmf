@@ -1,9 +1,11 @@
+from copy import deepcopy
+
 import torch
 from torch import nn
 
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
-from mmf.modules.layers import ConvNet, Flatten
+from mmf.modules.layers import ClassifierLayer, ConvNet, Flatten
 
 _TEMPLATES = {
     "question_vocab_size": "{}_text_vocab_size",
@@ -65,8 +67,12 @@ class CNNLSTM(BaseModel):
         conv_layers.append(Flatten())
         self.cnn = nn.Sequential(*conv_layers)
 
-        self.classifier = nn.Linear(
-            self.config.classifier.input_dim, num_answer_choices
+        # As we generate output dim dynamically, we need to copy the config
+        # to update it
+        classifier_config = deepcopy(self.config.classifier)
+        classifier_config.params.out_dim = num_answer_choices
+        self.classifier = ClassifierLayer(
+            classifier_config.type, **classifier_config.params
         )
 
     def forward(self, sample_list):

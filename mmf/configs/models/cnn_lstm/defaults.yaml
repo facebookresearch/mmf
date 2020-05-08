@@ -15,4 +15,7 @@ model_config:
         output_dims: [64, 128, 128, 64, 64, 10]
         kernel_sizes: [7, 5, 5, 5, 5, 1]
     classifier:
-      input_dim: 450
+      type: mlp
+      params:
+        in_dim: 450
+        out_dim: 2
