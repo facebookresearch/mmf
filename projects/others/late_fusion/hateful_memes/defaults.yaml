@@ -3,6 +3,14 @@ includes:
 
 model_config:
   late_fusion:
+    modal_classifier:
+      type: mlp
+      params:
+        num_layers: 2
+    text_classifier:
+      type: mlp
+      params:
+        num_layers: 2
     losses:
     - type: cross_entropy
 
@@ -25,7 +33,7 @@ evaluation:
   - roc_auc
 
 training:
-  batch_size: 128
+  batch_size: 64
   lr_scheduler: true
   max_updates: 22000
   early_stop:

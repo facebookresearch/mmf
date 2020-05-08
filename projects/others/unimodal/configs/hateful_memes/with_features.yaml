@@ -2,3 +2,10 @@ includes:
 - ./image.yaml
 - configs/datasets/hateful_memes/with_features.yaml
 - configs/models/unimodal/with_features.yaml
+
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8

@@ -3,6 +3,10 @@ includes:
 
 model_config:
   concat_bert:
+    classifier:
+      type: mlp
+      params:
+        num_layers: 2
     losses:
     - type: cross_entropy
 
@@ -15,7 +19,7 @@ scheduler:
 optimizer:
   type: adam_w
   params:
-    lr: 5e-5
+    lr: 1e-5
     eps: 1e-8
 
 evaluation:
@@ -25,7 +29,7 @@ evaluation:
   - roc_auc
 
 training:
-  batch_size: 128
+  batch_size: 64
   lr_scheduler: true
   max_updates: 22000
   early_stop:

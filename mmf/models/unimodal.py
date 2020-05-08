@@ -80,10 +80,8 @@ class UnimodalModal(BaseModel):
 
     def build(self):
         self.base = UnimodalBase(self.config)
-        num_features = 100
         self._is_direct_features_input = self.config.direct_features_input
-        if not self._is_direct_features_input:
-            num_features = self.config.modal_encoder.params.num_output_features
+        num_features = self.config.modal_encoder.params.num_output_features
 
         # As the in_dim is dynamically calculated we need to copy classifier_config
         classifier_config = deepcopy(self.config.classifier)
@@ -95,6 +93,7 @@ class UnimodalModal(BaseModel):
         args = []
         if self._is_direct_features_input:
             modal = sample_list.image_feature_0
+            modal = torch.mean(modal, dim=1)
         else:
             modal = sample_list.image
 
