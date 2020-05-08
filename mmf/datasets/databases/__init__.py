@@ -1,4 +1,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from .annotation_database import AnnotationDatabase
+import mmf.datasets.databases.readers  # noqa
 
-__all__ = ["AnnotationDatabase"]
+from .annotation_database import AnnotationDatabase
+from .features_database import FeaturesDatabase
+from .image_database import ImageDatabase
+from .scene_graph_database import SceneGraphDatabase
+
+__all__ = [
+    "AnnotationDatabase",
+    "FeaturesDatabase",
+    "ImageDatabase",
+    "SceneGraphDatabase",
+]

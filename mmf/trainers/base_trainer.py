@@ -45,8 +45,13 @@ class BaseTrainer:
         self.dataset_loader = DatasetLoader(self.config)
         self._datasets = self.config.datasets
 
-        self.writer = Logger(self.config)
-        registry.register("writer", self.writer)
+        # Check if loader is already defined, else init it
+        writer = registry.get("writer", no_warning=True)
+        if writer:
+            self.writer = writer
+        else:
+            self.writer = Logger(self.config)
+            registry.register("writer", self.writer)
 
         self.configuration.pretty_print()
 

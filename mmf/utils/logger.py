@@ -14,7 +14,7 @@ from mmf.utils.timer import Timer
 
 
 class Logger:
-    def __init__(self, config):
+    def __init__(self, config, name=None):
         self.logger = None
         self._is_master = is_master()
 
@@ -45,8 +45,10 @@ class Logger:
 
         logging.captureWarnings(True)
 
-        self.logger = logging.getLogger(__name__)
-        self._file_only_logger = logging.getLogger(__name__)
+        if not name:
+            name = __name__
+        self.logger = logging.getLogger(name)
+        self._file_only_logger = logging.getLogger(name)
         warnings_logger = logging.getLogger("py.warnings")
 
         # Set level

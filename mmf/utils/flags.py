@@ -12,6 +12,8 @@ class Flags:
 
     def add_core_args(self):
         self.parser.add_argument_group("Core Arguments")
+        # TODO: Add Help flag here describing MMF Configuration
+        # and point to configuration documentation
         self.parser.add_argument(
             "-co",
             "--config_override",

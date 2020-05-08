@@ -126,7 +126,7 @@ jobs:
       - <<: *run_unittests
 
       - store_test_results:
-          path: test-results
+          path: tests/test-results
 
   gpu_tests:
     <<: *gpu
@@ -166,7 +166,7 @@ jobs:
       - <<: *run_unittests
 
       - store_test_results:
-          path: test-results
+          path: tests/test-results
 
 
 workflows:

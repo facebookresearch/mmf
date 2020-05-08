@@ -10,6 +10,8 @@ dataset_config:
     use_images: false
     use_features: true
     use_order_vectors: true
+    # annotation_style can be coco or textcaps which allows us to override
+    # the dataset class
     annotation_style: textcaps
     features:
       train:

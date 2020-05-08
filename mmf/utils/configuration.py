@@ -10,6 +10,7 @@ import torch
 from omegaconf import OmegaConf
 
 from mmf.common.registry import registry
+from mmf.utils.env import import_user_module
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_mmf_root
 
@@ -190,15 +191,14 @@ class Configuration:
         self.args = args
         self._register_resolvers()
 
-        default_config = self._build_default_config()
+        self._default_config = self._build_default_config()
 
         if default_only:
             other_configs = {}
         else:
             other_configs = self._build_other_configs()
 
-        self._default_config = default_config
-        self.config = OmegaConf.merge(default_config, other_configs)
+        self.config = OmegaConf.merge(self._default_config, other_configs)
 
         self.config = self._merge_with_dotlist(self.config, args.opts)
         self._update_specific(self.config)
@@ -213,7 +213,10 @@ class Configuration:
         opts_config = self._build_opt_list(self.args.opts)
         user_config = self._build_user_config(opts_config)
 
+        self._opts_config = opts_config
         self._user_config = user_config
+
+        self.import_user_dir()
 
         model_config = self._build_model_config(opts_config)
         dataset_config = self._build_dataset_config(opts_config)
@@ -237,6 +240,25 @@ class Configuration:
             user_config = load_yaml(self.config_path)
 
         return user_config
+
+    def import_user_dir(self):
+        # Try user_dir options in order of MMF configuration hierarchy
+        # First try the default one, which can be set via environment as well
+        user_dir = self._default_config.env.user_dir
+
+        # Now, check user's config
+        user_config_user_dir = self._user_config.get("env", {}).get("user_dir", None)
+
+        if user_config_user_dir:
+            user_dir = user_config_user_dir
+
+        # Finally, check opts
+        opts_user_dir = self._opts_config.get("env", {}).get("user_dir", None)
+        if opts_user_dir:
+            user_dir = opts_user_dir
+
+        if user_dir:
+            import_user_module(user_dir)
 
     def _build_model_config(self, config):
         model = config.model
