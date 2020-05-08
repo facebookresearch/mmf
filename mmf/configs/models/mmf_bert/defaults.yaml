@@ -1,5 +1,5 @@
 model_config:
-  pythia_bert:
+  mmf_bert:
     combine_embeddings: true
     model_data_dir: ${env.data_dir}
     bert_model_name: bert-base-uncased
@@ -34,7 +34,7 @@ model_config:
       params:
         bias_file: detectron/resnext152_fc6/fc7_b.pkl
         weights_file: detectron/resnext152_fc6/fc7_w.pkl
-        model_data_dir: ${model_config.pythia_bert.model_data_dir}
+        model_data_dir: ${model_config.mmf_bert.model_data_dir}
     image_text_modal_combine:
       type: non_linear_element_multiply
       params:

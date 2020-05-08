@@ -20,21 +20,17 @@
       }(window.location));
     </script>
 
+MMF
+===
+
 .. raw:: html
 
     <embed>
-        <div>
-        <div style="width: 50%; margin: 0 auto;">
-            <a href="https://readthedocs.org/projects/learnpythia/">
-                <img style="width: 100%" alt="MMF" src="https://i.imgur.com/wPgp4N4.png"/>
-            </a>
-        </div>
-
         <div style="display: flex; align-items: center; justify-content: center;">
 
             <div style="padding-right: 5px">
-                <a href="https://learnpythia.readthedocs.io/en/latest/?badge=latest">
-                    <img alt="Documentation Status" src="https://readthedocs.org/projects/learnpythia/badge/?version=latest"/>
+                <a href="https://mmf.readthedocs.io/en/latest/">
+                    <img alt="Documentation Status" src="https://readthedocs.org/projects/mmf/badge/?version=latest"/>
                 </a>
             </div>
             <div style="padding-right: 5px">

@@ -1,6 +1,6 @@
 import sys
 
-__version__ = "0.9.alpha4"
+__version__ = "1.0.0rc1"
 
 msg = "MMF is only compatible with Python 3.6 and newer."
 

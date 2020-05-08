@@ -29,7 +29,7 @@ dataset_config:
             max_seq_length: 128
 
 model_config:
-  pythia_bert:
+  mmf_bert:
     training_head_type: vqa
     losses:
     - type: logit_bce

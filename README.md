@@ -1,12 +1,9 @@
-<div align="center">
-  <a href="https://readthedocs.org/projects/learnpythia/">
-    <img width="60%" alt="MMF" src="https://i.imgur.com/wPgp4N4.png"/>
-  </a>
-</div>
+
+# MMF
 
 <div align="center">
-  <a href="https://learnpythia.readthedocs.io/en/latest/?badge=latest">
-  <img alt="Documentation Status" src="https://readthedocs.org/projects/learnpythia/badge/?version=latest"/>
+  <a href="https://mmf.readthedocs.io/en/latest/">
+  <img alt="Documentation Status" src="https://readthedocs.org/projects/mmf/badge/?version=latest"/>
   </a>
   <a href="https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR">
   <img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg"/>
@@ -15,8 +12,6 @@
   <img alt="CircleCI" src="https://circleci.com/gh/facebookresearch/mmf.svg?style=svg"/>
   </a>
 </div>
-
-# MMF
 
 **NOTE**: MMF is still in beta mode and will replace Pythia framework.
 To get the latest Pythia code which doesn't contain MMF changes, please use the following command:
