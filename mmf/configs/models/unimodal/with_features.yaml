@@ -9,3 +9,4 @@ model_config:
         bias_file: models/detectron.defaults/fc7_b.pkl
         weights_file: models/detectron.defaults/fc7_w.pkl
         model_data_dir: ${model_config.unimodal_image.model_data_dir}
+        num_output_features: 1

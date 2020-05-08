@@ -41,9 +41,9 @@ evaluation:
   - roc_auc
 
 training:
-  batch_size: 480
+  batch_size: 64
   lr_scheduler: true
-  max_updates: 60000
+  max_updates: 22000
   pretrained_mapping:
     model.bert: model.bert
   find_unused_parameters: true
