@@ -65,7 +65,7 @@ def run():
                 nprocs=torch.cuda.device_count(),
             )
         else:
-            main(0, configuration)
+            distributed_main(0, configuration)
     elif config.distributed.world_size > 1:
         assert config.distributed.world_size <= torch.cuda.device_count()
         port = random.randint(10000, 20000)
