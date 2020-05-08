@@ -1,3 +1,4 @@
+#!/usr/bin/env python3 -u
 # Copyright (c) Facebook, Inc. and its affiliates.
 import random
 
@@ -10,10 +11,13 @@ from mmf.utils.distributed import distributed_init, infer_init_method
 from mmf.utils.env import set_seed
 from mmf.utils.flags import flags
 from mmf.utils.general import setup_imports
+from mmf.utils.logger import Logger
 
 
 def main(configuration, init_distributed=False):
+    # A reload might be needed for imports
     setup_imports()
+    configuration.import_user_dir()
     config = configuration.get_config()
 
     if torch.cuda.is_available():
@@ -26,6 +30,8 @@ def main(configuration, init_distributed=False):
     config.training.seed = set_seed(config.training.seed)
     registry.register("seed", config.training.seed)
     print("Using seed {}".format(config.training.seed))
+
+    registry.register("writer", Logger(config, name="mmf.train"))
 
     trainer = build_trainer(configuration)
     trainer.load()
