@@ -19,6 +19,10 @@ class Flags:
             default=None,
             help="Use to override config from command line directly",
         )
+        # This is needed to support torch.distributed.launch
+        self.parser.add_argument(
+            "--local_rank", type=int, default=None, help="Local rank of the argument"
+        )
         self.parser.add_argument(
             "opts",
             default=None,

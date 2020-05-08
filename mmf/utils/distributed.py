@@ -156,7 +156,6 @@ def byte_tensor_to_object(byte_tensor, max_size=4094):
 def infer_init_method(config):
     if config.distributed.init_method is not None:
         return
-
     # support torch.distributed.launch
     if all(
         key in os.environ
@@ -165,6 +164,7 @@ def infer_init_method(config):
         config.distributed.init_method = "env://"
         config.distributed.world_size = int(os.environ["WORLD_SIZE"])
         config.distributed.rank = int(os.environ["RANK"])
+        config.distributed.no_spawn = True
 
     # we can determine the init method automatically for Slurm
     elif config.distributed.port > 0:
