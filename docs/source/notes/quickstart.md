@@ -1,5 +1,6 @@
 # Quickstart [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR) [![](https://circleci.com/gh/facebookresearch/mmf.svg?style=svg)](https://circleci.com/gh/facebookresearch/mmf)
 
+**[Outdated]** A new version of this will be uploaded soon
 
 **Authors**: Amanpreet Singh
 
