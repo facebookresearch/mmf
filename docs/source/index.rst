@@ -7,6 +7,21 @@
 
 .. raw:: html
 
+    <script type="text/javascript">
+      // Redirect for older pythia documentation
+      (function(l) {
+        if (window.location.href.indexOf('learnpythia') !== -1) {
+          var splits = window.location.href.split('/');
+          splits = splits.slice(splits.indexOf("learnpythia.readthedocs.io") + 1);
+          splits = ['https://mmf.readthedocs.io'].concat(splits);
+          splits = splits.join('/');
+          window.location.href = splits;
+       }
+      }(window.location));
+    </script>
+
+.. raw:: html
+
     <embed>
         <div>
         <div style="width: 50%; margin: 0 auto;">

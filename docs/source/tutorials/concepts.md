@@ -1,5 +1,7 @@
 # Terminology and Concepts
 
+**[Outdated]** A new version of this will be uploaded soon
+
 **Authors**: Amanpreet Singh
 
 To develop on top of MMF, it is necessary to understand concepts and terminology

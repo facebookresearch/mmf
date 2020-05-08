@@ -18,6 +18,13 @@
 
 # MMF
 
+**NOTE**: MMF is still in beta mode and will replace Pythia framework.
+To get the latest Pythia code which doesn't contain MMF changes, please use the following command:
+
+```
+git clone --branch v0.3 https://github.com/facebookresearch/mmf pythia
+```
+
 MMF is a modular framework for vision and language multimodal research. Built on top of PyTorch, it features:
 
 - **Model Zoo**: Reference implementations for state-of-the-art vision and language model including
@@ -44,7 +51,7 @@ language datasets (TextVQA challenge, VQA challenge)
 
 ## Documentation
 
-Learn more about MMF [here](https://learnpythia.readthedocs.io/en/latest/).
+Learn more about MMF [here](https://mmf.readthedocs.io/en/latest/).
 
 ## Citation
 

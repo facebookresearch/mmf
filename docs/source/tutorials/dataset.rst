@@ -4,6 +4,8 @@
 Tutorial: Adding a dataset
 ##########################
 
+**[Outdated]** A new version of this will be uploaded soon
+
 # MMF
 
 This is a tutorial on how to add a new dataset to MMF.

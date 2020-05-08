@@ -4,6 +4,8 @@
 
 # Challenge Participation
 
+**[Outdated]** A new version of this will be uploaded soon
+
 Participating in EvalAI challenges is really easy using MMF. We will show how to
 do inference for two challenges here:
 
