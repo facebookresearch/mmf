@@ -16,14 +16,14 @@ from mmf.modules.embeddings import ProjectionEmbedding
 from mmf.utils.transform import transform_to_batch_sequence
 
 
-@registry.register_model("pythia_bert")
-class PythiaBert(Pythia):
+@registry.register_model("mmf_bert")
+class MMFBert(Pythia):
     def __init__(self, config):
         super().__init__(config)
 
     @classmethod
     def config_path(cls):
-        return "configs/models/pythia_bert/defaults.yaml"
+        return "configs/models/mmf_bert/defaults.yaml"
 
     def build(self):
         super().build()
@@ -56,7 +56,8 @@ class PythiaBert(Pythia):
                 BertPredictionHeadTransform(self.bert_config),
                 nn.Linear(self.bert_config.hidden_size, self.answer_space_size),
             )
-            # self.classifier = nn.Linear(self.bert_config.hidden_size, self.answer_space_size)
+            # self.classifier = nn.Linear(self.bert_config.hidden_size,
+            # self.answer_space_size)
         elif "vizwiz" in self.config.training_head_type:
             self.dropout = nn.Dropout(self.bert_config.hidden_dropout_prob)
             self.answer_space_size = 7371
@@ -64,7 +65,8 @@ class PythiaBert(Pythia):
                 BertPredictionHeadTransform(self.bert_config),
                 nn.Linear(self.bert_config.hidden_size, self.answer_space_size),
             )
-            # self.classifier = nn.Linear(self.bert_config.hidden_size, self.answer_space_size)
+            # self.classifier = nn.Linear(self.bert_config.hidden_size,
+            # self.answer_space_size)
         elif self.config.training_head_type == "visual_entailment":
             self.dropout = nn.Dropout(self.bert_config.hidden_dropout_prob)
             self.classifier = nn.Sequential(
@@ -78,7 +80,8 @@ class PythiaBert(Pythia):
         self.text_embedding = nn.MultiheadAttention(**self.config.text_embeddings[0])
 
     def _tie_or_clone_weights(self, first_module, second_module):
-        """ Tie or clone module weights depending of weither we are using TorchScript or not
+        """ Tie or clone module weights depending of weither we are using
+        TorchScript or not
         """
         if self.config.torchscript:
             first_module.weight = nn.Parameter(second_module.weight.clone())
@@ -87,7 +90,8 @@ class PythiaBert(Pythia):
 
     def tie_weights(self):
         """ Make sure we are sharing the input and output embeddings.
-            Export to TorchScript can't handle parameter sharing so we are cloning them instead.
+            Export to TorchScript can't handle parameter sharing so we are cloning
+            them instead.
         """
         if hasattr(self, "cls"):
             self._tie_or_clone_weights(
@@ -273,7 +277,8 @@ class PythiaBert(Pythia):
         """ Initialize the weights.
         """
         if isinstance(module, (nn.Linear, nn.Embedding)):
-            # Slightly different from the TF version which uses truncated_normal for initialization
+            # Slightly different from the TF version which uses truncated_normal
+            # for initialization
             # cf https://github.com/pytorch/pytorch/pull/5617
             module.weight.data.normal_(mean=0.0, std=self.bert_config.initializer_range)
         elif isinstance(module, BertLayerNorm):
@@ -326,8 +331,10 @@ class PythiaBert(Pythia):
         if self.inter_model is not None:
             image_embedding_total = self.inter_model(image_embedding_total)
 
-        # image_embedding_total = image_embedding_total * input_mask.unsqueeze(-1).float()
-        # text_embedding_total = text_embedding_total * input_mask.unsqueeze(-1).float()
+        # image_embedding_total = image_embedding_total *
+        # input_mask.unsqueeze(-1).float()
+        # text_embedding_total = text_embedding_total *
+        # input_mask.unsqueeze(-1).float()
 
         if self.config.combine_embeddings:
             joint_embedding = self.combine_embeddings(

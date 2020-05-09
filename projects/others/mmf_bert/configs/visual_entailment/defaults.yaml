@@ -1,5 +1,5 @@
 model_config:
-  pythia_bert:
+  mmf_bert:
     training_head_type: visual_entailment
     losses:
     - type: cross_entropy
