@@ -49,6 +49,8 @@ from torch import nn
 from mmf.common.registry import registry
 from mmf.modules.losses import Losses
 from mmf.utils.checkpoint import load_pretrained_model
+from mmf.utils.distributed import is_master, synchronize
+from mmf.utils.download import download_pretrained_model
 
 
 class BaseModel(nn.Module):
@@ -170,6 +172,15 @@ class BaseModel(nn.Module):
             model_output["losses"] = self.losses(sample_list, model_output)
 
         return model_output
+
+    def load_requirements(self, *args, **kwargs):
+        if is_master():
+            requirements = self.config.get("zoo_requirements", [])
+            if isinstance(requirements, str):
+                requirements = [requirements]
+            for item in requirements:
+                download_pretrained_model(item, *args, **kwargs)
+        synchronize()
 
     @classmethod
     def from_pretrained(cls, model_name, *args, **kwargs):

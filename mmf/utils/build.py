@@ -34,6 +34,7 @@ def build_model(config):
     model = model_class(config)
 
     if hasattr(model, "build"):
+        model.load_requirements()
         model.build()
         model.init_losses()
 
