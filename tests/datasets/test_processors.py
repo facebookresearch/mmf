@@ -59,8 +59,9 @@ class TestDatasetProcessors(unittest.TestCase):
         processed = answer_processor({"answers": ["helmet"]})
         answers_indices = processed["answers_indices"]
         answers_scores = processed["answers_scores"]
+
         self.assertTrue(
-            compare_tensors(answers_indices, torch.tensor([5], dtype=torch.long))
+            compare_tensors(answers_indices, torch.tensor([5] * 10, dtype=torch.long))
         )
         expected_answers_scores = torch.zeros(19, dtype=torch.float)
         expected_answers_scores[5] = 1.0

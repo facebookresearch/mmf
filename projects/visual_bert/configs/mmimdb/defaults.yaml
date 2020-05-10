@@ -44,8 +44,10 @@ training:
   lr_scheduler: true
   # Don't forget to update schedule_attributes if you update this
   max_updates: 60000
-  pretrained_mapping:
-    model.bert: model.bert
   early_stop:
     criteria: mmimdb/multilabel_micro_f1
     minimize: false
+
+checkpoint:
+  pretrained_state_mapping:
+    model.bert: model.bert

@@ -16,13 +16,13 @@ visual_bert:
         - url: mmf://models/visual_bert/visual_bert.finetuned.hateful_memes_direct.tar.gz
           file_name: visual_bert.finetuned.hateful_memes_direct.tar.gz
           hashcode: 1780582b65c0e5ab383bbf862f140daaa828963c38710f9cc004a7d883b219f8
-      coco:
+      from_coco:
         version: 1.0_2020_05_10
         resources:
         - url: mmf://models/visual_bert/visual_bert.finetuned.hateful_memes_from_coco.tar.gz
           file_name: visual_bert.finetuned.hateful_memes_from_coco.tar.gz
           hashcode: 462d34eb35d7d00f50f14b8e06577b9f89074313761f3f94fd5161dc67b28525
-      defaults: ${visual_bert.finetuned.hateful_memes.coco}
+      defaults: ${visual_bert.finetuned.hateful_memes.from_coco}
 
 detectron:
   vmb_weights:
@@ -89,13 +89,14 @@ m4c_captioner:
 
 vilbert:
   pretrained:
-    cc_original:
-      version: 1.0_2020_05_10
-      resources:
-      - url: mmf://models/vilbert/vilbert.pretrained.cc_original.tar.gz
-        file_name: vilbert.pretrained.cc_original.tar.gz
-        hashcode: 85e6354fcf2583e03def4dff02125e268b3732c152f87cfbd2ad34c0e4f47b53
-    defaults: ${vilbert.pretrained.cc_original}
+    cc:
+      original:
+        version: 1.0_2020_05_10
+        resources:
+        - url: mmf://models/vilbert/vilbert.pretrained.cc_original.tar.gz
+          file_name: vilbert.pretrained.cc_original.tar.gz
+          hashcode: 85e6354fcf2583e03def4dff02125e268b3732c152f87cfbd2ad34c0e4f47b53
+    defaults: ${vilbert.pretrained.cc.original}
 
   finetuned:
     hateful_memes:
@@ -105,13 +106,13 @@ vilbert:
         - url: mmf://models/vilbert/vilbert.finetuned.hateful_memes_direct.tar.gz
           file_name: vilbert.finetuned.hateful_memes_direct.tar.gz
           hashcode: 8d2c9b2c580a8086012887013ebe3edb2e803ea26f5f7674281f2d5eb066d320
-      cc_original:
+      from_cc_original:
         version: 1.0_2020_05_10
         resources:
         - url: mmf://models/vilbert/vilbert.finetuned.hateful_memes_from_cc.tar.gz
           file_name: vilbert.finetuned.hateful_memes_from_cc.tar.gz
           hashcode: c7c505e1012f48bddc77dc0140dbfd0a0dab83b3b57ed565fe76fb3d350fd030
-      defaults: ${vilbert.finetuned.hateful_memes.cc_original}
+      defaults: ${vilbert.finetuned.hateful_memes.from_cc_original}
 
 mmbt:
   hateful_memes:

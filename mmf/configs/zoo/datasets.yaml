@@ -181,20 +181,12 @@ coco:
 
 hateful_memes:
   defaults:
-    version: 1.0_2020_05_04
+    version: 1.0_2020_05_11
     resources:
       features:
       - url: mmf://datasets/hateful_memes/defaults/features/features.tar.gz
         file_name: features.tar.gz
         hashcode: 1eb8e5379fcf8f91fda92aa8f5926a536f3788bf07fe0f72ea7efc2d8427f12d
-      images:
-      - url: mmf://datasets/hateful_memes/defaults/images/images.tar.gz
-        file_name: images.tar.gz
-        hashcode: 6db0c78bdc16bec6a4381d1b2d2a9ac4ac0643d4a329a4562d16c85cfe4b43be
-      annotations:
-      - url: mmf://datasets/hateful_memes/defaults/annotations/annotations.tar.gz
-        file_name: annotations.tar.gz
-        hashcode: 452486b03083b0912874215a58b3df8227bafb8635904faae4e4ae402baaf13f
       extras:
       - url: mmf://datasets/hateful_memes/defaults/extras.tar.gz
         file_name: extras.tar.gz

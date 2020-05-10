@@ -18,5 +18,7 @@ training:
   batch_size: 128
   lr_scheduler: true
   max_updates: 22000
-  pretrained_mapping:
+
+checkpoint:
+  pretrained_state_mapping:
     bert: bert

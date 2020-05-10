@@ -1,3 +1,6 @@
+# Configuration version is useful in migrating older configs to new ones
+config_version: 1.0
+
 # Configuration for training
 training:
     # Name of the trainer class used to define the training/evalution loop
@@ -83,12 +86,19 @@ training:
 
     # Should a lr scheduler be used
     lr_scheduler: false
+
+    # DEPRECATED: Look at scheduler_attributes or
+    # Use PythiaScheduler directly instead
     # Steps for LR scheduler, will be an array of iteration count
     # when lr should be decreased
     lr_steps: []
+    # DEPRECATED: Look at scheduler_attributes or
+    # Use PythiaScheduler directly instead
     # Ratio for each lr step
     lr_ratio: 0.1
 
+    # NOTE: Have a look at newer scheduler available in MMF (such as AdamW) before
+    # using these options
     # Should use warmup for lr
     use_warmup: false
     # Warmup factor learning rate warmup
@@ -100,25 +110,6 @@ training:
     device: cuda
     # Local rank of the GPU device
     local_rank: null
-
-    # Use to load specific modules from checkpoint to your model,
-    # this is helpful in finetuning. for e.g. you can specify
-    # text_embeddings: text_embedding_pythia
-    # for loading `text_embedding` module of your model
-    # from `text_embedding_pythia`
-    pretrained_mapping: {}
-    # If using a pretrained model. Must be used with --resume_file parameter
-    # to specify pretrained model checkpoint. Will load only specific layers if
-    # pretrained mapping is specified in config
-    load_pretrained: false
-    # If resume is true, MMF will try to load automatically load
-    # last of same parameters from save_dir
-    resume: false
-    # `resume_file` can be used to load a specific checkpoint from a file
-    resume_file: null
-    # `resume_best` will load the best checkpoint according to monitored metric instead of
-    # the last saved ckpt
-    resume_best: false
 
     # If verbose dump is active, MMF will dump dataset, model specific
     # information which can be useful in debugging
@@ -220,3 +211,54 @@ distributed:
     # Set if you do not want spawn multiple processes even if
     # multiple GPUs are visible
     no_spawn: false
+
+# Configuration for checkpointing including resuming and loading pretrained models
+checkpoint:
+    # If checkpoint.resume is true, MMF will try to load automatically load
+    # checkpoint and state from "current.ckpt" from env.save_dir
+    resume: false
+    # `checkpoint.resume_file` can be used to load a specific checkpoint from a file
+    # Can also be a zoo key
+    resume_file: null
+    # `checkpoint.resume_best` will load the best checkpoint according to
+    # training.early_stop.criteria instead of the last saved ckpt
+    resume_best: false
+    # `checkpoint.resume_pretrained` can be used in conjuction with `resume_file`
+    # or `resume_zoo` where you specify a checkpoint or .pth file to be loaded
+    # but it is mapped based on `checkpoint.pretrained_state_mapping`
+    # For e.g. if you want to resume from visual_bert pretrained on coco
+    # You would set `checkpoint.resume_zoo=visual_bert.pretrained.coco` and
+    # then set `checkpoint.resume_pretrained=True` which will then pick up
+    # only the base which you would define in the `checkpoint.pretrained_state_mapping`
+    resume_pretrained: false
+    # `checkpoint.resume_zoo` can be used to resume from a pretrained model provided
+    # in zoo. Value maps to key from zoo. `checkpoint.resume_file` has higher
+    # priority compared to `checkpoint.resume_zoo`.
+    resume_zoo: null
+    # `checkpoint.zoo_config_override` will override the current model config of trainer
+    # with what is provided from the zoo checkpoint and will load the model
+    # using .from_pretrained of the model passed
+    zoo_config_override: false
+    # `checkpoint.pretrained_state_mapping` specifies how exactly a pretrained
+    # model will be loaded and mapped to which keys of the target model
+    # Only use if the keys on the model in which pretrained model is to be loaded
+    # don't match with those of the pretrained model or you only want to load specific
+    # item from the pretrained model. `checkpoint.resume_pretrained` must be
+    # true to use this mapping. for e.g. you can specify
+    # text_embedding: text_embedding_pythia
+    # for loading `text_embedding` module of your model from `text_embedding_pythia`of
+    # pretrained file specified in `checkpoint.resume_file`.
+    pretrained_state_mapping: {}
+
+    # Whether to save git details or not
+    save_git_details: true
+
+    # `checkpoint.reset` configuration defines what exactly should be reset
+    # in case the file from which we are resuming is .ckpt and not .pth
+    reset:
+        # Everything will be reset except the state_dict of model
+        all: false
+        # Optimizer specifically will be reset
+        optimizer: false
+        # All counts such as best_update, current_iteration etc will be reset
+        counts: false

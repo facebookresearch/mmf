@@ -106,9 +106,10 @@ class Checkpoint:
             PathManager.mkdirs(self.models_foldername)
 
         self.save_config()
+
         self.repo_path = updir(os.path.abspath(__file__), n=3)
         self.git_repo = None
-        if git:
+        if git and self.config.checkpoint.save_git_details:
             self.git_repo = git.Repo(self.repo_path)
 
     def save_config(self):
@@ -120,26 +121,35 @@ class Checkpoint:
             f.write(self.config.pretty(resolve=True))
 
     def load_state_dict(self):
-        tp = self.config.training
+        ckpt_config = self.config.checkpoint
 
-        suffix = "best.ckpt" if tp.resume_best else "current.ckpt"
-        reverse_suffix = "best.ckpt" if not tp.resume_best else "current.ckpt"
+        suffix = "best.ckpt" if ckpt_config.resume_best else "current.ckpt"
+        reverse_suffix = "best.ckpt" if not ckpt_config.resume_best else "current.ckpt"
         ckpt_filepath = os.path.join(self.ckpt_foldername, self.ckpt_prefix + suffix)
 
-        # In case of interrupts and resume, tp.resume_file would be there
+        # In case of interrupts and resume, ckpt_config.resume_file would be there
         # But, if the checkpoints are already created in the save dir
         # and resume is true signifying the interrupt resume, we should skip
         # loading the resume file.
-        if tp.resume_file is not None and (
-            tp.resume is False or not PathManager.exists(ckpt_filepath)
-        ):
-            if PathManager.exists(tp.resume_file):
-                self._load(tp.resume_file, load_pretrained=tp.load_pretrained)
+        if (
+            ckpt_config.resume_file is not None or ckpt_config.resume_zoo is not None
+        ) and (not ckpt_config.resume or not PathManager.exists(ckpt_filepath)):
+            if ckpt_config.resume_file and PathManager.exists(ckpt_config.resume_file):
+                self._load(
+                    ckpt_config.resume_file,
+                    load_pretrained=ckpt_config.resume_pretrained,
+                )
                 return
+            # resume_file doesn't exist, try from zoo now
+            elif ckpt_config.resume_zoo is not None:
+                self._load(
+                    ckpt_config.resume_zoo,
+                    load_pretrained=ckpt_config.resume_pretrained,
+                )
             else:
-                raise RuntimeError("{} doesn't exist".format(tp.resume_file))
+                raise RuntimeError("{} doesn't exist".format(ckpt_config.resume_file))
 
-        if tp.resume is True:
+        if ckpt_config.resume is True:
             if PathManager.exists(ckpt_filepath):
                 self._load(ckpt_filepath)
             else:
@@ -154,12 +164,14 @@ class Checkpoint:
                     self._load(ckpt_filepath)
 
     def _load(self, file, force=False, load_pretrained=False):
-        tp = self.config.training
+        ckpt_config = self.config.checkpoint
         self.trainer.writer.write("Loading checkpoint")
-
-        ckpt = self._torch_load(file)
-
-        data_parallel = registry.get("data_parallel") or registry.get("distributed")
+        if ckpt_config.resume_zoo:
+            ckpt, should_continue = self._load_from_zoo(file)
+            if not should_continue:
+                return
+        else:
+            ckpt = self._torch_load(file)
 
         if "model" in ckpt:
             ckpt_model = ckpt["model"]
@@ -167,124 +179,147 @@ class Checkpoint:
             ckpt_model = ckpt
             ckpt = {"model": ckpt}
 
-        pretrained_mapping = tp.pretrained_mapping
+        pretrained_state_mapping = ckpt_config.pretrained_state_mapping
 
-        if load_pretrained is False or force is True:
-            pretrained_mapping = {}
+        if not load_pretrained or force is True:
+            pretrained_state_mapping = {}
 
         new_dict = {}
 
-        # TODO: Move to separate function
-        for attr in ckpt_model:
-            new_attr = attr
-            if "fa_history" in attr:
-                new_attr = new_attr.replace("fa_history", "fa_context")
+        new_dict = self.upgrade_state_dict(ckpt_model)
 
-            if data_parallel is False and attr.startswith("module."):
-                # In case the ckpt was actually a data parallel model
-                # replace first module. from dataparallel with empty string
-                new_dict[new_attr.replace("module.", "", 1)] = ckpt_model[attr]
-            elif data_parallel is not False and not attr.startswith("module."):
-                new_dict["module." + new_attr] = ckpt_model[attr]
-            else:
-                new_dict[new_attr] = ckpt_model[attr]
-
-        if len(pretrained_mapping.items()) == 0:
+        if len(pretrained_state_mapping.items()) == 0:
             final_dict = new_dict
+
             self.trainer.model.load_state_dict(final_dict, strict=False)
 
-            if "optimizer" in ckpt:
-                self.trainer.optimizer.load_state_dict(ckpt["optimizer"])
-            else:
-                warnings.warn(
-                    "'optimizer' key is not present in the "
-                    "checkpoint asked to be loaded. Skipping."
-                )
+            reset_optimizer = ckpt_config.reset.optimizer or ckpt_config.reset.all
+            if not reset_optimizer:
+                self._load_optimizer(ckpt)
 
             self.trainer.early_stopping.init_from_checkpoint(ckpt)
 
             self.trainer.writer.write("Checkpoint loaded")
 
-            if "best_update" in ckpt:
-                if tp.resume_best:
-                    self.trainer.num_updates = ckpt.get(
-                        "best_update", self.trainer.num_updates
-                    )
-                    self.trainer.current_iteration = ckpt.get(
-                        "best_iteration", self.trainer.current_iteration
-                    )
-                else:
-                    self.trainer.num_updates = ckpt.get(
-                        "num_updates", self.trainer.num_updates
-                    )
-                    self.trainer.current_iteration = ckpt.get(
-                        "current_iteration", self.trainer.current_iteration
-                    )
+            reset_counts = ckpt_config.reset.all or ckpt_config.reset.counts
 
-                self.trainer.current_epoch = ckpt.get(
-                    "current_epoch", self.trainer.current_epoch
+            if not reset_counts:
+                self._load_counts(ckpt)
+        else:
+            self._load_pretrained(new_dict)
+
+    def _load_optimizer(self, ckpt):
+        if "optimizer" in ckpt:
+            try:
+                self.trainer.optimizer.load_state_dict(ckpt["optimizer"])
+            except ValueError:
+                self.trainer.writer.write(
+                    "Optimizer failed to load. Try with "
+                    + "checkpoint.reset.optimizer=True"
                 )
-            elif "best_iteration" in ckpt:
-                # Preserve old behavior for old checkpoints where we always
-                # load best iteration
-                if tp.resume_best and "current_iteration" in ckpt:
-                    self.trainer.current_iteration = ckpt["current_iteration"]
-                else:
-                    self.trainer.current_iteration = ckpt.get(
-                        "best_iteration", self.trainer.current_iteration
-                    )
+                raise
+        else:
+            warnings.warn(
+                "'optimizer' key is not present in the "
+                "checkpoint asked to be loaded. Skipping."
+            )
 
-                self.trainer.num_updates = self.trainer.current_iteration
-
-            registry.register("current_iteration", self.trainer.current_iteration)
-            registry.register("num_updates", self.trainer.num_updates)
+    def _load_counts(self, ckpt):
+        ckpt_config = self.trainer.config.checkpoint
+        if "best_update" in ckpt:
+            if ckpt_config.resume_best:
+                self.trainer.num_updates = ckpt.get(
+                    "best_update", self.trainer.num_updates
+                )
+                self.trainer.current_iteration = ckpt.get(
+                    "best_iteration", self.trainer.current_iteration
+                )
+            else:
+                self.trainer.num_updates = ckpt.get(
+                    "num_updates", self.trainer.num_updates
+                )
+                self.trainer.current_iteration = ckpt.get(
+                    "current_iteration", self.trainer.current_iteration
+                )
 
             self.trainer.current_epoch = ckpt.get(
-                "best_epoch", self.trainer.current_epoch
+                "current_epoch", self.trainer.current_epoch
             )
-            registry.register("current_epoch", self.trainer.current_epoch)
-        else:
-            final_dict = {}
-            model = self.trainer.model
-            own_state = model.state_dict()
+        elif "best_iteration" in ckpt:
+            # Preserve old behavior for old checkpoints where we always
+            # load best iteration
+            if ckpt_config.resume_best and "current_iteration" in ckpt:
+                self.trainer.current_iteration = ckpt["current_iteration"]
+            else:
+                self.trainer.current_iteration = ckpt.get(
+                    "best_iteration", self.trainer.current_iteration
+                )
 
-            for key, value in pretrained_mapping.items():
-                key += "."
-                value += "."
-                for attr in new_dict:
-                    for own_attr in own_state:
-                        formatted_attr = model.format_state_key(attr)
-                        if (
-                            key in formatted_attr
-                            and value in own_attr
-                            and formatted_attr.replace(key, "")
-                            == own_attr.replace(value, "")
-                        ):
-                            self.trainer.writer.write(
-                                "Copying " + attr + " " + own_attr
-                            )
-                            own_state[own_attr].copy_(new_dict[attr])
-            self.trainer.writer.write("Pretrained model loaded")
+            self.trainer.num_updates = self.trainer.current_iteration
 
-    def _load_state_dict_mapping(self, ckpt_model):
+        registry.register("current_iteration", self.trainer.current_iteration)
+        registry.register("num_updates", self.trainer.num_updates)
+
+        self.trainer.current_epoch = ckpt.get("best_epoch", self.trainer.current_epoch)
+        registry.register("current_epoch", self.trainer.current_epoch)
+
+    def _load_pretrained(self, ckpt):
         model = self.trainer.model
-        attr_mapping = {
-            "image_feature_encoders": "img_feat_encoders",
-            "image_feature_embeddings_list": "img_embeddings_list",
-            "image_text_multi_modal_combine_layer": "multi_modal_combine_layer",
-            "text_embeddings": "text_embeddings",
-            "classifier": "classifier",
-        }
+        own_state = model.state_dict()
+        mapping = self.trainer.config.checkpoint.pretrained_state_mapping
+        for key, value in mapping.items():
+            key += "."
+            value += "."
+            for attr in ckpt:
+                for own_attr in own_state:
+                    if hasattr(model, "format_state_key"):
+                        formatted_attr = model.format_state_key(attr)
+                    else:
+                        formatted_attr = attr
+                    if (
+                        key in own_attr
+                        and value in formatted_attr
+                        and own_attr.replace(key, "")
+                        == formatted_attr.replace(value, "")
+                    ):
+                        self.trainer.writer.write(
+                            "Copying " + own_attr + " from " + attr
+                        )
+                        own_state[own_attr].copy_(ckpt[attr])
+        self.trainer.writer.write("Pretrained model loaded")
 
-        data_parallel = registry.get("data_parallel")
+    def upgrade_state_dict(self, state_dict):
+        data_parallel = registry.get("data_parallel") or registry.get("distributed")
+        data_parallel = data_parallel or isinstance(
+            self.trainer.model,
+            (torch.nn.DataParallel, torch.nn.parallel.DistributedDataParallel),
+        )
+        new_dict = {}
+        for attr in state_dict:
+            new_attr = attr
 
-        if not data_parallel:
-            for key in attr_mapping:
-                attr_mapping[key.replace("module.", "")] = attr_mapping[key]
-                attr_mapping.pop(key)
+            if not data_parallel and attr.startswith("module."):
+                # In case the ckpt was actually a data parallel model
+                # replace first module. from dataparallel with empty string
+                new_dict[new_attr.replace("module.", "", 1)] = state_dict[attr]
+            elif data_parallel and not attr.startswith("module."):
+                new_dict["module." + new_attr] = state_dict[attr]
+            else:
+                new_dict[new_attr] = state_dict[attr]
+        return new_dict
 
-        for key in attr_mapping:
-            getattr(model, key).load_state_dict(ckpt_model[attr_mapping[key]])
+    def _load_from_zoo(self, file):
+        ckpt_config = self.trainer.config.checkpoint
+        zoo_ckpt = load_pretrained_model(file)
+
+        # If zoo_config_override, load the model directly using `from_pretrained`
+        if ckpt_config.zoo_config_override:
+            model_cls = registry.get_model_class(self.trainer.config.model)
+            self.trainer.model = model_cls.from_pretrained(ckpt_config.resume_zoo)
+            self.trainer.config.model_config = zoo_ckpt["full_config"].model_config
+            return None, False
+        else:
+            return self.upgrade_state_dict(zoo_ckpt["checkpoint"]), True
 
     def _torch_load(self, file):
         # Backwards compatibility to Pythia
@@ -317,10 +352,13 @@ class Checkpoint:
             "git/diff": self.git_repo.git.diff("--no-prefix"),
         }
 
-    def save(self, update, iteration, update_best=False):
+    def save(self, update, iteration=None, update_best=False):
         # Only save in main process
         if not is_master():
             return
+
+        if not iteration:
+            iteration = update
 
         ckpt_filepath = os.path.join(self.models_foldername, "model_%d.ckpt" % update)
         best_ckpt_filepath = os.path.join(
@@ -343,9 +381,9 @@ class Checkpoint:
             "model": model.state_dict(),
             "optimizer": self.trainer.optimizer.state_dict(),
             "best_iteration": best_iteration,
-            "current_iteration": registry.get("current_iteration"),
+            "current_iteration": iteration,
             "current_epoch": self.trainer.current_epoch,
-            "num_updates": registry.get("num_updates"),
+            "num_updates": update,
             "best_update": best_update,
             "best_metric_value": best_metric,
             # Convert to container to avoid any dependencies

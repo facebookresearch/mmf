@@ -28,6 +28,10 @@ class Pythia(BaseModel):
     def config_path(cls):
         return "configs/models/pythia/defaults.yaml"
 
+    @classmethod
+    def format_state_key(cls, key):
+        return key.replace("fa_history", "fa_context")
+
     def build(self):
         self._build_word_embedding()
         self._init_text_embeddings("text")

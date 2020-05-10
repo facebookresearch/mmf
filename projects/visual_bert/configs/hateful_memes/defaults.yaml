@@ -44,9 +44,11 @@ training:
   batch_size: 64
   lr_scheduler: true
   max_updates: 22000
-  pretrained_mapping:
-    model.bert: model.bert
   find_unused_parameters: true
   early_stop:
     criteria: hateful_memes/roc_auc
     minimize: false
+
+checkpoint:
+  pretrained_state_mapping:
+    model.bert: model.bert
