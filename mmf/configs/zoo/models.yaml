@@ -8,6 +8,22 @@ visual_bert:
         hashcode: 9af0b8101579d7587d70d7315940310c7fc5ef7269cba497780922e65e4e000d
     defaults: ${visual_bert.pretrained.coco}
 
+  finetuned:
+    hateful_memes:
+      direct:
+        version: 1.0_2020_05_10
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.finetuned.hateful_memes_direct.tar.gz
+          file_name: visual_bert.finetuned.hateful_memes_direct.tar.gz
+          hashcode: 1780582b65c0e5ab383bbf862f140daaa828963c38710f9cc004a7d883b219f8
+      coco:
+        version: 1.0_2020_05_10
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.finetuned.hateful_memes_from_coco.tar.gz
+          file_name: visual_bert.finetuned.hateful_memes_from_coco.tar.gz
+          hashcode: 462d34eb35d7d00f50f14b8e06577b9f89074313761f3f94fd5161dc67b28525
+      defaults: ${visual_bert.finetuned.hateful_memes.coco}
+
 detectron:
   vmb_weights:
     version: 1.0_2020_05_03
@@ -70,3 +86,87 @@ m4c_captioner:
       - url: mmf://models/m4c_captioner/m4c_captioner.textcaps.tar.gz
         file_name: m4c_captioner.textcaps.tar.gz
         hashcode: 69c8220750933a0472bfdfb95b83d718dc02f7f41f43ce569c02e903896b2cf4
+
+vilbert:
+  pretrained:
+    cc_original:
+      version: 1.0_2020_05_10
+      resources:
+      - url: mmf://models/vilbert/vilbert.pretrained.cc_original.tar.gz
+        file_name: vilbert.pretrained.cc_original.tar.gz
+        hashcode: 85e6354fcf2583e03def4dff02125e268b3732c152f87cfbd2ad34c0e4f47b53
+    defaults: ${vilbert.pretrained.cc_original}
+
+  finetuned:
+    hateful_memes:
+      direct:
+        version: 1.0_2020_05_10
+        resources:
+        - url: mmf://models/vilbert/vilbert.finetuned.hateful_memes_direct.tar.gz
+          file_name: vilbert.finetuned.hateful_memes_direct.tar.gz
+          hashcode: 8d2c9b2c580a8086012887013ebe3edb2e803ea26f5f7674281f2d5eb066d320
+      cc_original:
+        version: 1.0_2020_05_10
+        resources:
+        - url: mmf://models/vilbert/vilbert.finetuned.hateful_memes_from_cc.tar.gz
+          file_name: vilbert.finetuned.hateful_memes_from_cc.tar.gz
+          hashcode: c7c505e1012f48bddc77dc0140dbfd0a0dab83b3b57ed565fe76fb3d350fd030
+      defaults: ${vilbert.finetuned.hateful_memes.cc_original}
+
+mmbt:
+  hateful_memes:
+    images:
+      version: 1.0_2020_05_10
+      resources:
+      - url: mmf://models/mmbt/mmbt.finetuned.hateful_memes_images.tar.gz
+        file_name: mmbt.finetuned.hateful_memes_images.tar.gz
+        hashcode: 8955e70019acbd79348b8fd480949aea181d0586e97faa3771f7a3ae2057ee90
+    features:
+      version: 1.0_2020_05_10
+      resources:
+      - url: mmf://models/mmbt/mmbt.finetuned.hateful_memes_features.tar.gz
+        file_name: mmbt.finetuned.hateful_memes_features.tar.gz
+        hashcode: 3b206003f8e7c79791baaf61edf540f0135e81d822859abd1ad70ff1c14da4bf
+    defaults: ${mmbt.hateful_memes.features}
+
+unimodal_image:
+  hateful_memes:
+    images:
+      version: 1.0_2020_05_10
+      resources:
+      - url: mmf://models/unimodal_image/unimodal_image.finetuned.hateful_memes_images.tar.gz
+        file_name: unimodal_image.finetuned.hateful_memes_images.tar.gz
+        hashcode: 64d6f11599e738cedc4a9d2c4936dd5d7682d4a260287b456122fdb28884aeff
+    features:
+      version: 1.0_2020_05_10
+      resources:
+      - url: mmf://models/unimodal_image/unimodal_image.finetuned.hateful_memes_features.tar.gz
+        file_name: unimodal_image.finetuned.hateful_memes_features.tar.gz
+        hashcode: bcc6ce81fc31c1eed41dc8fa83177bf367f653d86ebadfcb014792da6c81426d
+    defaults: ${unimodal_image.hateful_memes.features}
+
+unimodal_text:
+  hateful_memes:
+    bert:
+      version: 1.0_2020_05_10
+      resources:
+      - url: mmf://models/unimodal_text/unimodal_text.finetuned.hateful_memes_bert.tar.gz
+        file_name: unimodal_text.finetuned.hateful_memes_bert.tar.gz
+        hashcode: 69b1c14db152c0e80b9e4e1eccc77b605bc509dacce9328a8702be8c84b41cf1
+    defaults: ${unimodal_text.hateful_memes.bert}
+
+concat_bert:
+  hateful_memes:
+    version: 1.0_2020_05_10
+    resources:
+    - url: mmf://models/concat_bert/concat_bert.finetuned.hateful_memes.tar.gz
+      file_name: concat_bert.finetuned.hateful_memes.tar.gz
+      hashcode: d1f848ec883d90f8a5e8f0d5542b217090a00d191cd85a306dd292633696a54d
+
+late_fusion:
+  hateful_memes:
+    version: 1.0_2020_05_10
+    resources:
+    - url: mmf://models/late_fusion/late_fusion.finetuned.hateful_memes.tar.gz
+      file_name: late_fusion.finetuned.hateful_memes.tar.gz
+      hashcode: 5b6aeb3e6f0fbdc38903e76426b8caac8cf5734fd7996f2fb9f3a3b1fe042795

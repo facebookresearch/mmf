@@ -1,0 +1,10 @@
+includes:
+- ./defaults.yaml
+
+model_config:
+  visual_bert:
+    zoo_requirements: visual_bert.pretrained.coco
+
+training:
+  load_pretrained: true
+  resume_file: ${env.cache_dir}/data/models/visual_bert.pretrained.coco/model.pth

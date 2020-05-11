@@ -1,0 +1,10 @@
+includes:
+- ./defaults.yaml
+
+model_config:
+  vilbert:
+    zoo_requirements: vilbert.pretrained.cc_original
+
+training:
+  load_pretrained: true
+  resume_file: ${env.cache_dir}/data/models/vilbert.pretrained.cc_original/model.pth
