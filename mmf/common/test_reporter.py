@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import csv
 import json
 import os
 
@@ -81,11 +82,20 @@ class TestReporter(Dataset):
 
         filename += self.task_type + "_"
 
-        filename += time + ".json"
+        if self.config.evaluation.predict_file_format == "csv":
+            filename += time + ".csv"
+        else:
+            filename += time + ".json"
         filepath = os.path.join(self.report_folder, filename)
 
         with PathManager.open(filepath, "w") as f:
-            json.dump(self.report, f)
+            if self.config.evaluation.predict_file_format == "csv":
+                title = self.report[0].keys()
+                cw = csv.DictWriter(f, title, delimiter=",", quoting=csv.QUOTE_MINIMAL)
+                cw.writeheader()
+                cw.writerows(self.report)
+            else:
+                json.dump(self.report, f)
 
         self.writer.write(
             "Wrote evalai predictions for %s to %s" % (name, os.path.abspath(filepath))
@@ -128,7 +138,7 @@ class TestReporter(Dataset):
     def __getitem__(self, idx):
         return self.current_dataset[idx]
 
-    def add_to_report(self, report):
+    def add_to_report(self, report, model):
         # TODO: Later gather whole report for no opinions
         if self.current_dataset.dataset_name == "coco":
             report.captions = gather_tensor(report.captions)
@@ -138,6 +148,8 @@ class TestReporter(Dataset):
             report.scores = gather_tensor(report.scores).view(
                 -1, report.scores.size(-1)
             )
+            if "id" in report:
+                report.id = gather_tensor(report.id).view(-1)
             if "question_id" in report:
                 report.question_id = gather_tensor(report.question_id).view(-1)
             if "image_id" in report:
@@ -152,6 +164,7 @@ class TestReporter(Dataset):
         if not is_master():
             return
 
-        results = self.current_dataset.format_for_evalai(report)
+        results = self.current_dataset.format_for_prediction(report)
+        results = model.module.format_for_prediction(results, report)
 
         self.report = self.report + results

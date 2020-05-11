@@ -51,8 +51,6 @@ training:
     # Some datasets allow fast reading by loading everything in the memory
     # Use this to enable it
     fast_read: false
-    # Whether JSON files for evalai evaluation should be generated
-    evalai_inference: false
     # Use in multi-tasking, when you want to sample tasks proportional to their sizes
     dataset_size_proportional_sampling: true
     # Whether to pin memory in dataloader
@@ -126,6 +124,10 @@ training:
 evaluation:
     # Metrics for evaluation
     metrics: []
+    # Generate predictions in a file
+    predict: false
+    # Prediction file format, default is json
+    predict_file_format: json
 
 # Configuration for models, default configuration files for various models
 # included in MMF can be found under configs directory in root folder

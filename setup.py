@@ -112,5 +112,10 @@ if __name__ == "__main__":
             "Topic :: Scientific/Engineering :: Artificial Intelligence",
             "Operating System :: OS Independent",
         ],
-        entry_points={"console_scripts": ["mmf_run = tools.run:run"]},
+        entry_points={
+            "console_scripts": [
+                "mmf_run = tools.run:run",
+                "mmf_predict = tools.predict:predict",
+            ]
+        },
     )

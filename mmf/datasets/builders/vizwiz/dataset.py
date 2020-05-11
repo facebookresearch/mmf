@@ -26,7 +26,7 @@ class VizWizDataset(VQA2Dataset):
 
         return sample
 
-    def format_for_evalai(self, report):
+    def format_for_prediction(self, report):
         answers = report.scores.argmax(dim=1)
 
         predictions = []

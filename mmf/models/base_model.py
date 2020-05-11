@@ -179,6 +179,13 @@ class BaseModel(nn.Module):
         for item in requirements:
             download_pretrained_model(item, *args, **kwargs)
 
+    def format_for_prediction(self, results, report):
+        """Implement this method in models if it requires to modify prediction
+        results using report fields. Note that the required fields in report
+        should already be gathered in report.
+        """
+        return results
+
     @classmethod
     def from_pretrained(cls, model_name, *args, **kwargs):
         model_key = model_name.split(".")[0]

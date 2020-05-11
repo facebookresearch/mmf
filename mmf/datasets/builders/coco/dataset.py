@@ -64,7 +64,7 @@ class COCODataset(VQA2Dataset):
 
         return sample
 
-    def format_for_evalai(self, report):
+    def format_for_prediction(self, report):
         captions = report.captions.tolist()
         predictions = []
         remove_unk_from_caption_prediction = getattr(

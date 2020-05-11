@@ -10,7 +10,7 @@ class VQA2OCRDataset(VizWizDataset):
         )
         self.name = "vqa2_ocr"
 
-    def format_for_evalai(self, batch, answers):
+    def format_for_prediction(self, batch, answers):
         answers = answers.argmax(dim=1)
 
         predictions = []

@@ -494,8 +494,8 @@ class BaseTrainer:
             self._inference_run("test")
 
     def _inference_run(self, dataset_type):
-        if self.config.training.evalai_inference is True:
-            self.predict_for_evalai(dataset_type)
+        if self.config.evaluation.predict:
+            self.predict(dataset_type)
             return
 
         self.writer.write("Starting inference on {} set".format(dataset_type))
@@ -524,7 +524,7 @@ class BaseTrainer:
         self.writer.write(text + ": " + self.profiler.get_time_since_start(), "debug")
         self.profiler.reset()
 
-    def predict_for_evalai(self, dataset_type):
+    def predict(self, dataset_type):
         reporter = self.dataset_loader.get_test_reporter(dataset_type)
         with torch.no_grad():
             self.model.eval()
@@ -538,7 +538,7 @@ class BaseTrainer:
                     prepared_batch = reporter.prepare_batch(batch)
                     model_output = self.model(prepared_batch)
                     report = Report(prepared_batch, model_output)
-                    reporter.add_to_report(report)
+                    reporter.add_to_report(report, self.model)
 
             self.writer.write("Finished predicting")
             self.model.train()
