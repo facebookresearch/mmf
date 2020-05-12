@@ -20,9 +20,11 @@ class HatefulMemesFeaturesDataset(MMFDataset):
         ), "config's 'use_images' must be true to use image dataset"
 
     def preprocess_sample_info(self, sample_info):
-        image_id = sample_info["id"]
+        image_path = sample_info["img"]
+        # img/02345.png -> 02345
+        feature_path = image_path.split("/")[-1].split(".")[0]
         # Add feature_path key for feature_database access
-        sample_info["feature_path"] = f"{image_id}.npy"
+        sample_info["feature_path"] = f"{feature_path}.npy"
         return sample_info
 
     def __getitem__(self, idx):

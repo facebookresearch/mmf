@@ -120,7 +120,7 @@ evaluation:
     metrics: []
     # Generate predictions in a file
     predict: false
-    # Prediction file format, default is json
+    # Prediction file format (csv|json), default is json
     predict_file_format: json
 
 # Configuration for models, default configuration files for various models

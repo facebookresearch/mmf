@@ -116,6 +116,7 @@ if __name__ == "__main__":
             "console_scripts": [
                 "mmf_run = tools.run:run",
                 "mmf_predict = tools.predict:predict",
+                "mmf_convert_hm = tools.scripts.hateful_memes.convert:main",
             ]
         },
     )

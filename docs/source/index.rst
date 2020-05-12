@@ -34,11 +34,6 @@ MMF
                 </a>
             </div>
             <div style="padding-right: 5px">
-                <a href="https://colab.research.google.com/drive/1Z9fsh10rFtgWe4uy8nvU4mQmqdokdIRR">
-                    <img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg"/>
-                </a>
-            </div>
-            <div style="padding-right: 5px">
                 <a href="https://circleci.com/gh/facebookresearch/mmf">
                     <img alt="CircleCI" src="https://circleci.com/gh/facebookresearch/mmf.svg?style=svg"/>
                 </a>
@@ -80,6 +75,12 @@ If you use MMF in your work, please cite:
    notes/features
    notes/pretrained_models
    notes/challenge
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Challenges
+
+   notes/hateful_memes_challenge
 
 .. toctree::
    :maxdepth: 1
