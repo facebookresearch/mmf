@@ -56,9 +56,11 @@ training:
   lr_scheduler: true
   # Don't forget to update schedule_attributes if you update this
   max_updates: 60000
-  pretrained_mapping:
-    model.bert: model.bert
   find_unused_parameters: true
   early_stop:
     criteria: vqa2/vqa_accuracy
     minimize: false
+
+checkpoint:
+  pretrained_state_mapping:
+    model.bert: model.bert

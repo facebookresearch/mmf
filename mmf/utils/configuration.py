@@ -202,6 +202,8 @@ class Configuration:
 
         self.config = self._merge_with_dotlist(self.config, args.opts)
         self._update_specific(self.config)
+        self.upgrade(self.config)
+
         registry.register("config", self.config)
 
     def _build_default_config(self):
@@ -530,6 +532,20 @@ class Configuration:
             config.training.device = "cpu"
 
         return config
+
+    def upgrade(self, config):
+        mapping = {
+            "training.resume_file": "checkpoint.resume_file",
+            "training.resume": "checkpoint.resume",
+            "training.resume_best": "checkpoint.resume_best",
+            "training.load_pretrained": "checkpoint.resume_pretrained",
+            "training.pretrained_state_mapping": "checkpoint.pretrained_state_mapping",
+        }
+
+        for old, new in mapping.items():
+            value = OmegaConf.select(config, old)
+            if value:
+                OmegaConf.update(config, new, value)
 
 
 # This is still here due to legacy reasons around

@@ -20,6 +20,7 @@ import time
 import requests
 import tqdm
 
+from mmf.utils.distributed import is_master, synchronize
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path
 
@@ -352,7 +353,10 @@ def download_pretrained_model(model_name, *args, **kwargs):
     version = model_config.version
     resources = model_config.resources
 
-    download_resources(resources, download_path, version)
+    if is_master():
+        download_resources(resources, download_path, version)
+    synchronize()
+
     return download_path
 
 

@@ -54,7 +54,9 @@ training:
   early_stop:
     criteria: vqa2/vqa_accuracy
     minimize: false
-  pretrained_mapping:
+
+checkpoint:
+  pretrained_state_mapping:
     text_embeddings: text_embeddings
     context_embeddings: context_embeddings
     image_feature_encoders: image_feature_encoders

@@ -32,5 +32,7 @@ training:
   early_stop:
     criteria: hateful_memes/roc_auc
     minimize: false
-  pretrained_mapping:
+
+checkpoint:
+  pretrained_state_mapping:
     base: base
