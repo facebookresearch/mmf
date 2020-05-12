@@ -107,7 +107,7 @@ class BaseDataset(Dataset):
     def dataset_name(self, name):
         self._dataset_name = name
 
-    def format_for_evalai(self, report):
+    def format_for_prediction(self, report):
         return []
 
     def verbose_dump(self, *args, **kwargs):

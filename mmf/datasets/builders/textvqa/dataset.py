@@ -25,7 +25,7 @@ class TextVQADataset(MMFDataset):
     def postprocess_evalai_entry(self, entry):
         return entry  # Do nothing
 
-    def format_for_evalai(self, report):
+    def format_for_prediction(self, report):
         answer_processor = self.answer_processor
 
         batch_size = len(report.question_id)

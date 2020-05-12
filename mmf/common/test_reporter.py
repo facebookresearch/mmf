@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import csv
 import json
 import os
 
@@ -80,17 +81,30 @@ class TestReporter(Dataset):
             filename += self.experiment_name + "_"
 
         filename += self.task_type + "_"
+        filename += time
 
-        filename += time + ".json"
-        filepath = os.path.join(self.report_folder, filename)
-
-        with PathManager.open(filepath, "w") as f:
-            json.dump(self.report, f)
+        if self.config.evaluation.predict_file_format == "csv":
+            filepath = os.path.join(self.report_folder, filename + ".csv")
+            self.csv_dump(filepath)
+        else:
+            filepath = os.path.join(self.report_folder, filename + ".json")
+            self.json_dump(filepath)
 
         self.writer.write(
             "Wrote evalai predictions for %s to %s" % (name, os.path.abspath(filepath))
         )
         self.report = []
+
+    def csv_dump(self, filepath):
+        with PathManager.open(filepath, "w") as f:
+            title = self.report[0].keys()
+            cw = csv.DictWriter(f, title, delimiter=",", quoting=csv.QUOTE_MINIMAL)
+            cw.writeheader()
+            cw.writerows(self.report)
+
+    def json_dump(self, filepath):
+        with PathManager.open(filepath, "w") as f:
+            json.dump(self.report, f)
 
     def get_dataloader(self):
         other_args = self._add_extra_args_for_dataloader()
@@ -128,7 +142,7 @@ class TestReporter(Dataset):
     def __getitem__(self, idx):
         return self.current_dataset[idx]
 
-    def add_to_report(self, report):
+    def add_to_report(self, report, model):
         # TODO: Later gather whole report for no opinions
         if self.current_dataset.dataset_name == "coco":
             report.captions = gather_tensor(report.captions)
@@ -138,6 +152,8 @@ class TestReporter(Dataset):
             report.scores = gather_tensor(report.scores).view(
                 -1, report.scores.size(-1)
             )
+            if "id" in report:
+                report.id = gather_tensor(report.id).view(-1)
             if "question_id" in report:
                 report.question_id = gather_tensor(report.question_id).view(-1)
             if "image_id" in report:
@@ -152,6 +168,10 @@ class TestReporter(Dataset):
         if not is_master():
             return
 
-        results = self.current_dataset.format_for_evalai(report)
+        results = self.current_dataset.format_for_prediction(report)
+        if hasattr(model, "format_for_prediction"):
+            results = model.format_for_prediction(results, report)
+        elif hasattr(model.module, "format_for_prediction"):
+            results = model.module.format_for_prediction(results, report)
 
         self.report = self.report + results

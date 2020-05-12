@@ -14,7 +14,7 @@ from mmf.utils.general import setup_imports
 from mmf.utils.logger import Logger
 
 
-def main(configuration, init_distributed=False):
+def main(configuration, init_distributed=False, predict=False):
     # A reload might be needed for imports
     setup_imports()
     configuration.import_user_dir()
@@ -35,20 +35,23 @@ def main(configuration, init_distributed=False):
 
     trainer = build_trainer(configuration)
     trainer.load()
-    trainer.train()
+    if predict:
+        trainer.inference()
+    else:
+        trainer.train()
 
 
-def distributed_main(device_id, configuration):
+def distributed_main(device_id, configuration, predict=False):
     config = configuration.get_config()
     config.device_id = device_id
 
     if config.distributed.rank is None:
         config.distributed.rank = config.start_rank + device_id
 
-    main(configuration, init_distributed=True)
+    main(configuration, init_distributed=True, predict=predict)
 
 
-def run():
+def run(predict=False):
     setup_imports()
     parser = flags.get_parser()
     args = parser.parse_args()
@@ -67,11 +70,11 @@ def run():
             config.distributed.rank = None
             torch.multiprocessing.spawn(
                 fn=distributed_main,
-                args=(configuration,),
+                args=(configuration, predict),
                 nprocs=torch.cuda.device_count(),
             )
         else:
-            distributed_main(0, configuration)
+            distributed_main(0, configuration, predict)
     elif config.distributed.world_size > 1:
         assert config.distributed.world_size <= torch.cuda.device_count()
         port = random.randint(10000, 20000)
@@ -79,12 +82,12 @@ def run():
         config.distributed.rank = None
         torch.multiprocessing.spawn(
             fn=distributed_main,
-            args=(configuration,),
+            args=(configuration, predict),
             nprocs=config.distributed.world_size,
         )
     else:
         config.device_id = 0
-        main(configuration)
+        main(configuration, predict)
 
 
 if __name__ == "__main__":

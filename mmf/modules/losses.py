@@ -68,8 +68,7 @@ class Losses(nn.Module):
     def __init__(self, loss_list):
         super().__init__()
         self.losses = []
-        tp = registry.get("config").training
-        self._evalai_inference = tp.evalai_inference
+        self._evaluation_predict = registry.get("config").evaluation.predict
         for loss in loss_list:
             self.losses.append(MMFLoss(loss))
 
@@ -88,11 +87,11 @@ class Losses(nn.Module):
         """
         output = {}
         if not hasattr(sample_list, "targets"):
-            if not self._evalai_inference:
+            if not self._evaluation_predict:
                 warnings.warn(
                     "Sample list has not field 'targets', are you "
                     "sure that your ImDB has labels? you may have "
-                    "wanted to run with --evalai_inference 1"
+                    "wanted to run with evaluation.predict=true"
                 )
             return output
 

@@ -20,12 +20,6 @@ training:
     # completed first. Default: null means epochs won't be used
     max_epochs: null
 
-    # Type of run, train+inference by default means both training and inference
-    # (test) stage will be run, if run_type contains 'val',
-    # inference will be run on val set also.
-    run_type: train_inference
-
-
     # After `log_interval` iterations, current iteration's training loss will be
     # reported. This will also report validation on a single batch from validation set
     # to provide an estimate on validation side
@@ -51,8 +45,6 @@ training:
     # Some datasets allow fast reading by loading everything in the memory
     # Use this to enable it
     fast_read: false
-    # Whether JSON files for evalai evaluation should be generated
-    evalai_inference: false
     # Use in multi-tasking, when you want to sample tasks proportional to their sizes
     dataset_size_proportional_sampling: true
     # Whether to pin memory in dataloader
@@ -126,6 +118,10 @@ training:
 evaluation:
     # Metrics for evaluation
     metrics: []
+    # Generate predictions in a file
+    predict: false
+    # Prediction file format, default is json
+    predict_file_format: json
 
 # Configuration for models, default configuration files for various models
 # included in MMF can be found under configs directory in root folder
@@ -145,6 +141,11 @@ model: null
 
 # Config file to be optionally passed by the user
 config: null
+
+# Type of run, train+inference by default means both training and inference
+# (test) stage will be run, if run_type contains 'val',
+# inference will be run on val set also.
+run_type: train_inference
 
 # Configuration for optimizer, examples can be found in models' configs in
 # configs folder

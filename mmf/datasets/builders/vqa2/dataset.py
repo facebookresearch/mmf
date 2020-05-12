@@ -133,7 +133,7 @@ class VQA2Dataset(MMFDataset):
     def idx_to_answer(self, idx):
         return self.answer_processor.convert_idx_to_answer(idx)
 
-    def format_for_evalai(self, report):
+    def format_for_prediction(self, report):
         answers = report.scores.argmax(dim=1)
 
         predictions = []

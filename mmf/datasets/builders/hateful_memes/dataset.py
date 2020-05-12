@@ -46,6 +46,9 @@ class HatefulMemesFeaturesDataset(MMFDataset):
         current_sample.targets = torch.tensor(sample_info["label"], dtype=torch.long)
         return current_sample
 
+    def format_for_prediction(self, report):
+        return generate_prediction(report)
+
 
 class HatefulMemesImageDataset(MMFDataset):
     def __init__(self, config, *args, dataset_name="hateful_memes", **kwargs):
@@ -74,3 +77,22 @@ class HatefulMemesImageDataset(MMFDataset):
         current_sample.image = self.image_db[idx]["images"][0]
         current_sample.targets = torch.tensor(sample_info["label"], dtype=torch.long)
         return current_sample
+
+    def format_for_prediction(self, report):
+        return generate_prediction(report)
+
+
+def generate_prediction(report):
+    probabilities, labels = torch.max(
+        torch.nn.functional.softmax(report.scores, dim=1), 1
+    )
+
+    predictions = []
+
+    for idx, image_id in enumerate(report.id):
+        proba = probabilities[idx].item()
+        label = labels[idx].item()
+        predictions.append(
+            {"id": image_id.item(), "proba": proba, "label": label,}
+        )
+    return predictions
