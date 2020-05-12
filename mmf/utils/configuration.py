@@ -12,18 +12,19 @@ from omegaconf import OmegaConf
 from mmf.common.registry import registry
 from mmf.utils.env import import_user_module
 from mmf.utils.file_io import PathManager
-from mmf.utils.general import get_mmf_root
+from mmf.utils.general import get_absolute_path, get_mmf_root
 
 
 def load_yaml(f):
     # Convert to absolute path for loading includes
-    abs_f = os.path.abspath(f)
+    abs_f = get_absolute_path(f)
 
     try:
         mapping = OmegaConf.load(abs_f)
         f = abs_f
     except FileNotFoundError as e:
         # Check if this file might be relative to root?
+        # TODO: Later test if this can be removed
         relative = os.path.abspath(os.path.join(get_mmf_root(), f))
         if not PathManager.isfile(relative):
             raise e
@@ -43,11 +44,11 @@ def load_yaml(f):
 
     include_mapping = OmegaConf.create()
 
-    pythia_root_dir = get_mmf_root()
+    mmf_root_dir = get_mmf_root()
 
     for include in includes:
         original_include_path = include
-        include = os.path.join(pythia_root_dir, include)
+        include = os.path.join(mmf_root_dir, include)
 
         # If path doesn't exist relative to MMF root, try relative to current file
         if not PathManager.exists(include):

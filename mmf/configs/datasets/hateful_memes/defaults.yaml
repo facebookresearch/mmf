@@ -60,3 +60,7 @@ dataset_config:
                 mean: [0.46777044, 0.44531429, 0.40661017]
                 std: [0.12221994, 0.12145835, 0.14380469]
     return_features_info: false
+
+
+evaluation:
+  predict_file_format: csv

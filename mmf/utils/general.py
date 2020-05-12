@@ -79,25 +79,44 @@ def foldername_from_config_override(args):
 def get_mmf_root():
     from mmf.common.registry import registry
 
-    pythia_root = registry.get("pythia_root", no_warning=True)
-    if pythia_root is None:
-        pythia_root = os.path.dirname(os.path.abspath(__file__))
-        pythia_root = os.path.abspath(os.path.join(pythia_root, ".."))
-        registry.register("pythia_root", pythia_root)
-    return pythia_root
+    mmf_root = registry.get("mmf_root", no_warning=True)
+    if mmf_root is None:
+        mmf_root = os.path.dirname(os.path.abspath(__file__))
+        mmf_root = os.path.abspath(os.path.join(mmf_root, ".."))
+        registry.register("mmf_root", mmf_root)
+    return mmf_root
 
 
 def get_absolute_path(paths):
     # String check should be first as Sequence would pass for string too
     if isinstance(paths, str):
-        # If path is absolute or if  exists, return it directly
-        if os.path.isabs(paths) or PathManager.exists(paths):
+        # If path is absolute return it directly
+        if os.path.isabs(paths):
             return paths
 
-        # Neither absolute, nor does it directly exists, return it relative to
-        # mmf root
+        possible_paths = [
+            # Direct path
+            paths
+        ]
+        # Now, try relative to user_dir if it exists
+        from mmf.utils.configuration import get_mmf_env
+
+        user_dir = get_mmf_env(key="user_dir")
+        if user_dir:
+            possible_paths.append(os.path.join(user_dir, paths))
+
         mmf_root = get_mmf_root()
-        paths = os.path.join(mmf_root, paths)
+        # Relative to root folder of mmf install
+        possible_paths.append(os.path.join(mmf_root, "..", paths))
+        # Relative to mmf root
+        possible_paths.append(os.path.join(mmf_root, paths))
+
+        # Test all these paths, if any exists return
+        for path in possible_paths:
+            if PathManager.exists(path):
+                return path
+
+        # If nothing works, return original path so that it throws an error
         return paths
     elif isinstance(paths, collections.abc.Iterable):
         return [get_absolute_path(path) for path in paths]
@@ -255,7 +274,7 @@ def setup_imports():
 
     # Automatically load all of the modules, so that
     # they register with registry
-    root_folder = registry.get("pythia_root", no_warning=True)
+    root_folder = registry.get("mmf_root", no_warning=True)
 
     if root_folder is None:
         root_folder = os.path.dirname(os.path.abspath(__file__))

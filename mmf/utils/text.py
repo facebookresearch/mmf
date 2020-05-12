@@ -111,10 +111,8 @@ class VocabDict:
 
     def __init__(self, vocab_file, data_dir=None):
         if not os.path.isabs(vocab_file) and data_dir is not None:
-            pythia_root = get_mmf_root()
-            vocab_file = os.path.abspath(
-                os.path.join(pythia_root, data_dir, vocab_file)
-            )
+            mmf_root = get_mmf_root()
+            vocab_file = os.path.abspath(os.path.join(mmf_root, data_dir, vocab_file))
 
         if not PathManager.exists(vocab_file):
             raise RuntimeError(

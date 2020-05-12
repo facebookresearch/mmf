@@ -121,8 +121,8 @@ class BaseVocab:
 
         if vocab_file is not None:
             if not os.path.isabs(vocab_file) and data_dir is not None:
-                pythia_root = get_mmf_root()
-                vocab_file = os.path.join(pythia_root, data_dir, vocab_file)
+                mmf_root = get_mmf_root()
+                vocab_file = os.path.join(mmf_root, data_dir, vocab_file)
             if not PathManager.exists(vocab_file):
                 raise RuntimeError("Vocab not found at " + vocab_file)
 
@@ -232,8 +232,8 @@ class CustomVocab(BaseVocab):
         self.type = "custom"
 
         if not os.path.isabs(embedding_file) and data_dir is not None:
-            pythia_root = get_mmf_root()
-            embedding_file = os.path.join(pythia_root, data_dir, embedding_file)
+            mmf_root = get_mmf_root()
+            embedding_file = os.path.join(mmf_root, data_dir, embedding_file)
 
         if not PathManager.exists(embedding_file):
             from mmf.common.registry import registry
