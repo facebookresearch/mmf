@@ -45,14 +45,14 @@ Below are the download links to the imdbs and features used for this project. **
 
 Example : To pretrain VisualBERT model on the COCO Captions dataset, run the following command
 ```
-python tools/run.py config=projects/visual_bert/configs/masked_coco/pretrain.yaml training.run_type=train_val dataset=masked_coco model=visual_bert
+python tools/run.py config=projects/visual_bert/configs/masked_coco/pretrain.yaml run_type=train_val dataset=masked_coco model=visual_bert
 ```
 
 ### Finetuning
 
 Example : To finetune VisualBERT model on the VQA2.0 dataset, run the following command
 ```
-python tools/run.py config=projects/visual_bert/configs/vqa2/defaults.yaml training.run_type=train_val dataset=vqa2 model=visual_bert checkpoint.resume_file=<path_to_pretrained_visual_bert_model> checkpoint.resume_pretrained=true
+python tools/run.py config=projects/visual_bert/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=visual_bert checkpoint.resume_file=<path_to_pretrained_visual_bert_model> checkpoint.resume_pretrained=true
 ```
 
 Configs for different settings and pretraining datasets are provided in the next section.

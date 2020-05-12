@@ -41,7 +41,7 @@ class BaseTrainer:
     def load(self):
         self._set_device()
 
-        self.run_type = self.config.training.get("run_type", "train")
+        self.run_type = self.config.get("run_type", "train")
         self.dataset_loader = DatasetLoader(self.config)
         self._datasets = self.config.datasets
 
@@ -490,7 +490,7 @@ class BaseTrainer:
         if "val" in self.run_type:
             self._inference_run("val")
 
-        if "inference" in self.run_type or "predict" in self.run_type:
+        if any(rt in self.run_type for rt in ["inference", "test", "predict"]):
             self._inference_run("test")
 
     def _inference_run(self, dataset_type):
@@ -528,7 +528,7 @@ class BaseTrainer:
         reporter = self.dataset_loader.get_test_reporter(dataset_type)
         with torch.no_grad():
             self.model.eval()
-            message = "Starting {} inference for evalai".format(dataset_type)
+            message = "Starting {} inference predictions".format(dataset_type)
             self.writer.write(message)
 
             while reporter.next_dataset():

@@ -1,9 +1,13 @@
 #!/usr/bin/env python3 -u
 # Copyright (c) Facebook, Inc. and its affiliates.
+
+import sys
+
 from tools.run import run
 
 
 def predict():
+    sys.argv.extend(["evaluation.predict=true"])
     run(predict=True)
 
 

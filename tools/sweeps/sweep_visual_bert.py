@@ -8,7 +8,7 @@ def get_grid(args):
     max_update = 22000
 
     return [
-        hyperparam("training.run_type", "train_val"),
+        hyperparam("run_type", "train_val"),
         hyperparam("config", "projects/visual_bert/configs/vqa2/defaults.yaml"),
         # hyperparam("--fp16", save_dir_key=lambda val: "fp16"),
         hyperparam("training.num_workers", 5),

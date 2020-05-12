@@ -20,12 +20,6 @@ training:
     # completed first. Default: null means epochs won't be used
     max_epochs: null
 
-    # Type of run, train+inference by default means both training and inference
-    # (test) stage will be run, if run_type contains 'val',
-    # inference will be run on val set also.
-    run_type: train_inference
-
-
     # After `log_interval` iterations, current iteration's training loss will be
     # reported. This will also report validation on a single batch from validation set
     # to provide an estimate on validation side
@@ -147,6 +141,11 @@ model: null
 
 # Config file to be optionally passed by the user
 config: null
+
+# Type of run, train+inference by default means both training and inference
+# (test) stage will be run, if run_type contains 'val',
+# inference will be run on val set also.
+run_type: train_inference
 
 # Configuration for optimizer, examples can be found in models' configs in
 # configs folder

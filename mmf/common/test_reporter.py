@@ -81,26 +81,30 @@ class TestReporter(Dataset):
             filename += self.experiment_name + "_"
 
         filename += self.task_type + "_"
+        filename += time
 
         if self.config.evaluation.predict_file_format == "csv":
-            filename += time + ".csv"
+            filepath = os.path.join(self.report_folder, filename + ".csv")
+            self.csv_dump(filepath)
         else:
-            filename += time + ".json"
-        filepath = os.path.join(self.report_folder, filename)
-
-        with PathManager.open(filepath, "w") as f:
-            if self.config.evaluation.predict_file_format == "csv":
-                title = self.report[0].keys()
-                cw = csv.DictWriter(f, title, delimiter=",", quoting=csv.QUOTE_MINIMAL)
-                cw.writeheader()
-                cw.writerows(self.report)
-            else:
-                json.dump(self.report, f)
+            filepath = os.path.join(self.report_folder, filename + ".json")
+            self.json_dump(filepath)
 
         self.writer.write(
             "Wrote evalai predictions for %s to %s" % (name, os.path.abspath(filepath))
         )
         self.report = []
+
+    def csv_dump(self, filepath):
+        with PathManager.open(filepath, "w") as f:
+            title = self.report[0].keys()
+            cw = csv.DictWriter(f, title, delimiter=",", quoting=csv.QUOTE_MINIMAL)
+            cw.writeheader()
+            cw.writerows(self.report)
+
+    def json_dump(self, filepath):
+        with PathManager.open(filepath, "w") as f:
+            json.dump(self.report, f)
 
     def get_dataloader(self):
         other_args = self._add_extra_args_for_dataloader()
@@ -165,6 +169,9 @@ class TestReporter(Dataset):
             return
 
         results = self.current_dataset.format_for_prediction(report)
-        results = model.module.format_for_prediction(results, report)
+        if hasattr(model, "format_for_prediction"):
+            results = model.format_for_prediction(results, report)
+        elif hasattr(model.module, "format_for_prediction"):
+            results = model.module.format_for_prediction(results, report)
 
         self.report = self.report + results
