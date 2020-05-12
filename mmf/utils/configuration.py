@@ -540,6 +540,7 @@ class Configuration:
             "training.resume_best": "checkpoint.resume_best",
             "training.load_pretrained": "checkpoint.resume_pretrained",
             "training.pretrained_state_mapping": "checkpoint.pretrained_state_mapping",
+            "training.run_type": "run_type",
         }
 
         for old, new in mapping.items():
