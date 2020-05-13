@@ -50,3 +50,8 @@ This command will output where the generated predictions csv file is stored.
 Next you can upload the generated csv file on DrivenData in their [submissions](https://www.drivendata.org/competitions/64/hateful-memes/submissions/) page for Hateful Memes.
 
 More details will be added once the challenge submission phase is live.
+
+
+## Building on top of MMF and Open Sourcing your code
+
+To understand how you build on top of MMF for your own custom models and then open source your code, take a look at this [example](https://github.com/apsdehal/hm_example_mmf).

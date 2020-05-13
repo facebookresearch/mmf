@@ -283,9 +283,6 @@ class Configuration:
             warnings.warn(warning)
             return OmegaConf.create()
 
-        default_model_config_path = os.path.join(
-            get_mmf_root(), default_model_config_path
-        )
         return load_yaml(default_model_config_path)
 
     def _build_dataset_config(self, config):
@@ -320,9 +317,6 @@ class Configuration:
                 warnings.warn(warning)
                 continue
 
-            default_dataset_config_path = os.path.join(
-                get_mmf_root(), default_dataset_config_path
-            )
             dataset_config = OmegaConf.merge(
                 dataset_config, load_yaml(default_dataset_config_path)
             )

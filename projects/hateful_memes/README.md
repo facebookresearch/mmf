@@ -4,14 +4,17 @@ This folder contains configs required to reproduce results and baselines in the 
 
 Please cite the following paper if you use these models and the hateful memes dataset:
 
-* Kiela, D., Firooz, H., Mohan A., Goswami, V., Singh, A., Ringshia P. & Testuggine, D.
+* Kiela, D., Firooz, H., Mohan A., Goswami, V., Singh, A., Ringshia P. & Testuggine, D. (2020). *The Hateful Memes Challenge: Detecting Hate Speech in Multimodal Memes*. arXiv preprint arXiv:2005.04790
 
+```
 @article{kiela2020hateful,
-  title={The Hateful Memes Challenge:Detecting Hate Speech in Multimodal Memes},
+  title={The Hateful Memes Challenge: Detecting Hate Speech in Multimodal Memes},
   author={Kiela, Douwe and Firooz, Hamed and Mohan, Aravind and Goswami, Vedanuj and Singh, Amanpreet and Ringshia, Pratik and  Testuggine, Davide},
   journal={arXiv preprint arXiv:2005.04790},
   year={2020}
 }
+```
+* [Citation for MMF](https://github.com/facebookresearch/mmf/tree/master/README.md#citation)
 
 Links: [[arxiv]](https://arxiv.org/abs/2005.04790) [[challenge]](https://www.drivendata.org/competitions/64/hateful-memes/) [[blog post]](https://ai.facebook.com/blog/hateful-memes-challenge-and-data-set)
 

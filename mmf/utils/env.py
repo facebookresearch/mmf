@@ -39,7 +39,7 @@ def import_user_module(user_dir: str, no_print: bool = False):
     """
     if user_dir:
         user_dir = get_absolute_path(user_dir)
-        module_parent, module_name = os.split(user_dir)
+        module_parent, module_name = os.path.split(user_dir)
 
         if module_name not in sys.modules:
             sys.path.insert(0, module_parent)
