@@ -61,7 +61,9 @@ class HatefulMemesBuilder(MMFDatasetBuilder):
         super().build(config, *args, **kwargs)
 
     def update_registry_for_model(self, config):
-        if hasattr(self.dataset, "text_processor"):
+        if hasattr(self.dataset, "text_processor") and hasattr(
+            self.dataset.text_processor, "get_vocab_size"
+        ):
             registry.register(
                 self.dataset_name + "_text_vocab_size",
                 self.dataset.text_processor.get_vocab_size(),
