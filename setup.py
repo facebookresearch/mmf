@@ -52,7 +52,19 @@ def fetch_requirements():
 
     with open(requirements_file) as f:
         reqs = f.read()
+    reqs = reqs.strip().split("\n")
+    reqs = remove_specific_requirements(reqs)
     return reqs
+
+
+def remove_specific_requirements(reqs):
+    excluded = {"fasttext": "READTHEDOCS" in os.environ}
+    updated_reqs = []
+    for req in reqs:
+        without_version = req.split("==")[0]
+        if not excluded.get(without_version, False):
+            updated_reqs.append(req)
+    return updated_reqs
 
 
 class BuildExt(build_ext):
@@ -73,7 +85,7 @@ LONG_DESCRIPTION_CONTENT_TYPE = "text/markdown"
 AUTHOR = "Facebook AI Research"
 AUTHOR_EMAIL = "mmf@fb.com"
 DEPENDENCY_LINKS = []
-REQUIREMENTS = (fetch_requirements().strip().split("\n"),)
+REQUIREMENTS = (fetch_requirements(),)
 EXCLUDES = ("data", "docs", "tests")
 CMD_CLASS = {"build_ext": BuildExt}
 EXT_MODULES = [Extension("cphoc", sources=["mmf/utils/phoc/src/cphoc.c"], language="c")]

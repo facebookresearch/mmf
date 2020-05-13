@@ -74,6 +74,7 @@ If you use MMF in your work, please cite:
    notes/quickstart
    notes/features
    notes/pretrained_models
+   notes/configuration
    notes/challenge
 
 .. toctree::
@@ -104,6 +105,17 @@ If you use MMF in your work, please cite:
    lib/datasets/base_dataset
    lib/datasets/processors
    lib/utils/text
+
+.. toctree::
+   :maxdepth: 0
+   :hidden:
+   :caption: Others
+
+   others/model_config
+   others/dataset_config
+   others/user_config
+
+
 
 Indices and tables
 ==================
