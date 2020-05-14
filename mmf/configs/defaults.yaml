@@ -4,7 +4,7 @@ config_version: 1.0
 # Configuration for training
 training:
     # Name of the trainer class used to define the training/evalution loop
-    trainer: 'base_trainer'
+    trainer: base_trainer
     # Seed to be used for training. -1 means random seed between 1 and 100000.
     # Either pass fixed through your config or command line arguments
     # Pass null to the seed if you don't want it seeded anyhow and
@@ -197,8 +197,10 @@ env:
     # Use MMF_USER_DIR or env.user_dir to specify
     user_dir: ${env:MMF_USER_DIR,}
 
+###
 # Configuration for the distributed setup
 distributed:
+    ###
     # Typically tcp://hostname:port that will be used to establish initial connection
     init_method: null
     # Rank of the current worker
