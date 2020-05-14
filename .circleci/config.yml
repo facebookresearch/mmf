@@ -5,8 +5,9 @@
 # Adopted from
 # https://github.com/facebookresearch/detectron2/blob/master/.circleci/config.yml
 
-version: 2
-
+version: 2.1
+orbs:
+  win: circleci/windows@2.2.0
 # -------------------------------------------------------------------------------------
 # Environments to run the jobs in
 # -------------------------------------------------------------------------------------
@@ -42,18 +43,42 @@ install_dep: &install_dep
   - run:
       name: Install Dependencies
       command: |
-        pip install --progress-bar off -r requirements.txt
+        pip install --upgrade setuptools
         pip install --progress-bar off flake8
         pip install --progress-bar off black
         pip install --progress-bar off isort
         pip install --progress-bar off pytest
+        python setup.py install
         python -c 'import torch; print("Torch version:", torch.__version__)'
         python -m torch.utils.collect_env
+
+install_dep_windows: &install_dep_windows
+  - run:
+      name: Install Dependencies for Windows
+      command: |
+        source activate mmf
+        pip install --upgrade setuptools certifi
+        pip install -f https://download.pytorch.org/whl/torch_stable.html -r requirements.txt
+        pip install --progress-bar off flake8
+        pip install --progress-bar off black
+        pip install --progress-bar off isort
+        pip install --progress-bar off pytest
+        python setup.py install
+        python -c 'import torch; print("Torch version:", torch.__version__)'
+        python -m torch.utils.collect_env
+
 
 install_repo: &install_repo
   - run:
       name: Install Repository
       command: |
+        python setup.py build develop
+
+install_repo_windows: &install_repo_windows
+  - run:
+      name: Install Repository
+      command: |
+        source activate mmf
         python setup.py build develop
 
 run_unittests: &run_unittests
@@ -83,11 +108,41 @@ install_nvidia_driver: &install_nvidia_driver
         nvidia-smi
         pyenv global 3.7.0
 
+create_conda_env: &create_conda_env
+  - run:
+      name: Create Conda Environment
+      command: |
+        conda init bash
+        source ~/.bash_profile
+        conda create -y -n mmf python=3.7
+        source activate mmf
+        python --version
+        which python
+        which pip
+        pip install --user --upgrade pip
+
 # -------------------------------------------------------------------------------------
 # Jobs to run
 # -------------------------------------------------------------------------------------
 
 jobs:
+  windows_build:
+    executor:
+      name: win/default
+      shell: bash.exe
+
+    steps:
+      - checkout
+      - <<: *create_conda_env
+      - restore_cache:
+          key: cache-key-windows-cpu-{{ checksum "setup.py"}}-{{ checksum "requirements.txt"}}
+      - <<: *install_dep_windows
+      - <<: *install_repo_windows
+      - save_cache:
+          key: cache-key-windows-cpu-{{ checksum "setup.py"}}-{{ checksum "requirements.txt"}}
+          paths:
+            - C:\tools\miniconda3\envs\mmf
+
   cpu_tests:
     <<: *cpu
 
@@ -168,10 +223,10 @@ jobs:
       - store_test_results:
           path: tests/test-results
 
-
 workflows:
   version: 2
   build:
     jobs:
       - cpu_tests
       - gpu_tests
+      - windows_build

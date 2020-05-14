@@ -4,6 +4,7 @@
 
 import codecs
 import os
+import platform
 import re
 import shutil
 from glob import glob
@@ -44,7 +45,12 @@ def fetch_long_description():
 
 
 def fetch_requirements():
-    with open("requirements.txt") as f:
+    requirements_file = "requirements.txt"
+
+    if platform.system() == "Windows":
+        DEPENDENCY_LINKS.append("https://download.pytorch.org/whl/torch_stable.html")
+
+    with open(requirements_file) as f:
         reqs = f.read()
     return reqs
 
@@ -52,8 +58,11 @@ def fetch_requirements():
 class BuildExt(build_ext):
     def run(self):
         build_ext.run(self)
-        cphoc_lib = glob("build/lib.*/cphoc.*.so")[0]
-        shutil.copy(cphoc_lib, "mmf/utils/phoc/cphoc.so")
+        cphoc_lib = glob(os.path.join("build", "lib.*", "cphoc.*"))[0]
+        copy_path = os.path.join(
+            "mmf", "utils", "phoc", cphoc_lib.split(os.path.sep)[-1]
+        )
+        shutil.copy(cphoc_lib, copy_path)
 
 
 DISTNAME = "mmf"
@@ -63,29 +72,21 @@ LONG_DESCRIPTION = fetch_long_description()
 LONG_DESCRIPTION_CONTENT_TYPE = "text/markdown"
 AUTHOR = "Facebook AI Research"
 AUTHOR_EMAIL = "mmf@fb.com"
+DEPENDENCY_LINKS = []
 REQUIREMENTS = (fetch_requirements().strip().split("\n"),)
 EXCLUDES = ("data", "docs", "tests")
 CMD_CLASS = {"build_ext": BuildExt}
-EXT_MODULES = [
-    Extension(
-        "cphoc",
-        sources=["mmf/utils/phoc/src/cphoc.c"],
-        language="c",
-        libraries=["pthread", "dl", "util", "rt", "m"],
-        extra_compile_args=["-O3"],
-    )
-]
-DEPENDENCY_LINKS = []
+EXT_MODULES = [Extension("cphoc", sources=["mmf/utils/phoc/src/cphoc.c"], language="c")]
 
 if "READTHEDOCS" in os.environ:
     # Don't build extensions when generating docs
     EXT_MODULES = []
     CMD_CLASS.pop("build_ext", None)
     # use CPU build of PyTorch
-    DEPENDENCY_LINKS = [
+    DEPENDENCY_LINKS.append(
         "https://download.pytorch.org/whl/cpu/torch-1.4.0%2B"
         + "cpu-cp36-cp36m-linux_x86_64.whl"
-    ]
+    )
 
 
 if __name__ == "__main__":
