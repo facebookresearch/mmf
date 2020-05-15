@@ -5,8 +5,6 @@ import logging
 import os
 import sys
 
-from torch.utils.tensorboard import SummaryWriter
-
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import is_master
 from mmf.utils.file_io import PathManager
@@ -131,6 +129,9 @@ class Logger:
 
 class TensorboardLogger:
     def __init__(self, log_folder="./logs", iteration=0):
+        # This would handle warning of missing tensorboard
+        from torch.utils.tensorboard import SummaryWriter
+
         self.summary_writer = None
         self._is_master = is_master()
         self.timer = Timer()

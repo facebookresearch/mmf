@@ -1,13 +1,10 @@
-# Python CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-python/ for more details
-#
-# Adopted from
-# https://github.com/facebookresearch/detectron2/blob/master/.circleci/config.yml
-
+# Use 2.1 for orbs
 version: 2.1
+
+# Include windows orb for windows bui
 orbs:
   win: circleci/windows@2.2.0
+
 # -------------------------------------------------------------------------------------
 # Environments to run the jobs in
 # -------------------------------------------------------------------------------------
@@ -26,23 +23,13 @@ gpu: &gpu
 # -------------------------------------------------------------------------------------
 # Re-usable commands
 # -------------------------------------------------------------------------------------
-setup_venv: &setup_venv
-  - run:
-      name: Setup Virtual Env
-      working_directory: ~/
-      command: |
-        python -m venv ~/venv
-        echo ". ~/venv/bin/activate" >> $BASH_ENV
-        . ~/venv/bin/activate
-        python --version
-        which python
-        which pip
-        pip install --upgrade pip
+cache_key: &cache_key cache-key-{{ .Environment.CIRCLE_JOB }}-{{ checksum ".circleci/config.yml" }}-{{ checksum "setup.py"}}-{{ checksum "requirements.txt"}}
 
 install_dep: &install_dep
   - run:
       name: Install Dependencies
       command: |
+        source activate mmf
         pip install --upgrade setuptools
         pip install --progress-bar off flake8
         pip install --progress-bar off black
@@ -72,6 +59,7 @@ install_repo: &install_repo
   - run:
       name: Install Repository
       command: |
+        source activate mmf
         python setup.py build develop
 
 install_repo_windows: &install_repo_windows
@@ -85,6 +73,7 @@ run_unittests: &run_unittests
   - run:
       name: Run Unit Tests
       command: |
+        source activate mmf
         cd tests
         pytest --junitxml=test-results/junit.xml -v .
 
@@ -92,6 +81,7 @@ run_flake8: &run_flake8
   - run:
       name: Run Linter (flake8)
       command: |
+        source activate mmf
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics
         # exit-zero treats all errors as warnings
@@ -106,9 +96,29 @@ install_nvidia_driver: &install_nvidia_driver
         sudo /bin/bash ~/nvidia-downloads/NVIDIA-Linux-x86_64-430.40.run -s --no-drm
         pyenv versions
         nvidia-smi
-        pyenv global 3.7.0
+        pyenv global 3.6.5
 
 create_conda_env: &create_conda_env
+  - run:
+      name: Install and Create Conda Environment
+      command: |
+        curl -o ~/miniconda.sh -O  https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+        chmod +x ~/miniconda.sh
+        ~/miniconda.sh -b -p $HOME/miniconda
+        rm ~/miniconda.sh
+        echo 'export PATH=$HOME/miniconda/bin:$PATH' >> $BASH_ENV
+        source $BASH_ENV
+        if [ ! -d ~/miniconda/envs/mmf ]
+        then
+          conda create -y -n mmf python=3.6
+        fi
+        source activate mmf
+        python --version
+        which python
+        which pip
+        pip install --upgrade pip
+
+create_conda_env_windows: &create_conda_env_windows
   - run:
       name: Create Conda Environment
       command: |
@@ -120,6 +130,20 @@ create_conda_env: &create_conda_env
         which python
         which pip
         pip install --user --upgrade pip
+
+run_black: &run_black
+  - run:
+      name: Run Linter (black)
+      command: |
+        source activate mmf
+        black --check .
+
+run_isort: &run_isort
+  - run:
+      name: Run Linter (isort)
+      command: |
+        source activate mmf
+        isort -c -sp .
 
 # -------------------------------------------------------------------------------------
 # Jobs to run
@@ -133,13 +157,13 @@ jobs:
 
     steps:
       - checkout
-      - <<: *create_conda_env
+      - <<: *create_conda_env_windows
       - restore_cache:
-          key: cache-key-windows-cpu-{{ checksum "setup.py"}}-{{ checksum "requirements.txt"}}
+          key: *cache_key
       - <<: *install_dep_windows
       - <<: *install_repo_windows
       - save_cache:
-          key: cache-key-windows-cpu-{{ checksum "setup.py"}}-{{ checksum "requirements.txt"}}
+          key: *cache_key
           paths:
             - C:\tools\miniconda3\envs\mmf
 
@@ -150,39 +174,24 @@ jobs:
 
     steps:
       - checkout
-      - <<: *setup_venv
-
-      # Cache the venv directory that contains dependencies
+      - <<: *create_conda_env
       - restore_cache:
-          keys:
-            - cache-key-cpu-{{ checksum "setup.py"}}-{{ checksum "requirements.txt"}}
-
+          key: *cache_key
       - <<: *install_dep
-
+      # Cache the miniconda directory that contains dependencies
       - save_cache:
           paths:
-            - ~/venv
-          key: cache-key-cpu-{{ checksum "setup.py"}}-{{ checksum "requirements.txt"}}
-
+            - ~/miniconda/
+          key: *cache_key
       - <<: *install_repo
-
-      - run:
-          name: Run Linter (isort)
-          command: |
-            isort -c -sp .
-
-      - run:
-          name: Run Linter (black)
-          command: |
-            black --check -l 88 .
-
+      - <<: *run_isort
+      - <<: *run_black
       - <<: *run_flake8
-
       - <<: *run_unittests
-
       - store_test_results:
           path: tests/test-results
 
+  # GPU config initially taken from detectron2
   gpu_tests:
     <<: *gpu
 
@@ -194,32 +203,22 @@ jobs:
       # Cache the nvidia driver downloads
       - restore_cache:
           key: nvidia-downloads-v4
-
       - <<: *install_nvidia_driver
-
       - save_cache:
           key: nvidia-downloads-v4
           paths:
             - "~/nvidia-downloads/"
-
-      - <<: *setup_venv
-
-      # Cache the venv directory that contains dependencies
+      - <<: *create_conda_env
       - restore_cache:
-          keys:
-            - cache-key-gpu-{{ checksum "setup.py"}}-{{ checksum "requirements.txt"}}
-
+          key: *cache_key
       - <<: *install_dep
-
+      # Cache the miniconda directory that contains dependencies
       - save_cache:
           paths:
-            - ~/venv
-          key: cache-key-gpu-{{ checksum "setup.py"}}-{{ checksum "requirements.txt"}}
-
+            - ~/miniconda/
+          key: *cache_key
       - <<: *install_repo
-
       - <<: *run_unittests
-
       - store_test_results:
           path: tests/test-results
 
