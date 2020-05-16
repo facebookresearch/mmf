@@ -52,13 +52,15 @@ def fetch_requirements():
 
     with open(requirements_file) as f:
         reqs = f.read()
+
     reqs = reqs.strip().split("\n")
     reqs = remove_specific_requirements(reqs)
     return reqs
 
 
 def remove_specific_requirements(reqs):
-    excluded = {"fasttext": "READTHEDOCS" in os.environ}
+    rtd = "READTHEDOCS" in os.environ
+    excluded = {"fasttext": rtd}
     updated_reqs = []
     for req in reqs:
         without_version = req.split("==")[0]
