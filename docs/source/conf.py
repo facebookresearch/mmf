@@ -34,7 +34,7 @@
 # ones.
 import datetime
 
-import sphinx_rtd_theme
+import pytorch_sphinx_theme
 from packaging.version import parse
 from recommonmark.transform import AutoStructify
 
@@ -106,14 +106,19 @@ todo_include_todos = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_theme = "pytorch_sphinx_theme"
+html_theme_path = [pytorch_sphinx_theme.get_html_theme_path()]
+templates_path = ["_templates"]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-html_theme_options = {"includehidden": False}
+html_theme_options = {
+    "includehidden": False,
+    "canonical_url": "/",
+    "pytorch_project": "docs",
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -132,7 +137,7 @@ html_sidebars = {
     ]
 }
 
-
+html_baseurl = "/"
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
@@ -188,7 +193,7 @@ texinfo_documents = [
     )
 ]
 
-github_doc_root = "https://github.com/facebookresearch/mmf/blob/v0.3/"
+github_doc_root = "https://github.com/facebookresearch/mmf/tree/master"
 
 
 # At the bottom of conf.py
@@ -202,3 +207,4 @@ def setup(app):
         True,
     )
     app.add_transform(AutoStructify)
+    app.add_css_file("css/customize.css")

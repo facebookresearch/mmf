@@ -47,6 +47,7 @@ repos:
     hooks:
     -   id: isort
         additional_dependencies: [toml]
+        exclude: ^website
 
 -   repo: https://github.com/ambv/black
     rev: stable
