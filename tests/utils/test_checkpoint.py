@@ -198,12 +198,12 @@ class TestUtilsCheckpoint(unittest.TestCase):
 
             self.assertTrue(
                 torch.equal(
-                    self.trainer.model.module.base[0].weight, base_0_weight_current
+                    self.trainer.model.module.base[0].weight, base_0_weight_current.cuda()
                 )
             )
             self.assertFalse(
                 torch.equal(
-                    self.trainer.model.module.base[0].weight, base_0_weight_best
+                    self.trainer.model.module.base[0].weight, base_0_weight_best.cuda()
                 )
             )
 
