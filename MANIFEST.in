@@ -1,5 +1,0 @@
-include LICENSE
-recursive-include projects *
-recursive-include mmf/configs *
-include requirements.txt
-include mmf/utils/phoc/cphoc.so

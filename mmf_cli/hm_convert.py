@@ -1,6 +1,9 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
 import argparse
 import hashlib
 import os
+import subprocess
 import zipfile
 
 from mmf.utils.configuration import Configuration
@@ -126,11 +129,23 @@ class HMConverter:
                 print("Checksum successful")
 
     def decompress_zip(self, dest, fname, password=None):
-        obj = zipfile.ZipFile(os.path.join(dest, fname), "r")
-        if password:
-            obj.setpassword(password.encode("utf-8"))
-        obj.extractall(path=dest)
-        obj.close()
+        path = os.path.join(dest, fname)
+        print("Extracting the zip can take time. Sit back and relax.")
+        try:
+            # Python's zip file module is very slow with password encrypted files
+            # Try command line
+            command = ["unzip", "-q", "-d", dest]
+            if password:
+                command += ["-P", password]
+            command += [path]
+            print(f"Trying to run command {' '.join(command)}")
+            subprocess.run(command, check=True)
+        except Exception:
+            obj = zipfile.ZipFile(path, "r")
+            if password:
+                obj.setpassword(password.encode("utf-8"))
+            obj.extractall(path=dest)
+            obj.close()
 
 
 def main():

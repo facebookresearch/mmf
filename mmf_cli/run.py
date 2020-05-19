@@ -87,7 +87,7 @@ def run(predict=False):
         )
     else:
         config.device_id = 0
-        main(configuration, predict)
+        main(configuration, predict=predict)
 
 
 if __name__ == "__main__":

@@ -110,7 +110,11 @@ class Checkpoint:
         self.repo_path = updir(os.path.abspath(__file__), n=3)
         self.git_repo = None
         if git and self.config.checkpoint.save_git_details:
-            self.git_repo = git.Repo(self.repo_path)
+            try:
+                self.git_repo = git.Repo(self.repo_path)
+            except git.exc.InvalidGitRepositoryError:
+                # Not a git repo, don't do anything
+                pass
 
     def save_config(self):
         cfg_file = os.path.join(self.ckpt_foldername, "config.yaml")
