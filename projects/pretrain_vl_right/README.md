@@ -16,7 +16,7 @@ This repository contains the code for modified implementation of VisualBERT and 
 
 Clone this repository, and build it with the following command.
 ```
-cd ~/pythia
+cd ~/mmf
 python setup.py build develop
 ```
 
@@ -45,62 +45,71 @@ Below are the download links to the imdbs and features used for this project. **
 
 Example : To pretrain VisualBERT model on the COCO Captions dataset, run the following command
 ```
-python tools/run.py config=projects/visual_bert/configs/masked_coco/pretrain.yaml run_type=train_val dataset=masked_coco model=visual_bert
+mmf_run config=projects/pretrain_vl_right/configs/visual_bert/masked_coco/full.yaml run_type=train_val dataset=masked_coco model=visual_bert
 ```
 
 ### Finetuning
 
 Example : To finetune VisualBERT model on the VQA2.0 dataset, run the following command
 ```
-python tools/run.py config=projects/visual_bert/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=visual_bert checkpoint.resume_file=<path_to_pretrained_visual_bert_model> checkpoint.resume_pretrained=true
+mmf_run config=projects/visual_bert/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=visual_bert checkpoint.resume_file=<path_to_pretrained_visual_bert_model> checkpoint.resume_pretrained=true
 ```
 
-Configs for different settings and pretraining datasets are provided in the next section.
+Configs for different settings and pretraining models are provided in the next section.
 
-## Configs for different pretraining datasets:
+## Configs and Pretrained Models:
 
-#### VisualBERT Masked COCO
+### VisualBERT Masked COCO
 
-- [Masked COCO 100%](projects/visual_bert/configs/masked_coco/pretrain.yaml)
-- [Masked COCO 50%](projects/pretrain_vl_right/configs/visual_bert/masked_coco/fifty_pc.yaml)
-- [Masked COCO 10%](projects/pretrain_vl_right/configs/visual_bert/masked_coco/ten_pc.yaml)
+| Pretrained model         | Model Key      | Pretrained Key                                   | Config                                                     |
+|------------------|----------------|--------------------------------------------------|------------------------------------------------------------|
+| Masked COCO 100%      | visual_bert | visual_bert.pretrained.coco.full             | projects/pretrain_vl_right/configs/visual_bert/masked_coco/full.yaml         |
+| Masked COCO 50%      | visual_bert | visual_bert.pretrained.coco.fifty_pc              | projects/pretrain_vl_right/configs/visual_bert/masked_coco/fifty_pc.yaml         |
+| Masked COCO 10%      | visual_bert | visual_bert.pretrained.coco.ten_pc              | projects/pretrain_vl_right/configs/visual_bert/masked_coco/ten_pc.yaml         |
+| Masked COCO Train+Val      | visual_bert | visual_bert.pretrained.coco.train_val              | projects/pretrain_vl_right/configs/visual_bert/masked_coco/full_train_val.yaml        |
 
-#### VisualBERT Masked VQA2
+### VisualBERT Masked VQA2
 
-- [Masked VQA2 100%](projects/visual_bert/configs/masked_vqa2/pretrain.yaml)
-- [Masked VQA2 50%](projects/pretrain_vl_right/configs/visual_bert/masked_vqa2/fifty_pc.yaml)
-- [Masked VQA2 10%](projects/pretrain_vl_right/configs/visual_bert/masked_vqa2/ten_pc.yaml)
+| Pretrained model         | Model Key      | Pretrained Key                                   | Config                                                     |
+|------------------|----------------|--------------------------------------------------|------------------------------------------------------------|
+| Masked VQA2 100%      | visual_bert | visual_bert.pretrained.vqa2.full             | projects/pretrain_vl_right/configs/visual_bert/masked_vqa2/full.yaml         |
+| Masked VQA2 50%      | visual_bert | visual_bert.pretrained.vqa2.fifty_pc              | projects/pretrain_vl_right/configs/visual_bert/masked_vqa2/fifty_pc.yaml         |
+| Masked VQA2 10%      | visual_bert | visual_bert.pretrained.vqa2.ten_pc              | projects/pretrain_vl_right/configs/visual_bert/masked_vqa2/ten_pc.yaml         |
+| Masked VQA2 Train+Val      | visual_bert | visual_bert.pretrained.vqa2.train_val              | projects/pretrain_vl_right/configs/visual_bert/masked_vqa2/full_train_val.yaml        |
 
-#### VisualBERT Masked Conceptual Captions
+### VisualBERT Masked Conceptual Captions
 
-- [Masked CC 100%](projects/visual_bert/configs/masked_conceptual_captions/pretrain.yaml)
-- [Masked CC 50%](projects/pretrain_vl_right/configs/visual_bert/masked_conceptual_captions/half.yaml)
-- [Masked CC 10% (CC Small 100%)](projects/pretrain_vl_right/configs/visual_bert/masked_conceptual_captions/small.yaml)
-- [Masked CC Small 50% (CC Small 50%)](projects/pretrain_vl_right/configs/visual_bert/masked_conceptual_captions/small_fifty_pc.yaml)
-- [Masked CC Small 10% (CC Small 10%)](projects/pretrain_vl_right/configs/visual_bert/masked_conceptual_captions/small_fifty_pc.yaml)
-- [Masked CC Generated 100%](projects/pretrain_vl_right/configs/visual_bert/masked_conceptual_captions/full_coco_generated.yaml)
-- [Masked CC Generated 50%](projects/pretrain_vl_right/configs/visual_bert/masked_conceptual_captions/half_coco_generated.yaml)
-- [Masked CC Generated 10%](projects/pretrain_vl_right/configs/visual_bert/masked_conceptual_captions/small_coco_generated.yaml)
+| Pretrained model         | Model Key      | Pretrained Key                                   | Config                                                     |
+|------------------|----------------|--------------------------------------------------|------------------------------------------------------------|
+| Masked CC 100%      | visual_bert | visual_bert.pretrained.cc.full             | projects/pretrain_vl_right/configs/visual_bert/masked_conceptual_captions/full.yaml         |
+| Masked CC 50%      | visual_bert | visual_bert.pretrained.cc.half              | projects/pretrain_vl_right/configs/visual_bert/masked_conceptual_captions/half.yaml         |
+| Masked CC 10% (CC Small 100%)     | visual_bert | visual_bert.pretrained.cc.small              | projects/pretrain_vl_right/configs/visual_bert/masked_conceptual_captions/small.yaml         |
+| Masked CC Small 50% (CC Small 50%)      | visual_bert | visual_bert.pretrained.cc.small_fifty_pc              | projects/pretrain_vl_right/configs/visual_bert/masked_conceptual_captions/small_fifty_pc.yaml        |
+| Masked CC Small 10% (CC Small 10%)      | visual_bert | visual_bert.pretrained.cc.small_ten_pc               | projects/pretrain_vl_right/configs/visual_bert/masked_conceptual_captions/small_ten_pc.yaml        |
+| Masked CC Generated 100%      | visual_bert | visual_bert.pretrained.cc.full_coco_generated              | projects/pretrain_vl_right/configs/visual_bert/masked_conceptual_captions/full_coco_generated.yaml        |
+| Masked CC Generated 50%      | visual_bert | visual_bert.pretrained.cc.half_coco_generated              | projects/pretrain_vl_right/configs/visual_bert/masked_conceptual_captions/half_coco_generated.yaml        |
+| Masked CC Generated 10%      | visual_bert | visual_bert.pretrained.cc.small_coco_generated              | projects/pretrain_vl_right/configs/visual_bert/masked_conceptual_captions/small_coco_generated.yaml        |
 
-#### ViLBERT Masked COCO
+### ViLBERT Masked COCO
 
-- [Masked COCO 100%](projects/vilbert/configs/masked_coco/pretrain.yaml)
-- [Masked COCO 50%](projects/pretrain_vl_right/configs/vilbert/masked_coco/fifty_pc.yaml)
-- [Masked COCO 10%](projects/pretrain_vl_right/configs/vilbert/masked_coco/ten_pc.yaml)
+| Pretrained model         | Model Key      | Pretrained Key                                   | Config                                                     |
+|------------------|----------------|--------------------------------------------------|------------------------------------------------------------|
+| Masked COCO 100%      | vilbert | vilbert.pretrained.coco              | projects/pretrain_vl_right/configs/vilbert/masked_coco/full.yaml         |
 
-#### ViLBERT Masked VQA2
+### ViLBERT Masked VQA2
 
-- [Masked VQA2 100%](projects/vilbert/configs/masked_vqa2/pretrain.yaml)
-- [Masked VQA2 50%](projects/pretrain_vl_right/configs/vilbert/masked_vqa2/fifty_pc.yaml)
-- [Masked VQA2 10%](projects/pretrain_vl_right/configs/vilbert/masked_vqa2/ten_pc.yaml)
+| Pretrained model         | Model Key      | Pretrained Key                                   | Config                                                     |
+|------------------|----------------|--------------------------------------------------|------------------------------------------------------------|
+| Masked VQA2 100%      | vilbert | vilbert.pretrained.vqa2              | projects/pretrain_vl_right/configs/vilbert/masked_vqa2/full.yaml         |
 
-#### ViLBERT Masked Conceptual Captions
 
-- [Masked CC 100%](projects/vilbert/configs/masked_conceptual_captions/pretrain.yaml)
-- [Masked CC 50%](projects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/half.yaml)
-- [Masked CC 10% (CC Small 100%)](projects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/small.yaml)
-- [Masked CC Small 50% (CC Small 50%)](projects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/small_fifty_pc.yaml)
-- [Masked CC Small 10% (CC Small 10%)](projects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/small_fifty_pc.yaml)
-- [Masked CC Generated 100%](projects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/full_coco_generated.yaml)
-- [Masked CC Generated 50%](projects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/half_coco_generated.yaml)
-- [Masked CC Generated 10%](projects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/small_coco_generated.yaml)
+### ViLBERT Masked Conceptual Captions
+
+| Pretrained model         | Model Key      | Pretrained Key                                   | Config                                                     |
+|------------------|----------------|--------------------------------------------------|------------------------------------------------------------|
+| Masked CC 100%       | vilbert | vilbert.pretrained.cc.full              | projects/vilbert/configs/masked_conceptual_captions/full.yaml         |
+| Masked CC 50%     | vilbert | vilbert.pretrained.cc.half            | projects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/half.yaml |
+| Masked CC 10% (CC Small 100%)        | vilbert  | vilbert.pretrained.cc.small                       | projects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/small.yaml          |
+| Masked CC Generated 100%      | vilbert    | vilbert.pretrained.cc.full_coco_generated                        | projects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/full_coco_generated.yaml   |
+| Masked CC Generated 50%       | vilbert    | vilbert.pretrained.cc.half_coco_generated                    | projects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/half_coco_generated.yaml   |
+| Masked CC Generated 10%       | vilbert           | vilbert.pretrained.cc.small_coco_generated                      | projects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/small_coco_generated.yaml          |

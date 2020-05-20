@@ -1,3 +1,6 @@
+includes:
+- ./defaults.yaml
+
 dataset_config:
   masked_vqa2:
     use_images: false
