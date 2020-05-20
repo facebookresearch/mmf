@@ -2,6 +2,7 @@
 import copy
 import os
 
+import numpy as np
 import omegaconf
 import torch
 from PIL import Image
@@ -10,6 +11,7 @@ from torchvision import transforms
 from mmf.common.sample import Sample
 from mmf.datasets.mmf_dataset import MMFDataset
 from mmf.utils.general import get_mmf_root
+from mmf.utils.visualize import visualize_images
 
 
 class HatefulMemesFeaturesDataset(MMFDataset):
@@ -45,7 +47,11 @@ class HatefulMemesFeaturesDataset(MMFDataset):
         features = self.features_db.get(sample_info)
         current_sample.update(features)
 
-        current_sample.targets = torch.tensor(sample_info["label"], dtype=torch.long)
+        if "label" in sample_info:
+            current_sample.targets = torch.tensor(
+                sample_info["label"], dtype=torch.long
+            )
+
         return current_sample
 
     def format_for_prediction(self, report):
@@ -77,11 +83,26 @@ class HatefulMemesImageDataset(MMFDataset):
 
         # Get the first image from the set of images returned from the image_db
         current_sample.image = self.image_db[idx]["images"][0]
-        current_sample.targets = torch.tensor(sample_info["label"], dtype=torch.long)
+
+        if "label" in sample_info:
+            current_sample.targets = torch.tensor(
+                sample_info["label"], dtype=torch.long
+            )
+
         return current_sample
 
     def format_for_prediction(self, report):
         return generate_prediction(report)
+
+    def visualize(self, num_samples=1, use_transforms=False, *args, **kwargs):
+        image_paths = []
+        random_samples = np.random.randint(0, len(self), size=num_samples)
+
+        for idx in random_samples:
+            image_paths.append(self.annotation_db[idx]["img"])
+
+        images = self.image_db.from_path(image_paths, use_transforms=use_transforms)
+        visualize_images(images["images"], *args, **kwargs)
 
 
 def generate_prediction(report):

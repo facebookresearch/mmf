@@ -64,6 +64,16 @@ def load_yaml(f):
     return mapping
 
 
+def get_default_config_path():
+    directory = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(directory, "..", "configs", "defaults.yaml")
+
+
+def load_yaml_with_defaults(f):
+    default_config = get_default_config_path()
+    return OmegaConf.merge(load_yaml(default_config), load_yaml(f))
+
+
 def get_zoo_config(
     key, variation="defaults", zoo_config_path=None, zoo_type="datasets"
 ):
@@ -208,7 +218,7 @@ class Configuration:
         registry.register("config", self.config)
 
     def _build_default_config(self):
-        self.default_config_path = self._get_default_config_path()
+        self.default_config_path = get_default_config_path()
         default_config = load_yaml(self.default_config_path)
         return default_config
 
@@ -494,10 +504,6 @@ class Configuration:
     def _convert_node_to_json(self, node):
         container = OmegaConf.to_container(node, resolve=True)
         return json.dumps(container, indent=4, sort_keys=True)
-
-    def _get_default_config_path(self):
-        directory = os.path.dirname(os.path.abspath(__file__))
-        return os.path.join(directory, "..", "configs", "defaults.yaml")
 
     def _update_specific(self, config):
         self.writer = registry.get("writer")

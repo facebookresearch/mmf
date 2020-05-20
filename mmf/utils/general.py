@@ -2,8 +2,6 @@
 
 import collections
 import gc
-import glob
-import importlib
 import os
 from bisect import bisect
 
@@ -271,60 +269,3 @@ def get_chunks(x, sizes):
         out.append(y)
         begin += s
     return out
-
-
-def setup_imports():
-    from mmf.common.registry import registry
-
-    # Automatically load all of the modules, so that
-    # they register with registry
-    root_folder = registry.get("mmf_root", no_warning=True)
-
-    if root_folder is None:
-        root_folder = os.path.dirname(os.path.abspath(__file__))
-        root_folder = os.path.join(root_folder, "..")
-
-        environment_pythia_path = os.environ.get("PYTHIA_PATH")
-
-        if environment_pythia_path is not None:
-            root_folder = environment_pythia_path
-
-        registry.register("pythia_path", root_folder)
-
-    trainer_folder = os.path.join(root_folder, "trainers")
-    trainer_pattern = os.path.join(trainer_folder, "**", "*.py")
-    datasets_folder = os.path.join(root_folder, "datasets")
-    datasets_pattern = os.path.join(datasets_folder, "**", "*.py")
-    model_folder = os.path.join(root_folder, "models")
-    model_pattern = os.path.join(model_folder, "**", "*.py")
-
-    importlib.import_module("mmf.common.meter")
-
-    files = (
-        glob.glob(datasets_pattern, recursive=True)
-        + glob.glob(model_pattern, recursive=True)
-        + glob.glob(trainer_pattern, recursive=True)
-    )
-
-    for f in files:
-        if f.find("models") != -1:
-            splits = f.split(os.sep)
-            file_name = splits[-1]
-            module_name = file_name[: file_name.find(".py")]
-            importlib.import_module("mmf.models." + module_name)
-        elif f.find("trainer") != -1:
-            splits = f.split(os.sep)
-            file_name = splits[-1]
-            module_name = file_name[: file_name.find(".py")]
-            importlib.import_module("mmf.trainers." + module_name)
-        elif f.endswith("builder.py"):
-            splits = f.split(os.sep)
-            task_name = splits[-3]
-            dataset_name = splits[-2]
-            if task_name == "datasets" or dataset_name == "datasets":
-                continue
-            file_name = splits[-1]
-            module_name = file_name[: file_name.find(".py")]
-            importlib.import_module(
-                "mmf.datasets." + task_name + "." + dataset_name + "." + module_name
-            )

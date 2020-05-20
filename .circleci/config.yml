@@ -35,6 +35,7 @@ install_dep: &install_dep
         pip install --progress-bar off black
         pip install --progress-bar off isort
         pip install --progress-bar off pytest
+        python setup.py clean --all
         python setup.py install
         python -c 'import torch; print("Torch version:", torch.__version__)'
         python -m torch.utils.collect_env

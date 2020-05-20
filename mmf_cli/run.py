@@ -8,9 +8,8 @@ from mmf.common.registry import registry
 from mmf.utils.build import build_trainer
 from mmf.utils.configuration import Configuration
 from mmf.utils.distributed import distributed_init, infer_init_method
-from mmf.utils.env import set_seed
+from mmf.utils.env import set_seed, setup_imports
 from mmf.utils.flags import flags
-from mmf.utils.general import setup_imports
 from mmf.utils.logger import Logger
 
 

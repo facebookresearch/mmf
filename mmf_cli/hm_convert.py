@@ -138,7 +138,6 @@ class HMConverter:
             if password:
                 command += ["-P", password]
             command += [path]
-            print(f"Trying to run command {' '.join(command)}")
             subprocess.run(command, check=True)
         except Exception:
             obj = zipfile.ZipFile(path, "r")

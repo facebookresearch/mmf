@@ -8,7 +8,8 @@ import mmf.utils.text as text_utils
 from mmf.common.registry import registry
 from mmf.common.sample import Sample, SampleList
 from mmf.utils.configuration import Configuration
-from mmf.utils.general import get_mmf_root, setup_imports
+from mmf.utils.env import setup_imports
+from mmf.utils.general import get_mmf_root
 from tests.test_utils import dummy_args
 from tests.utils.test_model import TestDecoderModel
 
@@ -18,7 +19,8 @@ class TestUtilsText(unittest.TestCase):
     TOKENIZE_EXAMPLE = "This will be a test of tokens?"
     VOCAB_EXAMPLE_SENTENCES = [
         "Are there more big green things than large purple shiny cubes?"
-        "How many other things are there of the same shape as the tiny cyan matte object?",
+        "How many other things are there of the same shape as the tiny "
+        + "cyan matte object?",
         "Is the color of the large sphere the same as the large matte cube?"
         "What material is the big object that is right of the brown cylinder and "
         "left of the large brown sphere?",
