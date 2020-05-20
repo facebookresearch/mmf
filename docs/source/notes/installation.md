@@ -1,6 +1,6 @@
 # Installation
 
-MMF is tested on Python 3.6+ and PyTorch 1.4.
+MMF is tested on Python 3.6+ and PyTorch 1.5.
 
 ## Install using pip
 
