@@ -69,6 +69,34 @@ def remove_specific_requirements(reqs):
     return updated_reqs
 
 
+def fetch_files_from_folder(folder):
+    options = glob(f"{folder}/**", recursive=True)
+    data_files = []
+    # All files inside the folder need to be added to package_data
+    # which would include yaml configs as well as project READMEs
+    for option in options:
+        if os.path.isdir(option):
+            files = []
+            for f in glob(os.path.join(option, "*")):
+                if os.path.isfile(f):
+                    files.append(f)
+                data_files += files
+    return data_files
+
+
+def fetch_package_data():
+    current_dir = os.getcwd()
+    mmf_folder = os.path.dirname(os.path.abspath(__file__))
+    # The files for package data need to be relative to mmf package dir
+    os.chdir(os.path.join(mmf_folder, "mmf"))
+    data_files = fetch_files_from_folder("projects")
+    data_files += fetch_files_from_folder("tools")
+    data_files += fetch_files_from_folder("configs")
+    data_files += glob(os.path.join("utils", "phoc", "cphoc.*"))
+    os.chdir(current_dir)
+    return data_files
+
+
 class BuildExt(build_ext):
     def run(self):
         build_ext.run(self)
@@ -88,7 +116,9 @@ AUTHOR = "Facebook AI Research"
 AUTHOR_EMAIL = "mmf@fb.com"
 DEPENDENCY_LINKS = []
 REQUIREMENTS = (fetch_requirements(),)
-EXCLUDES = ("data", "docs", "tests")
+# Need to exclude folders in tests as well so as they don't create an extra package
+# If something from tools is regularly used consider converting it into a cli command
+EXCLUDES = ("data", "docs", "tests", "tests.*", "tools", "tools.*")
 CMD_CLASS = {"build_ext": BuildExt}
 EXT_MODULES = [Extension("cphoc", sources=["mmf/utils/phoc/src/cphoc.c"], language="c")]
 
@@ -108,6 +138,7 @@ if __name__ == "__main__":
         name=DISTNAME,
         install_requires=REQUIREMENTS,
         include_package_data=True,
+        package_data={"mmf": fetch_package_data()},
         packages=setuptools.find_packages(exclude=EXCLUDES),
         python_requires=">=3.6",
         ext_modules=EXT_MODULES,
@@ -129,9 +160,9 @@ if __name__ == "__main__":
         ],
         entry_points={
             "console_scripts": [
-                "mmf_run = tools.run:run",
-                "mmf_predict = tools.predict:predict",
-                "mmf_convert_hm = tools.scripts.hateful_memes.convert:main",
+                "mmf_run = mmf_cli.run:run",
+                "mmf_predict = mmf_cli.predict:predict",
+                "mmf_convert_hm = mmf_cli.hm_convert:main",
             ]
         },
     )

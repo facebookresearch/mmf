@@ -114,7 +114,11 @@ def get_absolute_path(paths):
         # Test all these paths, if any exists return
         for path in possible_paths:
             if PathManager.exists(path):
-                return path
+                # URIs
+                if path.find("://") == -1:
+                    return os.path.abspath(path)
+                else:
+                    return path
 
         # If nothing works, return original path so that it throws an error
         return paths

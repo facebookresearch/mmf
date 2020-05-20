@@ -3,7 +3,7 @@
 
 import sys
 
-from tools.run import run
+from mmf_cli.run import run
 
 
 def predict():
