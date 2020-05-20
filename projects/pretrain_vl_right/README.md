@@ -66,7 +66,7 @@ Configs for different settings and pretraining models are provided in the next s
 | Masked COCO 100%      | visual_bert | visual_bert.pretrained.coco.full             | projects/pretrain_vl_right/configs/visual_bert/masked_coco/full.yaml         |
 | Masked COCO 50%      | visual_bert | visual_bert.pretrained.coco.fifty_pc              | projects/pretrain_vl_right/configs/visual_bert/masked_coco/fifty_pc.yaml         |
 | Masked COCO 10%      | visual_bert | visual_bert.pretrained.coco.ten_pc              | projects/pretrain_vl_right/configs/visual_bert/masked_coco/ten_pc.yaml         |
-| Masked COCO Train+Val      | visual_bert | visual_bert.pretrained.coco.train_val              | projects/pretrain_vl_right/configs/visual_bert/masked_coco/full_train_val.yaml        |
+| Masked COCO Train+Val      | visual_bert | visual_bert.pretrained.coco.full_train_val              | projects/pretrain_vl_right/configs/visual_bert/masked_coco/full_train_val.yaml        |
 
 ### VisualBERT Masked VQA2
 
@@ -75,7 +75,7 @@ Configs for different settings and pretraining models are provided in the next s
 | Masked VQA2 100%      | visual_bert | visual_bert.pretrained.vqa2.full             | projects/pretrain_vl_right/configs/visual_bert/masked_vqa2/full.yaml         |
 | Masked VQA2 50%      | visual_bert | visual_bert.pretrained.vqa2.fifty_pc              | projects/pretrain_vl_right/configs/visual_bert/masked_vqa2/fifty_pc.yaml         |
 | Masked VQA2 10%      | visual_bert | visual_bert.pretrained.vqa2.ten_pc              | projects/pretrain_vl_right/configs/visual_bert/masked_vqa2/ten_pc.yaml         |
-| Masked VQA2 Train+Val      | visual_bert | visual_bert.pretrained.vqa2.train_val              | projects/pretrain_vl_right/configs/visual_bert/masked_vqa2/full_train_val.yaml        |
+| Masked VQA2 Train+Val      | visual_bert | visual_bert.pretrained.vqa2.full_train_val              | projects/pretrain_vl_right/configs/visual_bert/masked_vqa2/full_train_val.yaml        |
 
 ### VisualBERT Masked Conceptual Captions
 
@@ -107,7 +107,7 @@ Configs for different settings and pretraining models are provided in the next s
 
 | Pretrained model         | Model Key      | Pretrained Key                                   | Config                                                     |
 |------------------|----------------|--------------------------------------------------|------------------------------------------------------------|
-| Masked CC 100%       | vilbert | vilbert.pretrained.cc.full              | projects/vilbert/configs/masked_conceptual_captions/full.yaml         |
+| Masked CC 100%       | vilbert | vilbert.pretrained.cc.full              | rojects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/full.yaml         |
 | Masked CC 50%     | vilbert | vilbert.pretrained.cc.half            | projects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/half.yaml |
 | Masked CC 10% (CC Small 100%)        | vilbert  | vilbert.pretrained.cc.small                       | projects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/small.yaml          |
 | Masked CC Generated 100%      | vilbert    | vilbert.pretrained.cc.full_coco_generated                        | projects/pretrain_vl_right/configs/vilbert/masked_conceptual_captions/full_coco_generated.yaml   |
