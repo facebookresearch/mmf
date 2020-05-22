@@ -34,7 +34,7 @@ def main(get_grid, postprocess_hyperparams, args):
         # launch training
         job_id = launch_train(args, config)
         if job_id is not None:
-            print("Launched {}".format(job_id))
+            print(f"Launched {job_id}")
 
         if args.sequential and not args.local and job_id is not None:
             args.dep = job_id
@@ -51,9 +51,9 @@ def copy_all_python_files(source, snapshot_main_dir, code_snapshot_hash):
     """
     os.makedirs(snapshot_main_dir, exist_ok=True)
     destination = os.path.join(snapshot_main_dir, code_snapshot_hash)
-    assert not os.path.exists(destination), "Code snapshot: {0} alredy exists".format(
-        code_snapshot_hash
-    )
+    assert not os.path.exists(
+        destination
+    ), f"Code snapshot: {code_snapshot_hash} alredy exists"
     os.makedirs(destination)
     all_pys = (
         glob(os.path.join(source, "pythia/**/*.py"), recursive=True)
@@ -204,7 +204,7 @@ def launch_train(args, config):
         if not args.salloc:
             excluded_hosts = os.environ.get("EXCLUDED_HOSTS", None)
             included_hosts = os.environ.get("INCLUDED_HOSTS", None)
-            gres = "gpu:{}:{}".format(args.gpu_type, args.num_gpus)
+            gres = f"gpu:{args.gpu_type}:{args.num_gpus}"
             sbatch_cmd = [
                 "sbatch",
                 "--job-name",
@@ -239,11 +239,11 @@ def launch_train(args, config):
             if args.comment:
                 comment = args.comment
                 if args.snapshot_code:
-                    comment += ", Code Location: {0}".format(destination)
+                    comment += f", Code Location: {destination}"
                 sbatch_cmd += ["--comment", comment]
 
             if args.snapshot_code:
-                sbatch_cmd += ["--comment", "Code Location: {0}".format(destination)]
+                sbatch_cmd += ["--comment", f"Code Location: {destination}"]
 
             if args.dep is not None:
                 sbatch_cmd.extend(["-d", str(args.dep)])
@@ -308,7 +308,7 @@ def has_finished(save_dir):
     train_log = os.path.join(save_dir, "train.log")
     if not os.path.exists(train_log):
         return False
-    with open(train_log, "r") as h:
+    with open(train_log) as h:
         lines = h.readlines()
         if len(lines) == 0:
             return False
@@ -331,7 +331,7 @@ def has_failed(save_dir):
     max_job_id = max(job_ids)
 
     def _has_failed(stderr_fn):
-        with open(stderr_fn, "r") as h:
+        with open(stderr_fn) as h:
             for line in h:
                 if len(line.strip()) > 0:
                     # assume that any output in stderr indicates an error

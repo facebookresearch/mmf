@@ -70,7 +70,7 @@ def get_zoo_config(
     version = None
     resources = None
     if zoo_config_path is None:
-        zoo_config_path = os.path.join("configs", "zoo", "{}.yaml".format(zoo_type))
+        zoo_config_path = os.path.join("configs", "zoo", f"{zoo_type}.yaml")
     zoo = load_yaml(zoo_config_path)
 
     # Set struct on zoo so that unidentified access is not allowed
@@ -90,7 +90,7 @@ def get_zoo_config(
         # be directly returned if "defaults" was selected as the variation
         assert (
             variation == "defaults"
-        ), "'{}' variation not present in zoo config".format(variation)
+        ), f"'{variation}' variation not present in zoo config"
         return _get_version_and_resources(item)
     elif "resources" in item:
         # Case where full key is directly passed
@@ -270,7 +270,7 @@ class Configuration:
         model_cls = registry.get_model_class(model)
 
         if model_cls is None:
-            warning = "No model named '{}' has been registered".format(model)
+            warning = f"No model named '{model}' has been registered"
             warnings.warn(warning)
             return OmegaConf.create()
 
@@ -304,7 +304,7 @@ class Configuration:
             builder_cls = registry.get_builder_class(dataset)
 
             if builder_cls is None:
-                warning = "No dataset named '{}' has been registered".format(dataset)
+                warning = f"No dataset named '{dataset}' has been registered"
                 warnings.warn(warning)
                 continue
             default_dataset_config_path = builder_cls.config_path()
@@ -312,7 +312,7 @@ class Configuration:
             if default_dataset_config_path is None:
                 warning = (
                     "Dataset {}'s builder class has no default configuration "
-                    + "provided".format(dataset)
+                    + f"provided"
                 )
                 warnings.warn(warning)
                 continue
@@ -397,14 +397,14 @@ class Configuration:
                         current_value,
                         (collections.abc.Mapping, collections.abc.Sequence),
                     ):
-                        print("Overriding option {} to {}".format(opt, value))
+                        print(f"Overriding option {opt} to {value}")
                         current[stripped_field][array_index] = self._decode_value(value)
                     else:
                         # Otherwise move on down the chain
                         current = current_value
                 else:
                     if idx == len(splits) - 1:
-                        print("Overriding option {} to {}".format(opt, value))
+                        print(f"Overriding option {opt} to {value}")
                         current[stripped_field] = self._decode_value(value)
                     else:
                         raise AttributeError(
@@ -466,25 +466,22 @@ class Configuration:
 
         for dataset in datasets:
             if dataset in self.config.dataset_config:
-                self.writer.write("======== {} =======".format(dataset), "info")
+                self.writer.write(f"======== {dataset} =======", "info")
                 dataset_config = self.config.dataset_config[dataset]
                 self.writer.write(self._convert_node_to_json(dataset_config), "info")
             else:
                 self.writer.write(
-                    "No dataset named '{}' in config. Skipping".format(dataset),
-                    "warning",
+                    f"No dataset named '{dataset}' in config. Skipping", "warning"
                 )
 
         self.writer.write("======  Optimizer Attributes  ======", "info")
         self.writer.write(self._convert_node_to_json(self.config.optimizer), "info")
 
         if self.config.model not in self.config.model_config:
-            raise ValueError(
-                "{} not present in model attributes".format(self.config.model)
-            )
+            raise ValueError(f"{self.config.model} not present in model attributes")
 
         self.writer.write(
-            "======  Model ({}) Attributes  ======".format(self.config.model), "info"
+            f"======  Model ({self.config.model}) Attributes  ======", "info"
         )
         self.writer.write(
             self._convert_node_to_json(self.config.model_config[self.config.model]),

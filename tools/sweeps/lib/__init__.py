@@ -43,7 +43,8 @@ def get_args():
     parser.add_argument(
         "--resume_failed",
         action="store_true",
-        help="resume any runs that failed (assumes --num_trials and --seed are the same)",
+        help="resume any runs that failed (assumes --num_trials and --seed"
+        + " are the same)",
     )
     parser.add_argument(
         "--resume_finished",
@@ -66,7 +67,8 @@ def get_args():
             default=os.path.join(
                 "/checkpoint", os.environ["USER"], str(datetime.date.today())
             ),
-            help="save checkpoints and logs in <checkpoints-dir>/<prefix>.<save_dir_key>",
+            help="save checkpoints and logs in "
+            + "<checkpoints-dir>/<prefix>.<save_dir_key>",
         )
     else:
         default_backend = "fblearner"
@@ -78,7 +80,8 @@ def get_args():
                 "checkpoints",
                 str(datetime.date.today()),
             ),
-            help="save checkpoints and logs in <checkpoints-dir>/<prefix>.<save_dir_key>",
+            help="save checkpoints and logs in "
+            + "<checkpoints-dir>/<prefix>.<save_dir_key>",
         )
 
     parser.add_argument(
@@ -153,7 +156,7 @@ def get_args():
     return args
 
 
-class hyperparam(object):
+class hyperparam:
     """Base class for defining hyperparameters."""
 
     def __init__(self, name, values=None, binary_flag=False, save_dir_key=None):
@@ -161,9 +164,10 @@ class hyperparam(object):
         Arguments:
         - name : the name of the hyperparameter (e.g., `--dropout`)
         - values : the set of values to sweep over (e.g., `[0.0, 0.1, 0.2]`)
-        - binary_flag : whether the hyperparameter uses a boolean flag (e.g., `--no-save`)
-        - save_dir_key : function that takes the hyperparameter value and returns the "key"
-                         to be appended to the output directory name
+        - binary_flag : whether the hyperparameter uses a boolean flag
+                        (e.g., `--no-save`)
+        - save_dir_key : function that takes the hyperparameter value and returns
+                        the "key" to be appended to the output directory name
         """
         self.name = name
         if values is None:  # syntactic sugar for binary flags

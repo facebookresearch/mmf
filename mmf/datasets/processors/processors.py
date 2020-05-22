@@ -231,7 +231,7 @@ class VocabProcessor(BaseProcessor):
 
             if self.preprocessor is None:
                 raise ValueError(
-                    "No text processor named {} is defined.".format(config.preprocessor)
+                    f"No text processor named {config.preprocessor} is defined."
                 )
 
     def __call__(self, item):
@@ -399,7 +399,7 @@ class FastTextProcessor(VocabProcessor):
 
         if not PathManager.exists(model_file):
             if _is_master:
-                warnings.warn("No model file present at {}.".format(model_file))
+                warnings.warn(f"No model file present at {model_file}.")
             needs_download = True
 
         if needs_download:
@@ -419,9 +419,7 @@ class FastTextProcessor(VocabProcessor):
             return model_file_path
 
         if PathManager.exists(model_file_path):
-            self.writer.write(
-                "Vectors already present at {}.".format(model_file_path), "info"
-            )
+            self.writer.write(f"Vectors already present at {model_file_path}.", "info")
             return model_file_path
 
         import requests
@@ -448,9 +446,7 @@ class FastTextProcessor(VocabProcessor):
 
             pbar.close()
 
-        self.writer.write(
-            "fastText bin downloaded at {}.".format(model_file_path), "info"
-        )
+        self.writer.write(f"fastText bin downloaded at {model_file_path}.", "info")
 
         return model_file_path
 
@@ -524,7 +520,7 @@ class VQAAnswerProcessor(BaseProcessor):
 
             if self.preprocessor is None:
                 raise ValueError(
-                    "No processor named {} is defined.".format(config.preprocessor)
+                    f"No processor named {config.preprocessor} is defined."
                 )
 
         if hasattr(config, "num_answers"):

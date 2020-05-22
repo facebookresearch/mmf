@@ -18,7 +18,8 @@ class TestUtilsText(unittest.TestCase):
     TOKENIZE_EXAMPLE = "This will be a test of tokens?"
     VOCAB_EXAMPLE_SENTENCES = [
         "Are there more big green things than large purple shiny cubes?"
-        "How many other things are there of the same shape as the tiny cyan matte object?",
+        "How many other things are there of the same shape as the tiny cyan "
+        + "matte object?",
         "Is the color of the large sphere the same as the large matte cube?"
         "What material is the big object that is right of the brown cylinder and "
         "left of the large brown sphere?",
@@ -39,7 +40,7 @@ class TestUtilsText(unittest.TestCase):
         )
         config_path = os.path.abspath(config_path)
         args = dummy_args(model="butd", dataset="coco")
-        args.opts.append("config={}".format(config_path))
+        args.opts.append(f"config={config_path}")
         configuration = Configuration(args)
         configuration.config.datasets = "coco"
         configuration.config.model_config.butd.inference.params.sum_threshold = 0.5

@@ -31,7 +31,7 @@ from mmf.utils.modeling import get_optimizer_parameters_for_bert
 
 class BertSelfAttention(nn.Module):
     def __init__(self, config):
-        super(BertSelfAttention, self).__init__()
+        super().__init__()
         if config.hidden_size % config.num_attention_heads != 0:
             raise ValueError(
                 "The hidden size (%d) is not a multiple of the number of attention "
@@ -100,7 +100,7 @@ class BertSelfAttention(nn.Module):
 
 class BertAttention(nn.Module):
     def __init__(self, config):
-        super(BertAttention, self).__init__()
+        super().__init__()
         self.self = BertSelfAttention(config)
         self.output = BertSelfOutput(config)
 
@@ -112,7 +112,7 @@ class BertAttention(nn.Module):
 
 class BertLayer(nn.Module):
     def __init__(self, config):
-        super(BertLayer, self).__init__()
+        super().__init__()
         self.attention = BertAttention(config)
         self.intermediate = BertIntermediate(config)
         self.output = BertOutput(config)
@@ -128,7 +128,7 @@ class BertLayer(nn.Module):
 
 class BertImageSelfAttention(nn.Module):
     def __init__(self, config):
-        super(BertImageSelfAttention, self).__init__()
+        super().__init__()
         if config.v_hidden_size % config.v_num_attention_heads != 0:
             raise ValueError(
                 "The hidden size (%d) is not a multiple of the number of attention "
@@ -216,7 +216,7 @@ class BertImageSelfAttention(nn.Module):
 
 class BertImageSelfOutput(nn.Module):
     def __init__(self, config):
-        super(BertImageSelfOutput, self).__init__()
+        super().__init__()
         self.dense = nn.Linear(config.v_hidden_size, config.v_hidden_size)
         self.LayerNorm = BertLayerNorm(config.v_hidden_size, eps=1e-12)
         self.dropout = nn.Dropout(config.v_hidden_dropout_prob)
@@ -230,7 +230,7 @@ class BertImageSelfOutput(nn.Module):
 
 class BertImageAttention(nn.Module):
     def __init__(self, config):
-        super(BertImageAttention, self).__init__()
+        super().__init__()
         self.self = BertImageSelfAttention(config)
         self.output = BertImageSelfOutput(config)
 
@@ -244,7 +244,7 @@ class BertImageAttention(nn.Module):
 
 class BertImageIntermediate(nn.Module):
     def __init__(self, config):
-        super(BertImageIntermediate, self).__init__()
+        super().__init__()
         self.dense = nn.Linear(config.v_hidden_size, config.v_intermediate_size)
         if isinstance(config.v_hidden_act, str):
             self.intermediate_act_fn = ACT2FN[config.v_hidden_act]
@@ -259,7 +259,7 @@ class BertImageIntermediate(nn.Module):
 
 class BertImageOutput(nn.Module):
     def __init__(self, config):
-        super(BertImageOutput, self).__init__()
+        super().__init__()
         self.dense = nn.Linear(config.v_intermediate_size, config.v_hidden_size)
         self.LayerNorm = BertLayerNorm(config.v_hidden_size, eps=1e-12)
         self.dropout = nn.Dropout(config.v_hidden_dropout_prob)
@@ -273,7 +273,7 @@ class BertImageOutput(nn.Module):
 
 class BertImageLayer(nn.Module):
     def __init__(self, config):
-        super(BertImageLayer, self).__init__()
+        super().__init__()
         self.attention = BertImageAttention(config)
         self.intermediate = BertImageIntermediate(config)
         self.output = BertImageOutput(config)
@@ -289,7 +289,7 @@ class BertImageLayer(nn.Module):
 
 class BertBiAttention(nn.Module):
     def __init__(self, config):
-        super(BertBiAttention, self).__init__()
+        super().__init__()
         if config.bi_hidden_size % config.bi_num_attention_heads != 0:
             raise ValueError(
                 "The hidden size (%d) is not a multiple of the number of attention "
@@ -421,7 +421,7 @@ class BertBiAttention(nn.Module):
 
 class BertBiOutput(nn.Module):
     def __init__(self, config):
-        super(BertBiOutput, self).__init__()
+        super().__init__()
 
         self.dense1 = nn.Linear(config.bi_hidden_size, config.v_hidden_size)
         self.LayerNorm1 = BertLayerNorm(config.v_hidden_size, eps=1e-12)
@@ -453,7 +453,7 @@ class BertBiOutput(nn.Module):
 
 class BertConnectionLayer(nn.Module):
     def __init__(self, config):
-        super(BertConnectionLayer, self).__init__()
+        super().__init__()
         self.biattention = BertBiAttention(config)
 
         self.biOutput = BertBiOutput(config)
@@ -498,7 +498,7 @@ class BertConnectionLayer(nn.Module):
 
 class BertEncoder(nn.Module):
     def __init__(self, config):
-        super(BertEncoder, self).__init__()
+        super().__init__()
 
         # in the bert encoder, we need to extract three things here.
         # text bert layer: BertLayer
@@ -705,7 +705,7 @@ class BertEncoder(nn.Module):
 
 class BertTextPooler(nn.Module):
     def __init__(self, config):
-        super(BertTextPooler, self).__init__()
+        super().__init__()
         self.dense = nn.Linear(config.hidden_size, config.bi_hidden_size)
         self.activation = nn.ReLU()
 
@@ -720,7 +720,7 @@ class BertTextPooler(nn.Module):
 
 class BertImagePooler(nn.Module):
     def __init__(self, config):
-        super(BertImagePooler, self).__init__()
+        super().__init__()
         self.dense = nn.Linear(config.v_hidden_size, config.bi_hidden_size)
         self.activation = nn.ReLU()
 
@@ -735,7 +735,7 @@ class BertImagePooler(nn.Module):
 
 class BertImgPredictionHeadTransform(nn.Module):
     def __init__(self, config):
-        super(BertImgPredictionHeadTransform, self).__init__()
+        super().__init__()
         self.dense = nn.Linear(config.v_hidden_size, config.v_hidden_size)
         if isinstance(config.hidden_act, str):
             self.transform_act_fn = ACT2FN[config.hidden_act]
@@ -752,7 +752,7 @@ class BertImgPredictionHeadTransform(nn.Module):
 
 class BertImagePredictionHead(nn.Module):
     def __init__(self, config):
-        super(BertImagePredictionHead, self).__init__()
+        super().__init__()
         self.transform = BertImgPredictionHeadTransform(config)
 
         # The output weights are the same as the input embeddings, but there is
@@ -767,7 +767,7 @@ class BertImagePredictionHead(nn.Module):
 
 class BertPreTrainingHeads(nn.Module):
     def __init__(self, config):
-        super(BertPreTrainingHeads, self).__init__()
+        super().__init__()
         self.predictions = BertLMPredictionHead(config)
         self.bi_seq_relationship = nn.Linear(config.bi_hidden_size, 2)
         self.imagePredictions = BertImagePredictionHead(config)
@@ -798,7 +798,7 @@ class BertImageFeatureEmbeddings(nn.Module):
     """
 
     def __init__(self, config):
-        super(BertImageFeatureEmbeddings, self).__init__()
+        super().__init__()
 
         self.image_embeddings = nn.Linear(config.v_feature_size, config.v_hidden_size)
         self.image_location_embeddings = nn.Linear(5, config.v_hidden_size)
@@ -820,7 +820,7 @@ class BertImageFeatureEmbeddings(nn.Module):
 
 class ViLBERTBase(BertPreTrainedModel):
     def __init__(self, config):
-        super(ViLBERTBase, self).__init__(config)
+        super().__init__(config)
 
         # initilize word embedding
         self.embeddings = BertEmbeddings(config)
@@ -1025,7 +1025,7 @@ class ViLBERTForPretraining(nn.Module):
                 masked_img_loss = torch.sum(
                     img_loss * (image_label == 1).unsqueeze(2).float()
                 ) / max(
-                    torch.sum((image_label == 1).unsqueeze(2).expand_as(img_loss)), 1,
+                    torch.sum((image_label == 1).unsqueeze(2).expand_as(img_loss)), 1
                 )
 
             elif self.visual_target == 0:
@@ -1035,7 +1035,7 @@ class ViLBERTForPretraining(nn.Module):
 
                 masked_img_loss = torch.sum(
                     img_loss * (image_label == 1).unsqueeze(2).float()
-                ) / max(torch.sum((image_label == 1)), 0)
+                ) / max(torch.sum(image_label == 1), 0)
             elif self.visual_target == 2:
                 # generate negative sampled index.
                 num_across_batch = int(self.num_negative * 0.7)
@@ -1092,7 +1092,7 @@ class ViLBERTForPretraining(nn.Module):
             output["masked_img_loss"] = masked_img_loss.unsqueeze(0)
 
         masked_lm_loss = self.loss_fct(
-            prediction_scores_t.view(-1, self.vocab_size), masked_lm_labels.view(-1),
+            prediction_scores_t.view(-1, self.vocab_size), masked_lm_labels.view(-1)
         )
         output["masked_lm_loss"] = masked_lm_loss.unsqueeze(0)
         # next_sentence_loss = self.loss_fct(

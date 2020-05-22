@@ -115,9 +115,7 @@ class VocabDict:
             vocab_file = os.path.abspath(os.path.join(mmf_root, data_dir, vocab_file))
 
         if not PathManager.exists(vocab_file):
-            raise RuntimeError(
-                "Vocab file {} for vocab dict doesn't exist".format(vocab_file)
-            )
+            raise RuntimeError(f"Vocab file {vocab_file} for vocab dict doesn't exist")
 
         self.word_list = load_str_list(vocab_file)
         self._build()
@@ -272,7 +270,7 @@ class TextDecoder:
 @registry.register_decoder("beam_search")
 class BeamSearch(TextDecoder):
     def __init__(self, vocab, config):
-        super(BeamSearch, self).__init__(vocab)
+        super().__init__(vocab)
         self._decode_size = config["inference"]["params"]["beam_length"]
 
     def init_batch(self, sample_list):

@@ -72,7 +72,7 @@ def _process_feature_extraction(output, im_scales, feat_name="fc6"):
         dets = output[0]["proposals"][i].bbox / im_scales[i]
         scores = score_list[i]
 
-        max_conf = torch.zeros((scores.shape[0])).to(cur_device)
+        max_conf = torch.zeros(scores.shape[0]).to(cur_device)
 
         for cls_ind in range(1, scores.shape[1]):
             cls_scores = scores[:, cls_ind]
@@ -115,19 +115,26 @@ def main():
     parser.add_argument(
         "--detection_cfg",
         type=str,
-        default="/private/home/ronghanghu/workspace/pythia/data/frcn_feature_extraction/detectron_model.yaml",
-        help="Detectron config file; download it from https://dl.fbaipublicfiles.com/pythia/detectron_model/detectron_model.yaml",
+        default="/private/home/ronghanghu/workspace/pythia/data/"
+        + "frcn_feature_extraction/detectron_model.yaml",
+        help="Detectron config file; download it from "
+        + "https://dl.fbaipublicfiles.com/pythia/detectron_model/"
+        + "detectron_model.yaml",
     )
     parser.add_argument(
         "--detection_model",
         type=str,
-        default="/private/home/ronghanghu/workspace/pythia/data/frcn_feature_extraction/detectron_model.pth",
-        help="Detectron model file; download it from https://dl.fbaipublicfiles.com/pythia/detectron_model/detectron_model.pth",
+        default="/private/home/ronghanghu/workspace/pythia/data/"
+        + "frcn_feature_extraction/detectron_model.pth",
+        help="Detectron model file; download it"
+        + " from https://dl.fbaipublicfiles.com/pythia/detectron_model/"
+        + "detectron_model.pth",
     )
     parser.add_argument(
         "--imdb_file",
         type=str,
-        default="/private/home/ronghanghu/workspace/pythia/data/imdb/m4c_textvqa/imdb_train_ocr_en.npy",
+        default="/private/home/ronghanghu/workspace/pythia/data/"
+        + "imdb/m4c_textvqa/imdb_train_ocr_en.npy",
         help="The imdb to extract features",
     )
     parser.add_argument(
@@ -139,7 +146,8 @@ def main():
     parser.add_argument(
         "--save_dir",
         type=str,
-        default="/private/home/ronghanghu/workspace/pythia/data/m4c_textvqa_ocr_en_frcn_features_2/train_images",
+        default="/private/home/ronghanghu/workspace/pythia/data/"
+        + "m4c_textvqa_ocr_en_frcn_features_2/train_images",
         help="The directory to save extracted features",
     )
     args = parser.parse_args()

@@ -52,7 +52,7 @@ class MMFDataset(BaseDataset):
 
     def _get_path_based_on_index(self, config, attribute, index):
         if attribute not in config:
-            raise ValueError("{} not present in config".format(attribute))
+            raise ValueError(f"{attribute} not present in config")
 
         config = config.get(attribute, None)
 
@@ -60,9 +60,7 @@ class MMFDataset(BaseDataset):
             self.dataset_type not in config
             or len(config.get(self.dataset_type, [])) == 0
         ):
-            raise ValueError(
-                "No {} present for type {}".format(attribute, self.dataset_type)
-            )
+            raise ValueError(f"No {attribute} present for type {self.dataset_type}")
 
         paths = config[self.dataset_type]
 

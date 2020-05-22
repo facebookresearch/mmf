@@ -132,7 +132,7 @@ def object_to_byte_tensor(obj, max_size=4094):
     obj_size = len(obj_enc)
     if obj_size > max_size:
         raise Exception(
-            "objects too large: object size {}, max size {}".format(obj_size, max_size)
+            f"objects too large: object size {obj_size}, max size {max_size}"
         )
 
     byte_tensor[0] = obj_size // 256

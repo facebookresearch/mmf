@@ -91,7 +91,9 @@ class TestReporter(Dataset):
             self.json_dump(filepath)
 
         self.writer.write(
-            "Wrote evalai predictions for %s to %s" % (name, os.path.abspath(filepath))
+            "Wrote evalai predictions for {} to {}".format(
+                name, os.path.abspath(filepath)
+            )
         )
         self.report = []
 

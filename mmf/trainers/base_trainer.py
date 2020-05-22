@@ -314,9 +314,7 @@ class BaseTrainer:
         self.checkpoint.finalize()
         self.inference()
 
-        self.writer.write(
-            "Finished run in {}".format(self.total_timer.get_time_since_start())
-        )
+        self.writer.write(f"Finished run in {self.total_timer.get_time_since_start()}")
 
     def _update_meter(self, report, meter=None, eval_mode=False):
         if meter is None:
@@ -480,7 +478,7 @@ class BaseTrainer:
 
         if not should_print:
             return
-        log_dict = {"progress": "{}/{}".format(self.num_updates, self.max_updates)}
+        log_dict = {"progress": f"{self.num_updates}/{self.max_updates}"}
         log_dict.update(meter.get_log_dict())
         log_dict.update(extra)
 
@@ -498,12 +496,12 @@ class BaseTrainer:
             self.predict(dataset_type)
             return
 
-        self.writer.write("Starting inference on {} set".format(dataset_type))
+        self.writer.write(f"Starting inference on {dataset_type} set")
 
         report, meter = self.evaluate(
-            getattr(self, "{}_loader".format(dataset_type)), use_tqdm=True
+            getattr(self, f"{dataset_type}_loader"), use_tqdm=True
         )
-        prefix = "{}: full {}".format(report.dataset_name, dataset_type)
+        prefix = f"{report.dataset_name}: full {dataset_type}"
         self._summarize_report(meter, prefix)
 
     def _calculate_time_left(self):
@@ -528,7 +526,7 @@ class BaseTrainer:
         reporter = self.dataset_loader.get_test_reporter(dataset_type)
         with torch.no_grad():
             self.model.eval()
-            message = "Starting {} inference predictions".format(dataset_type)
+            message = f"Starting {dataset_type} inference predictions"
             self.writer.write(message)
 
             while reporter.next_dataset():

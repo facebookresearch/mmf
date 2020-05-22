@@ -18,7 +18,7 @@ from mmf.utils.modeling import get_optimizer_parameters_for_bert
 
 
 # TODO: Remove after transformers package upgrade to 2.5
-class MMBTConfig(object):
+class MMBTConfig:
     """Configuration class to store the configuration of a `MMBT Model`.
     Args:
         config (:obj:`~transformers.PreTrainedConfig`):
@@ -412,7 +412,7 @@ class MMBTForPreTraining(nn.Module):
         ):
             output["extras"] = module_output[2:]
 
-        loss_key = "{}/{}".format(sample_list.dataset_name, sample_list.dataset_type)
+        loss_key = f"{sample_list.dataset_name}/{sample_list.dataset_type}"
 
         if "lm_label_ids" in sample_list and sample_list.lm_label_ids is not None:
             output["logits"] = prediction_scores
@@ -427,7 +427,7 @@ class MMBTForPreTraining(nn.Module):
                 text_scores, sample_list.lm_label_ids.contiguous().view(-1)
             )
             output["losses"] = {}
-            output["losses"]["{}/masked_lm_loss".format(loss_key)] = masked_lm_loss
+            output["losses"][f"{loss_key}/masked_lm_loss"] = masked_lm_loss
 
         # Add alignment loss if present
         if (
@@ -439,7 +439,7 @@ class MMBTForPreTraining(nn.Module):
                 seq_relationship_score.contiguous().view(-1),
                 sample_list.image_text_alignment.contiguous().view(-1),
             )
-            output["losses"]["{}/alignment_loss".format(loss_key)] = alignment_loss
+            output["losses"][f"{loss_key}/alignment_loss"] = alignment_loss
 
         return output
 

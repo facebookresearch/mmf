@@ -8,7 +8,7 @@ from mmf.common.registry import registry
 
 class VisDialDiscriminator(nn.Module):
     def __init__(self, config, embedding):
-        super(VisDialDiscriminator, self).__init__()
+        super().__init__()
         self.config = config
         self.embedding = embedding
 
@@ -69,7 +69,7 @@ class LanguageDecoder(nn.Module):
 
     def forward(self, weighted_attn):
         # Get LSTM state
-        state = registry.get("{}_lstm_state".format(weighted_attn.device))
+        state = registry.get(f"{weighted_attn.device}_lstm_state")
         h1, c1 = state["td_hidden"]
         h2, c2 = state["lm_hidden"]
 

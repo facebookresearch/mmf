@@ -91,7 +91,7 @@ class DownloadableFile:
             download_path (string): path to the downloaded file.
         """
         if self._hashcode is None:
-            print("[ Checksum not provided, skipping for {}]".format(self._file_name))
+            print(f"[ Checksum not provided, skipping for {self._file_name}]")
             return
 
         sha256_hash = hashlib.sha256()
@@ -102,7 +102,7 @@ class DownloadableFile:
             return
 
         with PathManager.open(destination, "rb") as f:
-            print("[ Starting checksum for {}]".format(self._file_name))
+            print(f"[ Starting checksum for {self._file_name}]")
             for byte_block in iter(lambda: f.read(65536), b""):
                 sha256_hash.update(byte_block)
             if sha256_hash.hexdigest() != self._hashcode:
@@ -112,7 +112,7 @@ class DownloadableFile:
                     "does not match the expected checksum. Please try again. ]"
                 )
             else:
-                print("[ Checksum successful for {}]".format(self._file_name))
+                print(f"[ Checksum successful for {self._file_name}]")
 
     def download_file(self, download_path):
         downloaded = False
@@ -205,7 +205,7 @@ def download(url, path, fname, redownload=True):
         # First test if the link is actually downloadable
         check_header(url)
         print("[ Downloading: " + url + " to " + outfile + " ]")
-        pbar = tqdm.tqdm(unit="B", unit_scale=True, desc="Downloading {}".format(fname))
+        pbar = tqdm.tqdm(unit="B", unit_scale=True, desc=f"Downloading {fname}")
 
     while download and retry >= 0:
         resume_file = outfile + ".part"

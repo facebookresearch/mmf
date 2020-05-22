@@ -18,7 +18,7 @@ def merge_train(train_q_dir):
 
     for file_name in tqdm.tqdm(os.listdir(train_q_dir)):
         full_path = os.path.join(train_q_dir, file_name)
-        partial_questions = json.load(open(full_path, "r"))
+        partial_questions = json.load(open(full_path))
         merged_dic.update(partial_questions)
 
     save_dir = os.path.abspath(os.path.join(train_q_dir, os.pardir))
@@ -28,7 +28,7 @@ def merge_train(train_q_dir):
 
 
 def get_objects(semantic_str):
-    matches = re.findall("\(([^)]+)", semantic_str)
+    matches = re.findall(r"\(([^)]+)", semantic_str)
     result = []
     for match in matches:
         if "," in match:
@@ -44,8 +44,8 @@ def get_imdb(file_path):
 
     imdb = [{"dataset_name": "gqa"}]
 
-    questions = json.load(open(file_path, "r"))
-    print("Processing file {}".format(file_path))
+    questions = json.load(open(file_path))
+    print(f"Processing file {file_path}")
 
     for qid, item in tqdm.tqdm(questions.items()):
         entry = {
@@ -71,7 +71,7 @@ def get_imdb(file_path):
 def extract_bbox_feats(feat_dir, out_dir):
 
     info_json_path = os.path.join(feat_dir, "gqa_objects_info.json")
-    info_dict = json.load(open(info_json_path, "r"))
+    info_dict = json.load(open(info_json_path))
 
     file_mapping = {k: [] for k in range(16)}
 
@@ -79,8 +79,8 @@ def extract_bbox_feats(feat_dir, out_dir):
         file_mapping[v["file"]] += [(k, v)]
 
     for i in range(16):
-        file_path = os.path.join(feat_dir, "gqa_objects_{}.h5".format(i))
-        print("Processing file {}".format(file_path))
+        file_path = os.path.join(feat_dir, f"gqa_objects_{i}.h5")
+        print(f"Processing file {file_path}")
 
         feat_db = h5py.File(file_path, "r")
         for entry in tqdm.tqdm(file_mapping[i]):
@@ -101,7 +101,7 @@ def extract_bbox_feats(feat_dir, out_dir):
 
 def extract_spatial_feats(feat_dir, out_dir):
     info_json_path = os.path.join(feat_dir, "gqa_spatial_info.json")
-    info_dict = json.load(open(info_json_path, "r"))
+    info_dict = json.load(open(info_json_path))
 
     file_mapping = {k: [] for k in range(16)}
 
@@ -109,8 +109,8 @@ def extract_spatial_feats(feat_dir, out_dir):
         file_mapping[v["file"]] += [(k, v)]
 
     for i in range(16):
-        file_path = os.path.join(feat_dir, "gqa_spatial_{}.h5".format(i))
-        print("Processing file {}".format(file_path))
+        file_path = os.path.join(feat_dir, f"gqa_spatial_{i}.h5")
+        print(f"Processing file {file_path}")
 
         feat_db = h5py.File(file_path, "r")
         for entry in tqdm.tqdm(file_mapping[i]):
@@ -175,7 +175,7 @@ def convert_gqa_to_vqa(gqa_dir, out_dir):
             file_path = os.path.join(questions_dir, filename)
             imdb = get_imdb(file_path)
 
-            save_path = os.path.join(out_dir, "imdb_{}.npy".format(csplit))
+            save_path = os.path.join(out_dir, f"imdb_{csplit}.npy")
             np.save(save_path, imdb)
 
     splits = ["val", "train"]
@@ -187,12 +187,10 @@ def convert_gqa_to_vqa(gqa_dir, out_dir):
 
     for s in splits:
         for st in split_type:
-            questions_json = os.path.join(
-                questions_dir, "{}_{}_questions.json".format(s, st)
-            )
-            questions = json.load(open(questions_json, "r"))
+            questions_json = os.path.join(questions_dir, f"{s}_{st}_questions.json")
+            questions = json.load(open(questions_json))
 
-            print("Processing split {}_{}".format(s, st))
+            print(f"Processing split {s}_{st}")
 
             answers = Counter()
             q_tokens = Counter()

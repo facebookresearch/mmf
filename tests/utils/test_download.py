@@ -127,7 +127,7 @@ class TestUtilsDownload(unittest.TestCase):
             download.mark_done(d, "0.1")
             self.assertTrue(os.path.exists(path))
 
-            with open(path, "r") as f:
+            with open(path) as f:
                 import json
 
                 data = json.load(f)

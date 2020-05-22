@@ -7,7 +7,7 @@ from mmf.modules.layers import GatedTanh, ModalCombineLayer, TransformLayer
 
 class AttentionLayer(nn.Module):
     def __init__(self, image_dim, question_dim, **kwargs):
-        super(AttentionLayer, self).__init__()
+        super().__init__()
 
         combine_type = kwargs["modal_combine"]["type"]
         combine_params = kwargs["modal_combine"]["params"]
@@ -36,7 +36,7 @@ class AttentionLayer(nn.Module):
 
 class ConcatenationAttention(nn.Module):
     def __init__(self, image_feat_dim, txt_rnn_embeding_dim, hidden_size):
-        super(ConcatenationAttention, self).__init__()
+        super().__init__()
         self.image_feat_dim = image_feat_dim
         self.txt_embeding_dim = txt_rnn_embeding_dim
         self.fa = GatedTanh(image_feat_dim + txt_rnn_embeding_dim, hidden_size)
@@ -57,7 +57,7 @@ class ConcatenationAttention(nn.Module):
 
 class ProjectAttention(nn.Module):
     def __init__(self, image_feat_dim, txt_rnn_embeding_dim, hidden_size, dropout=0.2):
-        super(ProjectAttention, self).__init__()
+        super().__init__()
         self.image_feat_dim = image_feat_dim
         self.txt_embeding_dim = txt_rnn_embeding_dim
         self.fa_image = GatedTanh(image_feat_dim, hidden_size)
@@ -87,7 +87,7 @@ class ProjectAttention(nn.Module):
 
 class DoubleProjectAttention(nn.Module):
     def __init__(self, image_feat_dim, txt_rnn_embeding_dim, hidden_size, dropout=0.2):
-        super(DoubleProjectAttention, self).__init__()
+        super().__init__()
         self.att1 = ProjectAttention(
             image_feat_dim, txt_rnn_embeding_dim, hidden_size, dropout
         )
@@ -111,7 +111,7 @@ class TopDownAttention(nn.Module):
     EPS = 1.0e-08
 
     def __init__(self, combination_layer, transform_module, normalization):
-        super(TopDownAttention, self).__init__()
+        super().__init__()
         self.combination_layer = combination_layer
         self.normalization = normalization
         self.transform = transform_module

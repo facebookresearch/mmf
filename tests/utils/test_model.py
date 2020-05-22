@@ -37,7 +37,7 @@ class TestDecoderModel(nn.Module):
             h1, c1 = self.init_hidden_state(data["texts"])
             h2, c2 = self.init_hidden_state(data["texts"])
         data["state"] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
-        registry.register("{}_lstm_state".format(h1.device), data["state"])
+        registry.register(f"{h1.device}_lstm_state", data["state"])
 
         return data, batch_size_t
 

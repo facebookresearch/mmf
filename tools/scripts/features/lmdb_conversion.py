@@ -71,7 +71,7 @@ class LMDBConversion:
 
                 txn.put(key, pickle.dumps(item))
 
-            txn.put("keys".encode(), pickle.dumps(id_list))
+            txn.put(b"keys", pickle.dumps(id_list))
 
     def extract(self):
         os.makedirs(self.args.features_folder, exist_ok=True)
@@ -84,7 +84,7 @@ class LMDBConversion:
             meminit=False,
         )
         with env.begin(write=False) as txn:
-            _image_ids = pickle.loads(txn.get("keys".encode()))
+            _image_ids = pickle.loads(txn.get(b"keys"))
             for img_id in tqdm.tqdm(_image_ids):
                 item = pickle.loads(txn.get(img_id))
                 img_id = img_id.decode("utf-8")

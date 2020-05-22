@@ -56,7 +56,7 @@ class BaseDataset(Dataset):
         for processor_key, processor_params in self.config.processors.items():
             if not processor_params:
                 continue
-            reg_key = "{}_{}".format(self._dataset_name, processor_key)
+            reg_key = f"{self._dataset_name}_{processor_key}"
             reg_check = registry.get(reg_key, no_warning=True)
 
             if reg_check is None:

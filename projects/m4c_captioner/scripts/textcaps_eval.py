@@ -47,7 +47,7 @@ if __name__ == "__main__":
         {"image_id": info["image_id"], "caption": info["caption_str"]} for info in imdb
     ]
     preds = [{"image_id": p["image_id"], "caption": p["caption"]} for p in preds]
-    imgids = list(set(g["image_id"] for g in gts))
+    imgids = list({g["image_id"] for g in gts})
 
     metrics = coco_caption_eval.calculate_metrics(
         imgids, {"annotations": gts}, {"annotations": preds}

@@ -28,7 +28,7 @@ class EarlyStopping:
         self.early_stop_criteria = early_stop_criteria
 
         if "val" not in self.early_stop_criteria:
-            self.early_stop_criteria = "val/{}".format(self.early_stop_criteria)
+            self.early_stop_criteria = f"val/{self.early_stop_criteria}"
 
         self.best_monitored_value = -np.inf if not minimize else np.inf
         self.best_monitored_iteration = 0
@@ -97,5 +97,5 @@ class EarlyStopping:
         return {
             "best_update": self.best_monitored_update,
             "best_iteration": self.best_monitored_iteration,
-            "best_{}".format(self.metric): "{:.6f}".format(self.best_monitored_value),
+            f"best_{self.metric}": f"{self.best_monitored_value:.6f}",
         }
