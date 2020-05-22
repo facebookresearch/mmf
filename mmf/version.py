@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
 import sys
 
 __version__ = "1.0.0rc6"

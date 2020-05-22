@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
 # install `vqa-maskrcnn-benchmark` from
 # https://github.com/ronghanghu/vqa-maskrcnn-benchmark-m4c
 import argparse

@@ -32,7 +32,7 @@ MMF is a modular framework for vision and language multimodal research. Built on
 You can use MMF to **_bootstrap_** for your next vision and language multimodal research project.
 
 MMF can also act as **starter codebase** for challenges around vision and
-language datasets (TextVQA challenge, VQA challenge)
+language datasets (TextVQA challenge, VQA challenge). MMF was formerly known as Pythia.
 
 ![MMF Examples](https://i.imgur.com/BP8sYnk.jpg)
 
