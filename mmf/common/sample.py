@@ -13,6 +13,7 @@ attributes from ``Sample`` while taking care of properly batching things.
 
 import collections
 from collections import OrderedDict
+from typing import Any, Dict
 
 import torch
 
@@ -72,11 +73,15 @@ class SampleList(OrderedDict):
     of size (10, 2).
 
     Args:
-        samples (type): List of ``Sample`` from which the ``SampleList`` will be created.
+        samples (type): List of ``Sample`` from which the ``SampleList``
+                        will be created.
 
     Usage::
 
-        >>> sample_list = [Sample({"text": torch.tensor(2)}), Sample({"text": torch.tensor(2)})]
+        >>> sample_list = [
+                Sample({"text": torch.tensor(2)}),
+                Sample({"text": torch.tensor(2)})
+            ]
         >>> sample_list.text
         torch.tensor([2, 2])
     """
@@ -345,3 +350,36 @@ class SampleList(OrderedDict):
                 )
 
         return sample_list
+
+    def pin_memory(self):
+        """In custom batch object, we need to define pin_memory function so that
+        PyTorch can actually apply pinning. This function just individually pins
+        all of the tensor fields
+        """
+        fields = self.keys()
+
+        for field in fields:
+            if hasattr(self[field], "pin_memory"):
+                # This will also handle nested sample list recursively
+                self[field] = self[field].pin_memory()
+
+        return self
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Converts a sample list to dict, this is useful for TorchScript and for
+        other internal API unification efforts.
+
+        Returns:
+            Dict[str, Any]: A dict representation of current sample list
+        """
+        sample_dict = {}
+        fields = self.keys()
+
+        for field in fields:
+            # Handle nested sample list recursively
+            if hasattr(self[field], "to_dict"):
+                sample_dict[field] = self[field].to_dict()
+            else:
+                sample_dict[field] = self[field]
+
+        return sample_dict

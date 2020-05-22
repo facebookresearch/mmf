@@ -32,10 +32,15 @@ def is_network_reachable():
 
 
 NETWORK_AVAILABLE = is_network_reachable()
+CUDA_AVAILBLE = torch.cuda.is_available()
 
 
 def skip_if_no_network(testfn, reason="Network is not available"):
     return unittest.skipUnless(NETWORK_AVAILABLE, reason)(testfn)
+
+
+def skip_if_no_cuda(testfn, reason="Cuda is not available"):
+    return unittest.skipUnless(CUDA_AVAILBLE, reason)(testfn)
 
 
 def compare_state_dicts(a, b):
