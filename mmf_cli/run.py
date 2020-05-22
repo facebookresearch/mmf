@@ -29,7 +29,7 @@ def main(configuration, init_distributed=False, predict=False):
 
     config.training.seed = set_seed(config.training.seed)
     registry.register("seed", config.training.seed)
-    print("Using seed {}".format(config.training.seed))
+    print(f"Using seed {config.training.seed}")
 
     registry.register("writer", Logger(config, name="mmf.train"))
 
@@ -78,7 +78,7 @@ def run(predict=False):
     elif config.distributed.world_size > 1:
         assert config.distributed.world_size <= torch.cuda.device_count()
         port = random.randint(10000, 20000)
-        config.distributed.init_method = "tcp://localhost:{port}".format(port=port)
+        config.distributed.init_method = f"tcp://localhost:{port}"
         config.distributed.rank = None
         torch.multiprocessing.spawn(
             fn=distributed_main,

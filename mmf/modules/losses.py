@@ -152,9 +152,7 @@ class MMFLoss(nn.Module):
         loss_class = registry.get_loss_class(loss_name)
 
         if loss_class is None:
-            raise ValueError(
-                "No loss named {} is registered to registry".format(loss_name)
-            )
+            raise ValueError(f"No loss named {loss_name} is registered to registry")
         # Special case of multi as it requires an array
         if loss_name == "multi":
             assert is_mapping

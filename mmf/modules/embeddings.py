@@ -18,7 +18,7 @@ from mmf.utils.vocab import Vocab
 
 class TextEmbedding(nn.Module):
     def __init__(self, emb_type, **kwargs):
-        super(TextEmbedding, self).__init__()
+        super().__init__()
         self.model_data_dir = kwargs.get("model_data_dir", None)
         self.embedding_dim = kwargs.get("embedding_dim", None)
 
@@ -74,7 +74,7 @@ class BiLSTMTextEmbedding(nn.Module):
         bidirectional=False,
         rnn_type="GRU",
     ):
-        super(BiLSTMTextEmbedding, self).__init__()
+        super().__init__()
         self.text_out_dim = hidden_dim
         self.bidirectional = bidirectional
 
@@ -109,7 +109,7 @@ class BiLSTMTextEmbedding(nn.Module):
 
 class PreExtractedEmbedding(nn.Module):
     def __init__(self, out_dim, base_path):
-        super(PreExtractedEmbedding, self).__init__()
+        super().__init__()
         self.text_out_dim = out_dim
         self.base_path = base_path
         self.cache = {}
@@ -127,7 +127,7 @@ class PreExtractedEmbedding(nn.Module):
 
 class AttentionTextEmbedding(nn.Module):
     def __init__(self, hidden_dim, embedding_dim, num_layers, dropout, **kwargs):
-        super(AttentionTextEmbedding, self).__init__()
+        super().__init__()
 
         self.text_out_dim = hidden_dim * kwargs["conv2_out"]
 
@@ -228,7 +228,7 @@ class ImageFeatureEmbedding(nn.Module):
     """
 
     def __init__(self, img_dim, question_dim, **kwargs):
-        super(ImageFeatureEmbedding, self).__init__()
+        super().__init__()
 
         self.image_attention_model = AttentionLayer(img_dim, question_dim, **kwargs)
         self.out_dim = self.image_attention_model.out_dim
@@ -280,7 +280,7 @@ class MultiHeadImageFeatureEmbedding(nn.Module):
 
 class ImageFinetune(nn.Module):
     def __init__(self, in_dim, weights_file, bias_file):
-        super(ImageFinetune, self).__init__()
+        super().__init__()
         with PathManager.open(weights_file, "rb") as w:
             weights = pickle.load(w)
         with PathManager.open(bias_file, "rb") as b:

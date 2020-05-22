@@ -37,7 +37,7 @@ class TestFileIO(unittest.TestCase):
 
     def test_file_io_copy(self):
         PathManager.copy(self._tmpfile, os.path.join(self._tmpdir, "test_copy.txt"))
-        with open(os.path.join(self._tmpdir, "test_copy.txt"), "r") as f:
+        with open(os.path.join(self._tmpdir, "test_copy.txt")) as f:
             s = f.read()
         self.assertEqual(s, self._tmpfile_contents)
 

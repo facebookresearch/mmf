@@ -11,7 +11,7 @@ from mmf.modules.layers import BCNet, BiAttention, FCNet, WeightNormClassifier
 @registry.register_model("ban")
 class BAN(BaseModel):
     def __init__(self, config):
-        super(BAN, self).__init__(config)
+        super().__init__(config)
         self.config = config
         self._global_config = registry.get("config")
         self._datasets = self._global_config.datasets.split(",")

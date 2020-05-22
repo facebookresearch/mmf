@@ -50,10 +50,10 @@ def clip_gradients(model, i_iter, writer, config):
 def ckpt_name_from_core_args(config):
     seed = config.training.seed
 
-    ckpt_name = "{}_{}".format(config.datasets, config.model)
+    ckpt_name = f"{config.datasets}_{config.model}"
 
     if seed is not None:
-        ckpt_name += "_{:d}".format(seed)
+        ckpt_name += f"_{seed:d}"
 
     return ckpt_name
 
@@ -154,7 +154,7 @@ def dict_to_string(dictionary):
             val = val.item()
         # if key.count('_') == 2:
         #     key = key[key.find('_') + 1:]
-        logs.append("%s: %.4f" % (key, val))
+        logs.append(f"{key}: {val:.4f}")
 
     return ", ".join(logs)
 

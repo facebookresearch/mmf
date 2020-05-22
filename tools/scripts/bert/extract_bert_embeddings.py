@@ -9,7 +9,7 @@ from transformers.modeling_bert import BertModel
 from transformers.tokenization_auto import AutoTokenizer
 
 
-class BertFeatExtractor(object):
+class BertFeatExtractor:
     def __init__(self, model_name):
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = BertModel.from_pretrained(model_name).eval()

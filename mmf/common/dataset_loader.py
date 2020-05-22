@@ -44,7 +44,7 @@ class DatasetLoader:
         return self._dataset_config
 
     def get_test_reporter(self, dataset_type):
-        dataset = getattr(self, "{}_dataset".format(dataset_type))
+        dataset = getattr(self, f"{dataset_type}_dataset")
         return TestReporter(dataset)
 
     def update_registry_for_model(self, config):
@@ -67,5 +67,5 @@ class DatasetLoader:
             self.mapping[dataset_type].verbose_dump(report, *args, **kwargs)
 
     def seed_sampler(self, dataset_type, seed):
-        dataset = getattr(self, "{}_dataset".format(dataset_type))
+        dataset = getattr(self, f"{dataset_type}_dataset")
         dataset.seed_sampler(seed)

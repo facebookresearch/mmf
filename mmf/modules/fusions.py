@@ -37,7 +37,7 @@ from mmf.utils.general import get_chunks, get_sizes_list
 
 class CompactBilinearPooling(nn.Module):
     def __init__(self, input_dim1, input_dim2, output_dim, sum_pool=True):
-        super(CompactBilinearPooling, self).__init__()
+        super().__init__()
         self.output_dim = output_dim
         self.sum_pool = sum_pool
         self.sketch1 = nn.Parameter(
@@ -98,7 +98,7 @@ class CompactBilinearPooling(nn.Module):
 
 class MLP(nn.Module):
     def __init__(self, input_dim, dimensions, activation="relu", dropout=0.0):
-        super(MLP, self).__init__()
+        super().__init__()
         self.input_dim = input_dim
         self.dimensions = dimensions
         self.activation = activation
@@ -132,7 +132,7 @@ class Block(nn.Module):
         dropout_output=0.0,
         pos_norm="before_cat",
     ):
-        super(Block, self).__init__()
+        super().__init__()
         self.input_dims = input_dims
         self.output_dim = output_dim
         self.mm_dim = mm_dim
@@ -214,7 +214,7 @@ class BlockTucker(nn.Module):
         dropout_output=0.0,
         pos_norm="before_cat",
     ):
-        super(BlockTucker, self).__init__()
+        super().__init__()
         self.input_dims = input_dims
         self.output_dim = output_dim
         self.mm_dim = mm_dim
@@ -284,7 +284,7 @@ class Mutan(nn.Module):
         dropout_pre_lin=0.0,
         dropout_output=0.0,
     ):
-        super(Mutan, self).__init__()
+        super().__init__()
         self.input_dims = input_dims
         self.shared = shared
         self.mm_dim = mm_dim
@@ -346,7 +346,7 @@ class Tucker(nn.Module):
         dropout_pre_lin=0.0,
         dropout_output=0.0,
     ):
-        super(Tucker, self).__init__()
+        super().__init__()
         self.input_dims = input_dims
         self.shared = shared
         self.mm_dim = mm_dim
@@ -404,7 +404,7 @@ class MLB(nn.Module):
         dropout_pre_lin=0.0,
         dropout_output=0.0,
     ):
-        super(MLB, self).__init__()
+        super().__init__()
         self.input_dims = input_dims
         self.mm_dim = mm_dim
         self.output_dim = output_dim
@@ -466,7 +466,7 @@ class MFB(nn.Module):
         dropout_pre_norm=0.0,
         dropout_output=0.0,
     ):
-        super(MFB, self).__init__()
+        super().__init__()
         self.input_dims = input_dims
         self.mm_dim = mm_dim
         self.factor = factor
@@ -532,7 +532,7 @@ class MFH(nn.Module):
         dropout_pre_lin=0.0,
         dropout_output=0.0,
     ):
-        super(MFH, self).__init__()
+        super().__init__()
         self.input_dims = input_dims
         self.output_dim = output_dim
         self.mm_dim = mm_dim
@@ -624,7 +624,7 @@ class MCB(nn.Module):
         activ_output="relu",
         dropout_output=0.0,
     ):
-        super(MCB, self).__init__()
+        super().__init__()
         self.input_dims = input_dims
         self.output_dim = output_dim
         self.mm_dim = mm_dim
@@ -659,7 +659,7 @@ class LinearSum(nn.Module):
         dropout_pre_lin=0.0,
         dropout_output=0.0,
     ):
-        super(LinearSum, self).__init__()
+        super().__init__()
         self.input_dims = input_dims
         self.output_dim = output_dim
         self.mm_dim = mm_dim
@@ -711,7 +711,7 @@ class ConcatMLP(nn.Module):
     def __init__(
         self, input_dims, output_dim, dimensions=None, activation="relu", dropout=0.0
     ):
-        super(ConcatMLP, self).__init__()
+        super().__init__()
         self.input_dims = input_dims
         self.output_dim = output_dim
         self.input_dim = sum(input_dims)

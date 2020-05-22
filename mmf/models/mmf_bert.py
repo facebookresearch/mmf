@@ -100,9 +100,7 @@ class MMFBert(Pythia):
 
     def _init_feature_embeddings(self, attr):
         feature_embeddings_list = []
-        num_feature_feat = len(
-            getattr(self.config, "{}_feature_encodings".format(attr))
-        )
+        num_feature_feat = len(getattr(self.config, f"{attr}_feature_encodings"))
 
         self.image_feature_projection = ProjectionEmbedding(
             **self.config.image_feature_projection
@@ -210,9 +208,7 @@ class MMFBert(Pythia):
         # Get all of the features, which are in the form, "image_feature_0"
         # "image_feature_1" ...
         while True:
-            feature = getattr(
-                sample_list, "{}_feature_{:d}".format(attr, feature_idx), None
-            )
+            feature = getattr(sample_list, f"{attr}_feature_{feature_idx:d}", None)
             if feature is None:
                 break
             feature_idx += 1
@@ -230,7 +226,7 @@ class MMFBert(Pythia):
         for i, feature in enumerate(features):
             # Get info related to the current feature. info is generally
             # in key of format "image_info_0" for 0th feature
-            feature_info = getattr(sample_list, "{}_info_{:d}".format(attr, i), {})
+            feature_info = getattr(sample_list, f"{attr}_info_{i:d}", {})
             # For Pythia, we need max_features to mask attention
             feature_dim = getattr(feature_info, "max_features", None)
             if feature_dim is not None:

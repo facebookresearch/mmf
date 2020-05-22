@@ -54,7 +54,8 @@ class TestDataBuilder:
             "--dev_db_file",
             required=True,
             type=str,
-            help="DB file that will be used for generating the test data for validation.",
+            help="DB file that will be used for generating the test data for "
+            + "validation.",
         )
         parser.add_argument(
             "--num_samples",
@@ -160,7 +161,7 @@ class TestDataBuilder:
             output.append(json.dumps(d))
         output = "\n".join(output)
 
-        with open(os.path.join(db_output_folder, "{}.jsonl".format(name)), "w") as f:
+        with open(os.path.join(db_output_folder, f"{name}.jsonl"), "w") as f:
             f.write(output)
 
         lmdb_folder = os.path.join(output_folder, "features")
@@ -192,7 +193,7 @@ class TestDataBuilder:
             selected_data = np.random.choice(data[1:], size=num_samples, replace=False)
         elif db_file.endswith(".jsonl"):
             file_type = "jsonl"
-            with open(db_file, "r") as f:
+            with open(db_file) as f:
                 data = []
                 for item in f.readlines():
                     data.append(json.loads(item.strip("\n")))
@@ -201,7 +202,7 @@ class TestDataBuilder:
         # Expecting JSON to be in COCOJSONFormat or contain "data" attribute
         elif db_file.endswith(".json"):
             file_type = "json"
-            with open(db_file, "r") as f:
+            with open(db_file) as f:
                 data = json.load(f)
                 selected_data = np.random.choice(data, size=num_samples, replace=False)
         else:

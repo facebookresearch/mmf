@@ -57,16 +57,16 @@ class UnFlatten(nn.Module):
 class GatedTanh(nn.Module):
     """
     From: https://arxiv.org/pdf/1707.07998.pdf
-    nonlinear_layer (f_a) : x\in R^m => y \in R^n
+    nonlinear_layer (f_a) : x\\in R^m => y \\in R^n
     \tilda{y} = tanh(Wx + b)
     g = sigmoid(W'x + b')
-    y = \tilda(y) \circ g
+    y = \tilda(y) \\circ g
     input: (N, *, in_dim)
     output: (N, *, out_dim)
     """
 
     def __init__(self, in_dim, out_dim):
-        super(GatedTanh, self).__init__()
+        super().__init__()
         self.fc = nn.Linear(in_dim, out_dim)
         self.gate_fc = nn.Linear(in_dim, out_dim)
 
@@ -83,7 +83,7 @@ class GatedTanh(nn.Module):
 # TODO: Do clean implementation without Sequential
 class ReLUWithWeightNormFC(nn.Module):
     def __init__(self, in_dim, out_dim):
-        super(ReLUWithWeightNormFC, self).__init__()
+        super().__init__()
 
         layers = []
         layers.append(weight_norm(nn.Linear(in_dim, out_dim), dim=None))
@@ -96,7 +96,7 @@ class ReLUWithWeightNormFC(nn.Module):
 
 class ClassifierLayer(nn.Module):
     def __init__(self, classifier_type, in_dim, out_dim, **kwargs):
-        super(ClassifierLayer, self).__init__()
+        super().__init__()
 
         if classifier_type == "weight_norm":
             self.module = WeightNormClassifier(in_dim, out_dim, **kwargs)
@@ -151,7 +151,7 @@ class MLPClassifer(nn.Module):
         dropout=0.5,
         hidden_act="relu",
         batch_norm=True,
-        **kwargs
+        **kwargs,
     ):
         super().__init__()
         from mmf.utils.modeling import ACT2FN
@@ -180,7 +180,7 @@ class MLPClassifer(nn.Module):
 
 class LogitClassifier(nn.Module):
     def __init__(self, in_dim, out_dim, **kwargs):
-        super(LogitClassifier, self).__init__()
+        super().__init__()
         input_dim = in_dim
         num_ans_candidates = out_dim
         text_non_linear_dim = kwargs["text_hidden_dim"]
@@ -211,7 +211,7 @@ class LogitClassifier(nn.Module):
 
 class WeightNormClassifier(nn.Module):
     def __init__(self, in_dim, out_dim, hidden_dim, dropout):
-        super(WeightNormClassifier, self).__init__()
+        super().__init__()
         layers = [
             weight_norm(nn.Linear(in_dim, hidden_dim), dim=None),
             nn.ReLU(),
@@ -227,7 +227,7 @@ class WeightNormClassifier(nn.Module):
 
 class Identity(nn.Module):
     def __init__(self, **kwargs):
-        super(Identity, self).__init__()
+        super().__init__()
 
     def forward(self, x):
         return x
@@ -235,7 +235,7 @@ class Identity(nn.Module):
 
 class ModalCombineLayer(nn.Module):
     def __init__(self, combine_type, img_feat_dim, txt_emb_dim, **kwargs):
-        super(ModalCombineLayer, self).__init__()
+        super().__init__()
         if combine_type == "MFH":
             self.module = MFH(img_feat_dim, txt_emb_dim, **kwargs)
         elif combine_type == "non_linear_element_multiply":
@@ -255,7 +255,7 @@ class ModalCombineLayer(nn.Module):
 
 class MfbExpand(nn.Module):
     def __init__(self, img_feat_dim, txt_emb_dim, hidden_dim, dropout):
-        super(MfbExpand, self).__init__()
+        super().__init__()
         self.lc_image = nn.Linear(in_features=img_feat_dim, out_features=hidden_dim)
         self.lc_ques = nn.Linear(in_features=txt_emb_dim, out_features=hidden_dim)
         self.dropout = nn.Dropout(dropout)
@@ -275,7 +275,7 @@ class MfbExpand(nn.Module):
 
 class MFH(nn.Module):
     def __init__(self, image_feat_dim, ques_emb_dim, **kwargs):
-        super(MFH, self).__init__()
+        super().__init__()
         self.mfb_expand_list = nn.ModuleList()
         self.mfb_sqz_list = nn.ModuleList()
         self.relu = nn.ReLU()
@@ -358,7 +358,7 @@ class MFH(nn.Module):
 # second: image (N, i_dim), question (N, q_dim);
 class NonLinearElementMultiply(nn.Module):
     def __init__(self, image_feat_dim, ques_emb_dim, **kwargs):
-        super(NonLinearElementMultiply, self).__init__()
+        super().__init__()
         self.fa_image = ReLUWithWeightNormFC(image_feat_dim, kwargs["hidden_dim"])
         self.fa_txt = ReLUWithWeightNormFC(ques_emb_dim, kwargs["hidden_dim"])
 
@@ -411,7 +411,7 @@ class TopDownAttentionLSTM(nn.Module):
         image_feat_mean = image_feat.mean(1)
 
         # Get LSTM state
-        state = registry.get("{}_lstm_state".format(image_feat.device))
+        state = registry.get(f"{image_feat.device}_lstm_state")
         h1, c1 = state["td_hidden"]
         h2, c2 = state["lm_hidden"]
 
@@ -432,7 +432,7 @@ class TopDownAttentionLSTM(nn.Module):
 
 class TwoLayerElementMultiply(nn.Module):
     def __init__(self, image_feat_dim, ques_emb_dim, **kwargs):
-        super(TwoLayerElementMultiply, self).__init__()
+        super().__init__()
 
         self.fa_image1 = ReLUWithWeightNormFC(image_feat_dim, kwargs["hidden_dim"])
         self.fa_image2 = ReLUWithWeightNormFC(
@@ -465,7 +465,7 @@ class TwoLayerElementMultiply(nn.Module):
 
 class TransformLayer(nn.Module):
     def __init__(self, transform_type, in_dim, out_dim, hidden_dim=None):
-        super(TransformLayer, self).__init__()
+        super().__init__()
 
         if transform_type == "linear":
             self.module = LinearTransform(in_dim, out_dim)
@@ -483,7 +483,7 @@ class TransformLayer(nn.Module):
 
 class LinearTransform(nn.Module):
     def __init__(self, in_dim, out_dim):
-        super(LinearTransform, self).__init__()
+        super().__init__()
         self.lc = weight_norm(
             nn.Linear(in_features=in_dim, out_features=out_dim), dim=None
         )
@@ -495,7 +495,7 @@ class LinearTransform(nn.Module):
 
 class ConvTransform(nn.Module):
     def __init__(self, in_dim, out_dim, hidden_dim):
-        super(ConvTransform, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(
             in_channels=in_dim, out_channels=hidden_dim, kernel_size=1
         )
@@ -530,7 +530,7 @@ class BCNet(nn.Module):
     """
 
     def __init__(self, v_dim, q_dim, h_dim, h_out, act="ReLU", dropout=None, k=3):
-        super(BCNet, self).__init__()
+        super().__init__()
 
         self.c = 32
         self.k = k
@@ -605,7 +605,7 @@ class FCNet(nn.Module):
     """
 
     def __init__(self, dims, act="ReLU", dropout=0):
-        super(FCNet, self).__init__()
+        super().__init__()
 
         layers = []
         for i in range(len(dims) - 2):
@@ -636,7 +636,7 @@ class FCNet(nn.Module):
 
 class BiAttention(nn.Module):
     def __init__(self, x_dim, y_dim, z_dim, glimpse, dropout=None):
-        super(BiAttention, self).__init__()
+        super().__init__()
         if dropout is None:
             dropout = [0.2, 0.5]
         self.glimpse = glimpse

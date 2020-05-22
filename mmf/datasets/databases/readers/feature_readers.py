@@ -187,7 +187,7 @@ class LMDBFeatureReader(PaddedFasterRCNNFeatureReader):
             meminit=False,
         )
         with self.env.begin(write=False, buffers=True) as txn:
-            self.image_ids = pickle.loads(txn.get("keys".encode()))
+            self.image_ids = pickle.loads(txn.get(b"keys"))
             self.image_id_indices = {
                 self.image_ids[i]: i for i in range(0, len(self.image_ids))
             }

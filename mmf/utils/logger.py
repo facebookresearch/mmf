@@ -106,9 +106,7 @@ class Logger:
             return
 
         if self.log_format == "simple":
-            output = ", ".join(
-                ["{}: {}".format(key, value) for key, value in info.items()]
-            )
+            output = ", ".join([f"{key}: {value}" for key, value in info.items()])
         elif self.log_format == "json":
             output = json.dumps(info)
         else:
@@ -141,7 +139,7 @@ class TensorboardLogger:
         if self._is_master:
             current_time = self.timer.get_time_hhmmss(None, format=self.time_format)
             tensorboard_folder = os.path.join(
-                self.log_folder, "tensorboard_{}".format(current_time)
+                self.log_folder, f"tensorboard_{current_time}"
             )
             self.summary_writer = SummaryWriter(tensorboard_folder)
 

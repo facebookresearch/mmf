@@ -67,9 +67,7 @@ class Vocab:
             if "vocab" in self.__dict__:
                 type_vocab = type(self.vocab)
 
-            raise AttributeError(
-                "{} vocab type has no attribute {}.".format(type_vocab, name)
-            )
+            raise AttributeError(f"{type_vocab} vocab type has no attribute {name}.")
 
 
 class BaseVocab:
@@ -228,7 +226,7 @@ class CustomVocab(BaseVocab):
             Path to data directory if embedding file is not an absolute path.
             Default: None
         """
-        super(CustomVocab, self).__init__(vocab_file)
+        super().__init__(vocab_file)
         self.type = "custom"
 
         if not os.path.isabs(embedding_file) and data_dir is not None:
@@ -276,7 +274,7 @@ class IntersectedVocab(BaseVocab):
             Embedding name picked up from the list of the pretrained aliases
             mentioned above
         """
-        super(IntersectedVocab, self).__init__(vocab_file, *args, **kwargs)
+        super().__init__(vocab_file, *args, **kwargs)
 
         self.type = "intersected"
 
@@ -422,7 +420,7 @@ class ModelVocab(BaseVocab):
             File from which model will be loaded. This API might need to be
             changed in future.
         """
-        super(ModelVocab, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.type = "model"
         if name != "fasttext":
             raise ValueError("Model vocab only supports fasttext as of now")
@@ -456,7 +454,7 @@ class ExtractedVocab(BaseVocab):
         base_path: str
             path containing saved files with embeddings one file per txt item
         """
-        super(ExtractedVocab, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.type = "extracted"
         self.emb_dim = emb_dim
         self.base_path = base_path

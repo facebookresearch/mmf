@@ -17,7 +17,7 @@ class VisDialMultiModalModel(Pythia):
         self._init_extras()
 
     def _init_text_embedding(self):
-        parent = super(VisDialMultiModalModel, self)
+        parent = super()
         parent._init_text_embedding("text_embeddings", False)
         parent._init_text_embedding("history_embeddings", True)
 
@@ -37,7 +37,7 @@ class VisDialMultiModalModel(Pythia):
         return params
 
     def _update_text_embedding_args(self, args):
-        parent = super(VisDialMultiModalModel, self)
+        parent = super()
         parent._update_text_embedding_args(args)
         # Add embedding vectors to args
         args.embedding_vectors = self.config.embedding_vectors

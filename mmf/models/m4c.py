@@ -152,7 +152,7 @@ class M4C(BaseModel):
             self.config.classifier.type,
             in_dim=self.mmt_config.hidden_size,
             out_dim=num_choices,
-            **self.config.classifier.params
+            **self.config.classifier.params,
         )
 
         self.answer_processor = registry.get(self._datasets[0] + "_answer_processor")
@@ -325,14 +325,14 @@ class M4C(BaseModel):
         config_mock = OmegaConf.create({"datasets": datasets})
         registry.register("config", config_mock)
         registry.register(
-            "{}_num_final_outputs".format(dataset),
+            f"{dataset}_num_final_outputs",
             # Need to add as it is subtracted
             checkpoint["classifier.module.weight"].size(0)
             + config.classifier.ocr_max_num,
         )
         # Fix this later, when processor pipeline is available
         answer_processor = OmegaConf.create({"BOS_IDX": 1})
-        registry.register("{}_answer_processor".format(dataset), answer_processor)
+        registry.register(f"{dataset}_answer_processor", answer_processor)
 
 
 class TextBert(BertPreTrainedModel):

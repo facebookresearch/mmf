@@ -76,14 +76,12 @@ class Metrics:
 
     def _init_metrics(self, metric_list):
         metrics = {}
-        self.required_params = set(["dataset_name", "dataset_type"])
+        self.required_params = {"dataset_name", "dataset_type"}
         for metric in metric_list:
             params = {}
             if isinstance(metric, collections.abc.Mapping):
                 if not hasattr(metric, "type"):
-                    raise ValueError(
-                        "Metric {} needs to have 'type' attribute".format(metric)
-                    )
+                    raise ValueError(f"Metric {metric} needs to have 'type' attribute")
                 metric = metric.type
                 params = getattr(metric, "params", {})
             else:
@@ -95,9 +93,7 @@ class Metrics:
 
             metric_cls = registry.get_metric_class(metric)
             if metric_cls is None:
-                raise ValueError(
-                    "No metric named {} registered to registry".format(metric)
-                )
+                raise ValueError(f"No metric named {metric} registered to registry")
             metrics[metric] = metric_cls(**params)
             self.required_params.update(metrics[metric].required_params)
 
@@ -111,7 +107,7 @@ class Metrics:
 
         with torch.no_grad():
             for metric_name, metric_object in self.metrics.items():
-                key = "{}/{}/{}".format(dataset_type, dataset_name, metric_name)
+                key = f"{dataset_type}/{dataset_name}/{metric_name}"
                 values[key] = metric_object._calculate_with_checks(
                     sample_list, model_output, *args, **kwargs
                 )

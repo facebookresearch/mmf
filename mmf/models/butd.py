@@ -5,7 +5,6 @@ import torch
 from mmf.common.registry import registry
 from mmf.models.pythia import Pythia
 from mmf.modules.layers import ClassifierLayer
-from mmf.utils.text import BeamSearch, NucleusSampling
 
 
 @registry.register_model("butd")
@@ -38,7 +37,7 @@ class BUTD(Pythia):
             self.config.classifier.type,
             in_dim=self.config.classifier.params.feature_dim,
             out_dim=self.vocab_size,
-            **self.config.classifier.params
+            **self.config.classifier.params,
         )
 
     def get_optimizer_parameters(self, config):
@@ -113,7 +112,7 @@ class BUTD(Pythia):
             h1, c1 = self.init_hidden_state(data["texts"])
             h2, c2 = self.init_hidden_state(data["texts"])
         data["state"] = {"td_hidden": (h1, c1), "lm_hidden": (h2, c2)}
-        registry.register("{}_lstm_state".format(h1.device), data["state"])
+        registry.register(f"{h1.device}_lstm_state", data["state"])
 
         return data, batch_size_t
 

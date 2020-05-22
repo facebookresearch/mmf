@@ -35,7 +35,7 @@ if use_cuda:
 
 class ResNet152FeatModule(nn.Module):
     def __init__(self):
-        super(ResNet152FeatModule, self).__init__()
+        super().__init__()
         modules = list(RESNET152_MODEL.children())[:-2]
         self.feature_module = nn.Sequential(*modules)
 
@@ -71,7 +71,7 @@ def extract_dataset_pool5(image_dir, save_dir, total_group, group_id, ext_filter
     image_list = glob(image_dir + "/*." + ext_filter)
     image_list = {f: 1 for f in image_list}
     exclude = {}
-    with open("./list", "r") as f:
+    with open("./list") as f:
         lines = f.readlines()
         for line in lines:
             exclude[line.strip("\n").split(os.path.sep)[-1].split(".")[0]] = 1

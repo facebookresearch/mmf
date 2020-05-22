@@ -8,7 +8,6 @@
 
 import argparse
 import json
-from builtins import dict
 
 from pycocoevalcap.bleu.bleu import Bleu
 from pycocoevalcap.cider.cider import Cider
@@ -64,11 +63,11 @@ class COCOEvalCap:
                 for sc, scs, m in zip(score, scores, method):
                     self.set_eval(sc, m)
                     self.set_img_to_eval_imgs(scs, gts.keys(), m)
-                    print("%s: %0.3f" % (m, sc))
+                    print(f"{m}: {sc:0.3f}")
             else:
                 self.set_eval(score, method)
                 self.set_img_to_eval_imgs(scores, gts.keys(), method)
-                print("%s: %0.3f" % (method, score))
+                print(f"{method}: {score:0.3f}")
         self.set_eval_imgs()
 
     def set_eval(self, score, method):
@@ -105,7 +104,7 @@ if __name__ == "__main__":
     parser.add_argument("--predicted_json", help="Path to predicted captions json")
     args = parser.parse_args()
 
-    with open(args.reference_json, "r") as f:
+    with open(args.reference_json) as f:
         captions = json.load(f)
 
     references = []
@@ -121,7 +120,7 @@ if __name__ == "__main__":
                 references.append(d)
     img_ids = list(set(img_ids))
 
-    with open(args.predicted_json, "r") as f:
+    with open(args.predicted_json) as f:
         preds = json.load(f)
 
     dataset_gts = {"annotations": references}

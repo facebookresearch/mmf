@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # mmf documentation build configuration file, created by
 # sphinx-quickstart on Tue Apr 23 10:42:55 2019.

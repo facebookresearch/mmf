@@ -57,7 +57,7 @@ class ExtractVocabulary:
         text = []
 
         for input_file in self.input_files:
-            with open(input_file, "r") as f:
+            with open(input_file) as f:
                 text += json.load(f)["questions"]
 
         return text

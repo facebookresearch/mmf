@@ -84,12 +84,12 @@ if __name__ == "__main__":
     answer_file_name = "answers_vqa.txt"
     os.makedirs(out_dir, exist_ok=True)
 
-    train_answers = json.load(open(train_annotation_file, "r"))["annotations"]
+    train_answers = json.load(open(train_annotation_file))["annotations"]
     answers = train_answers
 
     if args.val_annotation_file is not None:
         val_annotation_file = args.val_annotation_file
-        val_answers = json.load(open(val_annotation_file, "r"))["annotations"]
+        val_answers = json.load(open(val_annotation_file))["annotations"]
         answers = train_answers + val_answers
 
     answer_list = filter_answers(answers, min_freq)

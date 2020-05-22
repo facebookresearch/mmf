@@ -16,7 +16,7 @@ class TestBaseDataset(unittest.TestCase):
             "../../../mmf/configs/datasets/vqa2/defaults.yaml",
         )
         args = dummy_args()
-        args.opts.append("config={}".format(path))
+        args.opts.append(f"config={path}")
         configuration = Configuration(args)
         answer_processor = (
             configuration.get_config().dataset_config.vqa2.processors.answer_processor

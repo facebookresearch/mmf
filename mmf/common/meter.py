@@ -89,21 +89,19 @@ class Meter:
         log_dict = {}
         for k, v in self.meters.items():
             if "train" in k:
-                log_dict[k] = "{:.4f}".format(v.median)
-                log_dict["{}/avg".format(k)] = "{:.4f}".format(v.global_avg)
+                log_dict[k] = f"{v.median:.4f}"
+                log_dict[f"{k}/avg"] = f"{v.global_avg:.4f}"
             else:
-                log_dict[k] = "{:.4f}".format(v.global_avg)
+                log_dict[k] = f"{v.global_avg:.4f}"
         return log_dict
 
     def __str__(self):
         loss_str = []
         for name, meter in self.meters.items():
             if "train" in name:
-                loss_str.append(
-                    "{}: {:.4f} ({:.4f})".format(name, meter.median, meter.global_avg)
-                )
+                loss_str.append(f"{name}: {meter.median:.4f} ({meter.global_avg:.4f})")
             else:
                 # In case of val print global avg
-                loss_str.append("{}: {:.4f}".format(name, meter.global_avg))
+                loss_str.append(f"{name}: {meter.global_avg:.4f}")
 
         return self.delimiter.join(loss_str)

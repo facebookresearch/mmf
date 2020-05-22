@@ -29,7 +29,7 @@ class TestModelCNNLSTM(unittest.TestCase):
         )
         config_path = os.path.abspath(config_path)
         args = dummy_args(model="cnn_lstm", dataset="clevr")
-        args.opts.append("config={}".format(config_path))
+        args.opts.append(f"config={config_path}")
         configuration = Configuration(args)
         configuration.config.datasets = "clevr"
         configuration.freeze()

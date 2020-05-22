@@ -79,7 +79,8 @@ class FeatureExtractor:
         parser.add_argument(
             "--exclude_list",
             type=str,
-            help="List of images to be excluded from feature conversion. Each image on a new line",
+            help="List of images to be excluded from feature conversion. "
+            + "Each image on a new line",
             default="./list",
         )
         parser.add_argument(
@@ -160,7 +161,7 @@ class FeatureExtractor:
         for i in range(batch_size):
             dets = output[0]["proposals"][i].bbox / im_scales[i]
             scores = score_list[i]
-            max_conf = torch.zeros((scores.shape[0])).to(cur_device)
+            max_conf = torch.zeros(scores.shape[0]).to(cur_device)
             conf_thresh_tensor = torch.full_like(max_conf, conf_thresh)
             start_index = 1
             # Column 0 of the scores matrix is for the background class
@@ -170,7 +171,8 @@ class FeatureExtractor:
                 cls_scores = scores[:, cls_ind]
                 keep = nms(dets, cls_scores, 0.5)
                 max_conf[keep] = torch.where(
-                    # Better than max one till now and minimally greater than conf_thresh
+                    # Better than max one till now and minimally greater
+                    # than conf_thresh
                     (cls_scores[keep] > max_conf[keep])
                     & (cls_scores[keep] > conf_thresh_tensor[keep]),
                     cls_scores[keep],
@@ -254,7 +256,7 @@ class FeatureExtractor:
             exclude = {}
 
             if os.path.exists(self.args.exclude_list):
-                with open(self.args.exclude_list, "r") as f:
+                with open(self.args.exclude_list) as f:
                     lines = f.readlines()
                     for line in lines:
                         exclude[
@@ -291,7 +293,7 @@ class FeatureExtractor:
                 finished += len(chunk)
 
                 if finished % 200 == 0:
-                    print("Processed {}/{}".format(finished, total))
+                    print(f"Processed {finished}/{total}")
 
 
 if __name__ == "__main__":

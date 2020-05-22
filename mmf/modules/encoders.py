@@ -20,7 +20,7 @@ from mmf.utils.general import get_absolute_path
 
 class ImageFeatureEncoder(nn.Module):
     def __init__(self, encoder_type, in_dim, **kwargs):
-        super(ImageFeatureEncoder, self).__init__()
+        super().__init__()
 
         if encoder_type == "default":
             self.module = Identity()
@@ -146,7 +146,7 @@ class TextEncoder(nn.Module):
         elif self._type == "embedding":
             self.module = TextEmbeddingEncoder(config.params)
         else:
-            raise NotImplementedError("Unknown Text Encoder {}".format(self._type))
+            raise NotImplementedError(f"Unknown Text Encoder {self._type}")
 
     def forward(self, *args, **kwargs):
         return self.module(*args, **kwargs)
