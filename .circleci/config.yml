@@ -45,7 +45,8 @@ install_dep_windows: &install_dep_windows
       command: |
         source activate mmf
         pip install --upgrade setuptools certifi
-        pip install -f https://download.pytorch.org/whl/torch_stable.html -r requirements.txt
+        pip install --progress-bar off torch==1.5.0+cpu torchvision==0.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+        pip install -r requirements.txt
         pip install --progress-bar off flake8
         pip install --progress-bar off black
         pip install --progress-bar off isort

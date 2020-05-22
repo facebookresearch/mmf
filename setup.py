@@ -128,7 +128,7 @@ if "READTHEDOCS" in os.environ:
     CMD_CLASS.pop("build_ext", None)
     # use CPU build of PyTorch
     DEPENDENCY_LINKS.append(
-        "https://download.pytorch.org/whl/cpu/torch-1.4.0%2B"
+        "https://download.pytorch.org/whl/cpu/torch-1.5.0%2B"
         + "cpu-cp36-cp36m-linux_x86_64.whl"
     )
 

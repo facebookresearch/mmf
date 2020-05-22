@@ -1,5 +1,5 @@
-torch==1.4.0
-torchvision==0.5.0
+torch==1.5.0
+torchvision==0.6.0
 numpy==1.16.6
 tqdm==4.43.0
 demjson==2.2.4
