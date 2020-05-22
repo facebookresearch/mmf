@@ -14,7 +14,7 @@ class MaskedCOCODataset(COCODataset):
         self._false_caption_probability = config.get("false_caption_probability", 0.5)
 
     def load_item(self, idx):
-        sample_info = self.imdb[idx]
+        sample_info = self.annotation_db[idx]
         current_sample = Sample()
 
         if self._use_features is True:

@@ -1,12 +1,140 @@
 visual_bert:
   pretrained:
     coco:
-      version: 1.0_2020_04_20
-      resources:
-      - url: mmf://models/visual_bert/visual_bert.pretrained.coco.tar.gz
-        file_name: visual_bert.pretrained.coco.tar.gz
-        hashcode: 9d809f7aedd7eb596951e32eef1d45f2d25adc5624af52cd828daf103a33b203
-    defaults: ${visual_bert.pretrained.coco}
+      full:
+        # COCO Train 100%
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.coco.tar.gz
+          file_name: visual_bert.pretrained.coco.tar.gz
+          hashcode: 9d809f7aedd7eb596951e32eef1d45f2d25adc5624af52cd828daf103a33b203
+      fifty_pc:
+        # COCO Train 50%
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.coco_fifty_pc.tar.gz
+          file_name: visual_bert.pretrained.coco_fifty_pc.tar.gz
+          hashcode: 4e2ef5b9ea382feaab610aacad96f2d2e3931831836e8bfff3311c9a05920cff
+      ten_pc:
+        # COCO Train 10%
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.coco.tar.gz
+          file_name: visual_bert.pretrained.coco.tar.gz
+          hashcode: 3b4d30768180b375a7d71a74568232a40f780a0774f9c624032081b083793727
+      full_train_val:
+        # COCO Train+Val 100%
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.coco_train_val.tar.gz
+          file_name: visual_bert.pretrained.coco_train_val.tar.gz
+          hashcode: b051b49d35923032e26fcd4bfd64688042acabd2a90893ffa90595be8ce05b90
+      defaults: ${visual_bert.pretrained.coco.full_train_val}
+    vqa2:
+      full:
+        # VQA2 Train 100%
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.vqa2.tar.gz
+          file_name: visual_bert.pretrained.vqa2.tar.gz
+          hashcode: 83c405bdaa263f62e6378e7e4c0645eeb19ab93389e299dfe1b9d1888438c72b
+      fifty_pc:
+        # VQA2 Train 50%
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.vqa2_fifty_pc.tar.gz
+          file_name: visual_bert.pretrained.vqa2_fifty_pc.tar.gz
+          hashcode: 9fdaa945cb727f422262e770c72c3dc897d5ec172a5049b559ae2cbd7b997bec
+      ten_pc:
+        # VQA2 Train 10%
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.vqa2_ten_pc.tar.gz
+          file_name: visual_bert.pretrained.vqa2_ten_pc.tar.gz
+          hashcode: f6a20a4946d94908d456c3d67bc18b8651a25767553ee1ef3a8c8875b797dd07
+      full_train_val:
+        # VQA2 Train+Val 100%
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.vqa2_train_val.tar.gz
+          file_name: visual_bert.pretrained.vqa2_train_val.tar.gz
+          hashcode: 017b506db1ba2b3ae27e73f00ddcc2c52a89e59922238c5b5ae053b48c8cb590
+      defaults: ${visual_bert.pretrained.vqa2.full_train_val}
+    cc:
+      full:
+        # CC 100%
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.cc_full.tar.gz
+          file_name: visual_bert.pretrained.cc_full.tar.gz
+          hashcode: 4351f9618a71b4fa9f52958d6742976ee0f31cae41714f1021e5cbca8aa1d31f
+      half:
+        # CC 50%
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.cc_half.tar.gz
+          file_name: visual_bert.pretrained.cc_half.tar.gz
+          hashcode: 96e15d6630aea7f5a6e96a2ce39dba49c23ef0d60ce5046bb684d0495fa8c95f
+      small:
+        # CC 10%
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.cc_small.tar.gz
+          file_name: visual_bert.pretrained.cc_small.tar.gz
+          hashcode: 5f3d5907a828d8381191ee1d5fc28100bcc8410fd01ff7675a4d4434ae796a42
+      small_fifty_pc:
+        # 50% of CC Small
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.cc_small_fifty_pc.tar.gz
+          file_name: visual_bert.pretrained.cc_small_fifty_pc.tar.gz
+          hashcode: c510b33ad9c1de9da313d0f5624e24ebdc58de34bd91fd73bbae30ae1d0bb4be
+      small_ten_pc:
+        # 10% of CC Small
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.cc_small_ten_pc.tar.gz
+          file_name: visual_bert.pretrained.cc_small_ten_pc.tar.gz
+          hashcode: 5c701e7f041e371a6241cfe9fafe66c2b4da0323a0d9a349cf50d42b59bf0ed7
+      full_coco_generated:
+        # CC 100% generated from COCO
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.cc_full_coco_generated.tar.gz
+          file_name: visual_bert.pretrained.cc_full_coco_generated.tar.gz
+          hashcode: 27acc32ab55a9f771d354fec8c2c76fed3464fa0b569dd465b0552c0a79afca5
+      half_coco_generated:
+        # CC 50% generated from COCO
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.cc_half_coco_generated.tar.gz
+          file_name: visual_bert.pretrained.cc_half_coco_generated.tar.gz
+          hashcode: a35cdfab35bcb23956bff29f38253aeb4adbec5518ea0a023232f0107f827261
+      small_coco_generated:
+        # CC 10% generated from COCO
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.pretrained.cc_small_coco_generated.tar.gz
+          file_name: visual_bert.pretrained.cc_small_coco_generated.tar.gz
+          hashcode: 834bf064ac7c3d5f5df60db1ae78825d322c7addfdb8298f273d124f0dcb6f7a
+      defaults: ${visual_bert.pretrained.cc.full}
+    defaults: ${visual_bert.pretrained.coco.full}
 
   finetuned:
     hateful_memes:
@@ -23,6 +151,44 @@ visual_bert:
           file_name: visual_bert.finetuned.hateful_memes_from_coco.tar.gz
           hashcode: 462d34eb35d7d00f50f14b8e06577b9f89074313761f3f94fd5161dc67b28525
       defaults: ${visual_bert.finetuned.hateful_memes.from_coco}
+    vqa2:
+      from_coco_train:
+        version: 1.0_2020_05_21
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.finetuned.vqa2.train.tar.gz
+          file_name: visual_bert.finetuned.vqa2.train.tar.gz
+          hashcode: e786351503f0e19abd916cc9063b427adc60a0f98f6686e58b296672e90b74c
+      from_coco_train_val:
+        version: 1.0_2020_05_21
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.finetuned.vqa2.train_val.tar.gz
+          file_name: visual_bert.finetuned.vqa2.train_val.tar.gz
+          hashcode: 25890ea626bd1ca470027e33fabcca1a7b9a8880fddf6d472a11a9e5df525e90
+      defaults: ${visual_bert.finetuned.vqa2.from_coco_train_val}
+    vizwiz:
+      from_vqa2:
+        version: 1.0_2020_05_21
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.finetuned.vizwiz.tar.gz
+          file_name: visual_bert.finetuned.vizwiz.tar.gz
+          hashcode: eab45d575c5e2afa8e2675fc1b137388d6ea6d209f465c71ad9be9219908b418
+      defaults: ${visual_bert.finetuned.vizwiz.from_vqa2}
+    visual_entailment:
+      from_coco:
+        version: 1.0_2020_05_21
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.finetuned.visual_entailment.tar.gz
+          file_name: visual_bert.finetuned.visual_entailment.tar.gz
+          hashcode: e690c39b7f845f29379f19a159042a45bbf987975a418d2bb60aea6ece82d51a
+      defaults: ${visual_bert.finetuned.visual_entailment.from_coco}
+    mmimdb:
+      direct:
+        version: 1.0_2020_05_21
+        resources:
+        - url: mmf://models/visual_bert/visual_bert.finetuned.mmimdb.tar.gz
+          file_name: visual_bert.finetuned.mmimdb.tar.gz
+          hashcode: 1826cc6750d0c5b7cf3d7cbd90cda6248af6579aae0edeeaf1dfd7381313bde7
+      defaults: ${visual_bert.finetuned.mmimdb.direct}
 
 detectron:
   vmb_weights:
@@ -91,12 +257,79 @@ vilbert:
   pretrained:
     cc:
       original:
+        # CC 100%
+        # Model from project : projects/vilbert
         version: 1.0_2020_05_10
         resources:
         - url: mmf://models/vilbert/vilbert.pretrained.cc_original.tar.gz
           file_name: vilbert.pretrained.cc_original.tar.gz
           hashcode: 85e6354fcf2583e03def4dff02125e268b3732c152f87cfbd2ad34c0e4f47b53
-    defaults: ${vilbert.pretrained.cc.original}
+      full:
+        # CC 100%
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/vilbert/vilbert.pretrained.cc_full.tar.gz
+          file_name: vilbert.pretrained.cc_full.tar.gz
+          hashcode: 0af0b1b35d60e27828241f79c9e598a5625557bebf83c8a7d255c03df22bf469
+      half:
+        # CC 50%
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/vilbert/vilbert.pretrained.cc_half.tar.gz
+          file_name: vilbert.pretrained.cc_half.tar.gz
+          hashcode: 1518c339b0d1875317ce59396ab2d1cf6f916a32b22f7bf7a4cf215c5f1b2608
+      small:
+        # CC 10%
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/vilbert/vilbert.pretrained.cc_small.tar.gz
+          file_name: vilbert.pretrained.cc_small.tar.gz
+          hashcode: 4a4063273052d3d1a6f63901b6ec1cca06785d67e10f287b33687b9c65c7cc9d
+      full_coco_generated:
+        # CC 100% generated from COCO
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/vilbert/vilbert.pretrained.cc_full_coco_generated.tar.gz
+          file_name: vilbert.pretrained.cc_full_coco_generated.tar.gz
+          hashcode: 73bd6f644df98b9b36e20dbd65a4c2df64fdd1066374758934b92777caa0b63b
+      half_coco_generated:
+        # CC 50% generated from COCO
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/vilbert/vilbert.pretrained.cc_half_coco_generated.tar.gz
+          file_name: vilbert.pretrained.cc_half_coco_generated.tar.gz
+          hashcode: db385741c5d0b5db4bb65f25a5a19029aba5c4c006f7094e9ff6009c9afbfc49
+      small_coco_generated:
+        # CC 10% generated from COCO
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_19
+        resources:
+        - url: mmf://models/vilbert/vilbert.pretrained.cc_small_coco_generated.tar.gz
+          file_name: vilbert.pretrained.cc_small_coco_generated.tar.gz
+          hashcode: a7497ae1a56d8645f9dbf0e08a6d297dac3e904c284c2fad32ffd982463f830d
+      defaults: ${vilbert.pretrained.cc.full}
+    coco:
+      # COCO Train 100%
+      # Model from project : projects/pretrain_vl_right
+      version: 1.0_2020_05_19
+      resources:
+      - url: mmf://models/vilbert/vilbert.pretrained.coco.tar.gz
+        file_name: vilbert.pretrained.coco.tar.gz
+        hashcode: 6b4139f947a862188b2266508b171cf3a7dfca3848ba138fde7c5529bc5505a9
+    vqa2:
+      # VQA2 Train 100%
+      # Model from project : projects/pretrain_vl_right
+      version: 1.0_2020_05_19
+      resources:
+      - url: mmf://models/vilbert/vilbert.pretrained.vqa2.tar.gz
+        file_name: vilbert.pretrained.vqa2.tar.gz
+        hashcode: 0036437dc6e1aed92ee0cfa7ac08dfa80240e875fc17ce66ca391f6163cdeeae
+    defaults: ${vilbert.pretrained.cc.full}
 
   finetuned:
     hateful_memes:
@@ -113,6 +346,42 @@ vilbert:
           file_name: vilbert.finetuned.hateful_memes_from_cc.tar.gz
           hashcode: c7c505e1012f48bddc77dc0140dbfd0a0dab83b3b57ed565fe76fb3d350fd030
       defaults: ${vilbert.finetuned.hateful_memes.from_cc_original}
+    vqa2:
+      from_vqa2_train:
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_21
+        resources:
+        - url: mmf://models/vilbert/vilbert.finetuned.vqa2.train.tar.gz
+          file_name: vilbert.finetuned.vqa2.train.tar.gz
+          hashcode: 0869d0d6326caf181624a263b54c8b16819ba46e1ad29d019a98e9582352fb3d
+      defaults: ${vilbert.finetuned.vqa2.from_vqa2_train}
+    vizwiz:
+      from_coco:
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_21
+        resources:
+        - url: mmf://models/vilbert/vilbert.finetuned.vizwiz.tar.gz
+          file_name: vilbert.finetuned.vizwiz.tar.gz
+          hashcode: 48bea84337a61119ea41c7d18e77ae7d9cb16580f0fe8721d71da61c324a30ea
+      defaults: ${vilbert.finetuned.vizwiz.from_coco}
+    visual_entailment:
+      from_coco:
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_21
+        resources:
+        - url: mmf://models/vilbert/vilbert.finetuned.visual_entailment.tar.gz
+          file_name: vilbert.finetuned.visual_entailment.tar.gz
+          hashcode: 62835328858eb6fd6655b220e8d7aaf73756efb7e01289af36c54436326041cc
+      defaults: ${vilbert.finetuned.visual_entailment.from_coco}
+    mmimdb:
+      direct:
+        # Model from project :  projects/pretrain_vl_right
+        version: 1.0_2020_05_21
+        resources:
+        - url: mmf://models/vilbert/vilbert.finetuned.mmimdb.tar.gz
+          file_name: vilbert.finetuned.mmimdb.tar.gz
+          hashcode: 9c650d35442dfaf84f53c299bb3f96cd655e0ef77deb2a6020ee4b32bd21a8e4
+      defaults: ${vilbert.finetuned.mmimdb.direct}
 
 mmbt:
   hateful_memes:

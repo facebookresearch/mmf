@@ -1,3 +1,6 @@
+includes:
+- ./defaults.yaml
+
 dataset_config:
   masked_coco:
     return_features_info: true
