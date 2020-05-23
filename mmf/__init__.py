@@ -2,14 +2,19 @@
 # isort:skip_file
 # flake8: noqa: F401
 
-import mmf.utils
-import mmf.common
-import mmf.modules
-import mmf.modules.losses
-import mmf.modules.schedulers
-import mmf.modules.optimizers
-import mmf.modules.metrics
-import mmf.datasets
-import mmf.models
-
+from mmf import utils, common, modules, datasets, models
+from mmf.modules import losses, schedulers, optimizers, metrics
 from mmf.version import __version__
+
+
+__all__ = [
+    "utils",
+    "common",
+    "modules",
+    "datasets",
+    "models",
+    "losses",
+    "schedulers",
+    "optimizers",
+    "metrics",
+]

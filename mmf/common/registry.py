@@ -22,6 +22,7 @@ Various decorators for registry different kind of classes with unique keys
 - Register a scheduler: ``@registry.register_scheduler``
 - Register a decoder: ``@registry.register_decoder``
 """
+from mmf.utils.env import setup_imports
 
 
 class Registry:
@@ -30,7 +31,8 @@ class Registry:
     """
     mapping = {
         # Mappings of builder name to their respective classes
-        # Use `registry.register_builder` to register a builder class with a specific name
+        # Use `registry.register_builder` to register a builder class
+        # with a specific name
         # Further, use the name with the class is registered in the
         # command line or configuration to load that specific dataset
         "builder_name_mapping": {},
@@ -404,3 +406,4 @@ class Registry:
 
 
 registry = Registry()
+setup_imports()

@@ -110,9 +110,7 @@ class BaseTrainer:
         with omegaconf.open_dict(attributes):
             attributes.model = self.config.model
 
-        self.dataset_loader.update_registry_for_model(attributes)
         self.model = build_model(attributes)
-        self.dataset_loader.clean_config(attributes)
 
         if "cuda" in str(self.device):
             device_info = "CUDA Device {} is: {}".format(

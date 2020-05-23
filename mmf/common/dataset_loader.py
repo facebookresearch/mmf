@@ -2,7 +2,7 @@
 
 from mmf.common.sample import SampleList
 from mmf.common.test_reporter import TestReporter
-from mmf.datasets.multi_dataset import MultiDataset
+from mmf.datasets.multi_dataset_loader import MultiDatasetLoader
 
 
 class DatasetLoader:
@@ -10,9 +10,9 @@ class DatasetLoader:
         self.config = config
 
     def load_datasets(self):
-        self.train_dataset = MultiDataset("train")
-        self.val_dataset = MultiDataset("val")
-        self.test_dataset = MultiDataset("test")
+        self.train_dataset = MultiDatasetLoader("train")
+        self.val_dataset = MultiDatasetLoader("val")
+        self.test_dataset = MultiDatasetLoader("test")
 
         self.train_dataset.load(self.config)
         self.val_dataset.load(self.config)
@@ -46,16 +46,6 @@ class DatasetLoader:
     def get_test_reporter(self, dataset_type):
         dataset = getattr(self, f"{dataset_type}_dataset")
         return TestReporter(dataset)
-
-    def update_registry_for_model(self, config):
-        self.train_dataset.update_registry_for_model(config)
-        self.val_dataset.update_registry_for_model(config)
-        self.test_dataset.update_registry_for_model(config)
-
-    def clean_config(self, config):
-        self.train_dataset.clean_config(config)
-        self.val_dataset.clean_config(config)
-        self.test_dataset.clean_config(config)
 
     def prepare_batch(self, batch, *args, **kwargs):
         batch = SampleList(batch)

@@ -31,7 +31,7 @@ class ImageDatabase(torch.utils.data.Dataset):
     .get which takes in an annotation db item or .from_path which directly
     takes in an image path. You are free to use your own dataset instead
     of image database or free to update or ignore MMFDataset's ImageDataset
-    initiliazation. You can either reinitializ with transform and other
+    initialization. You can either reinitialize with transform and other
     params or use any of torchvision's datasets.
     """
 
@@ -114,7 +114,7 @@ class ImageDatabase(torch.utils.data.Dataset):
         possible_images = self._get_attrs(item)
         return self.from_path(possible_images)
 
-    def from_path(self, paths):
+    def from_path(self, paths, use_transforms=True):
         if isinstance(paths, str):
             paths = [paths]
 
@@ -147,7 +147,7 @@ class ImageDatabase(torch.utils.data.Dataset):
             path = os.path.join(self.base_path, path)
             image = self.open_image(path)
 
-            if self.transform:
+            if self.transform and use_transforms:
                 image = self.transform(image)
             loaded_images.append(image)
 

@@ -112,3 +112,8 @@ class BaseDataset(Dataset):
 
     def verbose_dump(self, *args, **kwargs):
         return
+
+    def visualize(self, num_samples=1, *args, **kwargs):
+        raise NotImplementedError(
+            f"{self.dataset_name} doesn't implement visualize function"
+        )
