@@ -1,3 +1,6 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
+
 def transform_to_batch_sequence(tensor):
     if tensor is not None:
         if len(tensor.size()) == 2:

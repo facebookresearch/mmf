@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
 # Copied from fairseq. Mostly written by @myleott. Adapted accordingly for pythia
 import datetime
 import itertools

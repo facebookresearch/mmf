@@ -1,4 +1,4 @@
-# Copyright (c) 2017-present, Facebook, Inc.
+# Copyright (c) Facebook, Inc. and its affiliates.
 
 import argparse
 import glob

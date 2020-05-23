@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates.
+
 #
 # mmf documentation build configuration file, created by
 # sphinx-quickstart on Tue Apr 23 10:42:55 2019.

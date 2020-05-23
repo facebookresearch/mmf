@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
 # MMBTModel, ModalEmbeddings is copied from [1]
 # as we have internal dependency on transformers v2.3.
 # These will be removed when we upgrade to package v2.5+.

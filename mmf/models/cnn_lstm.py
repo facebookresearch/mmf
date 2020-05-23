@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
 from copy import deepcopy
 
 import torch
@@ -17,18 +19,19 @@ _CONSTANTS = {"hidden_state_warning": "hidden state (final) should have 1st dim 
 
 @registry.register_model("cnn_lstm")
 class CNNLSTM(BaseModel):
-    """CNNLSTM is a simple model for vision and language tasks. CNNLSTM is supposed to act
-    as a baseline to test out your stuff without any complex functionality. Passes image
-    through a CNN, and text through an LSTM and fuses them using concatenation. Then, it finally
-    passes the fused representation from a MLP to generate scores for each of the possible answers.
+    """CNNLSTM is a simple model for vision and language tasks. CNNLSTM is supposed
+    to acts as a baseline to test out your stuff without any complex functionality.
+    Passes image through a CNN, and text through an LSTM and fuses them using
+    concatenation. Then, it finally passes the fused representation from a MLP to
+    generate scores for each of the possible answers.
 
     Args:
-        config (DictConfig): Configuration node containing all of the necessary config required
-                             to initialize CNNLSTM.
+        config (DictConfig): Configuration node containing all of the necessary
+                             config required to initialize CNNLSTM.
 
     Inputs: sample_list (SampleList)
-        - **sample_list** should contain image attribute for image, text for question split into
-          word indices, targets for answer scores
+        - **sample_list** should contain image attribute for image, text for
+          question split into word indices, targets for answer scores
     """
 
     def __init__(self, config):
