@@ -105,9 +105,10 @@ mmf_predict config=<REPLACE_WITH_BASELINE_CONFIG> model=<REPLACE_WITH_MODEL_KEY>
 It is also possible to load a pretrained model directly in your code, use:
 
 ```
-from mmf.models import BaseModel
+from mmf.common.registry import registry
 
-model = BaseModel.from_pretrained("<DESIRED_PRETRAINED_ZOO_KEY>")
+model_cls = registry.get_model_class("<DESIRED_MODEL_KEY">)
+model = model_cls.from_pretrained("<DESIRED_PRETRAINED_ZOO_KEY>")
 ```
 
 ## Questions/Feedback?

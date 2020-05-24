@@ -93,7 +93,7 @@ class TestUtilsCheckpoint(unittest.TestCase):
         with mock_env_with_temp() as d:
             Checkpoint(self.trainer)
             config = load_yaml(os.path.join(d, "config.yaml"))
-            self.assertFalse(config == self.config)
+            self.assertTrue(config == self.config)
             self.assertTrue(config == self.trainer.config)
 
     def test_save_and_load_state_dict(self):

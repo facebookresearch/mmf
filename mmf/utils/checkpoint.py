@@ -119,9 +119,6 @@ class Checkpoint:
     def save_config(self):
         cfg_file = os.path.join(self.ckpt_foldername, "config.yaml")
         with PathManager.open(cfg_file, "w") as f:
-            # Pop out config_override if present to remove clutter in
-            # saved configuration yaml file
-            self.config.pop("config_override", None)
             f.write(self.config.pretty(resolve=True))
 
     def load_state_dict(self):
