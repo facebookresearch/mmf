@@ -17,7 +17,7 @@ repos:
     -   id: end-of-file-fixer
 
 -   repo: https://github.com/Lucas-C/pre-commit-hooks
-    sha: v1.1.7
+    rev: v1.1.7
     hooks:
     -   id: insert-license
         files: \.py$
