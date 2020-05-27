@@ -24,7 +24,7 @@ mmf_run config=projects/m4c/configs/textvqa/defaults.yaml datasets=textvqa model
 
 ## Inference
 
-For running inference or generating predictions, we can specify a pretrained model using it's zoo key and then run the following command:
+For running inference or generating predictions, we can specify a pretrained model using its zoo key and then run the following command:
 
 ```
 mmf_predict config=projects/m4c/configs/textvqa/defaults.yaml datasets=textvqa model=m4c run_type=test checkpoint.resume_zoo=m4c.textvqa.defaults
