@@ -76,6 +76,7 @@ If you use MMF in your work, please cite:
    notes/pretrained_models
    notes/configuration
    notes/challenge
+   notes/faq
 
 .. toctree::
    :maxdepth: 1
