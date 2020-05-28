@@ -3,7 +3,6 @@ from torch.utils.data.dataset import Dataset
 
 from mmf.common.registry import registry
 from mmf.common.sample import SampleList
-from mmf.datasets.processors.processors import Processor
 
 
 class BaseDataset(Dataset):
@@ -52,19 +51,18 @@ class BaseDataset(Dataset):
     def init_processors(self):
         if not hasattr(self.config, "processors"):
             return
-        extra_params = {"data_dir": self.config.data_dir}
-        for processor_key, processor_params in self.config.processors.items():
-            if not processor_params:
-                continue
-            reg_key = f"{self._dataset_name}_{processor_key}"
-            reg_check = registry.get(reg_key, no_warning=True)
 
-            if reg_check is None:
-                processor_object = Processor(processor_params, **extra_params)
-                setattr(self, processor_key, processor_object)
-                registry.register(reg_key, processor_object)
-            else:
-                setattr(self, processor_key, reg_check)
+        from mmf.utils.build import build_processors
+
+        extra_params = {"data_dir": self.config.data_dir}
+        reg_key = f"{self._dataset_name}_{{}}"
+        processor_dict = build_processors(
+            self.config.processors, reg_key, **extra_params
+        )
+        for processor_key, processor_instance in processor_dict.items():
+            setattr(self, processor_key, processor_instance)
+            full_key = reg_key.format(processor_key)
+            registry.register(full_key, processor_instance)
 
     def try_fast_read(self):
         return

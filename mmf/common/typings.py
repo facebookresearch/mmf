@@ -7,6 +7,7 @@ import torch
 
 from mmf.datasets.base_dataset import BaseDataset
 from mmf.datasets.base_dataset_builder import BaseDatasetBuilder
+from mmf.datasets.processors.processors import Processor
 
 DatasetType = Type[BaseDataset]
 DatasetBuilderType = Type[BaseDatasetBuilder]
@@ -15,3 +16,5 @@ DataLoaderAndSampler = Tuple[
     Type[torch.utils.data.DataLoader], Optional[torch.utils.data.Sampler]
 ]
 DataLoaderArgsType = Optional[Dict[str, Any]]
+ProcessorType = Type[Processor]
+ProcessorDict = Dict[str, ProcessorType]

@@ -9,12 +9,15 @@ import os
 from copy import deepcopy
 
 import torch
+from omegaconf import OmegaConf
 from torch import nn
 from transformers.modeling_bert import BertForPreTraining, BertPredictionHeadTransform
 
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
+from mmf.models.interfaces.mmbt import MMBTGridHMInterface
 from mmf.modules.encoders import MultiModalEncoderBase
+from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
 
@@ -505,6 +508,14 @@ class MMBT(BaseModel):
             .replace("base.cls", "model.cls")
             .replace("base.classifier", "model.classifier")
         )
+
+    @classmethod
+    def from_pretrained(cls, model_name, *args, **kwargs):
+        model = super().from_pretrained(model_name, *args, **kwargs)
+        config = load_pretrained_model(model_name)["full_config"]
+        OmegaConf.set_struct(config, True)
+        if model_name == "mmbt.hateful_memes.images":
+            return MMBTGridHMInterface(model, config)
 
     @classmethod
     def config_path(cls):

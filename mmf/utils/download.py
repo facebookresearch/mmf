@@ -186,7 +186,7 @@ def mark_done(path, version_string=None):
         json.dump(data, f)
 
 
-def download(url, path, fname, redownload=True):
+def download(url, path, fname, redownload=True, disable_tqdm=False):
     """
     Download file using `requests`.
 
@@ -204,8 +204,11 @@ def download(url, path, fname, redownload=True):
     if download:
         # First test if the link is actually downloadable
         check_header(url)
-        print("[ Downloading: " + url + " to " + outfile + " ]")
-        pbar = tqdm.tqdm(unit="B", unit_scale=True, desc=f"Downloading {fname}")
+        if not disable_tqdm:
+            print("[ Downloading: " + url + " to " + outfile + " ]")
+        pbar = tqdm.tqdm(
+            unit="B", unit_scale=True, desc=f"Downloading {fname}", disable=disable_tqdm
+        )
 
     while download and retry >= 0:
         resume_file = outfile + ".part"
