@@ -99,6 +99,11 @@ def get_args():
         help="secure group to use",
         default="fair_research_and_engineering",
     )
+    parser.add_argument(
+        "--torch_home",
+        help="torch cache path",
+        default="/mnt/vol/gfsfblearner-oregon/users/vedanuj/torch/",
+    )
 
     # Slurm params
     parser.add_argument(
