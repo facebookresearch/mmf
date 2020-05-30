@@ -16,6 +16,7 @@ import json
 import os
 import shutil
 import time
+from pathlib import Path
 
 import requests
 import tqdm
@@ -54,7 +55,13 @@ class DownloadableFile:
     MMF_PREFIX_REPLACEMENT = "https://dl.fbaipublicfiles.com/mmf/data/"
 
     def __init__(
-        self, url, file_name, hashcode=None, compressed=True, delete_original=False
+        self,
+        url,
+        file_name,
+        hashcode=None,
+        compressed=True,
+        delete_original=False,
+        dest_folder=None,
     ):
         """
         An object of this class needs to be created with:
@@ -69,13 +76,21 @@ class DownloadableFile:
                                          Defaults to True.
             delete_original (bool, optional): If compressed whether to delete original.
                                               Defaults to False.
+            dest_folder (str, optional): Folder which will be appended to destination
+                path provided when downloading. Defaults to None.
         """
         self._url = self._parse_url(url)
         self._file_name = file_name
         self._hashcode = hashcode
         self._compressed = compressed
         self._from_google = self._url.find(self.GOOGLE_DRIVE_SUBSTR) != -1
+
+        if self._from_google:
+            assert "id=" in self._url, "Google Drive URL should have Google Drive ID"
+            self._url = self._url.split("=")[-1]
+
         self._delete_original = delete_original
+        self._dest_folder = dest_folder
 
     def _parse_url(self, url):
         if url.find(self.MMF_PREFIX) == -1:
@@ -117,6 +132,10 @@ class DownloadableFile:
     def download_file(self, download_path):
         downloaded = False
         redownload = False
+
+        if self._dest_folder is not None:
+            download_path = str(Path(f"{download_path}/{self._dest_folder}"))
+            make_dir(download_path)
 
         try:
             self.checksum(download_path)

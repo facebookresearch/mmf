@@ -1,17 +1,20 @@
 dataset_config:
   visual_dialog:
-      data_dir: ${env.data_dir}
+      data_dir: ${env.data_dir}/datasets
       depth_first: false
       fast_read: false
       use_images: false
       use_features: true
+      zoo_requirements:
+      - coco.defaults
+      # TODO: Later upload visual dialog features as well
       features:
           train:
-          - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+          - coco/defaults/features/trainval2014.lmdb
           val:
-          - visual_dialog/detectron_fix_100/fc6/val2018,visual_dialog/resnet152/
+          - visual_dialog/detectron_fix_100/fc6/val2018
           test:
-          - visual_dialog/detectron_fix_100/fc6/test2018,visual_dialog/resnet152/
+          - visual_dialog/detectron_fix_100/fc6/test2018
       annotations:
           train:
           - imdb/visual_dialog/visdial_1.0_train.json
@@ -28,7 +31,7 @@ dataset_config:
             vocab:
               type: intersected
               embedding_name: glove.6B.300d
-              vocab_file: vocabs/vocabulary_100k.txt
+              vocab_file: coco/defaults/extras/vocabs/vocabulary_100k.txt
             preprocessor:
               type: simple_sentence
               params: {}

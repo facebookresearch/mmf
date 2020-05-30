@@ -15,7 +15,7 @@ dataset_config:
       answer_processor:
         type: soft_copy_answer
         params:
-          vocab_file: vocabs/answers_vqa.txt
+          vocab_file: vqa2/defaults/extras/vocabs/answers_vqa.txt
           preprocessor:
             type: simple_word
             params: {}

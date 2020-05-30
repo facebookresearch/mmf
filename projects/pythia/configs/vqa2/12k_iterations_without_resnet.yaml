@@ -5,20 +5,23 @@ dataset_config:
   vqa2:
     use_images: false
     use_features: true
+    zoo_requirements:
+    - coco.defaults
+    - vqa2.defaults
     features:
       train:
-      - coco/detectron_fix_100/fc6/train_val_2014
-      - coco/detectron_fix_100/fc6/train_val_2014
+      - coco/defaults/features/trainval2014.lmdb
+      - coco/defaults/features/trainval2014.lmdb
       val:
-      - coco/detectron_fix_100/fc6/train_val_2014
+      - coco/defaults/features/trainval2014.lmdb
       test:
-      - coco/detectron_fix_100/fc6/test2015
+      - coco/defaults/features/test2015.lmdb
     annotations:
       train:
-      - imdb/vqa/imdb_train2014.npy
-      - imdb/vqa/imdb_val2014.npy
+      - vqa2/defaults/annotations/imdb_train2014.npy
+      - vqa2/defaults/annotations/imdb_val2014.npy
       val:
-      - imdb/vqa/imdb_minival2014.npy
+      - vqa2/defaults/annotations/imdb_minival2014.npy
 
 model_config:
   pythia:

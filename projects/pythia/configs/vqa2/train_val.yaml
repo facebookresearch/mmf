@@ -7,15 +7,15 @@ dataset_config:
     use_features: true
     features:
       train:
-      - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
-      - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+      - coco/defaults/features/trainval2014.lmdb,coco/resnet152/features/trainval2014.lmdb
+      - coco/defaults/features/trainval2014.lmdb,coco/resnet152/features/trainval2014.lmdb
       val:
-      - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+      - coco/defaults/features/trainval2014.lmdb,coco/resnet152/features/trainval2014.lmdb
       test:
-      - coco/detectron_fix_100/fc6/test2015,coco/resnet152/test2015
+      - coco/defaults/features/test2015.lmdb,coco/resnet152/features/test2015.lmdb
     annotations:
       train:
-      - imdb/vqa/imdb_train2014.npy
-      - imdb/vqa/imdb_val2014.npy
+      - vqa2/defaults/annotations/imdb_train2014.npy
+      - vqa2/defaults/annotations/imdb_val2014.npy
       val:
-      - imdb/vqa/imdb_val2014.npy
+      - vqa2/defaults/annotations/imdb_val2014.npy

@@ -5,13 +5,16 @@ dataset_config:
   vqa2:
     use_images: false
     use_features: true
+    zoo_requirements:
+    - coco.resnet152
+    - vqa2.defaults
     features:
       train:
-      - coco/resnet152/train_val_2014
+      - coco/resnet152/features/trainval2014.lmdb
       val:
-      - coco/resnet152/train_val_2014
+      - coco/resnet152/features/trainval2014.lmdb
       test:
-      - coco/resnet152/test2015
+      - coco/resnet152/features/test2015.lmdb
 model_config:
   pythia:
     image_feature_encodings:

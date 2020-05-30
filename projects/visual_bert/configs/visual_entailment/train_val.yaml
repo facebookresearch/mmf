@@ -8,20 +8,20 @@ dataset_config:
     use_features: true
     features:
         train:
-        - datasets/visual_entailment/features/lmdbs/flickr30k.lmdb
-        - datasets/visual_entailment/features/lmdbs/flickr30k.lmdb
+        - flickr30k/defaults/features/detectron.lmdb
+        - flickr30k/defaults/features/detectron.lmdb
         val:
-        - datasets/visual_entailment/features/lmdbs/flickr30k.lmdb
+        - flickr30k/defaults/features/detectron.lmdb
         test:
-        - datasets/visual_entailment/features/lmdbs/flickr30k.lmdb
+        - flickr30k/defaults/features/detectron.lmdb
     annotations:
         train:
-        - datasets/visual_entailment/imdbs/snli_ve_train.jsonl
-        - datasets/visual_entailment/imdbs/snli_ve_dev.jsonl
+        - visual_entailment/defaults/annotations/snli_ve_train.jsonl
+        - visual_entailment/defaults/annotations/snli_ve_dev.jsonl
         val:
-        - datasets/visual_entailment/imdbs/snli_ve_test.jsonl
+        - visual_entailment/defaults/annotations/snli_ve_test.jsonl
         test:
-        - datasets/visual_entailment/imdbs/snli_ve_test.jsonl
+        - visual_entailment/defaults/annotations/snli_ve_test.jsonl
     processors:
       text_processor:
         type: bert_tokenizer

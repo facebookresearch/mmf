@@ -8,15 +8,6 @@ model_config:
 dataset_config:
   vizwiz:
     return_features_info: true
-    use_images: false
-    use_features: true
-    features:
-      train:
-      - datasets/vizwiz/features/lmdbs/vizwiz.lmdb
-      val:
-      - datasets/vizwiz/features/lmdbs/vizwiz.lmdb
-      test:
-      - datasets/vizwiz/features/lmdbs/vizwiz.lmdb
     processors:
       # Stop fasttext from loading by overriding the context_processor
       context_processor:

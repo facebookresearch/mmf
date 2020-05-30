@@ -150,10 +150,43 @@ textcaps:
         hashcode: 6a92426b646b61eefef8d42ca38bd852375d13c7edd3cf511201633bc16aa14c
 
 coco:
-  # TODO: Fill defaults for COCO later
   defaults:
     version: 1.0_2020_05_04
-    resources: []
+    resources:
+      images:
+      - url: http://images.cocodataset.org/zips/test2015.zip
+        file_name: test2015.zip
+      - url: http://images.cocodataset.org/zips/train2014.zip
+        file_name: train2014.zip
+      - url: http://images.cocodataset.org/zips/val2014.zip
+        file_name: val2014.zip
+      extras:
+      - url: mmf://datasets/coco/defaults/extras.tar.gz
+        file_name: extras.tar.gz
+        hashcode: 338f3d798adf91e4a56d2758a076b97503f2d88886db9fae14d4f5dbecb1eb7b
+      features:
+      - url: mmf://datasets/coco/defaults/features/test2015.tar.gz
+        file_name: test2015.tar.gz
+        hashcode: ddfba5d07b01f31456d7e3caeeb03aecc379a45b729992c6efaf1d76c601f072
+      - url: mmf://datasets/coco/defaults/features/trainval2014.tar.gz
+        file_name: trainval2014.tar.gz
+        hashcode: 242b4a2bf3ab930c3275d3ab9b4e1dccd1fb1745d3e939f8d50482d83e1fd1ad
+      annotations:
+      - url: mmf://datasets/coco/defaults/annotations/annotations.tar.gz
+        file_name: annotations.tar.gz
+        hashcode: c75e561134bc4a84aeaa769490cc5354f35b3970433466bed30ad97a4cd5e47e
+
+  resnet152:
+    version: 1.0_2020_05_29
+    resources:
+      features:
+      - url: mmf://datasets/coco/resnet152/features/test2015.tar.gz
+        file_name: test2015.tar.gz
+        hashcode: c3e954c56e60137a9cf5a5d46268c91b2e33767f6b0bae0591d8db6b3a25ab18
+      - url: mmf://datasets/coco/resnet152/features/trainval2014.tar.gz
+        file_name: trainval2014.tar.gz
+        hashcode: e253f4ca8f777aeb3f1644de0f4838ac1f12123bbbdeb3e47773290bbe0b2dd4
+
   m4c_captioner:
     version: 1.0_2020_05_04
     resources:
@@ -191,3 +224,99 @@ hateful_memes:
       - url: mmf://datasets/hateful_memes/defaults/extras.tar.gz
         file_name: extras.tar.gz
         hashcode: 1bd88fa36b5c565234cd0bbc20189c85b51a283337bee574db91521be0364739
+
+flickr30k:
+  defaults:
+    version: 1.0_2020_05_29
+    resources:
+      images:
+      - url: https://drive.google.com/uc?export=download&id=0B_PL6p-5reUAZEM4MmRQQ2VVSlk
+        file_name: flickr30_images.tar.gz
+        hashcode: ecd7f922b283d7e1890cfaceda3735ddca62eea919c87dbf9b75136e40edef37
+      features:
+      - url: mmf://datasets/flickr30k/defaults/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: 679af7902f342480c1e039bb0be3ddabb8b88a4c45a2c17f9b97e4f10689475a
+
+
+visual_entailment:
+  defaults:
+    version: 1.0_2020_05_29
+    # Features and images should be used from flickr30k.defaults as zoo_requirements
+    resources:
+      annotations:
+      - url: mmf://datasets/visual_entailment/defaults/annotations/annotations.tar.gz
+        file_name: annotations.tar.gz
+        hashcode: 34432c8c25cce276e65d98272611c1295fc4bfad8da088c4d94285ee2f8ed113
+      extras:
+      - url: mmf://datasets/hateful_memes/defaults/extras.tar.gz
+        file_name: extras.tar.gz
+        hashcode: 1bd88fa36b5c565234cd0bbc20189c85b51a283337bee574db91521be0364739
+
+vqa2:
+  defaults:
+    version: 1.0_2020_05_29
+    # Features and images should be used from coco.defaults as zoo_requirements
+    resources:
+      annotations:
+      - url: mmf://datasets/vqa2/defaults/annotations/annotations.tar.gz
+        file_name: annotations.tar.gz
+        hashcode: 58daa4b6e5992258049f18a9d7a397e027bdd29388027aad90b41c687024a7b8
+      extras:
+      - url: mmf://datasets/vqa2/defaults/extras.tar.gz
+        file_name: extras.tar.gz
+        hashcode: e45c3dbef61e5cc550b08ed7299c88cf7937efa219d071342b8ed7a6a5642a55
+
+vizwiz:
+  v2019:
+    version: 1.0_2020_05_29
+    resources:
+      annotations:
+      - url: mmf://datasets/vizwiz/2019/annotations/annotations.tar.gz
+        file_name: annotations.tar.gz
+        hashcode: fd70887e465210391dbcfe0bee8c98c4b1fc39d3ec33c3ea56de04a6cc408c07
+      features:
+      - url: mmf://datasets/vizwiz/2019/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: ad308c9c1dfa48612f58f724fc077c59a7cb05c6f4b048761ecbf3e0de45d2f2
+      extras:
+      - url: mmf://datasets/vizwiz/2019/extras.tar.gz
+        file_name: extras.tar.gz
+        hashcode: 9234e5a11f9bf191d9efcbc67c9f0d704680fb72b282fba31e193c2a4328d51c
+
+cc:
+  defaults:
+    version: 1.0_2020_05_29
+    resources:
+      annotations:
+      - url: mmf://datasets/cc/defaults/annotations//annotations.tar.gz
+        file_name: annotations.tar.gz
+        hashcode: d27794dbc9f415cb9afcffb8887b7b1f23f4ca72bf74e3962c943c7210505627
+      extras:
+      - url: mmf://datasets/cc/defaults/extras.tar.gz
+        file_name: extras.tar.gz
+        hashcode: f286cd1bac978069cec01b93e6f3e9c4ac360225f12e465aa9a6472e7b08c744
+      features:
+      - url: https://dl.fbaipublicfiles.com/pythia/data/datasets/cc/features/lmdbs/cc_train.lmdb/data.mdb
+        file_name: data.mdb
+        dest_folder: cc_train.lmdb
+        compressed: false
+      - url: https://dl.fbaipublicfiles.com/pythia/data/datasets/cc/features/lmdbs/cc_train.lmdb/lock.mdb
+        file_name: lock.mdb
+        dest_folder: cc_train.lmdb
+        compressed: false
+      - url: https://dl.fbaipublicfiles.com/pythia/data/datasets/cc/features/lmdbs/cc_val.lmdb/data.mdb
+        file_name: data.mdb
+        dest_folder: cc_val.lmdb
+        compressed: false
+      - url: https://dl.fbaipublicfiles.com/pythia/data/datasets/cc/features/lmdbs/cc_val.lmdb/lock.mdb
+        file_name: lock.mdb
+        dest_folder: cc_val.lmdb
+        compressed: false
+  coco_generated:
+    version: 1.0_2020_05_29
+    resources:
+      annotations:
+      - url: mmf://datasets/cc/coco_generated/annotations/annotations.tar.gz
+        file_name: annotations.tar.gz
+        hashcode: 8a122c40a656dbc3c5e63117b517e4aeebd8d3b02ee20d84f49da2b1f411fac4

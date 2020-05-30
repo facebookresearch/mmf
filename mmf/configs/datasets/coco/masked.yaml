@@ -1,24 +1,24 @@
 dataset_config:
   masked_coco:
-    data_dir: ${env.data_dir}
+    data_dir: ${env.data_dir}/datasets
     depth_first: false
     fast_read: false
     use_images: false
     use_features: true
     features:
       train:
-      - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
+      - coco/defaults/features/coco_trainval2014.lmdb
       val:
-      - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
+      - coco/defaults/features/coco_trainval2014.lmdb
       test:
-      - datasets/coco/features/lmdbs/coco_test2015.lmdb
+      - coco/defaults/features/coco_test2015.lmdb
     annotations:
       train:
-      - datasets/coco/imdbs/imdb_karpathy_train_by_image.npy
+      - coco/defaults/annotations/imdb_karpathy_train_by_image.npy
       val:
-      - datasets/coco/imdbs/imdb_karpathy_val_by_image.npy
+      - coco/defaults/annotations/imdb_karpathy_val_by_image.npy
       test:
-      - datasets/coco/imdbs/imdb_karpathy_test_by_image.npy
+      - coco/defaults/annotations/imdb_karpathy_test_by_image.npy
     max_features: 100
     two_sentence: false
     two_sentence_probability: 0.5

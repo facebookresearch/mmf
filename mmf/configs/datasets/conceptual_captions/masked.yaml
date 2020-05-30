@@ -1,24 +1,24 @@
 dataset_config:
   masked_conceptual_captions:
-    data_dir: ${env.data_dir}
+    data_dir: ${env.data_dir}/datasets
     depth_first: false
     fast_read: false
     use_images: false
     use_features: true
     features:
       train:
-      - datasets/cc/features/lmdbs/cc_train.lmdb
+      - cc/defaults/features/cc_train.lmdb
       val:
-      - datasets/cc/features/lmdbs/cc_val.lmdb
+      - cc/defaults/features/cc_val.lmdb
       test:
-      - datasets/cc/features/lmdbs/cc_val.lmdb
+      - cc/defaults/features/cc_val.lmdb
     annotations:
       train:
-      - datasets/cc/imdbs/train_all.npy
+      - cc/defaults/annotations/train_all.npy
       val:
-      - datasets/cc/imdbs/val.npy
+      - cc/defaults/annotations/val.npy
       test:
-      - datasets/cc/imdbs/val.npy
+      - cc/defaults/annotations/val.npy
     max_features: 100
     two_sentence: true
     two_sentence_probability: -0.1

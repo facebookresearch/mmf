@@ -2,4 +2,4 @@ dataset_config:
   conceptual_captions:
     annotations:
       train:
-      - datasets/cc/imdbs/train_small.npy
+      - cc/defaults/annotations/train_small.npy

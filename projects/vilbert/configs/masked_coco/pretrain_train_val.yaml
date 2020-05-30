@@ -8,9 +8,9 @@ dataset_config:
     use_features: true
     features:
       train:
-      - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
-      - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
+      - coco/defaults/features/coco_trainval2014.lmdb
+      - coco/defaults/features/coco_trainval2014.lmdb
     annotations:
       train:
-      - datasets/coco/imdbs/imdb_karpathy_train_by_image.npy
-      - datasets/coco/imdbs/imdb_karpathy_val_by_image.npy
+      - coco/defaults/annotations/imdb_karpathy_train_by_image.npy
+      - coco/defaults/annotations/imdb_karpathy_val_by_image.npy

@@ -5,4 +5,4 @@ dataset_config:
   masked_conceptual_captions:
     annotations:
       train:
-      - datasets/cc/imdbs/train_small_10_pc.npy
+      - cc/defaults/annotations/train_small_10_pc.npy
