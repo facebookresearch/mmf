@@ -22,22 +22,7 @@ python setup.py build develop
 
 ## Getting Data
 
-We provide the different dataset features and ImDB files used for training the VisualBERT and ViLBERT models. Please follow the [Pythia documentation](https://learnpythia.readthedocs.io/en/latest/tutorials/quickstart.html#getting-data) to get data for each dataset as well as vocabulary files.
-
-Below are the download links to the imdbs and features used for this project. **Note that LMDBs should be downloaded under `data/datasets/<dataset_name>/features/lmdbs/`. ImDB files should be extracted under `data/datasets/<dataset_name>/imdbs/`.**
-
-
-| Datasets      | ImDBs | Feature LMDBs |
-|--------------|----------|-------------------------------|
-| COCO Captions     | [COCO ImDB](https://dl.fbaipublicfiles.com/pythia/data/datasets/coco/imdbs/coco_captions.tar.gz) | [COCO trainval](https://dl.fbaipublicfiles.com/pythia/data/datasets/coco/features/lmdbs/coco_trainval2014.lmdb) [COCO test](https://dl.fbaipublicfiles.com/pythia/data/datasets/coco/features/lmdbs/coco_test2015.lmdb) |
-| VQA2.0      | [VQA2.0 ImDB](https://dl.fbaipublicfiles.com/pythia/data/datasets/vqa2/imdbs/vqa2.tar.gz) | [VQA2.0 trainval](https://dl.fbaipublicfiles.com/pythia/data/datasets/coco/features/lmdbs/coco_trainval2014.lmdb) [VQA2.0 test](https://dl.fbaipublicfiles.com/pythia/data/datasets/coco/features/lmdbs/coco_test2015.lmdb) |
-| Concceptual Captions      | [CC ImDB](https://dl.fbaipublicfiles.com/pythia/data/datasets/cc/imdbs/cc_captions.tar.gz) | [CC train](https://dl.fbaipublicfiles.com/pythia/data/datasets/cc/features/lmdbs/cc_train.lmdb) [CC val](https://dl.fbaipublicfiles.com/pythia/data/datasets/cc/features/lmdbs/cc_val.lmdb) |
-| Vizwiz      | [Vizwiz ImDB](https://dl.fbaipublicfiles.com/pythia/data/datasets/vizwiz/imdbs/vizwiz.tar.gz) | [Vizwiz](https://dl.fbaipublicfiles.com/pythia/data/datasets/vizwiz/features/lmdbs/vizwiz.lmdb) |
-| SNLI-VE      | [SNLI ImDB](https://dl.fbaipublicfiles.com/pythia/data/datasets/visual_entailment/imdbs/visual_entailment.tar.gz) | [SNLI](https://dl.fbaipublicfiles.com/pythia/data/datasets/visual_entailment/features/lmdbs/flickr30k.lmdb) |
-| MM-IMDB      | [MMIMDB ImDB](https://dl.fbaipublicfiles.com/pythia/data/datasets/mmimdb/imdbs/mmimdb.tar.gz) | [MMIMDB](https://dl.fbaipublicfiles.com/pythia/data/datasets/mmimdb/features/lmdbs/mmimdb.lmdb) |
-
-
-
+Data should automatically download for the datasets involved in this project. Do keep in mind that features are very big in size which can lead to a long time in downloads and you will need enough space on your disk.
 
 ## Training
 

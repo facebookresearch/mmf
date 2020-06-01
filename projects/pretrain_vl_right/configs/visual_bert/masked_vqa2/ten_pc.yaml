@@ -5,4 +5,4 @@ dataset_config:
   masked_vqa2:
     annotations:
       train:
-      - datasets/vqa2/imdbs/imdb_train2014_len_coco_10_pc.npy
+      - vqa2/defaults/annotations/imdb_train2014_len_coco_10_pc.npy

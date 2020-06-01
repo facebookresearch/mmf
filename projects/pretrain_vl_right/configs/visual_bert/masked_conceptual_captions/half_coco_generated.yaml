@@ -3,8 +3,12 @@ includes:
 
 dataset_config:
   masked_conceptual_captions:
+    zoo_requirements:
+    - cc.coco_generated
+    - cc.defaults
+
     annotations:
       train:
-      - datasets/cc/imdbs/coco_generated/train_mid.npy
+      - cc/coco_generated/annotations/train_mid.npy
       val:
-      - datasets/cc/imdbs/coco_generated/val.npy
+      - cc/coco_generated/annotations/val.npy

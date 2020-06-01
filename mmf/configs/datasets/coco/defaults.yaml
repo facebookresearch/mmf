@@ -1,6 +1,6 @@
 dataset_config:
   coco:
-    data_dir: ${env.data_dir}
+    data_dir: ${env.data_dir}/datasets
     depth_first: false
     fast_read: false
     use_images: false
@@ -8,20 +8,27 @@ dataset_config:
     # annotation_style can be coco or textcaps which allows us to override
     # the dataset class
     annotation_style: coco
+    images:
+      train:
+      - coco/defaults/images/train2014
+      val:
+      - coco/defaults/images/val2014
+      test:
+      - coco/defaults/images/test2015
     features:
-        train:
-        - coco/detectron_fix_100/fc6/train_val_2014
-        val:
-        - coco/detectron_fix_100/fc6/train_val_2014
-        test:
-        - coco/detectron_fix_100/fc6/train_val_2014
+      train:
+      - coco/defaults/features/trainval2014.lmdb
+      val:
+      - coco/defaults/features/trainval2014.lmdb
+      test:
+      - coco/defaults/features/trainval2014.lmdb
     annotations:
-        train:
-        - imdb/coco_captions/imdb_karpathy_train.npy
-        val:
-        - imdb/coco_captions/imdb_karpathy_val.npy
-        test:
-        - imdb/coco_captions/imdb_karpathy_test.npy
+      train:
+      - coco/defaults/annotations/imdb_karpathy_train.npy
+      val:
+      - coco/defaults/annotations/imdb_karpathy_val.npy
+      test:
+      - coco/defaults/annotations/imdb_karpathy_test.npy
     max_features: 100
     processors:
       text_processor:

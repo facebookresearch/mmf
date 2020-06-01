@@ -1,24 +1,34 @@
 dataset_config:
   visual_entailment:
-      data_dir: ${env.data_dir}
+      data_dir: ${env.data_dir}/datasets
       depth_first: false
       fast_read: false
       use_images: false
       use_features: true
+      zoo_requirements:
+      - flickr30k.defaults
+      - visual_entailment.defaults
+      images:
+        train:
+        - flickr30k/defaults/images/flickr30k_images
+        val:
+        - flickr30k/defaults/images/flickr30k_images
+        test:
+        - flickr30k/defaults/images/flickr30k_images
       features:
         train:
-        - datasets/visual_entailment/features/lmdbs/flickr30k.lmdb
+        - flickr30k/defaults/features/detectron.lmdb
         val:
-        - datasets/visual_entailment/features/lmdbs/flickr30k.lmdb
+        - flickr30k/defaults/features/detectron.lmdb
         test:
-        - datasets/visual_entailment/features/lmdbs/flickr30k.lmdb
+        - flickr30k/defaults/features/detectron.lmdb
       annotations:
         train:
-        - datasets/visual_entailment/imdbs/snli_ve_train.jsonl
+        - visual_entailment/defaults/annotations/snli_ve_train.jsonl
         val:
-        - datasets/visual_entailment/imdbs/snli_ve_dev.jsonl
+        - visual_entailment/defaults/annotations/snli_ve_dev.jsonl
         test:
-        - datasets/visual_entailment/imdbs/snli_ve_test.jsonl
+        - visual_entailment/defaults/annotations/snli_ve_test.jsonl
       max_features: 100
       processors:
         text_processor:
@@ -28,7 +38,7 @@ dataset_config:
             vocab:
               type: intersected
               embedding_name: glove.6B.300d
-              vocab_file: vocabs/vocabulary_100k.txt
+              vocab_file: visual_entailment/defaults/extras/vocabs/vocabulary_100k.txt
             preprocessor:
               type: simple_sentence
               params: {}

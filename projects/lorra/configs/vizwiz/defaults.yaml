@@ -6,7 +6,7 @@ dataset_config:
       answer_processor:
         type: soft_copy_answer
         params:
-          vocab_file: vocabs/answers_vizwiz_7k.txt
+          vocab_file: vizwiz/v2019/extras/vocabs/answers_vizwiz_7k.txt
           preprocessor:
             type: simple_word
             params: {}

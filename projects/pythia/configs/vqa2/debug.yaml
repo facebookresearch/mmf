@@ -7,11 +7,11 @@ dataset_config:
     use_features: true
     features:
       train:
-      - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+      - coco/defaults/features/trainval2014.lmdb
       val:
-      - coco/detectron_fix_100/fc6/train_val_2014,coco/resnet152/train_val_2014
+      - coco/defaults/features/trainval2014.lmdb
     annotations:
       train:
-      - imdb/vqa/imdb_debug.npy
+      - vqa2/defaults/annotations/imdb_debug.npy
       val:
-      - imdb/vqa/imdb_debug.npy
+      - vqa2/defaults/annotations/imdb_debug.npy

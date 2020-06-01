@@ -1,24 +1,27 @@
 dataset_config:
   masked_q_vqa2:
-      data_dir: ${env.data_dir}
+      data_dir: ${env.data_dir}/datasets
       depth_first: false
       fast_read: false
       use_images: false
       use_features: true
+      zoo_requirements:
+      - coco.defaults
+      - vqa2.defaults
       features:
         train:
-        - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
+        - coco/defaults/features/trainval2014.lmdb
         val:
-        - datasets/coco/features/lmdbs/coco_trainval2014.lmdb
+        - coco/defaults/features/trainval2014.lmdb
         test:
-        - datasets/coco/features/lmdbs/coco_test2015.lmdb
+        - coco/defaults/features/test2015.lmdb
       annotations:
         train:
-        - datasets/vqa2/imdbs/imdb_train2014.npy
+        - vqa2/defaults/annotations/imdb_train2014.npy
         val:
-        - datasets/vqa2/imdbs/imdb_val2014.npy
+        - vqa2/defaults/annotations/imdb_val2014.npy
         test:
-        - datasets/vqa2/imdbs/imdb_test2015.npy
+        - vqa2/defaults/annotations/imdb_test2015.npy
       max_features: 100
       processors:
         text_processor:
@@ -28,7 +31,7 @@ dataset_config:
             vocab:
               type: intersected
               embedding_name: glove.6B.300d
-              vocab_file: vocabs/vocabulary_100k_with_mask.txt
+              vocab_file: vqa2/defaults/extras/vocabs/vocabulary_100k.txt
             preprocessor:
               type: simple_sentence
               params: {}
@@ -36,7 +39,7 @@ dataset_config:
           type: multi_hot_answer_from_vocab
           params:
             num_answers: 1
-            vocab_file: vocabs/answers_vqa.txt
+            vocab_file: vqa2/defaults/extras/vocabs/answers_vqa.txt
             preprocessor:
               type: simple_word
               params: {}

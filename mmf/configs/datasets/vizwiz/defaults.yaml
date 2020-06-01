@@ -1,24 +1,26 @@
 dataset_config:
   vizwiz:
-      data_dir: ${env.data_dir}
+      data_dir: ${env.data_dir}/datasets
       depth_first: false
       fast_read: false
       use_images: false
       use_features: true
+      zoo_requirements:
+      - vizwiz.v2019
       features:
           train:
-          - vizwiz/detectron_fix_100/fc6/train,vizwiz/resnet152/train
+          - vizwiz/v2019/features/detectron.lmdb
           val:
-          - vizwiz/detectron_fix_100/fc6/val,vizwiz/resnet152/val
+          - vizwiz/v2019/features/detectron.lmdb
           test:
-          - vizwiz/detectron_fix_100/fc6/test,vizwiz/resnet152/test
+          - vizwiz/v2019/features/detectron.lmdb
       annotations:
           train:
-          - imdb/vizwiz/imdb_vizwiz_train.npy
+          - vizwiz/v2019/annotations/imdb_vizwiz_train.npy
           val:
-          - imdb/vizwiz/imdb_vizwiz_val.npy
+          - vizwiz/v2019/annotations/imdb_vizwiz_val.npy
           test:
-          - imdb/vizwiz/imdb_vizwiz_test.npy
+          - vizwiz/v2019/annotations/imdb_vizwiz_test.npy
       max_features: 100
       processors:
         text_processor:
@@ -28,14 +30,14 @@ dataset_config:
             vocab:
               type: intersected
               embedding_name: glove.6B.300d
-              vocab_file: vocabs/vocabulary_100k.txt
+              vocab_file: vizwiz/v2019/extras/vocabs/vocabulary_100k.txt
             preprocessor:
               type: simple_sentence
               params: {}
         answer_processor:
           type: vqa_answer
           params:
-            vocab_file: vocabs/answers_vizwiz_7k.txt
+            vocab_file: vizwiz/v2019/extras/vocabs/answers_vizwiz_7k.txt
             preprocessor:
               type: simple_word
               params: {}

@@ -5,4 +5,4 @@ dataset_config:
   masked_coco:
     annotations:
       train:
-      - datasets/coco/imdbs/imdb_karpathy_train_by_image_50_pc.npy
+      - coco/defaults/annotations/imdb_karpathy_train_by_image_50_pc.npy

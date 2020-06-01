@@ -5,12 +5,12 @@ dataset_config:
     use_features: true
     features:
       train:
-      - datasets/vizwiz/features/lmdbs/vizwiz.lmdb
-      - datasets/vizwiz/features/lmdbs/vizwiz.lmdb
+      - vizwiz/v2019/features/detectron.lmdb
+      - vizwiz/v2019/features/detectron.lmdb
       val:
-      - datasets/vizwiz/features/lmdbs/vizwiz.lmdb
+      - vizwiz/v2019/features/detectron.lmdb
       test:
-      - datasets/vizwiz/features/lmdbs/vizwiz.lmdb
+      - vizwiz/v2019/features/detectron.lmdb
     annotations:
       train:
       - datasets/vizwiz/imdbs/imdb_vizwiz_train.npy
