@@ -225,3 +225,44 @@ def build_image_encoder(config, direct_features=False, **kwargs):
     else:
         module = ImageEncoder(config)
     return module.module
+
+
+def build_processors(
+    processors_config: mmf_typings.DictConfig, registry_key: str = None, *args, **kwargs
+) -> mmf_typings.ProcessorDict:
+    """Given a processor config, builds the processors present and returns back
+    a dict containing processors mapped to keys as per the config
+
+    Args:
+        processors_config (mmf_typings.DictConfig): OmegaConf DictConfig describing
+            the parameters and type of each processor passed here
+
+        registry_key (str, optional): If passed, function would look into registry for
+            this particular key and return it back. .format with processor_key will
+            be called on this string. Defaults to None.
+
+    Returns:
+        mmf_typings.ProcessorDict: Dictionary containing key to
+            processor mapping
+    """
+    from mmf.datasets.processors.processors import Processor
+
+    processor_dict = {}
+
+    for processor_key, processor_params in processors_config.items():
+        if not processor_params:
+            continue
+
+        processor_instance = None
+        if registry_key is not None:
+            full_key = registry_key.format(processor_key)
+            processor_instance = registry.get(full_key, no_warning=True)
+
+        if processor_instance is None:
+            processor_instance = Processor(processor_params, *args, **kwargs)
+            # We don't register back here as in case of hub interface, we
+            # want the processors to be instantiate every time. BaseDataset
+            # can register at its own end
+        processor_dict[processor_key] = processor_instance
+
+    return processor_dict

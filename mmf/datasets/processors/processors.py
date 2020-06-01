@@ -226,7 +226,7 @@ class VocabProcessor(BaseProcessor):
             )
             self.max_length = self.MAX_LENGTH_DEFAULT
 
-        if hasattr(config, "preprocessor"):
+        if "preprocessor" in config:
             self.preprocessor = Processor(config.preprocessor, *args, **kwargs)
 
             if self.preprocessor is None:
