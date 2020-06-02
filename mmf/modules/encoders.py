@@ -53,7 +53,7 @@ class FinetuneFasterRcnnFpnFc7(nn.Module):
             bias_file = os.path.join(model_data_dir, bias_file)
 
         if not PathManager.exists(bias_file) or not PathManager.exists(weights_file):
-            download_path = download_pretrained_model("detectron")
+            download_path = download_pretrained_model("detectron.vmb_weights")
             weights_file = get_absolute_path(os.path.join(download_path, "fc7_w.pkl"))
             bias_file = get_absolute_path(os.path.join(download_path, "fc7_b.pkl"))
 

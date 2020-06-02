@@ -6,7 +6,6 @@ import codecs
 import os
 import platform
 import re
-import shutil
 from glob import glob
 
 import setuptools
@@ -97,16 +96,6 @@ def fetch_package_data():
     return data_files
 
 
-class BuildExt(build_ext):
-    def run(self):
-        build_ext.run(self)
-        cphoc_lib = glob(os.path.join("build", "lib.*", "cphoc.*"))[0]
-        copy_path = os.path.join(
-            "mmf", "utils", "phoc", cphoc_lib.split(os.path.sep)[-1]
-        )
-        shutil.copy(cphoc_lib, copy_path)
-
-
 DISTNAME = "mmf"
 DESCRIPTION = "mmf: a modular framework for vision and language multimodal \
 research."
@@ -119,8 +108,12 @@ REQUIREMENTS = (fetch_requirements(),)
 # Need to exclude folders in tests as well so as they don't create an extra package
 # If something from tools is regularly used consider converting it into a cli command
 EXCLUDES = ("data", "docs", "tests", "tests.*", "tools", "tools.*")
-CMD_CLASS = {"build_ext": BuildExt}
-EXT_MODULES = [Extension("cphoc", sources=["mmf/utils/phoc/src/cphoc.c"], language="c")]
+CMD_CLASS = {"build_ext": build_ext}
+EXT_MODULES = [
+    Extension(
+        "mmf.utils.phoc.cphoc", sources=["mmf/utils/phoc/src/cphoc.c"], language="c"
+    )
+]
 
 if "READTHEDOCS" in os.environ:
     # Don't build extensions when generating docs
