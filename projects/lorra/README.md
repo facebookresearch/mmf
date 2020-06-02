@@ -14,14 +14,10 @@ This repository contains the code for LoRRA model. Please cite the following pap
 
 ## Installation
 
-Clone this repository, and build it with the following command.
-```
-cd ~/mmf
-python setup.py build develop
-```
+Follow installation instructions in the [documentation](https://mmf.readthedocs.io/en/latest/notes/installation.html)
 
 ## Training
 To train LoRRA model on the TextVQA dataset, run the following command
 ```
-python tools/run.py config=projects/lorra/configs/textvqa/defaults.yaml run_type=train_val dataset=textvqa model=lorra
+mmf_run config=projects/lorra/configs/textvqa/defaults.yaml run_type=train_val dataset=textvqa model=lorra
 ```

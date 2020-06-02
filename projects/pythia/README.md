@@ -29,14 +29,10 @@ and the original paper for old Pythia model:
 
 ## Installation
 
-Clone this repository, and build it with the following command
-```
-cd ~/mmf
-python setup.py build develop
-```
+Follow installation instructions in the [documentation](https://mmf.readthedocs.io/en/latest/notes/installation.html).
 
 ## Training
 To train Pythia model on the VQA2.0 dataset, run the following command
 ```
-python tools/run.py config=projects/mmf/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=pythia
+mmf_run config=projects/mmf/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=pythia
 ```
