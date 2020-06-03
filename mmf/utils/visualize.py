@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
 from typing import Any, List, Optional, Tuple
 
 import torch

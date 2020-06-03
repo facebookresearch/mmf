@@ -5,7 +5,7 @@ import random
 import torch
 
 from mmf.common.registry import registry
-from mmf.utils.build import build_trainer
+from mmf.utils.build import build_config, build_trainer
 from mmf.utils.configuration import Configuration
 from mmf.utils.distributed import distributed_init, infer_init_method
 from mmf.utils.env import set_seed, setup_imports
@@ -30,9 +30,11 @@ def main(configuration, init_distributed=False, predict=False):
     registry.register("seed", config.training.seed)
     print(f"Using seed {config.training.seed}")
 
-    registry.register("writer", Logger(config, name="mmf.train"))
+    config = build_config(configuration)
 
-    trainer = build_trainer(configuration)
+    # Logger should be registered after config is registered
+    registry.register("writer", Logger(config, name="mmf.train"))
+    trainer = build_trainer(config)
     trainer.load()
     if predict:
         trainer.inference()

@@ -1,28 +1,53 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+
 import os
 import warnings
+from typing import Any, Type
 
 import torch
 from omegaconf import OmegaConf
 
 from mmf.common import typings as mmf_typings
 from mmf.common.registry import registry
+from mmf.utils.configuration import Configuration
 from mmf.utils.general import get_optimizer_parameters
 
 
-def build_trainer(configuration, *rest, **kwargs):
-    configuration.freeze()
+def build_config(
+    configuration: Type[Configuration], *args, **kwargs
+) -> mmf_typings.DictConfig:
+    """Builder function for config. Freezes the configuration and registers 
+    configuration object and config DictConfig object to registry.
 
+    Args:
+        configuration (Configuration): Configuration object that will be 
+            used to create the config.
+
+    Returns:
+        (DictConfig): A config which is of type Omegaconf.DictConfig
+    """
+    configuration.freeze()
     config = configuration.get_config()
     registry.register("config", config)
     registry.register("configuration", configuration)
 
+    return config
+
+
+def build_trainer(config: mmf_typings.DictConfig) -> Any:
+    """Builder function for creating a trainer class. Trainer class name
+    is picked from the config.
+
+    Args:
+        config (DictConfig): Configuration that will be used to create
+            the trainer.
+
+    Returns:
+        (BaseTrainer): A trainer instance
+    """
     trainer_type = config.training.trainer
     trainer_cls = registry.get_trainer_class(trainer_type)
-    trainer_obj = trainer_cls(configuration)
-
-    # Set args as an attribute for future use
-    trainer_obj.args = configuration.args
+    trainer_obj = trainer_cls(config)
 
     return trainer_obj
 
