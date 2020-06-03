@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-# Copied from fairseq. Mostly written by @myleott. Adapted accordingly for pythia
+# Copied from fairseq. Mostly written by @myleott. Adapted accordingly for mmf
 import datetime
 import itertools
 import os
@@ -49,7 +49,7 @@ def copy_all_python_files(source, snapshot_main_dir, code_snapshot_hash):
     """
     Copies following files from source to destination:
         a) all *.py files at direct source location.
-        b) all fairseq/*.py recursively.
+        b) all mmf/*.py recursively.
     """
     os.makedirs(snapshot_main_dir, exist_ok=True)
     destination = os.path.join(snapshot_main_dir, code_snapshot_hash)
@@ -58,7 +58,7 @@ def copy_all_python_files(source, snapshot_main_dir, code_snapshot_hash):
     ), f"Code snapshot: {code_snapshot_hash} alredy exists"
     os.makedirs(destination)
     all_pys = (
-        glob(os.path.join(source, "pythia/**/*.py"), recursive=True)
+        glob(os.path.join(source, "mmf/**/*.py"), recursive=True)
         + glob(os.path.join(source, "tools/**/*.py"), recursive=True)
         + glob(os.path.join(source, "*.py"))
     )
@@ -139,7 +139,7 @@ def launch_train(args, config):
         return
 
     # generate train command
-    train_cmd = ["python", "-u", os.path.join(destination, "tools/run.py")]
+    train_cmd = ["python", "-u", os.path.join(destination, "mmf_cli/run.py")]
     train_cmd.extend(["distributed.world_size", str(args.num_nodes * args.num_gpus)])
     if args.num_nodes > 1:
         train_cmd.extend(["distributed.port", str(get_random_port())])

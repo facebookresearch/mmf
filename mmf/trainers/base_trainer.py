@@ -30,13 +30,10 @@ from mmf.utils.timer import Timer
 
 @registry.register_trainer("base_trainer")
 class BaseTrainer:
-    def __init__(self, configuration):
-        self.configuration = configuration
-        self.config = self.configuration.get_config()
+    def __init__(self, config):
+        self.config = config
         self.profiler = Timer()
         self.total_timer = Timer()
-        if self.configuration is not None:
-            self.args = self.configuration.args
 
     def load(self):
         self._set_device()
@@ -53,7 +50,9 @@ class BaseTrainer:
             self.writer = Logger(self.config)
             registry.register("writer", self.writer)
 
-        self.configuration.pretty_print()
+        configuration = registry.get("configuration", no_warning=True)
+        if configuration:
+            configuration.pretty_print()
 
         self.config_based_setup()
 
