@@ -1,6 +1,6 @@
 [tool.isort]
-skip_glob = ["*/build/*"]
-known_third_party = ["PIL", "cv2", "demjson", "h5py", "lib", "lmdb", "maskrcnn_benchmark", "numpy", "omegaconf", "packaging", "pycocoevalcap", "recommonmark", "requests", "setuptools", "sklearn", "sphinx_rtd_theme", "torch", "torchtext", "torchvision", "tqdm", "transformers"]
+known_third_party = ["PIL", "cv2", "demjson", "h5py", "lib", "lmdb", "maskrcnn_benchmark", "numpy", "omegaconf", "packaging", "pycocoevalcap", "pytorch_sphinx_theme", "recommonmark", "requests", "setuptools", "sklearn", "torch", "torchtext", "torchvision", "tqdm", "transformers"]
+skip_glob = "**/build/**,website/**"
 multi_line_output = 3
 line_length = 88
 include_trailing_comma = true
