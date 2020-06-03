@@ -106,9 +106,10 @@ class HatefulMemesImageDataset(MMFDataset):
 
 
 def generate_prediction(report):
-    probabilities, labels = torch.max(
-        torch.nn.functional.softmax(report.scores, dim=1), 1
-    )
+    scores = torch.nn.functional.softmax(report.scores, dim=1)
+    _, labels = torch.max(scores, 1)
+    # Probability that the meme is hateful, (1)
+    probabilities = scores[:, 1]
 
     predictions = []
 
