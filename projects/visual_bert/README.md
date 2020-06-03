@@ -26,16 +26,13 @@ and
 
 ## Installation
 
-Clone this repository, and build it with the following command.
-```
-cd ~/mmf
-python setup.py build develop
-```
+Follow installation instructions in the [documentation](https://mmf.readthedocs.io/en/latest/notes/installation.html).
 
 ## Training
+
 To train VisualBERT model on the VQA2.0 dataset, run the following command
 ```
-python tools/run.py config=projects/visual_bert/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=visual_bert
+mmf_run config=projects/visual_bert/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=visual_bert
 ```
 
 Based on the config used and `training_head_type` defined in the config, the model can use either pretraining head or donwstream task specific heads(VQA, Vizwiz, SNLI-VE, MM IMDB or NLVR2).

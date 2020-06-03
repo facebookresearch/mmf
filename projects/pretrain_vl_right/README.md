@@ -14,11 +14,7 @@ This repository contains the code for modified implementation of VisualBERT and 
 
 ## Installation
 
-Clone this repository, and build it with the following command.
-```
-cd ~/mmf
-python setup.py build develop
-```
+Follow installation instructions in the [documentation](https://mmf.readthedocs.io/en/latest/notes/installation.html).
 
 ## Getting Data
 
