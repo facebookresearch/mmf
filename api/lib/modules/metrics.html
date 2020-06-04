@@ -1,0 +1,1027 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>modules.metrics &mdash; MMF 1.0.0rc8 documentation</title>
+  
+
+  
+  
+  
+  
+    <link rel="canonical" href="/lib/modules/metrics.html"/>
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../_static/css/customize.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="datasets.base_dataset_builder" href="../datasets/base_dataset_builder.html" />
+    <link rel="prev" title="modules.losses" href="losses.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://mmf.sh/" aria-label="MMF"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://mmf.sh/get-started">Get Started</a>
+          </li>
+
+
+          <li>
+            <a href="https://mmf.sh/tutorials">Tutorials</a>
+          </li>
+
+          <li class="active">
+            <a href="https://mmf.sh/docs/stable/index.html">Docs</a>
+          </li>
+
+          <li>
+            <a href="https://github.com/facebookresearch/mmf">Github</a>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+
+  </div>
+</div>
+
+
+<body class="pytorch-body">
+
+   
+
+    
+
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+      <div class="pytorch-side-scroll">
+        <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          <div class="pytorch-left-menu-search">
+            
+
+            
+              
+              
+                <div class="version">
+                  1.0.0
+                </div>
+              
+            
+
+            
+
+
+  
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+            
+          </div>
+
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/quickstart.html">Quickstart </a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/pretrained_models.html">Pretrained Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/configuration.html">Configuration System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/challenge.html">Challenge Participation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/faq.html">FAQs</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Challenges</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/hateful_memes_challenge.html">Hateful Memes</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Extending MMF</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/concepts.html">Terminology and Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/dataset.html">Tutorial: Adding a dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/late_fusion.html">Tutorial: Late Fusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/mmf_bert.html">Tutorial: Detect Hate Speech with MMFBERT</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Library Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../common/registry.html">common.registry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../common/sample.html">common.sample</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../models/base_model.html">models.base_model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses.html">modules.losses</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">modules.metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../datasets/base_dataset_builder.html">datasets.base_dataset_builder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../datasets/base_dataset.html">datasets.base_dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../datasets/processors.html">datasets.processors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/text.html">utils.text</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <div class="pytorch-container">
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../index.html">
+          
+            Docs
+          
+        </a> &gt;
+      </li>
+
+        
+      <li>modules.metrics</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/lib/modules/metrics.rst.txt" rel="nofollow"><img src="../../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+        </div>
+
+        <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+          Shortcuts
+        </div>
+      </div>
+
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        <div class="pytorch-content-left">
+
+        
+          
+          <div class="rst-content">
+          
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <div class="section" id="module-mmf.modules.metrics">
+<span id="modules-metrics"></span><h1>modules.metrics<a class="headerlink" href="#module-mmf.modules.metrics" title="Permalink to this headline">¶</a></h1>
+<p>The metrics module contains implementations of various metrics used commonly to
+understand how well our models are performing. For e.g. accuracy, vqa_accuracy,
+r&#64;1 etc.</p>
+<p>For implementing your own metric, you need to follow these steps:</p>
+<ol class="arabic simple">
+<li><p>Create your own metric class and inherit <code class="docutils literal notranslate"><span class="pre">BaseMetric</span></code> class.</p></li>
+<li><p>In the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> function of your class, make sure to call
+<code class="docutils literal notranslate"><span class="pre">super().__init__('name')</span></code> where ‘name’ is the name of your metric. If
+you require any parameters in your <code class="docutils literal notranslate"><span class="pre">__init__</span></code> function, you can use
+keyword arguments to represent them and metric constructor will take care of
+providing them to your class from config.</p></li>
+<li><p>Implement a <code class="docutils literal notranslate"><span class="pre">calculate</span></code> function which takes in <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> and
+<cite>model_output</cite> as input and return back a float tensor/number.</p></li>
+<li><p>Register your metric with a key ‘name’ by using decorator,
+<code class="docutils literal notranslate"><span class="pre">&#64;registry.register_metric('name')</span></code>.</p></li>
+</ol>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
+<span class="kn">from</span> <span class="nn">mmf.modules.metrics</span> <span class="kn">import</span> <span class="n">BaseMetric</span>
+
+<span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;some&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">SomeMetric</span><span class="p">(</span><span class="n">BaseMetric</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">some_param</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;some&quot;</span><span class="p">)</span>
+        <span class="o">....</span>
+
+    <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">):</span>
+        <span class="n">metric</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">metric</span>
+</pre></div>
+</div>
+<p>Example config for above metric:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model_config</span><span class="p">:</span>
+    <span class="n">pythia</span><span class="p">:</span>
+        <span class="n">metrics</span><span class="p">:</span>
+        <span class="o">-</span> <span class="nb">type</span><span class="p">:</span> <span class="n">some</span>
+          <span class="n">params</span><span class="p">:</span>
+            <span class="n">some_param</span><span class="p">:</span> <span class="n">a</span>
+</pre></div>
+</div>
+<dl class="py class">
+<dt id="mmf.modules.metrics.Accuracy">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">Accuracy</code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#Accuracy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.Accuracy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating accuracy.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">accuracy</span></code></p>
+<dl class="py method">
+<dt id="mmf.modules.metrics.Accuracy.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#Accuracy.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.Accuracy.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate accuracy and return it back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>accuracy.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.AveragePrecision">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">AveragePrecision</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#AveragePrecision"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.AveragePrecision" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating Average Precision.
+See more details at <a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score">sklearn.metrics.average_precision_score</a> # noqa</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">ap</span></code></p>
+<dl class="py method">
+<dt id="mmf.modules.metrics.AveragePrecision.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#AveragePrecision.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.AveragePrecision.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate AP and returns it back. The function performs softmax
+on the logits provided and then calculated the AP.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration.</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model. This should contain “scores”
+field pointing to logits returned from the model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>AP.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.BaseMetric">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">BaseMetric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#BaseMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.BaseMetric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class to be inherited by all metrics registered to MMF. See
+the description on top of the file for more information. Child class must
+implement <code class="docutils literal notranslate"><span class="pre">calculate</span></code> function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – Name of the metric.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="mmf.modules.metrics.BaseMetric.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#BaseMetric.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.BaseMetric.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method to be implemented by the child class. Takes
+in a <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> and a dict returned by model as output and
+returns back a float tensor/number indicating value for this metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by the dataloader for the
+current iteration.</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Output dict from the model for the current
+SampleList</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Value of the metric.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.Tensor|float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.BinaryF1">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">BinaryF1</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#BinaryF1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.BinaryF1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating Binary F1.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">binary_f1</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.CaptionBleu4Metric">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">CaptionBleu4Metric</code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#CaptionBleu4Metric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.CaptionBleu4Metric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating caption accuracy using BLEU4 Score.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">caption_bleu4</span></code></p>
+<dl class="py method">
+<dt id="mmf.modules.metrics.CaptionBleu4Metric.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#CaptionBleu4Metric.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.CaptionBleu4Metric.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate accuracy and return it back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>bleu4 score.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.F1">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">F1</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#F1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.F1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating F1. Can be used with type and params
+argument for customization. params will be directly passed to sklearn
+f1 function.
+<strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">f1</span></code></p>
+<dl class="py method">
+<dt id="mmf.modules.metrics.F1.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#F1.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.F1.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate f1 and return it back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>f1.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.MacroAP">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">MacroAP</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MacroAP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.MacroAP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating Macro Average Precision.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">macro_ap</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.MacroF1">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">MacroF1</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MacroF1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.MacroF1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating Macro F1.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">macro_f1</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.MacroROC_AUC">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">MacroROC_AUC</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MacroROC_AUC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.MacroROC_AUC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating Macro ROC_AUC.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">macro_roc_auc</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.MeanRank">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">MeanRank</code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MeanRank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.MeanRank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate MeanRank which specifies what was the average rank of the chosen
+candidate.</p>
+<p><strong>Key</strong>: <code class="docutils literal notranslate"><span class="pre">mean_r</span></code>.</p>
+<dl class="py method">
+<dt id="mmf.modules.metrics.MeanRank.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MeanRank.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.MeanRank.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate Mean Rank and return it back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>mean rank</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.MeanReciprocalRank">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">MeanReciprocalRank</code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MeanReciprocalRank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.MeanReciprocalRank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate reciprocal of mean rank..</p>
+<p><strong>Key</strong>: <code class="docutils literal notranslate"><span class="pre">mean_rr</span></code>.</p>
+<dl class="py method">
+<dt id="mmf.modules.metrics.MeanReciprocalRank.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MeanReciprocalRank.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.MeanReciprocalRank.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate Mean Reciprocal Rank and return it back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Mean Reciprocal Rank</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.Metrics">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">Metrics</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">metric_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#Metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.Metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Internally used by MMF, Metrics acts as wrapper for handling
+calculation of metrics over various metrics specified by the model in
+the config. It initializes all of the metrics and when called it runs
+calculate on each of them one by one and returns back a dict with proper
+naming back. For e.g. an example dict returned by Metrics class:
+<code class="docutils literal notranslate"><span class="pre">{'val/vqa_accuracy':</span> <span class="pre">0.3,</span> <span class="pre">'val/r&#64;1':</span> <span class="pre">0.8}</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>metric_list</strong> (<em>ListConfig</em>) – List of DictConfigs where each DictConfig
+specifies name and parameters of the
+metrics used.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.MicroAP">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">MicroAP</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MicroAP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.MicroAP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating Micro Average Precision.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">micro_ap</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.MicroF1">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">MicroF1</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MicroF1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.MicroF1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating Micro F1.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">micro_f1</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.MicroROC_AUC">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">MicroROC_AUC</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MicroROC_AUC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.MicroROC_AUC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating Micro ROC_AUC.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">micro_roc_auc</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.MultiLabelF1">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">MultiLabelF1</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MultiLabelF1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.MultiLabelF1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating Multilabel F1.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">multilabel_f1</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.MultiLabelMacroF1">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">MultiLabelMacroF1</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MultiLabelMacroF1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.MultiLabelMacroF1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating Multilabel Macro F1.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">multilabel_macro_f1</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.MultiLabelMicroF1">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">MultiLabelMicroF1</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MultiLabelMicroF1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.MultiLabelMicroF1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating Multilabel Micro F1.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">multilabel_micro_f1</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.OCRVQAAccuracy">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">OCRVQAAccuracy</code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#OCRVQAAccuracy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.OCRVQAAccuracy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.ROC_AUC">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">ROC_AUC</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#ROC_AUC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.ROC_AUC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating ROC_AUC.
+See more details at <a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html#sklearn.metrics.roc_auc_score">sklearn.metrics.roc_auc_score</a> # noqa</p>
+<p><strong>Note</strong>: ROC_AUC is not defined when expected tensor only contains one
+label. Make sure you have both labels always or use it on full val only</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">roc_auc</span></code></p>
+<dl class="py method">
+<dt id="mmf.modules.metrics.ROC_AUC.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#ROC_AUC.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.ROC_AUC.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate ROC_AUC and returns it back. The function performs softmax
+on the logits provided and then calculated the ROC_AUC.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration.</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model. This should contain “scores”
+field pointing to logits returned from the model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>ROC_AUC.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.RecallAt1">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">RecallAt1</code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate Recall&#64;1 which specifies how many time the chosen candidate
+was rank 1.</p>
+<p><strong>Key</strong>: <code class="docutils literal notranslate"><span class="pre">r&#64;1</span></code>.</p>
+<dl class="py method">
+<dt id="mmf.modules.metrics.RecallAt1.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt1.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt1.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate Recall&#64;1 and return it back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Recall&#64;1</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.RecallAt10">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">RecallAt10</code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt10"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt10" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate <a class="reference external" href="mailto:Recall&#37;&#52;&#48;10">Recall<span>&#64;</span>10</a> which specifies how many time the chosen candidate
+was among first 10 ranks.</p>
+<p><strong>Key</strong>: <code class="docutils literal notranslate"><span class="pre">r&#64;10</span></code>.</p>
+<dl class="py method">
+<dt id="mmf.modules.metrics.RecallAt10.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt10.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt10.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate <a class="reference external" href="mailto:Recall&#37;&#52;&#48;10">Recall<span>&#64;</span>10</a> and return it back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><a class="reference external" href="mailto:Recall&#37;&#52;&#48;10">Recall<span>&#64;</span>10</a></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.RecallAt5">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">RecallAt5</code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate Recall&#64;5 which specifies how many time the chosen candidate
+was among first 5 rank.</p>
+<p><strong>Key</strong>: <code class="docutils literal notranslate"><span class="pre">r&#64;5</span></code>.</p>
+<dl class="py method">
+<dt id="mmf.modules.metrics.RecallAt5.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt5.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt5.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate Recall&#64;5 and return it back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Recall&#64;5</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.RecallAtK">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">RecallAtK</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">'recall&#64;k'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAtK"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAtK" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="mmf.modules.metrics.RecallAtK.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="n">k</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAtK.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAtK.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method to be implemented by the child class. Takes
+in a <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> and a dict returned by model as output and
+returns back a float tensor/number indicating value for this metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by the dataloader for the
+current iteration.</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Output dict from the model for the current
+SampleList</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Value of the metric.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.Tensor|float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.STVQAANLS">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">STVQAANLS</code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#STVQAANLS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.STVQAANLS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.STVQAAccuracy">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">STVQAAccuracy</code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#STVQAAccuracy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.STVQAAccuracy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.TextCapsBleu4">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">TextCapsBleu4</code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#TextCapsBleu4"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.TextCapsBleu4" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.TextVQAAccuracy">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">TextVQAAccuracy</code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#TextVQAAccuracy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.TextVQAAccuracy" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="mmf.modules.metrics.TextVQAAccuracy.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#TextVQAAccuracy.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.TextVQAAccuracy.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method to be implemented by the child class. Takes
+in a <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> and a dict returned by model as output and
+returns back a float tensor/number indicating value for this metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by the dataloader for the
+current iteration.</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Output dict from the model for the current
+SampleList</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Value of the metric.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.Tensor|float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.VQAAccuracy">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">VQAAccuracy</code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#VQAAccuracy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.VQAAccuracy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate VQAAccuracy. Find more information <a class="reference external" href="https://visualqa.org/evaluation.html">here</a></p>
+<p><strong>Key</strong>: <code class="docutils literal notranslate"><span class="pre">vqa_accuracy</span></code>.</p>
+<dl class="py method">
+<dt id="mmf.modules.metrics.VQAAccuracy.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#VQAAccuracy.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.VQAAccuracy.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate vqa accuracy and return it back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>VQA Accuracy</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.VQAEvalAIAccuracy">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">VQAEvalAIAccuracy</code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#VQAEvalAIAccuracy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.VQAEvalAIAccuracy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate Eval AI VQAAccuracy. Find more information <a class="reference external" href="https://visualqa.org/evaluation.html">here</a>
+This is more accurate and similar comparision to Eval AI
+but is slower compared to vqa_accuracy.</p>
+<p><strong>Key</strong>: <code class="docutils literal notranslate"><span class="pre">vqa_evalai_accuracy</span></code>.</p>
+<dl class="py method">
+<dt id="mmf.modules.metrics.VQAEvalAIAccuracy.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#VQAEvalAIAccuracy.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.VQAEvalAIAccuracy.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate vqa accuracy and return it back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>VQA Accuracy</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+             </article>
+             
+            </div>
+            <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../datasets/base_dataset_builder.html" class="btn btn-neutral float-right" title="datasets.base_dataset_builder" accesskey="n" rel="next">Next <img src="../../_static/images/chevron-right-orange.svg" class="next-page"></a>
+      
+      
+        <a href="losses.html" class="btn btn-neutral" title="modules.losses" accesskey="p" rel="prev"><img src="../../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
+      
+    </div>
+  
+
+  
+
+    <hr>
+
+  
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Facebook AI Research.
+
+    </p>
+  </div>
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+      </div>
+     
+
+</footer>
+
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">modules.metrics</a></li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  
+
+
+  
+
+     
+       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+         <script src="../../_static/jquery.js"></script>
+         <script src="../../_static/underscore.js"></script>
+         <script src="../../_static/doctools.js"></script>
+         <script src="../../_static/language_data.js"></script>
+     
+
+  
+
+  <script type="text/javascript" src="../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+
+  <footer class="site-footer">
+    <div class="container footer-container">
+      <div class="footer-logo-wrapper">
+        <a href="https://mmf.sh/" class="footer-logo"></a>
+      </div>
+      <div class="footer-links-wrapper">
+        <div class="footer-links-col">
+          <ul>
+            <li class="list-title"><a href="https://mmf.sh/">MMF</a></li>
+            <li><a href="https://mmf.sh/get-started">Get Started</a></li>
+            <li><a href="https://mmf.sh/features">Features</a></li>
+            <li><a href="https://github.com/facebookresearch/master/blob/master/CONTRIBUTING.md">Contributing</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links-col">
+          <ul>
+            <li class="list-title"><a href="">Resources</a></li>
+            <li><a href="https://mmf.sh/tutorials">Tutorials</a></li>
+            <li><a href="https://mmf.sh/docs/stable/index.html">Docs</a></li>
+            <li><a href="https://github.com/facebookresearch/master/issues" target="_blank">Github Issues</a></li>
+          </ul>
+        </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="cookie-banner-wrapper">
+  <div class="container">
+    <p class="gdpr-notice">To analyze traffic and optimize your experience, we serve cookies on this site. By clicking or navigating, you agree to allow our usage of cookies. As the current maintainers of this site, Facebook’s Cookies Policy applies. Learn more, including about available controls: <a href="https://www.facebook.com/policies/cookies/">Cookies Policy</a>.</p>
+    <img class="close-button" src="../../_static/images/pytorch-x.svg">
+  </div>
+</div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://mmf.sh/" aria-label="MMF"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://mmf.sh/get-started">Get Started</a>
+          </li>
+
+          <li>
+            <a href="https://mmf.sh/features">Features</a>
+          </li>
+
+          <li>
+            <a href="https://mmf.sh/tutorials">Tutorials</a>
+          </li>
+
+          <li class="active">
+            <a href="https://mmf.sh/docs/stable/index.html">Docs</a>
+          </li>
+          <li>
+            <a href="https://github.com/facebookresearch/mmf">Github</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+</html>

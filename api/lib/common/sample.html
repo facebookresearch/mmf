@@ -1,0 +1,651 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>common.sample &mdash; MMF 1.0.0rc8 documentation</title>
+  
+
+  
+  
+  
+  
+    <link rel="canonical" href="/lib/common/sample.html"/>
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../_static/css/customize.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="models.base_model" href="../models/base_model.html" />
+    <link rel="prev" title="common.registry" href="registry.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://mmf.sh/" aria-label="MMF"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://mmf.sh/get-started">Get Started</a>
+          </li>
+
+
+          <li>
+            <a href="https://mmf.sh/tutorials">Tutorials</a>
+          </li>
+
+          <li class="active">
+            <a href="https://mmf.sh/docs/stable/index.html">Docs</a>
+          </li>
+
+          <li>
+            <a href="https://github.com/facebookresearch/mmf">Github</a>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+
+  </div>
+</div>
+
+
+<body class="pytorch-body">
+
+   
+
+    
+
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+      <div class="pytorch-side-scroll">
+        <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          <div class="pytorch-left-menu-search">
+            
+
+            
+              
+              
+                <div class="version">
+                  1.0.0
+                </div>
+              
+            
+
+            
+
+
+  
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+            
+          </div>
+
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/quickstart.html">Quickstart </a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/pretrained_models.html">Pretrained Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/configuration.html">Configuration System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/challenge.html">Challenge Participation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/faq.html">FAQs</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Challenges</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../notes/hateful_memes_challenge.html">Hateful Memes</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Extending MMF</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/concepts.html">Terminology and Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/dataset.html">Tutorial: Adding a dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/late_fusion.html">Tutorial: Late Fusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/mmf_bert.html">Tutorial: Detect Hate Speech with MMFBERT</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Library Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="registry.html">common.registry</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">common.sample</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../models/base_model.html">models.base_model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/losses.html">modules.losses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/metrics.html">modules.metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../datasets/base_dataset_builder.html">datasets.base_dataset_builder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../datasets/base_dataset.html">datasets.base_dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../datasets/processors.html">datasets.processors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/text.html">utils.text</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <div class="pytorch-container">
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../index.html">
+          
+            Docs
+          
+        </a> &gt;
+      </li>
+
+        
+      <li>common.sample</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/lib/common/sample.rst.txt" rel="nofollow"><img src="../../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+        </div>
+
+        <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+          Shortcuts
+        </div>
+      </div>
+
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        <div class="pytorch-content-left">
+
+        
+          
+          <div class="rst-content">
+          
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <div class="section" id="module-mmf.common.sample">
+<span id="common-sample"></span><h1>common.sample<a class="headerlink" href="#module-mmf.common.sample" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">Sample</span></code> and <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> are data structures for arbitrary data returned from a
+dataset. To work with MMF, minimum requirement for datasets is to return
+an object of <code class="docutils literal notranslate"><span class="pre">Sample</span></code> class and for models to accept an object of type <cite>SampleList</cite>
+as an argument.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Sample</span></code> is used to represent an arbitrary sample from dataset, while <code class="docutils literal notranslate"><span class="pre">SampleList</span></code>
+is list of Sample combined in an efficient way to be used by the model.
+In simple term, <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> is a batch of Sample but allow easy access of
+attributes from <code class="docutils literal notranslate"><span class="pre">Sample</span></code> while taking care of properly batching things.</p>
+<dl class="py class">
+<dt id="mmf.common.sample.Sample">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.common.sample.</code><code class="sig-name descname">Sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">init_dict</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#Sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.common.sample.Sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample represent some arbitrary data. All datasets in MMF must
+return an object of type <code class="docutils literal notranslate"><span class="pre">Sample</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>init_dict</strong> (<em>Dict</em>) – Dictionary to init <code class="docutils literal notranslate"><span class="pre">Sample</span></code> class with.</p>
+</dd>
+</dl>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sample</span> <span class="o">=</span> <span class="n">Sample</span><span class="p">({</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">2</span><span class="p">)})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sample</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
+<span class="go"># Custom attributes can be added to ``Sample`` after initialization</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sample</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="mmf.common.sample.Sample.fields">
+<code class="sig-name descname">fields</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#Sample.fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.common.sample.Sample.fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get current attributes/fields registered under the sample.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Attributes registered under the Sample.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.common.sample.SampleList">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.common.sample.</code><code class="sig-name descname">SampleList</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">samples</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#SampleList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.common.sample.SampleList" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">SampleList</span></code> is used to collate a list of <code class="docutils literal notranslate"><span class="pre">Sample</span></code> into a batch during batch
+preparation. It can be thought of as a merger of list of Dicts into a single Dict.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">Sample</span></code> contains an attribute ‘text’ of size (2) and there are 10 samples in
+list, the returned <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> will have an attribute ‘text’ which is a tensor
+of size (10, 2).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>samples</strong> (<em>type</em>) – List of <code class="docutils literal notranslate"><span class="pre">Sample</span></code> from which the <code class="docutils literal notranslate"><span class="pre">SampleList</span></code>
+will be created.</p>
+</dd>
+</dl>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sample_list</span> <span class="o">=</span> <span class="p">[</span>
+<span class="go">        Sample({&quot;text&quot;: torch.tensor(2)}),</span>
+<span class="go">        Sample({&quot;text&quot;: torch.tensor(2)})</span>
+<span class="go">    ]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sample_list</span><span class="o">.</span><span class="n">text</span>
+<span class="go">torch.tensor([2, 2])</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="mmf.common.sample.SampleList.add_field">
+<code class="sig-name descname">add_field</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">field</span></em>, <em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#SampleList.add_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.common.sample.SampleList.add_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an attribute <code class="docutils literal notranslate"><span class="pre">field</span></code> with value <code class="docutils literal notranslate"><span class="pre">data</span></code> to the SampleList</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>field</strong> (<em>str</em>) – Key under which the data will be added.</p></li>
+<li><p><strong>data</strong> (<em>object</em>) – Data to be added, can be a <code class="docutils literal notranslate"><span class="pre">torch.Tensor</span></code>, <code class="docutils literal notranslate"><span class="pre">list</span></code>
+or <code class="docutils literal notranslate"><span class="pre">Sample</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="mmf.common.sample.SampleList.copy">
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#SampleList.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.common.sample.SampleList.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a copy of the current SampleList</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Copy of current SampleList.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList">SampleList</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="mmf.common.sample.SampleList.fields">
+<code class="sig-name descname">fields</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#SampleList.fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.common.sample.SampleList.fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get current attributes/fields registered under the SampleList.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>list of attributes of the SampleList.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="mmf.common.sample.SampleList.get_batch_size">
+<code class="sig-name descname">get_batch_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#SampleList.get_batch_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.common.sample.SampleList.get_batch_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get batch size of the current <code class="docutils literal notranslate"><span class="pre">SampleList</span></code>. There must be a tensor</p>
+<dl>
+<dt>def __getitem__(self, key):</dt><dd><p>return self.__dict__[key]
+field present in the <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> currently.</p>
+<p>Returns:</p>
+</dd>
+<dt>def __getitem__(self, key):</dt><dd><dl class="simple">
+<dt>return self.__dict__[key]</dt><dd><p>int: Size of the batch in <code class="docutils literal notranslate"><span class="pre">SampleList</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="mmf.common.sample.SampleList.get_field">
+<code class="sig-name descname">get_field</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">field</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#SampleList.get_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.common.sample.SampleList.get_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get value of a particular attribute</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>field</strong> (<em>str</em>) – Attribute whose value is to be returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="mmf.common.sample.SampleList.get_fields">
+<code class="sig-name descname">get_fields</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fields</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#SampleList.get_fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.common.sample.SampleList.get_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a new <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> generated from the current <code class="docutils literal notranslate"><span class="pre">SampleList</span></code>
+but contains only the attributes passed in <cite>fields</cite> argument</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fields</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – Attributes whose <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> will be made.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>SampleList containing only the attribute values of the fields
+which were passed.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList">SampleList</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="mmf.common.sample.SampleList.get_item_list">
+<code class="sig-name descname">get_item_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#SampleList.get_item_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.common.sample.SampleList.get_item_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> of only one particular attribute that is present
+in the <code class="docutils literal notranslate"><span class="pre">SampleList</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – Attribute whose <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> will be made.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>SampleList containing only the attribute value of the key
+which was passed.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList">SampleList</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="mmf.common.sample.SampleList.pin_memory">
+<code class="sig-name descname">pin_memory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#SampleList.pin_memory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.common.sample.SampleList.pin_memory" title="Permalink to this definition">¶</a></dt>
+<dd><p>In custom batch object, we need to define pin_memory function so that
+PyTorch can actually apply pinning. This function just individually pins
+all of the tensor fields</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="mmf.common.sample.SampleList.to">
+<code class="sig-name descname">to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span></em>, <em class="sig-param"><span class="n">non_blocking</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#SampleList.to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.common.sample.SampleList.to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Similar to <code class="docutils literal notranslate"><span class="pre">.to</span></code> function on a <cite>torch.Tensor</cite>. Moves all of the
+tensors present inside the <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> to a particular device. If an
+attribute’s value is not a tensor, it is ignored and kept as it is.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device</strong> (<em>str|torch.device</em>) – Device on which the <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> should
+moved.</p></li>
+<li><p><strong>non_blocking</strong> (<em>bool</em>) – Whether the move should be non_blocking. Default: True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a SampleList moved to the <code class="docutils literal notranslate"><span class="pre">device</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList">SampleList</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="mmf.common.sample.SampleList.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<span class="p">[</span>str<span class="p">, </span>Any<span class="p">]</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#SampleList.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.common.sample.SampleList.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a sample list to dict, this is useful for TorchScript and for
+other internal API unification efforts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dict representation of current sample list</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+             </article>
+             
+            </div>
+            <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../models/base_model.html" class="btn btn-neutral float-right" title="models.base_model" accesskey="n" rel="next">Next <img src="../../_static/images/chevron-right-orange.svg" class="next-page"></a>
+      
+      
+        <a href="registry.html" class="btn btn-neutral" title="common.registry" accesskey="p" rel="prev"><img src="../../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
+      
+    </div>
+  
+
+  
+
+    <hr>
+
+  
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Facebook AI Research.
+
+    </p>
+  </div>
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+      </div>
+     
+
+</footer>
+
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">common.sample</a></li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  
+
+
+  
+
+     
+       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+         <script src="../../_static/jquery.js"></script>
+         <script src="../../_static/underscore.js"></script>
+         <script src="../../_static/doctools.js"></script>
+         <script src="../../_static/language_data.js"></script>
+     
+
+  
+
+  <script type="text/javascript" src="../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+
+  <footer class="site-footer">
+    <div class="container footer-container">
+      <div class="footer-logo-wrapper">
+        <a href="https://mmf.sh/" class="footer-logo"></a>
+      </div>
+      <div class="footer-links-wrapper">
+        <div class="footer-links-col">
+          <ul>
+            <li class="list-title"><a href="https://mmf.sh/">MMF</a></li>
+            <li><a href="https://mmf.sh/get-started">Get Started</a></li>
+            <li><a href="https://mmf.sh/features">Features</a></li>
+            <li><a href="https://github.com/facebookresearch/master/blob/master/CONTRIBUTING.md">Contributing</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links-col">
+          <ul>
+            <li class="list-title"><a href="">Resources</a></li>
+            <li><a href="https://mmf.sh/tutorials">Tutorials</a></li>
+            <li><a href="https://mmf.sh/docs/stable/index.html">Docs</a></li>
+            <li><a href="https://github.com/facebookresearch/master/issues" target="_blank">Github Issues</a></li>
+          </ul>
+        </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="cookie-banner-wrapper">
+  <div class="container">
+    <p class="gdpr-notice">To analyze traffic and optimize your experience, we serve cookies on this site. By clicking or navigating, you agree to allow our usage of cookies. As the current maintainers of this site, Facebook’s Cookies Policy applies. Learn more, including about available controls: <a href="https://www.facebook.com/policies/cookies/">Cookies Policy</a>.</p>
+    <img class="close-button" src="../../_static/images/pytorch-x.svg">
+  </div>
+</div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://mmf.sh/" aria-label="MMF"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://mmf.sh/get-started">Get Started</a>
+          </li>
+
+          <li>
+            <a href="https://mmf.sh/features">Features</a>
+          </li>
+
+          <li>
+            <a href="https://mmf.sh/tutorials">Tutorials</a>
+          </li>
+
+          <li class="active">
+            <a href="https://mmf.sh/docs/stable/index.html">Docs</a>
+          </li>
+          <li>
+            <a href="https://github.com/facebookresearch/mmf">Github</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+</html>

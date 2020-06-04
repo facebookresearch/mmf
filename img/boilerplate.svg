@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3545 3545" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd">
+<style type="text/css">
+	.st0{fill:#0054a6;}
+</style>
+
+<path class="st0" d="M1082 1549c36-36 94-36 130 0s36 94 0 130L191 2700l654 654 1023-1023c36-36 94-36 130 0s36 94 0 130L964 3495c-33 33-76 49-118 49-40 0-80-14-111-43-3-2-5-4-7-7L51 2817c-33-33-49-76-49-119s16-86 49-119l1033-1033zm1143-359c36-36 94-36 130 0s36 94 0 130l-906 906c-36 36-94 36-130 0s-36-94 0-130l906-906zm244 800c-36 36-94 36-130 0s-36-94 0-130L3354 845l-654-654-1013 1013c-36 36-94 36-130 0s-36-94 0-130L2581 49c33-33 76-49 119-49s86 16 119 49l677 677c33 33 49 76 49 118 0 43-16 86-49 119L2470 1989z" fill-rule="nonzero"/>
+</svg>
