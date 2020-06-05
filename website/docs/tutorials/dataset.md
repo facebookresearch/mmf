@@ -1,8 +1,8 @@
-:github_url: https://github.com/facebookresearch/mmf
-
-##########################
-Tutorial: Adding a dataset
-##########################
+---
+id: dataset
+title: Adding a dataset
+sidebar_label: Adding a dataset
+---
 
 **[Outdated]** A new version of this will be uploaded soon
 
@@ -19,32 +19,27 @@ MMF is agnostic to kind of datasets that can be added to it. On high level, addi
 
 In most of the cases, you should be able to inherit one of the existing datasets for easy integration. Let's start from the dataset builder
 
+# Dataset Builder
 
-Dataset Builder
-===============
+Builder creates and returns an instance of :class:`mmf.datasets.base_dataset.BaseDataset` which is inherited from `torch.utils.data.dataset.Dataset`. Any builder class in MMF needs to be inherited from :class:`mmf.datasets.base_dataset_builder.BaseDatasetBuilder`. |BaseDatasetBuilder| requires user to implement following methods after inheriting the class.
 
-Builder creates and returns an instance of :class:`mmf.datasets.base_dataset.BaseDataset` which is inherited from ``torch.utils.data.dataset.Dataset``.
-Any builder class in MMF needs to be inherited from :class:`mmf.datasets.base_dataset_builder.BaseDatasetBuilder`. |BaseDatasetBuilder| requires
-user to implement following methods after inheriting the class.
+- `__init__(self):`
 
-- ``__init__(self):``
+Inside this function call super().**init**("name") where "name" should your dataset's name like "vqa2".
 
-Inside this function call super().__init__("name") where "name" should your dataset's name like "vqa2".
-
-- ``load(self, config, dataset_type, *args, **kwargs)``
+- `load(self, config, dataset_type, *args, **kwargs)`
 
 This function loads the dataset, builds an object of class inheriting |BaseDataset| which contains your dataset logic and returns it.
 
-- ``build(self, config, dataset_type, *args, **kwargs)``
+- `build(self, config, dataset_type, *args, **kwargs)`
 
-This function actually builds the data required for initializing the dataset for the first time. For e.g. if you need to download some data for your dataset, this
-all should be done inside this function.
+This function actually builds the data required for initializing the dataset for the first time. For e.g. if you need to download some data for your dataset, this all should be done inside this function.
 
-Finally, you need to register your dataset builder with a key to registry using ``mmf.common.registry.registry.register_builder("key")``.
+Finally, you need to register your dataset builder with a key to registry using `mmf.common.registry.registry.register_builder("key")`.
 
 That's it, that's all you require for inheriting |BaseDatasetBuilder|.
 
-Let's write down this using example of *CLEVR* dataset.
+Let's write down this using example of _CLEVR_ dataset.
 
 .. code-block:: python
 
@@ -121,21 +116,17 @@ Let's write down this using example of *CLEVR* dataset.
                 self.dataset.answer_processor.get_vocab_size(),
             )
 
-Default Configuration
-=====================
+# Default Configuration
 
 Some things to note about MMF's configuration:
 
-- Each dataset in MMF has its own default configuration which is usually under this structure
-  ``mmf/common/defaults/configs/datasets/[task]/[dataset].yaml`` where ``task`` is the task your dataset belongs to.
-- These dataset configurations can be then included by the user in their end config using ``includes`` directive
-- This allows easy multi-tasking and management of configurations and user can also override the default configurations
-  easily in their own config
+- Each dataset in MMF has its own default configuration which is usually under this structure `mmf/common/defaults/configs/datasets/[task]/[dataset].yaml` where `task` is the task your dataset belongs to.
+- These dataset configurations can be then included by the user in their end config using `includes` directive
+- This allows easy multi-tasking and management of configurations and user can also override the default configurations easily in their own config
 
 So, for CLEVR dataset also, we will need to create a default configuration.
 
-The config node is directly passed to your builder which you can then pass to your dataset for any configuration that you need
-for building your dataset.
+The config node is directly passed to your builder which you can then pass to your dataset for any configuration that you need for building your dataset.
 
 Basic structure for a dataset configuration looks like below:
 
@@ -198,23 +189,17 @@ Here, is a default configuration for CLEVR needed based on our dataset and build
                             type: simple_word
                             params: {}
 
+For processors, check :class:`mmf.datasets.processors` to understand how to create a processor and different processors that are already available in MMF.
 
-For processors, check :class:`mmf.datasets.processors` to understand how to create a processor and different processors that are
-already available in MMF.
+# Dataset Class
 
-Dataset Class
-=============
-
-Next step is to actually build a dataset class which inherits |BaseDataset| so it can interact with PyTorch
-dataloaders. Follow the steps below to inherit and create your dataset's class.
+Next step is to actually build a dataset class which inherits |BaseDataset| so it can interact with PyTorch dataloaders. Follow the steps below to inherit and create your dataset's class.
 
 - Inherit :class:`mmf.datasets.base_dataset.BaseDataset`
-- Implement ``__init__(self, config, dataset)``. Call parent's init using ``super().__init__("name", config, dataset)``
-  where "name" is the string representing the name of your dataset.
-- Implement ``__getitem__(self, idx)``, our replacement for normal ``__getitem__(self, idx)`` you would implement for a torch dataset. This needs to
-  return an object of class :class:Sample.
-- Implement ``__len__(self)`` method, which represents size of your dataset.
-- [Optional] Implement ``load_item(self, idx)`` if you need to load something or do something else with data and then call it inside ``__getitem__``.
+- Implement `__init__(self, config, dataset)`. Call parent's init using `super().__init__("name", config, dataset)` where "name" is the string representing the name of your dataset.
+- Implement `__getitem__(self, idx)`, our replacement for normal `__getitem__(self, idx)` you would implement for a torch dataset. This needs to return an object of class :class:Sample.
+- Implement `__len__(self)` method, which represents size of your dataset.
+- [Optional] Implement `load_item(self, idx)` if you need to load something or do something else with data and then call it inside `__getitem__`.
 
 .. note:
 
@@ -325,17 +310,9 @@ dataloaders. Follow the steps below to inherit and create your dataset's class.
             # passing to the model
             return current_sample
 
+# Metrics
 
-
-Metrics
-=======
-
-For your dataset to be compatible out of the box, it is a good practice to also add the metrics your dataset requires.
-All metrics for now go inside ``MMF/modules/metrics.py``. All metrics inherit |BaseMetric| and implement a function ``calculate``
-with signature ``calculate(self, sample_list, model_output, *args, **kwargs)`` where ``sample_list`` (|SampleList|) is the current batch and
-``model_output`` is a dict return by your model for current ``sample_list``. Normally, you should define the keys you want inside
-``model_output`` and ``sample_list``. Finally, you should register your metric to registry using ``@registry.register_metric('[key]')``
-where '[key]' is the key for your metric. Here is a sample implementation of accuracy metric used in CLEVR dataset:
+For your dataset to be compatible out of the box, it is a good practice to also add the metrics your dataset requires. All metrics for now go inside `MMF/modules/metrics.py`. All metrics inherit |BaseMetric| and implement a function `calculate` with signature `calculate(self, sample_list, model_output, *args, **kwargs)` where `sample_list` (|SampleList|) is the current batch and `model_output` is a dict return by your model for current `sample_list`. Normally, you should define the keys you want inside `model_output` and `sample_list`. Finally, you should register your metric to registry using `@registry.register_metric('[key]')` where '[key]' is the key for your metric. Here is a sample implementation of accuracy metric used in CLEVR dataset:
 
 .. code-block: python
 
@@ -377,10 +354,6 @@ where '[key]' is the key for your metric. Here is a sample implementation of acc
             value = correct / total
             return value
 
-
 These are the common steps you need to follow when you are adding a dataset to MMF.
 
-.. |BaseDatasetBuilder| replace:: :class:`~mmf.datasets.base_dataset_builder.BaseDatasetBuilder`
-.. |BaseDataset| replace:: :class:`~mmf.datasets.base_dataset.BaseDataset`
-.. |SampleList| replace:: :class:`~mmf.common.sample.SampleList`
-.. |BaseMetric| replace:: :class:`~mmf.modules.metrics.BaseMetric`
+.. |BaseDatasetBuilder| replace:: :class:`~mmf.datasets.base_dataset_builder.BaseDatasetBuilder` .. |BaseDataset| replace:: :class:`~mmf.datasets.base_dataset.BaseDataset` .. |SampleList| replace:: :class:`~mmf.common.sample.SampleList` .. |BaseMetric| replace:: :class:`~mmf.modules.metrics.BaseMetric`

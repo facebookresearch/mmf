@@ -22,9 +22,11 @@
   --ifm-color-primary-light: #014f9e;
   --ifm-color-primary-lighter: #0461bd;
   --ifm-color-primary-lightest: #067aee;
+  --ifm-color-primary-gradient-start: #a5cdfc;
   --ifm-code-font-size: 95%;
   --ifm-background-surface-color: var(--ifm-color-primary);
   --ifm-navbar-link-color: #fff;
+  --ifm-menu-color-background-active: rgba(0, 0, 0, 0.05);
 }
 
 .docusaurus-highlight-code-line {
@@ -36,4 +38,54 @@
 
 .footer__links {
   text-align: center;
+}
+
+.navbar__brand {
+  height: 2.8rem;
+}
+
+.navbar__toggle {
+  color: #fff;
+}
+
+.navbar .menu__link {
+  color: #fff;
+}
+
+.navbar__link {
+  margin-left: 1em;
+  padding-left: 0.2em;
+  margin-right: 1em;
+  padding-right: 0.2em;
+  border-bottom: 2px dotted transparent;
+
+}
+
+.navbar__link:hover, .navbar__link:active, .navbar__link--active {
+  color: #fff;
+  border-bottom: 2px dotted #fff;
+}
+
+.navbar-sidebar .navbar__link--active {
+  border: none;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.menu--show {
+  --ifm-background-surface-color: #fff;
+}
+
+html[data-theme="dark"] .menu--show {
+  --ifm-background-surface-color: #242526;
+}
+
+html[data-theme="dark"] {
+  --ifm-menu-color: #fff;
+  --ifm-menu-color-active: #fff;
+  --ifm-menu-color-background-active: rgba(0, 0, 0, 0.2);
+  --ifm-code-font-size: 95%;
+}
+
+html[data-theme="dark"] .button {
+  color: #fff;
 }

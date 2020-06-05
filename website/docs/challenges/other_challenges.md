@@ -1,25 +1,24 @@
-```eval_rst
-:github_url: https://github.com/facebookresearch/mmf
-```
+---
+id: other_challenges
+title: Other Challenges
+sidebar_label: Other Challenges
+---
 
 # Challenge Participation
 
 **[Outdated]** A new version of this will be uploaded soon
 
-Participating in EvalAI challenges is really easy using MMF. We will show how to
-do inference for two challenges here:
+Participating in EvalAI challenges is really easy using MMF. We will show how to do inference for two challenges here:
 
-```eval_rst
-.. note::
+:::note
 
-  This section assumes that you have downloaded data following the Quickstart_ tutorial.
+This section assumes that you have downloaded data following the [Quickstart](/docs/getting_started/quickstart) tutorial.
 
-.. _Quickstart: ./quickstart
-```
+:::
+
 ## TextVQA challenge
 
-TextVQA challenge is available at [this link](https://evalai.cloudcv.org/web/challenges/challenge-page/244/overview).
-Currently, LoRRA is the SoTA on TextVQA. To do inference on val set using LoRRA, follow the steps below:
+TextVQA challenge is available at [this link](https://evalai.cloudcv.org/web/challenges/challenge-page/244/overview). Currently, LoRRA is the SoTA on TextVQA. To do inference on val set using LoRRA, follow the steps below:
 
 ```
 # Download the model first
@@ -34,8 +33,8 @@ python tools/run.py --datasets textvqa --model lorra --config configs/vqa/textvq
 --run_type val --evalai_inference 1 --resume_file data/models/lorra_best.pth
 ```
 
-In the printed log, MMF will mention where it wrote the JSON file it created.
-Upload that file on EvalAI:
+In the printed log, MMF will mention where it wrote the JSON file it created. Upload that file on EvalAI:
+
 ```
 > Go to https://evalai.cloudcv.org/web/challenges/challenge-page/244/overview
 > Select Submit Tab
@@ -47,17 +46,13 @@ Upload that file on EvalAI:
 
 To check your results, go in 'My submissions' section and select 'Validation Phase' and click on 'Result file'.
 
-Now, you can either edit the LoRRA model to create your own model on top of it or create your own model inside MMF to
-beat LoRRA in challenge.
-
+Now, you can either edit the LoRRA model to create your own model on top of it or create your own model inside MMF to beat LoRRA in challenge.
 
 ## VQA Challenge
 
-Similar to TextVQA challenge, VQA Challenge is available at [this link](https://evalai.cloudcv.org/web/challenges/challenge-page/163/overview). You can either select Pythia as your base model
-or LoRRA model (available soon for VQA2) from the table in [pretrained models](pretrained_models) section as a base.
+Similar to TextVQA challenge, VQA Challenge is available at [this link](https://evalai.cloudcv.org/web/challenges/challenge-page/163/overview). You can either select Pythia as your base model or LoRRA model (available soon for VQA2) from the table in [pretrained models](pretrained_models) section as a base.
 
-Follow the same steps above, replacing `--model` with `pythia` or `lorra` and `--datasets` with `vqa2`.
-Also, replace the config accordingly. Here are example commands for using Pythia to do inference on test set of VQA2.
+Follow the same steps above, replacing `--model` with `pythia` or `lorra` and `--datasets` with `vqa2`. Also, replace the config accordingly. Here are example commands for using Pythia to do inference on test set of VQA2.
 
 ```
 # Download the model first
