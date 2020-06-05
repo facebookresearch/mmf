@@ -242,22 +242,25 @@ class BaseTrainer:
             if self.current_epoch > self.max_epochs:
                 break
 
-            for batch in self.train_loader:
+            epoch_num_batches = len(self.train_loader)
+
+            for epoch_batch_index, batch in enumerate(self.train_loader):
                 self.profile("Batch load time")
-                self.current_iteration += 1
-                self.writer.write(self.num_updates + 1, "debug")
+
+                self._check_start_update(epoch_batch_index, epoch_num_batches)
 
                 report = self._forward_pass(batch)
                 loss = self._extract_loss(report)
                 self._backward(loss)
-                should_break = self._logistics(report)
 
-                if self.num_updates > self.max_updates:
-                    should_break = True
+                should_break = self._check_finish_update(epoch_batch_index, report)
 
                 if should_break:
                     break
 
+                epoch_batch_index += 1
+
+            assert(epoch_batch_index == epoch_num_batches)
             # In distributed, each worker will complete one epoch when we reach this
             # as each worker is an individual instance
             self.current_epoch += get_world_size() - 1
@@ -278,16 +281,38 @@ class BaseTrainer:
         return report
 
     def _backward(self, loss):
-        self.optimizer.zero_grad()
+        # for update_frequency > 1, scale the loss so that accumulated gradients are the expected magnitude
+        loss = loss / self.config.training.update_frequency
         loss.backward()
-
-        if self.should_clip_gradients:
-            clip_gradients(self.model, self.num_updates, self.tb_writer, self.config)
-
-        self.optimizer.step()
-        self._run_scheduler()
-        self.num_updates += 1
         self.profile("Backward time")
+
+    def _check_start_update(self, epoch_batch_index, epoch_num_batches):
+        # When epoch_num_batches is not a multiple of the effective batch size, the last few batches
+        # will be discarded. I.e., they won't contribute to an update.
+        epoch_num_updates = epoch_num_batches // self.config.training.update_frequency
+        is_batch_discarded = (epoch_batch_index >= epoch_num_updates * self.config.training.update_frequency)
+        if is_batch_discarded:
+            return
+
+        is_first_batch_for_update = epoch_batch_index % self.config.training.update_frequency == 0
+        if is_first_batch_for_update:
+            self.current_iteration += 1
+            self.writer.write(self.num_updates + 1, "debug")
+            self.optimizer.zero_grad()
+
+    def _check_finish_update(self, epoch_batch_index, report):
+        should_break = False
+        is_last_batch_for_update = (epoch_batch_index + 1) % self.config.training.update_frequency == 0
+        if is_last_batch_for_update:
+            if self.should_clip_gradients:
+                clip_gradients(self.model, self.num_updates, self.tb_writer, self.config)
+            self.optimizer.step()
+            self._run_scheduler()
+            self.num_updates += 1
+            should_break = self._logistics(report)
+            if self.num_updates > self.max_updates:
+                should_break = True
+        return should_break
 
     def _extract_loss(self, report):
         loss_dict = report.losses
