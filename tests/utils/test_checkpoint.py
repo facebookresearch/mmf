@@ -195,15 +195,18 @@ class TestUtilsCheckpoint(unittest.TestCase):
             # Test distributed settings
             self.trainer.model = torch.nn.DataParallel(self.trainer.model)
             checkpoint.load_state_dict()
-
+            
+            weight_to_be_tested = self.trainer.model.module.base[0].weight
+            weight_device = weight_to_be_tested.device
+            
             self.assertTrue(
                 torch.equal(
-                    self.trainer.model.module.base[0].weight, base_0_weight_current.cuda()
+                    weight_to_be_tested, base_0_weight_current.to(weight_device)
                 )
             )
             self.assertFalse(
                 torch.equal(
-                    self.trainer.model.module.base[0].weight, base_0_weight_best.cuda()
+                    weight_to_be_tested, base_0_weight_best.to(weight_device)
                 )
             )
 
