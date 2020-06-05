@@ -260,7 +260,7 @@ class BaseTrainer:
 
                 epoch_batch_index += 1
 
-            assert(epoch_batch_index == epoch_num_batches)
+            assert epoch_batch_index == epoch_num_batches
             # In distributed, each worker will complete one epoch when we reach this
             # as each worker is an individual instance
             self.current_epoch += get_world_size() - 1
@@ -290,11 +290,16 @@ class BaseTrainer:
         # When epoch_num_batches is not a multiple of the effective batch size, the last few batches
         # will be discarded. I.e., they won't contribute to an update.
         epoch_num_updates = epoch_num_batches // self.config.training.update_frequency
-        is_batch_discarded = (epoch_batch_index >= epoch_num_updates * self.config.training.update_frequency)
+        is_batch_discarded = (
+            epoch_batch_index
+            >= epoch_num_updates * self.config.training.update_frequency
+        )
         if is_batch_discarded:
             return
 
-        is_first_batch_for_update = epoch_batch_index % self.config.training.update_frequency == 0
+        is_first_batch_for_update = (
+            epoch_batch_index % self.config.training.update_frequency == 0
+        )
         if is_first_batch_for_update:
             self.current_iteration += 1
             self.writer.write(self.num_updates + 1, "debug")
@@ -302,10 +307,14 @@ class BaseTrainer:
 
     def _check_finish_update(self, epoch_batch_index, report):
         should_break = False
-        is_last_batch_for_update = (epoch_batch_index + 1) % self.config.training.update_frequency == 0
+        is_last_batch_for_update = (
+            epoch_batch_index + 1
+        ) % self.config.training.update_frequency == 0
         if is_last_batch_for_update:
             if self.should_clip_gradients:
-                clip_gradients(self.model, self.num_updates, self.tb_writer, self.config)
+                clip_gradients(
+                    self.model, self.num_updates, self.tb_writer, self.config
+                )
             self.optimizer.step()
             self._run_scheduler()
             self.num_updates += 1
