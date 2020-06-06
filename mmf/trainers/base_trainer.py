@@ -260,7 +260,6 @@ class BaseTrainer:
 
                 epoch_batch_index += 1
 
-            assert epoch_batch_index == epoch_num_batches
             # In distributed, each worker will complete one epoch when we reach this
             # as each worker is an individual instance
             self.current_epoch += get_world_size() - 1
@@ -281,13 +280,15 @@ class BaseTrainer:
         return report
 
     def _backward(self, loss):
-        # for update_frequency > 1, scale the loss so that accumulated gradients are the expected magnitude
+        # for update_frequency > 1, scale the loss so that accumulated gradients are the
+        # expected magnitude
         loss = loss / self.config.training.update_frequency
         loss.backward()
         self.profile("Backward time")
 
     def _check_start_update(self, epoch_batch_index, epoch_num_batches):
-        # When epoch_num_batches is not a multiple of the effective batch size, the last few batches
+        # When epoch_num_batches is not a multiple of the effective batch size, the last
+        # few batches
         # will be discarded. I.e., they won't contribute to an update.
         epoch_num_updates = epoch_num_batches // self.config.training.update_frequency
         is_batch_discarded = (
