@@ -7,18 +7,18 @@ dataset_config:
     use_features: true
     features:
       train:
-      - datasets/mmimdb/features/lmdbs/mmimdb.lmdb
+      - datasets/mmimdb/defaults/features/features.lmdb
       val:
-      - datasets/mmimdb/features/lmdbs/mmimdb.lmdb
+      - datasets/mmimdb/defaults/features/features.lmdb
       test:
-      - datasets/mmimdb/features/lmdbs/mmimdb.lmdb
+      - datasets/mmimdb/defaults/features/features.lmdb
     annotations:
       train:
-      - datasets/mmimdb/imdbs/train.jsonl
+      - datasets/mmimdb/defaults/annotations/train.jsonl
       val:
-      - datasets/mmimdb/imdbs/dev.jsonl
+      - datasets/mmimdb/defaults/annotations/dev.jsonl
       test:
-      - datasets/mmimdb/imdbs/test.jsonl
+      - datasets/mmimdb/defaults/annotations/test.jsonl
     max_features: 100
     use_image_feature_masks: false
     processors:
