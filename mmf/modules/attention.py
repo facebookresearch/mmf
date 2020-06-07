@@ -1,4 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+
+import math
+
 import torch
 from torch import nn
 
@@ -156,3 +159,106 @@ class TopDownAttention(nn.Module):
                 masked_attention = self._mask_attentions(attention, image_locs)
 
         return masked_attention
+
+
+class MultiHeadAttention(nn.Module):
+    def __init__(self, dim, num_attn, dropout=0.1):
+        super().__init__()
+        self.p_attn = None
+        self.h = num_attn
+        self.d_k = dim // num_attn
+        self.linears = nn.ModuleList([nn.Linear(dim, dim) for _ in range(4)])
+        self.dropout = nn.Dropout(p=dropout)
+
+    def qkv_attention(self, query, key, value, mask=None, dropout=None):
+        d_k = query.size(-1)
+        scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)
+        if mask is not None:
+            scores.data.masked_fill_(mask.unsqueeze(1).unsqueeze(2), -1e9)
+
+        p_attn = nn.functional.softmax(scores, dim=-1)
+        if dropout is not None:
+            p_attn = dropout(p_attn)
+
+        return torch.matmul(p_attn, value), p_attn
+
+    def forward(self, q, k, v, mask):
+        b = q.size(0)
+
+        q = self.linears[0](q).view(b, -1, self.h, self.d_k).transpose(1, 2)
+        k = self.linears[1](k).view(b, -1, self.h, self.d_k).transpose(1, 2)
+        v = self.linears[2](v).view(b, -1, self.h, self.d_k).transpose(1, 2)
+
+        x, self.p_attn = self.qkv_attention(q, k, v, mask=mask, dropout=self.dropout)
+        x = x.transpose(1, 2).contiguous().view(b, -1, self.h * self.d_k)
+
+        return self.linears[-1](x)
+
+
+class SelfAttention(nn.Module):
+    def __init__(self, dim, num_attn, dropout, fc_type="mcan", norm_type="norm_last"):
+        super().__init__()
+        self.multi_head_attn = MultiHeadAttention(dim, num_attn, dropout=0.1)
+        hidden = 4 * dim if fc_type == "mcan" else dim
+        self.fcn = nn.Sequential(
+            nn.Linear(dim, hidden),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=dropout),
+            nn.Linear(hidden, dim),
+        )
+        self.drop_mha = nn.Dropout(p=dropout)
+        self.ln_mha = nn.LayerNorm(dim)
+        self.drop_fcn = nn.Dropout(p=dropout)
+        self.ln_fcn = nn.LayerNorm(dim)
+        self.norm_type = norm_type
+
+    def forward(self, x, x_mask):
+        if self.norm_type == "norm_last":
+            x = self.ln_mha(x + self.drop_mha(self.multi_head_attn(x, x, x, x_mask)))
+            x = self.ln_fcn(x + self.drop_fcn(self.fcn(x)))
+        else:
+            ln_x = self.ln_mha(x)
+            x = x + self.drop_mha(self.multi_head_attn(ln_x, ln_x, ln_x, x_mask))
+            ln_x = self.ln_fcn(x)
+            x = x + self.drop_fcn(self.fcn(ln_x))
+
+        return x
+
+
+class SelfGuidedAttention(nn.Module):
+    def __init__(self, dim, num_attn, dropout, fc_type="mcan", norm_type="norm_last"):
+        super().__init__()
+        self.multi_head_attn = nn.ModuleList(
+            [MultiHeadAttention(dim, num_attn, dropout=0.1) for _ in range(2)]
+        )
+        self.fcn = nn.Sequential(
+            nn.Linear(dim, 4 * dim),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=dropout),
+            nn.Linear(4 * dim, dim),
+        )
+        self.drop_mha = nn.ModuleList([nn.Dropout(p=dropout) for _ in range(2)])
+        self.ln_mha = nn.ModuleList([nn.LayerNorm(dim) for _ in range(3)])
+        self.drop_fcn = nn.Dropout(p=dropout)
+        self.ln_fcn = nn.LayerNorm(dim)
+        self.norm_type = norm_type
+
+    def forward(self, x, y, x_mask, y_mask):
+        if self.norm_type == "norm_last":
+            x = self.ln_mha[0](
+                x + self.drop_mha[0](self.multi_head_attn[0](x, x, x, x_mask))
+            )
+            x = self.ln_mha[1](
+                x + self.drop_mha[1](self.multi_head_attn[1](x, y, y, y_mask))
+            )
+            x = self.ln_fcn(x + self.drop_fcn(self.fcn(x)))
+        else:
+            ln_x = self.ln_mha[0](x)
+            x = x + self.drop_mha[0](self.multi_head_attn[0](ln_x, ln_x, ln_x, x_mask))
+            ln_x = self.ln_mha[1](x)
+            ln_y = self.ln_mha[2](y)
+            x = x + self.drop_mha[1](self.multi_head_attn[1](ln_x, ln_y, ln_y, y_mask))
+            ln_x = self.ln_fcn(x)
+            x = x + self.drop_fcn(self.fcn(ln_x))
+
+        return x

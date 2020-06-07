@@ -1,0 +1,67 @@
+model_config:
+  tb_mcan:
+    losses:
+    - type: triple_logit_bce
+      params:
+        weights:
+        - 1
+        - 1
+        - 1
+
+dataset_config:
+  vqa2:
+    depth_first: true
+    use_features: true
+    features:
+      train:
+      - /checkpoint/kienduynguyen/data/coco/features
+      val:
+      - /checkpoint/kienduynguyen/data/coco/features
+      test:
+      - /checkpoint/kienduynguyen/data/coco/features
+    annotations:
+      train:
+      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_minival2014_feat.npy
+      val:
+      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_minival2014_feat.npy
+      test:
+      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_minival2014_feat.npy
+
+optimizer:
+  type: adam
+  params:
+    lr: 0.0001
+    weight_decay: 0
+    eps: 1.0e-09
+    betas:
+    - 0.9
+    - 0.98
+
+scheduler:
+  type: multi_step
+  params:
+    use_warmup: true
+    lr_steps:
+    - 90000
+    - 108000
+    lr_ratio: 0.2
+    warmup_iterations: 27000
+    warmup_factor: 0.25
+
+evaluation:
+  metrics:
+  - triple_vqa_accuracy
+
+training:
+  clip_norm_mode: all
+  clip_gradients: false
+  max_grad_l2_norm: 5
+  max_updates: 118000
+  patience: 20000
+  batch_size: 128
+  task_size_proportional_sampling: true
+  encoder_lr_multiply: 1
+  early_stop:
+    criteria: vqa2/triple_vqa_accuracy
+    minimize: false
+  find_unused_parameters: true

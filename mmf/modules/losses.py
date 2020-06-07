@@ -209,6 +209,49 @@ class LogitBinaryCrossEntropy(nn.Module):
         return loss * targets.size(1)
 
 
+@registry.register_loss("triple_logit_bce")
+class TripleLogitBinaryCrossEntropy(nn.Module):
+    """Returns Binary Cross Entropy for logits.
+    Attention:
+        `Key`: logit_bce
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.weights = kwargs.get("weights", (1, 1, 1))
+
+    def forward(self, sample_list, model_output):
+        """Calculates and returns the binary cross entropy for logits
+        Args:
+            sample_list (SampleList): SampleList containing `targets` attribute.
+            model_output (Dict): Model output containing `scores` attribute.
+        Returns:
+            torch.FloatTensor: Float value for loss.
+        """
+        scores = model_output["scores"]
+        targets = sample_list["targets"]
+
+        if scores.dim() == 3:
+            loss = (
+                self.weights[0]
+                * F.binary_cross_entropy_with_logits(
+                    scores[:, 0], targets, reduction="mean"
+                )
+                + self.weights[1]
+                * F.binary_cross_entropy_with_logits(
+                    scores[:, 1], targets, reduction="mean"
+                )
+                + self.weights[2]
+                * F.binary_cross_entropy_with_logits(
+                    scores[:, 2], targets, reduction="mean"
+                )
+            )
+        else:
+            loss = F.binary_cross_entropy_with_logits(scores, targets, reduction="mean")
+
+        return loss * targets.size(-1)
+
+
 @registry.register_loss("bce")
 class BinaryCrossEntropyLoss(nn.Module):
     def __init__(self):

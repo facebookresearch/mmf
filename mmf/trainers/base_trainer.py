@@ -221,7 +221,7 @@ class BaseTrainer:
         if self.max_epochs is None:
             self.max_epochs = math.inf
         else:
-            self.max_updates = math.inf
+            self.max_updates = self.max_epochs * len(self.train_loader)
 
         self.model.train()
         self.train_timer = Timer()

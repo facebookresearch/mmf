@@ -110,6 +110,8 @@ class ClassifierLayer(nn.Module):
             ).module
         elif classifier_type == "mlp":
             self.module = MLPClassifer(in_dim, out_dim, **kwargs)
+        elif classifier_type == "triple_linear":
+            self.module = TripleLinear(in_dim, out_dim)
         elif classifier_type == "linear":
             self.module = nn.Linear(in_dim, out_dim)
         else:
@@ -117,6 +119,19 @@ class ClassifierLayer(nn.Module):
 
     def forward(self, *args, **kwargs):
         return self.module(*args, **kwargs)
+
+
+class TripleLinear(nn.Module):
+    def __init__(self, in_dim, out_dim):
+        super().__init__()
+        self.linears = nn.ModuleList([nn.Linear(in_dim, out_dim) for _ in range(3)])
+
+    def forward(self, joint_embedding):
+        if self.training:
+            feat = [self.linears[i](joint_embedding[:, i]) for i in range(3)]
+            return torch.stack(feat, dim=1)
+
+        return self.linears[0](joint_embedding)
 
 
 class BertClassifierHead(nn.Module):

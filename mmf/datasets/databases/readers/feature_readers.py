@@ -64,15 +64,15 @@ class FeatureReader:
             raise TypeError("unknown image feature format")
 
     def read(self, image_feat_path):
-        if not image_feat_path.endswith("npy"):
-            return None
+        # if not image_feat_path.endswith("npy"):
+        #     return None
         image_feat_path = os.path.join(self.base_path, image_feat_path)
 
         if self.feat_reader is None:
             # Currently all lmdb features are with ndim == 2 so we are
             # avoiding loading the lmdb to determine feature ndim
             if not self.base_path.endswith(".lmdb") and self.ndim is None:
-                feat = np.load(image_feat_path)
+                feat = torch.load(image_feat_path)
                 self.ndim = feat.ndim
             self._init_reader()
 
@@ -86,9 +86,9 @@ class FasterRCNNFeatureReader:
 
 class CHWFeatureReader:
     def read(self, image_feat_path):
-        feat = np.load(image_feat_path)
+        feat = torch.load(image_feat_path, map_location=torch.device("cpu"))
         assert feat.shape[0] == 1, "batch is not 1"
-        feat = torch.from_numpy(feat.squeeze(0))
+        feat = feat.squeeze(0)
         return feat, None
 
 

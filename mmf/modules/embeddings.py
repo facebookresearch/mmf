@@ -10,8 +10,10 @@ import torch
 from torch import nn
 from transformers.modeling_bert import BertEmbeddings
 
-from mmf.modules.attention import AttentionLayer
+from mmf.modules.attention import AttentionLayer, SelfAttention, SelfGuidedAttention
+from mmf.modules.bottleneck import Bottleneck
 from mmf.modules.layers import Identity
+from mmf.modules.pooling import AttnPool1d
 from mmf.utils.file_io import PathManager
 from mmf.utils.vocab import Vocab
 
@@ -38,6 +40,8 @@ class TextEmbedding(nn.Module):
             self.module = BiLSTMTextEmbedding(**kwargs)
         elif emb_type == "attention":
             self.module = AttentionTextEmbedding(**kwargs)
+        elif emb_type == "mcan":
+            self.module = SAEmbedding(**kwargs)
         elif emb_type == "torch":
             vocab_size = kwargs["vocab_size"]
             embedding_dim = kwargs["embedding_dim"]
@@ -424,3 +428,155 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
         embeddings = self.LayerNorm(embeddings)
         embeddings = self.dropout(embeddings)
         return embeddings
+
+
+class SAEmbedding(nn.Module):
+    def __init__(self, hidden_dim, embedding_dim, **kwargs):
+        super().__init__()
+        num_attn = kwargs["num_attn"]
+        num_layers = kwargs["num_layers"]
+        dropout = kwargs.get("dropout", 0.1)
+        norm_type = kwargs.get("norm_type", "norm_last")
+        num_attn_pool = kwargs.get("num_attn_pool", -1)
+        num_feat = kwargs.get("num_feat", -1)
+        fc_type = kwargs.get("fc_type", "mcan")
+
+        self.lstm = nn.LSTM(
+            input_size=embedding_dim,
+            hidden_size=hidden_dim,
+            num_layers=1,
+            batch_first=True,
+        )
+        self.self_attns = nn.ModuleList(
+            [
+                SelfAttention(
+                    hidden_dim, num_attn, dropout, fc_type=fc_type, norm_type=norm_type
+                )
+                for _ in range(num_layers)
+            ]
+        )
+        self.attn_pool = None
+        if num_attn_pool > 0:
+            self.attn_pool = AttnPool1d(hidden_dim, num_feat * num_attn_pool)
+            # self.attn_pool = MultiHeadAttnPool1d(hidden_dim, num_feat * 4)
+            self.text_out_dim = hidden_dim * num_attn_pool
+        else:
+            self.text_out_dim = hidden_dim
+
+        # self.pointer = Pointer(100, num_feat, self.text_out_dim, self.text_out_dim)
+        self.num_feat = num_feat
+
+    def forward(self, x, mask=None):
+        b = x.size(0)
+        out, (h, c) = self.lstm(x)
+        for self_attn in self.self_attns:
+            out = self_attn(out, mask)
+
+        vec = h.transpose(0, 1).contiguous().view(b, 1, -1)
+        if self.attn_pool:
+            vec = self.attn_pool(out, out, mask).view(b, self.num_feat, -1)
+            # vec = self.pointer(vec)
+
+        return out, vec
+
+
+class SGAEmbedding(nn.Module):
+    def __init__(self, embedding_dim, **kwargs):
+        super().__init__()
+        num_attn = kwargs["num_attn"]
+        num_layers = kwargs["num_layers"]
+        dropout = kwargs.get("dropout", 0.1)
+        norm_type = kwargs.get("norm_type", "norm_last")
+        hidden_dim = kwargs.get("hidden_dim", 512)
+        if embedding_dim == hidden_dim:
+            self.linear = None
+        else:
+            self.linear = nn.Linear(embedding_dim, hidden_dim)
+        self.self_guided_attns = nn.ModuleList(
+            [
+                SelfGuidedAttention(hidden_dim, num_attn, dropout, norm_type=norm_type)
+                for _ in range(num_layers)
+            ]
+        )
+        self.out_dim = hidden_dim
+
+    def forward(self, x, y, x_mask, y_mask):
+        if x.dim() == 4:
+            b, c, h, w = x.shape
+            x = x.view(b, c, -1).transpose(1, 2).contiguous()  # b x (h*w) x c
+
+        if self.linear is not None:
+            x = self.linear(x)
+
+        for self_guided_attn in self.self_guided_attns:
+            x = self_guided_attn(x, y, x_mask, y_mask)
+
+        return x
+
+
+class CBNEmbedding(nn.Module):
+    def __init__(self, embedding_dim, **kwargs):
+        super().__init__()
+        cond_dim = kwargs["cond_dim"]
+        num_layers = kwargs["cbn_num_layers"]
+        cond_type = kwargs.get("cond_type", "image")
+
+        self.out_dim = 1024
+        self.layer_norm = nn.LayerNorm(self.out_dim)
+        cbns = []
+        for i in range(num_layers):
+            if embedding_dim != self.out_dim:
+                downsample = nn.Conv2d(
+                    embedding_dim, self.out_dim, kernel_size=1, stride=1, bias=False
+                )
+                cbns.append(
+                    Bottleneck(
+                        embedding_dim,
+                        self.out_dim // 4,
+                        cond_dim,
+                        downsample=downsample,
+                        cond_type=cond_type,
+                    )
+                )
+            else:
+                cbns.append(
+                    Bottleneck(
+                        embedding_dim, self.out_dim // 4, cond_dim, cond_type=cond_type
+                    )
+                )
+            embedding_dim = self.out_dim
+        self.cbns = nn.ModuleList(cbns)
+        self._init_layers()
+
+    def _init_layers(self):
+        for cbn in self.cbns:
+            cbn.init_layers()
+
+    def forward(self, x, v):
+
+        for cbn in self.cbns:
+            x, _ = cbn(x, v)
+
+        x = self.layer_norm(
+            nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(3).squeeze(2)
+        )
+        # x = F.adaptive_avg_pool2d(x, (1, 1)).squeeze(3).squeeze(2)
+
+        return x
+
+
+class TwoBranchEmbedding(nn.Module):
+    def __init__(self, embedding_dim, **kwargs):
+        super().__init__()
+        hidden_dim = kwargs.get("hidden_dim", 512)
+        self.sga = SGAEmbedding(embedding_dim, **kwargs)
+        self.sga_pool = AttnPool1d(hidden_dim, 1)
+        self.cbn = CBNEmbedding(embedding_dim, **kwargs)
+        self.out_dim = hidden_dim
+
+    def forward(self, x, y, v, x_mask, y_mask):
+        x_sga = self.sga(x, y, x_mask, y_mask)
+        x_sga = self.sga_pool(x_sga, x_sga, x_mask).squeeze(1)
+        x_cbn = self.cbn(x, v)
+
+        return x_sga, x_cbn

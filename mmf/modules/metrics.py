@@ -315,6 +315,46 @@ class VQAAccuracy(BaseMetric):
         return accuracy
 
 
+@registry.register_metric("triple_vqa_accuracy")
+class TripleVQAAccuracy(BaseMetric):
+    """
+    Calculate VQAAccuracy. Find more information here_
+    **Key**: ``vqa_accuracy``.
+    .. _here: https://visualqa.org/evaluation.html
+    """
+
+    def __init__(self):
+        super().__init__("triple_vqa_accuracy")
+
+    def _masked_unk_softmax(self, x, dim, mask_idx):
+        x1 = torch.nn.functional.softmax(x, dim=dim)
+        x1[:, mask_idx] = 0
+        x1_sum = torch.sum(x1, dim=1, keepdim=True)
+        y = x1 / x1_sum
+        return y
+
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate vqa accuracy and return it back.
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration
+            model_output (Dict): Dict returned by model.
+        Returns:
+            torch.FloatTensor: VQA Accuracy
+        """
+        output = model_output["scores"]
+        expected = sample_list["targets"]
+        if output.dim() == 3:
+            output = output[:, 0]
+        output = self._masked_unk_softmax(output, 1, 0)
+        output = output.argmax(dim=1)  # argmax
+        one_hots = expected.new_zeros(*expected.size())
+        one_hots.scatter_(1, output.view(-1, 1), 1)
+        scores = one_hots * expected
+        accuracy = torch.sum(scores) / expected.size(0)
+        return accuracy
+
+
 @registry.register_metric("vqa_evalai_accuracy")
 class VQAEvalAIAccuracy(BaseMetric):
     """
