@@ -58,6 +58,12 @@ class HMConverter:
         parser.add_argument(
             "--mmf_data_folder", required=None, type=str, help="MMF Data folder"
         )
+        parser.add_argument(
+            "--bypass_checksum",
+            required=None,
+            type=int,
+            help="Pass 1 if you want to skip checksum",
+        )
         return parser
 
     def convert(self):
@@ -67,6 +73,10 @@ class HMConverter:
         if self.args.mmf_data_folder:
             data_dir = self.args.mmf_data_folder
 
+        bypass_checksum = False
+        if self.args.bypass_checksum:
+            bypass_checksum = bool(self.args.bypass_checksum)
+
         print(f"Data folder is {data_dir}")
         print(f"Zip path is {self.args.zip_file}")
 
@@ -75,8 +85,10 @@ class HMConverter:
         images_path = os.path.join(base_path, "images")
         PathManager.mkdirs(images_path)
 
+        if not bypass_checksum:
+            self.checksum(self.args.zip_file, self.POSSIBLE_CHECKSUMS)
+
         src = self.args.zip_file
-        self.checksum(self.args.zip_file, self.POSSIBLE_CHECKSUMS)
         print(f"Moving {src}")
         dest = images_path
         move(src, dest)
