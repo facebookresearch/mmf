@@ -34,7 +34,7 @@ def visualize_images(
         size is not None or len(images) == 1
     ), "If size is not passed, only one image can be visualized"
 
-    if size is None:
+    if size is not None:
         transform_list.append(torchvision.transforms.Resize(size=size))
 
     transform_list.append(torchvision.transforms.ToTensor())
