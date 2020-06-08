@@ -6,8 +6,12 @@ import sys
 from mmf_cli.run import run
 
 
-def predict():
-    sys.argv.extend(["evaluation.predict=true"])
+def predict(opts=None):
+    if opts is None:
+        sys.argv.extend(["evaluation.predict=true"])
+    else:
+        opts.extend(["evaluation.predict=true"])
+
     run(predict=True)
 
 
