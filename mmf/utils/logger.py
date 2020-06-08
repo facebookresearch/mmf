@@ -82,14 +82,21 @@ class Logger:
         channel.setFormatter(formatter)
         self.add_handlers(channel)
 
-        # Add handler to stdout. Only when we are not capturing stdout in
-        # the logger
         if not self._stdout_logger:
+            # Add handler for stdout when not capturing stdout
             channel = logging.StreamHandler(sys.stdout)
             channel.setFormatter(formatter)
 
             self._logger.addHandler(channel)
             self._warnings_logger.addHandler(channel)
+        else:
+            # Add handler for stderr when capturing stdout. Will print to console
+            channel = logging.StreamHandler()
+            channel.setFormatter(formatter)
+
+            self._logger.addHandler(channel)
+            self._warnings_logger.addHandler(channel)
+            self._stdout_logger.addHandler(channel)
 
         should_not_log = self.config.training.should_not_log
         self.should_log = not should_not_log
