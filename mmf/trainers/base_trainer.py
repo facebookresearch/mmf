@@ -191,7 +191,7 @@ class BaseTrainer:
         self.tb_writer = None
 
         if self.training_config.tensorboard:
-            log_dir = self.writer.log_dir
+            log_dir = self.writer.log_folder
             env_tb_logdir = get_mmf_env(key="tensorboard_logdir")
             if env_tb_logdir:
                 log_dir = env_tb_logdir
