@@ -1,5 +1,5 @@
 model_config:
-  tb_mcan:
+  movie_mcan:
     model_data_dir: ${env.data_dir}
     classifier:
       type: triple_linear
@@ -11,21 +11,13 @@ model_config:
         cond_dim: 1024
         num_attn: 8
         dropout: 0.1
-        norm_type: norm_last
         num_layers: 6
         cbn_num_layers: 4
-        kernel_size: 5
-        transform: mlp
     image_feature_dim: 2048
-    merge_type: sum
     image_feature_encodings:
       type: default
       params:
-        use_coord: false
-        start: -1
-        end: 1
-        pos_type: 0
-        model_data_dir: ${model_config.tb_mcan.model_data_dir}
+        model_data_dir: ${model_config.movie_mcan.model_data_dir}
         cond_features: 1024
     text_embeddings:
       type: mcan
@@ -35,7 +27,6 @@ model_config:
         num_attn: 8
         dropout: 0.1
         num_layers: 6
-        norm_type: norm_last
         num_attn_pool: 1
         num_feat: 2
-        model_data_dir: ${model_config.tb_mcan.model_data_dir}
+        model_data_dir: ${model_config.movie_mcan.model_data_dir}

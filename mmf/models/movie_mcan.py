@@ -17,8 +17,8 @@ from mmf.modules.pooling import BranchCombineLayer
 from mmf.utils.general import filter_grads
 
 
-@registry.register_model("tb_mcan")
-class TB_MCAN(BaseModel):
+@registry.register_model("movie_mcan")
+class MoVieMcan(BaseModel):
     def __init__(self, config):
         super().__init__(config)
         self.config = config
@@ -27,7 +27,7 @@ class TB_MCAN(BaseModel):
 
     @classmethod
     def config_path(cls):
-        return "configs/models/tb_mcan/defaults.yaml"
+        return "configs/models/movie_mcan/defaults.yaml"
 
     def build(self):
         self.image_feature_dim = 2048
@@ -108,11 +108,9 @@ class TB_MCAN(BaseModel):
         return embedding_attr1
 
     def _init_combine_layer(self, attr1, attr2):
-        merge_type = self.config["merge_type"]
         multi_modal_combine_layer = BranchCombineLayer(
             getattr(self, self._get_embeddings_attr(attr1)),
             getattr(self, self._get_embeddings_attr(attr2)),
-            fusion_type=merge_type,
         )
 
         setattr(
@@ -261,10 +259,6 @@ class TB_MCAN(BaseModel):
         feature_sga, feature_cbn = self.process_feature_embedding(
             "image", sample_list, text_embedding_total, text_embedding_vec[:, 0]
         )
-
-        # print("encoded_feature:", encoded_feature.shape)
-        # if self.inter_model is not None:
-        #     encoded_feature = self.inter_model(encoded_feature)
 
         joint_embedding = self.combine_embeddings(
             ["image", "text"], [feature_sga, feature_cbn, text_embedding_vec[:, 1]]

@@ -6,7 +6,7 @@ dataset_config:
       use_images: false
       use_features: true
       zoo_requirements:
-      - coco.defaults
+      # - coco.defaults
       - vqa2.defaults
       images:
         train:

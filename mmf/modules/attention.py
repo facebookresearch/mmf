@@ -162,6 +162,10 @@ class TopDownAttention(nn.Module):
 
 
 class MultiHeadAttention(nn.Module):
+    """
+    Multi-Head Attention implementation in
+    https://arxiv.org/abs/1706.03762
+    """
     def __init__(self, dim, num_attn, dropout=0.1):
         super().__init__()
         self.p_attn = None
@@ -196,37 +200,29 @@ class MultiHeadAttention(nn.Module):
 
 
 class SelfAttention(nn.Module):
-    def __init__(self, dim, num_attn, dropout, fc_type="mcan", norm_type="norm_last"):
+    def __init__(self, dim, num_attn, dropout):
         super().__init__()
         self.multi_head_attn = MultiHeadAttention(dim, num_attn, dropout=0.1)
-        hidden = 4 * dim if fc_type == "mcan" else dim
         self.fcn = nn.Sequential(
-            nn.Linear(dim, hidden),
+            nn.Linear(dim, 4 * dim),
             nn.ReLU(inplace=True),
             nn.Dropout(p=dropout),
-            nn.Linear(hidden, dim),
+            nn.Linear(4 * dim, dim),
         )
         self.drop_mha = nn.Dropout(p=dropout)
         self.ln_mha = nn.LayerNorm(dim)
         self.drop_fcn = nn.Dropout(p=dropout)
         self.ln_fcn = nn.LayerNorm(dim)
-        self.norm_type = norm_type
 
     def forward(self, x, x_mask):
-        if self.norm_type == "norm_last":
-            x = self.ln_mha(x + self.drop_mha(self.multi_head_attn(x, x, x, x_mask)))
-            x = self.ln_fcn(x + self.drop_fcn(self.fcn(x)))
-        else:
-            ln_x = self.ln_mha(x)
-            x = x + self.drop_mha(self.multi_head_attn(ln_x, ln_x, ln_x, x_mask))
-            ln_x = self.ln_fcn(x)
-            x = x + self.drop_fcn(self.fcn(ln_x))
+        x = self.ln_mha(x + self.drop_mha(self.multi_head_attn(x, x, x, x_mask)))
+        x = self.ln_fcn(x + self.drop_fcn(self.fcn(x)))
 
         return x
 
 
 class SelfGuidedAttention(nn.Module):
-    def __init__(self, dim, num_attn, dropout, fc_type="mcan", norm_type="norm_last"):
+    def __init__(self, dim, num_attn, dropout):
         super().__init__()
         self.multi_head_attn = nn.ModuleList(
             [MultiHeadAttention(dim, num_attn, dropout=0.1) for _ in range(2)]
@@ -241,24 +237,14 @@ class SelfGuidedAttention(nn.Module):
         self.ln_mha = nn.ModuleList([nn.LayerNorm(dim) for _ in range(3)])
         self.drop_fcn = nn.Dropout(p=dropout)
         self.ln_fcn = nn.LayerNorm(dim)
-        self.norm_type = norm_type
 
     def forward(self, x, y, x_mask, y_mask):
-        if self.norm_type == "norm_last":
-            x = self.ln_mha[0](
-                x + self.drop_mha[0](self.multi_head_attn[0](x, x, x, x_mask))
-            )
-            x = self.ln_mha[1](
-                x + self.drop_mha[1](self.multi_head_attn[1](x, y, y, y_mask))
-            )
-            x = self.ln_fcn(x + self.drop_fcn(self.fcn(x)))
-        else:
-            ln_x = self.ln_mha[0](x)
-            x = x + self.drop_mha[0](self.multi_head_attn[0](ln_x, ln_x, ln_x, x_mask))
-            ln_x = self.ln_mha[1](x)
-            ln_y = self.ln_mha[2](y)
-            x = x + self.drop_mha[1](self.multi_head_attn[1](ln_x, ln_y, ln_y, y_mask))
-            ln_x = self.ln_fcn(x)
-            x = x + self.drop_fcn(self.fcn(ln_x))
+        x = self.ln_mha[0](
+            x + self.drop_mha[0](self.multi_head_attn[0](x, x, x, x_mask))
+        )
+        x = self.ln_mha[1](
+            x + self.drop_mha[1](self.multi_head_attn[1](x, y, y, y_mask))
+        )
+        x = self.ln_fcn(x + self.drop_fcn(self.fcn(x)))
 
         return x

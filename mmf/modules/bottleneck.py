@@ -24,11 +24,44 @@ def conv1x1(in_planes, out_planes, stride=1):
 
 
 class ChannelPool(nn.Module):
+    """Average pooling in the channel dimension"""
     def __init__(self):
         super().__init__()
 
     def forward(self, x):
         return x.mean(dim=1, keepdim=True)
+
+
+class SEModule(nn.Module):
+    """
+    Squeeze-and-Excitation module in
+    https://arxiv.org/pdf/1709.01507.pdf
+    Args:
+        dim: the original hidden dim.
+        sqrate: the squeeze rate in hidden dim.
+    Returns:
+        New features map that channels are gated
+        by sigmoid weights from SE module.
+    """
+    def __init__(self, dim, sqrate):
+        super().__init__()
+        self.se = nn.Sequential(
+            nn.AdaptiveAvgPool2d((1, 1)),
+            nn.Conv2d(dim, dim // sqrate, kernel_size=1, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(dim // sqrate, dim, kernel_size=1, bias=False),
+            nn.Sigmoid(),
+        )
+        self.attn = nn.Sequential(
+            ChannelPool(),
+            nn.Conv2d(1, 1, kernel_size=7, padding=3, bias=False),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, x):
+        x = x * self.se(x)
+
+        return x * self.attn(x)
 
 
 class FrozenBatchNorm2d(nn.Module):
@@ -96,98 +129,27 @@ class FrozenBatchNorm2d(nn.Module):
         return res
 
 
-class Condition2d(nn.Module):
-    def __init__(self, num_features, num_cond_features, cond_type="lang"):
-        super().__init__()
-        if cond_type == "image":
-            self.linear = nn.Linear(num_cond_features, num_features)
-            # self.conv = nn.Conv2d(num_features, num_features, kernel_size=1)
-            self.conv = nn.Conv2d(num_features, num_features, kernel_size=1)
-        elif cond_type == "lang":
-            self.linear_gamma = nn.Conv2d(
-                num_cond_features, num_features, kernel_size=1
-            )
-            self.linear_beta = nn.Conv2d(num_cond_features, num_features, kernel_size=1)
-        elif cond_type == "cbn":
-            self.linear_gamma = nn.Conv2d(
-                num_cond_features, num_features, kernel_size=1
-            )
-            self.linear_beta = nn.Conv2d(num_cond_features, num_features, kernel_size=1)
-        elif cond_type == "both":
-            self.linear_gamma = nn.Conv2d(
-                num_cond_features, num_features, kernel_size=1
-            )
-            self.linear_beta = nn.Conv2d(num_cond_features, num_features, kernel_size=1)
-            self.conv = nn.Conv2d(num_features, num_features, kernel_size=1)
-        elif cond_type == "lang_shared":
-            self.linear_gamma = nn.Conv2d(
-                num_cond_features, num_features, kernel_size=1
-            )
-        elif cond_type == "both_shared":
-            self.linear_gamma = nn.Conv2d(
-                num_cond_features, num_features, kernel_size=1
-            )
-            self.conv = nn.Conv2d(num_features, num_features, kernel_size=1)
-        elif cond_type == "image_simple":
-            self.conv = nn.Conv2d(num_features, num_features, kernel_size=1)
-        self.cond_type = cond_type
+class Modulation(nn.Module):
 
-    def forward(self, x, cond_gamma, cond_beta):
-        # print("x:", x.shape, ", cond:", cond_gamma.shape)
-        if self.cond_type == "image":
-            gamma = self.linear(cond_gamma).unsqueeze(2).unsqueeze(3)
+    def __init__(self, num_features, num_cond_features, compressed=True):
+        super(Modulation, self).__init__()
+        self.linear = nn.Linear(num_cond_features, num_features)
+        self.conv = nn.Conv2d(num_features, 256, kernel_size=1) \
+            if compressed else nn.Conv2d(num_features, num_features, kernel_size=1)
 
-            return self.conv(x * gamma) + x
-        if self.cond_type == "image_simple":
-            return self.conv(x * cond_gamma.unsqueeze(2).unsqueeze(3)) + x
-        elif self.cond_type == "lang":
-            gamma = self.linear_gamma(cond_gamma.unsqueeze(2).unsqueeze(3))
-            beta = self.linear_beta(cond_beta.unsqueeze(2).unsqueeze(3))
+    def forward(self, x, cond):
+        cond = self.linear(cond).unsqueeze(2).unsqueeze(3)
 
-            return x * gamma + beta
-        elif self.cond_type == "cbn":
-            gamma = self.linear_gamma(cond_gamma.unsqueeze(2).unsqueeze(3))
-            beta = self.linear_beta(cond_beta.unsqueeze(2).unsqueeze(3))
-
-            return x * (gamma + 1) + beta
-        elif self.cond_type == "both":
-            gamma = self.linear_gamma(cond_gamma.unsqueeze(2).unsqueeze(3))
-            beta = self.linear_beta(cond_beta.unsqueeze(2).unsqueeze(3))
-
-            return self.conv(x * gamma) + x + beta
-        elif self.cond_type == "lang_shared":
-            gamma = self.linear_gamma(cond_gamma.unsqueeze(2).unsqueeze(3))
-
-            return x * gamma + gamma
-        elif self.cond_type == "both_shared":
-            gamma = self.linear_gamma(cond_gamma.unsqueeze(2).unsqueeze(3))
-
-            return self.conv(x * gamma) + x + gamma
-
-
-class SEModule(nn.Module):
-    def __init__(self, dim, sqrate):
-        super().__init__()
-        self.se = nn.Sequential(
-            nn.AdaptiveAvgPool2d((1, 1)),
-            nn.Conv2d(dim, dim // sqrate, kernel_size=1, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(dim // sqrate, dim, kernel_size=1, bias=False),
-            nn.Sigmoid(),
-        )
-        self.attn = nn.Sequential(
-            ChannelPool(),
-            nn.Conv2d(1, 1, kernel_size=7, padding=3, bias=False),
-            nn.Sigmoid(),
-        )
-
-    def forward(self, x):
-        x = x * self.se(x)
-
-        return x * self.attn(x)
+        return self.conv(x * cond)
 
 
 class Bottleneck(nn.Module):
+    """
+    Standard ResNet bottleneck with MoVie modulation in 
+    https://arxiv.org/abs/2004.11883
+    The code is inspired from
+    https://pytorch.org/docs/stable/_modules/torchvision/models/resnet.html#resnext101_32x8d
+    """
     expansion = 4
 
     def __init__(
@@ -202,7 +164,8 @@ class Bottleneck(nn.Module):
         dilation=1,
         norm_layer=None,
         stride_in_1x1=False,
-        cond_type="image",
+        compressed=True,
+        use_se=True,
     ):
         super().__init__()
         self.norm_layer = norm_layer
@@ -220,20 +183,14 @@ class Bottleneck(nn.Module):
         self.conv3 = conv1x1(width, planes * self.expansion)
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
+        self.se = None
+
         self.width = width
-        self.img_feat = None
-        self.cond_type = cond_type
-        self.stride_3x3 = stride_3x3
-        self.stride_1x1 = stride_1x1
-        self.dilation = dilation
-        self.groups = groups
+        self.compressed = compressed
+        self.use_se = use_se
 
     def init_layers(self):
-        if self.norm_layer is None and self.cond_planes is None:
-            self.bn1 = FrozenBatchNorm2d(self.width)
-            self.bn2 = FrozenBatchNorm2d(self.width)
-            self.bn3 = FrozenBatchNorm2d(self.planes * self.expansion)
-        elif self.cond_planes:
+        if self.norm_layer is None:
             self.bn1 = FrozenBatchNorm2d(self.width)
             self.bn2 = FrozenBatchNorm2d(self.width)
             self.bn3 = FrozenBatchNorm2d(self.planes * self.expansion)
@@ -243,25 +200,21 @@ class Bottleneck(nn.Module):
             self.bn3 = self.norm_layer(self.planes * self.expansion)
 
         if self.cond_planes:
-            self.cond = Condition2d(
-                self.inplanes, self.cond_planes, cond_type=self.cond_type
-            )
-            self.se = SEModule(self.planes * self.expansion, 4)
-        # else:
-        #     self.apply(self._freeze_modules)
-
-    # def _freeze_modules(self, m):
-    #     if isinstance(m, nn.Conv2d):
-    #         m.weight.requires_grad_(requires_grad=False)
+            self.mod = Modulation(self.inplanes, self.cond_planes, compressed=self.compressed)
+            self.se = SEModule(self.planes * self.expansion, 4) if self.use_se else None
 
     def forward(self, x, cond=None):
         identity = x
 
-        if self.cond_planes:
-            x = self.cond(x, cond, cond)
+        if self.cond_planes and self.compressed:
+            x = self.conv1(x) + self.mod(x, cond)
+        elif self.cond_planes and not self.compressed:
+            x += self.mod(x, cond)
+            x = self.conv1(x)
+        else:
+            x = self.conv1(x)
 
-        out = self.conv1(x)
-        out = self.bn1(out)
+        out = self.bn1(x)
         out = self.relu(out)
 
         out = self.conv2(out)
@@ -276,7 +229,7 @@ class Bottleneck(nn.Module):
         else:
             shortcut = identity
 
-        if self.cond_planes:
+        if self.se:
             out = self.se(out)
 
         out += shortcut

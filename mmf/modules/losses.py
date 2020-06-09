@@ -211,14 +211,13 @@ class LogitBinaryCrossEntropy(nn.Module):
 
 @registry.register_loss("triple_logit_bce")
 class TripleLogitBinaryCrossEntropy(nn.Module):
-    """Returns Binary Cross Entropy for logits.
-    Attention:
-        `Key`: logit_bce
+    """
+    This is used for Three-branch fusion only. We predict scores and compute
+    cross entropy loss for each of branches.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         super().__init__()
-        self.weights = kwargs.get("weights", (1, 1, 1))
 
     def forward(self, sample_list, model_output):
         """Calculates and returns the binary cross entropy for logits
@@ -233,16 +232,13 @@ class TripleLogitBinaryCrossEntropy(nn.Module):
 
         if scores.dim() == 3:
             loss = (
-                self.weights[0]
-                * F.binary_cross_entropy_with_logits(
+                F.binary_cross_entropy_with_logits(
                     scores[:, 0], targets, reduction="mean"
                 )
-                + self.weights[1]
-                * F.binary_cross_entropy_with_logits(
+                + F.binary_cross_entropy_with_logits(
                     scores[:, 1], targets, reduction="mean"
                 )
-                + self.weights[2]
-                * F.binary_cross_entropy_with_logits(
+                + F.binary_cross_entropy_with_logits(
                     scores[:, 2], targets, reduction="mean"
                 )
             )

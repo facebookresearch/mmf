@@ -1,12 +1,8 @@
 model_config:
-  tb_mcan:
+  movie_mcan:
     losses:
     - type: triple_logit_bce
-      params:
-        weights:
-        - 1
-        - 1
-        - 1
+      params: {}
 
 dataset_config:
   vqa2:
@@ -21,14 +17,34 @@ dataset_config:
       - /checkpoint/kienduynguyen/data/coco/features
     annotations:
       train:
-      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_minival2014_feat.npy
+      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_train2014.npy
       val:
-      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_minival2014_feat.npy
+      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_val2014.npy
       test:
-      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_minival2014_feat.npy
+      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_test2015.npy
+    processors:
+      text_processor:
+        type: vocab
+        params:
+          max_length: 14
+          vocab:
+            type: intersected
+            embedding_name: glove.6B.300d
+            vocab_file: /checkpoint/kienduynguyen/data/vocabs/vqa/vocabulary_100k.txt
+          preprocessor:
+            type: simple_sentence
+            params: {}
+      answer_processor:
+        type: vqa_answer
+        params:
+          num_answers: 10
+          vocab_file: /checkpoint/kienduynguyen/data/vocabs/vqa/answers_vqa.txt
+          preprocessor:
+            type: simple_word
+            params: {}
 
 optimizer:
-  type: adam
+  type: adam_w
   params:
     lr: 0.0001
     weight_decay: 0

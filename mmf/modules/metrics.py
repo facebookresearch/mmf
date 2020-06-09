@@ -318,9 +318,9 @@ class VQAAccuracy(BaseMetric):
 @registry.register_metric("triple_vqa_accuracy")
 class TripleVQAAccuracy(BaseMetric):
     """
-    Calculate VQAAccuracy. Find more information here_
-    **Key**: ``vqa_accuracy``.
-    .. _here: https://visualqa.org/evaluation.html
+    This is used for Three-branch fusion only. We only measure the
+    accuracy of fused branch out of three branches in both training
+    and inference.
     """
 
     def __init__(self):
@@ -346,12 +346,15 @@ class TripleVQAAccuracy(BaseMetric):
         expected = sample_list["targets"]
         if output.dim() == 3:
             output = output[:, 0]
+
         output = self._masked_unk_softmax(output, 1, 0)
         output = output.argmax(dim=1)  # argmax
+
         one_hots = expected.new_zeros(*expected.size())
         one_hots.scatter_(1, output.view(-1, 1), 1)
         scores = one_hots * expected
         accuracy = torch.sum(scores) / expected.size(0)
+
         return accuracy
 
 
