@@ -145,6 +145,7 @@ class Checkpoint:
             elif ckpt_config.resume_zoo is not None:
                 self._load(
                     ckpt_config.resume_zoo,
+                    load_zoo=True,
                     load_pretrained=ckpt_config.resume_pretrained,
                 )
             else:
@@ -164,10 +165,10 @@ class Checkpoint:
                 if PathManager.exists(ckpt_filepath):
                     self._load(ckpt_filepath)
 
-    def _load(self, file, force=False, load_pretrained=False):
+    def _load(self, file, force=False, load_zoo=False, load_pretrained=False):
         ckpt_config = self.config.checkpoint
         self.trainer.writer.write("Loading checkpoint")
-        if ckpt_config.resume_zoo:
+        if load_zoo:
             ckpt, should_continue = self._load_from_zoo(file)
             if not should_continue:
                 return
