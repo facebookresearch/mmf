@@ -62,25 +62,32 @@ Run the following the command, and in general follow MMF's [configuration]() pri
 mmf_run config=<REPLACE_WITH_BASELINE_CONFIG> model=<REPLACE_WITH_MODEL_KEY> dataset=hateful_memes
 ```
 
+This will save the training outputs to an experiment folder under `./save` directory (if not overriden using `env.save_dir`) while running training. The final best model will be saved as `<REPLACE_WITH_MODEL_KEY>_final.pth` inside the experiment folder.
+
 ## Evaluation
 
 For running evaluation on validation set run the following command:
 ```
-mmf_run config=<REPLACE_WITH_BASELINE_CONFIG> model=<REPLACE_WITH_MODEL_KEY> dataset=hateful_memes run_type=val
+mmf_run config=<REPLACE_WITH_BASELINE_CONFIG> model=<REPLACE_WITH_MODEL_KEY> dataset=hateful_memes \
+run_type=val checkpoint.resume_file=<path_to_best_trained_model>
 ```
+
+`checkpoint.resume_file` should point to the location of your trained model. This will load the trained model and generate scores on the validation set.
 
 ## Predictions for Challenge
 
 For running inference (will generate a csv) on validation set run the following command:
 
 ```
-mmf_predict config=<REPLACE_WITH_BASELINE_CONFIG> model=<REPLACE_WITH_MODEL_KEY> dataset=hateful_memes run_type=val
+mmf_predict config=<REPLACE_WITH_BASELINE_CONFIG> model=<REPLACE_WITH_MODEL_KEY> dataset=hateful_memes \
+run_type=val checkpoint.resume_file=<path_to_best_trained_model>
 ```
 
 For running inference (will generate a csv) on test set run the following command:
 
 ```
-mmf_predict config=<REPLACE_WITH_BASELINE_CONFIG> model=<REPLACE_WITH_MODEL_KEY> dataset=hateful_memes run_type=test
+mmf_predict config=<REPLACE_WITH_BASELINE_CONFIG> model=<REPLACE_WITH_MODEL_KEY> dataset=hateful_memes \
+run_type=test checkpoint.resume_file=<path_to_best_trained_model>
 ```
 
 **NOTE**: All `mmf_predict` commands for the Hateful Memes challenge will generate a csv which you can then submit to DrivenData.
@@ -90,14 +97,16 @@ mmf_predict config=<REPLACE_WITH_BASELINE_CONFIG> model=<REPLACE_WITH_MODEL_KEY>
 For evaluating pretrained models on validation set, use the following command:
 
 ```
-mmf_run config=<REPLACE_WITH_BASELINE_CONFIG> model=<REPLACE_WITH_MODEL_KEY> dataset=hateful_memes run_type=val checkpoint.resume_zoo=<REPLACE_WITH_PRETRAINED_ZOO_KEY>
+mmf_run config=<REPLACE_WITH_BASELINE_CONFIG> model=<REPLACE_WITH_MODEL_KEY> dataset=hateful_memes \
+run_type=val checkpoint.resume_zoo=<REPLACE_WITH_PRETRAINED_ZOO_KEY>
 ```
 
 To generate predictions using pretrained models, use the following command:
 
 
 ```
-mmf_predict config=<REPLACE_WITH_BASELINE_CONFIG> model=<REPLACE_WITH_MODEL_KEY> dataset=hateful_memes run_type=test checkpoint.resume_zoo=<REPLACE_WITH_PRETRAINED_ZOO_KEY>
+mmf_predict config=<REPLACE_WITH_BASELINE_CONFIG> model=<REPLACE_WITH_MODEL_KEY> dataset=hateful_memes \
+run_type=test checkpoint.resume_zoo=<REPLACE_WITH_PRETRAINED_ZOO_KEY>
 ```
 
 ## Loading pretrained model in your code
