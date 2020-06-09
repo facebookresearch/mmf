@@ -1,3 +1,10 @@
+includes:
+- ./defaults.yaml
+
 dataset_config:
   masked_mmimdb:
     return_features_info: true
+    
+model_config:
+  visual_bert:
+    training_head_type: pretraining
