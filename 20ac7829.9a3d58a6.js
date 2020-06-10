@@ -1,1 +1,0 @@
-(window.webpackJsonp=window.webpackJsonp||[]).push([[3],{105:function(o){o.exports=JSON.parse('{"docsSidebars":{"Tutorials":[{"type":"link","label":"Hello from MMF","href":"/docs/hello"}]},"permalinkToSidebar":{"/docs/hello":"Tutorials"}}')}}]);
