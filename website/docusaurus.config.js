@@ -14,25 +14,34 @@ module.exports = {
     'research from Facebook AI Research (FAIR).',
   url: 'https://mmf.sh',
   baseUrl: '/',
-  favicon: 'img/favicon.ico',
-  organizationName: 'facebookresearch', // Usually your GitHub org/user name.
-  projectName: 'mmf', // Usually your repo name.
+  favicon: 'img/favicon.png',
+  organizationName: 'facebookresearch',
+  projectName: 'mmf',
   themeConfig: {
+    image: 'img/logo.png',
+    defaultDarkMode: false,
+    googleAnalytics: {
+      trackingID: 'UA-135079836-3',
+    },
+    gtag: {
+      trackingID: 'UA-135079836-3',
+    },
+    sidebarCollapsible: false,
     navbar: {
       title: '',
       logo: {
         alt: 'MMF Logo',
-        src: 'img/logo.svg',
+        src: 'img/banner_logo.svg',
       },
       links: [
         {
-          to: 'docs/hello',
+          to: 'docs',
           activeBasePath: 'docs',
           label: 'Docs',
           position: 'left',
         },
         {
-          to: '/api',
+          to: 'api_redirect',
           label: 'API',
           position: 'left',
         },
@@ -83,7 +92,6 @@ module.exports = {
         src: 'img/oss_logo.png',
         href: 'https://opensource.facebook.com',
       },
-      // Please do not remove the credits, help to publicize Docusaurus :)
       copyright: `Copyright © ${new Date().getFullYear()} Facebook, Inc. Built with Docusaurus.`,
     },
   },
@@ -93,6 +101,9 @@ module.exports = {
       {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
+          homePageId: 'getting_started/installation',
+          showLastUpdateAuthor: true,
+          showLastUpdateTime: true,
           editUrl:
             'https://github.com/facebookresearch/mmf/edit/master/website/',
         },

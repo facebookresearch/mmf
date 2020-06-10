@@ -17,12 +17,12 @@
   text-align: center;
   position: relative;
   overflow: hidden;
-  background-image: linear-gradient(var(--ifm-color-primary-lighter), #fff);
+  background-image: linear-gradient(var(--ifm-color-primary-gradient-start), #fff);
   --ifm-hero-text-color: #000;
 }
 
 html[data-theme="dark"] .heroBanner {
-  background-image: linear-gradient(var(--ifm-color-primary-lighter), #666);
+  background-image: linear-gradient(var(--ifm-color-primary-darker), #222);
   --ifm-hero-text-color: #fff;
 }
 
@@ -59,9 +59,10 @@ html[data-theme="dark"] .heroBanner {
   align-items: center;
   padding: 2rem 0;
   width: 100%;
+  font-size: 0.95rem;
 }
 
 .featureImage {
-  height: 200px;
+  height: 100px;
   width: 200px;
 }

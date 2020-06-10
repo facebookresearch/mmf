@@ -2,7 +2,7 @@
 {%- set url_root = pathto('', 1) %}
 {%- if url_root == '#' %}{% set url_root = '' %}{% endif %}
 {%- if not embedded and docstitle %}
-  {%- set titlesuffix = " &mdash; "|safe + docstitle|e %}
+  {%- set titlesuffix = " | "|safe + docstitle|e %}
 {%- else %}
   {%- set titlesuffix = "" %}
 {%- endif %}
@@ -19,16 +19,23 @@
   {% block htmltitle %}
   <title>{{ title|striptags|e }}{{ titlesuffix }}</title>
   {% endblock %}
-
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-135079836-2"></script>
+  <script src="{{ pathto('_static/js/ga.js', 1) }}"></script>
+  <script src="{{ pathto('_static/js/redirect.js', 1) }}"></script>
   {# FAVICON #}
-  {% if favicon %}
-    <link rel="shortcut icon" href="{{ pathto('_static/' + favicon, 1) }}"/>
-  {% endif %}
+  <link rel="shortcut icon" href="{{ pathto('_static/images/favicon.png', 1) }}"/>
   {# CANONICAL URL #}
   {% if theme_canonical_url %}
-    <link rel="canonical" href="{{ theme_canonical_url }}{{ pagename }}.html"/>
+  <link rel="canonical" href="{{ theme_canonical_url }}{{ pagename }}.html"/>
   {% endif %}
-
+  <meta property="og:title" content="{{ title|striptags|e }}{{ titlesuffix }}">
+  <meta name="description" content="{{ theme_variables.og['description'] }}">
+  <meta property="og:description" content="{{ theme_variables.og['description'] }}">
+  <meta property="og:image" content="https://mmf.sh/img/logo.png">
+  <meta property="twitter:image" content="https://mmf.sh/img/logo.png">
+  <meta name="twitter:image:alt" content="Image for MMF">
+  <meta name="twitter:card" content="summary_large_image">
   {# CSS #}
 
   {# OPENSEARCH #}
@@ -95,11 +102,11 @@
 
 
           <li {%- if theme_pytorch_project == 'tutorials' %} class="active"{% endif %}>
-            <a href="{{ theme_variables.external_urls['tutorials'] }}">Tutorials</a>
+            <a href="{{ theme_variables.external_urls['docs'] }}">Docs</a>
           </li>
 
           <li {%- if theme_pytorch_project == 'docs' %} class="active"{% endif %}>
-            <a href="{{ theme_variables.external_urls['docs'] }}">Docs</a>
+            <a href="{{ theme_variables.external_urls['api'] }}">API</a>
           </li>
 
           <li>
@@ -304,8 +311,8 @@
         <div class="footer-links-col">
           <ul>
             <li class="list-title"><a href="{{ theme_variables.external_urls['resources'] }}">Resources</a></li>
-            <li><a href="{{ theme_variables.external_urls['tutorials'] }}">Tutorials</a></li>
             <li><a href="{{ theme_variables.external_urls['docs'] }}">Docs</a></li>
+            <li><a href="{{ theme_variables.external_urls['api'] }}">API</a></li>
             <li><a href="{{ theme_variables.external_urls['github_issues'] }}" target="_blank">Github Issues</a></li>
           </ul>
         </div>
@@ -342,11 +349,11 @@
           </li>
 
           <li {%- if theme_pytorch_project == 'tutorials' %} class="active"{%- endif %}>
-            <a href="{{ theme_variables.external_urls['tutorials'] }}">Tutorials</a>
+            <a href="{{ theme_variables.external_urls['docs'] }}">Docs</a>
           </li>
 
           <li {%- if theme_pytorch_project == 'docs' %} class="active"{%- endif %}>
-            <a href="{{ theme_variables.external_urls['docs'] }}">Docs</a>
+            <a href="{{ theme_variables.external_urls['api'] }}">API</a>
           </li>
           <li>
             <a href="{{ theme_variables.external_urls['github'] }}">Github</a>

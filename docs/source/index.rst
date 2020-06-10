@@ -5,21 +5,6 @@
 
 :github_url: https://github.com/facebookresearch/mmf
 
-.. raw:: html
-
-    <script type="text/javascript">
-      // Redirect for older pythia documentation
-      (function(l) {
-        if (window.location.href.indexOf('learnpythia') !== -1) {
-          var splits = window.location.href.split('/');
-          splits = splits.slice(splits.indexOf("learnpythia.readthedocs.io") + 1);
-          splits = ['https://mmf.readthedocs.io'].concat(splits);
-          splits = splits.join('/');
-          window.location.href = splits;
-       }
-      }(window.location));
-    </script>
-
 MMF
 ===
 
@@ -50,6 +35,7 @@ research built on top of PyTorch. Using MMF, researchers and devlopers can train
 custom models for VQA, Image Captioning, Visual Dialog, Hate Detection and other vision
 and language tasks.
 
+Read docs_ for tutorials and documentation.
 
 Citation
 ========
@@ -68,33 +54,6 @@ If you use MMF in your work, please cite:
 
 .. toctree::
    :maxdepth: 1
-   :caption: Getting Started
-
-   notes/installation
-   notes/quickstart
-   notes/features
-   notes/pretrained_models
-   notes/configuration
-   notes/challenge
-   notes/faq
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Challenges
-
-   notes/hateful_memes_challenge
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Extending MMF
-
-   tutorials/concepts
-   tutorials/dataset
-   tutorials/late_fusion
-   tutorials/mmf_bert
-
-.. toctree::
-   :maxdepth: 1
    :caption: Library Reference
 
    lib/common/registry
@@ -107,15 +66,6 @@ If you use MMF in your work, please cite:
    lib/datasets/processors
    lib/utils/text
 
-.. toctree::
-   :maxdepth: 0
-   :hidden:
-   :caption: Others
-
-   others/model_config
-   others/dataset_config
-   others/user_config
-
 
 
 Indices and tables
@@ -124,3 +74,5 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. _docs: https://mmf.sh/docs

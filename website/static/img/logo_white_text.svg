@@ -3,8 +3,8 @@
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 500 225.6" style="enable-background:new 0 0 500 225.6;" xml:space="preserve">
 <style type="text/css">
-	.st0{fill:#0054A6;}
-	.st1{fill:#232323;}
+	.st0{fill:#FFFFFF;}
+	.st1{fill:#67788A;}
 	.st2{fill:#4F518A;}
 	.st3{fill:#652D90;}
 	.st4{fill:#2E3192;}
@@ -26,7 +26,8 @@
 	.st20{fill:#349991;}
 	.st21{fill:#01A89C;}
 	.st22{fill:#339763;}
-	.st23{fill:#326697;}
+	.st23{fill:#0054A6;}
+	.st24{fill:#326697;}
 </style>
 <title>MMF-Logo</title>
 <g id="Layer_1_1_">
@@ -61,8 +62,8 @@
 	<polygon class="st20" points="146.6,107.7 141.5,112.8 146.6,118 165.9,112.8 	"/>
 	<polygon class="st21" points="173.1,110.9 188.2,106.9 175.6,85.1 166.8,87.5 149.6,104.6 	"/>
 	<polygon class="st22" points="140.4,94.6 138.5,101.6 145.5,103.5 159.7,89.4 	"/>
-	<polygon class="st0" points="166.8,138.2 175.6,140.5 188.2,118.8 173.1,114.7 149.6,121 	"/>
-	<polygon class="st0" points="148.3,120.6 148.3,120.6 148.3,120.6 	"/>
-	<polygon class="st23" points="138.5,124 140.4,131.1 159.7,136.2 145.5,122.1 	"/>
+	<polygon class="st23" points="166.8,138.2 175.6,140.5 188.2,118.8 173.1,114.7 149.6,121 	"/>
+	<polygon class="st23" points="148.3,120.6 148.3,120.6 148.3,120.6 	"/>
+	<polygon class="st24" points="138.5,124 140.4,131.1 159.7,136.2 145.5,122.1 	"/>
 </g>
 </svg>

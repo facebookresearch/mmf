@@ -44,6 +44,26 @@
     background-image: url("../images/search_icon.svg");
 }
 
+.footer-logo {
+    background-image: url("../images/logo_icon.svg");
+    background-size: 40px 40px;
+    height: 40px;
+    width: 40px;
+}
+
+@media screen and (min-width: 768px) {
+    .footer-logo {
+        background-size: 40px 40px;
+    }
+}
+
+.mobile-main-menu-header-container .header-logo {
+    background-image: url("../images/mmf_logo_white_f.svg");
+    background-size: 79px 43px;
+    left: 2px;
+    top: -16px;
+}
+
 p a:link,
 p a:visited,
 p a:hover {

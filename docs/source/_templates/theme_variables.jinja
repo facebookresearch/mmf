@@ -1,13 +1,19 @@
-{%- set external_urls = {
+{%-
+set external_urls = {
   'github': 'https://github.com/facebookresearch/mmf',
   'github_issues': 'https://github.com/facebookresearch/master/issues',
   'contributing': 'https://github.com/facebookresearch/master/blob/master/CONTRIBUTING.md',
-  'docs': 'https://mmf.sh/docs/stable/index.html',
-  'tutorials': 'https://mmf.sh/tutorials',
+  'api': 'https://mmf.sh/api',
+  'docs': 'https://mmf.sh/docs',
   'previous_pytorch_versions': 'https://mmf.sh/previous-versions/',
   'home': 'https://mmf.sh/',
-  'get_started': 'https://mmf.sh/get-started',
-  'features': 'https://mmf.sh/features',
+  'get_started': 'https://mmf.sh/docs',
+  'features': 'https://mmf.sh/docs/getting_started/features',
   'brand_guidelines': 'https://pytorch.org/assets/brand-guidelines/PyTorch-Brand-Guidelines.pdf'
+}
+-%}
+{%-
+set og = {
+  'description': 'API docs for MMF. MMF is a modular framework powered by PyTorch for multimodal vision and language research from Facebook AI Research'
 }
 -%}

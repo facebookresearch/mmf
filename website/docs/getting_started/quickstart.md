@@ -1,10 +1,12 @@
-# Quickstart [![](https://circleci.com/gh/facebookresearch/mmf.svg?style=svg)](https://circleci.com/gh/facebookresearch/mmf)
+---
+id: quickstart
+title: Quickstart
+sidebar_label: Quickstart
+---
 
-**Authors**: Amanpreet Singh
+[![](https://circleci.com/gh/facebookresearch/mmf.svg?style=svg)](https://circleci.com/gh/facebookresearch/mmf)
 
-In this quickstart, we are going to train [M4C](https://github.com/facebookresearch/mmf/tree/master/projects/m4c) model on TextVQA. Follow instructions at the bottom
-to train other models in MMF.
-
+In this quickstart, we are going to train [M4C](https://github.com/facebookresearch/mmf/tree/master/projects/m4c) model on TextVQA. Follow instructions at the bottom to train other models in MMF.
 
 ## Installation
 
@@ -18,16 +20,23 @@ In MMF datasets and required files will be downloaded automatically when we run 
 
 Now we can start training by running the following command:
 
-```
-mmf_run config=projects/m4c/configs/textvqa/defaults.yaml datasets=textvqa model=m4c run_type=train_val
+```bash
+mmf_run config=projects/m4c/configs/textvqa/defaults.yaml \
+    datasets=textvqa \
+    model=m4c \
+    run_type=train_val
 ```
 
 ## Inference
 
 For running inference or generating predictions, we can specify a pretrained model using its zoo key and then run the following command:
 
-```
-mmf_predict config=projects/m4c/configs/textvqa/defaults.yaml datasets=textvqa model=m4c run_type=test checkpoint.resume_zoo=m4c.textvqa.defaults
+```bash
+mmf_predict config=projects/m4c/configs/textvqa/defaults.yaml \
+    datasets=textvqa \
+    model=m4c \
+    run_type=test \
+    checkpoint.resume_zoo=m4c.textvqa.defaults
 ```
 
 For running inference on `val` set, use `run_type=val` and rest of the arguments remain same. Check more details in [pretrained models](pretrained_models) section.
@@ -37,7 +46,6 @@ These commands should be enough to get you started with training and performing 
 ## Citation
 
 If you use MMF in your work, please cite:
-
 
 ```text
 @inproceedings{singh2019pythia,
