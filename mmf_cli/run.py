@@ -1,6 +1,8 @@
 #!/usr/bin/env python3 -u
 # Copyright (c) Facebook, Inc. and its affiliates.
+import argparse
 import random
+import typing
 
 import torch
 
@@ -52,10 +54,28 @@ def distributed_main(device_id, configuration, predict=False):
     main(configuration, init_distributed=True, predict=predict)
 
 
-def run(predict=False):
+def run(opts: typing.Optional[typing.List[str]] = None, predict: bool = False):
+    """Run starts a job based on the command passed from the command line.
+    You can optionally run the mmf job programmatically by passing an optlist as opts.
+
+    Args:
+        opts (typing.Optional[typing.List[str]], optional): Optlist which can be used.
+            to override opts programmatically. For e.g. if you pass
+            opts = ["training.batch_size=64", "checkpoint.resume=True"], this will
+            set the batch size to 64 and resume from the checkpoint if present.
+            Defaults to None.
+        predict (bool, optional): If predict is passed True, then the program runs in
+            prediction mode. Defaults to False.
+    """
     setup_imports()
-    parser = flags.get_parser()
-    args = parser.parse_args()
+
+    if opts is None:
+        parser = flags.get_parser()
+        args = parser.parse_args()
+    else:
+        args = argparse.Namespace(config_override=None)
+        args.opts = opts
+
     print(args)
     configuration = Configuration(args)
     # Do set runtime args which can be changed by MMF
