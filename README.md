@@ -1,8 +1,12 @@
 
-# MMF
+<div align="center">
+<img src="https://mmf.sh/img/logo.svg" width="50%"/>
+</div>
+
+#
 
 <div align="center">
-  <a href="https://mmf.readthedocs.io/en/latest/">
+  <a href="https://mmf.sh/docs">
   <img alt="Documentation Status" src="https://readthedocs.org/projects/mmf/badge/?version=latest"/>
   </a>
   <a href="https://circleci.com/gh/facebookresearch/mmf">
@@ -10,39 +14,23 @@
   </a>
 </div>
 
-**NOTE**: MMF is still in beta mode and will replace Pythia framework.
-To get the latest Pythia code which doesn't contain MMF changes, please use the following command:
+---
 
-```
-git clone --branch v0.3 https://github.com/facebookresearch/mmf pythia
-```
+MMF is a modular framework for vision and language multimodal research from Facebook AI Research. MMF contains reference implementations of state-of-the-art vision and language models and has powered multiple research projects at Facebook AI Research. See full list of project inside or built on MMF [here](https://mmf.sh/docs/notes/projects).
 
-MMF is a modular framework for vision and language multimodal research. Built on top of PyTorch, it features:
+MMF is powered by PyTorch, allows distributed training and is un-opinionated, scalable and fast. Use MMF to **_bootstrap_** for your next vision and language multimodal research project by following the [installation instructions](https://mmf.sh/docs/getting_started/installation). Take a look at list of MMF features [here](https://mmf.sh/docs/getting_started/features).
 
-- **Model Zoo**: Reference implementations for state-of-the-art vision and language model including
-[LoRRA](https://arxiv.org/abs/1904.08920) (SoTA on VQA and TextVQA),
-[Pythia](https://arxiv.org/abs/1807.09956) model (VQA 2018 challenge winner), [BAN](https://arxiv.org/abs/1805.07932) and [BUTD](https://arxiv.org/abs/1707.07998).
-- **Multi-Tasking**: Support for multi-tasking which allows training on multiple dataset together.
-- **Datasets**: Includes support for various datasets built-in including VQA, VizWiz, TextVQA, VisualDialog and COCO Captioning.
-- **Modules**: Provides implementations for many commonly used layers in vision and language domain
-- **Distributed**: Support for distributed training based on DataParallel as well as DistributedDataParallel.
-- **Unopinionated**: Unopinionated about the dataset and model implementations built on top of it.
-- **Customization**: Custom losses, metrics, scheduling, optimizers, tensorboard; suits all your custom needs.
+MMF also acts as **starter codebase** for challenges around vision and
+language datasets (The Hateful Memes, TextVQA, TextCaps and VQA challenges). MMF was formerly known as Pythia. The next video shows an overview of how datasets and models work inside MMF. Checkout MMF's [video overview](https://mmf.sh/docs/getting_started/video_overview).
 
-You can use MMF to **_bootstrap_** for your next vision and language multimodal research project.
-
-MMF can also act as **starter codebase** for challenges around vision and
-language datasets (TextVQA challenge, VQA challenge). MMF was formerly known as Pythia.
-
-![MMF Examples](https://i.imgur.com/BP8sYnk.jpg)
 
 ## Installation
 
-Follow installation instructions in the [documentation](https://mmf.readthedocs.io/en/latest/notes/installation.html).
+Follow installation instructions in the [documentation](https://mmf.sh/docs/getting_started/installation).
 
 ## Documentation
 
-Learn more about MMF [here](https://mmf.readthedocs.io/en/latest/).
+Learn more about MMF [here](https://mmf.sh/docs).
 
 ## Citation
 
