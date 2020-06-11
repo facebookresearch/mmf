@@ -34,15 +34,15 @@ Learn more about MMF [here](https://mmf.sh/docs).
 
 ## Citation
 
-If you use MMF in your work, please cite:
+If you use MMF in your work or use any models published in MMF, please cite:
 
 ```
-@inproceedings{singh2018pythia,
-  title={Pythia-a platform for vision \& language research},
-  author={Singh, Amanpreet and Goswami, Vedanuj and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
-  booktitle={SysML Workshop, NeurIPS},
-  volume={2018},
-  year={2018}
+@misc{singh2020mmf,
+  author =       {Singh, Amanpreet and Goswami, Vedanuj and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and
+                 Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
+  title =        {MMF: A multimodal framework for vision and language research},
+  howpublished = {\url{https://github.com/facebookresearch/mmf}},
+  year =         {2020}
 }
 ```
 
