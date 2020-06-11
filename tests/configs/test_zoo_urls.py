@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import time
 import unittest
 
 from omegaconf import OmegaConf
@@ -20,8 +21,18 @@ class TestConfigsForKeys(unittest.TestCase):
                 # First try making the DownloadableFile class to make sure
                 # everything is fine
                 download = DownloadableFile(**item)
-                # Now check the actual header
-                check_header(download._url, from_google=download._from_google)
+                # Now check the actual header 3 times before failing
+                for i in range(3):
+                    try:
+                        check_header(download._url, from_google=download._from_google)
+                        break
+                    except AssertionError:
+                        if i == 2:
+                            raise
+                        else:
+                            # If failed, add a sleep of 5 seconds before retrying
+                            time.sleep(2)
+
         elif OmegaConf.is_dict(config):
             # Both version and resources should be present
             if "version" in config:
