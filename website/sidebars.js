@@ -22,7 +22,11 @@ module.exports = {
       'notes/pretrained_models',
       'notes/projects',
     ],
-    Tutorials: ['tutorials/dataset', 'tutorials/late_fusion'],
+    Tutorials: [
+      'tutorials/dataset',
+      'tutorials/late_fusion',
+      'tutorials/checkpointing',
+    ],
     Challenges: [
       'challenges/hateful_memes_challenge',
       'challenges/other_challenges',
