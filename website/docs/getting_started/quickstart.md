@@ -4,8 +4,6 @@ title: Quickstart
 sidebar_label: Quickstart
 ---
 
-[![](https://circleci.com/gh/facebookresearch/mmf.svg?style=svg)](https://circleci.com/gh/facebookresearch/mmf)
-
 In this quickstart, we are going to train [M4C](https://github.com/facebookresearch/mmf/tree/master/projects/m4c) model on TextVQA. Follow instructions at the bottom to train other models in MMF.
 
 ## Installation
@@ -45,15 +43,15 @@ These commands should be enough to get you started with training and performing 
 
 ## Citation
 
-If you use MMF in your work, please cite:
+If you use MMF in your work or use any models published in MMF, please cite:
 
 ```text
-@inproceedings{singh2019pythia,
-  title={Pythia-a platform for vision \& language research},
-  author={Singh, Amanpreet and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
-  booktitle={SysML Workshop, NeurIPS},
-  volume={2018},
-  year={2019}
+@misc{singh2020mmf,
+  author =       {Singh, Amanpreet and Goswami, Vedanuj and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and
+                 Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
+  title =        {MMF: A multimodal framework for vision and language research},
+  howpublished = {\url{https://github.com/facebookresearch/mmf}},
+  year =         {2020}
 }
 ```
 
