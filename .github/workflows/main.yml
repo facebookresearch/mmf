@@ -1,0 +1,75 @@
+name: Deploy Website 🚀
+# Only run this workflow on pushes to a particular branch
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout master 🛎️
+      uses: actions/checkout@v2
+      # If you're using actions/checkout@v2 you must set persist-credentials to false in most
+      # cases for the deployment to work correctly.
+      with:
+        persist-credentials: false
+        ref: master
+        path: mmf_master
+
+    - name: Setup Miniconda
+      uses: goanpeca/setup-miniconda@v1
+      with:
+        activate-environment: mmf
+        python-version: 3.7
+        auto-update-conda: true
+        use-only-tar-bz2: true
+
+    - name: Setup Node 🔧
+      uses: actions/setup-node@v2-beta
+      with:
+        node-version: '12.17.0'
+
+    - name: Get yarn cache
+      id: yarn-cache
+      run: echo "::set-output name=dir::$(yarn cache dir)"
+
+    - name: Cache conda and node modules
+      uses: actions/cache@v2
+      env:
+        # Increase this value to reset cache if nothing has not changed but you still
+        # want to invalidate the cache
+        CACHE_NUMBER: 0
+      with:
+        path: |
+          /usr/share/miniconda/envs/
+          ${{ steps.yarn-cache.outputs.dir }}
+        key: ${{ runner.os }}-mmf-${{ env.CACHE_NUMBER }}-${{ hashFiles('**/requirements.txt') }}-${{ hashFiles('**/setup.py') }}-${{ hashFiles('**/yarn.lock') }}
+
+
+    - name: Install and build MMF
+      shell: bash -l {0}
+      run: |
+        conda activate mmf
+        cd ${GITHUB_WORKSPACE}/mmf_master
+        python setup.py install
+        python -c 'import torch; print("Torch version:", torch.__version__)'
+        python -m torch.utils.collect_env
+        cd website
+        node -v
+        yarn -v
+        yarn install --frozen-lockfile
+        cd ..
+        cd docs
+        pip install -r requirements.txt
+        cd ..
+        ./website/build_docs.sh -b
+        pwd
+
+    - name: Deploy 🚀
+      # Skip on forks
+      if: github.event.repository.fork == false
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./mmf_master/website/build

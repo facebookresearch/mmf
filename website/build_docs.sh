@@ -81,6 +81,7 @@ if [[ $BUILD_STATIC == true ]]; then
   echo "Building static site"
   echo "-----------------------------------"
   yarn build
+  cd ..
 else
   echo "-----------------------------------"
   echo "Starting local server"
