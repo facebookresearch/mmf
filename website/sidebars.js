@@ -13,9 +13,15 @@ module.exports = {
       'getting_started/installation',
       'getting_started/features',
       'getting_started/quickstart',
+      'getting_started/video_overview',
       'getting_started/faqs',
     ],
-    Notes: ['notes/concepts', 'notes/configuration', 'notes/pretrained_models'],
+    Notes: [
+      'notes/concepts',
+      'notes/configuration',
+      'notes/pretrained_models',
+      'notes/projects',
+    ],
     Tutorials: ['tutorials/dataset', 'tutorials/late_fusion'],
     Challenges: [
       'challenges/hateful_memes_challenge',
