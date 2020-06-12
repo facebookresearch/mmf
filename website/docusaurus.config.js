@@ -19,7 +19,8 @@ module.exports = {
   projectName: 'mmf',
   themeConfig: {
     image: 'img/logo.png',
-    defaultDarkMode: false,
+    // defaultDarkMode: false,
+    disableDarkMode: true,
     googleAnalytics: {
       trackingID: 'UA-135079836-3',
     },
@@ -60,7 +61,8 @@ module.exports = {
           items: [
             {
               label: 'Blog',
-              to: 'blog',
+              href:
+                'https://medium.com/pytorch/bootstrapping-a-multimodal-project-using-mmf-a-pytorch-powered-multimodal-framework-464f75164af7',
             },
             {
               label: 'GitHub',
