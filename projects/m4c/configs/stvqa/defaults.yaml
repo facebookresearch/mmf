@@ -86,9 +86,9 @@ training:
     use_warmup: true
     warmup_factor: 0.2
     warmup_iterations: 1000
-    max_iterations: 24000
+    max_updates: 24000
     batch_size: 128
-    num_workers: 8
+    num_workers: 4
     task_size_proportional_sampling: true
     early_stop:
       criteria: stvqa/stvqa_accuracy
