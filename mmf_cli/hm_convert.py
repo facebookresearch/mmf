@@ -17,6 +17,7 @@ class HMConverter:
     POSSIBLE_CHECKSUMS = [
         "d8f1073f5fbf1b08a541cc2325fc8645619ab8ed768091fb1317d5c3a6653a77",
         "a424c003b7d4ea3f3b089168b5f5ea73b90a3ff043df4b8ff4d7ed87c51cb572",
+        "f7efc7cb5951e14f5dcad9b60d6cf49a6f54ec16259e64d5f14f9ec8cb155dc1",
     ]
 
     def __init__(self):
