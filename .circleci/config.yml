@@ -94,11 +94,11 @@ install_nvidia_driver: &install_nvidia_driver
       name: Install NVIDIA Driver
       working_directory: ~/
       command: |
-        wget -q --no-clobber -P ~/nvidia-downloads 'https://s3.amazonaws.com/ossci-linux/nvidia_driver/NVIDIA-Linux-x86_64-430.40.run'
-        sudo /bin/bash ~/nvidia-downloads/NVIDIA-Linux-x86_64-430.40.run -s --no-drm
+        wget -q --no-clobber -P ~/nvidia-downloads 'https://pytorch-ci-utils.s3.us-east-2.amazonaws.com/nvidia-drivers/NVIDIA-Linux-x86_64-440.64.run'
+        sudo /bin/bash ~/nvidia-downloads/NVIDIA-Linux-x86_64-440.64.run -s --no-drm
         pyenv versions
         nvidia-smi
-        pyenv global 3.6.5
+        pyenv global 3.7.0
 
 create_conda_env: &create_conda_env
   - run:
@@ -112,7 +112,7 @@ create_conda_env: &create_conda_env
         source $BASH_ENV
         if [ ! -d ~/miniconda/envs/mmf ]
         then
-          conda create -y -n mmf python=3.6
+          conda create -y -n mmf python=3.7
         fi
         source activate mmf
         python --version
