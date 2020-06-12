@@ -25,7 +25,8 @@ module.exports = {
     Tutorials: ['tutorials/dataset', 'tutorials/late_fusion'],
     Challenges: [
       'challenges/hateful_memes_challenge',
-      'challenges/other_challenges',
+      'challenges/textvqa_challenge',
+      'challenges/vqa_challenge',
     ],
   },
 };
