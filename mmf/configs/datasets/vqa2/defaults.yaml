@@ -38,7 +38,7 @@ dataset_config:
             vocab:
               type: intersected
               embedding_name: glove.6B.300d
-              vocab_file: vqa2/defaults/vocabs/vocabulary_100k.txt
+              vocab_file: vqa2/defaults/extras/vocabs/vocabulary_100k.txt
             preprocessor:
               type: simple_sentence
               params: {}
@@ -46,7 +46,7 @@ dataset_config:
           type: vqa_answer
           params:
             num_answers: 10
-            vocab_file: vqa2/defaults/vocabs/answers_vqa.txt
+            vocab_file: vqa2/defaults/extras/vocabs/answers_vqa.txt
             preprocessor:
               type: simple_word
               params: {}
