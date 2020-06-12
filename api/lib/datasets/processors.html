@@ -236,6 +236,42 @@
   <div class="section" id="module-mmf.datasets.processors">
 <span id="datasets-processors"></span><h1>datasets.processors<a class="headerlink" href="#module-mmf.datasets.processors" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
+<dt id="mmf.datasets.processors.BBoxProcessor">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">BBoxProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#BBoxProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.BBoxProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates bboxes in proper format.
+Takes in a dict which contains “info” key which is a list of dicts
+containing following for each of the the bounding box</p>
+<p>Example bbox input:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;bounding_box&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;top_left_x&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+                <span class="s2">&quot;top_left_y&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+                <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+                <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="mi">300</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="o">...</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>This will further return a Sample in a dict with key “bbox” with last
+dimension of 4 corresponding to “xyxy”. So sample will look like following:</p>
+<p>Example Sample:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Sample</span><span class="p">({</span>
+    <span class="s2">&quot;coordinates&quot;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+    <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">number</span><span class="p">],</span> <span class="c1"># size n</span>
+    <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">number</span><span class="p">],</span> <span class="c1"># size n</span>
+    <span class="s2">&quot;bbox_types&quot;</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="c1"># size n, either xyxy or xywh.</span>
+    <span class="c1"># currently only supports xyxy.</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
 <dt id="mmf.datasets.processors.BaseProcessor">
 <em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">BaseProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#BaseProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.BaseProcessor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Every processor in MMF needs to inherit this class for compatibility
@@ -246,6 +282,75 @@ with MMF. End user mainly needs to implement <code class="docutils literal notra
 <cite>params</cite> attributes if available.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.datasets.processors.CaptionProcessor">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">CaptionProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#CaptionProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.CaptionProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes a caption with start, end and pad tokens and returns raw string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>DictConfig</em>) – Configuration for caption processor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.datasets.processors.FastTextProcessor">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">FastTextProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#FastTextProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.FastTextProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>FastText processor, similar to GloVe processor but returns FastText vectors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>DictConfig</em>) – Configuration values for the processor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.datasets.processors.GloVeProcessor">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">GloVeProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#GloVeProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.GloVeProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inherits VocabProcessor, and returns GloVe vectors for each of the
+words. Maps them to index using vocab processor, and then gets GloVe vectors
+corresponding to those indices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>DictConfig</em>) – Configuration parameters for GloVe same as
+<a class="reference internal" href="#mmf.datasets.processors.VocabProcessor" title="mmf.datasets.processors.VocabProcessor"><code class="xref py py-func docutils literal notranslate"><span class="pre">VocabProcessor()</span></code></a>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.datasets.processors.MaskedTokenProcessor">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">MaskedTokenProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/bert_processors.html#MaskedTokenProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.MaskedTokenProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="mmf.datasets.processors.MaskedTokenProcessor._truncate_seq_pair">
+<code class="sig-name descname">_truncate_seq_pair</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tokens_a</span></em>, <em class="sig-param"><span class="n">tokens_b</span></em>, <em class="sig-param"><span class="n">max_length</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/bert_processors.html#MaskedTokenProcessor._truncate_seq_pair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.MaskedTokenProcessor._truncate_seq_pair" title="Permalink to this definition">¶</a></dt>
+<dd><p>Truncates a sequence pair in place to the maximum length.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.datasets.processors.MultiHotAnswerFromVocabProcessor">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">MultiHotAnswerFromVocabProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#MultiHotAnswerFromVocabProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.MultiHotAnswerFromVocabProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="mmf.datasets.processors.MultiHotAnswerFromVocabProcessor.compute_answers_scores">
+<code class="sig-name descname">compute_answers_scores</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">answers_indices</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#MultiHotAnswerFromVocabProcessor.compute_answers_scores"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.MultiHotAnswerFromVocabProcessor.compute_answers_scores" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate VQA based answer scores for answers_indices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>answers_indices</strong> (<em>torch.LongTensor</em>) – tensor containing indices of the answers</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>tensor containing scores.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -265,56 +370,47 @@ be initialized and <code class="docutils literal notranslate"><span class="pre">
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.datasets.processors.VocabProcessor">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">VocabProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#VocabProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.VocabProcessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Use VocabProcessor when you have vocab file and you want to process
-words to indices. Expects UNK token as “&lt;unk&gt;” and pads sentences using
-“&lt;pad&gt;” token. Config parameters can have <code class="docutils literal notranslate"><span class="pre">preprocessor</span></code> property which
-is used to preprocess the item passed and <code class="docutils literal notranslate"><span class="pre">max_length</span></code> property which
-points to maximum length of the sentence/tokens which can be convert to
-indices. If the length is smaller, the sentence will be padded. Parameters
-for “vocab” are necessary to be passed.</p>
-<p><strong>Key</strong>: vocab</p>
-<p>Example Config:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">task_attributes</span><span class="p">:</span>
-    <span class="n">vqa</span><span class="p">:</span>
-        <span class="n">vqa2</span><span class="p">:</span>
-            <span class="n">processors</span><span class="p">:</span>
-              <span class="n">text_processor</span><span class="p">:</span>
-                <span class="nb">type</span><span class="p">:</span> <span class="n">vocab</span>
-                <span class="n">params</span><span class="p">:</span>
-                  <span class="n">max_length</span><span class="p">:</span> <span class="mi">14</span>
-                  <span class="n">vocab</span><span class="p">:</span>
-                    <span class="nb">type</span><span class="p">:</span> <span class="n">intersected</span>
-                    <span class="n">embedding_name</span><span class="p">:</span> <span class="n">glove</span><span class="o">.</span><span class="mi">6</span><span class="n">B</span><span class="o">.</span><span class="mi">300</span><span class="n">d</span>
-                    <span class="n">vocab_file</span><span class="p">:</span> <span class="n">vocabs</span><span class="o">/</span><span class="n">vocabulary_100k</span><span class="o">.</span><span class="n">txt</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>config</strong> (<em>DictConfig</em>) – node containing configuration parameters of
-the processor</p>
-</dd>
-</dl>
+<dt id="mmf.datasets.processors.SimpleSentenceProcessor">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">SimpleSentenceProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#SimpleSentenceProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.SimpleSentenceProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tokenizes a sentence and processes it.</p>
 <dl class="py attribute">
-<dt id="mmf.datasets.processors.VocabProcessor.vocab">
-<code class="sig-name descname">vocab</code><a class="headerlink" href="#mmf.datasets.processors.VocabProcessor.vocab" title="Permalink to this definition">¶</a></dt>
-<dd><p>Vocab class object which is abstraction over the vocab
-file passed.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>Vocab</p>
-</dd>
-</dl>
+<dt id="mmf.datasets.processors.SimpleSentenceProcessor.tokenizer">
+<code class="sig-name descname">tokenizer</code><em class="property">: function</em><a class="headerlink" href="#mmf.datasets.processors.SimpleSentenceProcessor.tokenizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type of tokenizer to be used.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.datasets.processors.SimpleWordProcessor">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">SimpleWordProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#SimpleWordProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.SimpleWordProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tokenizes a word and processes it.</p>
+<dl class="py attribute">
+<dt id="mmf.datasets.processors.SimpleWordProcessor.tokenizer">
+<code class="sig-name descname">tokenizer</code><em class="property">: function</em><a class="headerlink" href="#mmf.datasets.processors.SimpleWordProcessor.tokenizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type of tokenizer to be used.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.datasets.processors.SoftCopyAnswerProcessor">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">SoftCopyAnswerProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#SoftCopyAnswerProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.SoftCopyAnswerProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Similar to Answer Processor but adds soft copy dynamic answer space to it.
+Read <a class="reference external" href="https://arxiv.org/abs/1904.08920">https://arxiv.org/abs/1904.08920</a> for extra information on soft copy
+and LoRRA.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>DictConfig</em>) – Configuration for soft copy processor.</p>
+</dd>
+</dl>
 <dl class="py method">
-<dt id="mmf.datasets.processors.VocabProcessor.get_pad_index">
-<code class="sig-name descname">get_pad_index</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#VocabProcessor.get_pad_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.VocabProcessor.get_pad_index" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get index of padding &lt;pad&gt; token in vocabulary.</p>
+<dt id="mmf.datasets.processors.SoftCopyAnswerProcessor.get_true_vocab_size">
+<code class="sig-name descname">get_true_vocab_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#SoftCopyAnswerProcessor.get_true_vocab_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.SoftCopyAnswerProcessor.get_true_vocab_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actual vocab size which only include size of the vocabulary file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>index of the padding token.</p>
+<dd class="field-odd"><p>Actual size of vocabs.</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>int</p>
@@ -323,12 +419,12 @@ file passed.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.datasets.processors.VocabProcessor.get_vocab_size">
-<code class="sig-name descname">get_vocab_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#VocabProcessor.get_vocab_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.VocabProcessor.get_vocab_size" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get size of the vocabulary.</p>
+<dt id="mmf.datasets.processors.SoftCopyAnswerProcessor.get_vocab_size">
+<code class="sig-name descname">get_vocab_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#SoftCopyAnswerProcessor.get_vocab_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.SoftCopyAnswerProcessor.get_vocab_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Size of Vocab + Size of Dynamic soft-copy based answer space</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>size of the vocabulary.</p>
+<dd class="field-odd"><p>Size of vocab + size of dynamic soft-copy answer space.</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>int</p>
@@ -339,29 +435,9 @@ file passed.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.datasets.processors.GloVeProcessor">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">GloVeProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#GloVeProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.GloVeProcessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Inherits VocabProcessor, and returns GloVe vectors for each of the
-words. Maps them to index using vocab processor, and then gets GloVe vectors
-corresponding to those indices.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>config</strong> (<em>DictConfig</em>) – Configuration parameters for GloVe same as
-<a class="reference internal" href="#mmf.datasets.processors.VocabProcessor" title="mmf.datasets.processors.VocabProcessor"><code class="xref py py-func docutils literal notranslate"><span class="pre">VocabProcessor()</span></code></a>.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt id="mmf.datasets.processors.FastTextProcessor">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">FastTextProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#FastTextProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.FastTextProcessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>FastText processor, similar to GloVe processor but returns FastText vectors.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>config</strong> (<em>DictConfig</em>) – Configuration values for the processor.</p>
-</dd>
-</dl>
-</dd></dl>
+<dt id="mmf.datasets.processors.TorchvisionTransforms">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">TorchvisionTransforms</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/image_processors.html#TorchvisionTransforms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.TorchvisionTransforms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py class">
 <dt id="mmf.datasets.processors.VQAAnswerProcessor">
@@ -379,13 +455,8 @@ specify the max number of answers possible. Takes in dict containing
 </dl>
 <dl class="py attribute">
 <dt id="mmf.datasets.processors.VQAAnswerProcessor.answer_vocab">
-<code class="sig-name descname">answer_vocab</code><a class="headerlink" href="#mmf.datasets.processors.VQAAnswerProcessor.answer_vocab" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">answer_vocab</code><em class="property">: VocabDict</em><a class="headerlink" href="#mmf.datasets.processors.VQAAnswerProcessor.answer_vocab" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class representing answer vocabulary</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>VocabDict</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -472,45 +543,51 @@ soft copy dynamic answer space size.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.datasets.processors.MultiHotAnswerFromVocabProcessor">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">MultiHotAnswerFromVocabProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#MultiHotAnswerFromVocabProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.MultiHotAnswerFromVocabProcessor" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
-<dt id="mmf.datasets.processors.MultiHotAnswerFromVocabProcessor.compute_answers_scores">
-<code class="sig-name descname">compute_answers_scores</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">answers_indices</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#MultiHotAnswerFromVocabProcessor.compute_answers_scores"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.MultiHotAnswerFromVocabProcessor.compute_answers_scores" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate VQA based answer scores for answers_indices.</p>
+<dt id="mmf.datasets.processors.VocabProcessor">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">VocabProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#VocabProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.VocabProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use VocabProcessor when you have vocab file and you want to process
+words to indices. Expects UNK token as “&lt;unk&gt;” and pads sentences using
+“&lt;pad&gt;” token. Config parameters can have <code class="docutils literal notranslate"><span class="pre">preprocessor</span></code> property which
+is used to preprocess the item passed and <code class="docutils literal notranslate"><span class="pre">max_length</span></code> property which
+points to maximum length of the sentence/tokens which can be convert to
+indices. If the length is smaller, the sentence will be padded. Parameters
+for “vocab” are necessary to be passed.</p>
+<p><strong>Key</strong>: vocab</p>
+<p>Example Config:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">task_attributes</span><span class="p">:</span>
+    <span class="n">vqa</span><span class="p">:</span>
+        <span class="n">vqa2</span><span class="p">:</span>
+            <span class="n">processors</span><span class="p">:</span>
+              <span class="n">text_processor</span><span class="p">:</span>
+                <span class="nb">type</span><span class="p">:</span> <span class="n">vocab</span>
+                <span class="n">params</span><span class="p">:</span>
+                  <span class="n">max_length</span><span class="p">:</span> <span class="mi">14</span>
+                  <span class="n">vocab</span><span class="p">:</span>
+                    <span class="nb">type</span><span class="p">:</span> <span class="n">intersected</span>
+                    <span class="n">embedding_name</span><span class="p">:</span> <span class="n">glove</span><span class="o">.</span><span class="mi">6</span><span class="n">B</span><span class="o">.</span><span class="mi">300</span><span class="n">d</span>
+                    <span class="n">vocab_file</span><span class="p">:</span> <span class="n">vocabs</span><span class="o">/</span><span class="n">vocabulary_100k</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>answers_indices</strong> (<em>torch.LongTensor</em>) – tensor containing indices of the answers</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>tensor containing scores.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>torch.FloatTensor</p>
+<dd class="field-odd"><p><strong>config</strong> (<em>DictConfig</em>) – node containing configuration parameters of
+the processor</p>
 </dd>
 </dl>
+<dl class="py attribute">
+<dt id="mmf.datasets.processors.VocabProcessor.vocab">
+<code class="sig-name descname">vocab</code><em class="property">: Vocab</em><a class="headerlink" href="#mmf.datasets.processors.VocabProcessor.vocab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vocab class object which is abstraction over the vocab
+file passed.</p>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="py class">
-<dt id="mmf.datasets.processors.SoftCopyAnswerProcessor">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">SoftCopyAnswerProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#SoftCopyAnswerProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.SoftCopyAnswerProcessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Similar to Answer Processor but adds soft copy dynamic answer space to it.
-Read <a class="reference external" href="https://arxiv.org/abs/1904.08920">https://arxiv.org/abs/1904.08920</a> for extra information on soft copy
-and LoRRA.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>config</strong> (<em>DictConfig</em>) – Configuration for soft copy processor.</p>
-</dd>
-</dl>
 <dl class="py method">
-<dt id="mmf.datasets.processors.SoftCopyAnswerProcessor.get_true_vocab_size">
-<code class="sig-name descname">get_true_vocab_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#SoftCopyAnswerProcessor.get_true_vocab_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.SoftCopyAnswerProcessor.get_true_vocab_size" title="Permalink to this definition">¶</a></dt>
-<dd><p>Actual vocab size which only include size of the vocabulary file.</p>
+<dt id="mmf.datasets.processors.VocabProcessor.get_pad_index">
+<code class="sig-name descname">get_pad_index</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#VocabProcessor.get_pad_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.VocabProcessor.get_pad_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get index of padding &lt;pad&gt; token in vocabulary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Actual size of vocabs.</p>
+<dd class="field-odd"><p>index of the padding token.</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>int</p>
@@ -519,12 +596,12 @@ and LoRRA.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.datasets.processors.SoftCopyAnswerProcessor.get_vocab_size">
-<code class="sig-name descname">get_vocab_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#SoftCopyAnswerProcessor.get_vocab_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.SoftCopyAnswerProcessor.get_vocab_size" title="Permalink to this definition">¶</a></dt>
-<dd><p>Size of Vocab + Size of Dynamic soft-copy based answer space</p>
+<dt id="mmf.datasets.processors.VocabProcessor.get_vocab_size">
+<code class="sig-name descname">get_vocab_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#VocabProcessor.get_vocab_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.VocabProcessor.get_vocab_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get size of the vocabulary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Size of vocab + size of dynamic soft-copy answer space.</p>
+<dd class="field-odd"><p>size of the vocabulary.</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>int</p>
@@ -533,103 +610,6 @@ and LoRRA.</p>
 </dd></dl>
 
 </dd></dl>
-
-<dl class="py class">
-<dt id="mmf.datasets.processors.SimpleWordProcessor">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">SimpleWordProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#SimpleWordProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.SimpleWordProcessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tokenizes a word and processes it.</p>
-<dl class="py attribute">
-<dt id="mmf.datasets.processors.SimpleWordProcessor.tokenizer">
-<code class="sig-name descname">tokenizer</code><a class="headerlink" href="#mmf.datasets.processors.SimpleWordProcessor.tokenizer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Type of tokenizer to be used.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>function</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="mmf.datasets.processors.SimpleSentenceProcessor">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">SimpleSentenceProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#SimpleSentenceProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.SimpleSentenceProcessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tokenizes a sentence and processes it.</p>
-<dl class="py attribute">
-<dt id="mmf.datasets.processors.SimpleSentenceProcessor.tokenizer">
-<code class="sig-name descname">tokenizer</code><a class="headerlink" href="#mmf.datasets.processors.SimpleSentenceProcessor.tokenizer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Type of tokenizer to be used.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>function</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="mmf.datasets.processors.BBoxProcessor">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">BBoxProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#BBoxProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.BBoxProcessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates bboxes in proper format.
-Takes in a dict which contains “info” key which is a list of dicts
-containing following for each of the the bounding box</p>
-<p>Example bbox input:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;bounding_box&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;top_left_x&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
-                <span class="s2">&quot;top_left_y&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
-                <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
-                <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="mi">300</span>
-            <span class="p">}</span>
-        <span class="p">},</span>
-        <span class="o">...</span>
-    <span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>This will further return a Sample in a dict with key “bbox” with last
-dimension of 4 corresponding to “xyxy”. So sample will look like following:</p>
-<p>Example Sample:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Sample</span><span class="p">({</span>
-    <span class="s2">&quot;coordinates&quot;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
-    <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">number</span><span class="p">],</span> <span class="c1"># size n</span>
-    <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">number</span><span class="p">],</span> <span class="c1"># size n</span>
-    <span class="s2">&quot;bbox_types&quot;</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="c1"># size n, either xyxy or xywh.</span>
-    <span class="c1"># currently only supports xyxy.</span>
-<span class="p">})</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py class">
-<dt id="mmf.datasets.processors.CaptionProcessor">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">CaptionProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#CaptionProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.CaptionProcessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Processes a caption with start, end and pad tokens and returns raw string.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>config</strong> (<em>DictConfig</em>) – Configuration for caption processor.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt id="mmf.datasets.processors.MaskedTokenProcessor">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">MaskedTokenProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/bert_processors.html#MaskedTokenProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.MaskedTokenProcessor" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
-<dt id="mmf.datasets.processors.MaskedTokenProcessor._truncate_seq_pair">
-<code class="sig-name descname">_truncate_seq_pair</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tokens_a</span></em>, <em class="sig-param"><span class="n">tokens_b</span></em>, <em class="sig-param"><span class="n">max_length</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/bert_processors.html#MaskedTokenProcessor._truncate_seq_pair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.MaskedTokenProcessor._truncate_seq_pair" title="Permalink to this definition">¶</a></dt>
-<dd><p>Truncates a sequence pair in place to the maximum length.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="mmf.datasets.processors.TorchvisionTransforms">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.</code><code class="sig-name descname">TorchvisionTransforms</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/image_processors.html#TorchvisionTransforms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.TorchvisionTransforms" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </div>
 
