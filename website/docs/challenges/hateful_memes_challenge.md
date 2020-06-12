@@ -21,7 +21,7 @@ Follow the prerequisites for installation and dataset [here](https://github.com/
 For running training on train set, run the following command:
 
 ```
-mmf_run config=projects/hateful_memes/configs/mmbt/defaults.yaml model=mmbt dataset=hateful_memes training.run_type=train_val
+mmf_run config=projects/hateful_memes/configs/mmbt/defaults.yaml model=mmbt dataset=hateful_memes run_type=train_val
 ```
 
 This will train the `mmbt` model on the dataset and generate the checkpoints and best trained model (`mmbt_final.pth`) will be stored in the `./save` directory by default.
@@ -34,7 +34,7 @@ Next run evaluation on the validation set:
 mmf_run config=projects/hateful_memes/configs/mmbt/defaults.yaml \
     model=mmbt \
     dataset=hateful_memes \
-    training.run_type=val \
+    run_type=val \
     resume_file=./save/mmbt_final.pth
 ```
 
