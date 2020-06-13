@@ -4,15 +4,15 @@ title: Quickstart
 sidebar_label: Quickstart
 ---
 
-In this quickstart, we are going to train [M4C](https://github.com/facebookresearch/mmf/tree/master/projects/m4c) model on TextVQA. Follow instructions at the bottom to train other models in MMF.
+In this quickstart, we are going to train [M4C](https://github.com/facebookresearch/mmf/tree/master/projects/m4c) model on TextVQA dataset. TextVQA dataset requires models to read and reason about text in images to answer questions about them. `M4C` is a recent SOTA model on TextVQA dataset which consists of a multimodal transformer architecture accompanied by a rich representation for text in images. To train other models or understand more about MMF, follow Next Steps at the bottom of this tutorial.
 
 ## Installation
 
-Install MMF following the [installation documentation](./installation).
+Install MMF following the [installation documentation](https://mmf.sh/docs/getting_started/installation).
 
 ## Getting Data
 
-In MMF datasets and required files will be downloaded automatically when we run training next. For more details about custom datasets and other advanced setups for datasets check the [dataset documentation](../tutorials/dataset).
+In MMF datasets and required files will be downloaded automatically when we run training next. For more details about custom datasets and other advanced setups for datasets check the [dataset documentation](https://mmf.sh/docs/tutorials/dataset).
 
 ## Training
 
@@ -24,6 +24,35 @@ mmf_run config=projects/m4c/configs/textvqa/defaults.yaml \
     model=m4c \
     run_type=train_val
 ```
+
+The hyperparameters for training and experiment are in the experiment config `projects/m4c/configs/textvqa/defaults.yaml`. We can also set config params using command line args:
+
+```bash
+mmf_run config=projects/m4c/configs/textvqa/defaults.yaml \
+    datasets=textvqa \
+    model=m4c \
+    run_type=train_val \
+    training.batch_size=32 \
+    training.max_updates=44000 \
+```
+
+where `training.batch_size=32` will set batch size to 32 and `training.max_updates=44000` will set max iterations to 44000 for the training.
+
+Similarly, log interval, checkpoint interval and validation interval can also be set easily set as:
+
+```bash
+mmf_run config=projects/m4c/configs/textvqa/defaults.yaml \
+    datasets=textvqa \
+    model=m4c \
+    run_type=train_val \
+    training.batch_size=32 \
+    training.max_updates=44000 \
+    training.log_interval=10 \
+    training.checkpoint_interval=100 \
+    training.evaluation_interval=1000
+```
+
+This will show training logs every 10 iterations, checkpoint models every 100 iteration and run validation every 1000 iterations. More about configurations and how we set them in MMF can be found [here](https://mmf.sh/docs/notes/configuration).
 
 ## Inference
 
@@ -37,7 +66,7 @@ mmf_predict config=projects/m4c/configs/textvqa/defaults.yaml \
     checkpoint.resume_zoo=m4c.textvqa.defaults
 ```
 
-For running inference on `val` set, use `run_type=val` and rest of the arguments remain same. Check more details in [pretrained models](pretrained_models) section.
+For running inference on `val` set, use `run_type=val` and rest of the arguments remain same. `checkpoint.resume_zoo` is loading a pretrained model from model zoo. To learn more about checkpoints and pretraining/finetuning models check this [tutorial](https://mmf.sh/docs/tutorials/checkpointing).
 
 These commands should be enough to get you started with training and performing inference using MMF.
 
@@ -59,7 +88,8 @@ If you use MMF in your work or use any models published in MMF, please cite:
 
 To dive deep into world of MMF, you can move on the following next topics:
 
-- [Concepts and Terminology](../tutorials/concepts)
-- [Using Pretrained Models](./pretrained_models)
-- [Challenge Participation](./challenge)
-- [FAQs](./faq)
+- [Concepts and Terminology](https://mmf.sh/docs/notes/concepts)
+- [Model Zoo of MMF](https://mmf.sh/docs/notes/model_zoo)
+- [Dataset Zoo of MMF](https://mmf.sh/docs/notes/dataset_zoo)
+- [Projects available in MMF](https://mmf.sh/docs/notes/projects)
+- [FAQs](https://mmf.sh/docs/getting_started/faqs)
