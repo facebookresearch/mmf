@@ -26,6 +26,22 @@ Data should automatically download for the datasets involved in this project. Do
 
 Example : To pretrain VisualBERT model on the COCO Captions dataset, run the following command
 ```
+mmf_run config=projects/pretrain_vl_right/configs/lxmert/masked_coco/full.yaml run_type=train_val dataset=masked_coco model=lxmert
+```
+
+### Finetuning
+
+Example : To finetune VisualBERT model on the VQA2.0 dataset, run the following command
+```
+mmf_run config=projects/lxmert/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=lxmert checkpoint.resume_file=<path_to_pretrained_visual_bert_model> checkpoint.resume_pretrained=true
+```
+
+## Training
+
+### Pretraining
+
+Example : To pretrain VisualBERT model on the COCO Captions dataset, run the following command
+```
 mmf_run config=projects/pretrain_vl_right/configs/visual_bert/masked_coco/full.yaml run_type=train_val dataset=masked_coco model=visual_bert
 ```
 
