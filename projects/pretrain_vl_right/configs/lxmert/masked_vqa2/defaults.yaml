@@ -1,0 +1,55 @@
+model_config:
+  lxmert:
+    bert_model_name: bert-base-uncased
+    training_head_type: pretraining
+    random_initialize: false
+    training_head_type: classification
+    l_layers: 9
+    x_layers: 5
+    r_layers: 5
+    num_labels: 3129
+    mode: 'lxr'
+    visual_feat_dim: 2048
+    visual_pos_dim: 4
+    obj_id_num: 1600
+    attr_id_num: 400
+    hidden_dim: 768
+    taskMatched: true
+    taskMaskLM: true
+    taskObjPredict: true
+    taskQA: true
+    visualLosses: true
+    visual_loss_config: {
+         "obj": (obj_id_num, "ce", (-1,), 1 / 0.15),
+         "attr": (attr_id_num, "ce", (-1,), 1 / 0.15),
+         "feat": (2048, "l2", (-1, 2048), 1 / 0.15),
+     }
+    
+
+dataset_config:
+  masked_vqa2:
+    annotations:
+      train:
+      - vqa2/defaults/annotations/imdb_train2014.npy
+    return_features_info: true
+    use_image_feature_masks: true
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 1e-4
+    eps: 1e-8
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 1000
+    num_training_steps: 11000
+
+training:
+  batch_size: 480
+  lr_scheduler: true
+  # Don't forget to update schedule_attributes if you update this
+  max_updates: 11000
+  find_unused_parameters: true
+
