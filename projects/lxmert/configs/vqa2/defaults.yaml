@@ -1,7 +1,6 @@
 model_config:
   lxmert:
     bert_model_name: bert-base-uncased
-    training_head_type: pretraining
     random_initialize: false
     training_head_type: classification
     l_layers: 9
