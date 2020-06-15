@@ -70,17 +70,15 @@ class BertEmbeddings(nn.Module):
 
     def __init__(self, config):
         super(BertEmbeddings, self).__init__()
+#         print(config.hidden_size)
         self.word_embeddings = nn.Embedding(
             config.vocab_size, config.hidden_size,
-            padding_idx=0
         )
         self.position_embeddings = nn.Embedding(
             config.max_position_embeddings, config.hidden_size,
-            padding_idx=0
         )
         self.token_type_embeddings = nn.Embedding(
             config.type_vocab_size, config.hidden_size,
-            padding_idx=0  # I guess it is 0
         )
 
         # self.LayerNorm is not snake-cased to stick with TensorFlow model
@@ -301,7 +299,7 @@ class BertVisualObjHead(nn.Module):
         self.transform = BertPredictionHeadTransform(config)
 
         # Decide the use of visual losses
-        visual_losses = visual_losses.split(",")
+#         visual_losses = visual_losses.split(",")
         for loss in visual_losses:
             assert loss in config.visual_losses
         self.visual_losses = visual_losses
@@ -562,9 +560,9 @@ class LXMERTBase(BertPreTrainedModel):
         return (lang_feats, visn_feats), pooled_output
 
 
-class LXMERTForPretraining(BertPreTrainedModel):
+class LXMERTForPretraining(nn.Module):
     def __init__(self, config):
-        super().__init__(config)
+        super().__init__()
 
         # Configuration
         self.config = config
