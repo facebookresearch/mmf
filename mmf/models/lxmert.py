@@ -19,6 +19,7 @@ import math
 import os
 import numpy as np
 import torch
+import random
 from omegaconf import OmegaConf
 from torch import nn
 from torch.nn import CrossEntropyLoss, SmoothL1Loss
@@ -37,80 +38,6 @@ from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
-
-
-"""
- redfine BertEmbedding to explictly set padding idx
- the forward reimplemntation for BertEmbedding: does not support input embedding
- add visuzliztion opetion for bert attention
- implement dynamic attention if needed
- inputs that vilbert base model has that we do not
- image_location,
- co_attention_mask=None,
- task_ids=None,
- output_all_encoded_layers=False,
- output_all_attention_masks=False,
- task specific tokens? for vilbert base
- what is .init_weights? for vilbert base
- ADD TO LXMERT CONFIG TOO FOR PRETRAINING
- task_mask_lm=config.task_mask_lm
- task_matched=congig.task_matched
- task_obj_predict=config_obj_predict
- visual_losses=config.visual_losses
- task_qa=config.task_qa
- self.num_answers = config.num_answers
- include mode in config
- also need to implemented VisualConfig from Hao's repo into general config and then
- subsequently modify sub LXMERT classes
- changed all LXRT class names to LXMERT just for the sake of ubiquity
- DONT KNOW WHAT THIS WOULD DO
- if self.task_specific_tokens:
-    # extend the mask
-    mask_tokens = input_txt.new().resize_(input_txt.size(0), 1).fill_(1)
-    attention_mask = torch.cat([mask_tokens, attention_mask], dim=1)
- for pretrianing
- should we define the cross entropy class funciton in the init?
- changed num answers to num labels
- KEEP THE FOLLOWING TO MAKE NEW CONFIG FILE
- LXMERTBERTCONFIG
-     def __init__(
-         self,
-         vocab_size_or_config_json_file,
-         hidden_size=768,
-         num_hidden_layers=12,
-         num_attention_heads=12,
-         intermediate_size=3072,
-         hidden_act="gelu",
-         hidden_dropout_prob=0.1,
-         attention_probs_dropout_prob=0.1,
-         max_position_embeddings=512,
-         type_vocab_size=2,
-         initializer_range=0.02,
-         make sure we have config option for padding idx
-         config.pad_token_id
-         config.layer_norm_eps
- what is fusion method?
- class VisualConfig(object):
-     VISUAL_LOSSES = ["obj", "attr", "feat"]
-     def __init__(self, l_layers=12, x_layers=5, r_layers=0):
-         self.l_layers = l_layers
-         self.x_layers = x_layers
-         self.r_layers = r_layers
-         self.visual_feat_dim = 2048
-         self.visual_pos_dim = 4
-         self.obj_id_num = 1600
-         self.attr_id_num = 400
-         self.visual_losses = self.VISUAL_LOSSES
-         self.visual_loss_config = {
-             "obj": (self.obj_id_num, "ce", (-1,), 1 / 0.15),
-             "attr": (self.attr_id_num, "ce", (-1,), 1 / 0.15),
-             "feat": (2048, "l2", (-1, 2048), 1 / 0.15),
-         }
-     def set_visual_dims(self, feat_dim, pos_dim):
-         self.visual_feat_dim = feat_dim
-         self.visual_pos_dim = pos_dim
- VISUAL_CONFIG = VisualConfig()
- """
 
 
 def gelu(x):
@@ -153,7 +80,7 @@ class BertEmbeddings(nn.Module):
         )
         self.token_type_embeddings = nn.Embedding(
             config.type_vocab_size, config.hidden_size,
-            padding_idx=0 #I guess it is 0
+            padding_idx=0  # I guess it is 0
         )
 
         # self.LayerNorm is not snake-cased to stick with TensorFlow model
@@ -192,7 +119,6 @@ class BertAttention(nn.Module):
         self.attention_head_size = int(config.hidden_size / config.num_attention_heads)
         self.all_head_size = self.num_attention_heads * self.attention_head_size
 
-        # visual_dim = 2048
         if ctx_dim is None:
             ctx_dim = config.hidden_size
         self.query = nn.Linear(config.hidden_size, self.all_head_size)
@@ -377,7 +303,7 @@ class BertVisualObjHead(nn.Module):
         # Decide the use of visual losses
         visual_losses = visual_losses.split(",")
         for loss in visual_losses:
-            assert loss in VISUAL_CONFIG.VISUAL_LOSSES
+            assert loss in config.visual_losses
         self.visual_losses = visual_losses
 
         # The output weights are the same as the input embeddings, but there is
@@ -385,7 +311,7 @@ class BertVisualObjHead(nn.Module):
         self.decoder_dict = nn.ModuleDict(
             {
                 key: nn.Linear(
-                    config.hidden_size, VISUAL_CONFIG.visual_loss_config[key][0]
+                    config.hidden_size, config.visual_loss_config[key][0]
                 )
                 for key in self.visual_losses
             }
@@ -409,6 +335,38 @@ class BertPreTrainingHeads(nn.Module):
         prediction_scores = self.predictions(sequence_output)
         seq_relationship_score = self.seq_relationship(pooled_output)
         return prediction_scores, seq_relationship_score
+
+
+class VisualFeatEncoder(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        feat_dim = config.visual_feat_dim
+        pos_dim = config.visual_pos_dim
+
+        # Object feature encoding
+        self.visn_fc = nn.Linear(feat_dim, config.hidden_size)
+        self.visn_layer_norm = BertLayerNorm(config.hidden_size, eps=1e-12)
+
+        # Box position encoding
+        self.box_fc = nn.Linear(pos_dim, config.hidden_size)
+        self.box_layer_norm = BertLayerNorm(config.hidden_size, eps=1e-12)
+
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+
+    def forward(self, visn_input):
+        feats, boxes = visn_input
+
+        x = self.visn_fc(feats)
+        x = self.visn_layer_norm(x)
+        if boxes is not None:
+            y = self.box_fc(boxes)
+            y = self.box_layer_norm(y)
+            output = (x + y) / 2
+        else:
+            output = x
+
+        output = self.dropout(output)
+        return output
 
 
 class LXMERTXLayer(nn.Module):
@@ -472,35 +430,6 @@ class LXMERTXLayer(nn.Module):
         return lang_output, visn_output
 
 
-class VisualFeatEncoder(nn.Module):
-    def __init__(self, config):
-        super().__init__()
-        feat_dim = config.visual_feat_dim
-        pos_dim = config.visual_pos_dim
-
-        # Object feature encoding
-        self.visn_fc = nn.Linear(feat_dim, config.hidden_size)
-        self.visn_layer_norm = BertLayerNorm(config.hidden_size, eps=1e-12)
-
-        # Box position encoding
-        self.box_fc = nn.Linear(pos_dim, config.hidden_size)
-        self.box_layer_norm = BertLayerNorm(config.hidden_size, eps=1e-12)
-
-        self.dropout = nn.Dropout(config.hidden_dropout_prob)
-
-    def forward(self, visn_input):
-        feats, boxes = visn_input
-
-        x = self.visn_fc(feats)
-        x = self.visn_layer_norm(x)
-        y = self.box_fc(boxes)
-        y = self.box_layer_norm(y)
-        output = (x + y) / 2
-
-        output = self.dropout(output)
-        return output
-
-
 class LXMERTEncoder(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -556,19 +485,13 @@ class LXMERTEncoder(nn.Module):
 
 class LXMERTBase(BertPreTrainedModel):
     """LXMERT Model."""
-    # added visual feature mask
 
     def __init__(self, config):
         super().__init__(config)
         self.embeddings = BertEmbeddings(config)
         self.encoder = LXMERTEncoder(config)
         self.pooler = BertPooler(config)
-#         self.apply(self.init_bert_weights)
-#         self.task_specific_tokens = config.task_specific_tokens
-
-#         self.init_weights()
-        # task specific tokens?
-        # what is .init_weights?
+        self.init_weights()
 
     def forward(
         self,
@@ -576,18 +499,22 @@ class LXMERTBase(BertPreTrainedModel):
         token_type_ids=None,
         attention_mask=None,
         visual_feats=None,
+        visual_loc=None,
         visual_attention_mask=None,
+        output_all_attention_masks=False,
+        output_all_encoded_layers=False
     ):
+
+        if output_all_encoded_layers:
+            raise NotImplementedError
+        if output_all_attention_masks:
+            raise NotImplementedError
+
+        visual_feats = (visual_feats, visual_loc)
         if attention_mask is None:
             attention_mask = torch.ones_like(input_ids)
         if token_type_ids is None:
             token_type_ids = torch.zeros_like(input_ids)
-
-        # DONT KNOW WHAT THIS WOULD DO
-        # if self.task_specific_tokens:
-        #    # extend the mask
-        #    mask_tokens = input_txt.new().resize_(input_txt.size(0), 1).fill_(1)
-        #    attention_mask = torch.cat([mask_tokens, attention_mask], dim=1)
 
         # We create a 3D attention mask from a 2D tensor mask.
         # Sizes are [batch_size, 1, 1, to_seq_length]
@@ -641,7 +568,7 @@ class LXMERTForPretraining(BertPreTrainedModel):
 
         # Configuration
         self.config = config
-        self.num_labels = config.num_labels
+
         # LXMERT backbone
         self.bert = LXMERTBase.from_pretrained(
             self.config.bert_model_name,
@@ -650,12 +577,14 @@ class LXMERTForPretraining(BertPreTrainedModel):
             ),
             cache_dir=os.path.join(get_mmf_cache_dir(), "distributed_{}".format(-1)),
         )
-        # Use of pre-training tasks
+
+        self.num_labels = config.num_labels
         self.task_mask_lm = config.task_mask_lm
         self.task_obj_predict = config.task_obj_predict
         self.task_matched = config.task_matched
         self.task_qa = config.task_qa
         self.visual_losses = config.visual_losses
+        self.visual_losses_config = config.visual_losses_config
 
         # Pre-training heads
         self.cls = BertPreTrainingHeads(
@@ -688,21 +617,26 @@ class LXMERTForPretraining(BertPreTrainedModel):
         input_ids,
         token_type_ids=None,
         attention_mask=None,
-        masked_lm_labels=None,
         visual_feats=None,
-        pos=None,
+        visual_pos=None,
+        visual_attention_mask=None,
+        masked_lm_labels=None,
         obj_labels=None,
-        matched_label=None,
+        matched_label=None,  # next_sent_label in VilBERT
         ans=None,
-        # they provide feature location
-        # they provide image attention mask
-        # image label and target
-        # next sentence label
-        # output all attention masks
+        output_all_attention_masks=False,
+        output_all_encoded_layers=False
     ):
 
         (lang_output, visn_output), pooled_output = self.bert(
-            input_ids, token_type_ids, attention_mask, visual_feats=(visual_feats, pos),
+            input_ids,
+            token_type_ids,
+            attention_mask,
+            visual_feats,
+            visual_pos,
+            visual_attention_mask,
+            output_all_attention_masks,
+            output_all_encoded_layers
         )
 
         lang_prediction_scores, cross_relationship_score = self.cls(
@@ -711,8 +645,8 @@ class LXMERTForPretraining(BertPreTrainedModel):
 
         ## KEEP TRACK OF OUTPUTS HERE
         output = {}
-        # if output_all_attention_masks:
-        #     output["attention_weights"] = attention_weights
+        if output_all_attention_masks:
+            raise NotImplementedError
 
         if self.task_qa:
             answer_score = self.answer_head(pooled_output)
@@ -742,14 +676,14 @@ class LXMERTForPretraining(BertPreTrainedModel):
             }
             total_visn_loss = 0.0
             visn_prediction_scores_dict = self.obj_predict_head(visn_output)
-            for key in config.visual_losses:
+            for key in self.visual_losses:
                 label, mask_conf = obj_labels[key]
                 (
                     output_dim,
                     loss_fct_name,
                     label_shape,
                     weight,
-                ) = config.visual_loss_config[key]
+                ) = self.visual_loss_config[key]
                 visn_loss_fct = loss_fcts[loss_fct_name]
                 visn_prediction_scores = visn_prediction_scores_dict[key]
                 visn_loss = visn_loss_fct(
@@ -769,20 +703,10 @@ class LXMERTForPretraining(BertPreTrainedModel):
             answer_loss = loss_fct(
                 answer_score.view(-1, self.num_labels), ans.view(-1)
             )
-            # Since this Github version pre-trains with QA loss from the beginning,
-            # I exclude "*2" here to match the effect of QA losses.
-            # Previous: (loss *0) for 6 epochs,
-            # (loss *2) for 6 epochs.   (Used 10 instead of 6 in EMNLP paper)
-            # Now     : (loss *1) for 12 epochs
-            #
-            # * 2       # Multiply by 2 because > half of the data will not have label
             total_loss += answer_loss
             output["answer_loss"] = answer_loss.detach()
-        # add each loss to output
-        # add answer score to output
-        # add total loss to output
         output["anwer_score"] = answer_score.detach()
-#         output["total_loss"] = total_loss
+        output["total_loss"] = total_loss
         return output
 
 
@@ -807,10 +731,6 @@ class LXMERTForClassification(nn.Module):
 
         self.init_weights()
 
-    @property
-    def dim(self):
-        return 768
-
     def init_weights(self):
         if self.config.random_initialize is False:
             if self.config.bert_model_name is None:
@@ -821,64 +741,42 @@ class LXMERTForClassification(nn.Module):
             self.classifier.apply(self.bert._init_weights)
 
     def forward(
-            self,
-            input_ids,
-            token_type_ids=None,
-            attention_mask=None,
-            visual_feats=None,
-            visual_attention_mask=None):
+        self,
+        input_ids,
+        token_type_ids=None,
+        attention_mask=None,
+        visual_feats=None,
+        visual_pos=None,
+        visual_attention_mask=None,
+        masked_lm_labels=None,
+        obj_labels=None,  # is img_labels in vilbert
+        matched_label=None,  # next_sent_label in VilBERT
+        ans=None,
+        output_all_attention_masks=False,
+        output_all_encoded_layers=False
+    ):
 
-        feat_seq, pooled_output = self.bert(
+        (lang_output, visn_output), pooled_output = self.bert(
             input_ids,
             token_type_ids,
             attention_mask,
-            visual_feats=visual_feats,
-            visual_attention_mask=visual_attention_mask,
+            visual_feats,
+            visual_pos,
+            visual_attention_mask,
+            output_all_encoded_layers,
+            output_all_attention_masks
         )
 
-        # if output_all_attention_masks:
-        #    output["attention_weights"] = attention_weights
+        if output_all_attention_masks:
+            raise NotImplementedError
 
         if self.training_head_type == "nlvr2":
             pooled_output = pooled_output.view(-1, pooled_output.size(1) * 2)
 
         logits = self.logit_fc(pooled_output)
-
-        # i wonder if we need this?
         reshaped_logits = logits.contiguous().view(-1, self.num_labels)
 
         return {"scores": reshaped_logits}
-
-    def save(self, path):
-        torch.save(self.model.state_dict(), os.path.join("%s_LXMERT.pth" % path))
-
-    def load(self, path):
-        # Load state_dict from snapshot file
-        print("Load LXMERT pre-trained model from %s" % path)
-        state_dict = torch.load("%s_LXMERT.pth" % path)
-        new_state_dict = {}
-        for key, value in state_dict.items():
-            if key.startswith("module."):
-                new_state_dict[key[len("module.") :]] = value
-            else:
-                new_state_dict[key] = value
-        state_dict = new_state_dict
-
-        # Print out the differences of pre-trained and model weights.
-        load_keys = set(state_dict.keys())
-        model_keys = set(self.model.state_dict().keys())
-        print()
-        print("Weights in loaded but not in model:")
-        for key in sorted(load_keys.difference(model_keys)):
-            print(key)
-        print()
-        print("Weights in model but not in loaded:")
-        for key in sorted(model_keys.difference(load_keys)):
-            print(key)
-        print()
-
-        # Load weights to model
-        self.model.load_state_dict(state_dict, strict=False)
 
 
 @registry.register_model("lxmert")
@@ -888,7 +786,6 @@ class LXMERT(BaseModel):
 
     @classmethod
     def config_path(cls):
-#         return "projects/lxmert/configs/vqa2/defaults.yaml"
         return "configs/models/lxmert/pretrain.yaml"
 
     # Backward compatibility
@@ -911,18 +808,35 @@ class LXMERT(BaseModel):
                 p.requires_grad = False
 
     def get_image_and_text_features(self, sample_list):
+        # i added back some original code from VilBERT, not sure how much you changed
+        # I only did so to keep  everything compatabile for the downstream forward
+        # pass defined below
+        # if we run into troubles for nlvr2, we can add back the other stuff
+        # IMPORTANT: if we end up looking for answer to question, it may be in
+        # the sample list
         bert_input_ids = sample_list.input_ids
         bert_input_mask = sample_list.input_mask
         bert_input_type_ids = sample_list.segment_ids
         masked_lm_labels = sample_list.lm_label_ids
 
+        ####
         image_info = getattr(sample_list, "image_info_0", {})
+        image_dim_variable = getattr(image_info, "max_features", None)
+        image_feature_variable = getattr(sample_list, "image_feature_0", None)
+        image_label_variable = getattr(sample_list, "image_labels", None)
+        if image_label_variable is not None:
+            image_label_variable = torch.tensor(
+                image_label_variable, dtype=torch.long
+            ).cuda()
+
+        # may want to check shape of bbox here -> may be source of error later
         bbox = np.array(getattr(image_info, "bbox", None), dtype=np.float32)
-        feats = getattr(sample_list, "image_feature_0", None)
-        obj_label_variable = getattr(sample_list, "image_labels", None)
-
-
-        img_h, img_w = img_info['img_h'], img_info['img_w']
+        image_w = np.array(
+            getattr(image_info, "image_width", None), dtype=np.float32
+        )
+        image_h = np.array(
+            getattr(image_info, "image_height", None), dtype=np.float32
+        )
         image_location = np.zeros(
             (bbox.shape[0], bbox.shape[1], 5), dtype=np.float32
         )
@@ -940,9 +854,13 @@ class LXMERT(BaseModel):
             image_location, dtype=torch.float
         ).cuda()
 
+        # idk what this is but could be useful
+        # cls_prob = getattr(image_info, "cls_prob", None)
+        # image_target = np.array(cls_prob, dtype=np.float32)
+        # image_target_variable = torch.tensor(image_target, dtype=torch.float).cuda()
 
         is_matched = 1
-        if self.config.taskMatched:
+        if self.config.task_matched:
             if random.random() < 0.5:
                 is_matched = 0
                 ssf = torch.randperm(bert_input_ids.size(0))
@@ -956,11 +874,12 @@ class LXMERT(BaseModel):
             "token_type_ids": bert_input_mask,
             "attention_mask": bert_input_type_ids,
             "masked_lm_labels": masked_lm_labels,
-            "visual_feats": feats,
-            "pos": image_location,                      
-            "obj_labels": obj_label_variable,
-            "matched_label": is_matched,    
-            "ans": None
+            "visual_feats": image_feature_variable,
+            "pos": image_location_variable,
+            "obj_labels": image_label_variable,
+            "matched_label": is_matched,
+            "ans": None,
+            "image_dim": image_dim_variable
         }
 
     def get_optimizer_parameters(self, config):
@@ -968,13 +887,7 @@ class LXMERT(BaseModel):
 
     def forward(self, sample_list):
         params = self.get_image_and_text_features(sample_list)
-        # pretraining labels
-#         params["masked_lm_labels"] = getattr(sample_list, "lm_label_ids", None)
-        # is_random_next = getattr(sample_list, "is_correct", None)
-        # TODO(aps): Fix on dataset side
-        # params["is_random_next"] = None
 
-        # Prepare Mask
         if params["image_feature"] is not None and params["image_dim"] is not None:
             image_mask = (
                 torch.arange(params["image_feature"].size(-2))
@@ -989,28 +902,27 @@ class LXMERT(BaseModel):
         else:
             params["image_attention_mask"] = None
         params.pop("image_dim")
-       
 
         if self.config.training_head_type == "pretraining":
 
             output_dict = self.model(
-                params["input_ids"], 
-                params["token_type_ids"],
-                params["attention_mask"], 
-                params["masked_lm_labels"], 
-                params["visual_feats"], 
-                params["pos"],                      
-                params["obj_labels"], 
-                params["matched_label"],             
-                params["ans"], 
+                input_ids=params["input_ids"],
+                token_type_ids=params["token_type_ids"],
+                attention_mask=params["attention_mask"],
+                visual_feats=params["visual_feats"],
+                visual_pos=params["pos"],
+                visual_attention_mask=params["image_attention_mask"],
+                masked_lm_labels=params["masked_lm_labels"],
+                obj_labels=params["obj_labels"],
+                matched_label=params["matched_label"],
+                ans=params["ans"],
             )
-#             pass
-            # WE WILL NEED TO FIX UP INPUT STUFF FOR THIS
+
             loss_key = "{}/{}".format(
                 sample_list.dataset_name, sample_list.dataset_type
             )
             output_dict["losses"] = {}
-            
+
             output_dict["losses"][loss_key + "/masked_lm_loss"] = output_dict.pop(
                 "masked_lm_loss"
             )
@@ -1018,17 +930,18 @@ class LXMERT(BaseModel):
                 "matched_loss"
             )
             output_dict["losses"][loss_key + "/visn_loss"] = output_dict.pop(
-                "visn_loss"
+                "total_visn_loss"
             )
             output_dict["losses"][loss_key + "/answer_loss"] = output_dict.pop(
                 "answer_loss"
             )
         else:
             output_dict = self.model(
-                params["input_ids"], #input_ids
-                params["token_type_ids"], #token_type_ids
-                params["attention_mask"], #attention_mask
-                params["visual_feats"], #visual_feats
-                params["pos"], #pos  
+                input_ids=params["input_ids"],
+                token_type_ids=params["token_type_ids"],
+                attention_mask=params["attention_mask"],
+                visual_feats=params["visual_feats"],
+                visual_pos=params["pos"],
+                visual_attention_mask=params["image_attention_mask"],
             )
         return output_dict
