@@ -17,11 +17,11 @@ model_config:
     taskMaskLM: true
     taskObjPredict: true
     taskQA: true
-    visualLosses: true
-    visual_loss_config: {
-         "obj": (obj_id_num, "ce", (-1,), 1 / 0.15),
-         "attr": (attr_id_num, "ce", (-1,), 1 / 0.15),
-         "feat": (2048, "l2", (-1, 2048), 1 / 0.15),
+    visual_losses: ["obj", "attr", "feat"]
+    visual_losses_config: {
+         "obj": [obj_id_num, "ce", (-1,), 1 / 0.15],
+         "attr": [attr_id_num, "ce", (-1,), 1 / 0.15],
+         "feat": [2048, "l2", (-1, 2048), 1 / 0.15],
      }
     
 
