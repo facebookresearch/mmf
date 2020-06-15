@@ -1,6 +1,7 @@
 model_config:
   lxmert:
     bert_model_name: bert-base-uncased
+    training_head_type: pretraining
     random_initialize: false
     num_labels: 3129
     num_hidden_layers : 12
