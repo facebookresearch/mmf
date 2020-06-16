@@ -1,50 +1,42 @@
 model_config:
   lxmert:
-    bert_model_name: bert-base-uncased
     training_head_type: pretraining
-    random_initialize: false
-    training_head_type: classification
-    l_layers: 9
-    x_layers: 5
-    r_layers: 5
     num_labels: 3129
-    mode: 'lxr'
-    visual_feat_dim: 2048
-    visual_pos_dim: 4
-    obj_id_num: 1600
-    attr_id_num: 400
-    hidden_dim: 768
-    taskMatched: true
-    taskMaskLM: true
-    taskObjPredict: true
-    taskQA: true
-    visualLosses: true
-    visual_loss_config: {
-         "obj": (obj_id_num, "ce", (-1,), 1 / 0.15),
-         "attr": (attr_id_num, "ce", (-1,), 1 / 0.15),
-         "feat": (2048, "l2", (-1, 2048), 1 / 0.15),
-     }
     
 
 dataset_config:
  masked_vqa2:
-    use_images: true
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
+      answer_processor:
+        type: vqa_answer
+        params:
+            num_answers: 10
+            vocab_file: vqa2/defaults/extras/vocabs/answers_vqa.txt
+            preprocessor:
+              type: simple_word
+              params: {}
+    use_images: false
+    add_answer: true
     use_features: true
     features:
       train:
-      - coco/defaults/features/coco_trainval2014.lmdb
-      - coco/defaults/features/coco_trainval2014.lmdb
+      - coco/defaults/features/trainval2014.lmdb
+      - coco/defaults/features/trainval2014.lmdb
     annotations:
       train:
       - vqa2/defaults/annotations/imdb_train2014.npy
       - vqa2/defaults/annotations/imdb_val2014.npy
     return_features_info: true
-#   masked_vqa2:
-#     annotations:
-#       train:
-#       - vqa2/defaults/annotations/imdb_train2014.npy
-#     return_features_info: true
-#     use_image_feature_masks: true
+    use_image_feature_masks: true
 
 optimizer:
   type: adam_w
@@ -59,7 +51,7 @@ scheduler:
     num_training_steps: 11000
 
 training:
-  batch_size: 480
+  batch_size: 16
   lr_scheduler: true
   # Don't forget to update schedule_attributes if you update this
   max_updates: 11000
