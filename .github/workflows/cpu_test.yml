@@ -1,0 +1,79 @@
+name: CPU Tests
+
+# This workflow is triggered on pushes to the repository.
+on: push
+
+jobs:
+  unittest:
+    strategy:
+      max-parallel: 8
+      matrix:
+        platform: [ubuntu-latest, macos-latest]
+        python-version: [3.6, 3.7, 3.8]
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+    - name: Checkout master 🛎️
+      uses: actions/checkout@v2
+      # If you're using actions/checkout@v2 you must set persist-credentials to false in most
+      # cases for the deployment to work correctly.
+      with:
+        persist-credentials: false
+        ref: master
+        path: mmf_master
+
+    - name: Setup Conda Environment
+      uses: goanpeca/setup-miniconda@v1
+      with:
+        activate-environment: mmf
+        python-version: ${{ matrix.python-version }}
+        auto-update-conda: true
+        use-only-tar-bz2: true
+
+    - name: Cache Conda Environment
+      uses: actions/cache@v2
+      env:
+        # Increase this value to reset cache if nothing has not changed but you still
+        # want to invalidate the cache
+        CACHE_NUMBER: 0
+      with:
+        path: |
+          /usr/share/miniconda/envs/
+          /usr/local/miniconda/envs/
+        key: mmf-cpu-${{ matrix.platform }}-python${{ matrix.python-version }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('**/requirements.txt') }}-${{ hashFiles('**/setup.py') }}
+
+    - name: Install Dependencies
+      shell: bash -l {0}
+      run: |
+        conda activate mmf
+        cd ${GITHUB_WORKSPACE}/mmf_master
+        python -m pip install --upgrade pip
+        pip install --upgrade setuptools
+        pip install --progress-bar off pytest
+        pip install -r requirements.txt
+        python -c 'import torch; print("Torch version:", torch.__version__)'
+        python -m torch.utils.collect_env
+
+    - name: Install Repository
+      shell: bash -l {0}
+      run: |
+        conda activate mmf
+        cd ${GITHUB_WORKSPACE}/mmf_master
+        python setup.py clean --all
+        python setup.py install
+
+    - name: Run Unittests
+      shell: bash -l {0}
+      run: |
+        conda activate mmf
+        cd ${GITHUB_WORKSPACE}/mmf_master/tests
+        pytest --junitxml=artifacts/junit-${{ matrix.platform }}-python${{ matrix.python-version }}.xml -v .
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v1
+      with:
+        name: pytest-results-${{ matrix.platform }}-python${{ matrix.python-version }}
+        path: mmf_master/tests/artifacts/junit-${{ matrix.platform }}-python${{ matrix.python-version }}.xml
+      # Use always() to always run this step to publish test results when there are test failures
+      if: ${{ always() }}
