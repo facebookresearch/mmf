@@ -4,19 +4,19 @@ title: 'Tutorial: Adding a model - Concat BERT'
 sidebar_label: Adding a model - Concat BERT
 ---
 
-In this tutorial we will go through the step-by-step process of creating a new model using MMF. In this case, we will create a fusion model for the [Hateful Memes dataset](https://github.com/facebookresearch/mmf/tree/master/projects/hateful_memes).
+In this tutorial, we will go through the step-by-step process of creating a new model using MMF. In this case, we will create a fusion model and train it on the [Hateful Memes dataset](https://github.com/facebookresearch/mmf/tree/master/projects/hateful_memes).
 
-The fusion model that we will create concatenates embeddings from a text encoder and an image encoder and passes them through a two-layer classifier. MMF provides standard image and text encoders out of the box. For image encoder, we will use ResNet152 image encoder and for text encoder, we will use BERT Base Encoder.
+The fusion model that we will create concatenates embeddings from a text encoder and an image encoder and passes them through a two-layer classifier. MMF provides standard image and text encoders out of the box. For the image encoder, we will use ResNet152 image encoder and for the text encoder, we will use BERT-Base Encoder.
 
 
-## Installation and Preparing the dataset
+## Prerequisites
 
 Follow the prerequisites for installation and dataset [here](https://github.com/facebookresearch/mmf/tree/master/projects/hateful_memes#prerequisites).
 
 
 ## Using MMF to build the model
 
-We will start building our model `ConcatBERT` using the various building blocks available in MMF. Helper builder methods like  `build_image_encoder` for building image encoders, `build_text_encoder` for building text encoders, `build_classifier_layer` for classifier layers etc take configurable params which are defined in the config we will create in the next section.
+We will start building our model `ConcatBERT` using the various building blocks available in MMF. Helper builder methods like  `build_image_encoder` for building image encoders, `build_text_encoder` for building text encoders, `build_classifier_layer` for classifier layers etc take configurable params which are defined in the config we will create in the next section. Follow the code and read through the comments to understand how the model is implemented.
 
 
 ```python
@@ -146,7 +146,7 @@ class ConcatBERT(BaseModel):
 The model’s forward method takes a `SampleList` and outputs a dict containing the logit scores predicted by the model. Different losses and metrics can be calculated on the scores output.
 
 
-We define two configs needed for our experiments: (i) model config for model defaults (ii) experiment config. Model config provides the defaults for model’s hyperparameters and experiment config defines and overrides the defaults needed for our particular experiment
+We will define two configs needed for our experiments: (i) a model config for the model's default configurations, and (ii) an experiment config for our particular experiment. The model config provides the model’s default hyperparameters and the experiment config defines and overrides the defaults needed for our particular experiment such as optimizer type, learning rate, maximum updates and batch size.
 
 
 ## Model Config
@@ -157,7 +157,7 @@ We will now create the model config file with the params we used while creating 
 
 model_config:
   concat_bert:
-    # Either pretraining or classification
+    # Type of bert model
     bert_model_name: bert-base-uncased
     direct_features_input: false
     # Dimension of the embedding finally returned by the modal encoder
@@ -244,7 +244,7 @@ training:
 
 ```
 
-We include the `bert.yaml` config in this as we want to use BERT tokenizer for preprocessing our language data. With both the configs ready we are ready to launch training and evaluation using our model on Hateful Memes dataset. You can read more about the MMF’s configuration system [here](https://mmf.sh/docs/notes/configuration).
+We include the `bert.yaml` config in this as we want to use BERT tokenizer for preprocessing our language data. With both the configs ready we are ready to launch training and evaluation using our model on the Hateful Memes dataset. You can read more about the MMF’s configuration system [here](https://mmf.sh/docs/notes/configuration).
 
 
 
@@ -259,4 +259,4 @@ mmf_run config="configs/experiments/concat_bert/defaults.yaml" \
     run_type=train_val
 ```
 
-When training ends it will save a final model `concat_bert_final.pth` in the experiment folder under `./save` directory. The command will also generate validation scores after the training gets over.
+When training ends it will save a final model `concat_bert_final.pth` in the experiment folder under `./save` directory. More details about checkpoints can be found [here](https://mmf.sh/docs/tutorials/checkpointing). The command will also generate validation scores after the training gets over.
