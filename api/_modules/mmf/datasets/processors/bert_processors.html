@@ -241,7 +241,7 @@
 <span class="kn">from</span> <span class="nn">mmf.datasets.processors.processors</span> <span class="kn">import</span> <span class="n">BaseProcessor</span>
 
 
-<div class="viewcode-block" id="MaskedTokenProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.MaskedTokenProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;masked_token&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="MaskedTokenProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.MaskedTokenProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;masked_token&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">MaskedTokenProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
     <span class="n">_CLS_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;[CLS]&quot;</span>
     <span class="n">_SEP_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;[SEP]&quot;</span>
@@ -283,7 +283,7 @@
 
         <span class="k">return</span> <span class="n">tokens</span><span class="p">,</span> <span class="n">labels</span>
 
-<div class="viewcode-block" id="MaskedTokenProcessor._truncate_seq_pair"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.MaskedTokenProcessor._truncate_seq_pair">[docs]</a>    <span class="k">def</span> <span class="nf">_truncate_seq_pair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens_a</span><span class="p">,</span> <span class="n">tokens_b</span><span class="p">,</span> <span class="n">max_length</span><span class="p">):</span>
+<div class="viewcode-block" id="MaskedTokenProcessor._truncate_seq_pair"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.MaskedTokenProcessor._truncate_seq_pair">[docs]</a>    <span class="k">def</span> <span class="nf">_truncate_seq_pair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens_a</span><span class="p">,</span> <span class="n">tokens_b</span><span class="p">,</span> <span class="n">max_length</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Truncates a sequence pair in place to the maximum length.&quot;&quot;&quot;</span>
 
         <span class="c1"># This is a simple heuristic which will always truncate the longer sequence</span>
@@ -371,7 +371,7 @@
         <span class="k">return</span> <span class="n">output</span></div>
 
 
-<span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;bert_tokenizer&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="BertTokenizer"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.BertTokenizer">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;bert_tokenizer&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">BertTokenizer</span><span class="p">(</span><span class="n">MaskedTokenProcessor</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -388,7 +388,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_truncate_seq_pair</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_to_indices</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">probability</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_probability</span><span class="p">)</span>
         <span class="n">output</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;tokens&quot;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">output</span>
+        <span class="k">return</span> <span class="n">output</span></div>
 </pre></div>
 
              </article>

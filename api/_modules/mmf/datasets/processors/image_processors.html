@@ -242,7 +242,7 @@
 <span class="kn">from</span> <span class="nn">mmf.datasets.processors.processors</span> <span class="kn">import</span> <span class="n">BaseProcessor</span>
 
 
-<div class="viewcode-block" id="TorchvisionTransforms"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.TorchvisionTransforms">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;torchvision_transforms&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="TorchvisionTransforms"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.image_processors.TorchvisionTransforms">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;torchvision_transforms&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">TorchvisionTransforms</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">transform_params</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">transforms</span>
@@ -297,7 +297,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 
 
-<span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;GrayScaleTo3Channels&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="GrayScaleTo3Channels"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.image_processors.GrayScaleTo3Channels">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;GrayScaleTo3Channels&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">GrayScaleTo3Channels</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span>
@@ -314,7 +314,7 @@
         <span class="c1"># Handle grayscale, tile 3 times</span>
         <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">x</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">x</span>
+        <span class="k">return</span> <span class="n">x</span></div>
 </pre></div>
 
              </article>

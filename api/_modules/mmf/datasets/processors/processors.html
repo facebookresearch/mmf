@@ -231,6 +231,7 @@
               
   <h1>Source code for mmf.datasets.processors.processors</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) Facebook, Inc. and its affiliates.</span>
+
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">The processors exist in MMF to make data processing pipelines in various</span>
 <span class="sd">datasets as similar as possible while allowing code reuse.</span>
@@ -256,26 +257,21 @@
 
 <span class="sd">Config::</span>
 
-
 <span class="sd">    dataset_config:</span>
-<span class="sd">        vqa2:</span>
-<span class="sd">            processors:</span>
-<span class="sd">                text_processor:</span>
-<span class="sd">                type: vocab</span>
-<span class="sd">                params:</span>
-<span class="sd">                    max_length: 14</span>
-<span class="sd">                    vocab:</span>
-<span class="sd">                    type: intersected</span>
-<span class="sd">                    embedding_name: glove.6B.300d</span>
-<span class="sd">                    vocab_file: vocabs/vocabulary_100k.txt</span>
-<span class="sd">                    answer_processor:</span>
-<span class="sd">                    type: vqa_answer</span>
-<span class="sd">                    params:</span>
-<span class="sd">                        num_answers: 10</span>
-<span class="sd">                        vocab_file: vocabs/answers_vqa.txt</span>
-<span class="sd">                        preprocessor:</span>
-<span class="sd">                        type: simple_word</span>
-<span class="sd">                        params: {}</span>
+<span class="sd">      vqa2:</span>
+<span class="sd">        data_dir: ${env.data_dir}</span>
+<span class="sd">        processors:</span>
+<span class="sd">          text_processor:</span>
+<span class="sd">            type: vocab</span>
+<span class="sd">            params:</span>
+<span class="sd">              max_length: 14</span>
+<span class="sd">              vocab:</span>
+<span class="sd">                type: intersected</span>
+<span class="sd">                embedding_name: glove.6B.300d</span>
+<span class="sd">                vocab_file: vqa2/defaults/extras/vocabs/vocabulary_100k.txt</span>
+<span class="sd">              preprocessor:</span>
+<span class="sd">                type: simple_sentence</span>
+<span class="sd">                params: {}</span>
 
 <span class="sd">``BaseDataset`` will init the processors and they will available inside your</span>
 <span class="sd">dataset with same attribute name as the key name, for e.g. `text_processor` will</span>
@@ -291,7 +287,7 @@
 <span class="sd">    from mmf.common.registry import registry</span>
 <span class="sd">    from mmf.datasets.processors import BaseProcessor</span>
 
-
+<span class="sd">    @registry.register_processor(&#39;my_processor&#39;)</span>
 <span class="sd">    class MyProcessor(BaseProcessor):</span>
 <span class="sd">        def __init__(self, config, *args, **kwargs):</span>
 <span class="sd">            return</span>
@@ -301,7 +297,6 @@
 <span class="sd">            text = [t.strip() for t in text.split(&quot; &quot;)]</span>
 <span class="sd">            return {&quot;text&quot;: text}</span>
 <span class="sd">&quot;&quot;&quot;</span>
-
 
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -320,7 +315,7 @@
 <span class="kn">from</span> <span class="nn">mmf.utils.vocab</span> <span class="kn">import</span> <span class="n">Vocab</span><span class="p">,</span> <span class="n">WordToVectorDict</span>
 
 
-<div class="viewcode-block" id="BaseProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.BaseProcessor">[docs]</a><span class="k">class</span> <span class="nc">BaseProcessor</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.BaseProcessor">[docs]</a><span class="k">class</span> <span class="nc">BaseProcessor</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Every processor in MMF needs to inherit this class for compatibility</span>
 <span class="sd">    with MMF. End user mainly needs to implement ``__call__`` function.</span>
 
@@ -347,7 +342,7 @@
         <span class="k">return</span> <span class="n">item</span></div>
 
 
-<div class="viewcode-block" id="Processor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.Processor">[docs]</a><span class="k">class</span> <span class="nc">Processor</span><span class="p">:</span>
+<div class="viewcode-block" id="Processor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.Processor">[docs]</a><span class="k">class</span> <span class="nc">Processor</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Wrapper class used by MMF to initialized processor based on their</span>
 <span class="sd">    ``type`` as passed in configuration. It retrieves the processor class</span>
 <span class="sd">    registered in registry corresponding to the ``type`` key and initializes</span>
@@ -396,7 +391,7 @@
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="VocabProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.VocabProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;vocab&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="VocabProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.VocabProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;vocab&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">VocabProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Use VocabProcessor when you have vocab file and you want to process</span>
 <span class="sd">    words to indices. Expects UNK token as &quot;&lt;unk&gt;&quot; and pads sentences using</span>
@@ -410,18 +405,18 @@
 
 <span class="sd">    Example Config::</span>
 
-<span class="sd">        task_attributes:</span>
-<span class="sd">            vqa:</span>
-<span class="sd">                vqa2:</span>
-<span class="sd">                    processors:</span>
-<span class="sd">                      text_processor:</span>
-<span class="sd">                        type: vocab</span>
-<span class="sd">                        params:</span>
-<span class="sd">                          max_length: 14</span>
-<span class="sd">                          vocab:</span>
-<span class="sd">                            type: intersected</span>
-<span class="sd">                            embedding_name: glove.6B.300d</span>
-<span class="sd">                            vocab_file: vocabs/vocabulary_100k.txt</span>
+<span class="sd">        dataset_config:</span>
+<span class="sd">          vqa2:</span>
+<span class="sd">            data_dir: ${env.data_dir}</span>
+<span class="sd">            processors:</span>
+<span class="sd">              text_processor:</span>
+<span class="sd">                type: vocab</span>
+<span class="sd">                params:</span>
+<span class="sd">                  max_length: 14</span>
+<span class="sd">                  vocab:</span>
+<span class="sd">                    type: intersected</span>
+<span class="sd">                    embedding_name: glove.6B.300d</span>
+<span class="sd">                    vocab_file: vqa2/defaults/extras/vocabs/vocabulary_100k.txt</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        config (DictConfig): node containing configuration parameters of</span>
@@ -515,7 +510,7 @@
         <span class="n">token_length</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">token_length</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">padded_tokens</span><span class="p">,</span> <span class="n">token_length</span>
 
-<div class="viewcode-block" id="VocabProcessor.get_pad_index"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.VocabProcessor.get_pad_index">[docs]</a>    <span class="k">def</span> <span class="nf">get_pad_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="VocabProcessor.get_pad_index"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.VocabProcessor.get_pad_index">[docs]</a>    <span class="k">def</span> <span class="nf">get_pad_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get index of padding &lt;pad&gt; token in vocabulary.</span>
 
 <span class="sd">        Returns:</span>
@@ -524,7 +519,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="o">.</span><span class="n">get_pad_index</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="VocabProcessor.get_vocab_size"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.VocabProcessor.get_vocab_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="VocabProcessor.get_vocab_size"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.VocabProcessor.get_vocab_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get size of the vocabulary.</span>
 
 <span class="sd">        Returns:</span>
@@ -546,7 +541,7 @@
         <span class="k">return</span> <span class="n">output</span></div>
 
 
-<div class="viewcode-block" id="GloVeProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.GloVeProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;glove&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="GloVeProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.GloVeProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;glove&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">GloVeProcessor</span><span class="p">(</span><span class="n">VocabProcessor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Inherits VocabProcessor, and returns GloVe vectors for each of the</span>
 <span class="sd">    words. Maps them to index using vocab processor, and then gets GloVe vectors</span>
@@ -589,7 +584,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">embeddings</span><span class="p">}</span></div>
 
 
-<div class="viewcode-block" id="FastTextProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.FastTextProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;fasttext&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="FastTextProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.FastTextProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;fasttext&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">FastTextProcessor</span><span class="p">(</span><span class="n">VocabProcessor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;FastText processor, similar to GloVe processor but returns FastText vectors.</span>
 
@@ -717,7 +712,7 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="VQAAnswerProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.VQAAnswerProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;vqa_answer&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="VQAAnswerProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.VQAAnswerProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;vqa_answer&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">VQAAnswerProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Processor for generating answer scores for answers passed using VQA</span>
 <span class="sd">    accuracy formula. Using VocabDict class to represent answer vocabulary,</span>
@@ -816,7 +811,7 @@
             <span class="s2">&quot;answers_scores&quot;</span><span class="p">:</span> <span class="n">answers_scores</span><span class="p">,</span>
         <span class="p">}</span>
 
-<div class="viewcode-block" id="VQAAnswerProcessor.get_vocab_size"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.VQAAnswerProcessor.get_vocab_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="VQAAnswerProcessor.get_vocab_size"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.VQAAnswerProcessor.get_vocab_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get vocab size of the answer vocabulary. Can also include</span>
 <span class="sd">        soft copy dynamic answer space size.</span>
 
@@ -826,7 +821,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">num_vocab</span></div>
 
-<div class="viewcode-block" id="VQAAnswerProcessor.get_true_vocab_size"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.VQAAnswerProcessor.get_true_vocab_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_true_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="VQAAnswerProcessor.get_true_vocab_size"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.VQAAnswerProcessor.get_true_vocab_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_true_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;True vocab size can be different from normal vocab size in some cases</span>
 <span class="sd">        such as soft copy where dynamic answer space is added.</span>
 
@@ -836,7 +831,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">num_vocab</span></div>
 
-<div class="viewcode-block" id="VQAAnswerProcessor.word2idx"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.VQAAnswerProcessor.word2idx">[docs]</a>    <span class="k">def</span> <span class="nf">word2idx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">word</span><span class="p">):</span>
+<div class="viewcode-block" id="VQAAnswerProcessor.word2idx"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.VQAAnswerProcessor.word2idx">[docs]</a>    <span class="k">def</span> <span class="nf">word2idx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">word</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Convert a word to its index according to vocabulary</span>
 
 <span class="sd">        Args:</span>
@@ -848,7 +843,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">word2idx</span><span class="p">(</span><span class="n">word</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="VQAAnswerProcessor.idx2word"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.VQAAnswerProcessor.idx2word">[docs]</a>    <span class="k">def</span> <span class="nf">idx2word</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<div class="viewcode-block" id="VQAAnswerProcessor.idx2word"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.VQAAnswerProcessor.idx2word">[docs]</a>    <span class="k">def</span> <span class="nf">idx2word</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Index to word according to the vocabulary.</span>
 
 <span class="sd">        Args:</span>
@@ -860,7 +855,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">idx2word</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="VQAAnswerProcessor.compute_answers_scores"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.VQAAnswerProcessor.compute_answers_scores">[docs]</a>    <span class="k">def</span> <span class="nf">compute_answers_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">answers_indices</span><span class="p">):</span>
+<div class="viewcode-block" id="VQAAnswerProcessor.compute_answers_scores"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.VQAAnswerProcessor.compute_answers_scores">[docs]</a>    <span class="k">def</span> <span class="nf">compute_answers_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">answers_indices</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Generate VQA based answer scores for answers_indices.</span>
 
 <span class="sd">        Args:</span>
@@ -896,19 +891,19 @@
         <span class="k">return</span> <span class="n">tokens</span></div>
 
 
-<div class="viewcode-block" id="MultiHotAnswerFromVocabProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.MultiHotAnswerFromVocabProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;multi_hot_answer_from_vocab&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="MultiHotAnswerFromVocabProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.MultiHotAnswerFromVocabProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;multi_hot_answer_from_vocab&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">MultiHotAnswerFromVocabProcessor</span><span class="p">(</span><span class="n">VQAAnswerProcessor</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-<div class="viewcode-block" id="MultiHotAnswerFromVocabProcessor.compute_answers_scores"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.MultiHotAnswerFromVocabProcessor.compute_answers_scores">[docs]</a>    <span class="k">def</span> <span class="nf">compute_answers_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">answers_indices</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiHotAnswerFromVocabProcessor.compute_answers_scores"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.MultiHotAnswerFromVocabProcessor.compute_answers_scores">[docs]</a>    <span class="k">def</span> <span class="nf">compute_answers_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">answers_indices</span><span class="p">):</span>
         <span class="n">scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_vocab_size</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
         <span class="n">scores</span><span class="p">[</span><span class="n">answers_indices</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">scores</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">UNK_INDEX</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="n">scores</span></div></div>
 
 
-<div class="viewcode-block" id="SoftCopyAnswerProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.SoftCopyAnswerProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;soft_copy_answer&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="SoftCopyAnswerProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.SoftCopyAnswerProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;soft_copy_answer&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">SoftCopyAnswerProcessor</span><span class="p">(</span><span class="n">VQAAnswerProcessor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Similar to Answer Processor but adds soft copy dynamic answer space to it.</span>
 <span class="sd">    Read https://arxiv.org/abs/1904.08920 for extra information on soft copy</span>
@@ -937,7 +932,7 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;context_preprocessor&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">context_preprocessor</span> <span class="o">=</span> <span class="n">Processor</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">context_preprocessor</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SoftCopyAnswerProcessor.get_vocab_size"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.SoftCopyAnswerProcessor.get_vocab_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftCopyAnswerProcessor.get_vocab_size"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.SoftCopyAnswerProcessor.get_vocab_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Size of Vocab + Size of Dynamic soft-copy based answer space</span>
 
 <span class="sd">        Returns:</span>
@@ -949,7 +944,7 @@
 
         <span class="k">return</span> <span class="n">answer_vocab_nums</span></div>
 
-<div class="viewcode-block" id="SoftCopyAnswerProcessor.get_true_vocab_size"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.SoftCopyAnswerProcessor.get_true_vocab_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_true_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftCopyAnswerProcessor.get_true_vocab_size"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.SoftCopyAnswerProcessor.get_true_vocab_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_true_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Actual vocab size which only include size of the vocabulary file.</span>
 
 <span class="sd">        Returns:</span>
@@ -1002,7 +997,7 @@
         <span class="p">}</span></div>
 
 
-<div class="viewcode-block" id="SimpleWordProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.SimpleWordProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;simple_word&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="SimpleWordProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.SimpleWordProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;simple_word&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">SimpleWordProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Tokenizes a word and processes it.</span>
 
@@ -1020,7 +1015,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)}</span></div>
 
 
-<div class="viewcode-block" id="SimpleSentenceProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.SimpleSentenceProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;simple_sentence&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="SimpleSentenceProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.SimpleSentenceProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;simple_sentence&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">SimpleSentenceProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Tokenizes a sentence and processes it.</span>
 
@@ -1038,7 +1033,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)}</span></div>
 
 
-<div class="viewcode-block" id="BBoxProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.BBoxProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;bbox&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="BBoxProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.BBoxProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;bbox&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">BBoxProcessor</span><span class="p">(</span><span class="n">VocabProcessor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Generates bboxes in proper format.</span>
 <span class="sd">    Takes in a dict which contains &quot;info&quot; key which is a list of dicts</span>
@@ -1090,7 +1085,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;bbox&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda_fn</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span><span class="p">)}</span></div>
 
 
-<div class="viewcode-block" id="CaptionProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.CaptionProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;caption&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="CaptionProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.CaptionProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;caption&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">CaptionProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Processes a caption with start, end and pad tokens and returns raw string.</span>
 
@@ -1122,7 +1117,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;tokens&quot;</span><span class="p">:</span> <span class="n">tokens</span><span class="p">,</span> <span class="s2">&quot;caption&quot;</span><span class="p">:</span> <span class="n">caption</span><span class="p">}</span></div>
 
 
-<span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;evalai_answer&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="EvalAIAnswerProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.EvalAIAnswerProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;evalai_answer&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">EvalAIAnswerProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Processes an answer similar to Eval AI</span>
 
@@ -1332,10 +1327,10 @@
         <span class="n">item</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_punctuation</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
         <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_digit_article</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">item</span>
+        <span class="k">return</span> <span class="n">item</span></div>
 
 
-<span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;phoc&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="PhocProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.PhocProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;phoc&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">PhocProcessor</span><span class="p">(</span><span class="n">VocabProcessor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute PHOC features from text tokens</span>
@@ -1360,10 +1355,10 @@
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">token</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
             <span class="n">output</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_phoc</span><span class="p">(</span><span class="n">token</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="n">output</span>
+        <span class="k">return</span> <span class="n">output</span></div>
 
 
-<span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;copy&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="CopyProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.CopyProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;copy&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">CopyProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Copy boxes from numpy array</span>
@@ -1377,10 +1372,10 @@
         <span class="n">final_blob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">max_length</span><span class="p">,)</span> <span class="o">+</span> <span class="n">blob</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">blob</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
         <span class="n">final_blob</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">blob</span><span class="p">)]</span> <span class="o">=</span> <span class="n">blob</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">final_blob</span><span class="p">)]</span>
 
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;blob&quot;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">final_blob</span><span class="p">)}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;blob&quot;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">final_blob</span><span class="p">)}</span></div>
 
 
-<span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;m4c_answer&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="M4CAnswerProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.M4CAnswerProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;m4c_answer&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">M4CAnswerProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Process a TextVQA answer for iterative decoding in M4C</span>
@@ -1414,7 +1409,7 @@
     <span class="k">def</span> <span class="nf">tokenize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sentence</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">sentence</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">match_answer_to_vocab_ocr_seq</span><span class="p">(</span>
+<div class="viewcode-block" id="M4CAnswerProcessor.match_answer_to_vocab_ocr_seq"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.M4CAnswerProcessor.match_answer_to_vocab_ocr_seq">[docs]</a>    <span class="k">def</span> <span class="nf">match_answer_to_vocab_ocr_seq</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">answer</span><span class="p">,</span> <span class="n">vocab2idx_dict</span><span class="p">,</span> <span class="n">ocr2inds_dict</span><span class="p">,</span> <span class="n">max_match_num</span><span class="o">=</span><span class="mi">20</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1453,7 +1448,7 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx_seq_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_match_num</span><span class="p">:</span>
                 <span class="n">idx_seq_list</span> <span class="o">=</span> <span class="n">idx_seq_list</span><span class="p">[:</span><span class="n">max_match_num</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="n">idx_seq_list</span>
+        <span class="k">return</span> <span class="n">idx_seq_list</span></div>
 
     <span class="k">def</span> <span class="nf">get_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">answer_vocab_nums</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">num_vocab</span>
@@ -1557,10 +1552,10 @@
             <span class="s2">&quot;train_prev_inds&quot;</span><span class="p">:</span> <span class="n">train_prev_inds</span><span class="p">,</span>
             <span class="s2">&quot;train_loss_mask&quot;</span><span class="p">:</span> <span class="n">train_loss_mask</span><span class="p">,</span>
         <span class="p">}</span>
-        <span class="k">return</span> <span class="n">answer_info</span>
+        <span class="k">return</span> <span class="n">answer_info</span></div>
 
 
-<span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;m4c_caption&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="M4CCaptionProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.M4CCaptionProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;m4c_caption&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">M4CCaptionProcessor</span><span class="p">(</span><span class="n">M4CAnswerProcessor</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -1584,7 +1579,7 @@
 
     <span class="k">def</span> <span class="nf">compute_answer_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">answers</span><span class="p">):</span>
         <span class="n">unique_answer2score</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="mf">1.0</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">answers</span><span class="p">}</span>
-        <span class="k">return</span> <span class="n">unique_answer2score</span>
+        <span class="k">return</span> <span class="n">unique_answer2score</span></div>
 </pre></div>
 
              </article>
