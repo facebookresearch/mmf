@@ -19,6 +19,8 @@ module.exports = {
     Notes: [
       'notes/concepts',
       'notes/configuration',
+      'notes/dataset_zoo',
+      'notes/model_zoo',
       'notes/pretrained_models',
       'notes/projects',
     ],
