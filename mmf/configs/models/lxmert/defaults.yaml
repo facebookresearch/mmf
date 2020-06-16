@@ -1,8 +1,6 @@
 model_config:
   lxmert:
     bert_model_name: bert-base-uncased
-    training_head_type: pretraining
-#     training_head_type: classification
     random_initialize: false
     num_labels: 3129
     num_hidden_layers : 12
@@ -29,23 +27,23 @@ model_config:
     task_qa: true
     visual_losses:
     - obj
-    - attr
+#     - attr
     - feat
     visual_loss_config:
       obj:
       - 1600
       - ce
-      - !!python/tuple [-1,]
+      - [-1,]
       - 6.67
       attr:
       - 400
       - ce
-      - !!python/tuple [-1,]
+      - [-1,]
       - 6.67
       feat:
       - 2048
       - l2
-      - !!python/tuple [-1, 2048]
+      - [-1, 2048]
       - 6.67
     special_visual_initialize: true # i dont know what this is
     hard_cap_seq_len: 36
@@ -63,4 +61,3 @@ model_config:
     in_batch_pairs: false
     visualization: false # need to implement
     model: "bert"
-
