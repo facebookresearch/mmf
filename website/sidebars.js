@@ -26,7 +26,7 @@ module.exports = {
     ],
     Tutorials: [
       'tutorials/dataset',
-      'tutorials/late_fusion',
+      'tutorials/concat_bert',
       'tutorials/checkpointing',
     ],
     Challenges: [
