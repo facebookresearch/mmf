@@ -1,3 +1,6 @@
+includes:
+- configs/datasets/mmimdb/with_features.yaml
+
 model_config:
   vilbert:
     training_head_type: classification

@@ -3,8 +3,15 @@ dataset_config:
     data_dir: ${env.data_dir}
     depth_first: false
     fast_read: false
-    use_images: false
-    use_features: true
+    use_images: true
+    use_features: false
+    images:
+      train:
+      - datasets/mmimdb/defaults/images/mmimdb/dataset/
+      val:
+      - datasets/mmimdb/defaults/images/mmimdb/dataset/
+      test:
+      - datasets/mmimdb/defaults/images/mmimdb/dataset/
     features:
       train:
       - datasets/mmimdb/defaults/features/features.lmdb
@@ -44,4 +51,20 @@ dataset_config:
             preprocessor:
                 type: simple_word
                 params: {}
+      image_processor:
+        type: torchvision_transforms
+        params:
+          transforms:
+            - type: Resize
+              params:
+                size: [256, 256]
+            - type: CenterCrop
+              params:
+                size: [224, 224]
+            - ToTensor
+            - GrayScaleTo3Channels
+            - type: Normalize
+              params:
+                mean: [0.46777044, 0.44531429, 0.40661017]
+                std: [0.12221994, 0.12145835, 0.14380469]
     return_features_info: false

@@ -1,10 +1,5 @@
-includes:
-- configs/datasets/mmimdb/with_features.yaml
-
 model_config:
-  visual_bert:
-    hidden_size: 768
-    hidden_dropout_prob: 0.1
+  mmbt:
     training_head_type: classification
     num_labels: 24
     losses:
@@ -12,7 +7,7 @@ model_config:
 
 dataset_config:
   mmimdb:
-    return_features_info: true
+    return_features_info: false
     processors:
       text_processor:
         type: bert_tokenizer
@@ -24,17 +19,17 @@ dataset_config:
           mask_probability: 0
           max_seq_length: 256
 
-optimizer:
-  type: adam_w
-  params:
-    lr: 5e-5
-    eps: 1e-8
-
 scheduler:
   type: warmup_linear
   params:
     num_warmup_steps: 2000
-    num_training_steps: 88000
+    num_training_steps: ${training.max_updates}
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 1e-5
+    eps: 1e-8
 
 evaluation:
   metrics:
@@ -43,14 +38,13 @@ evaluation:
   - multilabel_micro_f1
 
 training:
-  batch_size: 480
+  batch_size: 32
   lr_scheduler: true
-  # Don't forget to update schedule_attributes if you update this
-  max_updates: 60000
+  max_updates: 22000
   early_stop:
     criteria: mmimdb/multilabel_micro_f1
     minimize: false
 
 checkpoint:
   pretrained_state_mapping:
-    model.bert: model.bert
+    bert: bert
