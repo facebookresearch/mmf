@@ -27,12 +27,26 @@ model_config:
     task_mask_lm: true
     task_obj_predict: true
     task_qa: true
-    visual_losses: ["obj", "attr", "feat"]
-    visual_loss_config: {
-         "obj": [1600, "ce", (-1,), 1 / 0.15],
-         "attr": [400, "ce", (-1,), 1 / 0.15],
-         "feat": [2048, "l2", (-1, 2048), 1 / 0.15],
-     }
+    visual_losses:
+    - obj
+    - attr
+    - feat
+    visual_loss_config:
+      obj:
+      - 1600
+      - ce
+      - !!python/tuple [-1,]
+      - 6.67
+      attr:
+      - 400
+      - ce
+      - !!python/tuple [-1,]
+      - 6.67
+      feat:
+      - 2048
+      - l2
+      - !!python/tuple [-1, 2048]
+      - 6.67
     special_visual_initialize: true # i dont know what this is
     hard_cap_seq_len: 36
     cut_first: text
