@@ -20,8 +20,11 @@ Follow the prerequisites for installation and dataset [here](https://github.com/
 
 For running training on train set, run the following command:
 
-```
-mmf_run config=projects/hateful_memes/configs/mmbt/defaults.yaml model=mmbt dataset=hateful_memes run_type=train_val
+```bash
+mmf_run config=projects/hateful_memes/configs/mmbt/defaults.yaml \
+    model=mmbt \
+    dataset=hateful_memes \
+    run_type=train_val
 ```
 
 This will train the `mmbt` model on the dataset and generate the checkpoints and best trained model (`mmbt_final.pth`) will be stored in the `./save` directory by default.
@@ -30,7 +33,7 @@ This will train the `mmbt` model on the dataset and generate the checkpoints and
 
 Next run evaluation on the validation set:
 
-```
+```bash
 mmf_run config=projects/hateful_memes/configs/mmbt/defaults.yaml \
     model=mmbt \
     dataset=hateful_memes \
@@ -50,7 +53,7 @@ After we trained the model and evaluated on the validation set, we will generate
 
 With MMF you can directly generate the predictions in the required submission format with the following command:
 
-```
+```bash
 mmf_predict config=projects/hateful_memes/configs/mmbt/defaults.yaml \
     model=mmbt \
     dataset=hateful_memes \
