@@ -185,7 +185,7 @@ class ImageDatabase(torch.utils.data.Dataset):
         if pick == "identifier" and "left_url" in item and "right_url" in item:
             return [image + "-img0.jpg", image + "-img1.jpg"]
         elif pick == "image_name" or pick == "image_id":
-            return [image + ".jpg"]
+            return [image + ".jpeg"]
         else:
             return [image]
 

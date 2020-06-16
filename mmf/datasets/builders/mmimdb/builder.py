@@ -6,7 +6,10 @@
 #
 
 from mmf.common.registry import registry
-from mmf.datasets.builders.mmimdb.dataset import MMIMDbDataset
+from mmf.datasets.builders.mmimdb.dataset import (
+    MMIMDbFeaturesDataset,
+    MMIMDbImageDataset,
+)
 from mmf.datasets.builders.vqa2.builder import VQA2Builder
 
 
@@ -15,8 +18,18 @@ class MMIMDbBuilder(VQA2Builder):
     def __init__(self):
         super().__init__()
         self.dataset_name = "mmimdb"
-        self.dataset_class = MMIMDbDataset
+        self.dataset_class = MMIMDbImageDataset
 
     @classmethod
     def config_path(cls):
         return "configs/datasets/mmimdb/defaults.yaml"
+
+    def load(self, config, dataset_type, *args, **kwargs):
+        config = config
+
+        if config.use_features:
+            self.dataset_class = MMIMDbFeaturesDataset
+
+        self.dataset = super().load(config, dataset_type, *args, **kwargs)
+
+        return self.dataset
