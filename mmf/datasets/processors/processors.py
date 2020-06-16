@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+
 """
 The processors exist in MMF to make data processing pipelines in various
 datasets as similar as possible while allowing code reuse.
@@ -24,26 +25,21 @@ different moving parts.
 
 Config::
 
-
     dataset_config:
-        vqa2:
-            processors:
-                text_processor:
-                type: vocab
-                params:
-                    max_length: 14
-                    vocab:
-                    type: intersected
-                    embedding_name: glove.6B.300d
-                    vocab_file: vocabs/vocabulary_100k.txt
-                    answer_processor:
-                    type: vqa_answer
-                    params:
-                        num_answers: 10
-                        vocab_file: vocabs/answers_vqa.txt
-                        preprocessor:
-                        type: simple_word
-                        params: {}
+      vqa2:
+        data_dir: ${env.data_dir}
+        processors:
+          text_processor:
+            type: vocab
+            params:
+              max_length: 14
+              vocab:
+                type: intersected
+                embedding_name: glove.6B.300d
+                vocab_file: vqa2/defaults/extras/vocabs/vocabulary_100k.txt
+              preprocessor:
+                type: simple_sentence
+                params: {}
 
 ``BaseDataset`` will init the processors and they will available inside your
 dataset with same attribute name as the key name, for e.g. `text_processor` will
@@ -59,7 +55,7 @@ Example::
     from mmf.common.registry import registry
     from mmf.datasets.processors import BaseProcessor
 
-
+    @registry.register_processor('my_processor')
     class MyProcessor(BaseProcessor):
         def __init__(self, config, *args, **kwargs):
             return
@@ -69,7 +65,6 @@ Example::
             text = [t.strip() for t in text.split(" ")]
             return {"text": text}
 """
-
 
 import copy
 import os
@@ -178,18 +173,18 @@ class VocabProcessor(BaseProcessor):
 
     Example Config::
 
-        task_attributes:
-            vqa:
-                vqa2:
-                    processors:
-                      text_processor:
-                        type: vocab
-                        params:
-                          max_length: 14
-                          vocab:
-                            type: intersected
-                            embedding_name: glove.6B.300d
-                            vocab_file: vocabs/vocabulary_100k.txt
+        dataset_config:
+          vqa2:
+            data_dir: ${env.data_dir}
+            processors:
+              text_processor:
+                type: vocab
+                params:
+                  max_length: 14
+                  vocab:
+                    type: intersected
+                    embedding_name: glove.6B.300d
+                    vocab_file: vqa2/defaults/extras/vocabs/vocabulary_100k.txt
 
     Args:
         config (DictConfig): node containing configuration parameters of
