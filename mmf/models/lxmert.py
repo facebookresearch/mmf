@@ -760,12 +760,9 @@ class LXMERTForPretraining(nn.Module):
             self.obj_predict_head = BertVisualObjHead(config)
             self.l1 = SmoothL1Loss(reduction="none")
             self.ce = CrossEntropyLoss(ignore_index=-1, reduction="none")
-
         if self.task_qa:
             self.answer_head = BertVisualAnswerHead(config, self.num_labels)
-
-        self.loss_fct = CrossEntropyLoss(ignore_index=-1)
-
+            self.loss_fct = CrossEntropyLoss(ignore_index=-1)
     def init_weights(self):
         if self.config.random_initialize is False:
             if self.config.bert_model_name is None:
