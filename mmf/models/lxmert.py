@@ -1,4 +1,4 @@
-# Copyright 2019 project LXMERT.
+ # Copyright 2019 project LXMERT.
 # Copyright 2018 The Google AI Language Team Authors and The HuggingFace Inc. team.
 # Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
 # Copyright (c) Facebook, Inc. and its affiliates.
@@ -33,7 +33,7 @@ from transformers.modeling_bert import (
     BertPredictionHeadTransform,
     BertPreTrainedModel,  # got rid of custom LXMERT class temporarily
 )
-
+ 
 from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.utils.configuration import get_mmf_cache_dir
@@ -294,15 +294,11 @@ class BertVisualAnswerHead(nn.Module):
 
 
 class BertVisualObjHead(nn.Module):
-    def __init__(self, config, visual_losses):
+    def __init__(self, config):
         super().__init__()
         self.transform = BertPredictionHeadTransform(config)
 
-        # Decide the use of visual losses
-#         visual_losses = visual_losses.split(",")
-        for loss in visual_losses:
-            assert loss in config.visual_losses
-        self.visual_losses = visual_losses
+        self.visual_losses = config.visual_losses
 
         # The output weights are the same as the input embeddings, but there is
         # an output-only bias for each token.
@@ -589,10 +585,14 @@ class LXMERTForPretraining(nn.Module):
             config, self.bert.embeddings.word_embeddings.weight
         )
         if self.task_obj_predict:
-            self.obj_predict_head = BertVisualObjHead(config, self.visual_losses)
+            self.obj_predict_head = BertVisualObjHead(config)
+            self.l1 = SmoothL1Loss(reduction="none")
+            self.ce = CrossEntropyLoss(ignore_index=-1, reduction="none")
+            
         if self.task_qa:
             self.answer_head = BertVisualAnswerHead(config, self.num_labels)
-
+            
+        self.loss_fct = CrossEntropyLoss(ignore_index=-1)
     def init_weights(self):
         if self.config.random_initialize is False:
             if self.config.bert_model_name is None:
@@ -651,51 +651,40 @@ class LXMERTForPretraining(nn.Module):
             answer_score = self.answer_head(pooled_output)
         else:
             answer_score = pooled_output[0][0]
-
-        total_loss = 0.0
-        loss_fct = CrossEntropyLoss(ignore_index=-1)
+   
 
         if masked_lm_labels is not None and self.task_mask_lm:
-            masked_lm_loss = loss_fct(
+            masked_lm_loss = self.loss_fct(
                 lang_prediction_scores.view(-1, lang_prediction_scores.size(-1)),
                 masked_lm_labels.view(-1),
             )
-            total_loss += masked_lm_loss
             output["masked_lm_loss"] = masked_lm_loss
         if matched_label is not None and self.task_matched:
             matched_label = torch.tensor(matched_label).repeat(cross_relationship_score.size(0)).to(cross_relationship_score).long()
-            matched_loss = loss_fct(
+            matched_loss = self.loss_fct(
                 cross_relationship_score.view(-1, 2), matched_label.view(-1)
             )
-            total_loss += matched_loss
             output["matched_loss"] = matched_loss
         if obj_labels is not None and self.task_obj_predict:
-            loss_fcts = {
-                "l2": SmoothL1Loss(reduction="none"),
-                "ce": CrossEntropyLoss(ignore_index=-1, reduction="none"),
-            }
+            
             total_visn_loss = 0.0
             visn_prediction_scores_dict = self.obj_predict_head(visn_output)
-            for key in self.visual_losses:
-#                 from mmf.common.registry import registry
-#                 writer = registry.get("writer", no_warning=True)
-
-                if key=='obj':
+            for key in self.visual_losses:                
+                if key=='obj':  
                     temp_obj_labels_dict = obj_labels.max(-1)
                     labels = temp_obj_labels_dict.indices
                     mask_conf = temp_obj_labels_dict.values
+                    visn_loss_fct = self.ce
                 elif key=='feat':
                     labels = visual_feats
-                    mask_conf = masked_image_labels
-#                 writer.write(labels, labels.size())
-#                 label, mask_conf = obj_labels[key]
+                    mask_conf = (masked_image_labels == 1).float()
+                    visn_loss_fct = self.l1
                 (
                     output_dim,
                     loss_fct_name,
                     label_shape,
                     weight,
                 ) = self.visual_loss_config[key]
-                visn_loss_fct = loss_fcts[loss_fct_name]
                 visn_prediction_scores = visn_prediction_scores_dict[key]
                 visn_loss = visn_loss_fct(
                     visn_prediction_scores.view(-1, output_dim),
@@ -703,18 +692,14 @@ class LXMERTForPretraining(nn.Module):
                 )
                 if visn_loss.dim() > 1:  # Regression Losses
                     visn_loss = visn_loss.mean(1)
-#                 mask_conf = torch.ones_like(visn_loss).to(visn_loss)
                 visn_loss = (visn_loss * mask_conf.view(-1)).mean() * weight
-                total_visn_loss += visn_loss
-                output["{}_loss".format(key)] = visn_loss
 
-            total_loss += total_visn_loss
+                total_visn_loss += visn_loss
             output["total_visn_loss"] = total_visn_loss
         if ans is not None and self.task_qa:
-            answer_loss = loss_fct(
+            answer_loss = self.loss_fct(
                 answer_score.view(-1, self.num_labels), ans.argmax(-1)
             )
-            total_loss += answer_loss
             output["answer_loss"] = answer_loss
 
         return output
@@ -832,11 +817,11 @@ class LXMERT(BaseModel):
         masked_lm_labels = sample_list.lm_label_ids
 
         ####
-
+        
         image_info = getattr(sample_list, "image_info_0", {})
 #         image_info.momoda
         image_dim_variable = getattr(image_info, "max_features", None)
-
+        
         image_feature_variable = getattr(sample_list, "image_feature_0", None)
         image_label_variable = getattr(sample_list, "image_labels", None)
         if image_label_variable is not None:
@@ -863,7 +848,7 @@ class LXMERT(BaseModel):
         image_location_variable = torch.tensor(
             image_location, dtype=torch.float
         ).cuda()
-
+        
         cls_prob = getattr(image_info, "cls_prob", None)
         if cls_prob is not None:
             cls_prob = torch.tensor(cls_prob).cuda()
@@ -941,7 +926,7 @@ class LXMERT(BaseModel):
                 output_dict["losses"][loss_key + "/matched_loss"] = output_dict.pop(
                     "matched_loss"
                 )
-            if "visn_loss" in output_dict.keys():
+            if "total_visn_loss" in output_dict.keys():
                 output_dict["losses"][loss_key + "/visn_loss"] = output_dict.pop(
                     "total_visn_loss"
                 )
