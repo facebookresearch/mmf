@@ -4,7 +4,7 @@ config_version: 1.0
 # Configuration for training
 training:
     # Name of the trainer class used to define the training/evalution loop
-    trainer: base_trainer
+    trainer: mmf_trainer
     # Seed to be used for training. -1 means random seed between 1 and 100000.
     # Either pass fixed through your config or command line arguments
     # Pass null to the seed if you don't want it seeded anyhow and

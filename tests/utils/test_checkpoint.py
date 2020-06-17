@@ -13,9 +13,10 @@ from omegaconf import OmegaConf
 
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
+from mmf.trainers.callbacks.checkpoint import CheckpointCallback
+from mmf.trainers.callbacks.early_stopping import EarlyStoppingCallback
 from mmf.utils.checkpoint import Checkpoint
 from mmf.utils.configuration import load_yaml
-from mmf.utils.early_stopping import EarlyStopping
 from mmf.utils.file_io import PathManager
 from mmf.utils.logger import Logger
 from tests.test_utils import compare_state_dicts
@@ -77,6 +78,10 @@ class TestUtilsCheckpoint(unittest.TestCase):
                     "pretrained_state_mapping": {"base_test": "base"},
                 },
                 "config_override": "test",
+                "training": {
+                    "checkpoint_interval": 1,
+                    "early_stop": {"criteria": "val/total_loss"},
+                },
             }
         )
         # Keep original copy for testing purposes
@@ -501,10 +506,13 @@ class TestUtilsCheckpoint(unittest.TestCase):
         self.trainer.num_updates = 0
         self.trainer.current_iteration = 0
         self.trainer.current_epoch = 0
-        self.trainer.early_stopping = EarlyStopping(self.trainer.model, checkpoint)
-        self.trainer.early_stopping.best_monitored_iteration = 1000
-        self.trainer.early_stopping.best_monitored_update = 1000
-        self.trainer.early_stopping.best_monitored_value = 0.1
+        self.trainer.checkpoint_callback = CheckpointCallback(self.config, self.trainer)
+        self.trainer.early_stop_callback = EarlyStoppingCallback(
+            self.config, self.trainer
+        )
+        self.trainer.early_stop_callback.early_stopping.best_monitored_iteration = 1000
+        self.trainer.early_stop_callback.early_stopping.best_monitored_update = 1000
+        self.trainer.early_stop_callback.early_stopping.best_monitored_value = 0.1
         self.trainer.current_epoch = 2
 
     def _do_a_pass(self):
