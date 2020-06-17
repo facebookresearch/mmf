@@ -540,14 +540,18 @@ class VQAAnswerProcessor(BaseProcessor):
             Dict: Processed answers, indices and scores.
 
         """
-        tokens = None
+        tokens = []
 
         if not isinstance(item, dict):
             raise TypeError("'item' passed to processor must be a dict")
 
         if "answer_tokens" in item:
             tokens = item["answer_tokens"]
-        elif "answers" in item:
+        elif (
+            "answers" in item
+            and item["answers"] is not None
+            and len(item["answers"]) > 0
+        ):
             if self.preprocessor is None:
                 raise AssertionError(
                     "'preprocessor' must be defined if you "
@@ -564,7 +568,9 @@ class VQAAnswerProcessor(BaseProcessor):
                 " to answer processor in a dict"
             )
 
-        tokens = self._increase_to_ten(tokens)
+        if len(tokens) != 0:
+            tokens = self._increase_to_ten(tokens)
+
         answers_indices = torch.zeros(self.DEFAULT_NUM_ANSWERS, dtype=torch.long)
         answers_indices.fill_(self.answer_vocab.get_unk_index())
 
