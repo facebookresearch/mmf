@@ -4,7 +4,7 @@ config_version: 1.0
 # Configuration for training
 training:
     # Name of the trainer class used to define the training/evalution loop
-    trainer: mmf
+    trainer: base_trainer
     # Seed to be used for training. -1 means random seed between 1 and 100000.
     # Either pass fixed through your config or command line arguments
     # Pass null to the seed if you don't want it seeded anyhow and
@@ -33,8 +33,8 @@ training:
     # Whether MMF should log or not, Default: False, which means
     # mmf will log by default
     should_not_log: false
-    # Whether the colored logs should be used
-    colored_logs: true
+    # Whether to capture stdout logs by the logger. Default: True
+    stdout_capture: true
 
     # Tensorboard control, by default tensorboard is disabled
     tensorboard: false
@@ -116,12 +116,6 @@ training:
     # to enable evaluation every log_interval
     evaluate_metrics: false
 
-    # This will enable anomaly detection mode in PyTorch. Use this for debugging
-    # purposes if you see NaN issues in your experiments.
-    # Warning: As per PyTorch docs, this usually slows down your code and should
-    # only be used for debugging purposes
-    detect_anomaly: false
-
 # Configuration for evaluation
 evaluation:
     # Metrics for evaluation
@@ -169,7 +163,7 @@ env:
     # or by directly setting this configuration attribute env.cache_dir
     # If nothing is specified, default is set to "mmf" inside
     # pytorch's cache folder
-    cache_dir: ../cache
+    cache_dir: ${resolve_cache_dir:MMF_CACHE_DIR}
 
     # Config path for dataset zoo, can be overridden via environment
     # variable MMF_DATASET_ZOO as well.
@@ -179,7 +173,7 @@ env:
     # Similar to cache dir, but can be used if specifically want to override
     # where MMF stores your data. Default would be cache_dir/data.
     # We will auto download models and datasets in this folder
-    data_dir: ../data
+    data_dir: ${resolve_dir:MMF_DATA_DIR, data}
 
     # Directory for saving checkpoints and other metadata
     # Use MMF_SAVE_DIR or env.save_dir to override
@@ -225,7 +219,7 @@ distributed:
 
 # Configuration for checkpointing including resuming and loading pretrained models
 checkpoint:
-    # If checkpoint.resume is true or 1, MMF will try to load automatically load
+    # If checkpoint.resume is true, MMF will try to load automatically load
     # checkpoint and state from "current.ckpt" from env.save_dir
     resume: false
     # `checkpoint.resume_file` can be used to load a specific checkpoint from a file
@@ -260,9 +254,6 @@ checkpoint:
     # for loading `text_embedding` module of your model from `text_embedding_pythia`of
     # pretrained file specified in `checkpoint.resume_file`.
     pretrained_state_mapping: {}
-
-    # Will save only the last max_to_keep; if -1, saves all eligible checkpoints
-    max_to_keep: -1
 
     # Whether to save git details or not
     save_git_details: true
