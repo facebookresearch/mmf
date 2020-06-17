@@ -1,0 +1,17 @@
+includes:
+- ./defaults.yaml
+
+dataset_config:
+  masked_vqa2:
+    use_images: false
+    use_features: true
+    features:
+      train:
+      - coco/defaults/features/coco_trainval2014.lmdb
+      - coco/defaults/features/coco_trainval2014.lmdb
+    annotations:
+      train:
+      - vqa2/defaults/annotations/imdb_train2014.npy
+      - vqa2/defaults/annotations/imdb_val2014.npy
+    return_features_info: true
+    use_image_feature_masks: true
