@@ -772,14 +772,18 @@
 <span class="sd">            Dict: Processed answers, indices and scores.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">tokens</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;item&#39; passed to processor must be a dict&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="s2">&quot;answer_tokens&quot;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
             <span class="n">tokens</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;answer_tokens&quot;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="s2">&quot;answers&quot;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="p">(</span>
+            <span class="s2">&quot;answers&quot;</span> <span class="ow">in</span> <span class="n">item</span>
+            <span class="ow">and</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;answers&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;answers&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
                     <span class="s2">&quot;&#39;preprocessor&#39; must be defined if you &quot;</span>
@@ -796,7 +800,9 @@
                 <span class="s2">&quot; to answer processor in a dict&quot;</span>
             <span class="p">)</span>
 
-        <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_increase_to_ten</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_increase_to_ten</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+
         <span class="n">answers_indices</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_NUM_ANSWERS</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
         <span class="n">answers_indices</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">get_unk_index</span><span class="p">())</span>
 
