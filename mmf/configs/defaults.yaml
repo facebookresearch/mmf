@@ -169,7 +169,7 @@ env:
     # or by directly setting this configuration attribute env.cache_dir
     # If nothing is specified, default is set to "mmf" inside
     # pytorch's cache folder
-    cache_dir: ../cache
+    cache_dir: ${resolve_cache_dir:MMF_CACHE_DIR}
 
     # Config path for dataset zoo, can be overridden via environment
     # variable MMF_DATASET_ZOO as well.
@@ -179,7 +179,7 @@ env:
     # Similar to cache dir, but can be used if specifically want to override
     # where MMF stores your data. Default would be cache_dir/data.
     # We will auto download models and datasets in this folder
-    data_dir: ../data
+    data_dir: ${resolve_dir:MMF_DATA_DIR, data}
 
     # Directory for saving checkpoints and other metadata
     # Use MMF_SAVE_DIR or env.save_dir to override
