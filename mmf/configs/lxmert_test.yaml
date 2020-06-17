@@ -1,0 +1,44 @@
+includes:
+- projects/pretrain_vl_right/configs/lxmert/masked_vqa2/full.yaml
+# add more datasets here if needed
+
+model_config:
+    lxmert:
+        model_config.lxmert.task_matched: false
+        model_config.lxmert.task_mask_lm: false
+        model_config.lxmert.task_obj_predict: false
+dataset_config:
+    masked_vqa2:
+        processors:
+            masked_token_processor:
+                type: masked_token
+                params:
+                  tokenizer_config:
+                    type: bert-base-uncased
+                    params:
+                    do_lower_case: true
+                  mask_probability: 0.15
+                  max_seq_length: 128
+            text_processor:
+                type: vocab
+                params:
+                    max_length: 14
+                    vocab:
+                      type: intersected
+                      embedding_name: glove.6B.300d
+                      vocab_file: vqa2/defaults/extras/vocabs/vocabulary_100k.txt
+                    preprocessor:
+                      type: simple_sentence
+                      params: {}
+            answer_processor:
+              type: vqa_answer
+              params:
+                num_answers: 10
+                vocab_file: vqa2/defaults/extras/vocabs/answers_vqa.txt
+                preprocessor:
+                  type: simple_word
+                  params: {}
+    # other_dataset:
+
+
+
