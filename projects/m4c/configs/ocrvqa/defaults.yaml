@@ -85,9 +85,9 @@ training:
     use_warmup: true
     warmup_factor: 0.2
     warmup_iterations: 1000
-    max_iterations: 48000
+    max_updates: 48000
     batch_size: 128
-    num_workers: 8
+    num_workers: 4
     task_size_proportional_sampling: true
     early_stop:
       criteria: ocrvqa/ocrvqa_accuracy

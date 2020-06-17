@@ -76,7 +76,6 @@ mmf_run config=projects/visual_bert/configs/hateful_memes/defaults.yaml \
 
 `checkpoint.resume_file` can also be used when loading a model file for evaluation or generating predictions. We will see more example usage of this later.
 
-
 ## Resuming training
 
 To resume the training in case it gets intterupted, run:
@@ -138,6 +137,5 @@ mmf_predict config=projects/visual_bert/configs/hateful_memes/defaults.yaml \
     run_type=test \
     checkpoint.resume_file=<path_to_finetuned_model>
 ```
-
 
 This will generate a submission file in csv format that can be used for submission to the Hateful Memes challenge.

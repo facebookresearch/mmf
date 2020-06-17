@@ -159,12 +159,12 @@ class TestReporter(Dataset):
             if "question_id" in report:
                 report.question_id = gather_tensor(report.question_id).view(-1)
             if "image_id" in report:
-                report.image_id = gather_tensor(report.image_id)
-                if len(report.image_id.shape) == 2:
+                if report.image_id.dim() == 2:
                     _, enc_size = report.image_id.size()
+                    report.image_id = gather_tensor(report.image_id)
                     report.image_id = report.image_id.view(-1, enc_size)
                 else:
-                    report.image_id = report.image_id.view(-1)
+                    report.image_id = gather_tensor(report.image_id).view(-1)
             if "context_tokens" in report:
                 _, enc_size = report.context_tokens.size()
                 report.context_tokens = gather_tensor(report.context_tokens)
