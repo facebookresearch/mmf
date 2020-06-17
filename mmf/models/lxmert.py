@@ -679,8 +679,8 @@ class LXMERTForPretraining(nn.Module):
             for key in self.visual_losses:
 #                 from mmf.common.registry import registry
 #                 writer = registry.get("writer", no_warning=True)
-                
-                if key=='obj':  
+
+                if key=='obj':
                     temp_obj_labels_dict = obj_labels.max(-1)
                     labels = temp_obj_labels_dict.indices
                     mask_conf = temp_obj_labels_dict.values
@@ -832,11 +832,11 @@ class LXMERT(BaseModel):
         masked_lm_labels = sample_list.lm_label_ids
 
         ####
-        
+
         image_info = getattr(sample_list, "image_info_0", {})
 #         image_info.momoda
         image_dim_variable = getattr(image_info, "max_features", None)
-        
+
         image_feature_variable = getattr(sample_list, "image_feature_0", None)
         image_label_variable = getattr(sample_list, "image_labels", None)
         if image_label_variable is not None:
@@ -863,7 +863,7 @@ class LXMERT(BaseModel):
         image_location_variable = torch.tensor(
             image_location, dtype=torch.float
         ).cuda()
-        
+
         cls_prob = getattr(image_info, "cls_prob", None)
         if cls_prob is not None:
             cls_prob = torch.tensor(cls_prob).cuda()
