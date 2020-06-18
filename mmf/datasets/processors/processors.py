@@ -69,6 +69,7 @@ Example::
 import copy
 import os
 import re
+import sys
 import warnings
 from collections import Counter, defaultdict
 
@@ -135,7 +136,7 @@ class Processor:
 
         params = {}
         if not hasattr(config, "params"):
-            self.writer.write(
+            warnings.warn(
                 "Config doesn't have 'params' attribute to "
                 "specify parameters of the processor "
                 "of type {}. Setting to default {{}}".format(config.type)
@@ -209,7 +210,8 @@ class VocabProcessor(BaseProcessor):
         self._init_extras(config)
 
     def _init_extras(self, config, *args, **kwargs):
-        self.writer = registry.get("writer")
+        writer = registry.get("writer")
+        self.writer = writer if writer is not None else sys.stdout
         self.preprocessor = None
 
         if hasattr(config, "max_length"):
@@ -398,7 +400,7 @@ class FastTextProcessor(VocabProcessor):
             needs_download = True
 
         if needs_download:
-            self.writer.write("Downloading FastText bin", "info")
+            self.writer.write("Downloading FastText bin")
             model_file = self._download_model()
 
         self.model_file = model_file
@@ -414,7 +416,7 @@ class FastTextProcessor(VocabProcessor):
             return model_file_path
 
         if PathManager.exists(model_file_path):
-            self.writer.write(f"Vectors already present at {model_file_path}.", "info")
+            self.writer.write(f"Vectors already present at {model_file_path}.")
             return model_file_path
 
         import requests
@@ -441,7 +443,7 @@ class FastTextProcessor(VocabProcessor):
 
             pbar.close()
 
-        self.writer.write(f"fastText bin downloaded at {model_file_path}.", "info")
+        self.writer.write(f"fastText bin downloaded at {model_file_path}.")
 
         return model_file_path
 
