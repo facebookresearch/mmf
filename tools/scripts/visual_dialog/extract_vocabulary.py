@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import json
 
-from mmf.scripts.extract_vocabulary import ExtractVocabulary
+from tools.scripts.gqa.extract_vocabulary import ExtractVocabulary
 
 
 class ExtractVisdialVocabulary(ExtractVocabulary):
