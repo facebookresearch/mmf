@@ -1,9 +1,9 @@
 model_config:
   lxmert:
     training_head_type: pretraining
-    model_config.lxmert.task_matched: false
-    model_config.lxmert.task_mask_lm: false
-    model_config.lxmert.task_obj_predict: false
+    task_matched: false
+    task_mask_lm: false
+    task_obj_predict: false
     num_labels: 3129
 
 dataset_config:
