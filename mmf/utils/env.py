@@ -124,26 +124,16 @@ def setup_imports():
     )
 
     for f in files:
-        if f.find("models") != -1:
+        f = os.path.realpath(f)
+        if f.endswith(".py") and not f.endswith("__init__.py"):
             splits = f.split(os.sep)
+            import_prefix_index = 0
+            for idx, split in enumerate(splits):
+                if split == "mmf":
+                    import_prefix_index = idx + 1
             file_name = splits[-1]
             module_name = file_name[: file_name.find(".py")]
-            importlib.import_module("mmf.models." + module_name)
-        elif f.find("trainer") != -1:
-            splits = f.split(os.sep)
-            file_name = splits[-1]
-            module_name = file_name[: file_name.find(".py")]
-            importlib.import_module("mmf.trainers." + module_name)
-        elif f.endswith("builder.py"):
-            splits = f.split(os.sep)
-            folder_name = splits[-3]
-            dataset_name = splits[-2]
-            if folder_name == "datasets" or dataset_name == "datasets":
-                continue
-            file_name = splits[-1]
-            module_name = file_name[: file_name.find(".py")]
-            importlib.import_module(
-                "mmf.datasets." + folder_name + "." + dataset_name + "." + module_name
-            )
+            module = ".".join(["mmf"] + splits[import_prefix_index:-1] + [module_name])
+            importlib.import_module(module)
 
     registry.register("imports_setup", True)

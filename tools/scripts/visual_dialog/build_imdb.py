@@ -4,7 +4,7 @@ import glob
 import json
 import os
 
-from mmf.utils.preprocessing import text_tokenize
+from mmf.utils.text import tokenize
 
 
 class IMDBBuilder:
@@ -91,7 +91,7 @@ class IMDBBuilder:
             sentences = [sentences]
         final_sentences = []
         for _, sentence in enumerate(sentences):
-            tokens = text_tokenize(sentence)
+            tokens = tokenize(sentence)
             final_sentences.append(tokens)
 
         return final_sentences
