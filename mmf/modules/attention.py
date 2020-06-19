@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import math
+from typing import Optional, Tuple, Type
 
 import torch
 from torch import nn
@@ -163,10 +164,10 @@ class TopDownAttention(nn.Module):
 
 class MultiHeadAttention(nn.Module):
     """
-    Multi-Head Attention implementation in
-    https://arxiv.org/abs/1706.03762
+    Multi-Head Attention implementation from https://arxiv.org/abs/1706.03762
     """
-    def __init__(self, dim, num_attn, dropout=0.1):
+
+    def __init__(self, dim: int, num_attn: int, dropout: float = 0.1):
         super().__init__()
         self.p_attn = None
         self.h = num_attn
@@ -174,7 +175,14 @@ class MultiHeadAttention(nn.Module):
         self.linears = nn.ModuleList([nn.Linear(dim, dim) for _ in range(4)])
         self.dropout = nn.Dropout(p=dropout)
 
-    def qkv_attention(self, query, key, value, mask=None, dropout=None):
+    def qkv_attention(
+        self,
+        query: torch.Tensor,
+        key: torch.Tensor,
+        value: torch.Tensor,
+        mask: Optional[torch.Tensor] = None,
+        dropout: Type[nn.Dropout] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         d_k = query.size(-1)
         scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)
         if mask is not None:
@@ -186,7 +194,9 @@ class MultiHeadAttention(nn.Module):
 
         return torch.matmul(p_attn, value), p_attn
 
-    def forward(self, q, k, v, mask):
+    def forward(
+        self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor, mask: torch.Tensor
+    ) -> torch.Tensor:
         b = q.size(0)
 
         q = self.linears[0](q).view(b, -1, self.h, self.d_k).transpose(1, 2)
@@ -200,7 +210,7 @@ class MultiHeadAttention(nn.Module):
 
 
 class SelfAttention(nn.Module):
-    def __init__(self, dim, num_attn, dropout):
+    def __init__(self, dim: int, num_attn: int, dropout: float):
         super().__init__()
         self.multi_head_attn = MultiHeadAttention(dim, num_attn, dropout=0.1)
         self.fcn = nn.Sequential(
@@ -214,7 +224,7 @@ class SelfAttention(nn.Module):
         self.drop_fcn = nn.Dropout(p=dropout)
         self.ln_fcn = nn.LayerNorm(dim)
 
-    def forward(self, x, x_mask):
+    def forward(self, x: torch.Tensor, x_mask: torch.Tensor) -> torch.Tensor:
         x = self.ln_mha(x + self.drop_mha(self.multi_head_attn(x, x, x, x_mask)))
         x = self.ln_fcn(x + self.drop_fcn(self.fcn(x)))
 
@@ -222,7 +232,7 @@ class SelfAttention(nn.Module):
 
 
 class SelfGuidedAttention(nn.Module):
-    def __init__(self, dim, num_attn, dropout):
+    def __init__(self, dim: int, num_attn: int, dropout: float):
         super().__init__()
         self.multi_head_attn = nn.ModuleList(
             [MultiHeadAttention(dim, num_attn, dropout=0.1) for _ in range(2)]
@@ -238,7 +248,13 @@ class SelfGuidedAttention(nn.Module):
         self.drop_fcn = nn.Dropout(p=dropout)
         self.ln_fcn = nn.LayerNorm(dim)
 
-    def forward(self, x, y, x_mask, y_mask):
+    def forward(
+        self,
+        x: torch.Tensor,
+        y: torch.Tensor,
+        x_mask: torch.Tensor,
+        y_mask: torch.Tensor,
+    ) -> torch.Tensor:
         x = self.ln_mha[0](
             x + self.drop_mha[0](self.multi_head_attn[0](x, x, x, x_mask))
         )

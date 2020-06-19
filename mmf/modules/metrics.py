@@ -302,50 +302,10 @@ class VQAAccuracy(BaseMetric):
 
         """
         output = model_output["scores"]
-        expected = sample_list["targets"]
-
-        output = self._masked_unk_softmax(output, 1, 0)
-        output = output.argmax(dim=1)  # argmax
-
-        one_hots = expected.new_zeros(*expected.size())
-        one_hots.scatter_(1, output.view(-1, 1), 1)
-        scores = one_hots * expected
-        accuracy = torch.sum(scores) / expected.size(0)
-
-        return accuracy
-
-
-@registry.register_metric("triple_vqa_accuracy")
-class TripleVQAAccuracy(BaseMetric):
-    """
-    This is used for Three-branch fusion only. We only measure the
-    accuracy of fused branch out of three branches in both training
-    and inference.
-    """
-
-    def __init__(self):
-        super().__init__("triple_vqa_accuracy")
-
-    def _masked_unk_softmax(self, x, dim, mask_idx):
-        x1 = torch.nn.functional.softmax(x, dim=dim)
-        x1[:, mask_idx] = 0
-        x1_sum = torch.sum(x1, dim=1, keepdim=True)
-        y = x1 / x1_sum
-        return y
-
-    def calculate(self, sample_list, model_output, *args, **kwargs):
-        """Calculate vqa accuracy and return it back.
-        Args:
-            sample_list (SampleList): SampleList provided by DataLoader for
-                                current iteration
-            model_output (Dict): Dict returned by model.
-        Returns:
-            torch.FloatTensor: VQA Accuracy
-        """
-        output = model_output["scores"]
-        expected = sample_list["targets"]
+        # for three branch movie+mcan model
         if output.dim() == 3:
             output = output[:, 0]
+        expected = sample_list["targets"]
 
         output = self._masked_unk_softmax(output, 1, 0)
         output = output.argmax(dim=1)  # argmax

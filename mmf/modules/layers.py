@@ -1,4 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+
+from typing import Optional
+
 import torch
 from torch import nn
 from torch.nn.utils.weight_norm import weight_norm
@@ -119,19 +122,6 @@ class ClassifierLayer(nn.Module):
 
     def forward(self, *args, **kwargs):
         return self.module(*args, **kwargs)
-
-
-class TripleLinear(nn.Module):
-    def __init__(self, in_dim, out_dim):
-        super().__init__()
-        self.linears = nn.ModuleList([nn.Linear(in_dim, out_dim) for _ in range(3)])
-
-    def forward(self, joint_embedding):
-        if self.training:
-            feat = [self.linears[i](joint_embedding[:, i]) for i in range(3)]
-            return torch.stack(feat, dim=1)
-
-        return self.linears[0](joint_embedding)
 
 
 class BertClassifierHead(nn.Module):
@@ -680,3 +670,84 @@ class BiAttention(nn.Module):
         p = nn.functional.softmax(expanded_logits, 2)
 
         return p.view(-1, self.glimpse, v_num, q_num), logits
+
+
+class TripleLinear(nn.Module):
+    def __init__(self, in_dim: int, out_dim: int):
+        super().__init__()
+        self.linears = nn.ModuleList([nn.Linear(in_dim, out_dim) for _ in range(3)])
+
+    def forward(self, joint_embedding: torch.Tensor) -> torch.Tensor:
+        if self.training:
+            feat = [self.linears[i](joint_embedding[:, i]) for i in range(3)]
+            return torch.stack(feat, dim=1)
+
+        return self.linears[0](joint_embedding)
+
+
+class BranchCombineLayer(nn.Module):
+    """Three-branch fusion module used for fusing MoVie and MCAN in
+    https://arxiv.org/abs/2004.11883
+    """
+
+    def __init__(self, img_dim: int, ques_dim: int):
+        super().__init__()
+        self.out_dim = img_dim * 2
+        self.linear_cga = nn.ModuleList(
+            [nn.Linear(img_dim, self.out_dim) for _ in range(2)]
+        )
+        self.linear_cbn = nn.ModuleList(
+            [nn.Linear(1024, self.out_dim) for _ in range(2)]
+        )
+        self.linear_ques = nn.ModuleList(
+            [nn.Linear(ques_dim, self.out_dim) for _ in range(2)]
+        )
+        self.layer_norm = nn.ModuleList([nn.LayerNorm(self.out_dim) for _ in range(3)])
+
+    def forward(
+        self, v_cga: torch.Tensor, v_cbn: torch.Tensor, q: torch.Tensor
+    ) -> torch.Tensor:
+        feat = [
+            self.layer_norm[0](
+                self.linear_ques[0](q)
+                + self.linear_cbn[0](v_cbn)
+                + self.linear_cga[0](v_cga)
+            ),
+            self.layer_norm[1](self.linear_cbn[1](v_cbn)),
+            self.layer_norm[2](self.linear_ques[1](q) + self.linear_cga[1](v_cga)),
+        ]
+
+        if self.training:
+            return torch.stack(feat, dim=1)
+
+        return feat[0]
+
+
+class AttnPool1d(nn.Module):
+    """An attention pooling layer that learns weights using an mlp
+    """
+
+    def __init__(self, num_features: int, num_attn: int = 1, dropout: float = 0.1):
+        super().__init__()
+        self.linear = nn.Sequential(
+            nn.Linear(num_features, num_features // 2),
+            nn.ReLU(),
+            nn.Dropout(p=dropout),
+            nn.Linear(num_features // 2, num_attn),
+        )
+        self.p_attn = None
+        self.num_attn = num_attn
+
+    def forward(
+        self,
+        query: torch.Tensor,
+        value: torch.Tensor,
+        mask: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        b = query.size(0)
+        score = self.linear(query).transpose(-2, -1)
+        if mask is not None:
+            score.data.masked_fill_(mask.unsqueeze(1), -1e9)
+        self.p_attn = nn.functional.softmax(score, dim=-1)
+
+        return torch.matmul(self.p_attn, value).view(b, self.num_attn, -1)

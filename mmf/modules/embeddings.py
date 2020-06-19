@@ -1,9 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # TODO: Update kwargs with defaults
+
 import os
 import pickle
 from copy import deepcopy
 from functools import lru_cache
+from typing import Optional, Tuple
 
 import numpy as np
 import torch
@@ -11,9 +13,8 @@ from torch import nn
 from transformers.modeling_bert import BertEmbeddings
 
 from mmf.modules.attention import AttentionLayer, SelfAttention, SelfGuidedAttention
-from mmf.modules.bottleneck import Bottleneck
-from mmf.modules.layers import Identity
-from mmf.modules.pooling import AttnPool1d
+from mmf.modules.bottleneck import MovieBottleneck
+from mmf.modules.layers import AttnPool1d, Identity
 from mmf.utils.file_io import PathManager
 from mmf.utils.vocab import Vocab
 
@@ -431,11 +432,10 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
 
 
 class SAEmbedding(nn.Module):
+    """Encoder block implementation in MCAN https://arxiv.org/abs/1906.10770
     """
-    Encoder block implementation in MCAN
-    https://arxiv.org/abs/1906.10770
-    """
-    def __init__(self, hidden_dim, embedding_dim, **kwargs):
+
+    def __init__(self, hidden_dim: int, embedding_dim: int, **kwargs):
         super().__init__()
         num_attn = kwargs["num_attn"]
         num_layers = kwargs["num_layers"]
@@ -450,10 +450,7 @@ class SAEmbedding(nn.Module):
             batch_first=True,
         )
         self.self_attns = nn.ModuleList(
-            [
-                SelfAttention(hidden_dim, num_attn, dropout)
-                for _ in range(num_layers)
-            ]
+            [SelfAttention(hidden_dim, num_attn, dropout) for _ in range(num_layers)]
         )
         self.attn_pool = None
         self.num_feat = num_feat
@@ -462,7 +459,9 @@ class SAEmbedding(nn.Module):
             self.attn_pool = AttnPool1d(hidden_dim, num_feat * num_attn_pool)
             self.text_out_dim = hidden_dim * num_attn_pool
 
-    def forward(self, x, mask=None):
+    def forward(
+        self, x: torch.Tensor, mask: Optional[torch.Tensor] = None
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         b = x.size(0)
         out, (h, c) = self.lstm(x)
         for self_attn in self.self_attns:
@@ -476,11 +475,10 @@ class SAEmbedding(nn.Module):
 
 
 class SGAEmbedding(nn.Module):
+    """Decoder block implementation in MCAN https://arxiv.org/abs/1906.10770
     """
-    Decoder block implementation in MCAN
-    https://arxiv.org/abs/1906.10770
-    """
-    def __init__(self, embedding_dim, **kwargs):
+
+    def __init__(self, embedding_dim: int, **kwargs):
         super().__init__()
         num_attn = kwargs["num_attn"]
         num_layers = kwargs["num_layers"]
@@ -496,7 +494,13 @@ class SGAEmbedding(nn.Module):
         )
         self.out_dim = hidden_dim
 
-    def forward(self, x, y, x_mask, y_mask):
+    def forward(
+        self,
+        x: torch.Tensor,
+        y: torch.Tensor,
+        x_mask: torch.Tensor,
+        y_mask: torch.Tensor,
+    ) -> torch.Tensor:
         if x.dim() == 4:
             b, c, h, w = x.shape
             x = x.view(b, c, -1).transpose(1, 2).contiguous()  # b x (h*w) x c
@@ -510,11 +514,10 @@ class SGAEmbedding(nn.Module):
 
 
 class CBNEmbedding(nn.Module):
+    """MoVie bottleneck layers from https://arxiv.org/abs/2004.11883
     """
-    MoVie bottleneck layers in 
-    https://arxiv.org/abs/2004.11883
-    """
-    def __init__(self, embedding_dim, **kwargs):
+
+    def __init__(self, embedding_dim: int, **kwargs):
         super().__init__()
         cond_dim = kwargs["cond_dim"]
         num_layers = kwargs["cbn_num_layers"]
@@ -530,7 +533,7 @@ class CBNEmbedding(nn.Module):
                     embedding_dim, self.out_dim, kernel_size=1, stride=1, bias=False
                 )
                 cbns.append(
-                    Bottleneck(
+                    MovieBottleneck(
                         embedding_dim,
                         self.out_dim // 4,
                         cond_dim,
@@ -541,19 +544,23 @@ class CBNEmbedding(nn.Module):
                 )
             else:
                 cbns.append(
-                    Bottleneck(
-                        embedding_dim, self.out_dim // 4, cond_dim, compressed=compressed, use_se=use_se
+                    MovieBottleneck(
+                        embedding_dim,
+                        self.out_dim // 4,
+                        cond_dim,
+                        compressed=compressed,
+                        use_se=use_se,
                     )
                 )
             embedding_dim = self.out_dim
         self.cbns = nn.ModuleList(cbns)
         self._init_layers()
 
-    def _init_layers(self):
+    def _init_layers(self) -> None:
         for cbn in self.cbns:
             cbn.init_layers()
 
-    def forward(self, x, v):
+    def forward(self, x: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
 
         for cbn in self.cbns:
             x, _ = cbn(x, v)
@@ -566,11 +573,11 @@ class CBNEmbedding(nn.Module):
 
 
 class TwoBranchEmbedding(nn.Module):
-    """
-    Attach MoVie into MCAN model as a counting module in
+    """Attach MoVie into MCAN model as a counting module in
     https://arxiv.org/abs/2004.11883
     """
-    def __init__(self, embedding_dim, **kwargs):
+
+    def __init__(self, embedding_dim: int, **kwargs):
         super().__init__()
         hidden_dim = kwargs.get("hidden_dim", 512)
         self.sga = SGAEmbedding(embedding_dim, **kwargs)
@@ -578,7 +585,14 @@ class TwoBranchEmbedding(nn.Module):
         self.cbn = CBNEmbedding(embedding_dim, **kwargs)
         self.out_dim = hidden_dim
 
-    def forward(self, x, y, v, x_mask, y_mask):
+    def forward(
+        self,
+        x: torch.Tensor,
+        y: torch.Tensor,
+        v: torch.Tensor,
+        x_mask: torch.Tensor,
+        y_mask: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         x_sga = self.sga(x, y, x_mask, y_mask)
         x_sga = self.sga_pool(x_sga, x_sga, x_mask).squeeze(1)
         x_cbn = self.cbn(x, v)

@@ -39,14 +39,14 @@ class WarmupCosineScheduler(LambdaLR):
 
 @registry.register_scheduler("multi_step")
 class MultiStepScheduler(PythiaScheduler):
-    def __init__(self, config, optimizer):
-        self.use_warmup = config["use_warmup"]
-        self.lr_steps = config["lr_steps"]
-        self.lr_ratio = config["lr_ratio"]
-        self.warmup_iterations = config["warmup_iterations"] if self.use_warmup else 0
-        self.warmup_factor = config["warmup_factor"]
+    def __init__(self, optimizer, *args, **kwargs):
+        self.use_warmup = kwargs["use_warmup"]
+        self.lr_steps = kwargs["lr_steps"]
+        self.lr_ratio = kwargs["lr_ratio"]
+        self.warmup_iterations = kwargs["warmup_iterations"] if self.use_warmup else 0
+        self.warmup_factor = kwargs["warmup_factor"]
         assert self.warmup_iterations < self.lr_steps[0]
-        super().__init__(config, optimizer)
+        super().__init__(optimizer)
 
     def get_lr(self):
         if self.last_epoch <= self.warmup_iterations and self.use_warmup is True:

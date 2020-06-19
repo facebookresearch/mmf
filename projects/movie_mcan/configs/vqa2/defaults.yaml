@@ -2,7 +2,6 @@ model_config:
   movie_mcan:
     losses:
     - type: triple_logit_bce
-      params: {}
 
 dataset_config:
   vqa2:
@@ -10,45 +9,29 @@ dataset_config:
     use_features: true
     features:
       train:
-      - /checkpoint/kienduynguyen/data/coco/features
+      - /checkpoint/xinleic/vlfeat
+      - /checkpoint/xinleic/vlfeat
+      - /checkpoint/xinleic/vlfeat
       val:
-      - /checkpoint/kienduynguyen/data/coco/features
+      - /checkpoint/xinleic/vlfeat
       test:
-      - /checkpoint/kienduynguyen/data/coco/features
+      - /checkpoint/xinleic/vlfeat
     annotations:
       train:
       - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_train2014.npy
-      val:
       - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_val2014.npy
+      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_visualgenome.npy
+      val:
+      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_oneval2014_feat.npy
       test:
       - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_test2015.npy
-    processors:
-      text_processor:
-        type: vocab
-        params:
-          max_length: 14
-          vocab:
-            type: intersected
-            embedding_name: glove.6B.300d
-            vocab_file: /checkpoint/kienduynguyen/data/vocabs/vqa/vocabulary_100k.txt
-          preprocessor:
-            type: simple_sentence
-            params: {}
-      answer_processor:
-        type: vqa_answer
-        params:
-          num_answers: 10
-          vocab_file: /checkpoint/kienduynguyen/data/vocabs/vqa/answers_vqa.txt
-          preprocessor:
-            type: simple_word
-            params: {}
 
 optimizer:
   type: adam_w
   params:
-    lr: 0.0001
+    lr: 5e-05
     weight_decay: 0
-    eps: 1.0e-09
+    eps: 1e-09
     betas:
     - 0.9
     - 0.98
@@ -58,26 +41,26 @@ scheduler:
   params:
     use_warmup: true
     lr_steps:
-    - 90000
-    - 108000
+    - 180000
+    - 216000
     lr_ratio: 0.2
-    warmup_iterations: 27000
+    warmup_iterations: 54000
     warmup_factor: 0.25
 
 evaluation:
   metrics:
-  - triple_vqa_accuracy
+  - vqa_accuracy
 
 training:
+  lr_scheduler: true
   clip_norm_mode: all
   clip_gradients: false
   max_grad_l2_norm: 5
-  max_updates: 118000
-  patience: 20000
-  batch_size: 128
+  max_updates: 236000
+  batch_size: 64
   task_size_proportional_sampling: true
   encoder_lr_multiply: 1
   early_stop:
-    criteria: vqa2/triple_vqa_accuracy
+    criteria: vqa2/vqa_accuracy
     minimize: false
   find_unused_parameters: true

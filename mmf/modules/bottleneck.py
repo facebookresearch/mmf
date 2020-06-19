@@ -1,10 +1,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+from typing import Optional, Tuple, Type
+
 import torch
 import torch.nn as nn
 
 
-def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
+def conv3x3(
+    in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1
+) -> torch.Tensor:
     """3x3 convolution with padding"""
     return nn.Conv2d(
         in_planes,
@@ -18,24 +22,24 @@ def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
     )
 
 
-def conv1x1(in_planes, out_planes, stride=1):
+def conv1x1(in_planes: int, out_planes: int, stride: int = 1) -> torch.Tensor:
     """1x1 convolution"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
 
 
 class ChannelPool(nn.Module):
     """Average pooling in the channel dimension"""
+
     def __init__(self):
         super().__init__()
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x.mean(dim=1, keepdim=True)
 
 
 class SEModule(nn.Module):
-    """
-    Squeeze-and-Excitation module in
-    https://arxiv.org/pdf/1709.01507.pdf
+    """Squeeze-and-Excitation module from https://arxiv.org/pdf/1709.01507.pdf
+
     Args:
         dim: the original hidden dim.
         sqrate: the squeeze rate in hidden dim.
@@ -43,7 +47,8 @@ class SEModule(nn.Module):
         New features map that channels are gated
         by sigmoid weights from SE module.
     """
-    def __init__(self, dim, sqrate):
+
+    def __init__(self, dim: int, sqrate: float):
         super().__init__()
         self.se = nn.Sequential(
             nn.AdaptiveAvgPool2d((1, 1)),
@@ -58,7 +63,7 @@ class SEModule(nn.Module):
             nn.Sigmoid(),
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x * self.se(x)
 
         return x * self.attn(x)
@@ -70,14 +75,14 @@ class FrozenBatchNorm2d(nn.Module):
     are fixed
     """
 
-    def __init__(self, num_features, eps=1e-5):
+    def __init__(self, num_features: int, eps: float = 1e-5):
         super().__init__()
         self.register_buffer("weight", torch.ones(num_features))
         self.register_buffer("bias", torch.zeros(num_features))
         self.register_buffer("running_mean", torch.zeros(num_features))
         self.register_buffer("running_var", torch.ones(num_features) - eps)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         if x.requires_grad:
             scale = self.weight * self.running_var.rsqrt()
             bias = self.bias - self.running_mean * scale
@@ -99,7 +104,7 @@ class FrozenBatchNorm2d(nn.Module):
             )
 
     @classmethod
-    def convert_frozen_batchnorm(cls, module):
+    def convert_frozen_batchnorm(cls, module: Type[nn.Module]):
         """
         Convert BatchNorm/SyncBatchNorm in module into FrozenBatchNorm.
         Args:
@@ -130,42 +135,47 @@ class FrozenBatchNorm2d(nn.Module):
 
 
 class Modulation(nn.Module):
-
-    def __init__(self, num_features, num_cond_features, compressed=True):
-        super(Modulation, self).__init__()
+    def __init__(
+        self, num_features: int, num_cond_features: int, compressed: bool = True
+    ):
+        super().__init__()
         self.linear = nn.Linear(num_cond_features, num_features)
-        self.conv = nn.Conv2d(num_features, 256, kernel_size=1) \
-            if compressed else nn.Conv2d(num_features, num_features, kernel_size=1)
+        self.conv = (
+            nn.Conv2d(num_features, 256, kernel_size=1)
+            if compressed
+            else nn.Conv2d(num_features, num_features, kernel_size=1)
+        )
 
-    def forward(self, x, cond):
+    def forward(self, x: torch.Tensor, cond: torch.Tensor) -> torch.Tensor:
         cond = self.linear(cond).unsqueeze(2).unsqueeze(3)
 
         return self.conv(x * cond)
 
 
-class Bottleneck(nn.Module):
+class MovieBottleneck(nn.Module):
     """
-    Standard ResNet bottleneck with MoVie modulation in 
+    Standard ResNet bottleneck with MoVie modulation in
     https://arxiv.org/abs/2004.11883
     The code is inspired from
     https://pytorch.org/docs/stable/_modules/torchvision/models/resnet.html#resnext101_32x8d
     """
+
     expansion = 4
 
     def __init__(
         self,
-        inplanes,
-        planes,
-        cond_planes=None,
-        stride=1,
-        downsample=None,
-        groups=1,
-        base_width=64,
-        dilation=1,
-        norm_layer=None,
-        stride_in_1x1=False,
-        compressed=True,
-        use_se=True,
+        inplanes: int,
+        planes: int,
+        cond_planes: int = None,
+        stride: int = 1,
+        downsample: Optional[Type[nn.Module]] = None,
+        groups: int = 1,
+        base_width: int = 64,
+        dilation: int = 1,
+        norm_layer: Optional[Type[nn.Module]] = None,
+        stride_in_1x1: bool = False,
+        compressed: bool = True,
+        use_se: bool = True,
     ):
         super().__init__()
         self.norm_layer = norm_layer
@@ -200,10 +210,14 @@ class Bottleneck(nn.Module):
             self.bn3 = self.norm_layer(self.planes * self.expansion)
 
         if self.cond_planes:
-            self.mod = Modulation(self.inplanes, self.cond_planes, compressed=self.compressed)
+            self.mod = Modulation(
+                self.inplanes, self.cond_planes, compressed=self.compressed
+            )
             self.se = SEModule(self.planes * self.expansion, 4) if self.use_se else None
 
-    def forward(self, x, cond=None):
+    def forward(
+        self, x: torch.Tensor, cond: Optional[torch.Tensor] = None
+    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         identity = x
 
         if self.cond_planes and self.compressed:

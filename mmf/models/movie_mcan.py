@@ -12,8 +12,7 @@ from mmf.modules.embeddings import (
     TwoBranchEmbedding,
 )
 from mmf.modules.encoders import ImageFeatureEncoder
-from mmf.modules.layers import ClassifierLayer
-from mmf.modules.pooling import BranchCombineLayer
+from mmf.modules.layers import BranchCombineLayer, ClassifierLayer
 from mmf.utils.general import filter_grads
 
 
@@ -119,7 +118,7 @@ class MoVieMcan(BaseModel):
             multi_modal_combine_layer,
         )
 
-    def _init_classifier(self, combined_embedding_dim):
+    def _init_classifier(self, combined_embedding_dim: int):
         # TODO: Later support multihead
         num_choices = registry.get(self._datasets[0] + "_num_final_outputs")
         params = self.config["classifier"].get("params")
