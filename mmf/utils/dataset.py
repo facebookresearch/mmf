@@ -20,8 +20,8 @@ def build_bbox_tensors(infos, max_length):
 
     for idx, info in enumerate(infos):
         bbox = info["bounding_box"]
-        x = bbox["top_left_x"]
-        y = bbox["top_left_y"]
+        x = bbox.get("top_left_x", bbox["topLeftX"])
+        y = bbox.get("top_left_y", bbox["topLeftY"])
         width = bbox["width"]
         height = bbox["height"]
 
