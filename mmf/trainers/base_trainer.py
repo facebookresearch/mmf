@@ -17,7 +17,7 @@ else:
 
 if LXMERT_AUG:
     import sys
-    sys.append("/playpen/lxmert_loader")
+    sys.path.append("/playpen/lxmert_loader")
     from lxmert_pretrain import get_tuple
 >>>>>>> finalize configs + more temp model changes for new input data
 
@@ -86,7 +86,7 @@ class BaseTrainer(ABC):
 =======
             # try with tiny first
             train_tuple = get_tuple(SPLITS,
-                    256
+                    256,
                     shuffle=True,
                     drop_last=True)
             valid_batch_size = 512
