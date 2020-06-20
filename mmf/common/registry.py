@@ -47,6 +47,7 @@ class Registry:
         "scheduler_name_mapping": {},
         "processor_name_mapping": {},
         "decoder_name_mapping": {},
+        "feature_reader_name_mapping": {},
         "state": {},
     }
 
@@ -296,6 +297,36 @@ class Registry:
         return wrap
 
     @classmethod
+    def register_feature_reader(cls, name):
+        r"""Register a feature reader to registry with key 'name'
+
+        Args:
+            name: Key with which the feature reader will be registered.
+
+        Usage::
+
+            from mmf.common.registry import registry
+            from mmf.dataasets.databases.readers.feature_readers import MMFFeatureReader
+
+
+            @registry.register_feature_reader("my_custom_feature_reader")
+            class MyCustomFeatureReader(MMFFeatureReader):
+                ...
+
+        """
+
+        def wrap(feature_reader_cls):
+            from mmf.datasets.databases.readers.feature_readers import MMFFeatureReader
+
+            assert issubclass(
+                feature_reader_cls, MMFFeatureReader
+            ), "All feature reader must inherit MMFFeatureReader class"
+            cls.mapping["feature_reader_name_mapping"][name] = feature_reader_cls
+            return feature_reader_cls
+
+        return wrap
+
+    @classmethod
     def register(cls, name, obj):
         r"""Register an item to registry with key 'name'
 
@@ -353,6 +384,10 @@ class Registry:
     @classmethod
     def get_decoder_class(cls, name):
         return cls.mapping["decoder_name_mapping"].get(name, None)
+
+    @classmethod
+    def get_feature_reader_class(cls, name):
+        return cls.mapping["feature_reader_name_mapping"].get(name, None)
 
     @classmethod
     def get(cls, name, default=None, no_warning=False):

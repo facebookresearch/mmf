@@ -16,11 +16,11 @@ from mmf.utils.general import get_optimizer_parameters
 def build_config(
     configuration: Type[Configuration], *args, **kwargs
 ) -> mmf_typings.DictConfig:
-    """Builder function for config. Freezes the configuration and registers 
+    """Builder function for config. Freezes the configuration and registers
     configuration object and config DictConfig object to registry.
 
     Args:
-        configuration (Configuration): Configuration object that will be 
+        configuration (Configuration): Configuration object that will be
             used to create the config.
 
     Returns:
@@ -250,6 +250,12 @@ def build_image_encoder(config, direct_features=False, **kwargs):
     else:
         module = ImageEncoder(config)
     return module.module
+
+
+def build_feature_reader(config: mmf_typings.DictConfig, path: str, *args, **kwargs):
+    from mmf.datasets.databases.readers.feature_readers import MMFFeatureReader
+
+    return MMFFeatureReader.from_config_and_path(config, path, *args, **kwargs)
 
 
 def build_processors(
