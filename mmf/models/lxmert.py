@@ -33,7 +33,7 @@ from transformers.modeling_bert import (
     BertPredictionHeadTransform,
     BertPreTrainedModel,  # got rid of custom LXMERT class temporarily
 )
- 
+
 from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.utils.configuration import get_mmf_cache_dir
@@ -588,10 +588,10 @@ class LXMERTForPretraining(nn.Module):
             self.obj_predict_head = BertVisualObjHead(config)
             self.l1 = SmoothL1Loss(reduction="none")
             self.ce = CrossEntropyLoss(ignore_index=-1, reduction="none")
-            
+
         if self.task_qa:
             self.answer_head = BertVisualAnswerHead(config, self.num_labels)
-            
+
         self.loss_fct = CrossEntropyLoss(ignore_index=-1)
     def init_weights(self):
         if self.config.random_initialize is False:
@@ -651,7 +651,7 @@ class LXMERTForPretraining(nn.Module):
             answer_score = self.answer_head(pooled_output)
         else:
             answer_score = pooled_output[0][0]
-   
+
 
         if masked_lm_labels is not None and self.task_mask_lm:
             masked_lm_loss = self.loss_fct(
@@ -666,11 +666,11 @@ class LXMERTForPretraining(nn.Module):
             )
             output["matched_loss"] = matched_loss
         if obj_labels is not None and self.task_obj_predict:
-            
+
             total_visn_loss = 0.0
             visn_prediction_scores_dict = self.obj_predict_head(visn_output)
-            for key in self.visual_losses:                
-                if key=='obj':  
+            for key in self.visual_losses:
+                if key=='obj':
                     temp_obj_labels_dict = obj_labels.max(-1)
                     labels = temp_obj_labels_dict.indices
                     mask_conf = temp_obj_labels_dict.values
@@ -817,11 +817,11 @@ class LXMERT(BaseModel):
         masked_lm_labels = sample_list.lm_label_ids
 
         ####
-        
+
         image_info = getattr(sample_list, "image_info_0", {})
 #         image_info.momoda
         image_dim_variable = getattr(image_info, "max_features", None)
-        
+
         image_feature_variable = getattr(sample_list, "image_feature_0", None)
         image_label_variable = getattr(sample_list, "image_labels", None)
         if image_label_variable is not None:
@@ -848,7 +848,7 @@ class LXMERT(BaseModel):
         image_location_variable = torch.tensor(
             image_location, dtype=torch.float
         ).cuda()
-        
+
         cls_prob = getattr(image_info, "cls_prob", None)
         if cls_prob is not None:
             cls_prob = torch.tensor(cls_prob).cuda()
@@ -863,6 +863,7 @@ class LXMERT(BaseModel):
                 bert_input_type_ids = bert_input_type_ids[ssf]
                 masked_lm_labels = masked_lm_labels[ssf]
         answers = sample_list.targets
+
         return {
             "input_ids": bert_input_ids,
             "token_type_ids": bert_input_mask,

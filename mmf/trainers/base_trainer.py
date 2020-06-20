@@ -33,7 +33,6 @@ class BaseTrainer(ABC):
 
         # Initialize Callbacks
         self.configure_callbacks()
-
     @abstractmethod
     def configure_device(self):
         """Warning: this is just empty shell for code implemented in other class.
