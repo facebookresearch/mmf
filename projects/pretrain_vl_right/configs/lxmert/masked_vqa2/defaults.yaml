@@ -1,53 +1,45 @@
-model_config:
-  lxmert:
-    training_head_type: pretraining
-    task_matched: false
-    task_mask_lm: false
-    task_obj_predict: false
-    num_labels: 3129
-
 dataset_config:
-    masked_vqa2:
-        use_images: false
-        add_answer: true
-        use_features: true
-        features:
-          train:
-          - coco/defaults/features/trainval2014.lmdb
-          - coco/defaults/features/trainval2014.lmdb
-        annotations:
-          train:
-          - vqa2/defaults/annotations/imdb_train2014.npy
-          - vqa2/defaults/annotations/imdb_val2014.npy
-        return_features_info: true
-        use_image_feature_masks: true
-        processors:
-            masked_token_processor:
-                type: masked_token
+  masked_vqa2:
+    use_images: false
+    add_answer: true
+    use_features: true
+    features:
+      train:
+      - coco/defaults/features/trainval2014.lmdb
+    annotations:
+      train:
+      - vqa2/defaults/annotations/imdb_train2014.npy
+      - vqa2/defaults/annotations/imdb_val2014.npy
+    return_features_info: true
+    use_image_feature_masks: true
+    processors:
+        masked_token_processor:
+            type: masked_token
+            params:
+              tokenizer_config:
+                type: bert-base-uncased
                 params:
-                  tokenizer_config:
-                    type: bert-base-uncased
-                    params:
-                        do_lower_case: true
-                  mask_probability: 0.15
-                  max_seq_length: 128
-            text_processor:
-                type: bert_tokenizer
+                    do_lower_case: true
+              mask_probability: 0.15
+              max_seq_length: 128
+        text_processor:
+            type: bert_tokenizer
+            params:
+              tokenizer_config:
+                type: bert-base-uncased
                 params:
-                  tokenizer_config:
-                    type: bert-base-uncased
-                    params:
-                        do_lower_case: true
-                  mask_probability: 0
-                  max_seq_length: 128
-            answer_processor:
-                type: vqa_answer
-                params:
-                    num_answers: 10
-                    vocab_file: vqa2/defaults/extras/vocabs/answers_vqa.txt
-                    preprocessor:
-                      type: simple_word
-                      params: {}
+                    do_lower_case: true
+              mask_probability: 0
+              max_seq_length: 128
+        answer_processor:
+            type: vqa_answer
+            params:
+                num_answers: 10
+                vocab_file: vqa2/defaults/extras/vocabs/answers_vqa.txt
+                preprocessor:
+                  type: simple_word
+                  params: {}
+
 optimizer:
   type: adam_w
   params:
@@ -61,8 +53,10 @@ scheduler:
     num_training_steps: 11000
 
 training:
-  batch_size: 16
+  seed: 9595
+  batch_size: 256
   lr_scheduler: true
   # Don't forget to update schedule_attributes if you update this
-  max_updates: 11000
+  max_updates: null
+  max_epochs: 20
   find_unused_parameters: true
