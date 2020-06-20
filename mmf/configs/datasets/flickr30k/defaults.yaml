@@ -1,0 +1,35 @@
+dataset_config:
+  flickr30k:
+    data_dir: ${env.data_dir}/datasets
+    depth_first: false
+    fast_read: false
+    use_images: false
+    use_features: true
+    features:
+      train:
+      - flickr30k/defaults/features/detectron.lmdb
+      val:
+      - flickr30k/defaults/features/detectron.lmdb
+      test:
+      - flickr30k/defaults/features/detectron.lmdb
+    annotations:
+      train:
+      - /checkpoint/omkar/datasets/flickr30k/all_data_final_train_2014.jsonl
+      val:
+      - /checkpoint/omkar/datasets/flickr30k/all_data_final_train_2014.jsonl
+      test:
+      - /checkpoint/omkar/datasets/flickr30k/all_data_final_train_2014.jsonl
+    max_features: 100
+    return_features_info: true
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
+evaluation:
+  predict_file_format: csv

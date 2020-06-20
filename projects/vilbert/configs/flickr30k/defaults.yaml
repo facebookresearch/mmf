@@ -1,0 +1,46 @@
+model_config:
+  vilbert:
+    training_head_type: classification
+    num_labels: 1
+    losses:
+    - type: logit_bce
+
+dataset_config:
+  hateful_memes:
+    return_features_info: true
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 0.00002
+    eps: 1e-8
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 800
+    num_training_steps: ${training.max_updates}
+
+evaluation:
+  metrics:
+  - accuracy
+
+training:
+  batch_size: 4
+  lr_scheduler: true
+  max_updates: 8000
+  find_unused_parameters: true
+
+checkpoint:
+  pretrained_state_mapping:
+    model.bert: model.bert
