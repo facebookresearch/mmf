@@ -1,22 +1,19 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
 import random
 
 from mmf.common.sample import Sample
-from mmf.datasets.builders.vqa2.dataset import VQA2Dataset
+from mmf.datasets.mmf_dataset import MMFDataset
 
 
-class MaskedVQA2Dataset(VQA2Dataset):
+class MaskedGQADataset(MMFDataset):
     def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
         super().__init__(
-            config,
-            dataset_type,
-            imdb_file_index,
-            dataset_name="masked_vqa2",
-            *args,
-            **kwargs
+            "masked_gqa", config, dataset_type, imdb_file_index, *args, **kwargs
         )
         self._add_answer = config.get("add_answer", True)
 
-    def load_item(self, idx):
+    def __getitem__(self, idx):
         sample_info = self.annotation_db[idx]
         current_sample = Sample()
 

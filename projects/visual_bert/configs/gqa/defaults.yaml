@@ -1,0 +1,50 @@
+model_config:
+  visual_bert:
+    training_head_type: classification
+    num_labels: 1534
+    losses:
+    - type: logit_bce
+
+dataset_config:
+  gqa:
+    return_features_info: true
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 2000
+    num_training_steps: 88000
+
+evaluation:
+  metrics:
+  - vqa_accuracy
+
+training:
+  batch_size: 480
+  lr_scheduler: true
+  # Don't forget to update schedule_attributes if you update this
+  max_updates: 88000
+  find_unused_parameters: true
+  early_stop:
+    criteria: gqa/vqa_accuracy
+    minimize: false
+
+checkpoint:
+  pretrained_state_mapping:
+    model.bert: model.bert

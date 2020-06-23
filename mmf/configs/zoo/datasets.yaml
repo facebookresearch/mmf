@@ -318,3 +318,21 @@ cc:
       - url: mmf://datasets/cc/coco_generated/annotations/annotations.tar.gz
         file_name: annotations.tar.gz
         hashcode: 8a122c40a656dbc3c5e63117b517e4aeebd8d3b02ee20d84f49da2b1f411fac4
+
+gqa:
+  defaults:
+    version: 1.0_2020_06_22
+    # Features and annotations should be used from gqa.defaults as zoo_requirements
+    resources:
+      annotations:
+      - url: mmf://datasets/gqa/defaults/annotations/annotations.tar.gz
+        file_name: annotations.tar.gz
+        hashcode: 4f8ab86697d5f81749ca87cee8971885b8e788b4a22c0c92fd15aae516a739da
+      extras:
+      - url: mmf://datasets/gqa/defaults/extras.tar.gz
+        file_name: extras.tar.gz
+        hashcode: 5ace42896d06aaefc1ac1540fb58d38d8db0884bc48c8f85070a90811676cd8d
+      features:
+      - url: mmf://datasets/gqa/defaults/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: 530e62e398faa5c9f2d4f7edc2223cce4a679b2837fa4252976f0eff4127f9ce
