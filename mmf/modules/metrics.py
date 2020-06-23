@@ -192,9 +192,6 @@ class Accuracy(BaseMetric):
         output = model_output["scores"]
         expected = sample_list["targets"]
 
-        # output = output.squeeze()
-        # expected = expected.squeeze()
-
         assert (
             output.dim() <= 2
         ), "Output from model shouldn't have more than dim 2 for accuracy"

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3 -u
 # Copyright (c) Facebook, Inc. and its affiliates.
 import random
-
 import torch
 
 from mmf.common.registry import registry
