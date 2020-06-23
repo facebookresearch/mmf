@@ -993,6 +993,7 @@ class ViLBERTForPretraining(nn.Module):
         image_target=None,
         next_sentence_label=None,
         output_all_attention_masks=False,
+        multiple_choice_ids=None,
     ):
 
         (
@@ -1159,6 +1160,7 @@ class ViLBERTForClassification(nn.Module):
         image_target=None,
         next_sentence_label=None,
         output_all_attention_masks=False,
+        multiple_choice_ids=None,
     ):
 
         (
@@ -1193,12 +1195,11 @@ class ViLBERTForClassification(nn.Module):
             pooled_output = pooled_output.view(-1, pooled_output.size(1) * 2)
 
         if self.training_head_type == 'visual7w':
-            # vision_logit = self.classifier(self.dropout(sequence_output_v))
-            # output["scores"] = vision_logit[:,99:-1,:]
             logits = self.classifier(self.dropout(sequence_output_v))
-            logits = logits[:,99:-1,:]
-            reshaped_logits = logits.contiguous().view(-1, self.num_labels)
-            output["scores"] = reshaped_logits
+            logits = logits[:, 101:]
+            logits = logits.squeeze(2).gather(1, multiple_choice_ids)
+            logits = logits.unsqueeze(2)
+            output["scores"] = logits
         else:
             logits = self.classifier(pooled_output)
             reshaped_logits = logits.contiguous().view(-1, self.num_labels)
@@ -1240,6 +1241,7 @@ class ViLBERT(BaseModel):
         bert_input_mask = sample_list.input_mask
         bert_input_type_ids = sample_list.segment_ids
 
+        multiple_choice_ids = None
         if sample_list.dataset_name == "nlvr2":
             bert_input_ids = torch.cat([bert_input_ids, bert_input_ids])
             bert_input_mask = torch.cat([bert_input_mask, bert_input_mask])
@@ -1350,6 +1352,9 @@ class ViLBERT(BaseModel):
             image_target = np.array(cls_prob, dtype=np.float32)
             image_target_variable = torch.tensor(image_target, dtype=torch.float).cuda()
 
+        if sample_list.dataset_name == "visual7w":
+            multiple_choice_ids = sample_list.image_info_0["multiple_choice_idx"]
+
         return {
             "input_ids": bert_input_ids,
             "attention_mask": bert_input_mask,
@@ -1359,6 +1364,7 @@ class ViLBERT(BaseModel):
             "image_location": image_location_variable,
             "image_target": image_target_variable,
             "image_label": image_label_variable,
+            "multiple_choice_ids": multiple_choice_ids
         }
 
     def get_optimizer_parameters(self, config):
@@ -1398,6 +1404,7 @@ class ViLBERT(BaseModel):
             params["masked_lm_labels"],
             params["image_label"],
             params["image_target"],
+            multiple_choice_ids=params["multiple_choice_ids"],
         )
 
         if self.config.training_head_type == "pretraining":

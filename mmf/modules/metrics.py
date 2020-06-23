@@ -189,8 +189,8 @@ class Accuracy(BaseMetric):
             torch.FloatTensor: accuracy.
 
         """
-        output = model_output["scores"]
-        expected = sample_list["targets"]
+        output = model_output["scores"].squeeze()
+        expected = sample_list["targets"].squeeze()
 
         # output = output.squeeze()
         # expected = expected.squeeze()

@@ -3,10 +3,10 @@ model_config:
     training_head_type: visual7w
     num_labels: 1
     losses:
-    - type: logit_bce
+    - type: bce_with_logits
 
 dataset_config:
-  hateful_memes:
+  visual7w:
     return_features_info: true
     processors:
       text_processor:
@@ -22,13 +22,13 @@ dataset_config:
 optimizer:
   type: adam_w
   params:
-    lr: 0.00002
+    lr: 2e-5
     eps: 1e-8
 
 scheduler:
   type: warmup_linear
   params:
-    num_warmup_steps: 2000
+    num_warmup_steps: 200
     num_training_steps: ${training.max_updates}
 
 evaluation:
@@ -38,9 +38,16 @@ evaluation:
 training:
   batch_size: 256
   lr_scheduler: true
-  max_updates: 22000
+  max_updates: 2000
   find_unused_parameters: true
+  early_stop:
+    criteria: visual7w/accuracy
+    minimize: false
+  evaluation_interval: 360
+  evaluate_metrics: true
 
 checkpoint:
+  resume_pretrained: true
+  resume_zoo: vilbert.pretrained.cc.original 
   pretrained_state_mapping:
     model.bert: model.bert

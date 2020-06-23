@@ -32,5 +32,3 @@ dataset_config:
               do_lower_case: true
           mask_probability: 0
           max_seq_length: 128
-evaluation:
-  predict_file_format: csv

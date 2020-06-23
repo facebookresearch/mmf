@@ -363,7 +363,7 @@ class BaseTrainer:
                     "num_updates": self.num_updates,
                     "iterations": self.current_iteration,
                     "max_updates": self.max_updates,
-                    "lr": "{:.5f}".format(self.optimizer.param_groups[0]["lr"]).rstrip(
+                    "lr": "{:.8f}".format(self.optimizer.param_groups[0]["lr"]).rstrip(
                         "0"
                     ),
                     "ups": "{:.2f}".format(
