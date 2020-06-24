@@ -1,10 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import copy
+from typing import Any, Dict, List, Optional, Tuple
 
 import torch
 
 from mmf.common.registry import registry
+from mmf.common.typings import DictConfig
 from mmf.models.base_model import BaseModel
 from mmf.modules.embeddings import (
     PreExtractedEmbedding,
@@ -44,7 +46,7 @@ class MoVieMcan(BaseModel):
         vocab = text_processor.vocab
         self.word_embedding = vocab.get_embedding(torch.nn.Embedding, embedding_dim=300)
 
-    def _init_text_embeddings(self, attr="text"):
+    def _init_text_embeddings(self, attr: str = "text"):
         if "embeddings" not in attr:
             attr += "_embeddings"
 
@@ -62,7 +64,7 @@ class MoVieMcan(BaseModel):
         # Add model_data_dir to kwargs
         args.model_data_dir = self.config.model_data_dir
 
-    def _init_feature_encoders(self, attr):
+    def _init_feature_encoders(self, attr: str):
         feat_encoder = self.config[attr + "_feature_encodings"]
         feature_dim = self.config[attr + "_feature_dim"]
         setattr(self, attr + "_feature_dim", feature_dim)
@@ -77,7 +79,7 @@ class MoVieMcan(BaseModel):
         setattr(self, attr + "_feature_dim", feat_model.out_dim)
         setattr(self, attr + "_feature_encoders", feat_model)
 
-    def _init_feature_embeddings(self, attr):
+    def _init_feature_embeddings(self, attr: str):
         embedding_kwargs = self.config[attr + "_feature_embeddings"]["params"]
         setattr(
             self, attr + "_feature_embeddings_out_dim", embedding_kwargs["hidden_dim"]
@@ -97,7 +99,7 @@ class MoVieMcan(BaseModel):
             self, attr + "_feature_embeddings_list", feature_embedding,
         )
 
-    def _get_embeddings_attr(self, attr):
+    def _get_embeddings_attr(self, attr: str):
         embedding_attr1 = attr
         if hasattr(self, attr + "_embeddings_out_dim"):
             embedding_attr1 = attr + "_embeddings_out_dim"
@@ -106,7 +108,7 @@ class MoVieMcan(BaseModel):
 
         return embedding_attr1
 
-    def _init_combine_layer(self, attr1, attr2):
+    def _init_combine_layer(self, attr1: str, attr2: str):
         multi_modal_combine_layer = BranchCombineLayer(
             getattr(self, self._get_embeddings_attr(attr1)),
             getattr(self, self._get_embeddings_attr(attr2)),
@@ -135,7 +137,7 @@ class MoVieMcan(BaseModel):
     def _init_extras(self):
         self.inter_model = None
 
-    def get_optimizer_parameters(self, config):
+    def get_optimizer_parameters(self, config: DictConfig) -> List[Dict[str, Any]]:
         combine_layer = self.image_text_multi_modal_combine_layer
         params = [
             {"params": filter_grads(self.word_embedding.parameters())},
@@ -182,8 +184,8 @@ class MoVieMcan(BaseModel):
         return self.image_text_multi_modal_combine_layer.out_dim
 
     def process_text_embedding(
-        self, sample_list, embedding_attr="text_embeddings", info=None
-    ):
+        self, sample_list: Dict[str, Any], embedding_attr: str = "text_embeddings"
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
 
         # Get "text" attribute in case of "text_embeddings" case
         # and "context" attribute in case of "context_embeddings"
@@ -204,12 +206,12 @@ class MoVieMcan(BaseModel):
 
     def process_feature_embedding(
         self,
-        attr,
-        sample_list,
-        text_embedding_total,
-        text_embedding_vec,
-        extra=[],
-        batch_size_t=None,
+        attr: str,
+        sample_list: Dict[str, Any],
+        text_embedding_total: torch.Tensor,
+        text_embedding_vec: torch.Tensor,
+        extra: list = [],
+        batch_size_t: Optional[int] = None,
     ):
         batch_size_t = (
             sample_list.get_batch_size() if batch_size_t is None else batch_size_t
@@ -245,10 +247,10 @@ class MoVieMcan(BaseModel):
         layer = "_".join(feature_names) + "_multi_modal_combine_layer"
         return getattr(self, layer)(v1, v2, q)
 
-    def calculate_logits(self, joint_embedding, **kwargs):
+    def calculate_logits(self, joint_embedding: torch.Tensor, **kwargs):
         return self.classifier(joint_embedding)
 
-    def forward(self, sample_list):
+    def forward(self, sample_list: Dict[str, Any]) -> Dict[str, torch.Tensor]:
         sample_list.text_mask = sample_list.text.eq(0)
         sample_list.text = self.word_embedding(sample_list.text)
         text_embedding_total, text_embedding_vec = self.process_text_embedding(

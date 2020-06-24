@@ -99,7 +99,7 @@ class FeaturesDatabase(ImageDatabase):
     def from_path(self, path):
         assert isinstance(path, str)
 
-        if "genome" in path:
+        if "genome" in path and path.endswith(".npy"):
             path = str(int(path.split("_")[-1].split(".")[0])) + ".npy"
 
         features, infos = self._get_image_features_and_info(path)
