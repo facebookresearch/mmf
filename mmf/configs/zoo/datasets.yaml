@@ -231,7 +231,6 @@ flickr30k:
       images:
       - url: https://drive.google.com/uc?export=download&id=0B_PL6p-5reUAZEM4MmRQQ2VVSlk
         file_name: flickr30_images.tar.gz
-        hashcode: aac8ce711c2d7b2e5cd04d21b30ff751af32b196948fade3cad40a7c2844a29d
       features:
       - url: mmf://datasets/flickr30k/defaults/features/features.tar.gz
         file_name: features.tar.gz
