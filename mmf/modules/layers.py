@@ -697,7 +697,7 @@ class BranchCombineLayer(nn.Module):
             [nn.Linear(img_dim, self.out_dim) for _ in range(2)]
         )
         self.linear_cbn = nn.ModuleList(
-            [nn.Linear(1024, self.out_dim) for _ in range(2)]
+            [nn.Linear(img_dim, self.out_dim) for _ in range(2)]
         )
         self.linear_ques = nn.ModuleList(
             [nn.Linear(ques_dim, self.out_dim) for _ in range(2)]
