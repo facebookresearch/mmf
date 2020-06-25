@@ -28,6 +28,7 @@ module.exports = {
       'tutorials/dataset',
       'tutorials/concat_bert',
       'tutorials/checkpointing',
+      'tutorials/slurm',
     ],
     Challenges: [
       'challenges/hateful_memes_challenge',
