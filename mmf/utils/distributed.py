@@ -14,6 +14,8 @@ BYTE_SIZE = 256
 
 
 def synchronize():
+    if not dist.is_available():
+        return
     if not dist.is_nccl_available():
         return
     if not dist.is_initialized():
@@ -28,6 +30,8 @@ def synchronize():
 
 
 def get_rank():
+    if not dist.is_available():
+        return 0
     if not dist.is_nccl_available():
         return 0
     if not dist.is_initialized():
@@ -40,6 +44,8 @@ def is_master():
 
 
 def get_world_size():
+    if not dist.is_available():
+        return 1
     if not dist.is_nccl_available():
         return 1
     if not dist.is_initialized():

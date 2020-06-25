@@ -22,7 +22,7 @@ class Logger:
         self.config = config
         self.save_dir = get_mmf_env(key="save_dir")
         self.log_format = config.training.log_format
-        self.time_format = "%Y-%m-%dT%H:%M:%S"
+        self.time_format = "%Y_%m_%dT%H_%M_%S"
         self.log_filename = "train_"
         self.log_filename += self.timer.get_time_hhmmss(None, format=self.time_format)
         self.log_filename += ".log"
