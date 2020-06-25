@@ -228,6 +228,16 @@ flickr30k:
   defaults:
     version: 1.0_2020_05_29
     resources:
+      annotations:
+      - url: https://raw.githubusercontent.com/BryanPlummer/flickr30k_entities/master/train.txt
+        file_name: train.txt
+        compressed: false
+      - url: https://raw.githubusercontent.com/BryanPlummer/flickr30k_entities/master/val.txt
+        file_name: val.txt
+        compressed: false
+      - url: https://raw.githubusercontent.com/BryanPlummer/flickr30k_entities/master/test.txt
+        file_name: test.txt
+        compressed: false
       images:
       - url: https://drive.google.com/uc?export=download&id=0B_PL6p-5reUAZEM4MmRQQ2VVSlk
         file_name: flickr30_images.tar.gz
@@ -235,7 +245,10 @@ flickr30k:
       - url: mmf://datasets/flickr30k/defaults/features/features.tar.gz
         file_name: features.tar.gz
         hashcode: 679af7902f342480c1e039bb0be3ddabb8b88a4c45a2c17f9b97e4f10689475a
-
+      extras:
+      - url: mmf://datasets/hateful_memes/defaults/extras.tar.gz
+        file_name: extras.tar.gz
+        hashcode: 1bd88fa36b5c565234cd0bbc20189c85b51a283337bee574db91521be0364739
 
 visual_entailment:
   defaults:
