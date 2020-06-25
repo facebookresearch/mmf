@@ -6,7 +6,7 @@ from omegaconf import OmegaConf
 
 from mmf.utils.configuration import load_yaml
 from mmf.utils.download import DownloadableFile, check_header
-from tests.test_utils import skip_if_no_network
+from tests.test_utils import skip_if_macos, skip_if_no_network
 
 
 class TestConfigsForKeys(unittest.TestCase):
@@ -45,6 +45,7 @@ class TestConfigsForKeys(unittest.TestCase):
                 self._recurse_on_config(config[item])
 
     @skip_if_no_network
+    @skip_if_macos
     def test_zoos(self):
         self._test_zoo_for_keys("configs/zoo/datasets.yaml")
         self._test_zoo_for_keys("configs/zoo/models.yaml")

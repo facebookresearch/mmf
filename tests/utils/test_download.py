@@ -20,6 +20,7 @@ TEST_DOWNLOAD_SHASUM = (
 
 class TestUtilsDownload(unittest.TestCase):
     @test_utils.skip_if_no_network
+    @test_utils.skip_if_macos
     def test_download_file_class(self):
         # Test normal scenario
         resource = download.DownloadableFile(
