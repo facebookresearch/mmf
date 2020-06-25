@@ -14,6 +14,8 @@ jobs:
       # cases for the deployment to work correctly.
       with:
         persist-credentials: false
+        # 0 here indicates fetch all history for proper doc setup
+        fetch-depth: 0
         ref: master
         path: mmf_master
 
