@@ -17,7 +17,7 @@ dataset_config:
             params:
               do_lower_case: true
           mask_probability: 0
-          max_seq_length: 128
+          max_seq_length: 30
 
 optimizer:
   type: adam_w
@@ -40,7 +40,14 @@ training:
   lr_scheduler: true
   max_updates: 8000
   find_unused_parameters: true
+  early_stop:
+    criteria: flickr30k/accuracy
+    minimize: false
+  evaluation_interval: 360
+  evaluate_metrics: true
 
 checkpoint:
+  resume_pretrained: true
+  resume_file: /private/home/omkar/vilbert-multi-task/pretrained_model.bin
   pretrained_state_mapping:
-    model.bert: model.bert
+    bert: model.bert

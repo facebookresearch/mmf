@@ -20,6 +20,8 @@ dataset_config:
       test:
       - /checkpoint/omkar/datasets/flickr30k/all_data_final_train_2014.jsonl
     max_features: 100
+    test_id_file_path: /checkpoint/vedanuj/datasets/flickr30k/cache/flickr_test_ids.npy
+    hard_neg_file_path: /checkpoint/vedanuj/datasets/flickr30k/hard_negative.pkl
     return_features_info: true
     processors:
       text_processor:
