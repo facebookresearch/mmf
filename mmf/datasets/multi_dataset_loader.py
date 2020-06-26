@@ -7,11 +7,10 @@ and more granular
 import sys
 
 import numpy as np
-import torch
 
 from mmf.common.registry import registry
 from mmf.utils.build import build_dataloader_and_sampler, build_dataset
-from mmf.utils.distributed import broadcast_scalar, is_master
+from mmf.utils.distributed import broadcast_scalar, is_dist_initialized, is_master
 from mmf.utils.general import get_batch_size
 
 
@@ -242,7 +241,7 @@ class MultiDatasetLoader:
         return batch
 
     def seed_sampler(self, epoch):
-        if torch.distributed.is_initialized():
+        if is_dist_initialized():
             for sampler in self._samplers:
                 assert hasattr(
                     sampler, "set_epoch"

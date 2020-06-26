@@ -10,6 +10,7 @@ from omegaconf import OmegaConf
 from mmf.common import typings as mmf_typings
 from mmf.common.registry import registry
 from mmf.utils.configuration import Configuration
+from mmf.utils.distributed import is_dist_initialized
 from mmf.utils.general import get_optimizer_parameters
 
 
@@ -166,7 +167,7 @@ def _add_extra_args_for_dataloader(
         other_args["shuffle"] = True
 
     # In distributed mode, we use DistributedSampler from PyTorch
-    if torch.distributed.is_initialized():
+    if is_dist_initialized():
         other_args["sampler"] = torch.utils.data.DistributedSampler(
             dataset_instance, shuffle=other_args["shuffle"]
         )

@@ -10,7 +10,7 @@ from torch.utils.data.distributed import DistributedSampler
 from mmf.common.batch_collator import BatchCollator
 from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env
-from mmf.utils.distributed import gather_tensor, is_master
+from mmf.utils.distributed import gather_tensor, is_dist_initialized, is_master
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import (
     ckpt_name_from_core_args,
@@ -124,7 +124,7 @@ class TestReporter(Dataset):
         if other_args is None:
             other_args = {}
 
-        if torch.distributed.is_initialized():
+        if is_dist_initialized():
             other_args["sampler"] = DistributedSampler(
                 self.current_dataset, shuffle=False
             )
