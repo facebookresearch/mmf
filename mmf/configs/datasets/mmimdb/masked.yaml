@@ -31,6 +31,11 @@ dataset_config:
               do_lower_case: true
           mask_probability: 0.15
           max_seq_length: 256
+      masked_region_processor:
+        type: masked_region
+        params:
+          mask_probability: 0.15
+          mask_region_probability: 0.90
     return_features_info: false
     # Return OCR information
     use_ocr: false

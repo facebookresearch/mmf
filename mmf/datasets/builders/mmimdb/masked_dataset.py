@@ -22,25 +22,18 @@ class MaskedMMImdbDataset(VQA2Dataset):
 
         if self._use_features is True:
             features = self.features_db[idx]
-            current_sample.update(features)
-            image_labels = []
 
-            for i in range(features["image_feature_0"].shape[0]):
-                prob = random.random()
-                # mask token with 15% probability
-                if prob < 0.15:
-                    prob /= 0.15
-
-                    if prob < 0.9:
-                        features["image_feature_0"][i] = 0
-                    image_labels.append(1)
-                else:
-                    # no masking token (will be ignored by loss function later)
-                    image_labels.append(-1)
-            item = {}
             if self.config.get("use_image_feature_masks", False):
-                item["image_labels"] = image_labels
-            current_sample.update(item)
+                current_sample.update(
+                    {
+                        "image_labels": self.masked_region_processor(
+                            features["image_feature_0"]
+                        )
+                    }
+                )
+
+            current_sample.update(features)
+
         current_sample = self._add_masked_question(sample_info, current_sample)
 
         return current_sample

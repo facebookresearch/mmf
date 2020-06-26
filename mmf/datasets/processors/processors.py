@@ -68,6 +68,7 @@ Example::
 
 import copy
 import os
+import random
 import re
 import sys
 import warnings
@@ -1356,3 +1357,28 @@ class M4CCaptionProcessor(M4CAnswerProcessor):
     def compute_answer_scores(self, answers):
         unique_answer2score = {a: 1.0 for a in answers}
         return unique_answer2score
+
+
+@registry.register_processor("masked_region")
+class MaskedRegionProcessor(BaseProcessor):
+    def __init__(self, config, *args, **kwargs):
+        super().__init__(config, *args, **kwargs)
+        self.mask_prob = config.get("mask_probability", 0.15)
+        self.mask_region_prob = config.get("mask_region_probability", 0.9)
+
+    def __call__(self, item):
+        image_labels = []
+
+        for i in range(item.shape[0]):
+            prob = random.random()
+            # mask token with 15% probability
+            if prob < self.mask_prob:
+                prob /= self.mask_prob
+
+                if prob < self.mask_region_prob:
+                    item[i] = 0
+                image_labels.append(1)
+            else:
+                # no masking token (will be ignored by loss function later)
+                image_labels.append(-1)
+        return image_labels
