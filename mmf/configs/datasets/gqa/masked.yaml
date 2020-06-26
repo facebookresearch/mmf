@@ -1,29 +1,27 @@
 dataset_config:
-  masked_conceptual_captions:
+  masked_gqa:
     data_dir: ${env.data_dir}/datasets
     depth_first: false
     fast_read: false
     use_images: false
     use_features: true
+    zoo_requirements:
+    - gqa.defaults
     features:
       train:
-      - cc/defaults/features/cc_train.lmdb
+      - gqa/defaults/features/gqa.lmdb
       val:
-      - cc/defaults/features/cc_val.lmdb
+      - gqa/defaults/features/gqa.lmdb
       test:
-      - cc/defaults/features/cc_val.lmdb
+      - gqa/defaults/features/gqa.lmdb
     annotations:
       train:
-      - cc/defaults/annotations/train_all.npy
+      - gqa/defaults/annotations/train_balanced_questions.npy
       val:
-      - cc/defaults/annotations/val.npy
+      - gqa/defaults/annotations/val_balanced_questions.npy
       test:
-      - cc/defaults/annotations/val.npy
+      - gqa/defaults/annotations/test_balanced_questions.npy
     max_features: 100
-    two_sentence: true
-    two_sentence_probability: -0.1
-    false_caption: true
-    false_caption_probability: 0.5
     use_image_feature_masks: false
     processors:
       masked_token_processor:
@@ -40,7 +38,7 @@ dataset_config:
         params:
           mask_probability: 0.15
           mask_region_probability: 0.90
-    return_features_info: false
+    return_features_info: true
     # Return OCR information
     use_ocr: false
     # Return spatial information of OCR tokens if present

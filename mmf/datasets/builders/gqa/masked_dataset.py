@@ -1,23 +1,20 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
 import random
 
 from mmf.common.sample import Sample
-from mmf.datasets.builders.vqa2.dataset import VQA2Dataset
+from mmf.datasets.mmf_dataset import MMFDataset
 
 
-class MaskedMMImdbDataset(VQA2Dataset):
+class MaskedGQADataset(MMFDataset):
     def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
         super().__init__(
-            config,
-            dataset_type,
-            imdb_file_index,
-            dataset_name="masked_mmimdb",
-            *args,
-            **kwargs
+            "masked_gqa", config, dataset_type, imdb_file_index, *args, **kwargs
         )
         self._add_answer = config.get("add_answer", True)
 
-    def load_item(self, idx):
-        sample_info = self.imdb[idx]
+    def __getitem__(self, idx):
+        sample_info = self.annotation_db[idx]
         current_sample = Sample()
 
         if self._use_features is True:
@@ -39,11 +36,8 @@ class MaskedMMImdbDataset(VQA2Dataset):
         return current_sample
 
     def _add_masked_question(self, sample_info, current_sample):
-        plot = sample_info["plot"]
-        if isinstance(plot, list):
-            plot = plot[0]
-        question = plot
-        random_answer = random.choice(sample_info["genres"])
+        question = sample_info["question_str"]
+        random_answer = random.choice(sample_info["all_answers"])
 
         processed = self.masked_token_processor(
             {"text_a": question, "text_b": random_answer, "is_correct": -1}
