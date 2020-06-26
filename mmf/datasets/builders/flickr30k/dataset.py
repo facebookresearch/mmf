@@ -14,10 +14,11 @@ class Flickr30kDataset(MMFDataset):
     def __getitem__(self, idx):
 
         sample_info = self.annotation_db[idx]
-        features_data = self.features_db[idx]
+        image_id = str(sample_info[0]['image_id']) + '.npy'
+        features_data = self.features_db.from_path(image_id)
 
 
-        
+
         multiple_choice_idx = torch.from_numpy(np.array(sample_info["mc_idx"]))
 
         boxes = features_data['image_info_0']['bbox']
