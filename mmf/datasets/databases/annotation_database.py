@@ -15,11 +15,12 @@ class AnnotationDatabase(torch.utils.data.Dataset):
     TODO: Update on docs sprint
     """
 
-    def __init__(self, config, path, *args, **kwargs):
+    def __init__(self, config, path, dataset_type, *args, **kwargs):
         super().__init__()
         self.metadata = {}
         self.config = config
         self.start_idx = 0
+        self.dataset_type = dataset_type
         path = get_absolute_path(path)
         self._load_annotation_db(path)
 
@@ -27,7 +28,7 @@ class AnnotationDatabase(torch.utils.data.Dataset):
         if path.find("visdial") != -1 or path.find("visual_dialog") != -1:
             self._load_visual_dialog(path)
         if path.find("flickr30k") != -1:
-            self._load_flickr30k(path, self.config.test_id_file_path, self.config.hard_neg_file_path)
+            self._load_flickr30k(path)
         elif path.endswith(".npy"):
             self._load_npy(path)
         elif path.endswith(".jsonl"):
@@ -79,10 +80,16 @@ class AnnotationDatabase(torch.utils.data.Dataset):
         self.metadata = self.data.metadata
         self.start_idx = 0
 
-    def _load_flickr30k(self, path, test_id_file_path, hard_neg_file_path):
+    def _load_flickr30k(self, path):
         from mmf.datasets.builders.flickr30k.database import Flickr30kDatabase
 
-        self.data = Flickr30kDatabase(path, test_id_file_path, hard_neg_file_path)
+        test_id_file_path = self.config.get('test_id_file_path', None)
+        hard_neg_file_path = self.config.get('hard_neg_file_path', None)
+
+        self.data = Flickr30kDatabase(path,
+                                      self.dataset_type, test_id_file_path,
+                                      hard_neg_file_path)
+
         self.metadata = self.data.metadata
         self.start_idx = 0
 

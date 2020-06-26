@@ -16,12 +16,12 @@ dataset_config:
       train:
       - /checkpoint/omkar/datasets/flickr30k/all_data_final_train_2014.jsonl
       val:
-      - /checkpoint/omkar/datasets/flickr30k/all_data_final_train_2014.jsonl
+      - /checkpoint/vedanuj/datasets/flickr30k/all_data_final_test_set0_2014.jsonline
       test:
-      - /checkpoint/omkar/datasets/flickr30k/all_data_final_train_2014.jsonl
+      - /checkpoint/vedanuj/datasets/flickr30k/all_data_final_test_set0_2014.jsonline
     max_features: 100
     test_id_file_path: /checkpoint/vedanuj/datasets/flickr30k/cache/flickr_test_ids.npy
-    hard_neg_file_path: /checkpoint/vedanuj/datasets/flickr30k/hard_negative.pkl
+    hard_neg_file_path: /checkpoint/vedanuj/datasets/flickr30k/hard_negative_cleaned.pkl
     return_features_info: true
     processors:
       text_processor:
@@ -32,6 +32,4 @@ dataset_config:
             params:
               do_lower_case: true
           mask_probability: 0
-          max_seq_length: 128
-evaluation:
-  predict_file_format: csv
+          max_seq_length: 30

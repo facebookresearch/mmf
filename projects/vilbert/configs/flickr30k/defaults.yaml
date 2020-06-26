@@ -2,8 +2,11 @@ model_config:
   vilbert:
     training_head_type: classification
     num_labels: 1
+    input_preprocessor: retrieval
+    classifier_type: linear
+    classifier_subtype: vision_language_logit
     losses:
-    - type: logit_bce
+    - type: cross_entropy
 
 dataset_config:
   hateful_memes:

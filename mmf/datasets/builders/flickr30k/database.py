@@ -11,11 +11,11 @@ import _pickle as cPickle
 
 
 class Flickr30kDatabase(torch.utils.data.Dataset):
-    def __init__(self, imdb_path, test_id_file_path, hard_neg_file_path):
+    def __init__(self, imdb_path, dataset_type, test_id_file_path, hard_neg_file_path):
         super().__init__()
+        self._dataset_type = dataset_type
         self._load_annotations(imdb_path, test_id_file_path, hard_neg_file_path)
         self._metadata = {}
-        self._split = 'train'
 
     @property
     def metadata(self):
@@ -32,19 +32,20 @@ class Flickr30kDatabase(torch.utils.data.Dataset):
             # Build an index which maps image id with a list of caption annotations.
             entries = []
             imgid2entry = {}
-            imgid2featidx = {}
-            featcount = 0
             count = 0
 
             remove_ids = []
 
-            remove_ids = np.load(test_id_path)
-            remove_ids = [int(x) for x in remove_ids]
+            if test_id_path:
+                remove_ids = np.load(test_id_path)
+                remove_ids = [int(x) for x in remove_ids]
 
             for annotation in reader:
                 image_id = int(annotation["img_path"].split(".")[0])
-                if int(image_id) in remove_ids:
+
+                if self._dataset_type == "train" and int(image_id) in remove_ids:
                     continue
+
                 imgid2entry[image_id] = []
                 for sentences in annotation["sentences"]:
                     entries.append({"caption": sentences, "image_id": image_id})
@@ -55,15 +56,16 @@ class Flickr30kDatabase(torch.utils.data.Dataset):
         self.imgid2entry = imgid2entry
         self.image_id_list = [*self.imgid2entry]
 
-        with open(hard_neg_file_path, "rb") as f:
-            image_info = cPickle.load(f)
+        if self._dataset_type == "train":
+            with open(hard_neg_file_path, "rb") as f:
+                image_info = cPickle.load(f)
 
-        for key, value in image_info.items():
-            setattr(self, key, value)
+            for key, value in image_info.items():
+                setattr(self, key, value)
 
-        self.train_imgId2pool = {
-            imageId: i for i, imageId in enumerate(self.train_image_list)
-        }
+            self.train_imgId2pool = {
+                imageId: i for i, imageId in enumerate(self.train_image_list)
+            }
 
         self.db_size = len(self._entries)
 
@@ -92,7 +94,7 @@ class Flickr30kDatabase(torch.utils.data.Dataset):
 
         entry3 = self._entries[random.choice(self.imgid2entry[img_id3])]
 
-        if self._split == "train":
+        if self._dataset_type == "train":
             # random hard caption.
             rand_img_id_pool = self.train_hard_pool[self.train_imgId2pool[image_id]]
             pool_img_idx = int(
