@@ -507,6 +507,14 @@ class VQAAnswerProcessor(BaseProcessor):
             )
 
         self.answer_vocab = VocabDict(config.vocab_file, *args, **kwargs)
+        self.PAD_IDX = self.answer_vocab.word2idx("<pad>")
+        self.BOS_IDX = self.answer_vocab.word2idx("<s>")
+        self.EOS_IDX = self.answer_vocab.word2idx("</s>")
+        self.UNK_IDX = self.answer_vocab.UNK_INDEX
+
+        # Set EOS to something not achievable if it is not there
+        if self.EOS_IDX == self.UNK_IDX:
+            self.EOS_IDX = len(self.answer_vocab)
 
         self.preprocessor = None
 
