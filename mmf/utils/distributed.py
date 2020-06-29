@@ -43,6 +43,10 @@ def is_master():
     return get_rank() == 0
 
 
+def is_dist_initialized():
+    return dist.is_available() and dist.is_initialized()
+
+
 def get_world_size():
     if not dist.is_available():
         return 1
