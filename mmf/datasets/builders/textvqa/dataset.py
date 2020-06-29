@@ -198,6 +198,8 @@ class TextVQADataset(MMFDataset):
         return sample
 
     def add_answer_info(self, sample_info, sample):
+        if "answers" not in sample_info:
+            return sample
         # Load real answers from sample_info
         answers = sample_info.get("answers", None)
         answer_processor_arg = {"answers": answers}
