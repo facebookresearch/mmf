@@ -742,6 +742,14 @@
             <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span> <span class="o">=</span> <span class="n">VocabDict</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">vocab_file</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PAD_IDX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">word2idx</span><span class="p">(</span><span class="s2">&quot;&lt;pad&gt;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BOS_IDX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">word2idx</span><span class="p">(</span><span class="s2">&quot;&lt;s&gt;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EOS_IDX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">word2idx</span><span class="p">(</span><span class="s2">&quot;&lt;/s&gt;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">UNK_IDX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">UNK_INDEX</span>
+
+        <span class="c1"># Set EOS to something not achievable if it is not there</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">EOS_IDX</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">UNK_IDX</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">EOS_IDX</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span> <span class="o">=</span> <span class="kc">None</span>
 
