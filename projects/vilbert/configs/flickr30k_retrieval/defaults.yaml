@@ -2,14 +2,16 @@ model_config:
   vilbert:
     training_head_type: classification
     num_labels: 1
-    input_preprocessor: retrieval
-    classifier_type: linear
-    classifier_subtype: vision_language_logit
+    num_options: 4
     losses:
     - type: cross_entropy
+    classifier:
+      type: linear
+      input_processor: retrieval
+      output_processor: vision_language_logit
 
 dataset_config:
-  hateful_memes:
+  flickr30k_retrieval:
     return_features_info: true
     processors:
       text_processor:
@@ -25,7 +27,7 @@ dataset_config:
 optimizer:
   type: adam_w
   params:
-    lr: 0.00002
+    lr: 2e-5
     eps: 1e-8
 
 scheduler:
@@ -44,7 +46,7 @@ training:
   max_updates: 8000
   find_unused_parameters: true
   early_stop:
-    criteria: flickr30k/accuracy
+    criteria: flickr30k_retrieval/accuracy
     minimize: false
   evaluation_interval: 360
   evaluate_metrics: true

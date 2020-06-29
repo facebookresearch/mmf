@@ -7,8 +7,8 @@ from mmf.common.sample import Sample
 from mmf.datasets.mmf_dataset import MMFDataset
 
 
-class Flickr30kDataset(MMFDataset):
-    def __init__(self, config, *args, dataset_name="flickr30k", **kwargs):
+class Flickr30kRetrievalDataset(MMFDataset):
+    def __init__(self, config, *args, dataset_name="flickr30k_retrieval", **kwargs):
         super().__init__(dataset_name, config, *args, **kwargs)
 
         # +1 because old codebase adds a global feature while reading the features

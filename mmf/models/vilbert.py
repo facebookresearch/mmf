@@ -1124,7 +1124,7 @@ class ViLBERTForClassification(nn.Module):
         classifier_config = deepcopy(config)
         classifier_config.hidden_size = config.bi_hidden_size
 
-        if self.config.classifier_type == "linear":
+        if self.config.classifier.type == "linear":
             self.classifier = nn.Linear(classifier_config.hidden_size, self.num_labels)
         else:
             if self.config.training_head_type == "nlvr2":
@@ -1162,7 +1162,7 @@ class ViLBERTForClassification(nn.Module):
         batch_size = image_feature.size(0)
         num_options = input_ids.size(1)
 
-        if self.config.input_preprocessor == 'retrieval':
+        if self.config.classifier.input_processor == 'retrieval':
             image_feature = \
                 image_feature.view(-1,
                                    image_feature.size(2),
@@ -1210,7 +1210,7 @@ class ViLBERTForClassification(nn.Module):
 
         logits = self.classifier(pooled_output)
 
-        if self.config.classifier_subtype == "vision_language_logit":
+        if self.config.classifier.output_processor == "vision_language_logit":
             logits = logits.view(batch_size, num_options)
             output["scores"] = logits
         else:
@@ -1326,7 +1326,7 @@ class ViLBERT(BaseModel):
             image_label_variable = None
             image_target_variable = None
 
-        elif sample_list.dataset_name == "flickr30k":
+        elif sample_list.dataset_name == "flickr30k_retrieval":
 
             image_info = getattr(sample_list, "image_info_0", {})
             image_dim_variable = getattr(image_info, "max_features", None)
@@ -1338,7 +1338,6 @@ class ViLBERT(BaseModel):
                 ).cuda()
 
             image_feature_variable = getattr(sample_list, "image_feature_0", None)
-
 
             # in flickr30k, one training entry can have multiple images, so boxes will
             # have to be pre normalized according to their corresponding image sizes.
@@ -1355,7 +1354,6 @@ class ViLBERT(BaseModel):
                 image_label_variable = torch.tensor(
                     image_label_variable, dtype=torch.long
                 ).cuda()
-
 
             bbox = np.array(getattr(image_info, "bbox", None), dtype=np.float32)
             image_w = np.array(

@@ -10,7 +10,7 @@ import numpy as np
 import _pickle as cPickle
 
 
-class Flickr30kDatabase(torch.utils.data.Dataset):
+class Flickr30kRetrievalDatabase(torch.utils.data.Dataset):
     def __init__(self, imdb_path, dataset_type, test_id_file_path, hard_neg_file_path):
         super().__init__()
         self._dataset_type = dataset_type

@@ -28,7 +28,7 @@ class AnnotationDatabase(torch.utils.data.Dataset):
         if path.find("visdial") != -1 or path.find("visual_dialog") != -1:
             self._load_visual_dialog(path)
         if path.find("flickr30k") != -1:
-            self._load_flickr30k(path)
+            self._load_flickr30k_retrieval(path)
         elif path.endswith(".npy"):
             self._load_npy(path)
         elif path.endswith(".jsonl"):
@@ -80,15 +80,18 @@ class AnnotationDatabase(torch.utils.data.Dataset):
         self.metadata = self.data.metadata
         self.start_idx = 0
 
-    def _load_flickr30k(self, path):
-        from mmf.datasets.builders.flickr30k.database import Flickr30kDatabase
+    def _load_flickr30k_retrieval(self, path):
+        from mmf.datasets.builders.flickr30k_retrieval.database \
+            import Flickr30kRetrievalDatabase
 
         test_id_file_path = self.config.get('test_id_file_path', None)
         hard_neg_file_path = self.config.get('hard_neg_file_path', None)
 
-        self.data = Flickr30kDatabase(path,
-                                      self.dataset_type, test_id_file_path,
-                                      hard_neg_file_path)
+        self.data = Flickr30kRetrievalDatabase(path,
+                                               self.dataset_type,
+                                               test_id_file_path,
+                                               hard_neg_file_path
+                                               )
 
         self.metadata = self.data.metadata
         self.start_idx = 0

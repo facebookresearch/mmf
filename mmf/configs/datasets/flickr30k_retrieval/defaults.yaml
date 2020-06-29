@@ -1,10 +1,11 @@
 dataset_config:
-  flickr30k:
+  flickr30k_retrieval:
     data_dir: ${env.data_dir}/datasets
     depth_first: false
     fast_read: false
     use_images: false
     use_features: true
+    num_final_outputs: 4
     features:
       train:
       - flickr30k/defaults/features/detectron.lmdb
