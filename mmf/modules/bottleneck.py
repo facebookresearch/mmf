@@ -4,27 +4,7 @@ from typing import Optional, Tuple, Type
 
 import torch
 import torch.nn as nn
-
-
-def conv3x3(
-    in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1
-) -> torch.Tensor:
-    """3x3 convolution with padding"""
-    return nn.Conv2d(
-        in_planes,
-        out_planes,
-        kernel_size=3,
-        stride=stride,
-        padding=dilation,
-        groups=groups,
-        bias=False,
-        dilation=dilation,
-    )
-
-
-def conv1x1(in_planes: int, out_planes: int, stride: int = 1) -> torch.Tensor:
-    """1x1 convolution"""
-    return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
+from torchvision.models.resnet import conv1x1, conv3x3
 
 
 class ChannelPool(nn.Module):
@@ -157,7 +137,7 @@ class MovieBottleneck(nn.Module):
     Standard ResNet bottleneck with MoVie modulation in
     https://arxiv.org/abs/2004.11883
     The code is inspired from
-    https://pytorch.org/docs/stable/_modules/torchvision/models/resnet.html#resnext101_32x8d
+    https://pytorch.org/docs/stable/_modules/torchvision/models/resnet.html
     """
 
     expansion = 4
@@ -178,7 +158,10 @@ class MovieBottleneck(nn.Module):
         use_se: bool = True,
     ):
         super().__init__()
-        self.norm_layer = norm_layer
+        if norm_layer is None:
+            self.norm_layer = FrozenBatchNorm2d
+        else:
+            self.norm_layer = norm_layer
         self.cond_planes = cond_planes
         self.planes = planes
         self.inplanes = inplanes
@@ -189,26 +172,19 @@ class MovieBottleneck(nn.Module):
         # Both self.conv2 and self.downsample layers downsample the input when
         # stride != 1
         self.conv1 = conv1x1(inplanes, width, stride_1x1)
+        self.bn1 = self.norm_layer(self.width)
         self.conv2 = conv3x3(width, width, stride_3x3, groups, dilation)
+        self.bn2 = self.norm_layer(self.width)
         self.conv3 = conv1x1(width, planes * self.expansion)
+        self.bn3 = self.norm_layer(self.planes * self.expansion)
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
         self.se = None
 
-        self.width = width
         self.compressed = compressed
         self.use_se = use_se
 
     def init_layers(self):
-        if self.norm_layer is None:
-            self.bn1 = FrozenBatchNorm2d(self.width)
-            self.bn2 = FrozenBatchNorm2d(self.width)
-            self.bn3 = FrozenBatchNorm2d(self.planes * self.expansion)
-        else:
-            self.bn1 = self.norm_layer(self.width)
-            self.bn2 = self.norm_layer(self.width)
-            self.bn3 = self.norm_layer(self.planes * self.expansion)
-
         if self.cond_planes:
             self.mod = Modulation(
                 self.inplanes, self.cond_planes, compressed=self.compressed

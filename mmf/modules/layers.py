@@ -673,6 +673,12 @@ class BiAttention(nn.Module):
 
 
 class TripleLinear(nn.Module):
+    """
+    The three-branch classifier in https://arxiv.org/abs/2004.11883:
+    During training, all three branches will produce the prediction on its own.
+    During inference, only the fused branch is used to predict the answers.
+    """
+
     def __init__(self, in_dim: int, out_dim: int):
         super().__init__()
         self.linears = nn.ModuleList([nn.Linear(in_dim, out_dim) for _ in range(3)])
