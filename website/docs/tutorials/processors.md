@@ -10,8 +10,8 @@ Processors can be thought of as torchvision transforms which transform a sample 
   <img width="80%" src="https://i.imgur.com/9sZTiUp.gif"/>
 </div>
 
-
 For this tutorial, we will create three different types of processors :
+
 1. a simple processor for text,
 2. a simple processor for images,
 3. a text processor by extending an existing vocabulary processor in mmf,
@@ -97,10 +97,9 @@ dataset_config:
 
 The `torchvision_transforms` image processor loads the different transform processor like the `GrayScale` one we created and composes them together as torchvision transforms. Here we are adding two transforms, first `ToTensor`, which is a native torchvision transform to convert the image to a tensor and then the second `GrayScale` which will convert a single channel to 3 channel image tensor. So these transforms will be applied to the images when `image_processor` is used on an image from the dataset class.
 
-
 ## Extending an existing processor: Create a fasttext sentence processor
 
-A [`fasttext`](https://github.com/facebookresearch/mmf/blob/f11adf0e4a5a28e85239176c44342f6471550e84/mmf/datasets/processors/processors.py#L361) processor is available in MMF that returns word embeddings. Here we will create a `fasttext` *sentence* processor hereby extending the `fasttext` word processor.
+A [`fasttext`](https://github.com/facebookresearch/mmf/blob/f11adf0e4a5a28e85239176c44342f6471550e84/mmf/datasets/processors/processors.py#L361) processor is available in MMF that returns word embeddings. Here we will create a `fasttext` _sentence_ processor hereby extending the `fasttext` word processor.
 
 ```python
 

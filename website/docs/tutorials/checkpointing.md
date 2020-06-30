@@ -50,7 +50,6 @@ run_type=train_val checkpoint.resume_pretrained=True checkpoint.resume_zoo=visua
 
 After running the training our model will be saved in `./save/<experiment_name>/visual_bert_final.pth`. Replace `./save` with `env.save_dir` if overriden. This will be the directory structure:
 
-
 ```bash
 ├── best.ckpt
 ├── config.yaml
