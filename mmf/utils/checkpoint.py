@@ -199,7 +199,7 @@ class Checkpoint:
             if not reset_optimizer:
                 self._load_optimizer(ckpt)
 
-            self.trainer.early_stopping.init_from_checkpoint(ckpt)
+            self.trainer.early_stop_callback.early_stopping.init_from_checkpoint(ckpt)
 
             self.trainer.writer.write("Checkpoint loaded")
 
@@ -370,9 +370,15 @@ class Checkpoint:
             self.ckpt_foldername, self.ckpt_prefix + "current.ckpt"
         )
 
-        best_iteration = self.trainer.early_stopping.best_monitored_iteration
-        best_update = self.trainer.early_stopping.best_monitored_update
-        best_metric = self.trainer.early_stopping.best_monitored_value
+        best_iteration = (
+            self.trainer.early_stop_callback.early_stopping.best_monitored_iteration
+        )
+        best_update = (
+            self.trainer.early_stop_callback.early_stopping.best_monitored_update
+        )
+        best_metric = (
+            self.trainer.early_stop_callback.early_stopping.best_monitored_value
+        )
         model = self.trainer.model
         data_parallel = registry.get("data_parallel") or registry.get("distributed")
 
