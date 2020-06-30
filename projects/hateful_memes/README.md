@@ -20,7 +20,7 @@ Links: [[arxiv]](https://arxiv.org/abs/2005.04790) [[challenge]](https://www.dri
 
 ## Prerequisites
 
-Install MMF following the [installation docs](https://mmf.readthedocs.io/en/latest/notes/installation.html).
+Install MMF following the [installation docs](https://mmf.sh/docs/getting_started/installation/).
 
 
 To acquire the data, you will need to register at DrivenData's Hateful Memes Competition and download data from the challenge's [download page](https://www.drivendata.org/competitions/64/hateful-memes/data/). MMF won't be able to automatically download the data since you manually need to agree to the licensing terms. Follow the steps below to convert data into MMF format.
