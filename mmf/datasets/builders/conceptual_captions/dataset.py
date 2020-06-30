@@ -11,7 +11,7 @@ class ConceptualCaptionsDataset(COCODataset):
         self.dataset_name = "conceptual_captions"
 
     def load_item(self, idx):
-        sample_info = self.imdb[idx]
+        sample_info = self.annotation_db[idx]
         current_sample = Sample()
 
         processed_caption = self.text_processor({"text": sample_info["captions"][0]})
