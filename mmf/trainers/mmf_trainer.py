@@ -21,7 +21,7 @@ from mmf.utils.build import build_model, build_optimizer
 from mmf.utils.general import print_model_parameters
 
 
-@registry.register_trainer("mmf_trainer")
+@registry.register_trainer("mmf")
 class MMFTrainer(
     TrainerCallbackHookMixin,
     TrainerTrainingLoopMixin,

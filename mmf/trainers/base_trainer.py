@@ -7,7 +7,7 @@ from mmf.common.registry import registry
 from mmf.utils.logger import Logger
 
 
-@registry.register_trainer("base_trainer")
+@registry.register_trainer("base")
 class BaseTrainer(ABC):
     def __init__(self, config: mmf_typings.DictConfig):
         self.config = config
