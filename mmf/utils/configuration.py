@@ -214,7 +214,11 @@ class Configuration:
         self.config = self._merge_with_dotlist(self.config, args.opts)
         self._update_specific(self.config)
         self.upgrade(self.config)
-
+        # Resolve the config here itself after full creation so that spawned workers
+        # don't face any issues
+        self.config = OmegaConf.create(
+            OmegaConf.to_container(self.config, resolve=True)
+        )
         registry.register("config", self.config)
 
     def _build_default_config(self):
