@@ -1,10 +1,10 @@
 ---
 id: slurm
-title: Hyperparameter Large Scale Sweeps on Slurm
+title: Large Scale Hyperparameter Sweeps on Slurm
 sidebar_label: Sweeping on Slurm
 ---
 
-MMF provides a utility script for running large scale hyperparameter sweeps on SLURM based cluster setups. A grid search is run on all permutations for the values provided for each of the hyperparameters in the script. The dotlist overrides provided via MMF's configuration system allows easily overriding any configuration parameter through this script. This script is created based on sweep scripts provided in FAIRSeq authored by [@myleott](https://github.com/myleott).
+MMF provides a utility script for running large scale hyperparameter sweeps on SLURM based cluster setups. A grid search is run on all permutations for the values provided for each of the hyperparameters in the script. The dotlist overrides provided via MMF's configuration system allows to easily override any configuration parameter through this script. This script is created based on sweep scripts provided in FAIRSeq authored by [@myleott](https://github.com/myleott).
 
 An example script to sweep over learning rate and batch size for MMBT on hateful memes would look like (assuming it is living at `tools/sweeps/sweep_mmbt_hm.py`):
 
