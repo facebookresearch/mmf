@@ -74,10 +74,12 @@ class MaskedCOCODataset(COCODataset):
         return current_sample
 
     def _get_mismatching_caption(self, image_id):
-        other_item = self.imdb[random.randint(0, len(self.imdb) - 1)]
+        other_item = self.annotation_db[random.randint(0, len(self.annotation_db) - 1)]
 
         while other_item["image_id"] == image_id:
-            other_item = self.imdb[random.randint(0, len(self.imdb) - 1)]
+            other_item = self.annotation_db[
+                random.randint(0, len(self.annotation_db) - 1)
+            ]
 
         other_caption = other_item["captions"][
             random.randint(0, len(other_item["captions"]) - 1)

@@ -14,7 +14,7 @@ class NLVR2Dataset(VQA2Dataset):
         )
 
     def load_item(self, idx):
-        sample_info = self.imdb[idx]
+        sample_info = self.annotation_db[idx]
         current_sample = Sample()
 
         processed_sentence = self.text_processor({"text": sample_info["sentence"]})

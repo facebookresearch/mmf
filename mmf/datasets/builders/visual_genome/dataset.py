@@ -40,11 +40,11 @@ class VisualGenomeDataset(VQA2Dataset):
             self.scene_graph_db = SceneGraphDatabase(config, scene_graph_file)
 
     def load_item(self, idx):
-        sample_info = self.imdb[idx]
+        sample_info = self.annotation_db[idx]
         sample_info = self._preprocess_answer(sample_info)
         sample_info["question_id"] = sample_info["id"]
         if self._check_unk(sample_info):
-            return self.load_item((idx + 1) % len(self.imdb))
+            return self.load_item((idx + 1) % len(self.annotation_db))
 
         current_sample = super().load_item(idx)
         current_sample = self._load_scene_graph(idx, current_sample)
@@ -52,7 +52,7 @@ class VisualGenomeDataset(VQA2Dataset):
         return current_sample
 
     def _get_image_id(self, idx):
-        return self.imdb[idx][_CONSTANTS["image_id_key"]]
+        return self.annotation_db[idx][_CONSTANTS["image_id_key"]]
 
     def _get_image_info(self, idx):
         # Deep copy so that we can directly update the nested dicts

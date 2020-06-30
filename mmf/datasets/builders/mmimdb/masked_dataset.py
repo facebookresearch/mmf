@@ -17,7 +17,7 @@ class MaskedMMImdbDataset(VQA2Dataset):
         self._add_answer = config.get("add_answer", True)
 
     def load_item(self, idx):
-        sample_info = self.imdb[idx]
+        sample_info = self.annotation_db[idx]
         current_sample = Sample()
 
         if self._use_features is True:
