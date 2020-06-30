@@ -2,7 +2,7 @@ import collections
 import os
 import random
 
-from mmf.common.sample import Sample
+from mmf.common.sample import Sample, SampleList
 from mmf.datasets.base_dataset import BaseDataset
 from mmf.datasets.databases.image_database import ImageDatabase
 
@@ -53,16 +53,30 @@ class RetrievalDataset(BaseDataset):
 
     def __getitem__(self, idx):
         sample_info = self.annotation_db[idx]
-        current_sample = Sample()
 
-        sentence = random.sample(sample_info["sentences"], 1)[0]
-        processed_sentence = self.text_processor({"text": sentence})
+        if self._dataset_type == 'train':
+            current_sample = Sample()
+            sentence = random.sample(sample_info["sentences"], 1)[0]
+            processed_sentence = self.text_processor({"text": sentence})
 
-        current_sample.text = processed_sentence["text"]
-        if "input_ids" in processed_sentence:
-            current_sample.update(processed_sentence)
+            current_sample.text = processed_sentence["text"]
+            if "input_ids" in processed_sentence:
+                current_sample.update(processed_sentence)
+        else:
+            sample_list = []
+            for sentence in sample_info["sentences"]:
+                sentence_sample = Sample()
+                processed_sentence = self.text_processor({"text": sentence})
+
+                sentence_sample.text = processed_sentence["text"]
+                if "input_ids" in processed_sentence:
+                    sentence_sample.update(processed_sentence)
+                sample_list.append(sentence_sample)
+            current_sample = SampleList(sample_list)
 
         current_sample.image = self.image_db[idx]["images"][0]
+
+        current_sample.targets = None  # Dummy for Loss
 
         return current_sample
 
