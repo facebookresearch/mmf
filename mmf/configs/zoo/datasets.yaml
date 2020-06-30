@@ -81,12 +81,12 @@ stvqa:
 
 textvqa:
   defaults:
-    version: 0.5.5_2020_04_28
+    version: 0.5.5_2020_06_30
     resources:
       features:
       - url: mmf://datasets/textvqa/defaults/features/features.tar.gz
         file_name: features.tar.gz
-        hashcode: f78f6a8e3c7c9c40c8034303457ebcbd5f2bf999cf8aeeba0f6b6f5403dd7bcf
+        hashcode: 960f69c651f5c6532b4e9d8310597aa8d21c65074768c9702ea822e4b2867a0d
       annotations:
       - url: mmf://datasets/textvqa/defaults/annotations/annotations.tar.gz
         file_name: annotations.tar.gz
@@ -95,6 +95,13 @@ textvqa:
       - url: mmf://datasets/textvqa/defaults/extras.tar.gz
         file_name: extras.tar.gz
         hashcode: 68dc3b4aeffe4dce24ebb5d373baf0c304fbfbec73f0c1550118a85e90286e38
+  caffe2:
+    version: 0.5.5_2020_04_28
+    resources:
+      features:
+      - url: mmf://datasets/textvqa/defaults/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: f78f6a8e3c7c9c40c8034303457ebcbd5f2bf999cf8aeeba0f6b6f5403dd7bcf
   ocr_en:
     version: 0.5.5_2020_04_28
     resources:

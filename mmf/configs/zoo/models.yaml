@@ -204,11 +204,11 @@ m4c:
   textvqa:
     with_stvqa:
       zoo_requirements: detectron.vmb_weights
-      version: 1.0_2020_04_29
+      version: 1.0_2020_06_30
       resources:
       - url: mmf://models/m4c/m4c.textvqa.with_stvqa.tar.gz
         file_name: m4c.textvqa.with_stvqa.tar.gz
-        hashcode: 2dfd024cb144bb70843033d11dec064bc84937f22fd6561653ce1acd7610285e
+        hashcode: 0bf3b2d2fc4ed92994044404feb83869bf64c3bb8077e4472ae45927986fe51f
     ocr_ml:
       zoo_requirements: detectron.vmb_weights
       version: 1.0_2020_04_29
