@@ -167,15 +167,15 @@ class MovieBottleneck(nn.Module):
         self.inplanes = inplanes
 
         stride_1x1, stride_3x3 = (stride, 1) if stride_in_1x1 else (1, stride)
-        width = int(planes * (base_width / 64.0)) * groups
+        self.width = int(planes * (base_width / 64.0)) * groups
 
         # Both self.conv2 and self.downsample layers downsample the input when
         # stride != 1
-        self.conv1 = conv1x1(inplanes, width, stride_1x1)
+        self.conv1 = conv1x1(inplanes, self.width, stride_1x1)
         self.bn1 = self.norm_layer(self.width)
-        self.conv2 = conv3x3(width, width, stride_3x3, groups, dilation)
+        self.conv2 = conv3x3(self.width, self.width, stride_3x3, groups, dilation)
         self.bn2 = self.norm_layer(self.width)
-        self.conv3 = conv1x1(width, planes * self.expansion)
+        self.conv3 = conv1x1(self.width, planes * self.expansion)
         self.bn3 = self.norm_layer(self.planes * self.expansion)
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample

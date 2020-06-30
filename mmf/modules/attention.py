@@ -162,9 +162,11 @@ class TopDownAttention(nn.Module):
         return masked_attention
 
 
-class MultiHeadAttention(nn.Module):
+# TODO(vedanuj): Remove this and use torch.nn.MultiHeadAttention
+class MovieMcanMultiHeadAttention(nn.Module):
     """
     Multi-Head Attention implementation from https://arxiv.org/abs/1706.03762
+    used for Movie+MCAN
     """
 
     def __init__(self, dim: int, num_attn: int, dropout: float = 0.1):
@@ -212,7 +214,7 @@ class MultiHeadAttention(nn.Module):
 class SelfAttention(nn.Module):
     def __init__(self, dim: int, num_attn: int, dropout: float):
         super().__init__()
-        self.multi_head_attn = MultiHeadAttention(dim, num_attn, dropout=0.1)
+        self.multi_head_attn = MovieMcanMultiHeadAttention(dim, num_attn, dropout=0.1)
         self.fcn = nn.Sequential(
             nn.Linear(dim, 4 * dim),
             nn.ReLU(inplace=True),
@@ -235,7 +237,7 @@ class SelfGuidedAttention(nn.Module):
     def __init__(self, dim: int, num_attn: int, dropout: float):
         super().__init__()
         self.multi_head_attn = nn.ModuleList(
-            [MultiHeadAttention(dim, num_attn, dropout=0.1) for _ in range(2)]
+            [MovieMcanMultiHeadAttention(dim, num_attn, dropout=0.1) for _ in range(2)]
         )
         self.fcn = nn.Sequential(
             nn.Linear(dim, 4 * dim),
