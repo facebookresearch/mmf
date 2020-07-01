@@ -441,6 +441,45 @@
         <span class="k">return</span> <span class="n">loss</span> <span class="o">*</span> <span class="n">targets</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div></div>
 
 
+<div class="viewcode-block" id="TripleLogitBinaryCrossEntropy"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.TripleLogitBinaryCrossEntropy">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_loss</span><span class="p">(</span><span class="s2">&quot;triple_logit_bce&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">TripleLogitBinaryCrossEntropy</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is used for Three-branch fusion only. We predict scores and compute</span>
+<span class="sd">    cross entropy loss for each of branches.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="TripleLogitBinaryCrossEntropy.forward"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.TripleLogitBinaryCrossEntropy.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculates and returns the binary cross entropy for logits</span>
+<span class="sd">        Args:</span>
+<span class="sd">            sample_list (SampleList): SampleList containing `targets` attribute.</span>
+<span class="sd">            model_output (Dict): Model output containing `scores` attribute.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.FloatTensor: Float value for loss.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="n">sample_list</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">scores</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">F</span><span class="o">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span>
+                    <span class="n">scores</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">targets</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span>
+                <span class="p">)</span>
+                <span class="o">+</span> <span class="n">F</span><span class="o">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span>
+                    <span class="n">scores</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">targets</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span>
+                <span class="p">)</span>
+                <span class="o">+</span> <span class="n">F</span><span class="o">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span>
+                    <span class="n">scores</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">targets</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">loss</span> <span class="o">*</span> <span class="n">targets</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span></div></div>
+
+
 <div class="viewcode-block" id="BinaryCrossEntropyLoss"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.BinaryCrossEntropyLoss">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_loss</span><span class="p">(</span><span class="s2">&quot;bce&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">BinaryCrossEntropyLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

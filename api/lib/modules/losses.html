@@ -606,6 +606,31 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt id="mmf.modules.losses.TripleLogitBinaryCrossEntropy">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.losses.</code><code class="sig-name descname">TripleLogitBinaryCrossEntropy</code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#TripleLogitBinaryCrossEntropy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.TripleLogitBinaryCrossEntropy" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is used for Three-branch fusion only. We predict scores and compute
+cross entropy loss for each of branches.</p>
+<dl class="py method">
+<dt id="mmf.modules.losses.TripleLogitBinaryCrossEntropy.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#TripleLogitBinaryCrossEntropy.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.TripleLogitBinaryCrossEntropy.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates and returns the binary cross entropy for logits
+:param sample_list: SampleList containing <cite>targets</cite> attribute.
+:type sample_list: SampleList
+:param model_output: Model output containing <cite>scores</cite> attribute.
+:type model_output: Dict</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Float value for loss.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt id="mmf.modules.losses.WeightedSoftmaxLoss">
 <em class="property">class </em><code class="sig-prename descclassname">mmf.modules.losses.</code><code class="sig-name descname">WeightedSoftmaxLoss</code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#WeightedSoftmaxLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.WeightedSoftmaxLoss" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
