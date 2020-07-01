@@ -56,3 +56,7 @@ model_config:
     objective: 0
     num_negative: 128
     model: "bert"
+    classifier:
+      type: "default"
+      input_processor: "default"
+      output_processor: "default"
