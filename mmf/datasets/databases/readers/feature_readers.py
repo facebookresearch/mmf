@@ -75,7 +75,7 @@ class FeatureReader:
                 if image_feat_path.endswith("npy"):
                     feat = np.load(image_feat_path)
                 elif image_feat_path.endswith("pth"):
-                    feat = torch.load(image_feat_path)
+                    feat = torch.load(image_feat_path, map_location=torch.device("cpu"))
                 self.ndim = feat.ndim
             self._init_reader()
 

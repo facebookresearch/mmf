@@ -264,9 +264,9 @@ vqa2:
       - url: mmf://datasets/vqa2/defaults/extras.tar.gz
         file_name: extras.tar.gz
         hashcode: e45c3dbef61e5cc550b08ed7299c88cf7937efa219d071342b8ed7a6a5642a55
-  grid:
+  grid_features:
     version: 1.0_2020_06_30
-    # Features and images should be used from coco.defaults as zoo_requirements
+    # Annotations for grid based features of COCO
     resources:
       annotations:
       - url: mmf://datasets/vqa2/grid/annotations/annotations.tar.gz

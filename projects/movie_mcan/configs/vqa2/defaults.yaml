@@ -9,7 +9,7 @@ dataset_config:
     use_features: true
     zoo_requirements:
       - vqa2.defaults
-      - vqa2.grid
+      - vqa2.grid_features
     features:
       train:
       - /checkpoint/xinleic/vlfeat
@@ -21,13 +21,13 @@ dataset_config:
       - /checkpoint/xinleic/vlfeat
     annotations:
       train:
-      - vqa2/grid/annotations/imdb_train2014.npy
-      - vqa2/grid/annotations/imdb_val2014.npy
-      - vqa2/grid/annotations/imdb_visualgenome.npy
+      - vqa2/grid_features/annotations/imdb_train2014.npy
+      - vqa2/grid_features/annotations/imdb_val2014.npy
+      - vqa2/grid_features/annotations/imdb_visualgenome.npy
       val:
-      - vqa2/grid/annotations/imdb_oneval2014.npy
+      - vqa2/grid_features/annotations/imdb_oneval2014.npy
       test:
-      - vqa2/grid/annotations/imdb_test2015.npy
+      - vqa2/grid_features/annotations/imdb_test2015.npy
 
 optimizer:
   type: adam_w
