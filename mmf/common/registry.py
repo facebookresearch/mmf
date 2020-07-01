@@ -406,4 +406,10 @@ class Registry:
 
 
 registry = Registry()
-setup_imports()
+
+# Only setup imports in main process, this means registry won't be
+# fully available in spawned child processes (such as dataloader processes)
+# but instantiated. This is to prevent issues such as
+# https://github.com/facebookresearch/mmf/issues/355
+if __name__ == "__main__":
+    setup_imports()
