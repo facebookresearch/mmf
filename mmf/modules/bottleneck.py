@@ -186,7 +186,7 @@ class MovieBottleneck(nn.Module):
 
     def init_layers(self):
         if self.cond_planes:
-            self.mod = Modulation(
+            self.cond = Modulation(
                 self.inplanes, self.cond_planes, compressed=self.compressed
             )
             self.se = SEModule(self.planes * self.expansion, 4) if self.use_se else None
@@ -197,9 +197,9 @@ class MovieBottleneck(nn.Module):
         identity = x
 
         if self.cond_planes and self.compressed:
-            x = self.conv1(x) + self.mod(x, cond)
+            x = self.conv1(x) + self.cond(x, cond)
         elif self.cond_planes and not self.compressed:
-            x += self.mod(x, cond)
+            x += self.cond(x, cond)
             x = self.conv1(x)
         else:
             x = self.conv1(x)

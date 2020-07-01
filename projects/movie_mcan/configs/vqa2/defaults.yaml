@@ -7,6 +7,9 @@ dataset_config:
   vqa2:
     depth_first: true
     use_features: true
+    zoo_requirements:
+      - vqa2.defaults
+      - vqa2.grid
     features:
       train:
       - /checkpoint/xinleic/vlfeat
@@ -18,13 +21,13 @@ dataset_config:
       - /checkpoint/xinleic/vlfeat
     annotations:
       train:
-      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_train2014.npy
-      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_val2014.npy
-      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_visualgenome.npy
+      - vqa2/grid/annotations/imdb_train2014.npy
+      - vqa2/grid/annotations/imdb_val2014.npy
+      - vqa2/grid/annotations/imdb_visualgenome.npy
       val:
-      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_oneval2014_feat.npy
+      - vqa2/grid/annotations/imdb_oneval2014.npy
       test:
-      - /checkpoint/kienduynguyen/data/imdb/vqa/imdb_test2015.npy
+      - vqa2/grid/annotations/imdb_test2015.npy
 
 optimizer:
   type: adam_w

@@ -24,41 +24,4 @@ and
 }
 ```
 
-
-## Installation
-
-Follow installation instructions in the [documentation](https://mmf.readthedocs.io/en/latest/notes/installation.html).
-
-## Data Setup
-
-[Data will be uploaded soon]
-
-## Training
-
-To train MoViE+MCAN model on the VQA2.0 dataset, run:
-
-```
-mmf_run config=projects/movie_mcan/configs/vqa2/defaults.yaml model=movie_mcan dataset=vqa2 run_type=train
-```
-
-## Validation
-
-To validate the trained model on the VQA val set, run:
-
-```
-mmf_run config=projects/movie_mcan/configs/vqa2/defaults.yaml model=movie_mcan dataset=vqa2 run_type=val \
-checkpoint.resume_file=<path_to_trained_pth_file>
-```
-
-## Inference Prediction for Eval AI Submission
-
-To generate the vqa prediction file for Eval AI submission on test-dev, run:
-
-```
-mmf_predict config=projects/movie_mcan/configs/vqa2/defaults.yaml model=movie_mcan dataset=vqa2 run_type=test \
-checkpoint.resume_file=<path_to_trained_pth_file>
-```
-
-## Pretrained model
-
-[Pretrained model will be added soon]
+Please see [https://mmf.sh/docs/projects/movie_mcan](https://mmf.sh/docs/projects/movie_mcan) for more details on how to use MoViE+MCAN model.
