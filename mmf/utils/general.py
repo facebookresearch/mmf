@@ -269,3 +269,7 @@ def get_chunks(x, sizes):
         out.append(y)
         begin += s
     return out
+
+
+def filter_grads(parameters):
+    return [param for param in parameters if param.requires_grad]

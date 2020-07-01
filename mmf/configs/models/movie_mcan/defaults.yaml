@@ -1,0 +1,32 @@
+model_config:
+  movie_mcan:
+    model_data_dir: ${env.data_dir}
+    classifier:
+      type: triple_linear
+      params: {}
+    image_feature_embeddings:
+      type: two_branches
+      params:
+        hidden_dim: 1024
+        cond_dim: 1024
+        num_attn: 8
+        dropout: 0.1
+        num_layers: 6
+        cbn_num_layers: 4
+    image_feature_dim: 2048
+    image_feature_encodings:
+      type: default
+      params:
+        model_data_dir: ${model_config.movie_mcan.model_data_dir}
+        cond_features: 1024
+    text_embeddings:
+      type: mcan
+      params:
+        hidden_dim: 1024
+        embedding_dim: 300
+        num_attn: 8
+        dropout: 0.1
+        num_layers: 6
+        num_attn_pool: 1
+        num_feat: 2
+        model_data_dir: ${model_config.movie_mcan.model_data_dir}

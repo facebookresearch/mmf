@@ -440,3 +440,14 @@ late_fusion:
     - url: mmf://models/late_fusion/late_fusion.finetuned.hateful_memes.tar.gz
       file_name: late_fusion.finetuned.hateful_memes.tar.gz
       hashcode: 5b6aeb3e6f0fbdc38903e76426b8caac8cf5734fd7996f2fb9f3a3b1fe042795
+
+movie_mcan:
+  grid:
+    vqa2_vg:
+      # Model from project : projects/movie_mcan, VQA2.0 TestDev 73.9
+      version: 1.0_2020_06_30
+      resources:
+      - url: mmf://models/movie_mcan/movie_mcan.grid.vqa2_vg.tar.gz
+        file_name: movie_mcan.grid.vqa2_vg.tar.gz
+        hashcode: eb155846799d12c0b989490595ce57aa934cd7c71fc9956235e4d9e06cbe8985
+    defaults: ${movie_mcan.grid.vqa2_vg}

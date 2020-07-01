@@ -1,4 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+
+import math
+from typing import Optional, Tuple, Type
+
 import torch
 from torch import nn
 
@@ -156,3 +160,109 @@ class TopDownAttention(nn.Module):
                 masked_attention = self._mask_attentions(attention, image_locs)
 
         return masked_attention
+
+
+# TODO(vedanuj): Remove this and use torch.nn.MultiHeadAttention
+class MovieMcanMultiHeadAttention(nn.Module):
+    """
+    Multi-Head Attention implementation from https://arxiv.org/abs/1706.03762
+    used for Movie+MCAN
+    """
+
+    def __init__(self, dim: int, num_attn: int, dropout: float = 0.1):
+        super().__init__()
+        self.p_attn = None
+        self.h = num_attn
+        self.d_k = dim // num_attn
+        self.linears = nn.ModuleList([nn.Linear(dim, dim) for _ in range(4)])
+        self.dropout = nn.Dropout(p=dropout)
+
+    def qkv_attention(
+        self,
+        query: torch.Tensor,
+        key: torch.Tensor,
+        value: torch.Tensor,
+        mask: Optional[torch.Tensor] = None,
+        dropout: Type[nn.Dropout] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        d_k = query.size(-1)
+        scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)
+        if mask is not None:
+            scores.data.masked_fill_(mask.unsqueeze(1).unsqueeze(2), -1e9)
+
+        p_attn = nn.functional.softmax(scores, dim=-1)
+        if dropout is not None:
+            p_attn = dropout(p_attn)
+
+        return torch.matmul(p_attn, value), p_attn
+
+    def forward(
+        self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor, mask: torch.Tensor
+    ) -> torch.Tensor:
+        b = q.size(0)
+
+        q = self.linears[0](q).view(b, -1, self.h, self.d_k).transpose(1, 2)
+        k = self.linears[1](k).view(b, -1, self.h, self.d_k).transpose(1, 2)
+        v = self.linears[2](v).view(b, -1, self.h, self.d_k).transpose(1, 2)
+
+        x, self.p_attn = self.qkv_attention(q, k, v, mask=mask, dropout=self.dropout)
+        x = x.transpose(1, 2).contiguous().view(b, -1, self.h * self.d_k)
+
+        return self.linears[-1](x)
+
+
+class SelfAttention(nn.Module):
+    def __init__(self, dim: int, num_attn: int, dropout: float):
+        super().__init__()
+        self.multi_head_attn = MovieMcanMultiHeadAttention(dim, num_attn, dropout=0.1)
+        self.fcn = nn.Sequential(
+            nn.Linear(dim, 4 * dim),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=dropout),
+            nn.Linear(4 * dim, dim),
+        )
+        self.drop_mha = nn.Dropout(p=dropout)
+        self.ln_mha = nn.LayerNorm(dim)
+        self.drop_fcn = nn.Dropout(p=dropout)
+        self.ln_fcn = nn.LayerNorm(dim)
+
+    def forward(self, x: torch.Tensor, x_mask: torch.Tensor) -> torch.Tensor:
+        x = self.ln_mha(x + self.drop_mha(self.multi_head_attn(x, x, x, x_mask)))
+        x = self.ln_fcn(x + self.drop_fcn(self.fcn(x)))
+
+        return x
+
+
+class SelfGuidedAttention(nn.Module):
+    def __init__(self, dim: int, num_attn: int, dropout: float):
+        super().__init__()
+        self.multi_head_attn = nn.ModuleList(
+            [MovieMcanMultiHeadAttention(dim, num_attn, dropout=0.1) for _ in range(2)]
+        )
+        self.fcn = nn.Sequential(
+            nn.Linear(dim, 4 * dim),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=dropout),
+            nn.Linear(4 * dim, dim),
+        )
+        self.drop_mha = nn.ModuleList([nn.Dropout(p=dropout) for _ in range(2)])
+        self.ln_mha = nn.ModuleList([nn.LayerNorm(dim) for _ in range(3)])
+        self.drop_fcn = nn.Dropout(p=dropout)
+        self.ln_fcn = nn.LayerNorm(dim)
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        y: torch.Tensor,
+        x_mask: torch.Tensor,
+        y_mask: torch.Tensor,
+    ) -> torch.Tensor:
+        x = self.ln_mha[0](
+            x + self.drop_mha[0](self.multi_head_attn[0](x, x, x, x_mask))
+        )
+        x = self.ln_mha[1](
+            x + self.drop_mha[1](self.multi_head_attn[1](x, y, y, y_mask))
+        )
+        x = self.ln_fcn(x + self.drop_fcn(self.fcn(x)))
+
+        return x

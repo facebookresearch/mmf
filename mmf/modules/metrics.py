@@ -302,6 +302,9 @@ class VQAAccuracy(BaseMetric):
 
         """
         output = model_output["scores"]
+        # for three branch movie+mcan model
+        if output.dim() == 3:
+            output = output[:, 0]
         expected = sample_list["targets"]
 
         output = self._masked_unk_softmax(output, 1, 0)
