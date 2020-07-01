@@ -223,6 +223,7 @@ class VisualBERTForPretraining(nn.Module):
     def forward(
         self,
         input_ids,
+        input_mask,
         attention_mask=None,
         token_type_ids=None,
         visual_embeddings=None,
@@ -271,6 +272,7 @@ class VisualBERTForClassification(nn.Module):
         self.config = config
         self.output_attentions = self.config.output_attentions
         self.output_hidden_states = self.config.output_hidden_states
+        self.pooler_strategy = self.config.get("pooler_strategy", "default")
 
         # If bert_model_name is not specified, you will need to specify
         # all of the required parameters for BERTConfig and a pretrained
@@ -326,6 +328,7 @@ class VisualBERTForClassification(nn.Module):
     def forward(
         self,
         input_ids,
+        input_mask,
         attention_mask=None,
         token_type_ids=None,
         visual_embeddings=None,
@@ -358,6 +361,17 @@ class VisualBERTForClassification(nn.Module):
         if self.output_hidden_states:
             output_dict["sequence_output"] = sequence_output
             output_dict["pooled_output"] = pooled_output
+
+        if self.pooler_strategy == "vqa":
+            # In VQA2 pooling strategy, we use representation from second last token
+            index_to_gather = input_mask.sum(1) - 2
+            pooled_output = torch.gather(
+                sequence_output,
+                1,
+                index_to_gather.unsqueeze(-1)
+                .unsqueeze(-1)
+                .expand(index_to_gather.size(0), 1, sequence_output.size(-1)),
+            )
 
         pooled_output = self.dropout(pooled_output)
         logits = self.classifier(pooled_output)
@@ -527,6 +541,7 @@ class VisualBERT(BaseModel):
 
         output_dict = self.model(
             sample_list.input_ids,
+            sample_list.input_mask,
             sample_list.attention_mask,
             sample_list.token_type_ids,
             sample_list.visual_embeddings,

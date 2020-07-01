@@ -157,7 +157,7 @@ visual_bert:
         resources:
         - url: mmf://models/visual_bert/visual_bert.finetuned.vqa2.train.tar.gz
           file_name: visual_bert.finetuned.vqa2.train.tar.gz
-          hashcode: e786351503f0e19abd916cc9063b427adc60a0f98f6686e58b296672e90b74c
+          hashcode: e786351503f0e19abd916cc9063b427adc60a0f98f6686e58b296672e90b74c8
       from_coco_train_val:
         version: 1.0_2020_05_21
         resources:
