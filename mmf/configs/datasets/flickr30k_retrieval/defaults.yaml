@@ -15,11 +15,11 @@ dataset_config:
       - flickr30k/defaults/features/detectron.lmdb
     annotations:
       train:
-      - /checkpoint/omkar/datasets/flickr30k/all_data_final_train_2014.jsonl
+      - /checkpoint/omkar/datasets/flickr30k/vedanuj_original/all_data_final_train_2014.jsonline
       val:
-      - /checkpoint/vedanuj/datasets/flickr30k/all_data_final_test_set0_2014.jsonline
+      - /checkpoint/omkar/datasets/flickr30k/vedanuj_original/all_data_final_test_set0_2014.jsonline
       test:
-      - /checkpoint/vedanuj/datasets/flickr30k/all_data_final_test_set0_2014.jsonline
+      - /checkpoint/omkar/datasets/flickr30k/vedanuj_original/all_data_final_test_set0_2014.jsonline
     max_features: 100
     test_id_file_path: /checkpoint/vedanuj/datasets/flickr30k/cache/flickr_test_ids.npy
     hard_neg_file_path: /checkpoint/vedanuj/datasets/flickr30k/hard_negative_cleaned.pkl

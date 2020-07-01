@@ -92,7 +92,7 @@ class Flickr30kRetrievalDatabase(torch.utils.data.Dataset):
             if img_id3 != image_id:
                 break
 
-        entry3 = self._entries[random.choice(self.imgid2entry[img_id3])]
+        entry3 = self._entries[self.imgid2entry[img_id3][0]]
 
         if self._dataset_type == "train":
             # random hard caption.

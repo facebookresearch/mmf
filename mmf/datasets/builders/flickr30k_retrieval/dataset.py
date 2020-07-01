@@ -80,6 +80,7 @@ class Flickr30kRetrievalDataset(MMFDataset):
         current_sample.image_info_0 = {}
         current_sample.image_info_0['bbox'] = spatials
         current_sample.targets = target
+        current_sample.image_mask = image_mask
 
         return current_sample
 

@@ -33,7 +33,7 @@ optimizer:
 scheduler:
   type: warmup_linear
   params:
-    num_warmup_steps: 800
+    num_warmup_steps: 500
     num_training_steps: ${training.max_updates}
 
 evaluation:
@@ -41,18 +41,15 @@ evaluation:
   - accuracy
 
 training:
-  batch_size: 4
+  batch_size: 128
   lr_scheduler: true
-  max_updates: 8000
+  max_updates: 5000
   find_unused_parameters: true
-  early_stop:
-    criteria: flickr30k_retrieval/accuracy
-    minimize: false
-  evaluation_interval: 360
+  evaluation_interval: 5000
   evaluate_metrics: true
 
 checkpoint:
   resume_pretrained: true
   resume_file: /private/home/omkar/vilbert-multi-task/pretrained_model.bin
   pretrained_state_mapping:
-    bert: model.bert
+    model.bert: model.bert
