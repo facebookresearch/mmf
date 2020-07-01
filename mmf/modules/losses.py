@@ -523,3 +523,96 @@ class CrossEntropyLoss(nn.Module):
 
     def forward(self, sample_list, model_output):
         return self.loss_fn(model_output["scores"], sample_list.targets)
+
+
+@registry.register_loss("in_batch_ce")
+class InBatchCrossEntropy(nn.Module):
+
+    def __init__(self):
+        super().__init__()
+        self.loss_ce = nn.CrossEntropyLoss()
+        self.loss_bce = nn.BCEWithLogitsLoss()
+
+    def forward(self, sample_list, model_output):
+        image_embeddings = model_output["scores"]
+        text_embeddings = model_output["targets"]
+
+        if image_embeddings.shape[0] == text_embeddings.shape[0]:
+            # Training/Single-GT loss
+            correlations = image_embeddings @ text_embeddings.t()
+            batch_labels = torch.arange(correlations.shape[0], device=correlations.device).long()
+
+            # compare loss for caption retrieval
+            loss_s = self.loss_ce(correlations, batch_labels)
+            # compare loss for image retrieval
+            loss_im = self.loss_ce(correlations.t(), batch_labels)
+
+            loss = loss_s + loss_im
+        else:
+            # TODO : change to caption/image retrieval
+            # Evaluation/Multi-GT loss
+            assert text_embeddings.shape[0] % image_embeddings.shape[0] == 0
+
+            batch_size, dim_size = image_embeddings.shape
+            factor = text_embeddings.shape[0] // image_embeddings.shape[0]
+            text_embeddings = text_embeddings.reshape(batch_size, factor, dim_size)
+            correlations = image_embeddings @ text_embeddings.permute(0, 2, 1)
+
+            batch_labels = torch.eye(image_embeddings.shape[0], device=correlations.device)
+            batch_labels = batch_labels[:, :, None].repeat(1, 1, factor)
+
+            loss = self.loss_bce(correlations, batch_labels)
+
+        return loss
+
+
+@registry.register_loss("in_batch_hinge")
+class InBatchHinge(nn.Module):
+    """
+    Based on the code from https://github.com/fartashf/vsepp/blob/master/model.py
+    """
+    def __init__(self, margin: int = 0):
+        super().__init__()
+        self.margin = margin
+
+    def _compute_loss(self, correlations):
+        diagonal = correlations.diag()[:, None]
+        d1 = diagonal.expand_as(correlations)
+        d2 = diagonal.t().expand_as(correlations)
+
+        # compare every diagonal score to scores in its column
+        # caption retrieval
+        cost_s = (self.margin + correlations - d1).clamp(min=0)
+        # compare every diagonal score to scores in its row
+        # image retrieval
+        cost_im = (self.margin + correlations - d2).clamp(min=0)
+
+        # clear diagonals
+        mask = 1 - torch.eye(correlations.size(0), device=correlations.device)
+        cost_s = cost_s * mask
+        cost_im = cost_im * mask
+
+        return cost_s.sum() + cost_im.sum()
+
+    def forward(self, sample_list, model_output):
+        image_embeddings = model_output["scores"]
+        text_embeddings = model_output["targets"]
+
+        if image_embeddings.shape[0] == text_embeddings.shape[0]:
+            # Training/Single-GT loss
+            correlations = image_embeddings @ text_embeddings.t()
+            loss = self._compute_loss(correlations)
+        else:
+            # Evaluation/Multi-GT loss
+            assert text_embeddings.shape[0] % image_embeddings.shape[0] == 0
+
+            batch_size, dim_size = image_embeddings.shape
+            factor = text_embeddings.shape[0] // image_embeddings.shape[0]
+            text_embeddings = text_embeddings.reshape(batch_size, factor, dim_size)
+            correlations = image_embeddings @ text_embeddings.permute(1, 2, 0)  # FxBxB
+
+            loss = 0
+            for corr in correlations:
+                loss += self._compute_loss(corr)
+
+        return loss

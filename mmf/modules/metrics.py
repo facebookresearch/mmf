@@ -893,3 +893,68 @@ def _convert_to_one_hot(expected, output):
             expected.long(), num_classes=output.size(-1)
         ).float()
     return expected
+
+
+@registry.register_metric("r@k_retrieval")
+class RecallAtK_ret(BaseMetric):
+    def __init__(self, name="recall@k"):
+        super().__init__(name)
+
+    def _get_RatK(self, correlations, labels, k):
+        _, top_k_ids = torch.topk(correlations, k, dim=1)
+        hits = (top_k_ids == labels[:, None]).long().max(dim=1)[0]
+
+        return hits
+
+    def calculate(self, sample_list, model_output, k, *args, **kwargs):
+        source_embeddings = model_output["scores"]  # 1000x512
+        target_embeddings = sample_list["targets"]  # 5000x512
+
+        assert sample_list["targets"].shape[0] % sample_list["scores"].shape[0] == 0
+
+        kb_size, dim_size = source_embeddings.shape
+        factor = target_embeddings.shape[0] // source_embeddings.shape[0]
+
+        target_embeddings = target_embeddings.reshape(kb_size, factor, dim_size)  # 1000x5x512
+
+        correlations = source_embeddings @ target_embeddings.permute(0, 2, 1)  # 1000x1000x5
+        labels = torch.arange(kb_size, device=sample_list["targets"].device)
+
+        hits = torch.zeros_like(labels)
+        for i in range(factor):
+            curr_hits = self._get_RatK(correlations[:, :, i], labels, k)
+            hits = torch.logical_or(hits, curr_hits)
+
+        ratk = hits.sum().float() / hits.shape[0]
+
+        return ratk
+
+
+@registry.register_metric("r@1_retrieval")
+class RecallAt1_ret(RecallAtK_ret):
+    def __init__(self):
+        super().__init__("r@1")
+
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        ratk = super().calculate(sample_list, model_output, 1)
+        return ratk
+
+
+@registry.register_metric("r@5_retrieval")
+class RecallAt5_ret(RecallAtK_ret):
+    def __init__(self):
+        super().__init__("r@5")
+
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        ratk = super().calculate(sample_list, model_output, 5)
+        return ratk
+
+
+@registry.register_metric("r@10_retrieval")
+class RecallAt10_ret(RecallAtK_ret):
+    def __init__(self):
+        super().__init__("r@10")
+
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        ratk = super().calculate(sample_list, model_output, 10)
+        return ratk

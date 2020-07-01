@@ -51,9 +51,24 @@ dataset_config:
               - type: Resize
                 params:
                   size: [256, 256]
-              - type: CenterCrop
+#              - type: RandomResizedCrop
+#                params:
+#                  size: [224, 224]
+#                  scale: [0.75, 1.2]
+#              - type: CenterCrop
+#                params:
+#                  size: [224, 224]
+              - type: RandomCrop
                 params:
                   size: [224, 224]
+#              - type: RandomAffine
+#                params:
+#                  degrees: 15
+#              - type: ColorJitter
+#                params:
+#                  brightness: 0.1
+#                  contrast: 0.1
+#                  saturation: 0.1
               - ToTensor
               - type: Normalize
                 params:

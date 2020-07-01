@@ -1,0 +1,33 @@
+model_config:
+  align_base:
+    bert_model_name: bert-base-uncased
+    final_hidden_size: 512
+
+    image_encoder:
+      type: resnet152
+      params:
+        pretrained: true
+        pool_type: avg
+        num_output_features: 1
+
+    text_encoder:
+      type: transformer
+      params:
+        bert_model_name: ${model_config.align_base.bert_model_name}
+        hidden_size: 768
+        num_hidden_layers: 12
+        num_attention_heads: 12
+        output_attentions: false
+        output_hidden_states: false
+
+    image_projection:
+      type: linear
+      params:
+        in_dim: 2048
+        out_dim: ${model_config.align_base.final_hidden_size}
+
+    text_projection:
+      type: linear
+      params:
+        in_dim: 768
+        out_dim: ${model_config.align_base.final_hidden_size}

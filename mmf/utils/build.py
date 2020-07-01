@@ -16,11 +16,11 @@ from mmf.utils.general import get_optimizer_parameters
 def build_config(
     configuration: Type[Configuration], *args, **kwargs
 ) -> mmf_typings.DictConfig:
-    """Builder function for config. Freezes the configuration and registers 
+    """Builder function for config. Freezes the configuration and registers
     configuration object and config DictConfig object to registry.
 
     Args:
-        configuration (Configuration): Configuration object that will be 
+        configuration (Configuration): Configuration object that will be
             used to create the config.
 
     Returns:
@@ -129,6 +129,8 @@ def build_dataloader_and_sampler(
     pin_memory = training_config.pin_memory
 
     other_args = {}
+    if dataset_instance.dataset_type == 'train':
+        other_args["drop_last"] = training_config.get("drop_last", False)
 
     other_args = _add_extra_args_for_dataloader(dataset_instance, other_args)
 

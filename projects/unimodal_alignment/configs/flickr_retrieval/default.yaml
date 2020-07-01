@@ -1,0 +1,54 @@
+includes:
+- configs/datasets/retrieval/defaults.yaml
+
+model_config:
+  align_base:
+    norm_embeddings: true
+    losses:
+    - type: in_batch_ce
+#    - type: in_batch_hinge
+#      params:
+#        margin: 0.2
+
+dataset_config:
+  retrieval:
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
+
+scheduler:
+  type: warmup_cosine
+  params:
+    num_warmup_steps: 2000
+    num_training_steps: ${training.max_updates}
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+
+evaluation:
+  metrics:
+  - r@1_retrieval
+  - r@5_retrieval
+  - r@10_retrieval
+
+training:
+#  trainer: retrieval_trainer
+  tensorboard: true
+  batch_size: 240
+#  batch_size: 16
+  lr_scheduler: true
+  max_updates: 30000
+  drop_last: true
+  early_stop:
+    criteria: val/retrieval/r@1_retrieval
+    minimize: false
