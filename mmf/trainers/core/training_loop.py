@@ -114,6 +114,7 @@ class TrainerTrainingLoopMixin(ABC):
         loss = self._extract_loss(report)
         self._backward(loss)
 
+        should_log = False
         if self.num_updates % self.logistics_callback.log_interval == 0:
             should_log = True
             # Calculate metrics every log interval for debugging
