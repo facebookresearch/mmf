@@ -1,0 +1,3 @@
+model_config:
+  visual_bert:
+    training_head_type: classification
