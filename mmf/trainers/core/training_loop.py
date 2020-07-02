@@ -140,7 +140,12 @@ class TrainerTrainingLoopMixin(ABC):
         loss.backward()
 
         if self.training_config.clip_gradients:
-            clip_gradients(self.model, self.num_updates, self.tb_writer, self.config)
+            clip_gradients(
+                self.model,
+                self.num_updates,
+                self.logistics_callback.tb_writer,
+                self.config,
+            )
 
         self.optimizer.step()
         self.num_updates += 1
