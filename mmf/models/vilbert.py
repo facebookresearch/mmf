@@ -3,7 +3,7 @@
 import math
 import os
 from copy import deepcopy
-
+import sys
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -26,7 +26,10 @@ from transformers.modeling_bert import (
 from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.utils.configuration import get_mmf_cache_dir
-from mmf.utils.modeling import get_optimizer_parameters_for_bert
+from mmf.utils.modeling import (
+    get_optimizer_parameters_for_bert,
+)
+
 
 
 class BertSelfAttention(nn.Module):
@@ -1123,16 +1126,13 @@ class ViLBERTForClassification(nn.Module):
         # classifier_config is only needed for initializing the classifier
         classifier_config = deepcopy(config)
         classifier_config.hidden_size = config.bi_hidden_size
+        if self.config.training_head_type == "nlvr2":
+            classifier_config.hidden_size *= 2
 
-        if self.config.classifier.type == "linear":
-            self.classifier = nn.Linear(classifier_config.hidden_size, self.num_labels)
-        else:
-            if self.config.training_head_type == "nlvr2":
-                classifier_config.hidden_size *= 2
-            self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(classifier_config),
-                nn.Linear(classifier_config.hidden_size, self.num_labels),
-            )
+        self.classifier = nn.Sequential(
+            BertPredictionHeadTransform(classifier_config),
+            nn.Linear(classifier_config.hidden_size, self.num_labels),
+        )
         self.init_weights()
 
     def init_weights(self):
@@ -1158,25 +1158,6 @@ class ViLBERTForClassification(nn.Module):
         next_sentence_label=None,
         output_all_attention_masks=False,
     ):
-
-        batch_size = image_feature.size(0)
-        num_options = input_ids.size(1)
-
-        if self.config.classifier.input_processor == 'retrieval':
-            image_feature = \
-                image_feature.view(-1,
-                                   image_feature.size(2),
-                                   image_feature.size(3)
-                                   )
-            image_location = \
-                image_location.view(-1,
-                                    image_location.size(2),
-                                    image_location.size(3)
-                                    )
-            input_ids = input_ids.view(-1, input_ids.size(2))
-            attention_mask = attention_mask.view(-1, attention_mask.size(2))
-            token_type_ids = token_type_ids.view(-1, token_type_ids.size(2))
-            image_attention_mask = image_attention_mask.view(-1, image_attention_mask.size(2))
 
         (
             sequence_output_t,
@@ -1210,13 +1191,8 @@ class ViLBERTForClassification(nn.Module):
             pooled_output = pooled_output.view(-1, pooled_output.size(1) * 2)
 
         logits = self.classifier(pooled_output)
-
-        if self.config.classifier.output_processor == "vision_language_logit":
-            logits = logits.view(batch_size, num_options)
-            output["scores"] = logits
-        else:
-            reshaped_logits = logits.contiguous().view(-1, self.num_labels)
-            output["scores"] = reshaped_logits
+        reshaped_logits = logits.contiguous().view(-1, self.num_labels)
+        output["scores"] = reshaped_logits
 
         return output
 
@@ -1237,7 +1213,6 @@ class ViLBERT(BaseModel):
             key.replace("bert.bert", "model.bert")
             .replace("bert.cls", "model.cls")
             .replace("bert.classifier", "model.classifier")
-            .replace("bert", "model.bert")
         )
 
     def build(self):
@@ -1254,7 +1229,7 @@ class ViLBERT(BaseModel):
         bert_input_ids = sample_list.input_ids
         bert_input_mask = sample_list.input_mask
         bert_input_type_ids = sample_list.segment_ids
-        image_attention_mask = None
+
         if sample_list.dataset_name == "nlvr2":
             bert_input_ids = torch.cat([bert_input_ids, bert_input_ids])
             bert_input_mask = torch.cat([bert_input_mask, bert_input_mask])
@@ -1327,27 +1302,6 @@ class ViLBERT(BaseModel):
             image_dim_variable = torch.cat([image_dim_variable_0, image_dim_variable_1])
             image_label_variable = None
             image_target_variable = None
-
-        elif sample_list.dataset_name == "flickr30k_retrieval":
-
-            image_info = getattr(sample_list, "image_info_0", {})
-            image_dim_variable = getattr(image_info, "max_features", None)
-
-            image_label_variable = getattr(sample_list, "image_labels", None)
-            if image_label_variable is not None:
-                image_label_variable = torch.tensor(
-                    image_label_variable, dtype=torch.long
-                ).cuda()
-
-            image_feature_variable = getattr(sample_list, "image_feature_0", None)
-
-            # in flickr30k, one training entry can have multiple images, so boxes will
-            # have to be pre normalized according to their corresponding image sizes.
-            image_location_variable = getattr(image_info, "bbox", None)
-            cls_prob = getattr(image_info, "cls_prob", None)
-            image_target = np.array(cls_prob, dtype=np.float32)
-            image_target_variable = torch.tensor(image_target, dtype=torch.float).cuda()
-            image_attention_mask = sample_list.image_mask
         else:
             image_info = getattr(sample_list, "image_info_0", {})
             image_dim_variable = getattr(image_info, "max_features", None)
@@ -1378,7 +1332,6 @@ class ViLBERT(BaseModel):
             image_location[:, :, 1] = image_location[:, :, 1] / image_h[:, None]
             image_location[:, :, 2] = image_location[:, :, 2] / image_w[:, None]
             image_location[:, :, 3] = image_location[:, :, 3] / image_h[:, None]
-
             image_location_variable = torch.tensor(
                 image_location, dtype=torch.float
             ).cuda()
@@ -1396,7 +1349,6 @@ class ViLBERT(BaseModel):
             "image_location": image_location_variable,
             "image_target": image_target_variable,
             "image_label": image_label_variable,
-            "image_attention_mask": image_attention_mask
         }
 
     def get_optimizer_parameters(self, config):
@@ -1411,20 +1363,19 @@ class ViLBERT(BaseModel):
         # params["is_random_next"] = None
 
         # Prepare Mask
-        if params['image_attention_mask'] is None:
-            if params["image_feature"] is not None and params["image_dim"] is not None:
-                image_mask = (
-                    torch.arange(params["image_feature"].size(-2))
-                    .expand(*params["image_feature"].size()[:-1])
-                    .cuda()
-                )
-                if len(params["image_dim"].size()) < len(image_mask.size()):
-                    params["image_dim"] = params["image_dim"].unsqueeze(-1)
-                    assert len(params["image_dim"].size()) == len(image_mask.size())
-                image_mask = image_mask < params["image_dim"]
-                params["image_attention_mask"] = image_mask.long()
-            else:
-                params["image_attention_mask"] = None
+        if params["image_feature"] is not None and params["image_dim"] is not None:
+            image_mask = (
+                torch.arange(params["image_feature"].size(-2))
+                .expand(*params["image_feature"].size()[:-1])
+                .cuda()
+            )
+            if len(params["image_dim"].size()) < len(image_mask.size()):
+                params["image_dim"] = params["image_dim"].unsqueeze(-1)
+                assert len(params["image_dim"].size()) == len(image_mask.size())
+            image_mask = image_mask < params["image_dim"]
+            params["image_attention_mask"] = image_mask.long()
+        else:
+            params["image_attention_mask"] = None
         params.pop("image_dim")
 
         output_dict = self.model(

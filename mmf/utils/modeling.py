@@ -53,3 +53,29 @@ def get_optimizer_parameters_for_bert(module, config):
     parameters += get_bert_configured_parameters(module.classifier, lr)
 
     return parameters
+
+
+def get_optimizer_parameters_for_vilbert_multitask(module, config):
+    # Pretraining has same LR for all of the parts
+    if module.config.training_head_type == "pretraining":
+        return get_bert_configured_parameters(module)
+
+    # For finetuning setup, we have classifier
+    lr = config.optimizer.params.lr
+    model_config = getattr(config.model_config, config.model, {})
+    finetune_lr_multiplier = getattr(model_config, "finetune_lr_multiplier", 1)
+    # Finetune the bert pretrained part with finetune_lr_multiplier if it is set
+    parameters = get_bert_configured_parameters(
+        module.bert, lr * finetune_lr_multiplier
+    )
+    # Classifier will be trained on the normal lr
+    parameters += get_bert_configured_parameters(module.cls, lr)
+    parameters += get_bert_configured_parameters(module.vil_prediction, lr)
+    parameters += get_bert_configured_parameters(module.vil_prediction_gqa, lr)
+    parameters += get_bert_configured_parameters(module.vil_binary_prediction, lr)
+    parameters += get_bert_configured_parameters(module.vil_logit, lr)
+    parameters += get_bert_configured_parameters(module.vil_tri_prediction, lr)
+    parameters += get_bert_configured_parameters(module.vision_logit, lr)
+    parameters += get_bert_configured_parameters(module.linguisic_logit, lr)
+
+    return parameters

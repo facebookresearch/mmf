@@ -15,6 +15,7 @@ from .fusions import FusionBase, ConcatBERT, ConcatBoW, LateFusion
 from .unimodal import UnimodalBase, UnimodalText, UnimodalModal
 from .visual_bert import VisualBERT
 from .vilbert import ViLBERT
+from .vilbert_multitask import ViLBERTMultiTask
 
 
 __all__ = [
@@ -36,6 +37,7 @@ __all__ = [
     "MMBT",
     "VisualBERT",
     "ViLBERT",
+    "ViLBERTMultiTask",
     "UnimodalBase",
     "UnimodalModal",
     "UnimodalText",

@@ -1,0 +1,57 @@
+model_config:
+  vilbert_multitask:
+    training_head_type: classification
+    num_labels: 1
+    num_options: 4
+    losses:
+    - type: multi_task
+      params:
+      - type : cross_entropy
+        weight: 1.0
+        dataset: flickr30k_retrieval
+      - type : logit_bce
+        weight: 1.0
+        dataset: vqa2
+
+dataset_config:
+  flickr30k_retrieval:
+    return_features_info: true
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 30
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 2e-5
+    eps: 1e-8
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 500
+    num_training_steps: ${training.max_updates}
+
+evaluation:
+  metrics:
+  - accuracy
+
+training:
+  trainer: mmf_multitask
+  batch_size: 128
+  lr_scheduler: true
+  max_updates: 5000
+  find_unused_parameters: true
+  evaluation_interval: 5000
+  evaluate_metrics: true
+
+checkpoint:
+  resume_pretrained: true
+  resume_file: /private/home/omkar/vilbert-multi-task/pretrained_model.bin

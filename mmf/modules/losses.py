@@ -154,7 +154,7 @@ class MMFLoss(nn.Module):
         if loss_class is None:
             raise ValueError(f"No loss named {loss_name} is registered to registry")
         # Special case of multi as it requires an array
-        if loss_name == "multi":
+        if loss_name == "multi" or loss_name == "multi_task":
             assert is_mapping
             self.loss_criterion = loss_class(params)
         else:
@@ -167,17 +167,20 @@ class MMFLoss(nn.Module):
     def forward(self, sample_list, model_output, *args, **kwargs):
         loss = self.loss_criterion(sample_list, model_output, *args, **kwargs)
 
-        if not isinstance(loss, torch.Tensor):
-            loss = torch.tensor(loss, dtype=torch.float)
+        if self.name == "multi" or self.name == "multi_task":
+            return loss
+        else:
+            if not isinstance(loss, torch.Tensor):
+                loss = torch.tensor(loss, dtype=torch.float)
 
-        if loss.dim() == 0:
-            loss = loss.view(1)
+            if loss.dim() == 0:
+                loss = loss.view(1)
 
-        key = "{}/{}/{}".format(
-            sample_list.dataset_type, sample_list.dataset_name, self.name
-        )
+            key = "{}/{}/{}".format(
+                sample_list.dataset_type, sample_list.dataset_name, self.name
+            )
 
-        return {key: loss}
+            return {key: loss}
 
 
 @registry.register_loss("logit_bce")
@@ -562,3 +565,53 @@ class CrossEntropyLoss(nn.Module):
 
     def forward(self, sample_list, model_output):
         return self.loss_fn(model_output["scores"], sample_list.targets)
+
+
+@registry.register_loss("multi_task")
+class MultiTaskLoss(nn.Module):
+    """A loss for combining multiple losses with weights.
+
+    Args:
+        params (List(Dict)): A list containing parameters for each different loss
+                             and their weights.
+
+    Example::
+        # MultiTaskLoss works with config like below where each loss's params and
+        # weights are defined
+        losses:
+        - type: multi
+          params:
+          - type: logit_bce
+            dataset: VQA2
+            params: {}
+          - type: attention_supervision
+            params: {}
+            dataset: NVLR2
+
+    """
+
+    def __init__(self, params):
+        super().__init__()
+        self.losses = {}
+        self.writer = registry.get("writer")
+
+        self.loss_names = []
+
+        for loss_params in params["params"]:
+            self.loss_names.append(loss_params["type"])
+            loss_fn = MMFLoss(loss_params)
+            self.losses[loss_params["dataset"]] = loss_fn
+
+    def forward(self, sample_list, model_output, *args, **kwargs):
+        """Calculates and returns the multi loss.
+
+        Args:
+            sample_list (SampleList): SampleList containing `attentions` attribute.
+            model_output (Dict): Model output containing `attention_supervision`
+                                 attribute.
+
+        Returns:
+            torch.FloatTensor: Float value for loss.
+
+        """
+        return self.losses[sample_list.dataset_name](sample_list, model_output, *args, **kwargs)
