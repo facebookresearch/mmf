@@ -25,7 +25,7 @@ class CheckpointCallback(Callback):
     def checkpoint(self):
         return self._checkpoint
 
-    def on_init_end(self, **kwargs):
+    def on_init_start(self, **kwargs):
         self._checkpoint.load_state_dict()
 
     def on_batch_end(self, **kwargs):

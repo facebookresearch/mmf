@@ -36,6 +36,8 @@ class MMFTrainer(
 
     def load(self):
         super().load()
+        # Callbacks
+        self.on_init_start()
 
         # Parallize model
         self.parallelize_model()
@@ -46,7 +48,6 @@ class MMFTrainer(
     def configure_callbacks(self):
         self.checkpoint_callback = CheckpointCallback(self.config, self)
         self.early_stop_callback = EarlyStoppingCallback(self.config, self)
-        # self.callbacks.append(self.early_stop_callback)
         self.logistics_callback = LogisticsCallback(self.config, self)
         self.lr_scheduler_callback = LRSchedulerCallback(self.config, self)
 
