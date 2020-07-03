@@ -191,14 +191,6 @@ class ViLBERTMultiTask(BaseModel):
     # Backward compatibility
     @classmethod
     def format_state_key(cls, key):
-        print("here")
-        v = key
-        print(key, (
-            v.replace("bert.bert", "model.bert")
-            .replace("bert.cls", "model.cls")
-            .replace("bert.classifier", "model.classifier")
-            .replace("bert.", "model.bert.")
-        ))
         return (
             key.replace("bert.bert", "model.bert")
             .replace("bert.cls", "model.cls")

@@ -55,3 +55,5 @@ training:
 checkpoint:
   resume_pretrained: true
   resume_file: /private/home/omkar/vilbert-multi-task/pretrained_model.bin
+  pretrained_state_mapping:
+    model.bert: model.bert
