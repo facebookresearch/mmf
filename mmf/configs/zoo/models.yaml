@@ -211,18 +211,18 @@ m4c:
         hashcode: 0bf3b2d2fc4ed92994044404feb83869bf64c3bb8077e4472ae45927986fe51f
     ocr_ml:
       zoo_requirements: detectron.vmb_weights
-      version: 1.0_2020_04_29
+      version: 1.0_2020_07_02
       resources:
       - url: mmf://models/m4c/m4c.textvqa.ocr_ml.tar.gz
         file_name: m4c.textvqa.ocr_ml.tar.gz
-        hashcode: 4734dbf1816ffe378f08e69bd85b8cc0e4b2abe9564626505ff93e1ea7aea741
+        hashcode: a2ac0584bce7f12bd01e014584404eca511390c1e1637e60027a93b2ddc104ae
     alone:
       zoo_requirements: detectron.vmb_weights
-      version: 1.0_2020_04_29
+      version: 1.0_2020_07_02
       resources:
       - url: mmf://models/m4c/m4c.textvqa.alone.tar.gz
         file_name: m4c.textvqa.alone.tar.gz
-        hashcode: 84243f5d626a8211ea6a1ae409c72aaa24645ccd43883d4af4aa903d70d45f06
+        hashcode: 359468f25a88b3bf51f5ba15075c011eea0a7d7c76ab4bc547b66631b0cb9098
     defaults: ${m4c.textvqa.with_stvqa}
   stvqa:
     defaults:
