@@ -18,5 +18,4 @@ class STVQADataset(TextVQADataset):
             feature_path = append + "/" + feature_path
 
         sample_info["feature_path"] = feature_path
-
         return sample_info

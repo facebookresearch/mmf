@@ -558,11 +558,7 @@ class VQAAnswerProcessor(BaseProcessor):
 
         if "answer_tokens" in item:
             tokens = item["answer_tokens"]
-        elif (
-            "answers" in item
-            and item["answers"] is not None
-            and len(item["answers"]) > 0
-        ):
+        elif "answers" in item and item["answers"] is not None:
             if self.preprocessor is None:
                 raise AssertionError(
                     "'preprocessor' must be defined if you "

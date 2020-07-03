@@ -22,7 +22,7 @@ from maskrcnn_benchmark.structures.image_list import to_image_list
 from maskrcnn_benchmark.utils.model_serialization import load_state_dict
 from PIL import Image
 
-from mmf.utils.general import download_file
+from mmf.utils.download import download
 
 
 class FeatureExtractor:
@@ -46,8 +46,8 @@ class FeatureExtractor:
             print("Downloading model and configuration")
             self.args.model_file = self.MODEL_URL.split("/")[-1]
             self.args.config_file = self.CONFIG_URL.split("/")[-1]
-            download_file(self.MODEL_URL)
-            download_file(self.CONFIG_URL)
+            download(self.MODEL_URL, ".", self.args.model_file)
+            download(self.CONFIG_URL, ".", self.args.config_file)
 
     def get_parser(self):
         parser = argparse.ArgumentParser()
