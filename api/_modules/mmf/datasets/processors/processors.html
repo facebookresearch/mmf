@@ -790,11 +790,7 @@
 
         <span class="k">if</span> <span class="s2">&quot;answer_tokens&quot;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
             <span class="n">tokens</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;answer_tokens&quot;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="p">(</span>
-            <span class="s2">&quot;answers&quot;</span> <span class="ow">in</span> <span class="n">item</span>
-            <span class="ow">and</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;answers&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;answers&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span>
-        <span class="p">):</span>
+        <span class="k">elif</span> <span class="s2">&quot;answers&quot;</span> <span class="ow">in</span> <span class="n">item</span> <span class="ow">and</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;answers&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
                     <span class="s2">&quot;&#39;preprocessor&#39; must be defined if you &quot;</span>
