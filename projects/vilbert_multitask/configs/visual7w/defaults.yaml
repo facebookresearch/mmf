@@ -2,16 +2,15 @@ model_config:
   vilbert_multitask:
     training_head_type: classification
     num_labels: 1
-    num_options: 4
     losses:
     - type: multi_task
       params:
-      - type : cross_entropy
+      - type : bce_with_logits
         weight: 1.0
-        dataset: flickr30k_retrieval
+        dataset: visual7w
 
 dataset_config:
-  flickr30k_retrieval:
+  visual7w:
     return_features_info: true
     processors:
       text_processor:
@@ -22,7 +21,7 @@ dataset_config:
             params:
               do_lower_case: true
           mask_probability: 0
-          max_seq_length: 30
+          max_seq_length: 20
 
 optimizer:
   type: adam_w
@@ -33,7 +32,7 @@ optimizer:
 scheduler:
   type: warmup_linear
   params:
-    num_warmup_steps: 500
+    num_warmup_steps: 200
     num_training_steps: ${training.max_updates}
 
 evaluation:
@@ -42,11 +41,14 @@ evaluation:
 
 training:
   trainer: mmf_multitask
-  batch_size: 128
+  batch_size: 256
   lr_scheduler: true
-  max_updates: 5000
+  max_updates: 2000
   find_unused_parameters: true
-  evaluation_interval: 5000
+  early_stop:
+    criteria: visual7w/accuracy
+    minimize: false
+  evaluation_interval: 360
   evaluate_metrics: true
 
 checkpoint:

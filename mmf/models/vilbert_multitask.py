@@ -304,7 +304,7 @@ class ViLBERTMultiTask(BaseModel):
             "image_label": image_label_variable,
             "image_attention_mask": image_attention_mask,
             "batch_size": batch_size,
-            "num_options": num_options
+            "num_options": num_options,
         }
 
     def process_output(self, sample_list, params, outputs):
@@ -312,7 +312,11 @@ class ViLBERTMultiTask(BaseModel):
         output = {}
         if sample_list.dataset_name == "flickr30k_retrieval":
             output['scores'] = outputs["vil_logit"].view(params["batch_size"], params["num_options"])
-
+        elif sample_list.dataset_name == "visual7w":
+            multiple_choice_idx = sample_list.image_info_0.multiple_choice_idx
+            vision_logit = outputs["vision_logit"][:, 101:]
+            vision_logit = vision_logit.squeeze(2).gather(1, multiple_choice_idx)
+            output['scores'] = vision_logit
         return output
 
     def get_optimizer_parameters(self, config):
@@ -343,7 +347,7 @@ class ViLBERTMultiTask(BaseModel):
                 params["image_attention_mask"] = None
         params.pop("image_dim")
 
-        output = self.model(
+        outputs = self.model(
             params["input_ids"],
             params["image_feature"],
             params["image_location"],
@@ -355,6 +359,6 @@ class ViLBERTMultiTask(BaseModel):
             params["image_target"],
         )
 
-        output = self.process_output(sample_list, params, output)
+        output = self.process_output(sample_list, params, outputs)
 
         return output

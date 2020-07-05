@@ -567,6 +567,20 @@ class CrossEntropyLoss(nn.Module):
         return self.loss_fn(model_output["scores"], sample_list.targets)
 
 
+@registry.register_loss("bce_with_logits")
+class BCEWithLogitsLoss(nn.Module):
+    def __init__(self, params=None):
+        super().__init__()
+        if params is None:
+            params = {"reduction": "mean"}
+        self.loss_fn = nn.BCEWithLogitsLoss(**params)
+
+    def forward(self, sample_list, model_output):
+        loss = self.loss_fn(model_output["scores"], sample_list.targets)
+        loss = loss.mean() * sample_list.targets.size(1)
+        return loss
+
+
 @registry.register_loss("multi_task")
 class MultiTaskLoss(nn.Module):
     """A loss for combining multiple losses with weights.

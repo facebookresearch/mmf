@@ -37,6 +37,9 @@ class MMFMultiTaskTrainer(
     def load(self):
         super().load()
 
+        # Callbacks
+        self.on_init_start()
+
         # Parallize model
         self.parallelize_model()
 
