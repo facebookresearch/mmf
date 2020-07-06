@@ -10,7 +10,6 @@ from torch import Tensor
 
 from mmf.common.registry import registry
 from mmf.common.report import Report
-from mmf.utils.distributed import get_world_size
 from mmf.utils.general import clip_gradients
 
 
@@ -99,12 +98,9 @@ class TrainerTrainingLoopMixin(ABC):
                         should_break = True
                 if self.num_updates > self.max_updates:
                     should_break = True
+
                 if should_break:
                     break
-
-            # In distributed, each worker will complete one epoch when we reach this
-            # as each worker is an individual instance
-            self.current_epoch += get_world_size() - 1
 
     def run_training_batch(self, batch: Tensor) -> None:
         # Train batch start callbacks
