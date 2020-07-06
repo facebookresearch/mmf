@@ -35,6 +35,9 @@ module.exports = {
       'challenges/textvqa_challenge',
       'challenges/vqa_challenge',
     ],
-    Projects: ['projects/m4c'],
+    Projects: [
+      'projects/m4c',
+      'projects/movie_mcan',
+    ],
   },
 };
