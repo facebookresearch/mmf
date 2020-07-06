@@ -28,6 +28,7 @@ module.exports = {
       'tutorials/dataset',
       'tutorials/concat_bert',
       'tutorials/checkpointing',
+      'tutorials/processors',
       'tutorials/slurm',
     ],
     Challenges: [
