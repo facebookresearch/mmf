@@ -4,7 +4,7 @@ sidebar_label: Movie+MCAN (VQA 2020 Winner)
 title: MoViE+MCAN (VQA 2020 Challenge Winner)
 ---
 
-This project page shows how to use MoViE+MCAN model from the following papers, released under the MMF:
+This is a tutorial for running the MoViE+MCAN model which won the VQA Challenge at CVPR 2020. The winning team comprised of Nguyen, D. K., Jiang, H., Goswami, V., Yu. L. & Chen, X. MoViE+MCAN model is derived from the following papers, and is released under the MMF:
 
 * Nguyen, D. K., Goswami, V., & Chen, X. (2020). *Revisiting Modulated Convolutions for Visual Counting and Beyond*. arXiv preprint arXiv:2004.11883. ([arXiV](https://arxiv.org/abs/2004.11883))
 ```

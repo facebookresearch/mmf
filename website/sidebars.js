@@ -28,6 +28,7 @@ module.exports = {
       'tutorials/dataset',
       'tutorials/concat_bert',
       'tutorials/checkpointing',
+      'tutorials/processors',
       'tutorials/slurm',
     ],
     Challenges: [
@@ -35,6 +36,9 @@ module.exports = {
       'challenges/textvqa_challenge',
       'challenges/vqa_challenge',
     ],
-    Projects: ['projects/m4c'],
+    Projects: [
+      'projects/m4c',
+      'projects/movie_mcan',
+    ],
   },
 };
