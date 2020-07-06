@@ -105,3 +105,15 @@ class Callback:
         Called after each test iteration.
         """
         pass
+
+    def on_prediction_start(self, **kwargs) -> None:
+        """
+        Called before prediction loop starts.
+        """
+        pass
+
+    def on_prediction_end(self, **kwargs) -> None:
+        """
+        Called after prediction loop ends.
+        """
+        pass

@@ -78,3 +78,13 @@ class TrainerCallbackHookMixin(ABC):
         """Called when the test batch ends."""
         for callback in self.callbacks:
             callback.on_test_batch_end(**kwargs)
+
+    def on_prediction_start(self, **kwargs) -> None:
+        """Called when the prediction begins."""
+        for callback in self.callbacks:
+            callback.on_prediction_start(**kwargs)
+
+    def on_prediction_end(self, **kwargs) -> None:
+        """Called when the prediction ends."""
+        for callback in self.callbacks:
+            callback.on_prediction_end(**kwargs)
