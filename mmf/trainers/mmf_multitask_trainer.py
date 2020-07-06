@@ -11,32 +11,52 @@ from mmf.trainers.callbacks.checkpoint import CheckpointCallback
 from mmf.trainers.callbacks.early_stopping import EarlyStoppingCallback
 from mmf.trainers.callbacks.logistics import LogisticsCallback
 from mmf.trainers.callbacks.lr_scheduler import LRSchedulerCallback
+# from mmf.trainers.callbacks.multitask_stop import MultitaskStopCallback
 from mmf.trainers.core.callback_hook import TrainerCallbackHookMixin
 from mmf.trainers.core.device import TrainerDeviceMixin
-from mmf.trainers.core.evaluation_loop import TrainerEvaluationLoopMixin
+from mmf.trainers.core.multi_task_evaluation_loop import MultiTaskTrainerEvaluationLoopMixin
 from mmf.trainers.core.profiling import TrainerProfilingMixin
 from mmf.trainers.core.reporting import TrainerReportingMixin
-from mmf.trainers.core.training_loop import TrainerTrainingLoopMixin
+from mmf.trainers.core.multi_task_training_loop import MultiTaskTrainerTrainingLoopMixin
 from mmf.utils.build import build_model, build_optimizer
 from mmf.utils.general import print_model_parameters
+from mmf.utils.multitask_stop import MultiTaskStopOnPlateau
 
 
 @registry.register_trainer("mmf_multitask")
 class MMFMultiTaskTrainer(
     TrainerCallbackHookMixin,
-    TrainerTrainingLoopMixin,
+    MultiTaskTrainerTrainingLoopMixin,
     TrainerDeviceMixin,
-    TrainerEvaluationLoopMixin,
+    MultiTaskTrainerEvaluationLoopMixin,
     TrainerReportingMixin,
     TrainerProfilingMixin,
     BaseTrainer,
 ):
     def __init__(self, config: mmf_typings.DictConfig):
         super().__init__(config)
+        self.task_stop_controller = {}
+        for task in config.multi_task_config.tasks:
+            task_id = task.id
+            self.task_stop_controller[task_id] = MultiTaskStopOnPlateau(
+                mode="max",
+                patience=1,
+                continue_threshold=0.005,
+                cooldown=1,
+                threshold=0.001,
+            )
 
     def load(self):
         super().load()
 
+        self.dataset_to_taskid = {}
+        self.task_id_to_dataset = {}
+
+        for task in self.config.multi_task_config.tasks:
+            task_id = task.id
+            dataset = task.dataset
+            self.dataset_to_taskid[dataset] = task_id
+            self.task_id_to_dataset[task_id] = dataset
         # Callbacks
         self.on_init_start()
 
@@ -49,6 +69,7 @@ class MMFMultiTaskTrainer(
     def configure_callbacks(self):
         self.checkpoint_callback = CheckpointCallback(self.config, self)
         self.early_stop_callback = EarlyStoppingCallback(self.config, self)
+        #self.multi_task_callback = MultitaskStopCallback(self.config, self)
         # self.callbacks.append(self.early_stop_callback)
         self.logistics_callback = LogisticsCallback(self.config, self)
         self.lr_scheduler_callback = LRSchedulerCallback(self.config, self)
