@@ -60,6 +60,13 @@ class MaskedTokenProcessor(BaseProcessor):
         # that's truncated likely contains more information than a longer sequence.
         if tokens_b is None:
             tokens_b = []
+        else:
+            # _convert_to_indices does [CLS] tokens_a [SEP] tokens_b [SEP]
+            max_length -= 1
+            assert max_length >= 0, (
+                "Max length should be minimum 2 in case of single sentence"
+                + " and 3 in case of two sentences."
+            )
 
         while True:
             total_length = len(tokens_a) + len(tokens_b)
@@ -72,24 +79,15 @@ class MaskedTokenProcessor(BaseProcessor):
 
     def _convert_to_indices(self, tokens_a, tokens_b=None, probability=0.15):
         tokens_a, label_a = self._random_word(tokens_a, probability=probability)
-
-        tokens = [self._CLS_TOKEN]
-        segment_ids = [0]
-
-        tokens += tokens_a
-        segment_ids += [0] * len(tokens_a)
-
-        tokens.append(self._SEP_TOKEN)
-        segment_ids.append(0)
+        tokens = [self._CLS_TOKEN] + tokens_a + [self._SEP_TOKEN]
+        segment_ids = [0] + [0] * len(tokens_a) + [0]
 
         if tokens_b:
             tokens_b, label_b = self._random_word(tokens_b, probability=probability)
             lm_label_ids = [-1] + label_a + [-1] + label_b + [-1]
             assert len(tokens_b) > 0
-            tokens += tokens_b
-            segment_ids += [1] * len(tokens_b)
-            tokens.append(self._SEP_TOKEN)
-            segment_ids.append(1)
+            tokens += tokens_b + [self._SEP_TOKEN]
+            segment_ids += [1] * len(tokens_b) + [1]
         else:
             lm_label_ids = [-1] + label_a + [-1]
 
