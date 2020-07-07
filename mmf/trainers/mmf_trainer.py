@@ -115,13 +115,14 @@ class MMFTrainer(
             dataset_type.append("test")
 
         for dataset in dataset_type:
-            self.on_test_start()
             if self.config.evaluation.predict:
+                self.on_prediction_start()
                 self.prediction_loop(dataset)
-                continue
+                self.on_prediction_end()
             else:
+                self.on_test_start()
                 self.writer.write(f"Starting inference on {dataset} set")
                 report, meter = self.evaluation_loop(
                     getattr(self, f"{dataset}_loader"), use_tqdm=True
                 )
-            self.on_test_end(report=report, meter=meter)
+                self.on_test_end(report=report, meter=meter)
