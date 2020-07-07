@@ -292,6 +292,13 @@
         <span class="c1"># that&#39;s truncated likely contains more information than a longer sequence.</span>
         <span class="k">if</span> <span class="n">tokens_b</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">tokens_b</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># _convert_to_indices does [CLS] tokens_a [SEP] tokens_b [SEP]</span>
+            <span class="n">max_length</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">assert</span> <span class="n">max_length</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+                <span class="s2">&quot;Max length should be minimum 2 in case of single sentence&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot; and 3 in case of two sentences.&quot;</span>
+            <span class="p">)</span>
 
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">total_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_b</span><span class="p">)</span>
@@ -304,24 +311,15 @@
 
     <span class="k">def</span> <span class="nf">_convert_to_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens_a</span><span class="p">,</span> <span class="n">tokens_b</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">probability</span><span class="o">=</span><span class="mf">0.15</span><span class="p">):</span>
         <span class="n">tokens_a</span><span class="p">,</span> <span class="n">label_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_random_word</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">,</span> <span class="n">probability</span><span class="o">=</span><span class="n">probability</span><span class="p">)</span>
-
-        <span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_CLS_TOKEN</span><span class="p">]</span>
-        <span class="n">segment_ids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-        <span class="n">tokens</span> <span class="o">+=</span> <span class="n">tokens_a</span>
-        <span class="n">segment_ids</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">)</span>
-
-        <span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_SEP_TOKEN</span><span class="p">)</span>
-        <span class="n">segment_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_CLS_TOKEN</span><span class="p">]</span> <span class="o">+</span> <span class="n">tokens_a</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_SEP_TOKEN</span><span class="p">]</span>
+        <span class="n">segment_ids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">tokens_b</span><span class="p">:</span>
             <span class="n">tokens_b</span><span class="p">,</span> <span class="n">label_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_random_word</span><span class="p">(</span><span class="n">tokens_b</span><span class="p">,</span> <span class="n">probability</span><span class="o">=</span><span class="n">probability</span><span class="p">)</span>
             <span class="n">lm_label_ids</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">label_a</span> <span class="o">+</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">label_b</span> <span class="o">+</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_b</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
-            <span class="n">tokens</span> <span class="o">+=</span> <span class="n">tokens_b</span>
-            <span class="n">segment_ids</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_b</span><span class="p">)</span>
-            <span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_SEP_TOKEN</span><span class="p">)</span>
-            <span class="n">segment_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">tokens</span> <span class="o">+=</span> <span class="n">tokens_b</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_SEP_TOKEN</span><span class="p">]</span>
+            <span class="n">segment_ids</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_b</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">lm_label_ids</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">label_a</span> <span class="o">+</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
