@@ -1,5 +1,5 @@
 ---
-id: processor
+id: processors
 title: 'Adding a Processor'
 sidebar_label: Adding a Processor
 ---
