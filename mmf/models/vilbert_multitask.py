@@ -15,9 +15,7 @@ from transformers.modeling_bert import (
 from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.utils.configuration import get_mmf_cache_dir
-from mmf.utils.modeling import (
-    get_optimizer_parameters_for_vilbert_multitask
-)
+from mmf.utils.modeling import get_optimizer_parameters_for_vilbert_multitask
 
 from mmf.models.vilbert import ViLBERTBase
 
@@ -26,7 +24,9 @@ class BertPredictionHeadTransformMultiTask(nn.Module):
     def __init__(self, config, input_dim, hidden_dim, out_dim):
         super().__init__()
         self.dense = nn.Linear(input_dim, hidden_dim)
-        if isinstance(config.hidden_act, str) or (sys.version_info[0] == 2 and isinstance(config.hidden_act, unicode)):
+        if isinstance(config.hidden_act, str) or (
+            sys.version_info[0] == 2 and isinstance(config.hidden_act, unicode)
+        ):
             self.transform_act_fn = ACT2FN[config.hidden_act]
         else:
             self.transform_act_fn = config.hidden_act
@@ -66,13 +66,16 @@ class ViLBERTForMultiTaskClassification(nn.Module):
         self.cls = nn.Linear(input_dim, 2)
 
         self.vil_prediction = BertPredictionHeadTransformMultiTask(
-            self.config, input_dim, hidden_dim, 3129)
+            self.config, input_dim, hidden_dim, 3129
+        )
 
         self.vil_prediction_gqa = BertPredictionHeadTransformMultiTask(
-            self.config, input_dim, hidden_dim, 1533)
+            self.config, input_dim, hidden_dim, 1533
+        )
 
         self.vil_binary_prediction = BertPredictionHeadTransformMultiTask(
-            self.config, 2 * input_dim, hidden_dim, 2)
+            self.config, 2 * input_dim, hidden_dim, 2
+        )
 
         self.vil_logit = nn.Linear(input_dim, 1)
 
@@ -111,6 +114,7 @@ class ViLBERTForMultiTaskClassification(nn.Module):
         masked_lm_labels=None,
         image_label=None,
         image_target=None,
+        task_tokens=None,
         next_sentence_label=None,
         output_all_attention_masks=False,
     ):
@@ -128,6 +132,7 @@ class ViLBERTForMultiTaskClassification(nn.Module):
             token_type_ids,
             attention_mask,
             image_attention_mask,
+            task_ids=task_tokens,
             output_all_encoded_layers=False,
             output_all_attention_masks=output_all_attention_masks,
         )
@@ -239,21 +244,21 @@ class ViLBERTMultiTask(BaseModel):
             batch_size = image_feature_variable.size(0)
             num_options = bert_input_ids.size(1)
 
-            image_feature_variable = \
-                image_feature_variable.view(-1,
-                                image_feature_variable.size(2),
-                                image_feature_variable.size(3)
-                                )
-            image_location_variable = \
-                image_location_variable.view(-1,
-                                    image_location_variable.size(2),
-                                    image_location_variable.size(3)
-                                    )
+            image_feature_variable = image_feature_variable.view(
+                -1, image_feature_variable.size(2), image_feature_variable.size(3)
+            )
+            image_location_variable = image_location_variable.view(
+                -1, image_location_variable.size(2), image_location_variable.size(3)
+            )
             bert_input_ids = bert_input_ids.view(-1, bert_input_ids.size(2))
             bert_input_mask = bert_input_mask.view(-1, bert_input_mask.size(2))
-            bert_input_type_ids = bert_input_type_ids.view(-1, bert_input_type_ids.size(2))
-            image_attention_mask = image_attention_mask.view(-1, image_attention_mask.size(2))
-
+            bert_input_type_ids = bert_input_type_ids.view(
+                -1, bert_input_type_ids.size(2)
+            )
+            image_attention_mask = image_attention_mask.view(
+                -1, image_attention_mask.size(2)
+            )
+            task_id = 8
         else:
             image_info = getattr(sample_list, "image_info_0", {})
             image_dim_variable = getattr(image_info, "max_features", None)
@@ -292,6 +297,11 @@ class ViLBERTMultiTask(BaseModel):
             cls_prob = getattr(image_info, "cls_prob", None)
             image_target = np.array(cls_prob, dtype=np.float32)
             image_target_variable = torch.tensor(image_target, dtype=torch.float).cuda()
+            task_id = 4
+
+        task_tokens = (
+            bert_input_ids.new().resize_(bert_input_ids.size(0), 1).fill_(int(task_id))
+        )
 
         return {
             "input_ids": bert_input_ids,
@@ -305,18 +315,21 @@ class ViLBERTMultiTask(BaseModel):
             "image_attention_mask": image_attention_mask,
             "batch_size": batch_size,
             "num_options": num_options,
+            "task_tokens": task_tokens,
         }
 
     def process_output(self, sample_list, params, outputs):
 
         output = {}
         if sample_list.dataset_name == "flickr30k_retrieval":
-            output['scores'] = outputs["vil_logit"].view(params["batch_size"], params["num_options"])
+            output["scores"] = outputs["vil_logit"].view(
+                params["batch_size"], params["num_options"]
+            )
         elif sample_list.dataset_name == "visual7w":
             multiple_choice_idx = sample_list.image_info_0.multiple_choice_idx
             vision_logit = outputs["vision_logit"][:, 101:]
             vision_logit = vision_logit.squeeze(2).gather(1, multiple_choice_idx)
-            output['scores'] = vision_logit
+            output["scores"] = vision_logit
         return output
 
     def get_optimizer_parameters(self, config):
@@ -331,7 +344,7 @@ class ViLBERTMultiTask(BaseModel):
         # params["is_random_next"] = None
 
         # Prepare Mask
-        if params['image_attention_mask'] is None:
+        if params["image_attention_mask"] is None:
             if params["image_feature"] is not None and params["image_dim"] is not None:
                 image_mask = (
                     torch.arange(params["image_feature"].size(-2))
@@ -357,6 +370,7 @@ class ViLBERTMultiTask(BaseModel):
             params["masked_lm_labels"],
             params["image_label"],
             params["image_target"],
+            params["task_tokens"],
         )
 
         output = self.process_output(sample_list, params, outputs)

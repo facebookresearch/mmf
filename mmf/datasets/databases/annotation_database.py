@@ -81,17 +81,16 @@ class AnnotationDatabase(torch.utils.data.Dataset):
         self.start_idx = 0
 
     def _load_flickr30k_retrieval(self, path):
-        from mmf.datasets.builders.flickr30k_retrieval.database \
-            import Flickr30kRetrievalDatabase
+        from mmf.datasets.builders.flickr30k_retrieval.database import (
+            Flickr30kRetrievalDatabase,
+        )
 
-        test_id_file_path = self.config.get('test_id_file_path', None)
-        hard_neg_file_path = self.config.get('hard_neg_file_path', None)
+        test_id_file_path = self.config.get("test_id_file_path", None)
+        hard_neg_file_path = self.config.get("hard_neg_file_path", None)
 
-        self.data = Flickr30kRetrievalDatabase(path,
-                                               self.dataset_type,
-                                               test_id_file_path,
-                                               hard_neg_file_path
-                                               )
+        self.data = Flickr30kRetrievalDatabase(
+            path, self.dataset_type, test_id_file_path, hard_neg_file_path
+        )
 
         self.metadata = self.data.metadata
         self.start_idx = 0

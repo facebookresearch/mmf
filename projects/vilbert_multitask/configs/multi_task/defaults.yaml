@@ -69,7 +69,8 @@ training:
   trainer: mmf_multitask
   batch_size: 128
   lr_scheduler: true
-  max_updates: 5000
+  max_updates: 1000
+  max_iterations: 5000
   find_unused_parameters: true
   evaluation_interval: 5000
   evaluate_metrics: true

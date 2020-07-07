@@ -3,7 +3,7 @@
 import omegaconf
 
 from mmf.common import typings as mmf_typings
-from mmf.common.dataset_loader import DatasetLoader
+from mmf.common.dataset_loader import MultiTaskDatasetLoader
 from mmf.common.registry import registry
 from mmf.modules.metrics import Metrics
 from mmf.trainers.base_trainer import BaseTrainer
@@ -11,10 +11,13 @@ from mmf.trainers.callbacks.checkpoint import CheckpointCallback
 from mmf.trainers.callbacks.early_stopping import EarlyStoppingCallback
 from mmf.trainers.callbacks.logistics import LogisticsCallback
 from mmf.trainers.callbacks.lr_scheduler import LRSchedulerCallback
+
 # from mmf.trainers.callbacks.multitask_stop import MultitaskStopCallback
 from mmf.trainers.core.callback_hook import TrainerCallbackHookMixin
 from mmf.trainers.core.device import TrainerDeviceMixin
-from mmf.trainers.core.multi_task_evaluation_loop import MultiTaskTrainerEvaluationLoopMixin
+from mmf.trainers.core.multi_task_evaluation_loop import (
+    MultiTaskTrainerEvaluationLoopMixin,
+)
 from mmf.trainers.core.profiling import TrainerProfilingMixin
 from mmf.trainers.core.reporting import TrainerReportingMixin
 from mmf.trainers.core.multi_task_training_loop import MultiTaskTrainerTrainingLoopMixin
@@ -45,6 +48,7 @@ class MMFMultiTaskTrainer(
                 cooldown=1,
                 threshold=0.001,
             )
+        self.max_iterations = config.training.max_iterations
 
     def load(self):
         super().load()
@@ -68,11 +72,9 @@ class MMFMultiTaskTrainer(
 
     def configure_callbacks(self):
         self.checkpoint_callback = CheckpointCallback(self.config, self)
-        self.early_stop_callback = EarlyStoppingCallback(self.config, self)
-        #self.multi_task_callback = MultitaskStopCallback(self.config, self)
-        # self.callbacks.append(self.early_stop_callback)
         self.logistics_callback = LogisticsCallback(self.config, self)
         self.lr_scheduler_callback = LRSchedulerCallback(self.config, self)
+        self.early_stop_callback = EarlyStoppingCallback(self.config, self)
 
         # Add callbacks for execution during events
         self.callbacks.append(self.checkpoint_callback)
@@ -81,7 +83,7 @@ class MMFMultiTaskTrainer(
 
     def load_datasets(self):
         self.writer.write("Loading datasets", "info")
-        self.dataset_loader = DatasetLoader(self.config)
+        self.dataset_loader = MultiTaskDatasetLoader(self.config)
         self.dataset_loader.load_datasets()
 
         self.train_dataset = self.dataset_loader.train_dataset

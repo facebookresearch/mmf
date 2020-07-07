@@ -3,6 +3,7 @@
 from mmf.common.sample import SampleList
 from mmf.common.test_reporter import TestReporter
 from mmf.datasets.multi_dataset_loader import MultiDatasetLoader
+from mmf.datasets.multi_dataset_loader import MultiTaskMultiDatasetLoader
 
 
 class DatasetLoader:
@@ -59,3 +60,31 @@ class DatasetLoader:
     def seed_sampler(self, dataset_type, seed):
         dataset = getattr(self, f"{dataset_type}_dataset")
         dataset.seed_sampler(seed)
+
+
+class MultiTaskDatasetLoader(DatasetLoader):
+    def __init__(self, config):
+        super().__init__(config)
+
+    def load_datasets(self):
+        self.train_dataset = MultiTaskMultiDatasetLoader("train")
+        self.val_dataset = MultiDatasetLoader("val")
+        self.test_dataset = MultiDatasetLoader("test")
+
+        self.train_dataset.load(self.config)
+        self.val_dataset.load(self.config)
+        self.test_dataset.load(self.config)
+
+        # If number of datasets is one, this will return the first loader
+        self.train_loader = self.train_dataset
+        self.val_loader = self.val_dataset
+        self.test_loader = self.test_dataset
+
+        self.mapping = {
+            "train": self.train_dataset,
+            "val": self.val_dataset,
+            "test": self.test_dataset,
+        }
+
+        self.test_reporter = None
+        self.should_not_log = self.config.training.should_not_log

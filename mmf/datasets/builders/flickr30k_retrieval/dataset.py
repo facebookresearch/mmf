@@ -23,15 +23,16 @@ class Flickr30kRetrievalDataset(MMFDataset):
         sample_info = self.annotation_db[idx]
 
         # 1: correct one
-        features1, mix_num_boxes1, spatials1, image_mask1 = \
-            self.get_feature(sample_info[0]['image_id'])
+        features1, mix_num_boxes1, spatials1, image_mask1 = self.get_feature(
+            sample_info[0]["image_id"]
+        )
         text_processor_argument = {"text": sample_info[0]["caption"]}
         processed_caption = self.text_processor(text_processor_argument)
         caption1 = processed_caption["input_ids"]
         input_mask1 = processed_caption["input_mask"]
         segment_ids1 = processed_caption["segment_ids"]
 
-        #2: random caption wrong
+        # 2: random caption wrong
         text_processor_argument = {"text": sample_info[1]["caption"]}
         processed_caption = self.text_processor(text_processor_argument)
         features2 = features1
@@ -41,14 +42,15 @@ class Flickr30kRetrievalDataset(MMFDataset):
         input_mask2 = processed_caption["input_mask"]
         segment_ids2 = processed_caption["segment_ids"]
 
-        #3: random image wrong
-        features3, mix_num_boxes3, spatials3, image_mask3 = \
-            self.get_feature(sample_info[2]['image_id'])
+        # 3: random image wrong
+        features3, mix_num_boxes3, spatials3, image_mask3 = self.get_feature(
+            sample_info[2]["image_id"]
+        )
         caption3 = caption1
         input_mask3 = input_mask1
         segment_ids3 = segment_ids1
 
-        #4: hard image wrong
+        # 4: hard image wrong
         features4 = features1
         image_mask4 = image_mask1
         spatials4 = spatials1
@@ -72,40 +74,37 @@ class Flickr30kRetrievalDataset(MMFDataset):
         )
         target = torch.tensor(0).long()
 
+        task_tokens = caption.new().resize_(caption.size(0), 1).fill_(int(8))
         current_sample = Sample()
         current_sample.image_feature_0 = features
         current_sample.input_ids = caption
         current_sample.input_mask = input_mask
         current_sample.segment_ids = segment_ids
         current_sample.image_info_0 = {}
-        current_sample.image_info_0['bbox'] = spatials
+        current_sample.image_info_0["bbox"] = spatials
         current_sample.targets = target
         current_sample.image_mask = image_mask
-
+        current_sample.task_tokens = task_tokens
         return current_sample
 
     def get_feature(self, image_id):
 
-        image_id = str(image_id) + '.npy'
+        image_id = str(image_id) + ".npy"
         features_data = self.features_db.from_path(image_id)
 
-        boxes = features_data['image_info_0']['bbox']
-        features = features_data['image_feature_0']
+        boxes = features_data["image_info_0"]["bbox"]
+        features = features_data["image_feature_0"]
 
         # Adding global feature
         num_boxes = features.shape[0]
         g_feat = torch.sum(features, 0) / num_boxes
         g_feat = g_feat.unsqueeze(0)
-        features = torch.cat(
-            (g_feat, features), 0
-        )
+        features = torch.cat((g_feat, features), 0)
 
         # Adding global box
-        image_w = features_data['image_info_0']['image_width']
-        image_h = features_data['image_info_0']['image_height']
-        g_location_ori = np.array(
-            [[0, 0, image_w, image_h]]
-        ).astype(np.float32)
+        image_w = features_data["image_info_0"]["image_width"]
+        image_h = features_data["image_info_0"]["image_height"]
+        g_location_ori = np.array([[0, 0, image_w, image_h]]).astype(np.float32)
         boxes = np.concatenate((g_location_ori, boxes), axis=0)
         num_boxes = num_boxes + 1
 

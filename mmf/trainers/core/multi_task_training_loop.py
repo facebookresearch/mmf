@@ -16,7 +16,6 @@ from mmf.trainers.core.training_loop import TrainerTrainingLoopMixin
 
 
 class MultiTaskTrainerTrainingLoopMixin(TrainerTrainingLoopMixin):
-
     def __init__(self, config):
         super().__init__(config)
 
@@ -52,66 +51,64 @@ class MultiTaskTrainerTrainingLoopMixin(TrainerTrainingLoopMixin):
             self.on_validation_end(report=report, meter=meter)
 
     def run_training_epoch(self) -> None:
-        should_break = False
 
-        while self.num_updates < self.max_updates and not should_break:
-            self.current_epoch += 1
-            registry.register("current_epoch", self.current_epoch)
+        # Seed the sampler in case if it is distributed
+        self.dataset_loader.seed_sampler("train", self.current_epoch)
+        registry.register("current_epoch", self.current_epoch)
 
-            # Seed the sampler in case if it is distributed
-            self.dataset_loader.seed_sampler("train", self.current_epoch)
+        self.train_loader = iter(self.train_loader)
 
-            if self.current_epoch > self.max_epochs:
-                break
+        while self.current_iteration < self.training_config.max_iterations:
 
-            for batch in self.train_loader:
-
-                task_id = self.dataset_to_taskid[batch.dataset_name]
-
-                if (not self.task_stop_controller[task_id].in_stop):
-
+            for task in self.config.multi_task_config.tasks:
+                task_id = task.id
+                dataset = task.dataset
+                self.train_loader.set_dataset(dataset)
+                batch = next(self.train_loader)
+                if not self.task_stop_controller[task_id].in_stop:
                     self.profile("Batch load time")
-                    self.current_iteration += 1
                     self.writer.write(self.num_updates + 1, "debug")
+                    report = self.run_training_batch(batch)
+                else:
+                    self.writer.write("Dataset: {} in plateu stop".format(dataset))
 
-                    self.run_training_batch(batch)
+            should_log = False
+            if self.current_iteration % self.logistics_callback.log_interval == 0:
+                should_log = True
+            # Train batch end callbacks
+            self.on_batch_end(report=report, meter=self.meter, should_log=should_log)
 
-                    # # Check if training should be stopped
-                    # should_break = False
+            if (
+                self.current_iteration + 1 % self.training_config.evaluation_interval
+                == 0
+            ):
+                # Validation begin callbacks
+                self.on_validation_start()
 
-                if self.num_updates % self.training_config.evaluation_interval == 0:
-                    # Validation begin callbacks
-                    self.on_validation_start()
+                self.writer.write("Evaluation time. Running on full validation set...")
+                # Validation and Early stopping
+                # Create a new meter for this case
+                reports, meters, combined_meter = self.evaluation_loop(self.val_loader)
 
-                    self.writer.write(
-                        "Evaluation time. Running on full validation set..."
+                for task in self.config.multi_task_config.tasks:
+                    task_id = task.id
+                    metric_name = "{}/{}/{}"
+                    metric_name = metric_name.format(
+                        reports[task_id].dataset_type,
+                        reports[task_id].dataset_name,
+                        task.metric,
                     )
-                    # Validation and Early stopping
-                    # Create a new meter for this case
-                    reports, meters = self.evaluation_loop(self.val_loader)
+                    metrics = reports[task_id].metrics[metric_name]
+                    self.task_stop_controller[task_id].step(metrics)
 
-                    for task in self.config.multi_task_config.tasks:
-                        task_id = task.id
-                        metric_name = "{}/{}/{}"
-                        metric_name = metric_name.format(reports[task_id].dataset_type, reports[task_id].dataset_name,task.metric)
-                        metrics = reports[task_id].metrics[metric_name]
-                        self.task_stop_controller[task_id].step(metrics)
+                self.on_validation_end(report=None, meter=combined_meter)
 
-                    self.on_validation_end(report=report, meter=meter)
+                gc.collect()
 
-                    gc.collect()
+                if "cuda" in str(self.device):
+                    torch.cuda.empty_cache()
 
-                    if "cuda" in str(self.device):
-                        torch.cuda.empty_cache()
-
-                    # if stop is True:
-                    #     self.writer.write("Early stopping activated")
-                    #     should_break = True
-
-                if self.num_updates > self.max_updates:
-                    should_break = True
-                if should_break:
-                    break
+            self.current_iteration += 1
 
             # In distributed, each worker will complete one epoch when we reach this
             # as each worker is an individual instance
@@ -125,18 +122,16 @@ class MultiTaskTrainerTrainingLoopMixin(TrainerTrainingLoopMixin):
         loss = self._extract_loss(report)
         self._backward(loss)
 
-        should_log = False
-        if self.num_updates % self.logistics_callback.log_interval == 0:
-            should_log = True
+        if self.current_iteration % self.logistics_callback.log_interval == 0:
             # Calculate metrics every log interval for debugging
             if self.training_config.evaluate_metrics:
                 report.metrics = self.metrics(report, report)
             self.update_meter(report, self.meter)
 
-        # Train batch end callbacks
-        self.on_batch_end(report=report, meter=self.meter, should_log=should_log)
+        return report
 
     def _forward(self, batch: Tensor) -> Dict[str, Any]:
+
         prepared_batch = self.dataset_loader.prepare_batch(batch)
         self.profile("Batch prepare time")
         # Arguments should be a dict at this point
@@ -147,6 +142,7 @@ class MultiTaskTrainerTrainingLoopMixin(TrainerTrainingLoopMixin):
         return report
 
     def _backward(self, loss: Tensor) -> None:
+
         self.optimizer.zero_grad()
         loss.backward()
 

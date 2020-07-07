@@ -247,3 +247,48 @@ class MultiDatasetLoader:
                     sampler, "set_epoch"
                 ), "Can't seed without `set_epoch` method"
                 sampler.set_epoch(epoch)
+
+
+class MultiTaskMultiDatasetLoader(MultiDatasetLoader):
+    def __init__(self, dataset_type="train"):
+        super().__init__(dataset_type)
+
+    def prepare_batch(self, batch):
+        batch = self._chosen_dataset.prepare_batch(batch)
+        return batch
+
+    def __iter__(self):
+        if self._num_datasets == 1:
+            return iter(self.loaders[0])
+
+        self._iterators = []
+        self._finished_iterators = {}
+        self._used_once = {}
+        self.current_index = 0
+
+        for loader in self.loaders:
+            self.iterators.append(iter(loader))
+
+        self._chosen_iterator = self.iterators[self.current_index]
+
+        return self
+
+    def __next__(self):
+        try:
+            next_batch = next(self._chosen_iterator)
+        except StopIteration:
+            self.iterators[self.current_index] = iter(self.loaders[self.current_index])
+            self._chosen_iterator = self.iterators[self.current_index]
+            next_batch = next(self._chosen_iterator)
+
+        return next_batch
+
+    def set_dataset(self, dataset_name):
+        for i, dataset in enumerate(self.datasets):
+            if dataset.name == dataset_name:
+                self.current_index = i
+                self.current_dataset = self.datasets[self.current_index]
+                self.current_loader = self.loaders[self.current_index]
+                self._chosen_iterator = self.iterators[self.current_index]
+                break
+                ## Omkar @TODO Handle this properly later

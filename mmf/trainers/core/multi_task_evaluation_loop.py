@@ -48,14 +48,20 @@ class MultiTaskTrainerEvaluationLoopMixin(ABC):
                 if single_batch is True:
                     break
 
+            meter = Meter()
             for task_id in combined_reports.keys():
-                combined_reports[task_id].metrics = self.metrics(combined_reports[task_id], combined_reports[task_id])
-                self.update_meter(combined_reports[task_id], meters[task_id], eval_mode=True)
+                combined_reports[task_id].metrics = self.metrics(
+                    combined_reports[task_id], combined_reports[task_id]
+                )
+                self.update_meter(
+                    combined_reports[task_id], meters[task_id], eval_mode=True
+                )
 
+                self.update_meter(combined_reports[task_id], meter, eval_mode=True)
             # enable train mode again
             self.model.train()
 
-        return combined_reports, meters
+        return combined_reports, meters, meter
 
     def prediction_loop(self, dataset_type: str) -> None:
         reporter = self.dataset_loader.get_test_reporter(dataset_type)
