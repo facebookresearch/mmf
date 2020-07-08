@@ -21,9 +21,9 @@ class AnnotationDatabase(torch.utils.data.Dataset):
         self.config = config
         self.start_idx = 0
         path = get_absolute_path(path)
-        self._load_annotation_db(path)
+        self.load_annotation_db(path)
 
-    def _load_annotation_db(self, path):
+    def load_annotation_db(self, path):
         if path.find("visdial") != -1 or path.find("visual_dialog") != -1:
             self._load_visual_dialog(path)
         elif path.endswith(".npy"):
