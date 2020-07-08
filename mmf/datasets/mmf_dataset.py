@@ -22,23 +22,23 @@ class MMFDataset(BaseDataset):
     ):
         super().__init__(dataset_name, config, dataset_type, *args, **kwargs)
         self._index = index
-        self.annotation_db = self._build_annotation_db()
+        self.annotation_db = self.build_annotation_db()
 
         self._use_images = self.config.get("use_images", False)
         if self._use_images:
-            self.image_db = self._build_image_db()
+            self.image_db = self.build_image_db()
 
         self._use_features = self.config.get("use_features", False)
         if self._use_features:
-            self.features_db = self._build_features_db()
+            self.features_db = self.build_features_db()
 
-    def _build_annotation_db(self):
+    def build_annotation_db(self):
         annotation_path = self._get_path_based_on_index(
             self.config, "annotations", self._index
         )
         return AnnotationDatabase(self.config, annotation_path)
 
-    def _build_features_db(self):
+    def build_features_db(self):
         features_path = self._get_path_based_on_index(
             self.config, "features", self._index
         )
@@ -46,7 +46,7 @@ class MMFDataset(BaseDataset):
             self.config, features_path, annotation_db=self.annotation_db
         )
 
-    def _build_image_db(self):
+    def build_image_db(self):
         image_path = self._get_path_based_on_index(self.config, "images", self._index)
         return ImageDatabase(self.config, image_path, annotation_db=self.annotation_db)
 
