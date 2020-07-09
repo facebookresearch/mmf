@@ -30,7 +30,7 @@ class CheckpointCallback(Callback):
     def on_init_start(self, **kwargs):
         self._checkpoint.load_state_dict()
 
-    def on_batch_end(self, **kwargs):
+    def on_update_end(self, **kwargs):
         if self.trainer.num_updates % self.checkpoint_interval == 0:
             logger.info("Checkpoint time. Saving a checkpoint.")
             self._checkpoint.save(

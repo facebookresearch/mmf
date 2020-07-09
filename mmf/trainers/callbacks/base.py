@@ -46,13 +46,13 @@ class Callback:
         """
         pass
 
-    def on_batch_start(self, **kwargs) -> None:
+    def on_update_start(self, **kwargs) -> None:
         """
         Called before each train iteration.
         """
         pass
 
-    def on_batch_end(self, **kwargs) -> None:
+    def on_update_end(self, **kwargs) -> None:
         """
         Called after each train iteration.
         """
