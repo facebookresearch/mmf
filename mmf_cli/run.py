@@ -9,7 +9,7 @@ import torch
 from mmf.common.registry import registry
 from mmf.utils.build import build_config, build_trainer
 from mmf.utils.configuration import Configuration
-from mmf.utils.distributed import distributed_init, infer_init_method
+from mmf.utils.distributed import distributed_init, get_rank, infer_init_method
 from mmf.utils.env import set_seed, setup_imports
 from mmf.utils.flags import flags
 from mmf.utils.logger import Logger
@@ -28,7 +28,8 @@ def main(configuration, init_distributed=False, predict=False):
     if init_distributed:
         distributed_init(config)
 
-    config.training.seed = set_seed(config.training.seed)
+    seed = config.training.seed
+    config.training.seed = set_seed(seed if seed == -1 else seed + get_rank())
     registry.register("seed", config.training.seed)
     print(f"Using seed {config.training.seed}")
 

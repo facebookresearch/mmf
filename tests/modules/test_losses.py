@@ -31,6 +31,10 @@ def build_loss_side_effect(return_value=RETURN_VALUE):
 class TestModuleLosses(unittest.TestCase):
     def setUp(self):
         torch.manual_seed(1234)
+        self.registry_loss_class = registry.get_loss_class
+
+    def tearDown(self):
+        registry.get_loss_class = self.registry_loss_class
 
     def test_mmf_loss(self):
         get_loss_class_mock = MagicMock(side_effect=build_loss_side_effect())

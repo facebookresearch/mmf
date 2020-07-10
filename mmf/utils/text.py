@@ -23,7 +23,7 @@ import torch
 
 from mmf.common.registry import registry
 from mmf.utils.file_io import PathManager
-from mmf.utils.general import get_mmf_root
+from mmf.utils.general import get_absolute_path
 
 SENTENCE_SPLIT_REGEX = re.compile(r"(\W+)")
 
@@ -111,8 +111,7 @@ class VocabDict:
 
     def __init__(self, vocab_file, data_dir=None):
         if not os.path.isabs(vocab_file) and data_dir is not None:
-            mmf_root = get_mmf_root()
-            vocab_file = os.path.abspath(os.path.join(mmf_root, data_dir, vocab_file))
+            vocab_file = get_absolute_path(os.path.join(data_dir, vocab_file))
 
         if not PathManager.exists(vocab_file):
             raise RuntimeError(f"Vocab file {vocab_file} for vocab dict doesn't exist")

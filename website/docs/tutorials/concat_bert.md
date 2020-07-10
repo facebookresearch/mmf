@@ -8,16 +8,13 @@ In this tutorial, we will go through the step-by-step process of creating a new 
 
 The fusion model that we will create concatenates embeddings from a text encoder and an image encoder and passes them through a two-layer classifier. MMF provides standard image and text encoders out of the box. For the image encoder, we will use ResNet152 image encoder and for the text encoder, we will use BERT-Base Encoder.
 
-
 ## Prerequisites
 
 Follow the prerequisites for installation and dataset [here](https://github.com/facebookresearch/mmf/tree/master/projects/hateful_memes#prerequisites).
 
-
 ## Using MMF to build the model
 
-We will start building our model `ConcatBERT` using the various building blocks available in MMF. Helper builder methods like  `build_image_encoder` for building image encoders, `build_text_encoder` for building text encoders, `build_classifier_layer` for classifier layers etc take configurable params which are defined in the config we will create in the next section. Follow the code and read through the comments to understand how the model is implemented.
-
+We will start building our model `ConcatBERT` using the various building blocks available in MMF. Helper builder methods like `build_image_encoder` for building image encoders, `build_text_encoder` for building text encoders, `build_classifier_layer` for classifier layers etc take configurable params which are defined in the config we will create in the next section. Follow the code and read through the comments to understand how the model is implemented.
 
 ```python
 
@@ -142,19 +139,15 @@ class ConcatBERT(BaseModel):
 
 ```
 
-
 The model’s forward method takes a `SampleList` and outputs a dict containing the logit scores predicted by the model. Different losses and metrics can be calculated on the scores output.
 
-
 We will define two configs needed for our experiments: (i) a model config for the model's default configurations, and (ii) an experiment config for our particular experiment. The model config provides the model’s default hyperparameters and the experiment config defines and overrides the defaults needed for our particular experiment such as optimizer type, learning rate, maximum updates and batch size.
-
 
 ## Model Config
 
 We will now create the model config file with the params we used while creating the model and store the config in `configs/models/concat_bert/defaults.yaml`.
 
 ```yaml
-
 model_config:
   concat_bert:
     # Type of bert model
@@ -195,7 +188,6 @@ model_config:
         out_dim: 2
         hidden_dim: 768
         num_layers: 2
-
 ```
 
 ## Experiment Config
@@ -203,9 +195,8 @@ model_config:
 In the next step, we will create the experiment config which will tell MMF which dataset, optimizer, scheduler, metrics for evalauation to use. We will save this config in `configs/experiments/concat_bert/defaults.yaml`:
 
 ```yaml
-
 includes:
-- configs/datasets/hateful_memes/bert.yaml
+  - configs/datasets/hateful_memes/bert.yaml
 
 model_config:
   trying:
@@ -214,7 +205,7 @@ model_config:
       params:
         num_layers: 2
     losses:
-    - type: cross_entropy
+      - type: cross_entropy
 
 scheduler:
   type: warmup_linear
@@ -230,9 +221,9 @@ optimizer:
 
 evaluation:
   metrics:
-  - accuracy
-  - binary_f1
-  - roc_auc
+    - accuracy
+    - binary_f1
+    - roc_auc
 
 training:
   batch_size: 64
@@ -241,12 +232,9 @@ training:
   early_stop:
     criteria: hateful_memes/roc_auc
     minimize: false
-
 ```
 
 We include the `bert.yaml` config in this as we want to use BERT tokenizer for preprocessing our language data. With both the configs ready we are ready to launch training and evaluation using our model on the Hateful Memes dataset. You can read more about the MMF’s configuration system [here](https://mmf.sh/docs/notes/configuration).
-
-
 
 ## Training and Evaluation
 

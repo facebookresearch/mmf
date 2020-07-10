@@ -4,6 +4,7 @@ model_config:
     hidden_dropout_prob: 0.1
     training_head_type: classification
     num_labels: 7371
+    pooler_strategy: vqa
     losses:
     - type: logit_bce
 

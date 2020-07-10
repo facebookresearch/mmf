@@ -8,7 +8,9 @@ import torch
 from mmf.datasets.base_dataset import BaseDataset
 from mmf.datasets.base_dataset_builder import BaseDatasetBuilder
 from mmf.datasets.processors.processors import Processor
+from mmf.utils.download import DownloadableFile
 
+DownloadableFileType = Type[DownloadableFile]
 DatasetType = Type[BaseDataset]
 DatasetBuilderType = Type[BaseDatasetBuilder]
 DictConfig = Type[omegaconf.DictConfig]

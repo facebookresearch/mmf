@@ -15,8 +15,23 @@ class TextVQADataset(MMFDataset):
         self.use_ocr_info = self.config.use_ocr_info
 
     def preprocess_sample_info(self, sample_info):
+        path = self._get_path_based_on_index(self.config, "annotations", self._index)
+        # NOTE, TODO: Code duplication w.r.t to STVQA, revisit
+        # during dataset refactor to support variable dataset classes
+        if "stvqa" in path:
+            feature_path = sample_info["feature_path"]
+            append = "train"
+
+            if self.dataset_type == "test":
+                append = "test_task3"
+
+            if not feature_path.startswith(append):
+                feature_path = append + "/" + feature_path
+
+            sample_info["feature_path"] = feature_path
+            return sample_info
         # COCO Annotation DBs have corrext feature_path
-        if "COCO" not in sample_info["feature_path"]:
+        elif "COCO" not in sample_info["feature_path"]:
             sample_info["feature_path"] = sample_info["image_path"].replace(
                 ".jpg", ".npy"
             )
@@ -82,7 +97,6 @@ class TextVQADataset(MMFDataset):
             current_sample.image_id = str(sample_info["image_id"])
         else:
             current_sample.image_id = sample_info["image_id"]
-
         if self._use_features is True:
             features = self.features_db[idx]
             current_sample.update(features)
@@ -104,7 +118,7 @@ class TextVQADataset(MMFDataset):
         return current_sample
 
     def add_sample_details(self, sample_info, sample):
-        sample.image_id = object_to_byte_tensor(sample_info["image_id"])
+        sample.image_id = object_to_byte_tensor(sample.image_id)
 
         # 1. Load text (question words)
         question_str = (
@@ -199,7 +213,7 @@ class TextVQADataset(MMFDataset):
 
     def add_answer_info(self, sample_info, sample):
         # Load real answers from sample_info
-        answers = sample_info.get("answers", None)
+        answers = sample_info.get("answers", [])
         answer_processor_arg = {"answers": answers}
 
         answer_processor_arg["tokens"] = sample.pop("ocr_tokens", [])

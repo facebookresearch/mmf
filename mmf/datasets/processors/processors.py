@@ -68,7 +68,9 @@ Example::
 
 import copy
 import os
+import random
 import re
+import sys
 import warnings
 from collections import Counter, defaultdict
 
@@ -135,7 +137,7 @@ class Processor:
 
         params = {}
         if not hasattr(config, "params"):
-            self.writer.write(
+            warnings.warn(
                 "Config doesn't have 'params' attribute to "
                 "specify parameters of the processor "
                 "of type {}. Setting to default {{}}".format(config.type)
@@ -209,7 +211,8 @@ class VocabProcessor(BaseProcessor):
         self._init_extras(config)
 
     def _init_extras(self, config, *args, **kwargs):
-        self.writer = registry.get("writer")
+        writer = registry.get("writer")
+        self.writer = writer if writer is not None else sys.stdout
         self.preprocessor = None
 
         if hasattr(config, "max_length"):
@@ -398,7 +401,7 @@ class FastTextProcessor(VocabProcessor):
             needs_download = True
 
         if needs_download:
-            self.writer.write("Downloading FastText bin", "info")
+            self.writer.write("Downloading FastText bin")
             model_file = self._download_model()
 
         self.model_file = model_file
@@ -414,7 +417,7 @@ class FastTextProcessor(VocabProcessor):
             return model_file_path
 
         if PathManager.exists(model_file_path):
-            self.writer.write(f"Vectors already present at {model_file_path}.", "info")
+            self.writer.write(f"Vectors already present at {model_file_path}.")
             return model_file_path
 
         import requests
@@ -441,7 +444,7 @@ class FastTextProcessor(VocabProcessor):
 
             pbar.close()
 
-        self.writer.write(f"fastText bin downloaded at {model_file_path}.", "info")
+        self.writer.write(f"fastText bin downloaded at {model_file_path}.")
 
         return model_file_path
 
@@ -507,6 +510,14 @@ class VQAAnswerProcessor(BaseProcessor):
             )
 
         self.answer_vocab = VocabDict(config.vocab_file, *args, **kwargs)
+        self.PAD_IDX = self.answer_vocab.word2idx("<pad>")
+        self.BOS_IDX = self.answer_vocab.word2idx("<s>")
+        self.EOS_IDX = self.answer_vocab.word2idx("</s>")
+        self.UNK_IDX = self.answer_vocab.UNK_INDEX
+
+        # Set EOS to something not achievable if it is not there
+        if self.EOS_IDX == self.UNK_IDX:
+            self.EOS_IDX = len(self.answer_vocab)
 
         self.preprocessor = None
 
@@ -547,11 +558,7 @@ class VQAAnswerProcessor(BaseProcessor):
 
         if "answer_tokens" in item:
             tokens = item["answer_tokens"]
-        elif (
-            "answers" in item
-            and item["answers"] is not None
-            and len(item["answers"]) > 0
-        ):
+        elif "answers" in item and item["answers"] is not None:
             if self.preprocessor is None:
                 raise AssertionError(
                     "'preprocessor' must be defined if you "
@@ -1354,3 +1361,28 @@ class M4CCaptionProcessor(M4CAnswerProcessor):
     def compute_answer_scores(self, answers):
         unique_answer2score = {a: 1.0 for a in answers}
         return unique_answer2score
+
+
+@registry.register_processor("masked_region")
+class MaskedRegionProcessor(BaseProcessor):
+    def __init__(self, config, *args, **kwargs):
+        super().__init__(config, *args, **kwargs)
+        self.mask_prob = config.get("mask_probability", 0.15)
+        self.mask_region_prob = config.get("mask_region_probability", 0.9)
+
+    def __call__(self, item):
+        image_labels = []
+
+        for i in range(item.shape[0]):
+            prob = random.random()
+            # mask token with 15% probability
+            if prob < self.mask_prob:
+                prob /= self.mask_prob
+
+                if prob < self.mask_region_prob:
+                    item[i] = 0
+                image_labels.append(1)
+            else:
+                # no masking token (will be ignored by loss function later)
+                image_labels.append(-1)
+        return image_labels

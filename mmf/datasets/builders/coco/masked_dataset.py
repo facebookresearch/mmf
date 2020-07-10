@@ -19,25 +19,16 @@ class MaskedCOCODataset(COCODataset):
 
         if self._use_features is True:
             features = self.features_db[idx]
-            image_labels = []
-
-            for i in range(features["image_feature_0"].shape[0]):
-                prob = random.random()
-                # mask token with 15% probability
-                if prob < 0.15:
-                    prob /= 0.15
-
-                    if prob < 0.9:
-                        features["image_feature_0"][i] = 0
-                    image_labels.append(1)
-                else:
-                    # no masking token (will be ignored by loss function later)
-                    image_labels.append(-1)
-            item = {}
 
             if self.config.get("use_image_feature_masks", False):
-                item["image_labels"] = image_labels
-            current_sample.update(item)
+                current_sample.update(
+                    {
+                        "image_labels": self.masked_region_processor(
+                            features["image_feature_0"]
+                        )
+                    }
+                )
+
             current_sample.update(features)
 
         current_sample = self._add_masked_caption(sample_info, current_sample)
@@ -83,10 +74,12 @@ class MaskedCOCODataset(COCODataset):
         return current_sample
 
     def _get_mismatching_caption(self, image_id):
-        other_item = self.imdb[random.randint(0, len(self.imdb) - 1)]
+        other_item = self.annotation_db[random.randint(0, len(self.annotation_db) - 1)]
 
         while other_item["image_id"] == image_id:
-            other_item = self.imdb[random.randint(0, len(self.imdb) - 1)]
+            other_item = self.annotation_db[
+                random.randint(0, len(self.annotation_db) - 1)
+            ]
 
         other_caption = other_item["captions"][
             random.randint(0, len(other_item["captions"]) - 1)

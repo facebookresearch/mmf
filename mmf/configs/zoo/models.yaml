@@ -157,7 +157,7 @@ visual_bert:
         resources:
         - url: mmf://models/visual_bert/visual_bert.finetuned.vqa2.train.tar.gz
           file_name: visual_bert.finetuned.vqa2.train.tar.gz
-          hashcode: e786351503f0e19abd916cc9063b427adc60a0f98f6686e58b296672e90b74c
+          hashcode: e786351503f0e19abd916cc9063b427adc60a0f98f6686e58b296672e90b74c8
       from_coco_train_val:
         version: 1.0_2020_05_21
         resources:
@@ -204,25 +204,25 @@ m4c:
   textvqa:
     with_stvqa:
       zoo_requirements: detectron.vmb_weights
-      version: 1.0_2020_04_29
+      version: 1.0_2020_06_30
       resources:
       - url: mmf://models/m4c/m4c.textvqa.with_stvqa.tar.gz
         file_name: m4c.textvqa.with_stvqa.tar.gz
-        hashcode: 2dfd024cb144bb70843033d11dec064bc84937f22fd6561653ce1acd7610285e
+        hashcode: 0bf3b2d2fc4ed92994044404feb83869bf64c3bb8077e4472ae45927986fe51f
     ocr_ml:
       zoo_requirements: detectron.vmb_weights
-      version: 1.0_2020_04_29
+      version: 1.0_2020_07_02
       resources:
       - url: mmf://models/m4c/m4c.textvqa.ocr_ml.tar.gz
         file_name: m4c.textvqa.ocr_ml.tar.gz
-        hashcode: 4734dbf1816ffe378f08e69bd85b8cc0e4b2abe9564626505ff93e1ea7aea741
+        hashcode: a2ac0584bce7f12bd01e014584404eca511390c1e1637e60027a93b2ddc104ae
     alone:
       zoo_requirements: detectron.vmb_weights
-      version: 1.0_2020_04_29
+      version: 1.0_2020_07_02
       resources:
       - url: mmf://models/m4c/m4c.textvqa.alone.tar.gz
         file_name: m4c.textvqa.alone.tar.gz
-        hashcode: 84243f5d626a8211ea6a1ae409c72aaa24645ccd43883d4af4aa903d70d45f06
+        hashcode: 359468f25a88b3bf51f5ba15075c011eea0a7d7c76ab4bc547b66631b0cb9098
     defaults: ${m4c.textvqa.with_stvqa}
   stvqa:
     defaults:
@@ -440,3 +440,14 @@ late_fusion:
     - url: mmf://models/late_fusion/late_fusion.finetuned.hateful_memes.tar.gz
       file_name: late_fusion.finetuned.hateful_memes.tar.gz
       hashcode: 5b6aeb3e6f0fbdc38903e76426b8caac8cf5734fd7996f2fb9f3a3b1fe042795
+
+movie_mcan:
+  grid:
+    vqa2_vg:
+      # Model from project : projects/movie_mcan, VQA2.0 TestDev 73.9
+      version: 1.0_2020_06_30
+      resources:
+      - url: mmf://models/movie_mcan/movie_mcan.grid.vqa2_vg.tar.gz
+        file_name: movie_mcan.grid.vqa2_vg.tar.gz
+        hashcode: eb155846799d12c0b989490595ce57aa934cd7c71fc9956235e4d9e06cbe8985
+    defaults: ${movie_mcan.grid.vqa2_vg}

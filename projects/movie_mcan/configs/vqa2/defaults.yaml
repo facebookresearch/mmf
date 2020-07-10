@@ -1,0 +1,69 @@
+model_config:
+  movie_mcan:
+    losses:
+    - type: triple_logit_bce
+
+dataset_config:
+  vqa2:
+    depth_first: true
+    use_features: true
+    zoo_requirements:
+      - vqa2.defaults
+      - vqa2.grid_features
+    features:
+      train:
+      - /checkpoint/xinleic/vlfeat
+      - /checkpoint/xinleic/vlfeat
+      - /checkpoint/xinleic/vlfeat
+      val:
+      - /checkpoint/xinleic/vlfeat
+      test:
+      - /checkpoint/xinleic/vlfeat
+    annotations:
+      train:
+      - vqa2/grid_features/annotations/imdb_train2014.npy
+      - vqa2/grid_features/annotations/imdb_val2014.npy
+      - vqa2/grid_features/annotations/imdb_visualgenome.npy
+      val:
+      - vqa2/grid_features/annotations/imdb_oneval2014.npy
+      test:
+      - vqa2/grid_features/annotations/imdb_test2015.npy
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-05
+    weight_decay: 0
+    eps: 1e-09
+    betas:
+    - 0.9
+    - 0.98
+
+scheduler:
+  type: multi_step
+  params:
+    use_warmup: true
+    lr_steps:
+    - 180000
+    - 216000
+    lr_ratio: 0.2
+    warmup_iterations: 54000
+    warmup_factor: 0.25
+
+evaluation:
+  metrics:
+  - vqa_accuracy
+
+training:
+  lr_scheduler: true
+  clip_norm_mode: all
+  clip_gradients: false
+  max_grad_l2_norm: 5
+  max_updates: 236000
+  batch_size: 64
+  task_size_proportional_sampling: true
+  encoder_lr_multiply: 1
+  early_stop:
+    criteria: vqa2/vqa_accuracy
+    minimize: false
+  find_unused_parameters: true

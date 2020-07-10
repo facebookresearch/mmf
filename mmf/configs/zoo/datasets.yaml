@@ -81,12 +81,12 @@ stvqa:
 
 textvqa:
   defaults:
-    version: 0.5.5_2020_04_28
+    version: 0.5.5_2020_06_30
     resources:
       features:
       - url: mmf://datasets/textvqa/defaults/features/features.tar.gz
         file_name: features.tar.gz
-        hashcode: f78f6a8e3c7c9c40c8034303457ebcbd5f2bf999cf8aeeba0f6b6f5403dd7bcf
+        hashcode: 960f69c651f5c6532b4e9d8310597aa8d21c65074768c9702ea822e4b2867a0d
       annotations:
       - url: mmf://datasets/textvqa/defaults/annotations/annotations.tar.gz
         file_name: annotations.tar.gz
@@ -95,6 +95,13 @@ textvqa:
       - url: mmf://datasets/textvqa/defaults/extras.tar.gz
         file_name: extras.tar.gz
         hashcode: 68dc3b4aeffe4dce24ebb5d373baf0c304fbfbec73f0c1550118a85e90286e38
+  caffe2:
+    version: 0.5.5_2020_04_28
+    resources:
+      features:
+      - url: mmf://datasets/textvqa/defaults/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: f78f6a8e3c7c9c40c8034303457ebcbd5f2bf999cf8aeeba0f6b6f5403dd7bcf
   ocr_en:
     version: 0.5.5_2020_04_28
     resources:
@@ -231,7 +238,6 @@ flickr30k:
       images:
       - url: https://drive.google.com/uc?export=download&id=0B_PL6p-5reUAZEM4MmRQQ2VVSlk
         file_name: flickr30_images.tar.gz
-        hashcode: ecd7f922b283d7e1890cfaceda3735ddca62eea919c87dbf9b75136e40edef37
       features:
       - url: mmf://datasets/flickr30k/defaults/features/features.tar.gz
         file_name: features.tar.gz
@@ -265,6 +271,14 @@ vqa2:
       - url: mmf://datasets/vqa2/defaults/extras.tar.gz
         file_name: extras.tar.gz
         hashcode: e45c3dbef61e5cc550b08ed7299c88cf7937efa219d071342b8ed7a6a5642a55
+  grid_features:
+    version: 1.0_2020_06_30
+    # Annotations for grid based features of COCO
+    resources:
+      annotations:
+      - url: mmf://datasets/vqa2/grid/annotations/annotations.tar.gz
+        file_name: annotations.tar.gz
+        hashcode: f1ac6a587d4719f702bf02cd49725b82ef91bff747eb043527a7b2fecfaee953
 
 vizwiz:
   v2019:
@@ -319,3 +333,21 @@ cc:
       - url: mmf://datasets/cc/coco_generated/annotations/annotations.tar.gz
         file_name: annotations.tar.gz
         hashcode: 8a122c40a656dbc3c5e63117b517e4aeebd8d3b02ee20d84f49da2b1f411fac4
+
+gqa:
+  defaults:
+    version: 1.0_2020_06_22
+    # Features and annotations should be used from gqa.defaults as zoo_requirements
+    resources:
+      annotations:
+      - url: mmf://datasets/gqa/defaults/annotations/annotations.tar.gz
+        file_name: annotations.tar.gz
+        hashcode: 4f8ab86697d5f81749ca87cee8971885b8e788b4a22c0c92fd15aae516a739da
+      extras:
+      - url: mmf://datasets/gqa/defaults/extras.tar.gz
+        file_name: extras.tar.gz
+        hashcode: 5ace42896d06aaefc1ac1540fb58d38d8db0884bc48c8f85070a90811676cd8d
+      features:
+      - url: mmf://datasets/gqa/defaults/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: 530e62e398faa5c9f2d4f7edc2223cce4a679b2837fa4252976f0eff4127f9ce

@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import argparse
+import platform
 import socket
 import unittest
 
@@ -41,6 +42,14 @@ def skip_if_no_network(testfn, reason="Network is not available"):
 
 def skip_if_no_cuda(testfn, reason="Cuda is not available"):
     return unittest.skipUnless(CUDA_AVAILBLE, reason)(testfn)
+
+
+def skip_if_windows(testfn, reason="Doesn't run on Windows"):
+    return unittest.skipIf("Windows" in platform.system(), reason)(testfn)
+
+
+def skip_if_macos(testfn, reason="Doesn't run on MacOS"):
+    return unittest.skipIf("Darwin" in platform.system(), reason)(testfn)
 
 
 def compare_state_dicts(a, b):

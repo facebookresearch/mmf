@@ -4,12 +4,14 @@ import unittest
 
 import numpy as np
 
+import tests.test_utils as test_utils
 from mmf.models.mmbt import MMBT
-from tests.test_utils import skip_if_no_network
 
 
 class TestModelInterfaces(unittest.TestCase):
-    @skip_if_no_network
+    @test_utils.skip_if_no_network
+    @test_utils.skip_if_windows
+    @test_utils.skip_if_macos
     def test_mmbt_hm_interface(self):
         model = MMBT.from_pretrained("mmbt.hateful_memes.images")
         result = model.classify(

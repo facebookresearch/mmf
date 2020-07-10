@@ -4,11 +4,11 @@ title: Installation
 sidebar_label: Installation
 ---
 
-MMF is tested on Python 3.7+ and PyTorch 1.5.
+MMF has been tested on Python 3.7+ and PyTorch 1.5.
 
 ## Install using pip
 
-MMF can be installed from pip with following command:
+MMF can be installed using pip with the following command:
 
 ```bash
 pip install --upgrade --pre mmf
@@ -16,12 +16,12 @@ pip install --upgrade --pre mmf
 
 Use this if:
 
-- You are using MMF as a library and not developing inside MMF. Have a look at extending MMF tutorial.
-- You want easy installation and don't care about up-to-date features. Note that, pip packages are always outdated compared to installing from source.
+- You are using MMF as a library and not developing inside MMF. Take a look at the extending MMF tutorial.
+- You want easy installation and don't care about up-to-date features. Note that pip packages are always outdated relative to installing from source.
 
 ## Install from source
 
-To install from source, do:
+To install from source do:
 
 ```bash
 git clone https://github.com/facebookresearch/mmf.git
@@ -31,7 +31,7 @@ pip install --editable .
 
 ## Running tests
 
-MMF uses pytest for testing purposes. To ensure everything and run tests at your end do:
+MMF uses pytest for testing. To verify everything and run tests at your end do:
 
 ```bash
 pytest ./tests/

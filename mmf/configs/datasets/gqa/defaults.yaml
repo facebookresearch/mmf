@@ -1,0 +1,62 @@
+dataset_config:
+  gqa:
+    data_dir: ${env.data_dir}/datasets
+    depth_first: false
+    fast_read: false
+    use_images: false
+    use_features: true
+    zoo_requirements:
+    - gqa.defaults
+    features:
+      train:
+      - gqa/defaults/features/gqa.lmdb
+      val:
+      - gqa/defaults/features/gqa.lmdb
+      test:
+      - gqa/defaults/features/gqa.lmdb
+    annotations:
+      train:
+      - gqa/defaults/annotations/train_balanced_questions.npy
+      val:
+      - gqa/defaults/annotations/val_balanced_questions.npy
+      test:
+      - gqa/defaults/annotations/test_balanced_questions.npy
+    max_features: 100
+    processors:
+      text_processor:
+        type: vocab
+        params:
+          max_length: 14
+          vocab:
+            type: intersected
+            embedding_name: glove.6B.300d
+            vocab_file: gqa/defaults/vocabs/vocabulary_100k.txt
+          preprocessor:
+            type: simple_sentence
+            params: {}
+      answer_processor:
+        type: vqa_answer
+        params:
+          num_answers: 10
+          vocab_file: gqa/defaults/vocabs/answers_gqa.txt
+          preprocessor:
+            type: simple_word
+            params: {}
+      context_processor:
+        type: fasttext
+        params:
+          download_initially: false
+          max_length: 50
+          model_file: wiki.en.bin
+      ocr_token_processor:
+        type: simple_word
+        params: {}
+      bbox_processor:
+        type: bbox
+        params:
+          max_length: 50
+    return_features_info: false
+    # Return OCR information
+    use_ocr: false
+    # Return spatial information of OCR tokens if present
+    use_ocr_info: false

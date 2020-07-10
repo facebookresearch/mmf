@@ -10,7 +10,7 @@ from torch.utils.data.distributed import DistributedSampler
 from mmf.common.batch_collator import BatchCollator
 from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env
-from mmf.utils.distributed import gather_tensor, is_master
+from mmf.utils.distributed import gather_tensor, is_dist_initialized, is_master
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import (
     ckpt_name_from_core_args,
@@ -124,7 +124,7 @@ class TestReporter(Dataset):
         if other_args is None:
             other_args = {}
 
-        if torch.distributed.is_initialized():
+        if is_dist_initialized():
             other_args["sampler"] = DistributedSampler(
                 self.current_dataset, shuffle=False
             )
@@ -154,21 +154,9 @@ class TestReporter(Dataset):
             report.scores = gather_tensor(report.scores).view(
                 -1, report.scores.size(-1)
             )
-            if "id" in report:
-                report.id = gather_tensor(report.id).view(-1)
-            if "question_id" in report:
-                report.question_id = gather_tensor(report.question_id).view(-1)
-            if "image_id" in report:
-                if report.image_id.dim() == 2:
-                    _, enc_size = report.image_id.size()
-                    report.image_id = gather_tensor(report.image_id)
-                    report.image_id = report.image_id.view(-1, enc_size)
-                else:
-                    report.image_id = gather_tensor(report.image_id).view(-1)
-            if "context_tokens" in report:
-                _, enc_size = report.context_tokens.size()
-                report.context_tokens = gather_tensor(report.context_tokens)
-                report.context_tokens = report.context_tokens.view(-1, enc_size)
+            keys = ["id", "question_id", "image_id", "context_tokens"]
+            for key in keys:
+                report = self.reshape_and_gather(report, key)
 
         if not is_master():
             return
@@ -180,3 +168,22 @@ class TestReporter(Dataset):
             results = model.module.format_for_prediction(results, report)
 
         self.report = self.report + results
+
+    def reshape_and_gather(self, report, key):
+
+        if key in report:
+            num_dims = report[key].dim()
+            if num_dims == 1:
+                report[key] = gather_tensor(report[key]).view(-1)
+
+            elif num_dims == 2:
+                _, enc_size = report[key].size()
+                report[key] = gather_tensor(report[key]).view(-1, enc_size)
+
+            else:
+                raise RuntimeError(
+                    "Expect 1 or 2 dimensions for {} in report for 'reshape and gather'"
+                    " in 'TestReporter', but got {} instead.".format(key, num_dims)
+                )
+
+        return report

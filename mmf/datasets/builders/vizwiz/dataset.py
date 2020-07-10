@@ -19,7 +19,7 @@ class VizWizDataset(VQA2Dataset):
     def load_item(self, idx):
         sample = super().load_item(idx)
 
-        # sample_info = self.imdb[idx]
+        # sample_info = self.annotation_db[idx]
 
         # if "image_name" in sample_info:
         #     sample.image_id = sample_info["image_name"]
