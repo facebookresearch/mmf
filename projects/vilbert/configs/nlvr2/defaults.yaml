@@ -8,6 +8,7 @@ model_config:
 dataset_config:
   nlvr2:
     return_features_info: true
+    use_image_bbox_position: true
     processors:
       text_processor:
         type: bert_tokenizer
@@ -18,6 +19,8 @@ dataset_config:
               do_lower_case: true
           mask_probability: 0
           max_seq_length: 128
+      bbox_processor:
+          type: transformer_bbox
 
 optimizer:
   type: adam_w

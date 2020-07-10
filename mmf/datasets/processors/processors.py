@@ -1425,4 +1425,28 @@ class MaskedRegionProcessor(BaseProcessor):
             else:
                 # no masking token (will be ignored by loss function later)
                 image_labels.append(-1)
-        return image_labels
+        return torch.tensor(image_labels, dtype=torch.long)
+
+
+@registry.register_processor("transformer_bbox")
+class TransformerBboxProcessor(BaseProcessor):
+    def __init__(self, config, *args, **kwargs):
+        super().__init__(config, *args, **kwargs)
+
+    def __call__(self, item):
+        bbox = item["bbox"]
+        image_w = item["image_width"]
+        image_h = item["image_height"]
+        image_location = torch.zeros((bbox.shape[0], 5), dtype=torch.float)
+        image_location[:, :4] = torch.from_numpy(bbox)
+        image_location[:, 4] = (
+            (image_location[:, 3] - image_location[:, 1])
+            * (image_location[:, 2] - image_location[:, 0])
+            / (image_w * image_h)
+        )
+        image_location[:, 0] = image_location[:, 0] / image_w
+        image_location[:, 1] = image_location[:, 1] / image_h
+        image_location[:, 2] = image_location[:, 2] / image_w
+        image_location[:, 3] = image_location[:, 3] / image_h
+        item["bbox"] = image_location
+        return item

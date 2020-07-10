@@ -24,6 +24,7 @@ dataset_config:
       - vqa2/defaults/annotations/imdb_test2015.npy
     max_features: 100
     use_image_feature_masks: false
+    use_image_bbox_position: false
     processors:
       masked_token_processor:
         type: masked_token
@@ -39,6 +40,8 @@ dataset_config:
         params:
           mask_probability: 0.15
           mask_region_probability: 0.90
+      bbox_processor:
+          type: transformer_bbox
     return_features_info: false
     # Return OCR information
     use_ocr: false

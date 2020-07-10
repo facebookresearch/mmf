@@ -15,3 +15,4 @@ dataset_config:
       - vqa2/defaults/annotations/imdb_val2014.npy
     return_features_info: true
     use_image_feature_masks: true
+    use_image_bbox_position: true

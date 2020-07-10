@@ -7,11 +7,11 @@ dataset_config:
     use_features: true
     features:
       train:
-      - coco/defaults/features/coco_trainval2014.lmdb
+      - coco/defaults/features/trainval2014.lmdb
       val:
-      - coco/defaults/features/coco_trainval2014.lmdb
+      - coco/defaults/features/trainval2014.lmdb
       test:
-      - coco/defaults/features/coco_test2015.lmdb
+      - coco/defaults/features/trainval2014.lmdb
     annotations:
       train:
       - coco/defaults/annotations/imdb_karpathy_train_by_image.npy
@@ -25,6 +25,7 @@ dataset_config:
     false_caption: false
     false_caption_probability: 0.5
     use_image_feature_masks: false
+    use_image_bbox_position: false
     processors:
       masked_token_processor:
         type: masked_token
@@ -40,6 +41,8 @@ dataset_config:
         params:
           mask_probability: 0.15
           mask_region_probability: 0.90
+      bbox_processor:
+        type: transformer_bbox
     return_features_info: false
     # Return OCR information
     use_ocr: false
