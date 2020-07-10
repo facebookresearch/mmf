@@ -66,7 +66,7 @@ class LogisticsCallback(Callback):
                 "num_updates": self.trainer.num_updates,
                 "iterations": self.trainer.current_iteration,
                 "max_updates": self.trainer.max_updates,
-                "lr": "{:.5f}".format(
+                "lr": "{:.7f}".format(
                     self.trainer.optimizer.param_groups[0]["lr"]
                 ).rstrip("0"),
                 "ups": "{:.2f}".format(
@@ -85,10 +85,11 @@ class LogisticsCallback(Callback):
 
     def on_validation_end(self, **kwargs):
         extra = {
-            "num_updates": self.trainer.num_updates,
             "epoch": self.trainer.current_epoch,
-            "iterations": self.trainer.current_iteration,
+            "num_updates": self.trainer.num_updates,
             "max_updates": self.trainer.max_updates,
+            "iterations": self.trainer.current_iteration + 1,
+            "max_iterations": self.trainer.max_iterations,
             "val_time": self.snapshot_timer.get_time_since_start(),
         }
         extra.update(self.trainer.early_stop_callback.early_stopping.get_info())
@@ -118,9 +119,14 @@ class LogisticsCallback(Callback):
         if hasattr(self.trainer, "num_updates") and hasattr(
             self.trainer, "max_updates"
         ):
-            log_dict.update(
-                {"progress": f"{self.trainer.num_updates}/{self.trainer.max_updates}"}
+            iterations = (
+                f"{self.trainer.current_iteration+1}/{self.trainer.max_iterations}"
             )
+            updates = f"{self.trainer.num_updates}/{self.trainer.max_updates}"
+            log_dict.update(
+                {"progress:": "iterations: {} updates: {}".format(iterations, updates)}
+            )
+
         log_dict.update(meter.get_log_dict())
         log_dict.update(extra)
 

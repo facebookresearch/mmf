@@ -1,5 +1,5 @@
 model_config:
-  vilbert:
+  vilbert_multitask:
     bert_model_name: bert-base-uncased
     training_head_type: pretraining
     visual_embedding_dim: 2048

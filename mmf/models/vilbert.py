@@ -3,7 +3,7 @@
 import math
 import os
 from copy import deepcopy
-
+import sys
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -26,7 +26,10 @@ from transformers.modeling_bert import (
 from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.utils.configuration import get_mmf_cache_dir
-from mmf.utils.modeling import get_optimizer_parameters_for_bert
+from mmf.utils.modeling import (
+    get_optimizer_parameters_for_bert,
+)
+
 
 
 class BertSelfAttention(nn.Module):
@@ -1125,6 +1128,7 @@ class ViLBERTForClassification(nn.Module):
         classifier_config.hidden_size = config.bi_hidden_size
         if self.config.training_head_type == "nlvr2":
             classifier_config.hidden_size *= 2
+
         self.classifier = nn.Sequential(
             BertPredictionHeadTransform(classifier_config),
             nn.Linear(classifier_config.hidden_size, self.num_labels),
