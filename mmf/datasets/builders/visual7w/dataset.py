@@ -69,18 +69,9 @@ class Visual7WDataset(MMFDataset):
         text_processor_argument = {"text": sample_info["caption"]}
         processed_question = self.text_processor(text_processor_argument)
 
-        task_tokens = (
-            processed_question["input_ids"]
-            .new()
-            .resize_(processed_question["input_ids"].size(0), 1)
-            .fill_(int(4))
-        )
-
         current_sample = Sample()
         current_sample.image_feature_0 = all_features_pad
-        current_sample.input_ids = processed_question["input_ids"]
-        current_sample.input_mask = processed_question["input_mask"]
-        current_sample.segment_ids = processed_question["segment_ids"]
+        current_sample.update(processed_question)
         current_sample.image_info_0 = {}
         current_sample.image_info_0["image_width"] = features_data["image_info_0"][
             "image_width"
@@ -94,7 +85,6 @@ class Visual7WDataset(MMFDataset):
         current_sample.image_info_0["max_image_features"] = num_boxes
         current_sample.image_info_0["multiple_choice_idx"] = multiple_choice_idx
         current_sample.targets = targets
-        current_sample.task_tokens = task_tokens
 
         return current_sample
 
