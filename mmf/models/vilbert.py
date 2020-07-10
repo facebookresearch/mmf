@@ -1197,8 +1197,8 @@ class ViLBERTForClassification(nn.Module):
         if self.training_head_type == 'visual7w':
             logits = self.classifier(self.dropout(sequence_output_v))
             logits = logits[:, 101:]
-            # logits = logits.squeeze(2).gather(1, multiple_choice_ids)
-            # logits = logits.unsqueeze(2)
+            logits = logits.squeeze(2).gather(1, multiple_choice_ids)
+            #logits = logits.unsqueeze(2)
             output["scores"] = logits.squeeze()
         else:
             logits = self.classifier(pooled_output)
@@ -1353,8 +1353,8 @@ class ViLBERT(BaseModel):
             image_target = np.array(cls_prob, dtype=np.float32)
             image_target_variable = torch.tensor(image_target, dtype=torch.float).cuda()
 
-        # if sample_list.dataset_name == "visual7w":
-        #     #multiple_choice_ids = sample_list.image_info_0["multiple_choice_idx"]
+        if sample_list.dataset_name == "visual7w":
+            multiple_choice_ids = sample_list.image_info_0["multiple_choice_idx"]
 
         return {
             "input_ids": bert_input_ids,
