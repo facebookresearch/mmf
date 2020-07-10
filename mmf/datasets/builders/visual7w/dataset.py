@@ -16,6 +16,7 @@ class Visual7WDataset(MMFDataset):
         features_data = self.features_db[idx]
         multiple_choice_idx = torch.tensor(sample_info["mc_idx"])
 
+        # image_info_0 contains roi features computed on a given image.
         boxes = torch.from_numpy(features_data["image_info_0"]["bbox"])
         features = features_data["image_feature_0"]
 
@@ -33,6 +34,9 @@ class Visual7WDataset(MMFDataset):
         boxes = torch.cat((global_bounding_box, boxes), 0)
         num_boxes = num_boxes + 1
 
+        # image_info_1 contains roi features computed on ground truth boxes the
+        # expression was pointing towards. Final input is contanenation of the two
+        # and the classifier votes for each of the four options using independent logits.
         gt_num_boxes = features_data["image_info_1"]["num_boxes"]
         gt_boxes = torch.from_numpy(
             features_data["image_info_1"]["bbox"][:gt_num_boxes, :]
