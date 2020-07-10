@@ -39,7 +39,6 @@ dataset_config:
           mask_probability: 0
           max_seq_length: 20
 
-
 multi_task_config:
   tasks:
     - id: 4
@@ -69,12 +68,13 @@ training:
   trainer: mmf_multitask
   batch_size: 128
   lr_scheduler: true
-  max_updates: 1000
-  max_iterations: 5000
+  max_updates: 10000
+  max_iterations: 10000
   find_unused_parameters: true
-  evaluation_interval: 5000
+  evaluation_interval: 370
   evaluate_metrics: true
-
+  train_iter_gap: 4
+  
 checkpoint:
   resume_pretrained: true
   resume_file: /private/home/omkar/vilbert-multi-task/pretrained_model.bin

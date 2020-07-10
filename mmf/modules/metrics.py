@@ -101,7 +101,6 @@ class Metrics:
 
     def __call__(self, sample_list, model_output, *args, **kwargs):
         values = {}
-
         dataset_type = sample_list.dataset_type
         dataset_name = sample_list.dataset_name
 

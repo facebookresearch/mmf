@@ -66,7 +66,7 @@ class LogisticsCallback(Callback):
                 "num_updates": self.trainer.num_updates,
                 "iterations": self.trainer.current_iteration,
                 "max_updates": self.trainer.max_updates,
-                "lr": "{:.5f}".format(
+                "lr": "{:.7f}".format(
                     self.trainer.optimizer.param_groups[0]["lr"]
                 ).rstrip("0"),
                 "ups": "{:.2f}".format(

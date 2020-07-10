@@ -23,6 +23,11 @@ dataset_config:
           mask_probability: 0
           max_seq_length: 20
 
+multi_task_config:
+  tasks:
+    - id: 4
+      dataset: visual7w
+      metric: accuracy
 optimizer:
   type: adam_w
   params:
@@ -44,6 +49,7 @@ training:
   batch_size: 256
   lr_scheduler: true
   max_updates: 2000
+  max_iterations: 2000
   find_unused_parameters: true
   early_stop:
     criteria: visual7w/accuracy

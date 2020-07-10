@@ -183,6 +183,10 @@ class MultiDatasetLoader:
         if self._num_datasets == 1:
             return iter(self.loaders[0])
 
+        self._iterators = []
+        self._finished_iterators = {}
+        self._used_once = {}
+
         for loader in self.loaders:
             self.iterators.append(iter(loader))
 
@@ -277,6 +281,10 @@ class MultiTaskMultiDatasetLoader(MultiDatasetLoader):
         try:
             next_batch = next(self._chosen_iterator)
         except StopIteration:
+            self.writer.write(
+                "Dataset %s iterations finished. Restarting.."
+                % self.datasets[self.current_index].name
+            )
             self.iterators[self.current_index] = iter(self.loaders[self.current_index])
             self._chosen_iterator = self.iterators[self.current_index]
             next_batch = next(self._chosen_iterator)

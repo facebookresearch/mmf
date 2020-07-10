@@ -60,15 +60,41 @@ class MultiTaskTrainerTrainingLoopMixin(TrainerTrainingLoopMixin):
 
         while self.current_iteration < self.training_config.max_iterations:
 
+            condition_flag = False
+            if self.current_iteration > 1110:
+                condition_flag = True
+                self.writer.write("Setting the condition flag")
+
             for task in self.config.multi_task_config.tasks:
                 task_id = task.id
                 dataset = task.dataset
-                self.train_loader.set_dataset(dataset)
-                batch = next(self.train_loader)
-                if not self.task_stop_controller[task_id].in_stop:
+
+                if condition_flag:
+                    self.writer.write(
+                        "Iteration: {} Task ID: {} Dataset {}".format(
+                            self.current_iteration, task_id, dataset
+                        )
+                    )
+
+                if (not self.task_stop_controller[task_id].in_stop) or (
+                    self.current_iteration % self.training_config.train_iter_gap == 0
+                ):
+                    if condition_flag:
+                        self.writer.write("Setting Dataset {}".format(dataset))
+
+                    self.train_loader.set_dataset(dataset)
+                    batch = next(self.train_loader)
+
+                    if condition_flag:
+                        self.writer.write("Got batch")
+
                     self.profile("Batch load time")
                     self.writer.write(self.num_updates + 1, "debug")
+                    if condition_flag:
+                        self.writer.write("Training with batch")
                     report = self.run_training_batch(batch)
+                    if condition_flag:
+                        self.writer.write("Training with batch Finished")
                 else:
                     self.writer.write("Dataset: {} in plateu stop".format(dataset))
 
@@ -78,10 +104,7 @@ class MultiTaskTrainerTrainingLoopMixin(TrainerTrainingLoopMixin):
             # Train batch end callbacks
             self.on_batch_end(report=report, meter=self.meter, should_log=should_log)
 
-            if (
-                self.current_iteration + 1 % self.training_config.evaluation_interval
-                == 0
-            ):
+            if self.current_iteration % self.training_config.evaluation_interval == 0:
                 # Validation begin callbacks
                 self.on_validation_start()
 
@@ -102,8 +125,9 @@ class MultiTaskTrainerTrainingLoopMixin(TrainerTrainingLoopMixin):
                     self.task_stop_controller[task_id].step(metrics)
 
                 self.on_validation_end(report=None, meter=combined_meter)
-
+                self.writer.write("GC Run...")
                 gc.collect()
+                self.writer.write("Done...")
 
                 if "cuda" in str(self.device):
                     torch.cuda.empty_cache()
@@ -112,21 +136,46 @@ class MultiTaskTrainerTrainingLoopMixin(TrainerTrainingLoopMixin):
 
             # In distributed, each worker will complete one epoch when we reach this
             # as each worker is an individual instance
-            self.current_epoch += get_world_size() - 1
+        self.current_epoch += get_world_size() - 1
 
     def run_training_batch(self, batch: Tensor) -> None:
         # Train batch start callbacks
+
+        condition_flag = False
+        if self.current_iteration > 1110:
+            condition_flag = True
+
+        if condition_flag:
+            self.writer.write("Batch Start Callbacks.")
         self.on_batch_start()
+        if condition_flag:
+            self.writer.write("Batch Start Callbacks. Done")
 
         report = self._forward(batch)
+        if condition_flag:
+            self.writer.write("Forward Finished")
+
         loss = self._extract_loss(report)
+        if condition_flag:
+            self.writer.write("Got the loss")
+            self.writer.write(loss)
+
         self._backward(loss)
+        if condition_flag:
+            self.writer.write("Backward Finished")
 
         if self.current_iteration % self.logistics_callback.log_interval == 0:
             # Calculate metrics every log interval for debugging
             if self.training_config.evaluate_metrics:
                 report.metrics = self.metrics(report, report)
+
+            if condition_flag:
+                self.writer.write("Updating Metrics")
+
             self.update_meter(report, self.meter)
+
+            if condition_flag:
+                self.writer.write("Updating Metrics Done")
 
         return report
 
@@ -143,13 +192,31 @@ class MultiTaskTrainerTrainingLoopMixin(TrainerTrainingLoopMixin):
 
     def _backward(self, loss: Tensor) -> None:
 
+        condition_flag = False
+        if self.current_iteration > 1110:
+            condition_flag = True
+
+        if condition_flag:
+            self.writer.write("Optimizer Zero grad")
         self.optimizer.zero_grad()
+
+        if condition_flag:
+            self.writer.write("Optimizer Zero grad done")
+
         loss.backward()
+
+        if condition_flag:
+            self.writer.write("loss backward done")
 
         if self.training_config.clip_gradients:
             clip_gradients(self.model, self.num_updates, self.tb_writer, self.config)
 
+        if condition_flag:
+            self.writer.write("clip gradients done")
+
         self.optimizer.step()
+        if condition_flag:
+            self.writer.write("optimizer step done")
         self.num_updates += 1
         self.profile("Backward time")
 
