@@ -5,7 +5,6 @@ dataset_config:
     fast_read: false
     use_images: false
     use_features: true
-    feature_key: "omkar"
     features:
       train:
       - /checkpoint/omkar/datasets/visual7w/mmf_lmdbs/visual7w_resnext152_faster_rcnn_genome.lmdb,/checkpoint/omkar/datasets/visual7w/mmf_lmdbs/visual7w_gt_resnext152_faster_rcnn_genome.lmdb
@@ -21,6 +20,7 @@ dataset_config:
       test:
       - /checkpoint/omkar/datasets/visual7w/test.json
     max_features: 100
+    max_region_num: 200
     return_features_info: true
     processors:
       text_processor:
@@ -32,5 +32,3 @@ dataset_config:
               do_lower_case: true
           mask_probability: 0
           max_seq_length: 128
-evaluation:
-  predict_file_format: csv

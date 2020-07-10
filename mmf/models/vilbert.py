@@ -1194,7 +1194,7 @@ class ViLBERTForClassification(nn.Module):
 
         if self.training_head_type == 'visual7w':
             logits = self.classifier(self.dropout(sequence_output_v))
-            output["scores"] = logits[:, -4:].squeeze()
+            output["scores"] = logits[:, -self.config.num_multiple_choices:].squeeze()
         else:
             logits = self.classifier(pooled_output)
             reshaped_logits = logits.contiguous().view(-1, self.num_labels)
