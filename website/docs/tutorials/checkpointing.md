@@ -111,6 +111,15 @@ training:
     minimize: false
 ```
 
+## Limiting the Number of Saved Checkpoints
+Optionally, you can limit the maximum number of checkpoint files that are saved.
+In the config, this is managed with the parameter `max_to_keep` under `checkpoint`.
+```yaml
+checkpoint:
+  max_to_keep: -1
+```
+When the parameter is set to -1, every eligible checkpoint is saved; otherwise, only the last `max_to_keep` checkpoints are kept at any given time.
+
 ## Running validation using the trained model
 
 After we finish the training we will load the trained model for validation:

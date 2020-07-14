@@ -116,6 +116,9 @@ class Checkpoint:
                 # Not a git repo, don't do anything
                 pass
 
+        self.max_to_keep = self.config.checkpoint.max_to_keep
+        self.saved_iterations = []
+
     def save_config(self):
         cfg_file = os.path.join(self.ckpt_foldername, "config.yaml")
         with PathManager.open(cfg_file, "w") as f:
@@ -409,6 +412,17 @@ class Checkpoint:
 
         # Save current always
         torch.save(ckpt, current_ckpt_filepath)
+
+        # Remove old checkpoints if max_to_keep is set
+        if self.max_to_keep > 0:
+            if len(self.saved_iterations) == self.max_to_keep:
+                self.remove(self.saved_iterations.pop(0))
+            self.saved_iterations.append(update)
+
+    def remove(self, update):
+        ckpt_filepath = os.path.join(self.models_foldername, "model_%d.ckpt" % update)
+        if PathManager.isfile(ckpt_filepath):
+            PathManager.rm(ckpt_filepath)
 
     def restore(self):
         synchronize()
