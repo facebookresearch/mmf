@@ -76,6 +76,7 @@ class TestUtilsCheckpoint(unittest.TestCase):
                     "save_git_details": False,
                     "reset": {"optimizer": False, "counts": False, "all": False},
                     "pretrained_state_mapping": {"base_test": "base"},
+                    "max_to_keep": 5,
                 },
                 "config_override": "test",
                 "training": {
@@ -417,6 +418,31 @@ class TestUtilsCheckpoint(unittest.TestCase):
             self.assertEqual(self.trainer.num_updates, 1000)
             self.assertEqual(self.trainer.current_iteration, 1000)
             self.assertEqual(self.trainer.current_epoch, 3)
+
+    def test_max_to_keep(self):
+        with mock_env_with_temp():
+            checkpoint = Checkpoint(self.trainer)
+            self._init_early_stopping(checkpoint)
+
+            ckpt_paths = []
+            for indx in [2000, 3000, 4000, 5000, 6000]:
+                self._do_a_pass()
+                checkpoint.save(indx, update_best=False)
+
+                ckpt_paths.append(
+                    os.path.join(checkpoint.models_foldername, "model_%d.ckpt" % indx)
+                )
+                self.assertTrue(os.path.exists(ckpt_paths[-1]))
+
+            for indx, u in enumerate([7000, 8000, 9000, 10000, 11000]):
+                self._do_a_pass()
+                checkpoint.save(u, update_best=False)
+
+                ckpt_paths.append(
+                    os.path.join(checkpoint.models_foldername, "model_%d.ckpt" % u)
+                )
+                self.assertTrue(os.path.exists(ckpt_paths[-1]))
+                self.assertFalse(os.path.exists(ckpt_paths[indx]))
 
     def test_zoo_load(self):
         with mock_env_with_temp():

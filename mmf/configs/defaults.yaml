@@ -255,6 +255,9 @@ checkpoint:
     # pretrained file specified in `checkpoint.resume_file`.
     pretrained_state_mapping: {}
 
+    # Will save only the last max_to_keep; if -1, saves all eligible checkpoints
+    max_to_keep: -1
+
     # Whether to save git details or not
     save_git_details: true
 
