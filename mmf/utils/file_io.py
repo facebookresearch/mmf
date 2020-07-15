@@ -10,6 +10,15 @@ except ImportError:
     FVCorePathManager = None
 
 
+try:
+    # [FB only] register internal file IO handlers
+    from mmf.utils.fb.file_io_handlers import register_handlers
+
+    register_handlers()
+except ImportError:
+    pass
+
+
 class PathManager:
     """
     Wrapper for insulating OSS I/O (using Python builtin operations) from

@@ -70,14 +70,14 @@ class Logger:
         )
 
         # Add handler to file
-        channel = logging.FileHandler(filename=self.log_filename, mode="a")
+        channel = logging.StreamHandler(PathManager.open(self.log_filename, mode="a"))
         channel.setFormatter(formatter)
         self.add_handlers(channel)
 
         # Add handler to train.log. train.log is full log that is also used
         # by slurm/fbl output
-        channel = logging.FileHandler(
-            filename=os.path.join(self.save_dir, "train.log"), mode="a"
+        channel = logging.StreamHandler(
+            PathManager.open(os.path.join(self.save_dir, "train.log"), mode="a")
         )
         channel.setFormatter(formatter)
         self.add_handlers(channel)
