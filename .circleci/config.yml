@@ -50,7 +50,7 @@ install_dep_windows: &install_dep_windows
         pip install -r requirements.txt
         pip install --progress-bar off flake8
         pip install --progress-bar off black
-        pip install --progress-bar off isort
+        pip install --progress-bar off isort==4.3.20
         pip install --progress-bar off pytest
         python setup.py install
         python -c 'import torch; print("Torch version:", torch.__version__)'
