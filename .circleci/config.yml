@@ -33,7 +33,7 @@ install_dep: &install_dep
         pip install --upgrade setuptools
         pip install --progress-bar off flake8
         pip install --progress-bar off black
-        pip install --progress-bar off isort
+        pip install --progress-bar off isort==4.3.20
         pip install --progress-bar off pytest
         python setup.py clean --all
         python setup.py install
@@ -84,6 +84,7 @@ run_flake8: &run_flake8
       name: Run Linter (flake8)
       command: |
         source activate mmf
+        flake8 --version
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics
         # exit-zero treats all errors as warnings
@@ -138,6 +139,7 @@ run_black: &run_black
       name: Run Linter (black)
       command: |
         source activate mmf
+        black --version
         black --check .
 
 run_isort: &run_isort
@@ -145,6 +147,7 @@ run_isort: &run_isort
       name: Run Linter (isort)
       command: |
         source activate mmf
+        isort --version
         isort -c -sp .
 
 # -------------------------------------------------------------------------------------
