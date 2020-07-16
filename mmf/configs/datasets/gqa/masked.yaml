@@ -23,7 +23,6 @@ dataset_config:
       - gqa/defaults/annotations/test_balanced_questions.npy
     max_features: 100
     use_image_feature_masks: false
-    use_image_bbox_position: false
     processors:
       masked_token_processor:
         type: masked_token
@@ -41,6 +40,10 @@ dataset_config:
           mask_region_probability: 0.90
       bbox_processor:
           type: transformer_bbox
+          params:
+            bbox_key: bbox
+            image_width_key: image_width
+            image_height_key: image_height
     return_features_info: true
     # Return OCR information
     use_ocr: false

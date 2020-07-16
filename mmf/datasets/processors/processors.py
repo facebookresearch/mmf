@@ -1405,6 +1405,10 @@ class M4CCaptionProcessor(M4CAnswerProcessor):
 
 @registry.register_processor("masked_region")
 class MaskedRegionProcessor(BaseProcessor):
+    """
+    Masks a region with probability `mask_probability`
+    """
+
     def __init__(self, config, *args, **kwargs):
         super().__init__(config, *args, **kwargs)
         self.mask_prob = config.get("mask_probability", 0.15)
@@ -1430,13 +1434,20 @@ class MaskedRegionProcessor(BaseProcessor):
 
 @registry.register_processor("transformer_bbox")
 class TransformerBboxProcessor(BaseProcessor):
+    """
+    Process a bounding box and returns a array of normalized bbox positions and area
+    """
+
     def __init__(self, config, *args, **kwargs):
         super().__init__(config, *args, **kwargs)
+        self.bbox_key = config.get("bbox_key", "bbox")
+        self.image_width_key = config.get("image_width_key", "image_width")
+        self.image_height_key = config.get("image_height_key", "image_height")
 
     def __call__(self, item):
-        bbox = item["bbox"]
-        image_w = item["image_width"]
-        image_h = item["image_height"]
+        bbox = item[self.bbox_key]
+        image_w = item[self.image_width_key]
+        image_h = item[self.image_height_key]
         image_location = torch.zeros((bbox.shape[0], 5), dtype=torch.float)
         image_location[:, :4] = torch.from_numpy(bbox)
         image_location[:, 4] = (

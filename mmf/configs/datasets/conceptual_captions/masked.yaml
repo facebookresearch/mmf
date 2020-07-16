@@ -25,7 +25,6 @@ dataset_config:
     false_caption: true
     false_caption_probability: 0.5
     use_image_feature_masks: false
-    use_image_bbox_position: false
     processors:
       masked_token_processor:
         type: masked_token
@@ -43,6 +42,10 @@ dataset_config:
           mask_region_probability: 0.90
       bbox_processor:
           type: transformer_bbox
+          params:
+            bbox_key: bbox
+            image_width_key: image_width
+            image_height_key: image_height
     return_features_info: false
     # Return OCR information
     use_ocr: false

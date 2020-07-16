@@ -36,7 +36,7 @@ class VisualEntailmentDataset(VQA2Dataset):
             # Load img0 and img1 features
             sample_info["feature_path"] = "{}.npy".format(identifier)
             features = self.features_db[idx]
-            if self.config.get("use_image_bbox_position", False):
+            if hasattr(self, "bbox_processor"):
                 features["image_info_0"] = self.bbox_processor(features["image_info_0"])
             current_sample.update(features)
 
