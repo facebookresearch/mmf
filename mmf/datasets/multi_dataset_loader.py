@@ -5,6 +5,7 @@ and more granular
 """
 
 import sys
+import warnings
 
 import numpy as np
 
@@ -62,6 +63,10 @@ class MultiDatasetLoader:
     @property
     def iterators(self):
         return self._iterators
+
+    @iterators.setter
+    def iterators(self, iterators):
+        self._iterators = iterators
 
     @property
     def current_dataset(self):
@@ -131,8 +136,10 @@ class MultiDatasetLoader:
             if dataset_instance is None:
                 continue
             self.datasets.append(dataset_instance)
-            self._per_dataset_lengths.append(len(dataset_instance))
-            self._total_length += len(dataset_instance)
+
+            if hasattr(dataset_instance, "__len__"):
+                self._per_dataset_lengths.append(len(dataset_instance))
+                self._total_length += len(dataset_instance)
 
         self._num_datasets = len(self.datasets)
         self.current_index = 0
@@ -169,7 +176,7 @@ class MultiDatasetLoader:
             # over complete datasets
             self._proportional_sampling = True
 
-        if self._proportional_sampling is True:
+        if self._proportional_sampling is True and len(self._per_dataset_lengths) > 0:
             self._dataset_probabilities = self._per_dataset_lengths[:]
             self._dataset_probabilities = [
                 prob / self._total_length for prob in self._dataset_probabilities
@@ -183,6 +190,8 @@ class MultiDatasetLoader:
         if self._num_datasets == 1:
             return iter(self.loaders[0])
 
+        # Clear off old iterators
+        self.iterators = []
         for loader in self.loaders:
             self.iterators.append(iter(loader))
 
@@ -236,14 +245,20 @@ class MultiDatasetLoader:
         self._chosen_dataset.verbose_dump(*args, **kwargs)
 
     def prepare_batch(self, batch):
-        batch = self._chosen_dataset.prepare_batch(batch)
+        if not hasattr(self._chosen_dataset, "prepare_batch"):
+            warnings.warn(
+                f"{self._chosen_dataset.dataset_name} doesn't define 'prepare_batch' "
+                + "method. You are expected to prepare and move your batch to "
+                + "CUDA device yourself."
+            )
+        else:
+            batch = self._chosen_dataset.prepare_batch(batch)
+
         self.change_dataloader()
         return batch
 
     def seed_sampler(self, epoch):
         if is_dist_initialized():
             for sampler in self._samplers:
-                assert hasattr(
-                    sampler, "set_epoch"
-                ), "Can't seed without `set_epoch` method"
-                sampler.set_epoch(epoch)
+                if sampler is not None and hasattr(sampler, "set_epoch"):
+                    sampler.set_epoch(epoch)

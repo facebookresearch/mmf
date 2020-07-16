@@ -1,11 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import random
 import unittest
 
-import torch
-
 import tests.test_utils as test_utils
-from mmf.common.sample import Sample, SampleList
+from mmf.common.sample import Sample
 
 
 class TestSample(unittest.TestCase):
@@ -31,7 +28,7 @@ class TestSample(unittest.TestCase):
 class TestSampleList(unittest.TestCase):
     @test_utils.skip_if_no_cuda
     def test_pin_memory(self):
-        sample_list = self._build_random_sample_list()
+        sample_list = test_utils.build_random_sample_list()
         sample_list.pin_memory()
 
         pin_list = [sample_list.y, sample_list.z.y]
@@ -52,7 +49,7 @@ class TestSampleList(unittest.TestCase):
         self.assertFalse(any_pinned)
 
     def test_to_dict(self):
-        sample_list = self._build_random_sample_list()
+        sample_list = test_utils.build_random_sample_list()
         sample_dict = sample_list.to_dict()
         self.assertTrue(isinstance(sample_dict, dict))
         # hasattr won't work anymore
@@ -72,20 +69,3 @@ class TestSampleList(unittest.TestCase):
 
         self.assertTrue(all_keys)
         self.assertTrue(isinstance(sample_dict, dict))
-
-    def _build_random_sample_list(self):
-        first = Sample()
-        first.x = random.randint(0, 100)
-        first.y = torch.rand((5, 4))
-        first.z = Sample()
-        first.z.x = random.randint(0, 100)
-        first.z.y = torch.rand((6, 4))
-
-        second = Sample()
-        second.x = random.randint(0, 100)
-        second.y = torch.rand((5, 4))
-        second.z = Sample()
-        second.z.x = random.randint(0, 100)
-        second.z.y = torch.rand((6, 4))
-
-        return SampleList([first, second])

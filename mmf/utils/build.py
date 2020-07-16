@@ -17,11 +17,11 @@ from mmf.utils.general import get_optimizer_parameters
 def build_config(
     configuration: Type[Configuration], *args, **kwargs
 ) -> mmf_typings.DictConfig:
-    """Builder function for config. Freezes the configuration and registers 
+    """Builder function for config. Freezes the configuration and registers
     configuration object and config DictConfig object to registry.
 
     Args:
-        configuration (Configuration): Configuration object that will be 
+        configuration (Configuration): Configuration object that will be
             used to create the config.
 
     Returns:
@@ -105,7 +105,8 @@ def build_dataset(
     builder_instance: mmf_typings.DatasetBuilderType = dataset_builder()
     builder_instance.build_dataset(config, dataset_type)
     dataset = builder_instance.load_dataset(config, dataset_type)
-    builder_instance.update_registry_for_model(config)
+    if hasattr(builder_instance, "update_registry_for_model"):
+        builder_instance.update_registry_for_model(config)
 
     return dataset
 
@@ -131,7 +132,13 @@ def build_dataloader_and_sampler(
 
     other_args = {}
 
-    other_args = _add_extra_args_for_dataloader(dataset_instance, other_args)
+    # IterableDataset returns batches directly, so no need to add Sampler
+    # or batch size as user is expected to control those. This is a fine
+    # assumption for now to not support single item based IterableDataset
+    # as it will add unnecessary complexity and config parameters
+    # to the codebase
+    if not isinstance(dataset_instance, torch.utils.data.IterableDataset):
+        other_args = _add_extra_args_for_dataloader(dataset_instance, other_args)
 
     loader = torch.utils.data.DataLoader(
         dataset=dataset_instance,

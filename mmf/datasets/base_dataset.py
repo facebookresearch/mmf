@@ -64,9 +64,6 @@ class BaseDataset(Dataset):
             full_key = reg_key.format(processor_key)
             registry.register(full_key, processor_instance)
 
-    def try_fast_read(self):
-        return
-
     def prepare_batch(self, batch):
         """
         Can be possibly overridden in your child class

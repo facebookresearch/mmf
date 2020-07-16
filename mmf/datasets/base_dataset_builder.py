@@ -94,9 +94,10 @@ class BaseDatasetBuilder:
             DO NOT OVERRIDE in child class. Instead override ``load``.
         """
         dataset = self.load(config, dataset_type, *args, **kwargs)
-        if dataset is not None:
+        if dataset is not None and hasattr(dataset, "init_processors"):
+            # Checking for init_processors allows us to load some datasets
+            # which don't have processors and don't inherit from BaseDataset
             dataset.init_processors()
-            dataset.try_fast_read()
         return dataset
 
     def load(self, config, dataset_type="train", *args, **kwargs):

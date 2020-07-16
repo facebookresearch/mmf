@@ -19,6 +19,13 @@ class VQA2Builder(MMFDatasetBuilder):
     def config_path(cls):
         return "configs/datasets/vqa2/defaults.yaml"
 
+    def load(self, *args, **kwargs):
+        dataset = super().load(*args, **kwargs)
+        if dataset is not None and hasattr(dataset, "try_fast_read"):
+            dataset.try_fast_read()
+
+        return dataset
+
     # TODO: Deprecate this method and move configuration updates directly to processors
     def update_registry_for_model(self, config):
         if hasattr(self.dataset, "text_processor"):
