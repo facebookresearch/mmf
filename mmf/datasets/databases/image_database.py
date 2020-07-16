@@ -5,6 +5,7 @@ import os
 import torch
 import torchvision
 import torchvision.datasets.folder as tv_helpers
+from PIL import Image
 
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path
@@ -17,6 +18,12 @@ def get_possible_image_paths(path):
             path = image_ext
             break
     return path
+
+
+def default_loader(path):
+    with PathManager.open(path, "rb") as f:
+        img = Image.open(f)
+        return img.convert("RGB")
 
 
 class ImageDatabase(torch.utils.data.Dataset):
@@ -41,7 +48,7 @@ class ImageDatabase(torch.utils.data.Dataset):
         path,
         annotation_db=None,
         transform=None,
-        loader=tv_helpers.default_loader,
+        loader=default_loader,
         is_valid_file=None,
         image_key=None,
         *args,

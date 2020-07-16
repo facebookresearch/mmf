@@ -57,7 +57,8 @@ def load_pretrained_model(model_name_or_path, *args, **kwargs):
 
     _hack_imports()
 
-    ckpt = torch.load(ckpts[0], map_location=lambda storage, loc: storage)
+    with PathManager.open(ckpts[0], "rb") as f:
+        ckpt = torch.load(f, map_location=lambda storage, loc: storage)
     # If configs are not present, will ckpt provide the config?
     if len(configs) == 0:
         assert "config" in ckpt, (
@@ -330,10 +331,11 @@ class Checkpoint:
         # Backwards compatibility to Pythia
         _hack_imports()
 
-        if "cuda" in str(self.device):
-            return torch.load(file, map_location=self.device)
-        else:
-            return torch.load(file, map_location=lambda storage, loc: storage)
+        with PathManager.open(file, "rb") as f:
+            if "cuda" in str(self.device):
+                return torch.load(f, map_location=self.device)
+            else:
+                return torch.load(f, map_location=lambda storage, loc: storage)
 
     def _get_vcs_fields(self):
         """Returns a dict with git fields of the current repository
@@ -405,13 +407,16 @@ class Checkpoint:
             git_metadata_dict = self._get_vcs_fields()
             ckpt.update(git_metadata_dict)
 
-        torch.save(ckpt, ckpt_filepath)
+        with PathManager.open(ckpt_filepath, "wb") as f:
+            torch.save(ckpt, f)
 
         if update_best:
-            torch.save(ckpt, best_ckpt_filepath)
+            with PathManager.open(best_ckpt_filepath, "wb") as f:
+                torch.save(ckpt, f)
 
         # Save current always
-        torch.save(ckpt, current_ckpt_filepath)
+        with PathManager.open(current_ckpt_filepath, "wb") as f:
+            torch.save(ckpt, f)
 
         # Remove old checkpoints if max_to_keep is set
         if self.max_to_keep > 0:
@@ -434,4 +439,5 @@ class Checkpoint:
 
     def finalize(self):
         if is_master():
-            torch.save(self.trainer.model.state_dict(), self.pth_filepath)
+            with PathManager.open(self.pth_filepath, "wb") as f:
+                torch.save(self.trainer.model.state_dict(), f)

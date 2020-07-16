@@ -175,7 +175,7 @@ class LMDBFeatureReader(PaddedFasterRCNNFeatureReader):
         super().__init__(max_loc)
         self.db_path = base_path
 
-        if not os.path.exists(self.db_path):
+        if not PathManager.exists(self.db_path):
             raise RuntimeError(
                 "{} path specified for LMDB features doesn't exists.".format(
                     self.db_path
