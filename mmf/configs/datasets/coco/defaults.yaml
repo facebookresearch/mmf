@@ -38,7 +38,7 @@ dataset_config:
           vocab:
             type: intersected
             embedding_name: glove.6B.300d
-            vocab_file: vocabs/vocabulary_captioning_thresh5.txt
+            vocab_file: coco/defaults/extras/vocabs/vocabulary_captioning_thresh5.txt
           preprocessor:
             type: simple_sentence
             params: {}
@@ -48,7 +48,7 @@ dataset_config:
           vocab:
             type: intersected
             embedding_name: glove.6B.300d
-            vocab_file: vocabs/vocabulary_captioning_thresh5.txt
+            vocab_file: coco/defaults/extras/vocabs/vocabulary_captioning_thresh5.txt
     min_captions_per_img: 5
     return_features_info: false
     # Return OCR information

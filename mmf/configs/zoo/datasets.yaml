@@ -180,7 +180,7 @@ coco:
       annotations:
       - url: mmf://datasets/coco/defaults/annotations/annotations.tar.gz
         file_name: annotations.tar.gz
-        hashcode: c75e561134bc4a84aeaa769490cc5354f35b3970433466bed30ad97a4cd5e47e
+        hashcode: 8861b854eff965d22dd38e331e43886aeab8ac1c99798abf80f935efdf621079
 
   resnet152:
     version: 1.0_2020_05_29
