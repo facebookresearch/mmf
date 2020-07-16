@@ -22,7 +22,7 @@ class ImageFeatureEncoder(nn.Module):
     def __init__(self, encoder_type, in_dim, **kwargs):
         super().__init__()
 
-        if encoder_type == "default":
+        if encoder_type == "default" or encoder_type == "identity":
             self.module = Identity()
             self.module.in_dim = in_dim
             self.module.out_dim = in_dim

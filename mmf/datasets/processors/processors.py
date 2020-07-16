@@ -73,16 +73,29 @@ import re
 import sys
 import warnings
 from collections import Counter, defaultdict
+from dataclasses import dataclass
+from typing import Any, Dict
 
 import numpy as np
 import torch
 
 from mmf.common.registry import registry
-from mmf.utils.configuration import get_mmf_cache_dir
+from mmf.utils.configuration import get_mmf_cache_dir, get_mmf_env
 from mmf.utils.distributed import is_master, synchronize
 from mmf.utils.file_io import PathManager
 from mmf.utils.text import VocabDict
 from mmf.utils.vocab import Vocab, WordToVectorDict
+
+
+@dataclass
+class ProcessorConfigType:
+    type: str
+    params: Dict[str, Any]
+
+
+@dataclass
+class BatchProcessorConfigType:
+    processors: ProcessorConfigType
 
 
 class BaseProcessor:
@@ -95,10 +108,10 @@ class BaseProcessor:
 
     """
 
-    def __init__(self, config, *args, **kwargs):
+    def __init__(self, config: Dict[str, Any], *args, **kwargs):
         return
 
-    def __call__(self, item, *args, **kwargs):
+    def __call__(self, item: Any, *args, **kwargs) -> Any:
         """Main function of the processor. Takes in a dict and returns back
         a dict
 
@@ -125,7 +138,7 @@ class Processor:
 
     """
 
-    def __init__(self, config, *args, **kwargs):
+    def __init__(self, config: ProcessorConfigType, *args, **kwargs):
         self.writer = registry.get("writer")
 
         if not hasattr(config, "type"):
@@ -159,6 +172,33 @@ class Processor:
             return getattr(self.processor, name)
         else:
             raise AttributeError(name)
+
+
+class BatchProcessor(BaseProcessor):
+    """BatchProcessor is an extension of normal processor which usually are
+    used in cases where dataset works on full batch instead of samples.
+    Such cases can be observed in the case of the iterable datasets.
+    BatchProcessor if provided with processors key in the config, will
+    initialize a member variable processors_dict for you which will contain
+    initialization of all of the processors you specified and will need to process
+    your complete batch.
+
+    Rest it behaves in same way, expects an item and returns an item which can be
+    of any type.
+    """
+
+    def __init__(self, config: BatchProcessorConfigType, *args, **kwargs):
+        extra_params = {"data_dir": get_mmf_env(key="data_dir")}
+        processors_dict = config.get("processors", {})
+
+        # Since build_processors also imports processor, import it at runtime to
+        # avoid circulat dependencies
+        from mmf.utils.build import build_processors
+
+        self.processors = build_processors(processors_dict, **extra_params)
+
+    def __call__(self, item: Any) -> Any:
+        return item
 
 
 @registry.register_processor("vocab")
