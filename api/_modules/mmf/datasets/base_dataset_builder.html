@@ -326,9 +326,10 @@
 <span class="sd">            DO NOT OVERRIDE in child class. Instead override ``load``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">dataset_type</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="s2">&quot;init_processors&quot;</span><span class="p">):</span>
+            <span class="c1"># Checking for init_processors allows us to load some datasets</span>
+            <span class="c1"># which don&#39;t have processors and don&#39;t inherit from BaseDataset</span>
             <span class="n">dataset</span><span class="o">.</span><span class="n">init_processors</span><span class="p">()</span>
-            <span class="n">dataset</span><span class="o">.</span><span class="n">try_fast_read</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">dataset</span></div>
 
 <div class="viewcode-block" id="BaseDatasetBuilder.load"><a class="viewcode-back" href="../../../lib/datasets/base_dataset_builder.html#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">dataset_type</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
