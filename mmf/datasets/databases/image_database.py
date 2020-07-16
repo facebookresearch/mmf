@@ -12,8 +12,12 @@ from mmf.utils.general import get_absolute_path
 
 
 def get_possible_image_paths(path):
+    image_path = path.split(".")
+    # Image path might contain file extension (e.g. .jpg),
+    # In this case, we want the path without the extension
+    image_path = image_path if len(image_path) == 1 else image_path[:-1]
     for ext in tv_helpers.IMG_EXTENSIONS:
-        image_ext = ".".join(path.split(".")[:-1]) + ext
+        image_ext = ".".join(image_path) + ext
         if PathManager.isfile(image_ext):
             path = image_ext
             break
@@ -131,7 +135,7 @@ class ImageDatabase(torch.utils.data.Dataset):
 
         loaded_images = []
         for image in paths:
-            path = None
+            image = os.path.join(self.base_path, image)
             path = get_possible_image_paths(image)
 
             valid = self.is_valid_file(path) if self.is_valid_file is not None else True
@@ -142,16 +146,13 @@ class ImageDatabase(torch.utils.data.Dataset):
             if not path:
                 # Create the full path without extension so it can be printed
                 # for the error
-                possible_path = os.path.join(
-                    self.base_path, ".".join(image.split(".")[:-1])
-                )
+                possible_path = ".".join(image.split(".")[:-1])
 
                 raise RuntimeError(
                     "Image not found at path {}.{{jpeg|jpg|svg|png}}.".format(
                         possible_path
                     )
                 )
-            path = os.path.join(self.base_path, path)
             image = self.open_image(path)
 
             if self.transform and use_transforms:
@@ -188,11 +189,8 @@ class ImageDatabase(torch.utils.data.Dataset):
                 pick = attr
                 break
 
-        # Check if first one is nlvr2
         if pick == "identifier" and "left_url" in item and "right_url" in item:
-            return [image + "-img0.jpg", image + "-img1.jpg"]
-        elif pick == "image_name" or pick == "image_id":
-            return [image + ".jpeg"]
+            return [image + "-img0", image + "-img1"]
         else:
             return [image]
 
