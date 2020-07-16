@@ -332,7 +332,7 @@ dimension of 4 corresponding to “xyxy”. So sample will look like following:<
 
 <dl class="py class">
 <dt id="mmf.datasets.processors.processors.BaseProcessor">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.processors.</code><code class="sig-name descname">BaseProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#BaseProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.processors.BaseProcessor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.processors.</code><code class="sig-name descname">BaseProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Any<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#BaseProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.processors.BaseProcessor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Every processor in MMF needs to inherit this class for compatibility
 with MMF. End user mainly needs to implement <code class="docutils literal notranslate"><span class="pre">__call__</span></code> function.</p>
 <dl class="field-list simple">
@@ -342,6 +342,25 @@ with MMF. End user mainly needs to implement <code class="docutils literal notra
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py class">
+<dt id="mmf.datasets.processors.processors.BatchProcessor">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.processors.</code><code class="sig-name descname">BatchProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#mmf.datasets.processors.processors.BatchProcessorConfigType" title="mmf.datasets.processors.processors.BatchProcessorConfigType">mmf.datasets.processors.processors.BatchProcessorConfigType</a></span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#BatchProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.processors.BatchProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>BatchProcessor is an extension of normal processor which usually are
+used in cases where dataset works on full batch instead of samples.
+Such cases can be observed in the case of the iterable datasets.
+BatchProcessor if provided with processors key in the config, will
+initialize a member variable processors_dict for you which will contain
+initialization of all of the processors you specified and will need to process
+your complete batch.</p>
+<p>Rest it behaves in same way, expects an item and returns an item which can be
+of any type.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.datasets.processors.processors.BatchProcessorConfigType">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.processors.</code><code class="sig-name descname">BatchProcessorConfigType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">processors</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#mmf.datasets.processors.processors.ProcessorConfigType" title="mmf.datasets.processors.processors.ProcessorConfigType">mmf.datasets.processors.processors.ProcessorConfigType</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#BatchProcessorConfigType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.processors.BatchProcessorConfigType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py class">
 <dt id="mmf.datasets.processors.processors.CaptionProcessor">
@@ -445,7 +464,7 @@ each index corresponds to either a fixed vocabulary or an OCR token
 
 <dl class="py class">
 <dt id="mmf.datasets.processors.processors.Processor">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.processors.</code><code class="sig-name descname">Processor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#Processor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.processors.Processor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.processors.</code><code class="sig-name descname">Processor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#mmf.datasets.processors.processors.ProcessorConfigType" title="mmf.datasets.processors.processors.ProcessorConfigType">mmf.datasets.processors.processors.ProcessorConfigType</a></span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#Processor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.processors.Processor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapper class used by MMF to initialized processor based on their
 <code class="docutils literal notranslate"><span class="pre">type</span></code> as passed in configuration. It retrieves the processor class
 registered in registry corresponding to the <code class="docutils literal notranslate"><span class="pre">type</span></code> key and initializes
@@ -458,6 +477,11 @@ be initialized and <code class="docutils literal notranslate"><span class="pre">
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py class">
+<dt id="mmf.datasets.processors.processors.ProcessorConfigType">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.processors.</code><code class="sig-name descname">ProcessorConfigType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Any<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#ProcessorConfigType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.processors.ProcessorConfigType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py class">
 <dt id="mmf.datasets.processors.processors.SimpleSentenceProcessor">
