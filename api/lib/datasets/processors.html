@@ -432,7 +432,8 @@ each index corresponds to either a fixed vocabulary or an OCR token
 <dl class="py class">
 <dt id="mmf.datasets.processors.processors.MaskedRegionProcessor">
 <em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.processors.</code><code class="sig-name descname">MaskedRegionProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#MaskedRegionProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.processors.MaskedRegionProcessor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Masks a region with probability <cite>mask_probability</cite></p>
+</dd></dl>
 
 <dl class="py class">
 <dt id="mmf.datasets.processors.processors.MultiHotAnswerFromVocabProcessor">
@@ -556,6 +557,12 @@ and LoRRA.</p>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.datasets.processors.processors.TransformerBboxProcessor">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.processors.</code><code class="sig-name descname">TransformerBboxProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#TransformerBboxProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.processors.TransformerBboxProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a bounding box and returns a array of normalized bbox positions and area</p>
 </dd></dl>
 
 <dl class="py class">
