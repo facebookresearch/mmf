@@ -146,7 +146,7 @@ def launch_train(args, config):
 
     if args.config is not None:
         train_cmd.extend(["config", args.config])
-    train_cmd.extend(["checkpoint.resume", "1"])
+    train_cmd.extend(["checkpoint.resume", "True"])
     train_cmd.extend(["env.save_dir", save_dir])
     if args.tensorboard:
         train_cmd.extend(["training.tensorboard", "1"])

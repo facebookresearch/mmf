@@ -152,10 +152,11 @@ class Checkpoint:
                     load_zoo=True,
                     load_pretrained=ckpt_config.resume_pretrained,
                 )
+                return
             else:
                 raise RuntimeError(f"{ckpt_config.resume_file} doesn't exist")
 
-        if ckpt_config.resume is True:
+        if ckpt_config.resume:
             if PathManager.exists(ckpt_filepath):
                 self._load(ckpt_filepath)
             else:
