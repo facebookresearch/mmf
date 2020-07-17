@@ -1,10 +1,13 @@
 name: CPU Tests
 
-# This workflow is triggered on pushes to the repository.
-on: push
+# This workflow is triggered on pushes to the repository or external PRs.
+on: [push, pull_request]
 
 jobs:
   unittest:
+    # We want to run on external PRs, but not on our own internal PRs as they'll be run
+    # by the push to the branch.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'facebookresearch/mmf'
     strategy:
       max-parallel: 12
       matrix:
