@@ -1,6 +1,6 @@
 # Hateful Memes Dataset
 
-This folder contains configs required to reproduce results and baselines in the [Hateful Memes challenge paper](https://arxiv.org/abs/2005.04790). For details on participation in the challenge, please look at our [Hateful Memes Challenge tutorial](https://mmf.readthedocs.io/en/latest/notes/hateful_memes_challenge.html).
+This folder contains configs required to reproduce results and baselines in the [Hateful Memes challenge paper](https://arxiv.org/abs/2005.04790). For details on participation in the challenge, please look at our [Hateful Memes Challenge tutorial](https://mmf.sh/docs/challenges/hateful_memes_challenge).
 
 Please cite the following paper if you use these models and the hateful memes dataset:
 
