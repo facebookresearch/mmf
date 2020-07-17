@@ -36,7 +36,8 @@ class TestLogger(unittest.TestCase):
         for handler in cls.writer._logger.handlers:
             handler.close()
         if cls._tmpdir is not None:
-            shutil.rmtree(cls._tmpdir)
+            # set ignore_errors as Windows throw error due to Permission
+            shutil.rmtree(cls._tmpdir, ignore_errors=True)
 
     def test_logger_files(self) -> None:
         self.assertTrue(PathManager.exists(os.path.join(self._tmpdir, "train.log")))
