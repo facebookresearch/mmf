@@ -66,7 +66,14 @@ def load_yaml(f):
 
 def get_default_config_path():
     directory = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(directory, "..", "configs", "defaults.yaml")
+    configs_dir = os.path.join(directory, "..", "configs")
+
+    # Check for fb defaults
+    fb_defaults = os.path.join(configs_dir, "fb_defaults.yaml")
+    if PathManager.exists(fb_defaults):
+        return fb_defaults
+    else:
+        return os.path.join(configs_dir, "defaults.yaml")
 
 
 def load_yaml_with_defaults(f):
