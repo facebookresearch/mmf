@@ -24,7 +24,7 @@ model_config:
   mmbt:
     losses:
     - logit_bce
-    num_labels: 3129
+    num_labels: 2253
 
 optimizer:
   type: adam_w

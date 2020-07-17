@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+import copy
 import json
 
 from mmf.datasets.databases.annotation_database import AnnotationDatabase
@@ -11,9 +13,9 @@ class OKVQAAnnotationDatabase(AnnotationDatabase):
 
     def load_annotation_db(self, path):
         # Expect two paths, one to questions and one to annotations
-        assert len(path) == 2, (
-            "OKVQA requires 2 paths; one to questions and one to annotations"
-        )
+        assert (
+            len(path) == 2
+        ), "OKVQA requires 2 paths; one to questions and one to annotations"
 
         with open(path[0]) as f:
             path_0 = json.load(f)
@@ -35,11 +37,10 @@ class OKVQAAnnotationDatabase(AnnotationDatabase):
 
         for annotation in annotations["annotations"]:
             annotation["question"] = question_dict[annotation["question_id"]]
-
-        answers = []
-        for answer in annotation["answers"]:
-            answers.append(answer["answer"])
-        annotation["answers"] = answers
-        data.append(annotation)
+            answers = []
+            for answer in annotation["answers"]:
+                answers.append(answer["answer"])
+            annotation["answers"] = answers
+            data.append(copy.deepcopy(annotation))
 
         self.data = data

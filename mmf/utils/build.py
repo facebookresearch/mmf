@@ -2,7 +2,7 @@
 
 import os
 import warnings
-from typing import Any, Type, Dict
+from typing import Any, Dict, Type
 
 import torch
 from omegaconf import OmegaConf
@@ -13,7 +13,6 @@ from mmf.datasets.processors.processors import Processor
 from mmf.utils.configuration import Configuration
 from mmf.utils.distributed import is_dist_initialized
 from mmf.utils.general import get_optimizer_parameters
-
 
 ProcessorType = Type[Processor]
 ProcessorDict = Dict[str, ProcessorType]
