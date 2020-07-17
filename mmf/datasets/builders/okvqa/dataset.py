@@ -38,7 +38,7 @@ class OKVQADataset(MMFDataset):
 
     # Get the first image from the set of images returned from the image_db
     image_path = self.get_image_path(sample_info["image_id"])
-    current_sample.image = self.image_db.from_path(image_path)
+    current_sample.image = self.image_db.from_path(image_path)["images"][0]
 
     if "answers" in sample_info:
       answers = self.answer_processor({"answers": sample_info["answers"]})

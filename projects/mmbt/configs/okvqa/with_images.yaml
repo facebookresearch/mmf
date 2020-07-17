@@ -19,6 +19,13 @@ dataset_config:
               do_lower_case: true
           mask_probability: 0
           max_seq_length: 128
+
+model_config:
+  mmbt:
+    losses:
+    - logit_bce
+    num_labels: 3129
+
 optimizer:
   type: adam_w
   params:
