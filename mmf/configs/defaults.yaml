@@ -219,7 +219,7 @@ distributed:
 
 # Configuration for checkpointing including resuming and loading pretrained models
 checkpoint:
-    # If checkpoint.resume is true, MMF will try to load automatically load
+    # If checkpoint.resume is true or 1, MMF will try to load automatically load
     # checkpoint and state from "current.ckpt" from env.save_dir
     resume: false
     # `checkpoint.resume_file` can be used to load a specific checkpoint from a file
