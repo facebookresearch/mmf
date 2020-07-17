@@ -45,6 +45,8 @@ class HatefulMemesFeaturesDataset(MMFDataset):
         # Instead of using idx directly here, use sample_info to fetch
         # the features as feature_path has been dynamically added
         features = self.features_db.get(sample_info)
+        if hasattr(self, "bbox_processor"):
+            features["image_info_0"] = self.bbox_processor(features["image_info_0"])
         current_sample.update(features)
 
         if "label" in sample_info:

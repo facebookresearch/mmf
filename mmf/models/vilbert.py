@@ -1236,58 +1236,13 @@ class ViLBERT(BaseModel):
             image_info = getattr(img0, "image_info_0", {})
             image_dim_variable_0 = getattr(image_info, "max_features", None)
             image_feature_variable_0 = getattr(img0, "image_feature_0", None)
-
-            bbox = np.array(getattr(image_info, "bbox", None), dtype=np.float32)
-            image_w = np.array(
-                getattr(image_info, "image_width", None), dtype=np.float32
-            )
-            image_h = np.array(
-                getattr(image_info, "image_height", None), dtype=np.float32
-            )
-            image_location = np.zeros(
-                (bbox.shape[0], bbox.shape[1], 5), dtype=np.float32
-            )
-            image_location[:, :, :4] = bbox
-            image_location[:, :, 4] = (
-                (image_location[:, :, 3] - image_location[:, :, 1])
-                * (image_location[:, :, 2] - image_location[:, :, 0])
-                / (image_w * image_h)[:, None]
-            )
-            image_location[:, :, 0] = image_location[:, :, 0] / image_w[:, None]
-            image_location[:, :, 1] = image_location[:, :, 1] / image_h[:, None]
-            image_location[:, :, 2] = image_location[:, :, 2] / image_w[:, None]
-            image_location[:, :, 3] = image_location[:, :, 3] / image_h[:, None]
-            image_location_variable_0 = torch.tensor(
-                image_location, dtype=torch.float
-            ).cuda()
+            image_location_variable_0 = getattr(image_info, "bbox", None)
 
             img1 = getattr(sample_list, "img1", {})
             image_info = getattr(img1, "image_info_0", {})
             image_dim_variable_1 = getattr(image_info, "max_features", None)
             image_feature_variable_1 = getattr(img1, "image_feature_0", None)
-            bbox = np.array(getattr(image_info, "bbox", None), dtype=np.float32)
-            image_w = np.array(
-                getattr(image_info, "image_width", None), dtype=np.float32
-            )
-            image_h = np.array(
-                getattr(image_info, "image_height", None), dtype=np.float32
-            )
-            image_location = np.zeros(
-                (bbox.shape[0], bbox.shape[1], 5), dtype=np.float32
-            )
-            image_location[:, :, :4] = bbox
-            image_location[:, :, 4] = (
-                (image_location[:, :, 3] - image_location[:, :, 1])
-                * (image_location[:, :, 2] - image_location[:, :, 0])
-                / (image_w * image_h)[:, None]
-            )
-            image_location[:, :, 0] = image_location[:, :, 0] / image_w[:, None]
-            image_location[:, :, 1] = image_location[:, :, 1] / image_h[:, None]
-            image_location[:, :, 2] = image_location[:, :, 2] / image_w[:, None]
-            image_location[:, :, 3] = image_location[:, :, 3] / image_h[:, None]
-            image_location_variable_1 = torch.tensor(
-                image_location, dtype=torch.float
-            ).cuda()
+            image_location_variable_1 = getattr(image_info, "bbox", None)
 
             image_feature_variable = torch.cat(
                 [image_feature_variable_0, image_feature_variable_1]
@@ -1303,34 +1258,7 @@ class ViLBERT(BaseModel):
             image_dim_variable = getattr(image_info, "max_features", None)
             image_feature_variable = getattr(sample_list, "image_feature_0", None)
             image_label_variable = getattr(sample_list, "image_labels", None)
-            if image_label_variable is not None:
-                image_label_variable = torch.tensor(
-                    image_label_variable, dtype=torch.long
-                ).cuda()
-
-            bbox = np.array(getattr(image_info, "bbox", None), dtype=np.float32)
-            image_w = np.array(
-                getattr(image_info, "image_width", None), dtype=np.float32
-            )
-            image_h = np.array(
-                getattr(image_info, "image_height", None), dtype=np.float32
-            )
-            image_location = np.zeros(
-                (bbox.shape[0], bbox.shape[1], 5), dtype=np.float32
-            )
-            image_location[:, :, :4] = bbox
-            image_location[:, :, 4] = (
-                (image_location[:, :, 3] - image_location[:, :, 1])
-                * (image_location[:, :, 2] - image_location[:, :, 0])
-                / (image_w * image_h)[:, None]
-            )
-            image_location[:, :, 0] = image_location[:, :, 0] / image_w[:, None]
-            image_location[:, :, 1] = image_location[:, :, 1] / image_h[:, None]
-            image_location[:, :, 2] = image_location[:, :, 2] / image_w[:, None]
-            image_location[:, :, 3] = image_location[:, :, 3] / image_h[:, None]
-            image_location_variable = torch.tensor(
-                image_location, dtype=torch.float
-            ).cuda()
+            image_location_variable = getattr(image_info, "bbox", None)
 
             cls_prob = getattr(image_info, "cls_prob", None)
             image_target = np.array(cls_prob, dtype=np.float32)

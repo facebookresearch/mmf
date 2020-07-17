@@ -30,6 +30,8 @@ class MMIMDbFeaturesDataset(MMFDataset):
 
         if self._use_features is True:
             features = self.features_db[idx]
+            if hasattr(self, "bbox_processor"):
+                features["image_info_0"] = self.bbox_processor(features["image_info_0"])
             current_sample.update(features)
 
         processed = self.answer_processor({"answers": sample_info["genres"]})

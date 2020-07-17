@@ -1405,6 +1405,10 @@ class M4CCaptionProcessor(M4CAnswerProcessor):
 
 @registry.register_processor("masked_region")
 class MaskedRegionProcessor(BaseProcessor):
+    """
+    Masks a region with probability `mask_probability`
+    """
+
     def __init__(self, config, *args, **kwargs):
         super().__init__(config, *args, **kwargs)
         self.mask_prob = config.get("mask_probability", 0.15)
@@ -1425,4 +1429,35 @@ class MaskedRegionProcessor(BaseProcessor):
             else:
                 # no masking token (will be ignored by loss function later)
                 image_labels.append(-1)
-        return image_labels
+        return torch.tensor(image_labels, dtype=torch.long)
+
+
+@registry.register_processor("transformer_bbox")
+class TransformerBboxProcessor(BaseProcessor):
+    """
+    Process a bounding box and returns a array of normalized bbox positions and area
+    """
+
+    def __init__(self, config, *args, **kwargs):
+        super().__init__(config, *args, **kwargs)
+        self.bbox_key = config.get("bbox_key", "bbox")
+        self.image_width_key = config.get("image_width_key", "image_width")
+        self.image_height_key = config.get("image_height_key", "image_height")
+
+    def __call__(self, item):
+        bbox = item[self.bbox_key]
+        image_w = item[self.image_width_key]
+        image_h = item[self.image_height_key]
+        image_location = torch.zeros((bbox.shape[0], 5), dtype=torch.float)
+        image_location[:, :4] = torch.from_numpy(bbox)
+        image_location[:, 4] = (
+            (image_location[:, 3] - image_location[:, 1])
+            * (image_location[:, 2] - image_location[:, 0])
+            / (image_w * image_h)
+        )
+        image_location[:, 0] = image_location[:, 0] / image_w
+        image_location[:, 1] = image_location[:, 1] / image_h
+        image_location[:, 2] = image_location[:, 2] / image_w
+        image_location[:, 3] = image_location[:, 3] / image_h
+        item["bbox"] = image_location
+        return item

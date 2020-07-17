@@ -8,6 +8,7 @@ from mmf.datasets.processors.processors import (
     CaptionProcessor,
     EvalAIAnswerProcessor,
     MultiHotAnswerFromVocabProcessor,
+    TransformerBboxProcessor,
 )
 from mmf.utils.configuration import load_yaml
 
@@ -129,3 +130,27 @@ class TestDatasetProcessors(unittest.TestCase):
         processed = evalai_answer_processor("the two mountain's \t \n   ")
         expected = "2 mountain 's"
         self.assertEqual(processed, expected)
+
+    def test_transformer_bbox_processor(self):
+        import numpy as np
+
+        config = {
+            "params": {
+                "bbox_key": "bbox",
+                "image_width_key": "image_width",
+                "image_height_key": "image_height",
+            }
+        }
+
+        bbox_processor = TransformerBboxProcessor(config)
+        item = {
+            "bbox": np.array([[100, 100, 100, 100]]),
+            "image_width": 100,
+            "image_height": 100,
+        }
+        processed_box = bbox_processor(item)["bbox"]
+        self.assertTrue(
+            torch.equal(
+                processed_box, torch.tensor([[1, 1, 1, 1, 0]], dtype=torch.float)
+            )
+        )
