@@ -23,8 +23,10 @@ class MaskedMMImdbDataset(VQA2Dataset):
         if self._use_features is True:
             features = self.features_db[idx]
 
-            if hasattr(self, "bbox_processor"):
-                features["image_info_0"] = self.bbox_processor(features["image_info_0"])
+            if hasattr(self, "transformer_bbox_processor"):
+                features["image_info_0"] = self.transformer_bbox_processor(
+                    features["image_info_0"]
+                )
 
             if self.config.get("use_image_feature_masks", False):
                 current_sample.update(

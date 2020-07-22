@@ -36,8 +36,10 @@ class VisualEntailmentDataset(VQA2Dataset):
             # Load img0 and img1 features
             sample_info["feature_path"] = "{}.npy".format(identifier)
             features = self.features_db[idx]
-            if hasattr(self, "bbox_processor"):
-                features["image_info_0"] = self.bbox_processor(features["image_info_0"])
+            if hasattr(self, "transformer_bbox_processor"):
+                features["image_info_0"] = self.transformer_bbox_processor(
+                    features["image_info_0"]
+                )
             current_sample.update(features)
 
         label = LABEL_TO_INT_MAPPING[sample_info["gold_label"]]
