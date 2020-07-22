@@ -2,16 +2,20 @@
 
 import os
 import warnings
-from typing import Any, Type
+from typing import Any, Dict, Type
 
 import torch
 from omegaconf import OmegaConf
 
 from mmf.common import typings as mmf_typings
 from mmf.common.registry import registry
+from mmf.datasets.processors.processors import Processor
 from mmf.utils.configuration import Configuration
 from mmf.utils.distributed import is_dist_initialized
 from mmf.utils.general import get_optimizer_parameters
+
+ProcessorType = Type[Processor]
+ProcessorDict = Dict[str, ProcessorType]
 
 
 def build_config(
@@ -262,7 +266,7 @@ def build_image_encoder(config, direct_features=False, **kwargs):
 
 def build_processors(
     processors_config: mmf_typings.DictConfig, registry_key: str = None, *args, **kwargs
-) -> mmf_typings.ProcessorDict:
+) -> ProcessorDict:
     """Given a processor config, builds the processors present and returns back
     a dict containing processors mapped to keys as per the config
 
@@ -275,7 +279,7 @@ def build_processors(
             be called on this string. Defaults to None.
 
     Returns:
-        mmf_typings.ProcessorDict: Dictionary containing key to
+        ProcessorDict: Dictionary containing key to
             processor mapping
     """
     from mmf.datasets.processors.processors import Processor

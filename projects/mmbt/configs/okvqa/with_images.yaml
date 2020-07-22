@@ -1,0 +1,49 @@
+includes:
+- configs/models/mmbt/classification.yaml
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 2000
+    num_training_steps: ${training.max_updates}
+
+dataset_config:
+  okvqa:
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
+
+model_config:
+  mmbt:
+    losses:
+    - logit_bce
+    num_labels: 2253
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 1e-5
+    eps: 1e-8
+
+evaluation:
+    metrics:
+    - vqa_accuracy
+
+training:
+  batch_size: 32
+  lr_scheduler: true
+  max_updates: 22000
+  early_stop:
+    criteria: okvqa/vqa_accuracy
+    minimize: false
+
+checkpoint:
+  pretrained_state_mapping:
+    bert: bert

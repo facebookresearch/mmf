@@ -1,0 +1,57 @@
+dataset_config:
+  okvqa:
+    data_dir: ${env.data_dir}/datasets
+    use_images: true
+    use_features: false
+    zoo_requirements:
+    - okvqa.defaults
+    images:
+      train:
+      - okvqa/defaults/images/
+      val:
+      - okvqa/defaults/images/
+      test:
+      - okvqa/defaults/images/
+    annotations:
+      train:
+      - okvqa/defaults/annotations/mscoco_train2014_annotations.json,okvqa/defaults/annotations/OpenEnded_mscoco_train2014_questions.json
+      val:
+      - okvqa/defaults/annotations/mscoco_val2014_annotations.json,okvqa/defaults/annotations/OpenEnded_mscoco_val2014_questions.json
+      test:
+      - okvqa/defaults/annotations/mscoco_val2014_annotations.json,okvqa/defaults/annotations/OpenEnded_mscoco_val2014_questions.json
+    processors:
+      text_processor:
+        type: vocab
+        params:
+          max_length: 14
+          vocab:
+            type: intersected
+            embedding_name: glove.6B.300d
+            vocab_file: okvqa/defaults/extras/vocabs/vocabulary_100k.txt
+          preprocessor:
+            type: simple_sentence
+            params: {}
+      answer_processor:
+        type: vqa_answer
+        params:
+          num_answers: 10
+          vocab_file: okvqa/defaults/extras/vocabs/answers_okvqa.txt
+          preprocessor:
+            type: simple_word
+            params: {}
+      image_processor:
+        type: torchvision_transforms
+        params:
+          transforms:
+            - type: Resize
+              params:
+                size: [256, 256]
+            - type: CenterCrop
+              params:
+                size: [224, 224]
+            - ToTensor
+            - GrayScaleTo3Channels
+            - type: Normalize
+              params:
+                mean: [0.485, 0.456, 0.406]
+                std: [0.12221994, 0.12145835, 0.14380469]

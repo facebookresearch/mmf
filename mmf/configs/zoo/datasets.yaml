@@ -351,3 +351,26 @@ gqa:
       - url: mmf://datasets/gqa/defaults/features/features.tar.gz
         file_name: features.tar.gz
         hashcode: 530e62e398faa5c9f2d4f7edc2223cce4a679b2837fa4252976f0eff4127f9ce
+
+
+okvqa:
+  defaults:
+    version: 1.0_2020_07_16
+    resources:
+      images:
+      - url: mmf://datasets/okvqa/defaults/images/images.tar.gz
+        file_name: images.tar.gz
+        hashcode: 674380cee4285a495c398fe9265224052b04454e4599d56b844f0453140ea82f
+      extras:
+      - url: mmf://datasets/okvqa/defaults/extras.tar.gz
+        file_name: extras.tar.gz
+        hashcode: 9a1cc2f2abedcee494917fae853069d8e465dad050307221b7969c9d65ed1b45
+      annotations:
+      - url: https://okvqa.allenai.org/static/data/mscoco_train2014_annotations.json.zip
+        file_name: mscoco_train2014_annotations.json.zip
+      - url: https://okvqa.allenai.org/static/data/mscoco_val2014_annotations.json.zip
+        file_name: mscoco_val2014_annotations.json.zip
+      - url: https://okvqa.allenai.org/static/data/OpenEnded_mscoco_train2014_questions.json.zip
+        file_name: OpenEnded_mscoco_train2014_questions.json.zip
+      - url: https://okvqa.allenai.org/static/data/OpenEnded_mscoco_val2014_questions.json.zip
+        file_name: OpenEnded_mscoco_val2014_questions.json.zip
