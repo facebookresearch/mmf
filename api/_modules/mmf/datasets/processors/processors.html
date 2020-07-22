@@ -312,17 +312,12 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 
 <span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
+<span class="kn">from</span> <span class="nn">mmf.common.typings</span> <span class="kn">import</span> <span class="n">ProcessorConfigType</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.configuration</span> <span class="kn">import</span> <span class="n">get_mmf_cache_dir</span><span class="p">,</span> <span class="n">get_mmf_env</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.distributed</span> <span class="kn">import</span> <span class="n">is_master</span><span class="p">,</span> <span class="n">synchronize</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.file_io</span> <span class="kn">import</span> <span class="n">PathManager</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.text</span> <span class="kn">import</span> <span class="n">VocabDict</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.vocab</span> <span class="kn">import</span> <span class="n">Vocab</span><span class="p">,</span> <span class="n">WordToVectorDict</span>
-
-
-<div class="viewcode-block" id="ProcessorConfigType"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.ProcessorConfigType">[docs]</a><span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">ProcessorConfigType</span><span class="p">:</span>
-    <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="BatchProcessorConfigType"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.BatchProcessorConfigType">[docs]</a><span class="nd">@dataclass</span>

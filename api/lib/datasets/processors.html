@@ -359,7 +359,7 @@ of any type.</p>
 
 <dl class="py class">
 <dt id="mmf.datasets.processors.processors.BatchProcessorConfigType">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.processors.</code><code class="sig-name descname">BatchProcessorConfigType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">processors</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#mmf.datasets.processors.processors.ProcessorConfigType" title="mmf.datasets.processors.processors.ProcessorConfigType">mmf.datasets.processors.processors.ProcessorConfigType</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#BatchProcessorConfigType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.processors.BatchProcessorConfigType" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.processors.</code><code class="sig-name descname">BatchProcessorConfigType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">processors</span><span class="p">:</span> <span class="n">mmf.common.typings.ProcessorConfigType</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#BatchProcessorConfigType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.processors.BatchProcessorConfigType" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py class">
@@ -465,7 +465,7 @@ each index corresponds to either a fixed vocabulary or an OCR token
 
 <dl class="py class">
 <dt id="mmf.datasets.processors.processors.Processor">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.processors.</code><code class="sig-name descname">Processor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#mmf.datasets.processors.processors.ProcessorConfigType" title="mmf.datasets.processors.processors.ProcessorConfigType">mmf.datasets.processors.processors.ProcessorConfigType</a></span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#Processor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.processors.Processor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.processors.</code><code class="sig-name descname">Processor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n">mmf.common.typings.ProcessorConfigType</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#Processor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.processors.Processor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapper class used by MMF to initialized processor based on their
 <code class="docutils literal notranslate"><span class="pre">type</span></code> as passed in configuration. It retrieves the processor class
 registered in registry corresponding to the <code class="docutils literal notranslate"><span class="pre">type</span></code> key and initializes
@@ -478,11 +478,6 @@ be initialized and <code class="docutils literal notranslate"><span class="pre">
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="py class">
-<dt id="mmf.datasets.processors.processors.ProcessorConfigType">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.processors.processors.</code><code class="sig-name descname">ProcessorConfigType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Any<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#ProcessorConfigType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.processors.processors.ProcessorConfigType" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="py class">
 <dt id="mmf.datasets.processors.processors.SimpleSentenceProcessor">
