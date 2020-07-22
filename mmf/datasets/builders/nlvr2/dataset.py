@@ -29,15 +29,19 @@ class NLVR2Dataset(VQA2Dataset):
             # Load img0 and img1 features
             sample_info["feature_path"] = "{}-img0.npy".format(identifier)
             features = self.features_db[idx]
-            if hasattr(self, "bbox_processor"):
-                features["image_info_0"] = self.bbox_processor(features["image_info_0"])
+            if hasattr(self, "transformer_bbox_processor"):
+                features["image_info_0"] = self.transformer_bbox_processor(
+                    features["image_info_0"]
+                )
             current_sample.img0 = Sample()
             current_sample.img0.update(features)
 
             sample_info["feature_path"] = "{}-img1.npy".format(identifier)
             features = self.features_db[idx]
-            if hasattr(self, "bbox_processor"):
-                features["image_info_0"] = self.bbox_processor(features["image_info_0"])
+            if hasattr(self, "transformer_bbox_processor"):
+                features["image_info_0"] = self.transformer_bbox_processor(
+                    features["image_info_0"]
+                )
             current_sample.img1 = Sample()
             current_sample.img1.update(features)
 

@@ -33,8 +33,10 @@ class GQADataset(MMFDataset):
 
         if self._use_features is True:
             features = self.features_db[idx]
-            if hasattr(self, "bbox_processor"):
-                features["image_info_0"] = self.bbox_processor(features["image_info_0"])
+            if hasattr(self, "transformer_bbox_processor"):
+                features["image_info_0"] = self.transformer_bbox_processor(
+                    features["image_info_0"]
+                )
             current_sample.update(features)
 
         # Depending on whether we are using soft copy this can add
@@ -68,8 +70,6 @@ class GQADataset(MMFDataset):
             else:
                 answer = self.answer_processor.idx2word(answer_id)
 
-            predictions.append(
-                {"questionId": question_id.item(), "prediction": answer,}
-            )
+            predictions.append({"questionId": question_id.item(), "prediction": answer})
 
         return predictions
