@@ -4,7 +4,7 @@ sidebar_label: Movie+MCAN (VQA 2020 Winner)
 title: MoViE+MCAN (VQA 2020 Challenge Winner)
 ---
 
-This is a tutorial for running the MoViE+MCAN model which won the VQA Challenge at CVPR 2020. The winning team comprised of Nguyen, D. K., Jiang, H., Goswami, V., Yu. L. & Chen, X. MoViE+MCAN model is derived from the following papers, and is released under the MMF:
+This is a tutorial for running the MoViE+MCAN model which won the VQA Challenge at CVPR 2020. The winning team comprised of Nguyen, D. K., Jiang, H., Goswami, V., Yu. L. & Chen, X. MoViE+MCAN model is derived from the following papers, and is released under the MMF. Please cite both these papers if you use the model or the grid features used to train this model in your work:
 
 * Nguyen, D. K., Goswami, V., & Chen, X. (2020). *Revisiting Modulated Convolutions for Visual Counting and Beyond*. arXiv preprint arXiv:2004.11883. ([arXiV](https://arxiv.org/abs/2004.11883))
 ```
@@ -35,9 +35,7 @@ Install MMF following the [installation guide](https://mmf.sh/docs/getting_start
 
 ## Data Setup
 
-Annotations for VQA2.0 and VisualGenome will be automatically downloaded.
-
-[Data for grid features will be uploaded soon].
+Annotations and features for VQA2.0 and VisualGenome will be automatically downloaded. The grid image features were extracted using the models trained in this [repo](https://github.com/facebookresearch/grid-feats-vqa). Other variants of features data available in that [repo](https://github.com/facebookresearch/grid-feats-vqa) can also be used.
 
 ## Training and Evaluation
 

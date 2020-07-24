@@ -12,13 +12,13 @@ dataset_config:
       - vqa2.grid_features
     features:
       train:
-      - /checkpoint/xinleic/vlfeat
-      - /checkpoint/xinleic/vlfeat
-      - /checkpoint/xinleic/vlfeat
+      - vqa2/grid_features/features
+      - vqa2/grid_features/features
+      - vqa2/grid_features/features
       val:
-      - /checkpoint/xinleic/vlfeat
+      - vqa2/grid_features/features
       test:
-      - /checkpoint/xinleic/vlfeat
+      - vqa2/grid_features/features
     annotations:
       train:
       - vqa2/grid_features/annotations/imdb_train2014.npy
