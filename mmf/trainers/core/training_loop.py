@@ -26,7 +26,7 @@ class TrainerTrainingLoopMixin(ABC):
         else:
             self.max_updates = math.inf
 
-        torch.autograd.set_detect_anomaly(True)
+        torch.autograd.set_detect_anomaly(self.training_config.detect_anomaly)
 
         self.writer.write("Starting training...")
         self.model.train()
