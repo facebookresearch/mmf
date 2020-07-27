@@ -116,6 +116,12 @@ training:
     # to enable evaluation every log_interval
     evaluate_metrics: false
 
+    # This will enable anomaly detection mode in PyTorch. Use this for debugging
+    # purposes if you see NaN issues in your experiments.
+    # Warning: As per PyTorch docs, this usually slows down your code and should
+    # only be used for debugging purposes
+    detect_anomaly: false
+
 # Configuration for evaluation
 evaluation:
     # Metrics for evaluation
