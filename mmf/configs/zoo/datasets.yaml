@@ -279,6 +279,10 @@ vqa2:
       - url: mmf://datasets/vqa2/grid/annotations/annotations.tar.gz
         file_name: annotations.tar.gz
         hashcode: f1ac6a587d4719f702bf02cd49725b82ef91bff747eb043527a7b2fecfaee953
+      features:
+      - url: mmf://datasets/vqa2/grid/features/features.tar.gz
+        file_name: features.tar.gz
+        hashcode: 96f4290c6bcbc5767dea5efc44e802667a146769d615dad33944493e3ad638bb
 
 vizwiz:
   v2019:
