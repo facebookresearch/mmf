@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # Inspired from maskrcnn_benchmark, fairseq
+import logging
 import os
 import pickle
 import socket
@@ -11,6 +12,7 @@ from torch import distributed as dist
 
 MAX_SIZE_LIMIT = 65533
 BYTE_SIZE = 256
+logger = logging.getLogger(__name__)
 
 
 def synchronize():
@@ -222,11 +224,9 @@ def distributed_init(config):
     if dist.is_initialized():
         warnings.warn("Distributed is already initialized, cannot initialize twice!")
     else:
-        print(
-            "Distributed Init (Rank {}): {}".format(
-                config.distributed.rank, config.distributed.init_method
-            ),
-            flush=True,
+        logger.info(
+            f"Distributed Init (Rank {config.distributed.rank}): "
+            f"{config.distributed.init_method}"
         )
         dist.init_process_group(
             backend=config.distributed.backend,
@@ -234,11 +234,9 @@ def distributed_init(config):
             world_size=config.distributed.world_size,
             rank=config.distributed.rank,
         )
-        print(
-            "Initialized Host {} as Rank {}".format(
-                socket.gethostname(), config.distributed.rank
-            ),
-            flush=True,
+        logger.info(
+            f"Initialized Host {socket.gethostname()} as Rank "
+            f"{config.distributed.rank}"
         )
 
         # perform a dummy all-reduce to initialize the NCCL communicator
@@ -275,11 +273,3 @@ def suppress_output(is_master):
     # Log warnings only once
     warnings.warn = warn
     warnings.simplefilter("once", UserWarning)
-
-
-# def is_master(config=None):
-#     if config is None:
-#         from mmf.common.registry import registry
-#         config = registry.get("configuration").args
-
-#     return config.distributed.rank == 0

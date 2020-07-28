@@ -1,174 +1,255 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import collections
+import functools
 import json
 import logging
 import os
 import sys
-from typing import Type
+from typing import Any, Dict, Union
 
+from termcolor import colored
+
+from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env
-from mmf.utils.distributed import is_master
+from mmf.utils.distributed import get_rank, is_master
 from mmf.utils.file_io import PathManager
 from mmf.utils.timer import Timer
 
 
-class Logger:
-    def __init__(self, config, name=None):
-        self._logger = None
-        self._is_master = is_master()
+@functools.lru_cache()
+def setup_output_folder(folder_only: bool = False):
+    """Sets up and returns the output file where the logs will be placed
+    based on the configuration passed. Usually "save_dir/logs/log_<timestamp>.txt".
+    If env.log_dir is passed, logs will be directly saved in this folder.
 
-        self.timer = Timer()
-        self.config = config
-        self.save_dir = get_mmf_env(key="save_dir")
-        self.log_format = config.training.log_format
-        self.time_format = "%Y_%m_%dT%H_%M_%S"
-        self.log_filename = "train_"
-        self.log_filename += self.timer.get_time_hhmmss(None, format=self.time_format)
-        self.log_filename += ".log"
+    Args:
+        folder_only (bool, optional): If folder should be returned and not the file.
+            Defaults to False.
 
-        self.log_folder = os.path.join(self.save_dir, "logs")
+    Returns:
+        str: folder or file path depending on folder_only flag
+    """
+    save_dir = get_mmf_env(key="save_dir")
+    time_format = "%Y_%m_%dT%H_%M_%S"
+    log_filename = "train_"
+    log_filename += Timer().get_time_hhmmss(None, format=time_format)
+    log_filename += ".log"
 
-        env_log_dir = get_mmf_env(key="log_dir")
-        if env_log_dir:
-            self.log_folder = env_log_dir
+    log_folder = os.path.join(save_dir, "logs")
 
-        if not PathManager.exists(self.log_folder):
-            PathManager.mkdirs(self.log_folder)
+    env_log_dir = get_mmf_env(key="log_dir")
+    if env_log_dir:
+        log_folder = env_log_dir
 
-        self.log_filename = os.path.join(self.log_folder, self.log_filename)
+    if not PathManager.exists(log_folder):
+        PathManager.mkdirs(log_folder)
 
-        if not self._is_master:
-            return
-        if self._is_master:
-            print("Logging to:", self.log_filename)
+    if folder_only:
+        return log_folder
 
-        logging.captureWarnings(True)
+    log_filename = os.path.join(log_folder, log_filename)
 
-        if not name:
-            name = __name__
-        self._logger = logging.getLogger(name)
-        self._file_only_logger = logging.getLogger(name)
-        self._warnings_logger = logging.getLogger("py.warnings")
+    return log_filename
 
-        # Set level
-        level = config.training.logger_level
-        self._logger.setLevel(getattr(logging, level.upper()))
-        self._file_only_logger.setLevel(getattr(logging, level.upper()))
 
-        # Capture stdout to logger
-        self._stdout_logger = None
-        if self.config.training.stdout_capture:
-            self._stdout_logger = StreamToLogger(
-                logging.getLogger("stdout"), getattr(logging, level.upper())
+# so that calling setup_logger multiple times won't add many handlers
+@functools.lru_cache()
+def setup_logger(
+    output: str = None,
+    color: bool = True,
+    name: str = "mmf",
+    disable: bool = False,
+    clear_handlers=True,
+    *args,
+    **kwargs,
+):
+    """
+    Initialize the MMF logger and set its verbosity level to "INFO".
+    Outside libraries shouldn't call this in case they have set there
+    own logging handlers and setup. If they do, and don't want to
+    clear handlers, pass clear_handlers options.
+
+    The initial version of this function was taken from D2 and adapted
+    for MMF.
+
+    Args:
+        output (str): a file name or a directory to save log.
+            If ends with ".txt" or ".log", assumed to be a file name.
+            Default: Saved to file <save_dir/logs/log_[timestamp].txt>
+        color (bool): If false, won't log colored logs. Default: true
+        name (str): the root module name of this logger. Defaults to "mmf".
+        clear_handlers (bool): If false, won't clear existing handlers.
+
+    Returns:
+        logging.Logger: a logger
+    """
+    if disable:
+        return None
+    logger = logging.getLogger(name)
+    logger.propagate = False
+
+    logging.captureWarnings(True)
+    warnings_logger = logging.getLogger("py.warnings")
+
+    plain_formatter = logging.Formatter(
+        "%(asctime)s | %(levelname)s | %(name)s : %(message)s",
+        datefmt="%Y-%m-%dT%H:%M:%S",
+    )
+
+    distributed_rank = get_rank()
+    handlers = []
+
+    if distributed_rank == 0:
+        logger.setLevel(logging.INFO)
+        ch = logging.StreamHandler(stream=sys.stdout)
+        ch.setLevel(logging.INFO)
+        if color:
+            formatter = ColorfulFormatter(
+                colored("%(asctime)s | %(name)s: ", "green") + "%(message)s",
+                datefmt="%Y-%m-%dT%H:%M:%S",
             )
-            sys.stdout = self._stdout_logger
+        else:
+            formatter = plain_formatter
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+        warnings_logger.addHandler(ch)
+        handlers.append(ch)
 
-        formatter = logging.Formatter(
-            "%(asctime)s | %(levelname)s | %(name)s : %(message)s",
+    # file logging: all workers
+    if output is None:
+        output = setup_output_folder()
+
+    if output is not None:
+        if output.endswith(".txt") or output.endswith(".log"):
+            filename = output
+        else:
+            filename = os.path.join(output, "train.log")
+        if distributed_rank > 0:
+            filename = filename + f".rank{distributed_rank}"
+        PathManager.mkdirs(os.path.dirname(filename))
+
+        fh = logging.StreamHandler(_cached_log_stream(filename))
+        fh.setLevel(logging.INFO)
+        fh.setFormatter(plain_formatter)
+        logger.addHandler(fh)
+        warnings_logger.addHandler(fh)
+        handlers.append(fh)
+
+        # Slurm/FB output, only log the main process
+        if "train.log" not in filename and distributed_rank == 0:
+            save_dir = get_mmf_env(key="save_dir")
+            filename = os.path.join(save_dir, "train.log")
+            sh = logging.StreamHandler(_cached_log_stream(filename))
+            sh.setLevel(logging.INFO)
+            sh.setFormatter(plain_formatter)
+            logger.addHandler(sh)
+            warnings_logger.addHandler(sh)
+            handlers.append(sh)
+
+        logger.info(f"Logging to: {filename}")
+
+    # Remove existing handlers to add MMF specific handlers
+    if clear_handlers:
+        for handler in logging.root.handlers[:]:
+            logging.root.removeHandler(handler)
+    # Now, add our handlers.
+    logging.basicConfig(level=logging.INFO, handlers=handlers)
+
+    registry.register("writer", logger)
+
+    return logger
+
+
+def setup_very_basic_config(color=True):
+    plain_formatter = logging.Formatter(
+        "%(asctime)s | %(levelname)s | %(name)s : %(message)s",
+        datefmt="%Y-%m-%dT%H:%M:%S",
+    )
+    ch = logging.StreamHandler(stream=sys.stdout)
+    ch.setLevel(logging.INFO)
+    if color:
+        formatter = ColorfulFormatter(
+            colored("%(asctime)s | %(name)s: ", "green") + "%(message)s",
             datefmt="%Y-%m-%dT%H:%M:%S",
         )
-
-        # Add handler to file
-        channel = logging.StreamHandler(PathManager.open(self.log_filename, mode="a"))
-        channel.setFormatter(formatter)
-        self.add_handlers(channel)
-
-        # Add handler to train.log. train.log is full log that is also used
-        # by slurm/fbl output
-        channel = logging.StreamHandler(
-            PathManager.open(os.path.join(self.save_dir, "train.log"), mode="a")
-        )
-        channel.setFormatter(formatter)
-        self.add_handlers(channel)
-
-        # Add handler to stdout. Only when we are not capturing stdout in
-        # the logger
-        if not self._stdout_logger:
-            channel = logging.StreamHandler(sys.stdout)
-            channel.setFormatter(formatter)
-
-            self._logger.addHandler(channel)
-            self._warnings_logger.addHandler(channel)
-
-        should_not_log = self.config.training.should_not_log
-        self.should_log = not should_not_log
-
-        # Single log wrapper map
-        self._single_log_map = set()
-
-    def add_handlers(self, channel: Type[logging.Handler]):
-        self._logger.addHandler(channel)
-        self._file_only_logger.addHandler(channel)
-        self._warnings_logger.addHandler(channel)
-        if self._stdout_logger:
-            self._stdout_logger.addHandler(channel)
-
-    def write(self, x, level="info", donot_print=False, log_all=False):
-        if self._logger is None:
-            return
-
-        if log_all is False and not self._is_master:
-            return
-
-        # if it should not log then just print it
-        if self.should_log:
-            if hasattr(self._logger, level):
-                if donot_print:
-                    getattr(self._file_only_logger, level)(str(x))
-                else:
-                    getattr(self._logger, level)(str(x))
-            else:
-                self._logger.error("Unknown log level type: %s" % level)
-        else:
-            print(str(x) + "\n")
-
-    def log_progress(self, info):
-        if not isinstance(info, collections.Mapping):
-            self.write(info)
-
-        if not self._is_master:
-            return
-
-        if self.log_format == "simple":
-            output = ", ".join([f"{key}: {value}" for key, value in info.items()])
-        elif self.log_format == "json":
-            output = json.dumps(info)
-        else:
-            output = str(info)
-
-        self.write(output)
-
-    def single_write(self, x, level="info", log_all=False):
-        if self._logger is None:
-            return
-        if log_all is False and not self._is_master:
-            return
-        if x + "_" + level in self._single_log_map:
-            return
-        else:
-            self.write(x, level)
+    else:
+        formatter = plain_formatter
+    ch.setFormatter(formatter)
+    # Setup a minimal configuration for logging in case something tries to
+    # log a message even before logging is setup by MMF.
+    logging.basicConfig(level=logging.INFO, handlers=[ch])
 
 
-class StreamToLogger:
+# cache the opened file object, so that different calls to `setup_logger`
+# with the same file name can safely write to the same file.
+@functools.lru_cache(maxsize=None)
+def _cached_log_stream(filename):
+    return PathManager.open(filename, "a")
+
+
+def _find_caller():
     """
-    Adapted from <https://fburl.com/2qkv0wq2>
-    Fake file-like stream object that redirects writes to a logger instance.
+    Returns:
+        str: module name of the caller
+        tuple: a hashable key to be used to identify different callers
     """
+    frame = sys._getframe(2)
+    while frame:
+        code = frame.f_code
+        if os.path.join("utils", "logger.") not in code.co_filename:
+            mod_name = frame.f_globals["__name__"]
+            if mod_name == "__main__":
+                mod_name = "mmf"
+            return mod_name, (code.co_filename, frame.f_lineno, code.co_name)
+        frame = frame.f_back
 
-    def __init__(self, logger: Type[logging.Logger], log_level: str = logging.INFO):
-        self._logger = logger
-        self.log_level = log_level
 
-    def addHandler(self, handler: Type[logging.Handler]):
-        self._logger.addHandler(handler)
+def log_progress(info: Union[Dict, Any], log_format="simple"):
+    """Useful for logging progress dict.
 
-    def write(self, buf: str):
-        for line in buf.rstrip().splitlines():
-            self._logger.log(self.log_level, line.rstrip())
+    Args:
+        info (dict|any): If dict, will be logged as key value pair. Otherwise,
+            it will be logged directly.
 
-    def flush(self):
-        pass
+        log_format (str, optional): json|simple. Defaults to "simple".
+            Will use simple mode.
+    """
+    caller, key = _find_caller()
+    logger = logging.getLogger(caller)
+
+    if not isinstance(info, collections.Mapping):
+        logger.info(info)
+
+    if log_format == "simple":
+        config = registry.get("config")
+        if config:
+            log_format = config.training.log_format
+
+    if log_format == "simple":
+        output = ", ".join([f"{key}: {value}" for key, value in info.items()])
+    elif log_format == "json":
+        output = json.dumps(info)
+    else:
+        output = str(info)
+
+    logger.info(output)
+
+
+# ColorfulFormatter is adopted from Detectron2 and adapted for MMF
+class ColorfulFormatter(logging.Formatter):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def formatMessage(self, record):
+        log = super().formatMessage(record)
+        if record.levelno == logging.WARNING:
+            prefix = colored("WARNING", "red", attrs=["blink"])
+        elif record.levelno == logging.ERROR or record.levelno == logging.CRITICAL:
+            prefix = colored("ERROR", "red", attrs=["blink", "underline"])
+        else:
+            return log
+        return prefix + " " + log
 
 
 class TensorboardLogger:

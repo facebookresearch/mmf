@@ -3,8 +3,7 @@
 MultiDatasetLoader class is used by DatasetLoader class to load multiple datasets
 and more granular
 """
-
-import sys
+import logging
 import warnings
 
 import numpy as np
@@ -14,6 +13,8 @@ from mmf.utils.build import build_dataloader_and_sampler, build_dataset
 from mmf.utils.distributed import broadcast_scalar, is_dist_initialized, is_master
 from mmf.utils.general import get_batch_size
 
+logger = logging.getLogger(__name__)
+
 
 class MultiDatasetLoader:
     """
@@ -22,7 +23,6 @@ class MultiDatasetLoader:
 
     def __init__(self, dataset_type="train"):
         self._dataset_type = dataset_type
-        self.writer = registry.get("writer")
         self._is_master = is_master()
 
         self._datasets = []
@@ -102,9 +102,7 @@ class MultiDatasetLoader:
 
     def _process_datasets(self):
         if "datasets" not in self.config:
-            self.writer.write(
-                "No datasets attribute present. Setting default to vqa2." "warning"
-            )
+            logger.warning("No datasets attribute present. Setting default to vqa2.")
             datasets = "vqa2"
         else:
             datasets = self.config.datasets
@@ -126,11 +124,9 @@ class MultiDatasetLoader:
             if dataset in self.config.dataset_config:
                 dataset_config = self.config.dataset_config[dataset]
             else:
-                self.writer.write(
-                    "Dataset %s is missing from " "dataset_config in config." % dataset,
-                    "error",
+                raise RuntimeError(
+                    f"Dataset {dataset} is missing from " "dataset_config in config."
                 )
-                sys.exit(1)
 
             dataset_instance = build_dataset(dataset, dataset_config, self.dataset_type)
             if dataset_instance is None:

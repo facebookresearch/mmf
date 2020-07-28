@@ -18,7 +18,6 @@ from mmf.trainers.callbacks.early_stopping import EarlyStoppingCallback
 from mmf.utils.checkpoint import Checkpoint
 from mmf.utils.configuration import load_yaml
 from mmf.utils.file_io import PathManager
-from mmf.utils.logger import Logger
 from tests.test_utils import compare_state_dicts
 
 
@@ -87,7 +86,6 @@ class TestUtilsCheckpoint(unittest.TestCase):
         )
         # Keep original copy for testing purposes
         self.trainer.config = deepcopy(self.config)
-        self.trainer.writer = Mock(spec=Logger)
 
         self.trainer.model = SimpleModule()
 

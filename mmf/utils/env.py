@@ -101,12 +101,13 @@ def setup_imports():
         root_folder = os.path.dirname(os.path.abspath(__file__))
         root_folder = os.path.join(root_folder, "..")
 
-        environment_pythia_path = os.environ.get("PYTHIA_PATH")
+        environment_mmf_path = os.environ.get("MMF_PATH", os.environ.get("PYTHIA_PATH"))
 
-        if environment_pythia_path is not None:
-            root_folder = environment_pythia_path
+        if environment_mmf_path is not None:
+            root_folder = environment_mmf_path
 
         registry.register("pythia_path", root_folder)
+        registry.register("mmf_path", root_folder)
 
     trainer_folder = os.path.join(root_folder, "trainers")
     trainer_pattern = os.path.join(trainer_folder, "**", "*.py")

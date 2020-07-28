@@ -1,6 +1,7 @@
 #!/usr/bin/env python3 -u
 # Copyright (c) Facebook, Inc. and its affiliates.
 import argparse
+import logging
 import random
 import typing
 
@@ -12,7 +13,10 @@ from mmf.utils.configuration import Configuration
 from mmf.utils.distributed import distributed_init, get_rank, infer_init_method
 from mmf.utils.env import set_seed, setup_imports
 from mmf.utils.flags import flags
-from mmf.utils.logger import Logger
+from mmf.utils.general import log_device_names
+from mmf.utils.logger import setup_logger, setup_very_basic_config
+
+setup_very_basic_config()
 
 
 def main(configuration, init_distributed=False, predict=False):
@@ -31,12 +35,19 @@ def main(configuration, init_distributed=False, predict=False):
     seed = config.training.seed
     config.training.seed = set_seed(seed if seed == -1 else seed + get_rank())
     registry.register("seed", config.training.seed)
-    print(f"Using seed {config.training.seed}")
 
     config = build_config(configuration)
 
-    # Logger should be registered after config is registered
-    registry.register("writer", Logger(config, name="mmf.train"))
+    setup_logger(
+        color=config.training.colored_logs, disable=config.training.should_not_log
+    )
+    logger = logging.getLogger("mmf_cli.run")
+    # Log args for debugging purposes
+    logger.info(configuration.args)
+    logger.info(f"Torch version: {torch.__version__}")
+    log_device_names()
+    logger.info(f"Using seed {config.training.seed}")
+
     trainer = build_trainer(config)
     trainer.load()
     if predict:
@@ -77,7 +88,6 @@ def run(opts: typing.Optional[typing.List[str]] = None, predict: bool = False):
         args = argparse.Namespace(config_override=None)
         args.opts = opts
 
-    print(args)
     configuration = Configuration(args)
     # Do set runtime args which can be changed by MMF
     configuration.args = args

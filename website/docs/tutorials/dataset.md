@@ -44,6 +44,7 @@ Let's write down this using example of _CLEVR_ dataset.
 .. code-block:: python
 
     import json
+    import logging
     import math
     import os
     import zipfile
@@ -56,6 +57,10 @@ Let's write down this using example of _CLEVR_ dataset.
     from mmf.datasets.builders.clevr.dataset import CLEVRDataset
     from mmf.utils.general import download_file, get_mmf_root
 
+
+    logger = logging.getLogger(__name__)
+
+
     @registry.register_builder("clevr")
     class CLEVRBuilder(BaseDatasetBuilder):
         DOWNLOAD_URL = "https://s3-us-west-1.amazonaws.com/clevr/CLEVR_v1.0.zip"
@@ -63,7 +68,6 @@ Let's write down this using example of _CLEVR_ dataset.
         def __init__(self):
             # Init should call super().__init__ with the key for the dataset
             super().__init__("clevr")
-            self.writer = registry.get("writer")
 
             # Assign the dataset class
             self.dataset_class = CLEVRDataset
@@ -88,10 +92,10 @@ Let's write down this using example of _CLEVR_ dataset.
                 len(os.listdir(extraction_folder)) != 0:
                 return
 
-            self.writer.write("Downloading the CLEVR dataset now")
+            logger.info("Downloading the CLEVR dataset now")
             download_file(self.DOWNLOAD_URL, output_dir=download_folder)
 
-            self.writer.write("Downloaded. Extracting now. This can take time.")
+            logger.info("Downloaded. Extracting now. This can take time.")
             with zipfile.ZipFile(local_filename, "r") as zip_ref:
                 zip_ref.extractall(download_folder)
 

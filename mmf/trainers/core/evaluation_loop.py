@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import logging
 from abc import ABC
 from typing import Any, Dict, Tuple, Type
 
@@ -9,6 +10,8 @@ import tqdm
 from mmf.common.meter import Meter
 from mmf.common.report import Report
 from mmf.utils.distributed import is_master
+
+logger = logging.getLogger(__name__)
 
 
 class TrainerEvaluationLoopMixin(ABC):
@@ -50,8 +53,7 @@ class TrainerEvaluationLoopMixin(ABC):
         reporter = self.dataset_loader.get_test_reporter(dataset_type)
         with torch.no_grad():
             self.model.eval()
-            message = f"Starting {dataset_type} inference predictions"
-            self.writer.write(message)
+            logger.info(f"Starting {dataset_type} inference predictions")
 
             while reporter.next_dataset():
                 dataloader = reporter.get_dataloader()
@@ -62,5 +64,5 @@ class TrainerEvaluationLoopMixin(ABC):
                     report = Report(prepared_batch, model_output)
                     reporter.add_to_report(report, self.model)
 
-            self.writer.write("Finished predicting")
+            logger.info("Finished predicting")
             self.model.train()

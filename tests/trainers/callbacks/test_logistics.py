@@ -10,14 +10,13 @@ from unittest.mock import Mock
 import torch
 from omegaconf import OmegaConf
 
-import tests.test_utils as test_utils
 from mmf.common.meter import Meter
 from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.models.base_model import BaseModel
 from mmf.trainers.callbacks.logistics import LogisticsCallback
 from mmf.utils.file_io import PathManager
-from mmf.utils.logger import Logger
+from mmf.utils.logger import setup_logger
 
 
 class SimpleModule(BaseModel):
@@ -71,8 +70,8 @@ class TestLogisticsCallback(unittest.TestCase):
         # Keep original copy for testing purposes
         self.trainer.config = deepcopy(self.config)
         registry.register("config", self.trainer.config)
-        self.trainer.writer = Logger(self.config)
-        registry.register("writer", self.trainer.writer)
+        setup_logger.cache_clear()
+        setup_logger()
         self.report = Mock(spec=Report)
         self.report.dataset_name = "abcd"
         self.report.dataset_type = "test"
@@ -93,16 +92,14 @@ class TestLogisticsCallback(unittest.TestCase):
 
     def tearDown(self):
         registry.unregister("config")
-        registry.unregister("writer")
 
     def test_on_train_start(self):
         self.cb.on_train_start()
         expected = 0
         self.assertEqual(
-            int(self.cb.train_timer.get_time_since_start().split("ms")[0]), expected,
+            int(self.cb.train_timer.get_time_since_start().split("ms")[0]), expected
         )
 
-    @test_utils.skip_if_windows
     def test_on_batch_end(self):
         self.cb.on_train_start()
         self.cb.on_batch_end(meter=self.trainer.meter, should_log=False)
@@ -117,10 +114,9 @@ class TestLogisticsCallback(unittest.TestCase):
         self.cb.on_validation_start()
         expected = 0
         self.assertEqual(
-            int(self.cb.snapshot_timer.get_time_since_start().split("ms")[0]), expected,
+            int(self.cb.snapshot_timer.get_time_since_start().split("ms")[0]), expected
         )
 
-    @test_utils.skip_if_windows
     def test_on_test_end(self):
         self.cb.on_test_end(report=self.report, meter=self.trainer.meter)
         f = PathManager.open(os.path.join(self.tmpdir, "train.log"))

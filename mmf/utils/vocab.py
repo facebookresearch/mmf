@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import logging
 import os
 from collections import defaultdict
 
@@ -12,6 +13,8 @@ from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path
 
 EMBEDDING_NAME_CLASS_MAPPING = {"glove": "GloVe", "fasttext": "FastText"}
+
+logger = logging.getLogger(__name__)
 
 
 class Vocab:
@@ -235,13 +238,7 @@ class CustomVocab(BaseVocab):
             embedding_file = get_absolute_path(embedding_file)
 
         if not PathManager.exists(embedding_file):
-            from mmf.common.registry import registry
-
-            writer = registry.get("writer")
-            error = "Embedding file path %s doesn't exist" % embedding_file
-            if writer is not None:
-                writer.write(error, "error")
-            raise RuntimeError(error)
+            raise RuntimeError(f"Embedding file path {embedding_file} doesn't exist")
 
         embedding_vectors = torch.from_numpy(np.load(embedding_file))
 
@@ -286,13 +283,7 @@ class IntersectedVocab(BaseVocab):
         class_name = EMBEDDING_NAME_CLASS_MAPPING[name]
 
         if not hasattr(vocab, class_name):
-            from mmf.common.registry import registry
-
-            writer = registry.get("writer")
-            error = "Unknown embedding type: %s" % name, "error"
-            if writer is not None:
-                writer.write(error, "error")
-            raise RuntimeError(error)
+            raise RuntimeError(f"Unknown embedding type: {name}")
 
         params = [middle]
 
@@ -345,13 +336,7 @@ class PretrainedVocab(BaseVocab):
         self.type = "pretrained"
 
         if embedding_name not in vocab.pretrained_aliases:
-            from mmf.common.registry import registry
-
-            writer = registry.get("writer")
-            error = "Unknown embedding type: %s" % embedding_name, "error"
-            if writer is not None:
-                writer.write(error, "error")
-            raise RuntimeError(error)
+            raise RuntimeError(f"Unknown embedding type: {embedding_name}")
 
         vector_cache = get_mmf_cache_dir()
 
@@ -430,11 +415,10 @@ class ModelVocab(BaseVocab):
 
     def _load_fasttext_model(self, model_file):
         from fastText import load_model
-        from mmf.common.registry import registry
 
         model_file = os.path.join(get_mmf_cache_dir(), model_file)
 
-        registry.get("writer").write("Loading fasttext model now from %s" % model_file)
+        logger.info(f"Loading fasttext model now from {model_file}")
 
         self.model = load_model(model_file)
         self.stoi = WordToVectorDict(self.model)

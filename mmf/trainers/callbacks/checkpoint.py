@@ -1,8 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import logging
 
-from mmf.common.registry import registry
 from mmf.trainers.callbacks.base import Callback
 from mmf.utils.checkpoint import Checkpoint
+
+logger = logging.getLogger(__name__)
 
 
 class CheckpointCallback(Callback):
@@ -19,7 +21,6 @@ class CheckpointCallback(Callback):
 
         self._checkpoint = Checkpoint(trainer)
         self.checkpoint_interval = self.config.training.checkpoint_interval
-        self.writer = registry.get("writer")
 
     @property
     def checkpoint(self):
@@ -30,7 +31,7 @@ class CheckpointCallback(Callback):
 
     def on_batch_end(self, **kwargs):
         if self.trainer.num_updates % self.checkpoint_interval == 0:
-            self.writer.write("Checkpoint time. Saving a checkpoint.")
+            logger.info("Checkpoint time. Saving a checkpoint.")
             self._checkpoint.save(
                 self.trainer.num_updates,
                 self.trainer.current_iteration,

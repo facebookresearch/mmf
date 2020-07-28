@@ -1,13 +1,15 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import logging
 from multiprocessing.pool import ThreadPool
 
 import tqdm
 
-from mmf.common.registry import registry
 from mmf.datasets.databases.image_database import ImageDatabase
 from mmf.datasets.databases.readers.feature_readers import FeatureReader
 from mmf.utils.distributed import is_master
 from mmf.utils.general import get_absolute_path
+
+logger = logging.getLogger(__name__)
 
 
 class FeaturesDatabase(ImageDatabase):
@@ -20,7 +22,6 @@ class FeaturesDatabase(ImageDatabase):
         self.feature_key = config.get("feature_key", "feature_path")
         self.feature_key = feature_key if feature_key else self.feature_key
         self._fast_read = config.get("fast_read", False)
-        self.writer = registry.get("writer")
 
         path = path.split(",")
 
@@ -37,8 +38,9 @@ class FeaturesDatabase(ImageDatabase):
         self._should_return_info = config.get("return_features_info", True)
 
         if self._fast_read:
-            self.writer.write("Fast reading features from {}".format(", ".join(path)))
-            self.writer.write("Hold tight, this may take a while...")
+            path = ", ".join(path)
+            logger.info(f"Fast reading features from {path}")
+            logger.info("Hold tight, this may take a while...")
             self._threaded_read()
 
     def _threaded_read(self):

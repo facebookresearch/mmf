@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import logging
 import os
 
 import torch
@@ -7,6 +8,8 @@ import tqdm
 from mmf.common.sample import Sample
 from mmf.datasets.mmf_dataset import MMFDataset
 from mmf.utils.distributed import is_master
+
+logger = logging.getLogger(__name__)
 
 
 class VQA2Dataset(MMFDataset):
@@ -29,10 +32,9 @@ class VQA2Dataset(MMFDataset):
             return
 
         if hasattr(self, "_should_fast_read") and self._should_fast_read is True:
-            self.writer.write(
-                "Starting to fast read {} {} dataset".format(
-                    self.dataset_name, self.dataset_type
-                )
+            logger.info(
+                f"Starting to fast read {self.dataset_name} {self.dataset_type} "
+                + "dataset"
             )
             self.cache = {}
             for idx in tqdm.tqdm(
