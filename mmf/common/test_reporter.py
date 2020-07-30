@@ -166,12 +166,8 @@ class TestReporter(Dataset):
             if num_dims == 1:
                 report[key] = gather_tensor(report[key]).view(-1)
             elif num_dims >= 2:
-                enc_size = report[key].size(-1)
-                report[key] = gather_tensor(report[key]).view(-1, enc_size)
-            else:
-                raise RuntimeError(
-                    "Expect 1 or 2 dimensions for {} in report for 'reshape and gather'"
-                    " in 'TestReporter', but got {} instead.".format(key, num_dims)
-                )
+                # Collect dims other than batch
+                other_dims = report[key].size()[1:]
+                report[key] = gather_tensor(report[key]).view(-1, *other_dims)
 
         return report
