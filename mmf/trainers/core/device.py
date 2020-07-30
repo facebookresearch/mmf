@@ -1,10 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import logging
 from abc import ABC
 
 import torch
 
 from mmf.common.registry import registry
+
+logger = logging.getLogger(__name__)
 
 
 class TrainerDeviceMixin(ABC):
@@ -33,14 +36,7 @@ class TrainerDeviceMixin(ABC):
             self.device = torch.device("cpu")
 
         registry.register("current_device", self.device)
-
-        if "cuda" in str(self.device):
-            device_info = "CUDA Device {} is: {}".format(
-                self.config.distributed.rank,
-                torch.cuda.get_device_name(self.local_rank),
-            )
-            registry.register("global_device", self.config.distributed.rank)
-            self.writer.write(device_info, log_all=True)
+        registry.register("global_device", self.config.distributed.rank)
 
     def parallelize_model(self) -> None:
         registry.register("data_parallel", False)

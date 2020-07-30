@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import logging
 import os
 import shutil
 
@@ -9,6 +10,8 @@ from mmf.datasets.builders.vqa2.builder import VQA2Builder
 from mmf.utils.download import decompress, download
 from mmf.utils.general import get_mmf_root
 
+logger = logging.getLogger(__name__)
+
 
 @registry.register_builder("visual_genome")
 class VisualGenomeBuilder(VQA2Builder):
@@ -17,7 +20,6 @@ class VisualGenomeBuilder(VQA2Builder):
         self.dataset_name = "visual_genome"
         self.dataset_proper_name = "Visual Genome"
         self.dataset_class = VisualGenomeDataset
-        self.writer = registry.get("writer")
 
     @classmethod
     def config_path(cls):
@@ -74,22 +76,18 @@ class VisualGenomeBuilder(VQA2Builder):
             )
             != 0
         ):
-            self.writer.write(
-                "{} {} already present. Skipping download.".format(
-                    self.dataset_proper_name, file_type
-                )
+            logger.info(
+                f"{self.dataset_proper_name} {file_type} already present. "
+                + "Skipping download."
             )
             return extraction_folder
 
-        self.writer.write(
-            "Downloading the {} {} now.".format(self.dataset_proper_name, file_type)
-        )
+        logger.info(f"Downloading the {self.dataset_proper_name} {file_type} now.")
         download(url, download_folder, url.split("/")[-1])
 
-        self.writer.write(
-            "Extracting the {} {} now. This may take time".format(
-                self.dataset_proper_name, file_type
-            )
+        logger.info(
+            f"Extracting the {self.dataset_proper_name} {file_type} now. "
+            + "This may take time"
         )
         decompress(download_folder, url.split("/")[-1])
 

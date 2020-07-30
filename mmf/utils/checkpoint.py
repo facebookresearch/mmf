@@ -2,6 +2,7 @@
 
 import glob
 import importlib
+import logging
 import os
 import sys
 import warnings
@@ -20,6 +21,8 @@ try:
     import git
 except ImportError:
     git = None
+
+logger = logging.getLogger(__name__)
 
 
 def _hack_imports():
@@ -172,7 +175,7 @@ class Checkpoint:
 
     def _load(self, file, force=False, load_zoo=False, load_pretrained=False):
         ckpt_config = self.config.checkpoint
-        self.trainer.writer.write("Loading checkpoint")
+        logger.info("Loading checkpoint")
         if load_zoo:
             ckpt, should_continue = self._load_from_zoo(file)
             if not should_continue:
@@ -206,7 +209,7 @@ class Checkpoint:
 
             self.trainer.early_stop_callback.early_stopping.init_from_checkpoint(ckpt)
 
-            self.trainer.writer.write("Checkpoint loaded")
+            logger.info("Checkpoint loaded")
 
             reset_counts = ckpt_config.reset.all or ckpt_config.reset.counts
 
@@ -220,7 +223,7 @@ class Checkpoint:
             try:
                 self.trainer.optimizer.load_state_dict(ckpt["optimizer"])
             except ValueError:
-                self.trainer.writer.write(
+                logger.info(
                     "Optimizer failed to load. Try with "
                     + "checkpoint.reset.optimizer=True"
                 )
@@ -289,11 +292,9 @@ class Checkpoint:
                         and own_attr.replace(key, "")
                         == formatted_attr.replace(value, "")
                     ):
-                        self.trainer.writer.write(
-                            "Copying " + own_attr + " from " + attr
-                        )
+                        logger.info("Copying " + own_attr + " from " + attr)
                         own_state[own_attr].copy_(ckpt[attr])
-        self.trainer.writer.write("Pretrained model loaded")
+        logger.info("Pretrained model loaded")
 
     def upgrade_state_dict(self, state_dict):
         data_parallel = registry.get("data_parallel") or registry.get("distributed")
@@ -432,7 +433,7 @@ class Checkpoint:
 
     def restore(self):
         synchronize()
-        self.trainer.writer.write("Restoring checkpoint")
+        logger.info("Restoring checkpoint")
         best_path = os.path.join(self.ckpt_foldername, self.ckpt_prefix + "best.ckpt")
 
         if PathManager.exists(best_path):

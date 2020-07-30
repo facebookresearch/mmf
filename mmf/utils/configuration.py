@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import collections
 import json
+import logging
 import os
 import warnings
 from ast import literal_eval
@@ -13,6 +14,8 @@ from mmf.common.registry import registry
 from mmf.utils.env import import_user_module
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path, get_mmf_root
+
+logger = logging.getLogger(__name__)
 
 
 def load_yaml(f):
@@ -418,14 +421,14 @@ class Configuration:
                         current_value,
                         (collections.abc.Mapping, collections.abc.Sequence),
                     ):
-                        print(f"Overriding option {opt} to {value}")
+                        logger.info(f"Overriding option {opt} to {value}")
                         current[stripped_field][array_index] = self._decode_value(value)
                     else:
                         # Otherwise move on down the chain
                         current = current_value
                 else:
                     if idx == len(splits) - 1:
-                        print(f"Overriding option {opt} to {value}")
+                        logger.info(f"Overriding option {opt} to {value}")
                         current[stripped_field] = self._decode_value(value)
                     else:
                         raise AttributeError(
@@ -477,36 +480,29 @@ class Configuration:
         if not self.config.training.log_detailed_config:
             return
 
-        self.writer = registry.get("writer")
+        logger.info("=====  Training Parameters    =====")
+        logger.info(self._convert_node_to_json(self.config.training))
 
-        self.writer.write("=====  Training Parameters    =====", "info")
-        self.writer.write(self._convert_node_to_json(self.config.training), "info")
-
-        self.writer.write("======  Dataset Attributes  ======", "info")
+        logger.info("======  Dataset Attributes  ======")
         datasets = self.config.datasets.split(",")
 
         for dataset in datasets:
             if dataset in self.config.dataset_config:
-                self.writer.write(f"======== {dataset} =======", "info")
+                logger.info(f"======== {dataset} =======")
                 dataset_config = self.config.dataset_config[dataset]
-                self.writer.write(self._convert_node_to_json(dataset_config), "info")
+                logger.info(self._convert_node_to_json(dataset_config))
             else:
-                self.writer.write(
-                    f"No dataset named '{dataset}' in config. Skipping", "warning"
-                )
+                logger.warning(f"No dataset named '{dataset}' in config. Skipping")
 
-        self.writer.write("======  Optimizer Attributes  ======", "info")
-        self.writer.write(self._convert_node_to_json(self.config.optimizer), "info")
+        logger.info("======  Optimizer Attributes  ======")
+        logger.info(self._convert_node_to_json(self.config.optimizer))
 
         if self.config.model not in self.config.model_config:
             raise ValueError(f"{self.config.model} not present in model attributes")
 
-        self.writer.write(
-            f"======  Model ({self.config.model}) Attributes  ======", "info"
-        )
-        self.writer.write(
-            self._convert_node_to_json(self.config.model_config[self.config.model]),
-            "info",
+        logger.info(f"======  Model ({self.config.model}) Attributes  ======")
+        logger.info(
+            self._convert_node_to_json(self.config.model_config[self.config.model])
         )
 
     def _convert_node_to_json(self, node):
@@ -514,7 +510,6 @@ class Configuration:
         return json.dumps(container, indent=4, sort_keys=True)
 
     def _update_specific(self, config):
-        self.writer = registry.get("writer")
         # tp = self.config.training
 
         # if args["seed"] is not None or tp['seed'] is not None:

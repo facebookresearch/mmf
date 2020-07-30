@@ -5,8 +5,6 @@ from collections import OrderedDict
 
 import torch
 
-from mmf.common.registry import registry
-
 
 class Report(OrderedDict):
     def __init__(self, batch, model_output=None, *args):
@@ -24,7 +22,6 @@ class Report(OrderedDict):
                     "collections.abc.Mapping".format(idx, arg)
                 )
 
-        self.writer = registry.get("writer")
         self.batch_size = batch.get_batch_size()
         self.warning_string = (
             "Updating forward report with key {}"

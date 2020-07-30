@@ -129,7 +129,6 @@ class MMFLoss(nn.Module):
         super().__init__()
         if params is None:
             params = {}
-        self.writer = registry.get("writer")
 
         is_mapping = isinstance(params, collections.abc.MutableMapping)
 
@@ -376,7 +375,6 @@ class MultiLoss(nn.Module):
         super().__init__()
         self.losses = []
         self.losses_weights = []
-        self.writer = registry.get("writer")
 
         self.loss_names = []
 

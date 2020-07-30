@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import logging
 import os
 import shutil
 
@@ -9,6 +10,8 @@ from mmf.datasets.builders.visual_genome.builder import VisualGenomeBuilder
 from mmf.utils.download import decompress, download
 from mmf.utils.general import get_mmf_root
 
+logger = logging.getLogger(__name__)
+
 
 @registry.register_builder("visual_dialog")
 class VisualDialogBuilder(VisualGenomeBuilder):
@@ -16,7 +19,6 @@ class VisualDialogBuilder(VisualGenomeBuilder):
         super().__init__()
         self.dataset_name = "visual_dialog"
         self.dataset_class = VisualDialogDataset
-        self.writer = registry.get("writer")
 
     @classmethod
     def config_path(cls):

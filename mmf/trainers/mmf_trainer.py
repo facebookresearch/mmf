@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import logging
 
 import omegaconf
 
@@ -19,6 +20,8 @@ from mmf.trainers.core.reporting import TrainerReportingMixin
 from mmf.trainers.core.training_loop import TrainerTrainingLoopMixin
 from mmf.utils.build import build_model, build_optimizer
 from mmf.utils.general import print_model_parameters
+
+logger = logging.getLogger(__name__)
 
 
 @registry.register_trainer("mmf")
@@ -57,7 +60,7 @@ class MMFTrainer(
         self.callbacks.append(self.lr_scheduler_callback)
 
     def load_datasets(self):
-        self.writer.write("Loading datasets", "info")
+        logger.info("Loading datasets")
         self.dataset_loader = DatasetLoader(self.config)
         self.dataset_loader.load_datasets()
 
@@ -70,7 +73,7 @@ class MMFTrainer(
         self.test_loader = self.dataset_loader.test_loader
 
     def load_model(self):
-        self.writer.write("Loading model", "info")
+        logger.info("Loading model")
         attributes = self.config.model_config[self.config.model]
         # Easy way to point to config for other model
         if isinstance(attributes, str):
@@ -83,18 +86,18 @@ class MMFTrainer(
         self.model = self.model.to(self.device)
 
     def load_optimizer(self):
-        self.writer.write("Loading optimizer", "info")
+        logger.info("Loading optimizer")
         self.optimizer = build_optimizer(self.model, self.config)
 
     def load_metrics(self) -> None:
-        self.writer.write("Loading metrics", "info")
+        logger.info("Loading metrics")
         metrics = self.config.evaluation.get("metrics", [])
         self.metrics = Metrics(metrics)
         self.metrics_params = self.metrics.required_params
 
     def train(self):
-        self.writer.write("===== Model =====")
-        self.writer.write(self.model)
+        logger.info("===== Model =====")
+        logger.info(self.model)
         print_model_parameters(self.model)
 
         if "train" not in self.run_type:
@@ -121,7 +124,7 @@ class MMFTrainer(
                 self.on_prediction_end()
             else:
                 self.on_test_start()
-                self.writer.write(f"Starting inference on {dataset} set")
+                logger.info(f"Starting inference on {dataset} set")
                 report, meter = self.evaluation_loop(
                     getattr(self, f"{dataset}_loader"), use_tqdm=True
                 )

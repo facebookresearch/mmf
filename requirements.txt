@@ -13,3 +13,4 @@ transformers==2.3.0
 sklearn==0.0
 omegaconf==2.0.1rc4
 lmdb==0.98
+termcolor==1.1.0

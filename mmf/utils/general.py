@@ -2,14 +2,17 @@
 
 import collections
 import gc
+import logging
 import os
 from bisect import bisect
 
 import torch
 from torch import nn
 
-from mmf.utils.distributed import get_world_size
+from mmf.utils.distributed import get_rank, get_world_size
 from mmf.utils.file_io import PathManager
+
+logger = logging.getLogger(__name__)
 
 
 def lr_lambda_update(i_iter, cfg):
@@ -231,17 +234,12 @@ def get_batch_size():
 
 
 def print_model_parameters(model, return_only=False):
-    from mmf.common.registry import registry
-
-    writer = registry.get("writer")
     total_params = sum(p.numel() for p in model.parameters())
     trained_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
     if not return_only:
-        writer.write(
-            "Total Parameters: {}. Trained Parameters: {}".format(
-                total_params, trained_params
-            )
+        logger.info(
+            f"Total Parameters: {total_params}. Trained Parameters: {trained_params}"
         )
     return total_params, trained_params
 
@@ -273,3 +271,9 @@ def get_chunks(x, sizes):
 
 def filter_grads(parameters):
     return [param for param in parameters if param.requires_grad]
+
+
+def log_device_names():
+    if torch.cuda.is_available():
+        device_name = torch.cuda.get_device_name()
+        logger.info(f"CUDA Device {get_rank()} is: {device_name}")

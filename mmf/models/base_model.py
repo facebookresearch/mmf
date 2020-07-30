@@ -67,7 +67,6 @@ class BaseModel(nn.Module):
         super().__init__()
         self.config = config
         self._logged_warning = {"losses_present": False}
-        self.writer = registry.get("writer")
         self._is_pretrained = False
 
     @property

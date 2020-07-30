@@ -384,7 +384,7 @@ class Registry:
             and value == default
             and no_warning is False
         ):
-            cls.mapping["state"]["writer"].write(
+            cls.mapping["state"]["writer"].warning(
                 "Key {} is not present in registry, returning default value "
                 "of {}".format(original_name, default)
             )
