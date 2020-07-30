@@ -299,10 +299,10 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span><span class="p">,</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -318,6 +318,8 @@
 <span class="kn">from</span> <span class="nn">mmf.utils.file_io</span> <span class="kn">import</span> <span class="n">PathManager</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.text</span> <span class="kn">import</span> <span class="n">VocabDict</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.vocab</span> <span class="kn">import</span> <span class="n">Vocab</span><span class="p">,</span> <span class="n">WordToVectorDict</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="BatchProcessorConfigType"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.BatchProcessorConfigType">[docs]</a><span class="nd">@dataclass</span>
@@ -361,13 +363,11 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        config (DictConfig): DictConfig containing ``type`` of the processor to</span>
-<span class="sd">                             be initialized and ``params`` of that procesor.</span>
+<span class="sd">                             be initialized and ``params`` of that processor.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">ProcessorConfigType</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;writer&quot;</span><span class="p">)</span>
-
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
                 <span class="s2">&quot;Config must have &#39;type&#39; attribute to specify type of processor&quot;</span>
@@ -377,10 +377,10 @@
 
         <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;params&quot;</span><span class="p">):</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">&quot;Config doesn&#39;t have &#39;params&#39; attribute to &quot;</span>
                 <span class="s2">&quot;specify parameters of the processor &quot;</span>
-                <span class="s2">&quot;of type </span><span class="si">{}</span><span class="s2">. Setting to default {{}}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">type</span><span class="p">)</span>
+                <span class="sa">f</span><span class="s2">&quot;of type </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">. Setting to default </span><span class="se">{{}}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">params</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">params</span>
@@ -478,8 +478,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_extras</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_init_extras</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">writer</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;writer&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span> <span class="o">=</span> <span class="n">writer</span> <span class="k">if</span> <span class="n">writer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;max_length&quot;</span><span class="p">):</span>
@@ -668,7 +666,7 @@
             <span class="n">needs_download</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="k">if</span> <span class="n">needs_download</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Downloading FastText bin&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Downloading FastText bin&quot;</span><span class="p">)</span>
             <span class="n">model_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_download_model</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">model_file</span> <span class="o">=</span> <span class="n">model_file</span>
@@ -684,7 +682,7 @@
             <span class="k">return</span> <span class="n">model_file_path</span>
 
         <span class="k">if</span> <span class="n">PathManager</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">model_file_path</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Vectors already present at </span><span class="si">{</span><span class="n">model_file_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Vectors already present at </span><span class="si">{</span><span class="n">model_file_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">model_file_path</span>
 
         <span class="kn">import</span> <span class="nn">requests</span>
@@ -711,7 +709,7 @@
 
             <span class="n">pbar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fastText bin downloaded at </span><span class="si">{</span><span class="n">model_file_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fastText bin downloaded at </span><span class="si">{</span><span class="n">model_file_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">model_file_path</span>
 
@@ -721,12 +719,12 @@
 
         <span class="kn">from</span> <span class="nn">fasttext</span> <span class="kn">import</span> <span class="n">load_model</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Loading fasttext model now from </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">model_file</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading fasttext model now from </span><span class="si">{</span><span class="n">model_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">load_model</span><span class="p">(</span><span class="n">model_file</span><span class="p">)</span>
         <span class="c1"># String to Vector</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stov</span> <span class="o">=</span> <span class="n">WordToVectorDict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Finished loading fasttext model&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Finished loading fasttext model&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_already_loaded</span> <span class="o">=</span> <span class="kc">True</span>
 
@@ -769,7 +767,6 @@
     <span class="n">DEFAULT_NUM_ANSWERS</span> <span class="o">=</span> <span class="mi">10</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;writer&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;vocab_file&quot;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
                 <span class="s2">&quot;&#39;vocab_file&#39; argument required, but not &quot;</span>

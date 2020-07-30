@@ -616,7 +616,7 @@
             <span class="ow">and</span> <span class="n">value</span> <span class="o">==</span> <span class="n">default</span>
             <span class="ow">and</span> <span class="n">no_warning</span> <span class="ow">is</span> <span class="kc">False</span>
         <span class="p">):</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">][</span><span class="s2">&quot;writer&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">][</span><span class="s2">&quot;writer&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">&quot;Key </span><span class="si">{}</span><span class="s2"> is not present in registry, returning default value &quot;</span>
                 <span class="s2">&quot;of </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">original_name</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
             <span class="p">)</span>
