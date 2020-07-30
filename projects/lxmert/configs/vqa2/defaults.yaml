@@ -4,7 +4,6 @@ model_config:
     num_labels: 3129
     losses:
     - type: logit_bce
-    
 
 dataset_config:
   vqa2:
@@ -18,8 +17,8 @@ dataset_config:
             params:
               do_lower_case: true
           mask_probability: 0
-          max_seq_length: 128
-          
+          max_seq_length: 20
+
 optimizer:
   type: adam_w
   params:
