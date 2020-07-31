@@ -153,7 +153,7 @@ dataset_config:
           max_length: 1
           vocab:
             type: random
-            vocab_file: vocabs/vocabulary_100k.txt
+            vocab_file: vqa2/defaults/extras/vocabs/vocabulary_100k.txt
   masked_gqa:
     data_dir: ${env.data_dir}/datasets
     zoo_requirements:
@@ -215,7 +215,7 @@ dataset_config:
           max_length: 1
           vocab:
             type: random
-            vocab_file: vocabs/vocabulary_100k.txt
+            vocab_file: gqa/defaults/vocabs/vocabulary_100k.txt
   masked_coco:
     data_dir: ${env.data_dir}/datasets
     depth_first: false
@@ -258,7 +258,7 @@ dataset_config:
           max_length: 1
           vocab:
             type: random
-            vocab_file: vocabs/vocabulary_100k.txt
+            vocab_file: coco/defaults/extras/vocabs/vocabulary_100k.txt
       masked_token_processor:
         type: masked_token
         params:

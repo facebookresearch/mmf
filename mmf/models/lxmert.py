@@ -1,4 +1,4 @@
- # Copyright 2019 project LXMERT.
+# Copyright 2019 project LXMERT.
 # Copyright 2018 The Google AI Language Team Authors and The HuggingFace Inc. team.
 # Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
 # Copyright (c) Facebook, Inc. and its affiliates.
@@ -16,28 +16,28 @@
 # limitations under the License.
 
 import math
-import random
 import os
-import numpy as np
+
 import torch
-import random
 from omegaconf import OmegaConf
 from torch import nn
 from torch.nn import CrossEntropyLoss, SmoothL1Loss
 from transformers.modeling_bert import (
     ACT2FN,
     BertConfig,
+    BertEmbeddings,
     BertIntermediate,
     BertLayerNorm,
     BertOutput,
     BertPredictionHeadTransform,
     BertPreTrainedModel,
-    BertEmbeddings
 )
+
 from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
+
 
 def gelu(x):
 
@@ -61,6 +61,7 @@ class GeLU(nn.Module):
 
 
 ACT2FN["gelu"] = gelu
+
 
 class BertAttention(nn.Module):
     def __init__(self, config, ctx_dim=None):
@@ -124,7 +125,7 @@ class BertAttention(nn.Module):
 
 class BertAttOutput(nn.Module):
     def __init__(self, config):
-        super(BertAttOutput, self).__init__()
+        super().__init__()
         self.dense = nn.Linear(config.hidden_size, config.hidden_size)
         self.LayerNorm = BertLayerNorm(config.hidden_size, eps=1e-12)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
@@ -150,7 +151,7 @@ class BertCrossattLayer(nn.Module):
 
 class BertSelfattLayer(nn.Module):
     def __init__(self, config):
-        super(BertSelfattLayer, self).__init__()
+        super().__init__()
         self.self = BertAttention(config)
         self.output = BertAttOutput(config)
 
@@ -164,7 +165,7 @@ class BertSelfattLayer(nn.Module):
 
 class BertLayer(nn.Module):
     def __init__(self, config):
-        super(BertLayer, self).__init__()
+        super().__init__()
         self.attention = BertSelfattLayer(config)
         self.intermediate = BertIntermediate(config)
         self.output = BertOutput(config)
@@ -178,7 +179,7 @@ class BertLayer(nn.Module):
 
 class BertPooler(nn.Module):
     def __init__(self, config):
-        super(BertPooler, self).__init__()
+        super().__init__()
         self.dense = nn.Linear(config.hidden_size, config.hidden_size)
         self.activation = nn.Tanh()
 
@@ -206,7 +207,7 @@ class BertClassificationHead(nn.Module):
             nn.Linear(in_dim, hid_dim * 2),
             GeLU(),
             BertLayerNorm(hid_dim * 2, eps=1e-12),
-            nn.Linear(hid_dim * 2, out_dim)
+            nn.Linear(hid_dim * 2, out_dim),
         )
 
     def forward(self, x):
@@ -216,7 +217,7 @@ class BertClassificationHead(nn.Module):
 
 class BertLMPredictionHead(nn.Module):
     def __init__(self, config, bert_model_embedding_weights):
-        super(BertLMPredictionHead, self).__init__()
+        super().__init__()
         self.transform = BertPredictionHeadTransform(config)
 
         # The output weights are the same as the input embeddings, but there is
@@ -253,7 +254,7 @@ class BertVisualAnswerHead(nn.Module):
                 nn.Linear(in_dim, hid_dim * 2),
                 GeLU(),
                 BertLayerNorm(hid_dim * 2, eps=1e-12),
-                nn.Linear(hid_dim * 2, num_labels[1])
+                nn.Linear(hid_dim * 2, num_labels[1]),
             )
             out_dim = num_labels[0]
 
@@ -261,11 +262,10 @@ class BertVisualAnswerHead(nn.Module):
             nn.Linear(in_dim, hid_dim * 2),
             GeLU(),
             BertLayerNorm(hid_dim * 2, eps=1e-12),
-            nn.Linear(hid_dim * 2, out_dim)
+            nn.Linear(hid_dim * 2, out_dim),
         )
 
-
-    def forward(self, hidden_states, name = None):
+    def forward(self, hidden_states, name=None):
         if name is None or "gqa" not in name:
             return self.logit_fc(hidden_states)
         else:
@@ -283,9 +283,7 @@ class BertVisualObjHead(nn.Module):
         # an output-only bias for each token.
         self.decoder_dict = nn.ModuleDict(
             {
-                key: nn.Linear(
-                    config.hidden_size, config.visual_loss_config[key][0]
-                )
+                key: nn.Linear(config.hidden_size, config.visual_loss_config[key][0])
                 for key in self.visual_losses
             }
         )
@@ -300,7 +298,7 @@ class BertVisualObjHead(nn.Module):
 
 class BertPreTrainingHeads(nn.Module):
     def __init__(self, config, bert_model_embedding_weights):
-        super(BertPreTrainingHeads, self).__init__()
+        super().__init__()
         self.predictions = BertLMPredictionHead(config, bert_model_embedding_weights)
         self.seq_relationship = nn.Linear(config.hidden_size, 2)
 
@@ -544,8 +542,8 @@ class LXMERTForPretraining(nn.Module):
             cache_dir=os.path.join(get_mmf_cache_dir(), "distributed_{}".format(-1)),
         )
 
-        self.num_labels =  config.num_labels
-        self.gqa_labels =  config.gqa_labels
+        self.num_labels = config.num_labels
+        self.gqa_labels = config.gqa_labels
         self.task_mask_lm = config.task_mask_lm
         self.task_obj_predict = config.task_obj_predict
         self.task_matched = config.task_matched
@@ -561,16 +559,16 @@ class LXMERTForPretraining(nn.Module):
         if self.task_obj_predict:
             self.obj_predict_head = BertVisualObjHead(config)
         if self.task_qa:
-            self.answer_head = BertVisualAnswerHead(config,
-                    [self.num_labels, self.gqa_labels])
+            self.answer_head = BertVisualAnswerHead(
+                config, [self.num_labels, self.gqa_labels]
+            )
 
-        #loss functions
+        # loss functions
         self.loss_fcts = {
             "l2": SmoothL1Loss(reduction="none"),
             "ce": CrossEntropyLoss(ignore_index=-1, reduction="none"),
             "ce_lang": CrossEntropyLoss(ignore_index=-1),
         }
-
 
     def init_weights(self):
         if self.config.random_initialize is False:
@@ -591,7 +589,7 @@ class LXMERTForPretraining(nn.Module):
 
     def forward(
         self,
-        input_ids, # tokens
+        input_ids,  # tokens
         token_type_ids=None,
         attention_mask=None,
         visual_feats=None,
@@ -601,11 +599,11 @@ class LXMERTForPretraining(nn.Module):
         masked_image_labels=None,
         obj_labels=None,
         matched_label=None,  #
-        ans=None, # qa answer
-        num_features = None, # max num of objects
+        ans=None,  # qa answer
+        num_features=None,  # max num of objects
         name=None,
         output_all_attention_masks=False,
-        output_all_encoded_layers=False
+        output_all_encoded_layers=False,
     ):
 
         (lang_output, visn_output), pooled_output = self.bert(
@@ -616,7 +614,7 @@ class LXMERTForPretraining(nn.Module):
             visual_pos,
             visual_attention_mask,
             output_all_attention_masks,
-            output_all_encoded_layers
+            output_all_encoded_layers,
         )
 
         lang_prediction_scores, cross_relationship_score = self.cls(
@@ -635,7 +633,8 @@ class LXMERTForPretraining(nn.Module):
             else:
                 num_labels = self.config.gqa_labels
             answer_loss = self.loss_fcts["ce_lang"](
-                answer_score.view(-1, num_labels), ans.argmax(-1))
+                answer_score.view(-1, num_labels), ans.argmax(-1)
+            )
             output["answer_loss"] = answer_loss
         if masked_lm_labels is not None and self.task_mask_lm:
             masked_lm_loss = self.loss_fcts["ce_lang"](
@@ -644,9 +643,9 @@ class LXMERTForPretraining(nn.Module):
             )
             output["masked_lm_loss"] = masked_lm_loss
         if matched_label is not None and self.task_matched:
-            matched_label = matched_label.repeat(cross_relationship_score.size(0)).to(cross_relationship_score).long()
+            matched_label = matched_label.to(cross_relationship_score).long()
             matched_loss = self.loss_fcts["ce_lang"](
-                cross_relationship_score.view(-1, 2), matched_label.view(-1)
+                cross_relationship_score.view(-1, 2), matched_label
             )
             output["matched_loss"] = matched_loss
         if obj_labels is not None and self.task_obj_predict:
@@ -654,24 +653,31 @@ class LXMERTForPretraining(nn.Module):
             visn_prediction_scores_dict = self.obj_predict_head(visn_output)
             for key in self.visual_losses:
                 visn_prediction_scores = visn_prediction_scores_dict[key]
-                (output_dim, loss_fct_name, label_shape, weight)\
-                    = self.visual_loss_config[key]
-                if key=="attr":
+                (
+                    output_dim,
+                    loss_fct_name,
+                    label_shape,
+                    weight,
+                ) = self.visual_loss_config[key]
+                if key == "attr":
                     continue
-                elif key=='obj':
+                elif key == "obj":
                     temp_obj_labels_dict = obj_labels.max(-1)
                     mask_conf = temp_obj_labels_dict.values
                     visn_loss = self.loss_fcts[loss_fct_name](
                         visn_prediction_scores.view(-1, output_dim),
-                        temp_obj_labels_dict.indices.view(-1))
-                elif key=='feat':
+                        temp_obj_labels_dict.indices.view(-1),
+                    )
+                elif key == "feat":
                     if type(masked_image_labels) is None:
                         continue
                     mask_conf = (masked_image_labels == 1).float()
-                    img_loss = self.loss_fcts[loss_fct_name](
-                        visn_prediction_scores.view(-1, output_dim), visual_feats)
+                    visn_loss = self.loss_fcts[loss_fct_name](
+                        visn_prediction_scores.view(-1, output_dim),
+                        visual_feats.view(-1, output_dim),
+                    )
                 if visn_loss.dim() > 1:  # Regression Losses
-                        visn_loss = visn_loss.mean(1)
+                    visn_loss = visn_loss.mean(1)
                 visn_loss = (visn_loss * mask_conf.view(-1)).mean() * weight
                 total_visn_loss += visn_loss
             output["visn_loss"] = total_visn_loss
@@ -684,8 +690,8 @@ class LXMERTForClassification(nn.Module):
         super().__init__()
 
         self.config = config
-        self.num_labels =  config.num_labels
-        self.gqa_labels =  config.num_gqa_labels
+        self.num_labels = config.num_labels
+        self.gqa_labels = config.gqa_labels
         self.mode = config.mode
         self.bert = LXMERTBase.from_pretrained(
             self.config.bert_model_name,
@@ -695,7 +701,9 @@ class LXMERTForClassification(nn.Module):
             cache_dir=os.path.join(get_mmf_cache_dir(), "distributed_{}".format(-1)),
         )
 
-        self.classifier = BertVisualAnswerHead(config, [self.num_labels, self.gqa_labels])
+        self.classifier = BertVisualAnswerHead(
+            config, [self.num_labels, self.gqa_labels]
+        )
 
         self.init_weights()
 
@@ -722,7 +730,7 @@ class LXMERTForClassification(nn.Module):
         ans=None,
         max_features=None,
         output_all_attention_masks=False,
-        output_all_encoded_layers=False
+        output_all_encoded_layers=False,
     ):
 
         (lang_output, visn_output), pooled_output = self.bert(
@@ -733,7 +741,7 @@ class LXMERTForClassification(nn.Module):
             visual_pos,
             visual_attention_mask,
             output_all_encoded_layers,
-            output_all_attention_masks
+            output_all_attention_masks,
         )
 
         output = {}
@@ -787,7 +795,6 @@ class LXMERT(BaseModel):
         # image input
         image_info = getattr(sample_list, "image_info_0", {})
         image_dim_variable = getattr(image_info, "max_features", None)
-        num_boxes = getattr(image_info, "num_boxes", None)
         image_feature_variable = getattr(sample_list, "image_feature_0", None)
         if image_feature_variable is None:
             raise Exception("object features must be provided for lxmert")
@@ -797,12 +804,12 @@ class LXMERT(BaseModel):
         else:
             bbox = torch.tensor(bbox)
             max_features = torch.tensor(
-                    min(image_feature_variable.shape[1], bbox.shape[1]),
-                    dtype=torch.int).cuda()
-            bbox = bbox[:, :max_features.item(), ...]
+                min(image_feature_variable.shape[1], bbox.shape[1]), dtype=torch.int
+            ).cuda()
+            bbox = bbox[:, : max_features.item(), :4]
             image_h = getattr(image_info, "image_height", None)
             image_w = getattr(image_info, "image_width", None)
-            if image_h is not None and image_w  is not None:
+            if image_h is not None and image_w is not None:
                 image_h = torch.tensor(image_h, dtype=torch.int)
                 image_w = torch.tensor(image_w, dtype=torch.int)
                 image_location = torch.zeros(tuple(bbox.shape))
@@ -817,12 +824,12 @@ class LXMERT(BaseModel):
         # aux data
         image_label_variable = getattr(sample_list, "image_labels", None)
         if image_label_variable is not None:
-            image_label_variable = torch.tensor(
-                image_label_variable, dtype=torch.long
-                )[:, :max_features.item(), ...].unsqueeze(-1).cuda()
+            image_label_variable = torch.tensor(image_label_variable, dtype=torch.long)
+            image_label_variable = image_label_variable[:, : max_features.item(), ...]
+            image_label_variable = image_label_variable.unsqueeze(-1).cuda()
         cls_prob = getattr(image_info, "cls_prob", None)
         if cls_prob is not None:
-            cls_prob = torch.tensor(cls_prob)[:, :max_features.item(), ...].cuda()
+            cls_prob = torch.tensor(cls_prob)[:, : max_features.item(), ...].cuda()
         answers = getattr(sample_list, "targets", None)
         if answers is None:
             answers = getattr(sample_list, "answers", None)
@@ -850,7 +857,7 @@ class LXMERT(BaseModel):
             "ans": answers,
             "image_dim": image_dim_variable,
             "max_features": max_features,
-            "dataset_name": str(sample_list.dataset_name)
+            "dataset_name": str(sample_list.dataset_name),
         }
 
     def get_optimizer_parameters(self, config):
@@ -859,9 +866,11 @@ class LXMERT(BaseModel):
     def forward(self, sample_list):
         params = self.get_image_and_text_features(sample_list)
         if params["visual_feats"] is not None and params["image_dim"] is not None:
-            image_mask = torch.arange(params["visual_feats"].size(-2))\
-                .expand(*params["visual_feats"].size()[:-1])\
+            image_mask = (
+                torch.arange(params["visual_feats"].size(-2))
+                .expand(*params["visual_feats"].size()[:-1])
                 .cuda()
+            )
             if len(params["image_dim"].size()) < len(image_mask.size()):
                 params["image_dim"] = params["image_dim"].unsqueeze(-1)
                 assert len(params["image_dim"].size()) == len(image_mask.size())
@@ -883,7 +892,7 @@ class LXMERT(BaseModel):
                 matched_label=params["matched_label"],
                 ans=params["ans"],
                 num_features=params["max_features"],
-                name=params["dataset_name"]
+                name=params["dataset_name"],
             )
             loss_key = "{}/{}".format(
                 sample_list.dataset_name, sample_list.dataset_type
@@ -903,7 +912,8 @@ class LXMERT(BaseModel):
                 )
             if "answer_loss" in output_dict.keys():
                 output_dict["losses"][loss_key + "/answer_loss"] = output_dict.pop(
-                    "answer_loss")
+                    "answer_loss"
+                )
         else:
             output_dict = self.model(
                 input_ids=params["input_ids"],

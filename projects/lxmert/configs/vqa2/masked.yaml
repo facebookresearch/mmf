@@ -61,4 +61,4 @@ dataset_config:
           max_length: 1
           vocab:
             type: random
-            vocab_file: vocabs/vocabulary_100k.txt
+            vocab_file: vqa2/defaults/extras/vocabs/vocabulary_100k.txt

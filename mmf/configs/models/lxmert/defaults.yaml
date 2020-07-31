@@ -4,6 +4,7 @@ model_config:
     training_head_type: pretraining
     random_initialize: false
     num_labels: 3129
+    gqa_labels: 1534
     num_hidden_layers : 12
     num_attention_heads : 12
     intermediate_size : 3072
@@ -62,4 +63,3 @@ model_config:
     in_batch_pairs: false
     visualization: false # need to implement
     model: "bert"
-
