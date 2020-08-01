@@ -36,12 +36,7 @@ class COCODataset(VQA2Dataset):
                 len(sample_info["caption_tokens"]), dtype=torch.int
             )
 
-        if isinstance(sample_info["image_id"], int):
-            current_sample.image_id = torch.tensor(
-                sample_info["image_id"], dtype=torch.int
-            )
-        else:
-            current_sample.image_id = object_to_byte_tensor(sample_info["image_id"])
+        current_sample.image_id = object_to_byte_tensor(sample_info["image_id"])
 
         if self._use_features is True:
             features = self.features_db[idx]
