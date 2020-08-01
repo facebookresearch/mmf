@@ -168,3 +168,67 @@ class TestUtilsText(unittest.TestCase):
         ]
 
         self.assertEqual(tokens[0].tolist(), expected_tokens)
+
+
+class TestUtilsTextBeamSearch(unittest.TestCase):
+    TOKENS = ["this", "will", "be", "a", "test", "of", "tokens"]
+    TOKENIZE_EXAMPLE = "This will be a test of tokens?"
+    VOCAB_EXAMPLE_SENTENCES = [
+        "Are there more big green things than large purple shiny cubes?"
+        "How many other things are there of the same shape as the tiny "
+        + "cyan matte object?",
+        "Is the color of the large sphere the same as the large matte cube?"
+        "What material is the big object that is right of the brown cylinder and "
+        "left of the large brown sphere?",
+        "How big is the brown shiny sphere? ;",
+    ]
+
+    def setUp(self):
+        setup_imports()
+        torch.manual_seed(1234)
+        config_path = os.path.join(
+            get_mmf_root(),
+            "..",
+            "projects",
+            "butd",
+            "configs",
+            "coco",
+            "beam_search.yaml",
+        )
+        config_path = os.path.abspath(config_path)
+        args = dummy_args(model="butd", dataset="coco")
+        args.opts.append(f"config={config_path}")
+        configuration = Configuration(args)
+        configuration.config.datasets = "coco"
+        configuration.freeze()
+        self.config = configuration.config
+        registry.register("config", self.config)
+
+    def test_beam_search(self):
+        vocab = text_utils.VocabFromText(self.VOCAB_EXAMPLE_SENTENCES)
+        model_config = self.config.model_config.butd
+        model = TestDecoderModel(model_config, vocab)
+        model.build()
+        model.to("cuda")
+        model.eval()
+
+        expected_tokens = {
+            1: [1., 23., 1., 24., 29., 37., 40., 17., 29., 2.],
+            2: [1., 0., 8., 1., 28., 25., 2.],
+            8: [1., 34., 1., 13., 1., 2., 0.],
+            16: [1., 25., 18., 2., 0., 0., 0., 0., 0.]
+        }
+
+        for batch_size in [1, 2, 8, 16]:
+            samples = []
+            for _ in range(batch_size):
+                sample = Sample()
+                sample.dataset_name = "coco"
+                sample.dataset_type = "test"
+                sample.image_feature_0 = torch.randn(100, 2048)
+                sample.answers = torch.zeros((5, 10), dtype=torch.long)
+                samples.append(sample)
+
+            sample_list = SampleList(samples)
+            tokens = model(sample_list)["captions"]
+            self.assertEqual(tokens[0].tolist(), expected_tokens[batch_size])
