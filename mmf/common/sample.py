@@ -307,7 +307,7 @@ class SampleList(OrderedDict):
                 "have same size as existing tensor "
                 "fields in SampleList. "
                 "Passed size: {}, Required size: {}".format(
-                    len(data), len(self[fields[0]])
+                    len(data), len(self[tensor_field])
                 )
             )
 
