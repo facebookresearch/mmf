@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import functools
+import logging
 import math
 
 import torch
@@ -17,6 +18,8 @@ from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
 from mmf.modules.encoders import ImageFeatureEncoder
 from mmf.modules.layers import ClassifierLayer
+
+logger = logging.getLogger(__name__)
 
 
 @registry.register_model("m4c")
@@ -55,18 +58,17 @@ class M4C(BaseModel):
                 {"module": self.text_bert, "lr_scale": self.config.lr_scale_text_bert}
             )
         else:
-            self.writer.write("NOT initializing text_bert from BERT_BASE")
+            logger.info("NOT initializing text_bert from BERT_BASE")
             self.text_bert = TextBert(self.text_bert_config)
 
         # if the text bert output dimension doesn't match the
         # multimodal transformer (mmt) hidden dimension,
         # add a linear projection layer between the two
         if self.mmt_config.hidden_size != TEXT_BERT_HIDDEN_SIZE:
-            self.writer.write(
-                "Projecting text_bert output to {} dim".format(
-                    self.mmt_config.hidden_size
-                )
+            logger.info(
+                f"Projecting text_bert output to {self.mmt_config.hidden_size} dim"
             )
+
             self.text_bert_out_linear = nn.Linear(
                 TEXT_BERT_HIDDEN_SIZE, self.mmt_config.hidden_size
             )

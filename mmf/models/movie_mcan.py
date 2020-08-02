@@ -95,9 +95,7 @@ class MoVieMcan(BaseModel):
         feature_embedding = TwoBranchEmbedding(
             getattr(self, attr + "_feature_dim"), **embedding_kwargs
         )
-        setattr(
-            self, attr + "_feature_embeddings_list", feature_embedding,
-        )
+        setattr(self, attr + "_feature_embeddings_list", feature_embedding)
 
     def _get_embeddings_attr(self, attr: str):
         embedding_attr1 = attr

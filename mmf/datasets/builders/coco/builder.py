@@ -32,7 +32,7 @@ class COCOBuilder(VQA2Builder):
             )
 
             registry.register(
-                self.dataset_name + "_answer_processor", self.dataset.answer_processor,
+                self.dataset_name + "_answer_processor", self.dataset.answer_processor
             )
 
     @classmethod

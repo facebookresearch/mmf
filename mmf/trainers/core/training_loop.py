@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import gc
+import logging
 import math
 from abc import ABC
 from typing import Any, Dict
@@ -11,6 +12,8 @@ from torch import Tensor
 from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.utils.general import clip_gradients
+
+logger = logging.getLogger(__name__)
 
 
 class TrainerTrainingLoopMixin(ABC):
@@ -28,13 +31,13 @@ class TrainerTrainingLoopMixin(ABC):
 
         torch.autograd.set_detect_anomaly(self.training_config.detect_anomaly)
 
-        self.writer.write("Starting training...")
+        logger.info("Starting training...")
         self.model.train()
         self.run_training_epoch()
         self.after_training_loop()
 
     def after_training_loop(self) -> None:
-        self.writer.write("Stepping into final validation check")
+        logger.info("Stepping into final validation check")
         # Only do when run_type has train as it shouldn't happen on validation and
         # inference runs. Inference will take care of this anyways. Also, don't run
         # if current iteration is divisble by snapshot interval as it will just
@@ -64,7 +67,7 @@ class TrainerTrainingLoopMixin(ABC):
             for batch in self.train_loader:
                 self.profile("Batch load time")
                 self.current_iteration += 1
-                self.writer.write(self.num_updates + 1, "debug")
+                logger.debug(self.num_updates + 1)
 
                 self.run_training_batch(batch)
 
@@ -75,9 +78,7 @@ class TrainerTrainingLoopMixin(ABC):
                     # Validation begin callbacks
                     self.on_validation_start()
 
-                    self.writer.write(
-                        "Evaluation time. Running on full validation set..."
-                    )
+                    logger.info("Evaluation time. Running on full validation set...")
                     # Validation and Early stopping
                     # Create a new meter for this case
                     report, meter = self.evaluation_loop(self.val_loader)
@@ -94,7 +95,7 @@ class TrainerTrainingLoopMixin(ABC):
                         torch.cuda.empty_cache()
 
                     if stop is True:
-                        self.writer.write("Early stopping activated")
+                        logger.info("Early stopping activated")
                         should_break = True
                 if self.num_updates > self.max_updates:
                     should_break = True

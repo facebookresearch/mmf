@@ -1,15 +1,16 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-
+import logging
 import time
 
 import torch
 
-from mmf.common.registry import registry
 from mmf.trainers.callbacks.base import Callback
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import is_master
-from mmf.utils.logger import TensorboardLogger
+from mmf.utils.logger import TensorboardLogger, log_progress, setup_output_folder
 from mmf.utils.timer import Timer
+
+logger = logging.getLogger(__name__)
 
 
 class LogisticsCallback(Callback):
@@ -34,11 +35,10 @@ class LogisticsCallback(Callback):
         self.snapshot_iterations = len(self.trainer.val_dataset)
         self.snapshot_iterations //= self.training_config.batch_size
 
-        self.writer = registry.get("writer")
         self.tb_writer = None
 
         if self.training_config.tensorboard:
-            log_dir = self.writer.log_folder
+            log_dir = setup_output_folder(folder_only=True)
             env_tb_logdir = get_mmf_env(key="tensorboard_logdir")
             if env_tb_logdir:
                 log_dir = env_tb_logdir
@@ -100,7 +100,7 @@ class LogisticsCallback(Callback):
             kwargs["report"].dataset_name, kwargs["report"].dataset_type
         )
         self._summarize_report(kwargs["meter"], prefix)
-        self.writer.write(f"Finished run in {self.total_timer.get_time_since_start()}")
+        logger.info(f"Finished run in {self.total_timer.get_time_since_start()}")
 
     def _summarize_report(self, meter, should_print=True, extra=None):
         if extra is None:
@@ -124,7 +124,7 @@ class LogisticsCallback(Callback):
         log_dict.update(meter.get_log_dict())
         log_dict.update(extra)
 
-        self.writer.log_progress(log_dict)
+        log_progress(log_dict)
 
     def _calculate_time_left(self):
         time_taken_for_log = time.time() * 1000 - self.train_timer.start

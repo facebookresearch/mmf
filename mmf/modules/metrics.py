@@ -71,7 +71,6 @@ class Metrics:
         if not isinstance(metric_list, collections.abc.Sequence):
             metric_list = [metric_list]
 
-        self.writer = registry.get("writer")
         self.metrics = self._init_metrics(metric_list)
 
     def _init_metrics(self, metric_list):

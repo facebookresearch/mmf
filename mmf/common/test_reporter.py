@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import csv
 import json
+import logging
 import os
 
 import torch
@@ -19,13 +20,14 @@ from mmf.utils.general import (
 )
 from mmf.utils.timer import Timer
 
+logger = logging.getLogger(__name__)
+
 
 class TestReporter(Dataset):
     def __init__(self, multi_task_instance):
         self.test_task = multi_task_instance
         self.task_type = multi_task_instance.dataset_type
         self.config = registry.get("config")
-        self.writer = registry.get("writer")
         self.report = []
         self.timer = Timer()
         self.training_config = self.config.training
@@ -64,7 +66,7 @@ class TestReporter(Dataset):
             return False
         else:
             self.current_dataset = self.datasets[self.current_dataset_idx]
-            self.writer.write("Predicting for " + self.current_dataset.dataset_name)
+            logger.info(f"Predicting for {self.current_dataset.dataset_name}")
             return True
 
     def flush_report(self):
@@ -90,10 +92,8 @@ class TestReporter(Dataset):
             filepath = os.path.join(self.report_folder, filename + ".json")
             self.json_dump(filepath)
 
-        self.writer.write(
-            "Wrote evalai predictions for {} to {}".format(
-                name, os.path.abspath(filepath)
-            )
+        logger.info(
+            f"Wrote evalai predictions for {name} to {os.path.abspath(filepath)}"
         )
         self.report = []
 
@@ -117,7 +117,7 @@ class TestReporter(Dataset):
             ),
             num_workers=self.num_workers,
             pin_memory=self.config.training.pin_memory,
-            **other_args
+            **other_args,
         )
 
     def _add_extra_args_for_dataloader(self, other_args=None):

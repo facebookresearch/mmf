@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 
 from mmf.common import typings as mmf_typings
 from mmf.common.registry import registry
-from mmf.utils.logger import Logger
 
 
 @registry.register_trainer("base")
@@ -16,14 +15,6 @@ class BaseTrainer(ABC):
     def load(self):
         # Set run type
         self.run_type = self.config.get("run_type", "train")
-
-        # Check if logger is already defined, else init it
-        writer = registry.get("writer", no_warning=True)
-        if writer:
-            self.writer = writer
-        else:
-            self.writer = Logger(self.config)
-            registry.register("writer", self.writer)
 
         # Print configuration
         configuration = registry.get("configuration", no_warning=True)

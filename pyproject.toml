@@ -1,5 +1,5 @@
 [tool.isort]
-known_third_party = ["PIL", "cv2", "demjson", "h5py", "lib", "lmdb", "maskrcnn_benchmark", "numpy", "omegaconf", "packaging", "pycocoevalcap", "pytorch_sphinx_theme", "recommonmark", "requests", "setuptools", "sklearn", "torch", "torchtext", "torchvision", "tqdm", "transformers"]
+known_third_party = ["PIL", "cv2", "demjson", "h5py", "lib", "lmdb", "maskrcnn_benchmark", "numpy", "omegaconf", "packaging", "pycocoevalcap", "pytorch_sphinx_theme", "recommonmark", "requests", "setuptools", "sklearn", "termcolor", "torch", "torchtext", "torchvision", "tqdm", "transformers"]
 skip_glob = "**/build/**,website/**"
 multi_line_output = 3
 line_length = 88

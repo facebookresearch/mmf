@@ -67,10 +67,10 @@ Example::
 """
 
 import copy
+import logging
 import os
 import random
 import re
-import sys
 import warnings
 from collections import Counter, defaultdict
 from dataclasses import dataclass
@@ -86,6 +86,8 @@ from mmf.utils.distributed import is_master, synchronize
 from mmf.utils.file_io import PathManager
 from mmf.utils.text import VocabDict
 from mmf.utils.vocab import Vocab, WordToVectorDict
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -129,13 +131,11 @@ class Processor:
 
     Args:
         config (DictConfig): DictConfig containing ``type`` of the processor to
-                             be initialized and ``params`` of that procesor.
+                             be initialized and ``params`` of that processor.
 
     """
 
     def __init__(self, config: ProcessorConfigType, *args, **kwargs):
-        self.writer = registry.get("writer")
-
         if not hasattr(config, "type"):
             raise AttributeError(
                 "Config must have 'type' attribute to specify type of processor"
@@ -145,10 +145,10 @@ class Processor:
 
         params = {}
         if not hasattr(config, "params"):
-            warnings.warn(
+            logger.warning(
                 "Config doesn't have 'params' attribute to "
                 "specify parameters of the processor "
-                "of type {}. Setting to default {{}}".format(config.type)
+                f"of type {config.type}. Setting to default {{}}"
             )
         else:
             params = config.params
@@ -246,8 +246,6 @@ class VocabProcessor(BaseProcessor):
         self._init_extras(config)
 
     def _init_extras(self, config, *args, **kwargs):
-        writer = registry.get("writer")
-        self.writer = writer if writer is not None else sys.stdout
         self.preprocessor = None
 
         if hasattr(config, "max_length"):
@@ -436,7 +434,7 @@ class FastTextProcessor(VocabProcessor):
             needs_download = True
 
         if needs_download:
-            self.writer.write("Downloading FastText bin")
+            logger.info("Downloading FastText bin")
             model_file = self._download_model()
 
         self.model_file = model_file
@@ -452,7 +450,7 @@ class FastTextProcessor(VocabProcessor):
             return model_file_path
 
         if PathManager.exists(model_file_path):
-            self.writer.write(f"Vectors already present at {model_file_path}.")
+            logger.info(f"Vectors already present at {model_file_path}.")
             return model_file_path
 
         import requests
@@ -479,7 +477,7 @@ class FastTextProcessor(VocabProcessor):
 
             pbar.close()
 
-        self.writer.write(f"fastText bin downloaded at {model_file_path}.")
+        logger.info(f"fastText bin downloaded at {model_file_path}.")
 
         return model_file_path
 
@@ -489,12 +487,12 @@ class FastTextProcessor(VocabProcessor):
 
         from fasttext import load_model
 
-        self.writer.write("Loading fasttext model now from %s" % model_file)
+        logger.info(f"Loading fasttext model now from {model_file}")
 
         self.model = load_model(model_file)
         # String to Vector
         self.stov = WordToVectorDict(self.model)
-        self.writer.write("Finished loading fasttext model")
+        logger.info("Finished loading fasttext model")
 
         self._already_loaded = True
 
@@ -537,7 +535,6 @@ class VQAAnswerProcessor(BaseProcessor):
     DEFAULT_NUM_ANSWERS = 10
 
     def __init__(self, config, *args, **kwargs):
-        self.writer = registry.get("writer")
         if not hasattr(config, "vocab_file"):
             raise AttributeError(
                 "'vocab_file' argument required, but not "

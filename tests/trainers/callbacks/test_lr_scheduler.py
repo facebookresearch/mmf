@@ -64,7 +64,7 @@ class TestLogisticsCallback(unittest.TestCase):
         self.trainer.val_dataset = NumbersDataset()
 
         self.trainer.optimizer = torch.optim.Adam(
-            self.trainer.model.parameters(), lr=1e-01,
+            self.trainer.model.parameters(), lr=1e-01
         )
         self.trainer.lr_scheduler_callback = LRSchedulerCallback(
             self.config, self.trainer

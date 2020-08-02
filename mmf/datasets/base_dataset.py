@@ -24,7 +24,6 @@ class BaseDataset(Dataset):
         self.config = config
         self._dataset_name = dataset_name
         self._dataset_type = dataset_type
-        self.writer = registry.get("writer")
         self._global_config = registry.get("config")
         self._device = registry.get("current_device")
         self.use_cuda = "cuda" in str(self._device)

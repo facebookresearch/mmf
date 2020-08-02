@@ -33,8 +33,8 @@ training:
     # Whether MMF should log or not, Default: False, which means
     # mmf will log by default
     should_not_log: false
-    # Whether to capture stdout logs by the logger. Default: True
-    stdout_capture: true
+    # Whether the colored logs should be used
+    colored_logs: true
 
     # Tensorboard control, by default tensorboard is disabled
     tensorboard: false
