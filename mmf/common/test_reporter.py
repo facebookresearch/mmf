@@ -4,7 +4,6 @@ import json
 import logging
 import os
 
-import torch
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.distributed import DistributedSampler
 
@@ -145,23 +144,15 @@ class TestReporter(Dataset):
         return self.current_dataset[idx]
 
     def add_to_report(self, report, model):
-        # TODO: Later gather whole report for no opinions
-        if self.current_dataset.dataset_name == "coco":
-            report.captions = gather_tensor(report.captions)
-            if isinstance(report.image_id, torch.Tensor):
-                report.image_id = gather_tensor(report.image_id).view(-1)
-        else:
-            report.scores = gather_tensor(report.scores).view(
-                -1, report.scores.size(-1)
-            )
-            keys = ["id", "question_id", "image_id", "context_tokens"]
-            for key in keys:
-                report = self.reshape_and_gather(report, key)
+        keys = ["id", "question_id", "image_id", "context_tokens", "captions", "scores"]
+        for key in keys:
+            report = self.reshape_and_gather(report, key)
 
         if not is_master():
             return
 
         results = self.current_dataset.format_for_prediction(report)
+
         if hasattr(model, "format_for_prediction"):
             results = model.format_for_prediction(results, report)
         elif hasattr(model.module, "format_for_prediction"):
@@ -170,20 +161,13 @@ class TestReporter(Dataset):
         self.report = self.report + results
 
     def reshape_and_gather(self, report, key):
-
         if key in report:
             num_dims = report[key].dim()
             if num_dims == 1:
                 report[key] = gather_tensor(report[key]).view(-1)
-
-            elif num_dims == 2:
-                _, enc_size = report[key].size()
-                report[key] = gather_tensor(report[key]).view(-1, enc_size)
-
-            else:
-                raise RuntimeError(
-                    "Expect 1 or 2 dimensions for {} in report for 'reshape and gather'"
-                    " in 'TestReporter', but got {} instead.".format(key, num_dims)
-                )
+            elif num_dims >= 2:
+                # Collect dims other than batch
+                other_dims = report[key].size()[1:]
+                report[key] = gather_tensor(report[key]).view(-1, *other_dims)
 
         return report
