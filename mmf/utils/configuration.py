@@ -420,7 +420,7 @@ class Configuration:
                     if not isinstance(
                         current_value,
                         (collections.abc.Mapping, collections.abc.Sequence),
-                    ):
+                    ) or idx == len(splits) - 1:
                         logger.info(f"Overriding option {opt} to {value}")
                         current[stripped_field][array_index] = self._decode_value(value)
                     else:
