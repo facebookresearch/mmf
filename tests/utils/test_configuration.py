@@ -35,16 +35,11 @@ class TestUtilsConfiguration(unittest.TestCase):
 
         # Test non-existent variation
         self.assertRaises(
-            AssertionError,
-            get_zoo_config,
-            "textvqa",
-            variation="some_random",
+            AssertionError, get_zoo_config, "textvqa", variation="some_random",
         )
 
         # Test different zoo_type
-        version, resources = get_zoo_config(
-            "visual_bert.pretrained", zoo_type="models"
-        )
+        version, resources = get_zoo_config("visual_bert.pretrained", zoo_type="models")
         self.assertIsNotNone(version)
         self.assertIsNotNone(resources)
 
@@ -71,13 +66,10 @@ class TestUtilsConfiguration(unittest.TestCase):
         args.opts += [
             f"config={config_path}",
             "training.lr_steps[1]=10000",
-            "dataset_config.textvqa.zoo_requirements[0]=\"test\""
+            'dataset_config.textvqa.zoo_requirements[0]="test"',
         ]
         configuration = Configuration(args)
         configuration.freeze()
         config = configuration.get_config()
         self.assertEqual(config.training.lr_steps[1], 10000)
-        self.assertEqual(
-            config.dataset_config.textvqa.zoo_requirements[0],
-            "test"
-        )
+        self.assertEqual(config.dataset_config.textvqa.zoo_requirements[0], "test")
