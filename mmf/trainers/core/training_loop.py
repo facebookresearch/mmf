@@ -148,7 +148,8 @@ class TrainerTrainingLoopMixin(ABC):
     def _calculate_max_updates(self):
         max_updates = self.training_config.max_updates
         max_epochs = self.training_config.max_epochs
-        assert max_updates is not None or max_epochs is not None
+        if max_updates is None and max_epochs is None:
+            raise Exception("Neither max_updates nor max_epochs is specified.")
 
         if max_updates is not None and max_epochs is not None:
             warnings.warn(

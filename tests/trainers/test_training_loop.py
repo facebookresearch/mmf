@@ -9,30 +9,7 @@ from omegaconf import OmegaConf
 from mmf.common.sample import SampleList
 from mmf.trainers.core.profiling import TrainerProfilingMixin
 from mmf.trainers.core.training_loop import TrainerTrainingLoopMixin
-
-DATA_ITEM_KEY = "test"
-
-
-class NumbersDataset(torch.utils.data.Dataset):
-    def __init__(self, num_examples):
-        self.num_examples = num_examples
-
-    def __getitem__(self, idx):
-        return {DATA_ITEM_KEY: torch.tensor(idx, dtype=torch.float32)}
-
-    def __len__(self):
-        return self.num_examples
-
-
-class SimpleModel(torch.nn.Module):
-    def __init__(self, size):
-        super().__init__()
-        self.linear = torch.nn.Linear(size, 4)
-
-    def forward(self, prepared_batch):
-        batch = prepared_batch[DATA_ITEM_KEY]
-        model_output = {"losses": {"loss": torch.sum(self.linear(batch))}}
-        return model_output
+from tests.test_utils import NumbersDataset, SimpleModel
 
 
 class TrainerTrainingLoopMock(TrainerTrainingLoopMixin, TrainerProfilingMixin):
@@ -74,39 +51,29 @@ class TestTrainingLoop(unittest.TestCase):
         max_updates = trainer._calculate_max_updates()
         self.assertEqual(max_updates, 4)
 
-        self.assertEqual(trainer.current_iteration, 0)
-        self.assertEqual(trainer.current_epoch, 0)
-        self.assertEqual(trainer.num_updates, 0)
-
+        self.check_values(trainer, 0, 0, 0)
         trainer.training_loop()
-        self.assertEqual(trainer.current_iteration, 4)
-        self.assertEqual(trainer.current_epoch, 1)
-        self.assertEqual(trainer.num_updates, 4)
+        self.check_values(trainer, 4, 1, 4)
 
     def test_fractional_epoch(self):
         trainer = TrainerTrainingLoopMock(100, None, 0.04)
         max_updates = trainer._calculate_max_updates()
         self.assertEqual(max_updates, 4)
 
-        self.assertEqual(trainer.current_iteration, 0)
-        self.assertEqual(trainer.current_epoch, 0)
-        self.assertEqual(trainer.num_updates, 0)
-
+        self.check_values(trainer, 0, 0, 0)
         trainer.training_loop()
-        self.assertEqual(trainer.current_iteration, 4)
-        self.assertEqual(trainer.current_epoch, 1)
-        self.assertEqual(trainer.num_updates, 4)
+        self.check_values(trainer, 4, 1, 4)
 
     def test_updates(self):
         trainer = TrainerTrainingLoopMock(100, 2, None)
         max_updates = trainer._calculate_max_updates()
         self.assertEqual(max_updates, 2)
 
-        self.assertEqual(trainer.current_iteration, 0)
-        self.assertEqual(trainer.current_epoch, 0)
-        self.assertEqual(trainer.num_updates, 0)
-
+        self.check_values(trainer, 0, 0, 0)
         trainer.training_loop()
-        self.assertEqual(trainer.current_iteration, 2)
-        self.assertEqual(trainer.current_epoch, 1)
-        self.assertEqual(trainer.num_updates, 2)
+        self.check_values(trainer, 2, 1, 2)
+
+    def check_values(self, trainer, current_iteration, current_epoch, num_updates):
+        self.assertEqual(trainer.current_iteration, current_iteration)
+        self.assertEqual(trainer.current_epoch, current_epoch)
+        self.assertEqual(trainer.num_updates, num_updates)
