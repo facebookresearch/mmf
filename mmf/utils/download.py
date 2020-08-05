@@ -335,7 +335,7 @@ def download_pretrained_model(model_name, *args, **kwargs):
     import omegaconf
     from omegaconf import OmegaConf
 
-    from mmf.utils.configuration import load_yaml, get_mmf_env
+    from mmf.utils.configuration import get_mmf_env, load_yaml
 
     model_zoo = load_yaml(get_mmf_env(key="model_zoo"))
     OmegaConf.set_struct(model_zoo, True)
