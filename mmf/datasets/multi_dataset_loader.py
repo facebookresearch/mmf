@@ -241,13 +241,7 @@ class MultiDatasetLoader:
         self._chosen_dataset.verbose_dump(*args, **kwargs)
 
     def prepare_batch(self, batch):
-        if not hasattr(self._chosen_dataset, "prepare_batch"):
-            warnings.warn(
-                f"{self._chosen_dataset.dataset_name} doesn't define 'prepare_batch' "
-                + "method. You are expected to prepare and move your batch to "
-                + "CUDA device yourself."
-            )
-        else:
+        if hasattr(self._chosen_dataset, "prepare_batch"):
             batch = self._chosen_dataset.prepare_batch(batch)
 
         self.change_dataloader()

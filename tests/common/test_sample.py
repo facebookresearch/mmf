@@ -1,8 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
+import torch
+
 import tests.test_utils as test_utils
-from mmf.common.sample import Sample
+from mmf.common.sample import Sample, to_device
 
 
 class TestSample(unittest.TestCase):
@@ -69,3 +71,27 @@ class TestSampleList(unittest.TestCase):
 
         self.assertTrue(all_keys)
         self.assertTrue(isinstance(sample_dict, dict))
+
+
+class TestFunctions(unittest.TestCase):
+    def test_to_device(self):
+        sample_list = test_utils.build_random_sample_list()
+
+        modified = to_device(sample_list, "cpu")
+        self.assertEqual(modified.get_device(), torch.device("cpu"))
+
+        modified = to_device(sample_list, torch.device("cpu"))
+        self.assertEqual(modified.get_device(), torch.device("cpu"))
+
+        modified = to_device(sample_list, "cuda")
+
+        if torch.cuda.is_available():
+            self.assertEqual(modified.get_device(), torch.device("cuda:0"))
+        else:
+            self.assertEqual(modified.get_device(), torch.device("cpu"))
+
+        double_modified = to_device(modified, modified.get_device())
+        self.assertTrue(double_modified is modified)
+
+        custom_batch = [{"a": 1}]
+        self.assertEqual(to_device(custom_batch), custom_batch)

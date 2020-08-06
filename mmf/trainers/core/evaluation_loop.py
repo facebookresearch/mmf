@@ -9,6 +9,7 @@ import tqdm
 
 from mmf.common.meter import Meter
 from mmf.common.report import Report
+from mmf.common.sample import to_device
 from mmf.utils.distributed import is_master
 
 logger = logging.getLogger(__name__)
@@ -60,6 +61,7 @@ class TrainerEvaluationLoopMixin(ABC):
 
                 for batch in tqdm.tqdm(dataloader):
                     prepared_batch = reporter.prepare_batch(batch)
+                    prepared_batch = to_device(prepared_batch, torch.device("cuda"))
                     model_output = self.model(prepared_batch)
                     report = Report(prepared_batch, model_output)
                     reporter.add_to_report(report, self.model)

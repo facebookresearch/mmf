@@ -12,6 +12,7 @@ from torch import Tensor
 
 from mmf.common.registry import registry
 from mmf.common.report import Report
+from mmf.common.sample import to_device
 from mmf.utils.general import clip_gradients
 
 logger = logging.getLogger(__name__)
@@ -116,6 +117,8 @@ class TrainerTrainingLoopMixin(ABC):
 
     def _forward(self, batch: Tensor) -> Dict[str, Any]:
         prepared_batch = self.dataset_loader.prepare_batch(batch)
+        # Move the sample list to device if it isn't as of now.
+        prepared_batch = to_device(prepared_batch, torch.device("cuda"))
         self.profile("Batch prepare time")
         # Arguments should be a dict at this point
         model_output = self.model(prepared_batch)
