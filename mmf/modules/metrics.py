@@ -47,10 +47,25 @@ Example config for above metric::
 import collections
 
 import torch
-from sklearn.metrics import average_precision_score, f1_score, roc_auc_score
+from sklearn.metrics import (
+    average_precision_score,
+    f1_score,
+    precision_recall_curve,
+    roc_auc_score,
+)
 
 from mmf.common.registry import registry
 from mmf.datasets.processors.processors import EvalAIAnswerProcessor
+
+
+def _convert_to_one_hot(expected, output):
+    # This won't get called in case of multilabel, only multiclass or binary
+    # as multilabel will anyways be multi hot vector
+    if output.squeeze().dim() != expected.squeeze().dim() and expected.dim() == 1:
+        expected = torch.nn.functional.one_hot(
+            expected.long(), num_classes=output.size(-1)
+        ).float()
+    return expected
 
 
 class Metrics:
@@ -79,22 +94,42 @@ class Metrics:
         for metric in metric_list:
             params = {}
             if isinstance(metric, collections.abc.Mapping):
-                if not hasattr(metric, "type"):
-                    raise ValueError(f"Metric {metric} needs to have 'type' attribute")
-                metric = metric.type
+                if "type" not in metric:
+                    raise ValueError(
+                        f"Metric {metric} needs to have 'type' attribute "
+                        + "or should be a string"
+                    )
+                metric_type = key = metric.type
                 params = getattr(metric, "params", {})
+                # Support cases where uses need to give custom metric name
+                if "key" in metric:
+                    key = metric.key
+
+                # One key should only be used once
+                if key in metrics:
+                    raise RuntimeError(
+                        f"Metric with type/key '{metric_type}' has been defined more "
+                        + "than once in metric list."
+                    )
             else:
                 if not isinstance(metric, str):
                     raise TypeError(
                         "Metric {} has inappropriate type"
                         "'dict' or 'str' allowed".format(metric)
                     )
+                metric_type = key = metric
 
-            metric_cls = registry.get_metric_class(metric)
+            metric_cls = registry.get_metric_class(metric_type)
             if metric_cls is None:
-                raise ValueError(f"No metric named {metric} registered to registry")
-            metrics[metric] = metric_cls(**params)
-            self.required_params.update(metrics[metric].required_params)
+                raise ValueError(
+                    f"No metric named {metric_type} registered to registry"
+                )
+
+            metric_instance = metric_cls(**params)
+            metric_instance.name = key
+
+            metrics[key] = metric_instance
+            self.required_params.update(metrics[key].required_params)
 
         return metrics
 
@@ -138,7 +173,15 @@ class BaseMetric:
 
     def __init__(self, name, *args, **kwargs):
         self.name = name
-        self.required_params = ["scores", "targets"]
+        self.required_params = ["scores", "targets", "id"]
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        self._name = name
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
         """Abstract method to be implemented by the child class. Takes
@@ -833,7 +876,7 @@ class MacroROC_AUC(ROC_AUC):
 class AveragePrecision(BaseMetric):
     """Metric for calculating Average Precision.
     See more details at `sklearn.metrics.average_precision_score <http://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score>`_ # noqa
-
+    If you are looking for binary case, please take a look at binary_ap
     **Key:** ``ap``
     """
 
@@ -863,8 +906,47 @@ class AveragePrecision(BaseMetric):
         return expected.new_tensor(value, dtype=torch.float)
 
 
+@registry.register_metric("binary_ap")
+class BinaryAP(AveragePrecision):
+    """Metric for calculating Binary Average Precision.
+    See more details at `sklearn.metrics.average_precision_score <http://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score>`_ # noqa
+    **Key:** ``binary_ap``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "binary_ap"
+
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate Binary AP and returns it back. The function performs softmax
+        on the logits provided and then calculated the binary AP.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration.
+            model_output (Dict): Dict returned by model. This should contain "scores"
+                                 field pointing to logits returned from the model.
+
+        Returns:
+            torch.FloatTensor: AP.
+
+        """
+
+        output = torch.nn.functional.softmax(model_output["scores"], dim=-1)
+        # Take the score for positive (1) label
+        output = output[:, 1]
+        expected = sample_list["targets"]
+
+        # One hot format -> Labels
+        if expected.dim() == 2:
+            expected = expected.argmax(dim=1)
+
+        value = average_precision_score(expected.cpu(), output.cpu(), **self._sk_kwargs)
+        return expected.new_tensor(value, dtype=torch.float)
+
+
 @registry.register_metric("micro_ap")
-class MicroAP(ROC_AUC):
+class MicroAP(AveragePrecision):
     """Metric for calculating Micro Average Precision.
 
     **Key:** ``micro_ap``
@@ -876,7 +958,7 @@ class MicroAP(ROC_AUC):
 
 
 @registry.register_metric("macro_ap")
-class MacroAP(ROC_AUC):
+class MacroAP(AveragePrecision):
     """Metric for calculating Macro Average Precision.
 
     **Key:** ``macro_ap``
@@ -887,11 +969,54 @@ class MacroAP(ROC_AUC):
         self.name = "macro_ap"
 
 
-def _convert_to_one_hot(expected, output):
-    # This won't get called in case of multilabel, only multiclass or binary
-    # as multilabel will anyways be multi hot vector
-    if output.squeeze().dim() != expected.squeeze().dim() and expected.dim() == 1:
-        expected = torch.nn.functional.one_hot(
-            expected.long(), num_classes=output.size(-1)
-        ).float()
-    return expected
+@registry.register_metric("r@pk")
+class RecallAtPrecisionK(BaseMetric):
+    """Metric for calculating recall when precision is above a
+    particular threshold. Use `p_threshold` param to specify the
+    precision threshold i.e. k. Accepts precision in both 0-1
+    and 1-100 format.
+
+    **Key:** ``r@pk``
+    """
+
+    def __init__(self, p_threshold, *args, **kwargs):
+        """Initialization function recall @ precision k
+
+        Args:
+            p_threshold (float): Precision threshold
+        """
+        super().__init__(name="r@pk")
+        self.name = "r@pk"
+        self.p_threshold = p_threshold if p_threshold < 1 else p_threshold / 100
+
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate Recall at precision k and returns it back. The function
+        performs softmax on the logits provided and then calculated the metric.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration.
+            model_output (Dict): Dict returned by model. This should contain "scores"
+                                 field pointing to logits returned from the model.
+
+        Returns:
+            torch.FloatTensor: Recall @ precision k.
+
+        """
+        output = torch.nn.functional.softmax(model_output["scores"], dim=-1)[:, 1]
+        expected = sample_list["targets"]
+
+        # One hot format -> Labels
+        if expected.dim() == 2:
+            expected = expected.argmax(dim=1)
+
+        precision, recall, thresh = precision_recall_curve(expected.cpu(), output.cpu())
+
+        try:
+            value, _ = max(
+                (r, p) for p, r in zip(precision, recall) if p >= self.p_threshold
+            )
+        except ValueError:
+            value = 0
+
+        return expected.new_tensor(value, dtype=torch.float)
