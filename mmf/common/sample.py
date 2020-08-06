@@ -12,8 +12,9 @@ attributes from ``Sample`` while taking care of properly batching things.
 """
 
 import collections
+import warnings
 from collections import OrderedDict
-from typing import Any, Dict
+from typing import Any, Dict, Type, Union
 
 import torch
 
@@ -176,6 +177,10 @@ class SampleList(OrderedDict):
 
         return sample
 
+    def get_device(self):
+        field_tensor = self._get_tensor_field()
+        return self[field_tensor].device
+
     def get_item_list(self, key):
         """Get ``SampleList`` of only one particular attribute that is present
         in the ``SampleList``.
@@ -267,15 +272,8 @@ class SampleList(OrderedDict):
 
     def get_batch_size(self):
         """Get batch size of the current ``SampleList``. There must be a tensor
-
-    def __getitem__(self, key):
-        return self.__dict__[key]
-        field present in the ``SampleList`` currently.
-
+        be a tensor present inside sample list to use this function.
         Returns:
-
-    def __getitem__(self, key):
-        return self.__dict__[key]
             int: Size of the batch in ``SampleList``.
 
         """
@@ -383,3 +381,29 @@ class SampleList(OrderedDict):
                 sample_dict[field] = self[field]
 
         return sample_dict
+
+
+device_type = Union[str, torch.device]
+sample_list_type = Type[SampleList]
+
+
+def to_device(
+    sample_list: sample_list_type, device: device_type = "cuda"
+) -> sample_list_type:
+    if isinstance(device, str):
+        device = torch.device(device)
+
+    if not torch.cuda.is_available():
+        device = torch.device("cpu")
+    # to_device is specifically for SampleList
+    # if user is passing something custom built
+    if not isinstance(sample_list, SampleList):
+        warnings.warn(
+            "You are not returning SampleList/Sample from your dataset. "
+            "MMF expects you to move your tensors to cuda yourself."
+        )
+        return sample_list
+
+    if sample_list.get_device() != device:
+        sample_list = sample_list.to(device)
+    return sample_list

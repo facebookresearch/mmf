@@ -23,6 +23,9 @@ class TrainerTrainingLoopMock(TrainerTrainingLoopMixin, TrainerProfilingMixin):
             self.training_config["max_epochs"] = max_epochs
 
         self.model = SimpleModel(1)
+        if torch.cuda.is_available():
+            self.model = self.model.cuda()
+
         self.dataset_loader = MagicMock()
         self.dataset_loader.seed_sampler = MagicMock(return_value=None)
         self.dataset_loader.prepare_batch = lambda x: SampleList(x)
