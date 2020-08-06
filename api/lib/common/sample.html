@@ -345,18 +345,10 @@ or <code class="docutils literal notranslate"><span class="pre">Sample</span></c
 <dl class="py method">
 <dt id="mmf.common.sample.SampleList.get_batch_size">
 <code class="sig-name descname">get_batch_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#SampleList.get_batch_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.common.sample.SampleList.get_batch_size" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get batch size of the current <code class="docutils literal notranslate"><span class="pre">SampleList</span></code>. There must be a tensor</p>
-<dl>
-<dt>def __getitem__(self, key):</dt><dd><p>return self.__dict__[key]
-field present in the <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> currently.</p>
-<p>Returns:</p>
-</dd>
-<dt>def __getitem__(self, key):</dt><dd><dl class="simple">
-<dt>return self.__dict__[key]</dt><dd><p>int: Size of the batch in <code class="docutils literal notranslate"><span class="pre">SampleList</span></code>.</p>
-</dd>
-</dl>
-</dd>
-</dl>
+<dd><p>Get batch size of the current <code class="docutils literal notranslate"><span class="pre">SampleList</span></code>. There must be a tensor
+be a tensor present inside sample list to use this function.
+:returns: Size of the batch in <code class="docutils literal notranslate"><span class="pre">SampleList</span></code>.
+:rtype: int</p>
 </dd></dl>
 
 <dl class="py method">

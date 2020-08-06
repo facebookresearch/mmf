@@ -244,8 +244,9 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
 
@@ -408,6 +409,10 @@
 
         <span class="k">return</span> <span class="n">sample</span>
 
+    <span class="k">def</span> <span class="nf">get_device</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">field_tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_tensor_field</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">field_tensor</span><span class="p">]</span><span class="o">.</span><span class="n">device</span>
+
 <div class="viewcode-block" id="SampleList.get_item_list"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.SampleList.get_item_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_item_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get ``SampleList`` of only one particular attribute that is present</span>
 <span class="sd">        in the ``SampleList``.</span>
@@ -499,15 +504,8 @@
 
 <div class="viewcode-block" id="SampleList.get_batch_size"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.SampleList.get_batch_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_batch_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get batch size of the current ``SampleList``. There must be a tensor</span>
-
-<span class="sd">    def __getitem__(self, key):</span>
-<span class="sd">        return self.__dict__[key]</span>
-<span class="sd">        field present in the ``SampleList`` currently.</span>
-
+<span class="sd">        be a tensor present inside sample list to use this function.</span>
 <span class="sd">        Returns:</span>
-
-<span class="sd">    def __getitem__(self, key):</span>
-<span class="sd">        return self.__dict__[key]</span>
 <span class="sd">            int: Size of the batch in ``SampleList``.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -615,6 +613,32 @@
                 <span class="n">sample_dict</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">sample_dict</span></div></div>
+
+
+<span class="n">device_type</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">]</span>
+<span class="n">sample_list_type</span> <span class="o">=</span> <span class="n">Type</span><span class="p">[</span><span class="n">SampleList</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">to_device</span><span class="p">(</span>
+    <span class="n">sample_list</span><span class="p">:</span> <span class="n">sample_list_type</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">device_type</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sample_list_type</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+    <span class="c1"># to_device is specifically for SampleList</span>
+    <span class="c1"># if user is passing something custom built</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">SampleList</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;You are not returning SampleList/Sample from your dataset. &quot;</span>
+            <span class="s2">&quot;MMF expects you to move your tensors to cuda yourself.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">sample_list</span>
+
+    <span class="k">if</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">get_device</span><span class="p">()</span> <span class="o">!=</span> <span class="n">device</span><span class="p">:</span>
+        <span class="n">sample_list</span> <span class="o">=</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sample_list</span>
 </pre></div>
 
              </article>
