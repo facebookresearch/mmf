@@ -128,21 +128,18 @@ class VisualBERTBase(BertPreTrainedModel):
             pooled_output = self.pooler(final_sequence_output)
             return final_sequence_output, pooled_output
 
-        if self.output_attentions:
-            encoded_layers = self.encoder(
-                embedding_output, extended_attention_mask, self.fixed_head_masks
-            )
-            sequence_output = encoded_layers[0]
-            attn_data_list = encoded_layers[1:]
-            pooled_output = self.pooler(sequence_output)
-            return encoded_layers, pooled_output, attn_data_list
         else:
             encoded_layers = self.encoder(
                 embedding_output, extended_attention_mask, self.fixed_head_masks
             )
             sequence_output = encoded_layers[0]
             pooled_output = self.pooler(sequence_output)
-            return sequence_output, pooled_output, []
+            attn_data_list = []
+
+            if self.output_attentions:
+                attn_data_list = encoded_layers[1:]
+
+            return sequence_output, pooled_output, attn_data_list
 
 
 class VisualBERTForPretraining(nn.Module):
