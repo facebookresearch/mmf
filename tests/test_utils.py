@@ -93,6 +93,8 @@ def build_random_sample_list():
 
 
 DATA_ITEM_KEY = "test"
+
+
 class NumbersDataset(torch.utils.data.Dataset):
     def __init__(self, num_examples):
         self.num_examples = num_examples
@@ -113,4 +115,3 @@ class SimpleModel(torch.nn.Module):
         batch = prepared_batch[DATA_ITEM_KEY]
         model_output = {"losses": {"loss": torch.sum(self.linear(batch))}}
         return model_output
-

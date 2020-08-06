@@ -149,7 +149,7 @@ class TrainerTrainingLoopMixin(ABC):
         max_updates = self.training_config.max_updates
         max_epochs = self.training_config.max_epochs
         if max_updates is None and max_epochs is None:
-            raise Exception("Neither max_updates nor max_epochs is specified.")
+            raise ValueError("Neither max_updates nor max_epochs is specified.")
 
         if max_updates is not None and max_epochs is not None:
             warnings.warn(
