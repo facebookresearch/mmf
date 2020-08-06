@@ -143,12 +143,26 @@ class TestModuleMetrics(unittest.TestCase):
         self._test_binary_metric(metric, 0.5)
         self._test_multiclass_metric(metric, 0.34375)
 
+    def test_binary_ap(self):
+        metric = metrics.BinaryAP()
+        self._test_binary_metric(metric, 0.75)
+
+    def test_recall_at_precision_k(self):
+        metric = metrics.RecallAtPrecisionK(50)
+        self._test_binary_metric(metric, 1.0)
+
+        metric = metrics.RecallAtPrecisionK(90)
+        self._test_binary_metric(metric, 0.5)
+
+        metric = metrics.RecallAtPrecisionK(110)
+        self._test_binary_metric(metric, 0)
+
     def test_micro_ap(self):
         metric = metrics.MicroAP()
-        self._test_binary_metric(metric, 0.5)
-        self._test_multiclass_metric(metric, 0.34375)
+        self._test_binary_metric(metric, 0.642857)
+        self._test_multiclass_metric(metric, 0.354166)
 
     def test_macro_ap(self):
         metric = metrics.MacroAP()
-        self._test_binary_metric(metric, 0.5)
-        self._test_multiclass_metric(metric, 0.2222)
+        self._test_binary_metric(metric, 0.6666666)
+        self._test_multiclass_metric(metric, 0.3888888)
