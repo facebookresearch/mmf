@@ -309,8 +309,9 @@ current iteration</p></li>
 <dt id="mmf.modules.metrics.AveragePrecision">
 <em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">AveragePrecision</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#AveragePrecision"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.AveragePrecision" title="Permalink to this definition">¶</a></dt>
 <dd><p>Metric for calculating Average Precision.
-See more details at <a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score">sklearn.metrics.average_precision_score</a> # noqa</p>
-<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">ap</span></code></p>
+See more details at <a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score">sklearn.metrics.average_precision_score</a> # noqa
+If you are looking for binary case, please take a look at binary_ap
+<strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">ap</span></code></p>
 <dl class="py method">
 <dt id="mmf.modules.metrics.AveragePrecision.calculate">
 <code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#AveragePrecision.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.AveragePrecision.calculate" title="Permalink to this definition">¶</a></dt>
@@ -367,6 +368,37 @@ SampleList</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>torch.Tensor|float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.BinaryAP">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">BinaryAP</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#BinaryAP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.BinaryAP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating Binary Average Precision.
+See more details at <a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score">sklearn.metrics.average_precision_score</a> # noqa
+<strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">binary_ap</span></code></p>
+<dl class="py method">
+<dt id="mmf.modules.metrics.BinaryAP.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#BinaryAP.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.BinaryAP.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate Binary AP and returns it back. The function performs softmax
+on the logits provided and then calculated the binary AP.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration.</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model. This should contain “scores”
+field pointing to logits returned from the model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>AP.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
 </dd>
 </dl>
 </dd></dl>
@@ -724,6 +756,39 @@ SampleList</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>torch.Tensor|float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.RecallAtPrecisionK">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.metrics.</code><code class="sig-name descname">RecallAtPrecisionK</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p_threshold</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAtPrecisionK"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAtPrecisionK" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating recall when precision is above a
+particular threshold. Use <cite>p_threshold</cite> param to specify the
+precision threshold i.e. k. Accepts precision in both 0-1
+and 1-100 format.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">r&#64;pk</span></code></p>
+<dl class="py method">
+<dt id="mmf.modules.metrics.RecallAtPrecisionK.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAtPrecisionK.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAtPrecisionK.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate Recall at precision k and returns it back. The function
+performs softmax on the logits provided and then calculated the metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration.</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model. This should contain “scores”
+field pointing to logits returned from the model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Recall &#64; precision k.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
 </dd>
 </dl>
 </dd></dl>
