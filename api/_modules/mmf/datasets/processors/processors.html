@@ -686,8 +686,9 @@
             <span class="k">return</span> <span class="n">model_file_path</span>
 
         <span class="kn">import</span> <span class="nn">requests</span>
-        <span class="kn">from</span> <span class="nn">mmf.common.constants</span> <span class="kn">import</span> <span class="n">FASTTEXT_WIKI_URL</span>
         <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+        <span class="kn">from</span> <span class="nn">mmf.common.constants</span> <span class="kn">import</span> <span class="n">FASTTEXT_WIKI_URL</span>
 
         <span class="n">PathManager</span><span class="o">.</span><span class="n">mkdirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">model_file_path</span><span class="p">))</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FASTTEXT_WIKI_URL</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
