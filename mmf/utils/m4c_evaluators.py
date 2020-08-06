@@ -304,8 +304,8 @@ class TextCapsBleu4Evaluator:
         # Original pycocoevalcap code is at https://github.com/tylin/coco-caption
         # but has no python3 support yet.
         try:
-            from pycocoevalcap.tokenizer.ptbtokenizer import PTBTokenizer
             from pycocoevalcap.bleu.bleu import Bleu
+            from pycocoevalcap.tokenizer.ptbtokenizer import PTBTokenizer
         except ModuleNotFoundError:
             print(
                 "Please install pycocoevalcap module using "

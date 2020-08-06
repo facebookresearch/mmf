@@ -255,7 +255,7 @@ def build_text_encoder(config, *args, **kwargs):
 
 
 def build_image_encoder(config, direct_features=False, **kwargs):
-    from mmf.modules.encoders import ImageFeatureEncoder, ImageEncoder
+    from mmf.modules.encoders import ImageEncoder, ImageFeatureEncoder
 
     if direct_features:
         module = ImageFeatureEncoder(config.type, **config.params)
