@@ -90,3 +90,27 @@ def build_random_sample_list():
     second.z.y = torch.rand((6, 4))
 
     return SampleList([first, second])
+
+
+DATA_ITEM_KEY = "test"
+class NumbersDataset(torch.utils.data.Dataset):
+    def __init__(self, num_examples):
+        self.num_examples = num_examples
+
+    def __getitem__(self, idx):
+        return {DATA_ITEM_KEY: torch.tensor(idx, dtype=torch.float32)}
+
+    def __len__(self):
+        return self.num_examples
+
+
+class SimpleModel(torch.nn.Module):
+    def __init__(self, size):
+        super().__init__()
+        self.linear = torch.nn.Linear(size, 4)
+
+    def forward(self, prepared_batch):
+        batch = prepared_batch[DATA_ITEM_KEY]
+        model_output = {"losses": {"loss": torch.sum(self.linear(batch))}}
+        return model_output
+

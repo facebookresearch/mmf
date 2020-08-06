@@ -3,6 +3,7 @@
 import gc
 import logging
 import math
+import warnings
 from abc import ABC
 from typing import Any, Dict
 
@@ -22,13 +23,7 @@ class TrainerTrainingLoopMixin(ABC):
     num_updates: int = 0
 
     def training_loop(self) -> None:
-        self.max_updates = self.training_config.max_updates
-        self.max_epochs = self.training_config.max_epochs
-        if self.max_epochs is None:
-            self.max_epochs = math.inf
-        else:
-            self.max_updates = math.inf
-
+        self.max_updates = self._calculate_max_updates()
         torch.autograd.set_detect_anomaly(self.training_config.detect_anomaly)
 
         logger.info("Starting training...")
@@ -60,9 +55,6 @@ class TrainerTrainingLoopMixin(ABC):
 
             # Seed the sampler in case if it is distributed
             self.dataset_loader.seed_sampler("train", self.current_epoch)
-
-            if self.current_epoch > self.max_epochs:
-                break
 
             for batch in self.train_loader:
                 self.profile("Batch load time")
@@ -97,7 +89,7 @@ class TrainerTrainingLoopMixin(ABC):
                     if stop is True:
                         logger.info("Early stopping activated")
                         should_break = True
-                if self.num_updates > self.max_updates:
+                if self.num_updates >= self.max_updates:
                     should_break = True
 
                 if should_break:
@@ -152,3 +144,19 @@ class TrainerTrainingLoopMixin(ABC):
         loss_dict = report.losses
         loss = sum([loss.mean() for loss in loss_dict.values()])
         return loss
+
+    def _calculate_max_updates(self):
+        max_updates = self.training_config.max_updates
+        max_epochs = self.training_config.max_epochs
+        if max_updates is None and max_epochs is None:
+            raise Exception("Neither max_updates nor max_epochs is specified.")
+
+        if max_updates is not None and max_epochs is not None:
+            warnings.warn(
+                f"Both max_updates and max_epochs are specified. Favoring max_epochs: {max_epochs}"
+            )
+
+        if max_epochs is not None:
+            max_updates = len(self.train_loader) * max_epochs
+
+        return max_updates
