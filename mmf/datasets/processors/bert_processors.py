@@ -6,6 +6,7 @@ import torch
 from transformers.tokenization_auto import AutoTokenizer
 
 from mmf.common.registry import registry
+from mmf.common.sample import Sample, SampleList
 from mmf.datasets.processors.processors import BaseProcessor
 
 
@@ -149,9 +150,39 @@ class BertTokenizer(MaskedTokenProcessor):
         else:
             text_a = " ".join(item["tokens"])
 
+        if isinstance(text_a, list):
+            text_a = " ".join(text_a)
+
         tokens_a = self._tokenizer.tokenize(text_a)
 
         self._truncate_seq_pair(tokens_a, None, self._max_seq_length - 2)
         output = self._convert_to_indices(tokens_a, None, probability=self._probability)
         output["text"] = output["tokens"]
         return output
+
+
+@registry.register_processor("multi_sentence_bert_tokenizer")
+class MultiSentenceBertTokenizer(BertTokenizer):
+    """Extension of BertTokenizer which supports multiple sentences.
+    Separate from normal usecase, each sentence will be passed through
+    bert tokenizer separately and indices will be reshaped as single
+    tensor. Segment ids will also be increasing in number.
+    """
+    def __call__(self, item):
+        texts = item["text"]
+        if not isinstance(texts, list):
+            texts = [texts]
+
+        processed = []
+        for idx, text in enumerate(texts):
+            sample = Sample()
+            processed_text = super().__call__({"text": text})
+            sample.update(processed_text)
+            sample.segment_ids.fill_(idx)
+            processed.append(sample)
+        # Use SampleList to convert list of tensors to stacked tensors
+        processed = SampleList(processed)
+        processed.input_ids = processed.input_ids.view(-1)
+        processed.input_mask = processed.input_mask.view(-1)
+        processed.segment_ids = processed.segment_ids.view(-1)
+        return processed.to_dict()
