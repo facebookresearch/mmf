@@ -378,3 +378,23 @@ okvqa:
         file_name: OpenEnded_mscoco_train2014_questions.json.zip
       - url: https://okvqa.allenai.org/static/data/OpenEnded_mscoco_val2014_questions.json.zip
         file_name: OpenEnded_mscoco_val2014_questions.json.zip
+
+
+vqacp_v2:
+  defaults:
+    version: 1.0_2020_08_02
+    # Images should be used from coco.defaults, extras should be used from vqa2 as zoo_requirements
+    resources:
+      annotations:
+        - url: https://computing.ece.vt.edu/~aish/vqacp/vqacp_v2_train_annotations.json
+          file_name: vqacp_v2_train_annotations.json
+          compressed: false
+        - url: https://computing.ece.vt.edu/~aish/vqacp/vqacp_v2_train_questions.json
+          file_name: vqacp_v2_train_questions.json
+          compressed: false
+        - url: https://computing.ece.vt.edu/~aish/vqacp/vqacp_v2_test_annotations.json
+          file_name: vqacp_v2_test_annotations.json
+          compressed: false
+        - url: https://computing.ece.vt.edu/~aish/vqacp/vqacp_v2_test_questions.json
+          file_name: vqacp_v2_test_questions.json
+          compressed: false
