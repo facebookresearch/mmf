@@ -1,14 +1,18 @@
 import collections
+import copy
 import os
 import typing
 import warnings
+import numpy as np
+
+import numpy as np
 
 import mmf.utils.download as download
 from mmf.datasets.base_dataset_builder import BaseDatasetBuilder
 from mmf.datasets.concat_dataset import MMFConcatDataset
+from mmf.datasets.subset_dataset import MMFSubset
 from mmf.utils.configuration import get_global_config, get_mmf_env, get_zoo_config
 from mmf.utils.general import get_absolute_path
-
 
 class MMFDatasetBuilder(BaseDatasetBuilder):
     ZOO_CONFIG_PATH = None
@@ -119,6 +123,49 @@ class MMFDatasetBuilder(BaseDatasetBuilder):
 
     def load(self, config, dataset_type, *args, **kwargs):
         self.config = config
+
+        new_config = config
+        split_dataset_from_train = self.config.split_train
+        if split_dataset_from_train:
+            split_range = self._calculate_split_for_dataset_type(dataset_type)
+            new_config = self._modify_dataset_config(config)
+
+        annotations = self._read_annotations(new_config, dataset_type)
+        if annotations is None:
+            return None
+
+        datasets = []
+        for imdb_idx in range(len(annotations)):
+            dataset_class = self.dataset_class
+            dataset = dataset_class(new_config, dataset_type, imdb_idx)
+            datasets.append(dataset)
+
+        dataset = MMFConcatDataset(datasets)
+        if split_dataset_from_train:
+            start, end = split_range
+            dataset_length = len(dataset)
+            start, end = round(start * dataset_length), round(end * dataset_length)
+            seed = new_config.split_train.seed
+            indices = np.random.RandomState(seed).permutation(dataset_length)[start:end]
+            dataset = MMFSubset(dataset, indices)
+
+        self.dataset = dataset
+        return self.dataset
+
+    def _modify_dataset_config(self, config):
+        modified_config = copy.deepcopy(config)
+        for data_type in config.split_train:
+            if data_type == "seed":
+                continue
+            if config.use_images:
+                modified_config.images[data_type] = config.images.train
+            if config.use_features:
+                modified_config.features[data_type] = config.features.train
+            modified_config.annotations[data_type] = modified_config.annotations.train
+
+        return modified_config
+
+    def _read_annotations(self, config, dataset_type):
         annotations = config.get("annotations", {}).get(dataset_type, [])
 
         # User can pass a single string as well
@@ -133,17 +180,25 @@ class MMFDatasetBuilder(BaseDatasetBuilder):
                 + "This dataset won't be used.".format(dataset_type)
             )
             return None
+        return annotations
 
-        datasets = []
+    def _calculate_split_for_dataset_type(self, dataset_type):
+        start = 0.0
+        for data_type in self.config.split_train:
+            if data_type == "seed":
+                continue
+            if dataset_type == data_type:
+                return (start, start + self.config.split_train[data_type])
+            start += self.config.split_train[data_type]
 
-        for imdb_idx in range(len(annotations)):
-            dataset_class = self.dataset_class
-            dataset = dataset_class(config, dataset_type, imdb_idx)
-            datasets.append(dataset)
+        if start >= 1.0:
+            raise ValueError(
+                "Ratios of val and test should not exceed 100%."
+                + "Need to leave some percentage for training."
+            )
 
-        dataset = MMFConcatDataset(datasets)
-        self.dataset = dataset
-        return self.dataset
+        if dataset_type == "train":
+            return (start, 1.0)
 
     def _download_based_on_attribute(
         self, resources, download_path, version, attribute
