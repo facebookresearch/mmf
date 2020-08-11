@@ -28,7 +28,7 @@ to pretrain LXMERT model on the VQA2.0, COCO, and GQA datasets, run the followin
 
 
 ```
-mmf_run config=projects/lxmert/configs/pretrain.yaml run_type=train_val datasets=masked_vqa2,masked_gqa,masked_coco model=lxmert
+mmf_run config=projects/lxmert/configs/pretrain.yaml run_type=train_val datasets=masked_vqa2,masked_gqa,masked_coco,visual_genome model=lxmert
 ```
 
 ## Finetuning
