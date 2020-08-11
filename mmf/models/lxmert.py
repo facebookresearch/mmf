@@ -531,7 +531,7 @@ class LXMERTForPretraining(nn.Module):
                     output_dim,
                     loss_fct_name,
                     label_shape,
-                    weight,
+                    weight
                 ) = self.visual_loss_config[key]
                 if key == "attr":
                     continue
@@ -641,15 +641,6 @@ class LXMERT(BaseModel):
     def config_path(cls):
         return "configs/models/lxmert/pretrain.yaml"
 
-    # Backward compatibility
-    @classmethod
-    def format_state_key(cls, key):
-        return (
-            key.replace("bert.bert", "model.bert")
-            .replace("bert.cls", "model.cls")
-            .replace("bert.classifier", "model.classifier")
-        )
-
     def build(self):
         if self.config.training_head_type == "pretraining":
             self.model = LXMERTForPretraining(self.config)
@@ -660,12 +651,13 @@ class LXMERT(BaseModel):
             for p in self.model.bert.parameters():
                 p.requires_grad = False
 
-    def get_image_and_text_features(self, sample_list):
+    def get_image_and_text_features(self, sample_list, device):
         # bert input
         bert_input_ids = sample_list.input_ids
         bert_input_mask = sample_list.input_mask
         bert_input_type_ids = sample_list.segment_ids
         masked_lm_labels = sample_list.lm_label_ids
+       
         # image input
         image_info = getattr(sample_list, "image_info_0", {})
         image_dim_variable = getattr(image_info, "max_features", None)
@@ -679,7 +671,7 @@ class LXMERT(BaseModel):
             bbox = torch.tensor(bbox)
             max_features = torch.tensor(
                 min(image_feature_variable.shape[1], bbox.shape[1]), dtype=torch.int
-            ).cuda()
+            ).to(device)
             bbox = bbox[:, : max_features.item(), :4]
             image_h = getattr(image_info, "image_height", None)
             image_w = getattr(image_info, "image_width", None)
@@ -693,30 +685,30 @@ class LXMERT(BaseModel):
                 image_location[:, :, 3] /= image_h[:, None]
             else:
                 image_location = bbox
-            image_location_variable = image_location.cuda()
+            image_location_variable = image_location.to(device)
 
         # aux data
         image_label_variable = getattr(sample_list, "image_labels", None)
         if image_label_variable is not None:
             image_label_variable = torch.tensor(image_label_variable, dtype=torch.long)
-            image_label_variable = image_label_variable[:, : max_features.item(), ...]
-            image_label_variable = image_label_variable.unsqueeze(-1).cuda()
+            image_label_variable = image_label_variable[:, : max_features.item(), None]
+            image_label_variable = image_label_variable.unsqueeze(-1).to(device)
         cls_prob = getattr(image_info, "cls_prob", None)
         if cls_prob is not None:
-            cls_prob = torch.tensor(cls_prob)[:, : max_features.item(), ...].cuda()
+            cls_prob = torch.tensor(cls_prob)[:, : max_features.item(), None].to(device)
         answers = getattr(sample_list, "targets", None)
         if answers is None:
             answers = getattr(sample_list, "answers", None)
         if answers is not None:
             if not isinstance(answers, torch.Tensor):
                 answers = torch.tensor(answers)
-            answers = answers.cuda()
+            answers = answers.to(device)
         is_correct = getattr(sample_list, "is_correct", None)
         if is_correct is not None:
             if isinstance(is_correct, torch.Tensor):
-                is_correct = is_correct.cuda()
+                is_correct = is_correct.to(device)
             else:
-                is_correct = torch.tensor(is_correct).cuda()
+                is_correct = torch.tensor(is_correct).to(device)
 
         return {
             "input_ids": bert_input_ids,
@@ -738,12 +730,14 @@ class LXMERT(BaseModel):
         return get_optimizer_parameters_for_bert(self.model, config)
 
     def forward(self, sample_list):
-        params = self.get_image_and_text_features(sample_list)
+        device = registry.get('config').training.device
+        params = self.get_image_and_text_features(sample_list, device)
         if params["visual_feats"] is not None and params["image_dim"] is not None:
+            device = params["visual_feats"].device
             image_mask = (
                 torch.arange(params["visual_feats"].size(-2))
                 .expand(*params["visual_feats"].size()[:-1])
-                .cuda()
+                .to(device)
             )
             if len(params["image_dim"].size()) < len(image_mask.size()):
                 params["image_dim"] = params["image_dim"].unsqueeze(-1)
