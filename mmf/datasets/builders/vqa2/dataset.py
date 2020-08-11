@@ -77,7 +77,9 @@ class VQA2Dataset(MMFDataset):
         else:
             current_sample.image_id = sample_info["image_id"]
 
-        current_sample.text_len = processed_question['length']       
+        current_sample.text_len = torch.tensor(
+            len(sample_info["question_tokens"]), dtype=torch.int
+        )
 
         if self._use_features is True:
             features = self.features_db[idx]
