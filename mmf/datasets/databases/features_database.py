@@ -5,9 +5,8 @@ from multiprocessing.pool import ThreadPool
 import tqdm
 
 from mmf.datasets.databases.image_database import ImageDatabase
-from mmf.datasets.databases.readers.feature_readers import FeatureReader
+from mmf.datasets.databases.readers.feature_readers import MMFFeatureReader
 from mmf.utils.distributed import is_master
-from mmf.utils.general import get_absolute_path
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +25,9 @@ class FeaturesDatabase(ImageDatabase):
         path = path.split(",")
 
         for image_feature_dir in path:
-            feature_reader = FeatureReader(
-                base_path=get_absolute_path(image_feature_dir),
-                depth_first=config.get("depth_first", False),
-                max_features=config.get("max_features", 100),
+            self.feature_readers.append(
+                MMFFeatureReader.from_config_and_path(config, image_feature_dir)
             )
-            self.feature_readers.append(feature_reader)
 
         self.paths = path
         self.annotation_db = annotation_db

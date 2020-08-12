@@ -264,6 +264,12 @@ def build_image_encoder(config, direct_features=False, **kwargs):
     return module.module
 
 
+def build_feature_reader(config: mmf_typings.DictConfig, path: str, *args, **kwargs):
+    from mmf.datasets.databases.readers.feature_readers import MMFFeatureReader
+
+    return MMFFeatureReader.from_config_and_path(config, path, *args, **kwargs)
+
+
 def build_processors(
     processors_config: mmf_typings.DictConfig, registry_key: str = None, *args, **kwargs
 ) -> ProcessorDict:

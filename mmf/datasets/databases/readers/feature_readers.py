@@ -6,7 +6,10 @@ import lmdb
 import numpy as np
 import torch
 
+from mmf.common import typings as mmf_typings
+from mmf.common.registry import registry
 from mmf.utils.file_io import PathManager
+from mmf.utils.general import get_absolute_path
 
 
 class FeatureReader:
@@ -37,6 +40,7 @@ class FeatureReader:
         self.depth_first = depth_first
         self.max_features = max_features
         self.ndim = ndim
+        self._is_numpy = False
 
     def _init_reader(self):
         # Currently all lmdb features are with ndim == 2
@@ -46,13 +50,6 @@ class FeatureReader:
             if self.max_features is None:
                 self.feat_reader = FasterRCNNFeatureReader()
             else:
-                # TODO: Fix later when we move to proper standardized features
-                # if isinstance(self.image_feature.item(0), dict):
-                #     self.feat_reader = \
-                #         PaddedFeatureRCNNWithBBoxesFeatureReader(
-                #             self.max_features
-                #         )
-                # else:
                 self.feat_reader = PaddedFasterRCNNFeatureReader(self.max_features)
         elif self.ndim == 3 and not self.depth_first:
             self.feat_reader = Dim3FeatureReader()
@@ -60,12 +57,16 @@ class FeatureReader:
             self.feat_reader = CHWFeatureReader()
         elif self.ndim == 4 and not self.depth_first:
             self.feat_reader = HWCFeatureReader()
+        elif self._is_numpy:
+            self.feat_reader = NumpyFeatureReader()
         else:
             raise TypeError("unknown image feature format")
 
     def read(self, image_feat_path):
         if not image_feat_path.endswith("npy") and not image_feat_path.endswith("pth"):
             return None
+
+        self._is_numpy = True
         image_feat_path = os.path.join(self.base_path, image_feat_path)
 
         if self.feat_reader is None:
@@ -82,12 +83,63 @@ class FeatureReader:
         return self.feat_reader.read(image_feat_path)
 
 
-class FasterRCNNFeatureReader:
+class MMFFeatureReader:
+    def read(self, feat_path, *args, **kwargs):
+        raise NotImplementedError(
+            "This feature reader doesn't implement a 'read' method"
+        )
+
+    @classmethod
+    def create(cls, name: str, *args, **kwargs):
+        if name == "default":
+            # Ensure backwards compatibility
+            return FeatureReader(*args, **kwargs)
+        else:
+            reader_cls = registry.get_feature_reader_class(name)
+            return reader_cls(*args, **kwargs)
+
+    @classmethod
+    def from_config_and_path(
+        cls, config: mmf_typings.DictConfig, path: str, *args, **kwargs
+    ):
+        params = {
+            "base_path": get_absolute_path(path),
+            "depth_first": config.get("depth_first", False),
+            "max_features": config.get("max_features", 100),
+        }
+        feature_reader_config = config.get("feature_reader", {})
+
+        if isinstance(feature_reader_config, str):
+            feature_reader = MMFFeatureReader.create(feature_reader_config, **params)
+        else:
+            feature_reader_name = feature_reader_config.get("type", "default")
+            feature_reader_params = feature_reader_config.get("params", {})
+            params.update(feature_reader_params)
+            feature_reader = cls.create(feature_reader_name, **params)
+
+        return feature_reader
+
+
+class FasterRCNNFeatureReader(MMFFeatureReader):
     def read(self, image_feat_path):
         return torch.from_numpy(np.load(image_feat_path)), None
 
 
-class CHWFeatureReader:
+class NumpyFeatureReader(MMFFeatureReader):
+    def read(self, image_feat_path):
+        feat = np.load(image_feat_path, allow_pickle=True)
+        info_path = image_feat_path.replace(".npy", "_info.npy")
+        info = None
+        if PathManager.exists(info_path):
+            info = np.load(info_path, allow_pickle=True)
+
+        if isinstance(feat, np.ndarray):
+            feat = torch.from_numpy(feat)
+
+        return feat, info
+
+
+class CHWFeatureReader(MMFFeatureReader):
     def read(self, image_feat_path):
         if image_feat_path.endswith("npy"):
             feat = torch.from_numpy(np.load(image_feat_path))
@@ -98,7 +150,7 @@ class CHWFeatureReader:
         return feat, None
 
 
-class Dim3FeatureReader:
+class Dim3FeatureReader(MMFFeatureReader):
     def read(self, image_feat_path):
         tmp = np.load(image_feat_path)
         _, _, c_dim = tmp.shape
@@ -106,7 +158,7 @@ class Dim3FeatureReader:
         return image_feature, None
 
 
-class HWCFeatureReader:
+class HWCFeatureReader(MMFFeatureReader):
     def read(self, image_feat_path):
         tmp = np.load(image_feat_path)
         assert tmp.shape[0] == 1, "batch is not 1"
@@ -115,7 +167,7 @@ class HWCFeatureReader:
         return image_feature, None
 
 
-class PaddedFasterRCNNFeatureReader:
+class PaddedFasterRCNNFeatureReader(MMFFeatureReader):
     def __init__(self, max_loc):
         self.max_loc = max_loc
         self.first = True
