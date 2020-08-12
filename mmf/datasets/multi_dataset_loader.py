@@ -33,7 +33,6 @@ class MultiDatasetLoader:
         self._per_dataset_lengths = []
         self._num_datasets = 0
         self._finished_iterators = {}
-        self._used_once = {}
 
     @property
     def dataset_type(self):
@@ -165,6 +164,11 @@ class MultiDatasetLoader:
             "dataset_size_proportional_sampling", True
         )
 
+        assert (
+            self._proportional_sampling is True
+            or training.get("max_epochs", None) is None
+        ), "Epoch based training can only be used with size proportional sampling"
+
         if self._dataset_type != "train":
             # If it is val or test, it needs to be all datasets need to be
             # fully iterated as metrics will be calculated in eval mode
@@ -186,22 +190,49 @@ class MultiDatasetLoader:
             return iter(self.loaders[0])
 
         # Clear off old iterators
+        self._finished_iterators = {}
         self.iterators = []
+
         for loader in self.loaders:
             self.iterators.append(iter(loader))
 
-        self._chosen_iterator = self.iterators[self.current_index]
+        self.change_dataloader()
 
         return self
 
     def __next__(self):
+        """Calculation of next batch is performed using following logic.
+
+        Current chosen iterator is selected based on the dataset probabilities
+        set in the change_dataloader function which is called everytime prepare_batch
+        is called.
+
+        If we get the next batch from iterator without any StopIteration exception,
+        we return it as it is. Otherwise, we have two cases:
+
+        1. In proportional sampling, since each dataset will have same number of epochs
+        at any given time, we need to yield StopIteration exception when all iterators
+        are finished. In turn, this will yield to __iter__ all reignite all
+        of the iterators. The code will not reach __iter__ until unless all iterators
+        are exhausted.
+
+        2. In the case of non-proportional (equal) sampling, epochs don't make sense.
+        Think of a case of equal proportion sampling for dataset x and y where x
+        is half the size of y. When x will complete its 2 epochs, y will have only
+        1 epoch completed. **So please don't use max_epochs or epoch based training
+        in this case as it won't be honored**. If an iterator is finished, we
+        just reignite it in this case and finished iterators variable isn't used.
+        This means that this case will never reach the __iter__ function ever
+        again.
+
+
+        Returns:
+            SampleList: sample list instance from currently selected dataset
+        """
         try:
             next_batch = next(self._chosen_iterator)
         except StopIteration:
-            if (
-                self._proportional_sampling is True
-                or len(self._used_once) != self.num_datasets
-            ):
+            if self._proportional_sampling is True:
                 self._finished_iterators[self.current_index] = 1
 
                 if len(self._finished_iterators) == self.num_datasets:
@@ -210,9 +241,11 @@ class MultiDatasetLoader:
                     self.change_dataloader()
                 next_batch = next(self._chosen_iterator)
             else:
-                raise
+                iterator = iter(self.current_loader)
+                self.iterators[self.current_index] = iterator
+                self._chosen_iterator = iterator
+                next_batch = next(self._chosen_iterator)
 
-        self._used_once[self.current_index] = 1
         return next_batch
 
     def change_dataloader(self):
@@ -225,6 +258,8 @@ class MultiDatasetLoader:
                 self.num_datasets, 1, p=self._dataset_probabilities
             )[0]
 
+            # self._finished_iterators will always be empty in case of
+            # non-proportional (equal) sampling
             while choice in self._finished_iterators:
                 choice = np.random.choice(
                     self.num_datasets, 1, p=self._dataset_probabilities
