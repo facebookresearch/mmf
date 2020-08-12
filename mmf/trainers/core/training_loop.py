@@ -2,18 +2,17 @@
 
 import gc
 import logging
-import math
 import warnings
 from abc import ABC
 from typing import Any, Dict
 
 import torch
-from torch import Tensor
-
 from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.common.sample import to_device
 from mmf.utils.general import clip_gradients
+from torch import Tensor
+
 
 logger = logging.getLogger(__name__)
 
@@ -156,7 +155,8 @@ class TrainerTrainingLoopMixin(ABC):
 
         if max_updates is not None and max_epochs is not None:
             warnings.warn(
-                f"Both max_updates and max_epochs are specified. Favoring max_epochs: {max_epochs}"
+                "Both max_updates and max_epochs are specified. "
+                + f"Favoring max_epochs: {max_epochs}"
             )
 
         if max_epochs is not None:

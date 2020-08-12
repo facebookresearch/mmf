@@ -9,7 +9,6 @@ from datetime import datetime
 
 import numpy as np
 import torch
-
 from mmf.utils.general import get_absolute_path
 
 

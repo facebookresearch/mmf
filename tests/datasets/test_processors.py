@@ -3,7 +3,6 @@ import os
 import unittest
 
 import torch
-
 from mmf.datasets.processors.processors import (
     CaptionProcessor,
     EvalAIAnswerProcessor,

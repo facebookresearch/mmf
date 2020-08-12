@@ -2,7 +2,6 @@ import copy
 import json
 
 import torch
-
 from mmf.common.sample import Sample
 from mmf.datasets.builders.visual_dialog.database import VisualDialogDatabase
 from mmf.datasets.builders.vqa2 import VQA2Dataset

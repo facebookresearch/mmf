@@ -7,6 +7,10 @@ from copy import deepcopy
 import numpy as np
 import torch
 import torch.nn.functional as F
+from mmf.common.registry import registry
+from mmf.models import BaseModel
+from mmf.utils.configuration import get_mmf_cache_dir
+from mmf.utils.modeling import get_optimizer_parameters_for_bert
 from omegaconf import OmegaConf
 from torch import nn
 from torch.nn import CrossEntropyLoss
@@ -22,11 +26,6 @@ from transformers.modeling_bert import (
     BertPreTrainedModel,
     BertSelfOutput,
 )
-
-from mmf.common.registry import registry
-from mmf.models import BaseModel
-from mmf.utils.configuration import get_mmf_cache_dir
-from mmf.utils.modeling import get_optimizer_parameters_for_bert
 
 
 class BertSelfAttention(nn.Module):

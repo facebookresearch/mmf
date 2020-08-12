@@ -3,14 +3,14 @@ import os
 
 import numpy as np
 import torch
-from PIL import Image
-
 from mmf.common.registry import registry
 from mmf.common.sample import Sample
 from mmf.datasets.base_dataset import BaseDataset
 from mmf.utils.distributed import is_master, synchronize
 from mmf.utils.general import get_mmf_root
 from mmf.utils.text import VocabFromText, tokenize
+from PIL import Image
+
 
 _CONSTANTS = {
     "questions_folder": "questions",

@@ -7,14 +7,14 @@ from typing import Type, Union
 
 import torch
 import torchvision.datasets.folder as tv_helpers
-from PIL import Image
-from torch import nn
-
 from mmf.common import typings as mmf_typings
 from mmf.common.sample import Sample, SampleList
 from mmf.models.base_model import BaseModel
 from mmf.utils.build import build_processors
 from mmf.utils.download import download
+from PIL import Image
+from torch import nn
+
 
 MMBT_GRID_HM_CONFIG_PATH = Path("projects/hateful_memes/configs/mmbt/defaults.yaml")
 ImageType = Union[Type[Image.Image], str]

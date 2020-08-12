@@ -17,6 +17,7 @@ from mmf.datasets.processors.processors import (
     VQAAnswerProcessor,
 )
 
+
 __all__ = [
     "BaseProcessor",
     "Processor",

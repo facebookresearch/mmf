@@ -2,14 +2,14 @@
 import os
 import unittest
 
-import torch
-
 import mmf.utils.text as text_utils
+import torch
 from mmf.common.registry import registry
 from mmf.common.sample import Sample, SampleList
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports
 from mmf.utils.general import get_mmf_root
+
 from tests.test_utils import dummy_args
 from tests.utils.test_model import TestDecoderModel
 

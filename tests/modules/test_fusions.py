@@ -2,9 +2,8 @@
 
 import unittest
 
-import torch
-
 import mmf.modules.fusions as fusions
+import torch
 
 
 class TestModuleFusions(unittest.TestCase):

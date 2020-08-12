@@ -44,13 +44,12 @@ import collections
 import warnings
 from copy import deepcopy
 
-from torch import nn
-
 from mmf.common.registry import registry
 from mmf.common.sample import to_device
 from mmf.modules.losses import Losses
 from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.download import download_pretrained_model
+from torch import nn
 
 
 class BaseModel(nn.Module):

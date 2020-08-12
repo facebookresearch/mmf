@@ -5,13 +5,12 @@ import os
 import numpy as np
 import omegaconf
 import torch
-from PIL import Image
-from torchvision import transforms
-
 from mmf.common.sample import Sample
 from mmf.datasets.mmf_dataset import MMFDataset
 from mmf.utils.general import get_mmf_root
 from mmf.utils.visualize import visualize_images
+from PIL import Image
+from torchvision import transforms
 
 
 class HatefulMemesFeaturesDataset(MMFDataset):

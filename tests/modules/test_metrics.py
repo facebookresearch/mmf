@@ -2,9 +2,8 @@
 import os
 import unittest
 
-import torch
-
 import mmf.modules.metrics as metrics
+import torch
 from mmf.common.registry import registry
 from mmf.common.sample import Sample
 from mmf.datasets.processors import CaptionProcessor

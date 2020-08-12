@@ -3,11 +3,10 @@
 import collections
 
 import torch
-from omegaconf import OmegaConf
-from torchvision import transforms
-
 from mmf.common.registry import registry
 from mmf.datasets.processors.processors import BaseProcessor
+from omegaconf import OmegaConf
+from torchvision import transforms
 
 
 @registry.register_processor("torchvision_transforms")

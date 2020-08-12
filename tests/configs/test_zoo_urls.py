@@ -4,11 +4,11 @@ import time
 import typing
 import unittest
 
-from omegaconf import OmegaConf
-
 from mmf.common.typings import DictConfig, DownloadableFileType
 from mmf.utils.configuration import load_yaml
 from mmf.utils.download import DownloadableFile, check_header
+from omegaconf import OmegaConf
+
 from tests.test_utils import skip_if_macos, skip_if_no_network
 
 

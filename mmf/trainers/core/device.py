@@ -4,8 +4,8 @@ import logging
 from abc import ABC
 
 import torch
-
 from mmf.common.registry import registry
+
 
 logger = logging.getLogger(__name__)
 

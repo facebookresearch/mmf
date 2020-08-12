@@ -4,6 +4,7 @@ import os
 import shutil
 from typing import List, Optional
 
+
 try:
     from fvcore.common.file_io import PathManager as FVCorePathManager
 except ImportError:

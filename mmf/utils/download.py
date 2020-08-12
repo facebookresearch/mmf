@@ -20,7 +20,6 @@ from pathlib import Path
 
 import requests
 import tqdm
-
 from mmf.utils.distributed import is_master, synchronize
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path

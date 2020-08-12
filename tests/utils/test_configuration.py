@@ -5,6 +5,7 @@ import unittest
 from mmf.utils.configuration import Configuration, get_zoo_config
 from mmf.utils.env import setup_imports
 from mmf.utils.general import get_mmf_root
+
 from tests.test_utils import dummy_args
 
 
@@ -35,7 +36,7 @@ class TestUtilsConfiguration(unittest.TestCase):
 
         # Test non-existent variation
         self.assertRaises(
-            AssertionError, get_zoo_config, "textvqa", variation="some_random",
+            AssertionError, get_zoo_config, "textvqa", variation="some_random"
         )
 
         # Test different zoo_type

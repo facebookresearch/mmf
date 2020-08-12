@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import torch
-
 from mmf.common.registry import registry
 from mmf.models.pythia import Pythia
 from mmf.modules.layers import ClassifierLayer

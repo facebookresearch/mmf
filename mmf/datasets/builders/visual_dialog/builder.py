@@ -10,6 +10,7 @@ from mmf.datasets.builders.visual_genome.builder import VisualGenomeBuilder
 from mmf.utils.download import decompress, download
 from mmf.utils.general import get_mmf_root
 
+
 logger = logging.getLogger(__name__)
 
 

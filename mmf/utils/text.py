@@ -20,10 +20,10 @@ from collections import Counter
 from itertools import chain
 
 import torch
-
 from mmf.common.registry import registry
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path
+
 
 SENTENCE_SPLIT_REGEX = re.compile(r"(\W+)")
 

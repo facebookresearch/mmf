@@ -6,6 +6,7 @@ from typing import Type
 
 from mmf.utils.timer import Timer
 
+
 logger = logging.getLogger(__name__)
 
 

@@ -3,11 +3,10 @@
 import random
 
 import torch
-from transformers.tokenization_auto import AutoTokenizer
-
 from mmf.common.registry import registry
 from mmf.common.sample import Sample, SampleList
 from mmf.datasets.processors.processors import BaseProcessor
+from transformers.tokenization_auto import AutoTokenizer
 
 
 @registry.register_processor("masked_token")
@@ -178,6 +177,7 @@ class MultiSentenceBertTokenizer(BertTokenizer):
     bert tokenizer separately and indices will be reshaped as single
     tensor. Segment ids will also be increasing in number.
     """
+
     def __call__(self, item):
         texts = item["text"]
         if not isinstance(texts, list):

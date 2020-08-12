@@ -2,6 +2,7 @@ import numpy as np
 
 from .cphoc import build_phoc as _build_phoc_raw
 
+
 _alphabet = {
     "a",
     "b",

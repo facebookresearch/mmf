@@ -2,13 +2,12 @@
 
 from bisect import bisect_right
 
+from mmf.common.registry import registry
 from torch.optim.lr_scheduler import LambdaLR
 from transformers.optimization import (
     get_cosine_schedule_with_warmup,
     get_linear_schedule_with_warmup,
 )
-
-from mmf.common.registry import registry
 
 
 @registry.register_scheduler("pythia")

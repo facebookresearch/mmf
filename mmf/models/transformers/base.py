@@ -4,13 +4,12 @@ import os
 from dataclasses import dataclass
 from typing import Any, Dict, List, Type
 
-from omegaconf import OmegaConf
-from torch import Tensor, nn
-from transformers import AutoConfig, AutoModel
-
 from mmf.models import BaseModel
 from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
+from omegaconf import OmegaConf
+from torch import Tensor, nn
+from transformers import AutoConfig, AutoModel
 
 
 @dataclass

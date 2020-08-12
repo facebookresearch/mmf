@@ -8,13 +8,12 @@ import os
 import sys
 from typing import Any, Dict, Union
 
-from termcolor import colored
-
 from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import get_rank, is_master
 from mmf.utils.file_io import PathManager
 from mmf.utils.timer import Timer
+from termcolor import colored
 
 
 @functools.lru_cache()

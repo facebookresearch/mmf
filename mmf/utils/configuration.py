@@ -8,12 +8,12 @@ from ast import literal_eval
 
 import demjson
 import torch
-from omegaconf import OmegaConf
-
 from mmf.common.registry import registry
 from mmf.utils.env import import_user_module
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path, get_mmf_root
+from omegaconf import OmegaConf
+
 
 logger = logging.getLogger(__name__)
 

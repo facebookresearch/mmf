@@ -3,7 +3,6 @@ import os
 from typing import Type, Union
 
 import torch
-
 from mmf.common.sample import Sample
 from mmf.common.typings import MMFDatasetConfigType
 from mmf.datasets.builders.okvqa.dataset import OKVQADataset

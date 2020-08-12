@@ -3,7 +3,6 @@
 from copy import deepcopy
 
 import torch
-
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
 from mmf.modules.encoders import MultiModalEncoderBase

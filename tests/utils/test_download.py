@@ -8,7 +8,9 @@ from io import StringIO
 from unittest import mock
 
 import mmf.utils.download as download
+
 import tests.test_utils as test_utils
+
 
 TEST_DOWNLOAD_URL = (
     "https://dl.fbaipublicfiles.com/mmf/data/tests/visual_entailment_small.zip"

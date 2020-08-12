@@ -9,8 +9,6 @@ from io import StringIO
 from unittest.mock import Mock, patch
 
 import torch
-from omegaconf import OmegaConf
-
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
 from mmf.trainers.callbacks.checkpoint import CheckpointCallback
@@ -18,6 +16,8 @@ from mmf.trainers.callbacks.early_stopping import EarlyStoppingCallback
 from mmf.utils.checkpoint import Checkpoint
 from mmf.utils.configuration import load_yaml
 from mmf.utils.file_io import PathManager
+from omegaconf import OmegaConf
+
 from tests.test_utils import compare_state_dicts
 
 

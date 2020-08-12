@@ -2,8 +2,6 @@
 import copy
 
 import torch
-from torch import nn
-
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
 from mmf.modules.embeddings import (
@@ -14,6 +12,7 @@ from mmf.modules.embeddings import (
 )
 from mmf.modules.encoders import ImageFeatureEncoder
 from mmf.modules.layers import ClassifierLayer, ModalCombineLayer
+from torch import nn
 
 
 @registry.register_model("pythia")

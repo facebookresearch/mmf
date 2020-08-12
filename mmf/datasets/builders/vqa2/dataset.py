@@ -4,10 +4,10 @@ import os
 
 import torch
 import tqdm
-
 from mmf.common.sample import Sample
 from mmf.datasets.mmf_dataset import MMFDataset
 from mmf.utils.distributed import is_master
+
 
 logger = logging.getLogger(__name__)
 

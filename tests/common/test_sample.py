@@ -2,9 +2,9 @@
 import unittest
 
 import torch
+from mmf.common.sample import Sample, to_device
 
 import tests.test_utils as test_utils
-from mmf.common.sample import Sample, to_device
 
 
 class TestSample(unittest.TestCase):

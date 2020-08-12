@@ -8,14 +8,14 @@ import sys
 import warnings
 
 import torch
-from omegaconf import OmegaConf
-
 from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env, load_yaml
 from mmf.utils.distributed import is_master, synchronize
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import updir
+from omegaconf import OmegaConf
+
 
 try:
     import git

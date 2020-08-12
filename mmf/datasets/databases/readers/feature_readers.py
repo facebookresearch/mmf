@@ -5,7 +5,6 @@ import pickle
 import lmdb
 import numpy as np
 import torch
-
 from mmf.utils.file_io import PathManager
 
 

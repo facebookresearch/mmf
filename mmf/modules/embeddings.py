@@ -9,14 +9,13 @@ from typing import Optional, Tuple
 
 import numpy as np
 import torch
-from torch import nn
-from transformers.modeling_bert import BertEmbeddings
-
 from mmf.modules.attention import AttentionLayer, SelfAttention, SelfGuidedAttention
 from mmf.modules.bottleneck import MovieBottleneck
 from mmf.modules.layers import AttnPool1d, Identity
 from mmf.utils.file_io import PathManager
 from mmf.utils.vocab import Vocab
+from torch import nn
+from transformers.modeling_bert import BertEmbeddings
 
 
 class TextEmbedding(nn.Module):

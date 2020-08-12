@@ -30,7 +30,6 @@ For implementing your own fusion technique, you need to follow these steps:
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from mmf.common.registry import registry
 from mmf.utils.general import get_chunks, get_sizes_list
 
