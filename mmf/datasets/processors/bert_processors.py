@@ -178,6 +178,11 @@ class MultiSentenceBertTokenizer(BertTokenizer):
     bert tokenizer separately and indices will be reshaped as single
     tensor. Segment ids will also be increasing in number.
     """
+
+    def __init__(self, config, *args, **kwargs):
+        super().__init__(config, *args, **kwargs)
+        self.fusion_strategy = config.get("fusion", "concat")
+
     def __call__(self, item):
         texts = item["text"]
         if not isinstance(texts, list):
@@ -192,7 +197,9 @@ class MultiSentenceBertTokenizer(BertTokenizer):
             processed.append(sample)
         # Use SampleList to convert list of tensors to stacked tensors
         processed = SampleList(processed)
-        processed.input_ids = processed.input_ids.view(-1)
-        processed.input_mask = processed.input_mask.view(-1)
-        processed.segment_ids = processed.segment_ids.view(-1)
+        if self.fusion_strategy == "concat":
+            processed.input_ids = processed.input_ids.view(-1)
+            processed.input_mask = processed.input_mask.view(-1)
+            processed.segment_ids = processed.segment_ids.view(-1)
+            processed.lm_label_ids = processed.lm_label_ids.view(-1)
         return processed.to_dict()
