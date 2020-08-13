@@ -28,6 +28,7 @@ dataset_config:
       - vqa2/grid_features/annotations/imdb_oneval2014.npy
       test:
       - vqa2/grid_features/annotations/imdb_test2015.npy
+    max_features: 608
 
 optimizer:
   type: adam_w
