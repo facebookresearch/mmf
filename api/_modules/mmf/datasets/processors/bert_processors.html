@@ -410,6 +410,11 @@
 <span class="sd">    bert tokenizer separately and indices will be reshaped as single</span>
 <span class="sd">    tensor. Segment ids will also be increasing in number.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fusion_strategy</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fusion&quot;</span><span class="p">,</span> <span class="s2">&quot;concat&quot;</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
         <span class="n">texts</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">texts</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -424,9 +429,11 @@
             <span class="n">processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
         <span class="c1"># Use SampleList to convert list of tensors to stacked tensors</span>
         <span class="n">processed</span> <span class="o">=</span> <span class="n">SampleList</span><span class="p">(</span><span class="n">processed</span><span class="p">)</span>
-        <span class="n">processed</span><span class="o">.</span><span class="n">input_ids</span> <span class="o">=</span> <span class="n">processed</span><span class="o">.</span><span class="n">input_ids</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">processed</span><span class="o">.</span><span class="n">input_mask</span> <span class="o">=</span> <span class="n">processed</span><span class="o">.</span><span class="n">input_mask</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">processed</span><span class="o">.</span><span class="n">segment_ids</span> <span class="o">=</span> <span class="n">processed</span><span class="o">.</span><span class="n">segment_ids</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fusion_strategy</span> <span class="o">==</span> <span class="s2">&quot;concat&quot;</span><span class="p">:</span>
+            <span class="n">processed</span><span class="o">.</span><span class="n">input_ids</span> <span class="o">=</span> <span class="n">processed</span><span class="o">.</span><span class="n">input_ids</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">processed</span><span class="o">.</span><span class="n">input_mask</span> <span class="o">=</span> <span class="n">processed</span><span class="o">.</span><span class="n">input_mask</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">processed</span><span class="o">.</span><span class="n">segment_ids</span> <span class="o">=</span> <span class="n">processed</span><span class="o">.</span><span class="n">segment_ids</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">processed</span><span class="o">.</span><span class="n">lm_label_ids</span> <span class="o">=</span> <span class="n">processed</span><span class="o">.</span><span class="n">lm_label_ids</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">processed</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span></div>
 </pre></div>
 
