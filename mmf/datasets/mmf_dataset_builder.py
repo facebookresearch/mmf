@@ -3,7 +3,6 @@ import copy
 import os
 import typing
 import warnings
-import numpy as np
 
 import numpy as np
 
@@ -13,6 +12,7 @@ from mmf.datasets.concat_dataset import MMFConcatDataset
 from mmf.datasets.subset_dataset import MMFSubset
 from mmf.utils.configuration import get_global_config, get_mmf_env, get_zoo_config
 from mmf.utils.general import get_absolute_path
+
 
 class MMFDatasetBuilder(BaseDatasetBuilder):
     ZOO_CONFIG_PATH = None
