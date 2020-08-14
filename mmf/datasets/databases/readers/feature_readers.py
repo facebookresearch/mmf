@@ -56,7 +56,7 @@ class FeatureReader:
         elif self.ndim == 3 and not self.depth_first:
             self.feat_reader = Dim3FeatureReader()
         elif self.ndim == 4 and self.depth_first:
-            self.feat_reader = CHWFeatureReader()
+            self.feat_reader = CHWFeatureReader(self.max_features)
         elif self.ndim == 4 and not self.depth_first:
             self.feat_reader = HWCFeatureReader()
         else:
@@ -87,12 +87,21 @@ class FasterRCNNFeatureReader:
 
 
 class CHWFeatureReader:
+    def __init__(self, max_features=None):
+        self.max_features = max_features
+
     def read(self, image_feat_path):
         if image_feat_path.endswith("npy"):
             feat = torch.from_numpy(np.load(image_feat_path))
         elif image_feat_path.endswith("pth"):
             feat = torch.load(image_feat_path, map_location=torch.device("cpu"))
         assert feat.shape[0] == 1, "batch is not 1"
+        b, c, h, w = feat.shape
+        if self.max_features:
+            feat = feat.view(b, c, -1)
+            padded_feat = torch.zeros((b, c, self.max_features), dtype=torch.float)
+            padded_feat[:, :, : h * w] = feat
+            feat = padded_feat.unsqueeze(-1)
         feat = feat.squeeze(0)
         return feat, None
 
