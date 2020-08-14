@@ -4,7 +4,6 @@ import copy
 from typing import Any, Dict, List, Optional, Tuple
 
 import torch
-
 from mmf.common.registry import registry
 from mmf.common.typings import DictConfig
 from mmf.models.base_model import BaseModel

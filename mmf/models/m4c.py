@@ -5,6 +5,10 @@ import math
 
 import torch
 import torch.nn.functional as F
+from mmf.common.registry import registry
+from mmf.models.base_model import BaseModel
+from mmf.modules.encoders import ImageFeatureEncoder
+from mmf.modules.layers import ClassifierLayer
 from torch import nn
 from transformers.modeling_bert import (
     BertConfig,
@@ -14,10 +18,6 @@ from transformers.modeling_bert import (
     BertPreTrainedModel,
 )
 
-from mmf.common.registry import registry
-from mmf.models.base_model import BaseModel
-from mmf.modules.encoders import ImageFeatureEncoder
-from mmf.modules.layers import ClassifierLayer
 
 logger = logging.getLogger(__name__)
 

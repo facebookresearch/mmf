@@ -1,8 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from torch.utils.data.dataset import Dataset
-
 from mmf.common.registry import registry
 from mmf.common.sample import SampleList
+from torch.utils.data.dataset import Dataset
 
 
 class BaseDataset(Dataset):

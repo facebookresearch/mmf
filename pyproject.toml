@@ -1,11 +1,20 @@
 [tool.isort]
-known_third_party = ["PIL", "cv2", "demjson", "h5py", "lib", "lmdb", "maskrcnn_benchmark", "numpy", "omegaconf", "packaging", "pycocoevalcap", "pytorch_sphinx_theme", "recommonmark", "requests", "setuptools", "sklearn", "termcolor", "torch", "torchtext", "torchvision", "tqdm", "transformers"]
+# This is required to make sorting same as fbcode as all absolute imports
+# are considered third party there
+known_third_party = [
+    "PIL", "cv2", "demjson", "h5py", "lib", "lmdb", "maskrcnn_benchmark", "mmf",
+    "numpy", "omegaconf", "packaging", "pycocoevalcap", "pytorch_sphinx_theme",
+    "recommonmark", "requests", "setuptools", "sklearn", "termcolor", "torch",
+    "torchtext", "torchvision", "tqdm", "transformers"
+]
 skip_glob = "**/build/**,website/**"
-multi_line_output = 3
-line_length = 88
+combine_as_imports = true
+force_grid_wrap = false
 include_trailing_comma = true
+line_length = 88
+multi_line_output = 3
 use_parentheses = true
-force_grid_wrap = 0
+lines_after_imports = 2
 
 [tool.black]
 line-length = 88
@@ -20,5 +29,6 @@ exclude = '''
   | buck-out
   | build
   | dist
+  | website
 )/
 '''

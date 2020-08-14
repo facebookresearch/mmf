@@ -3,11 +3,10 @@
 import random
 
 import torch
-from transformers.tokenization_auto import AutoTokenizer
-
 from mmf.common.registry import registry
 from mmf.common.sample import Sample, SampleList
 from mmf.datasets.processors.processors import BaseProcessor
+from transformers.tokenization_auto import AutoTokenizer
 
 
 @registry.register_processor("masked_token")

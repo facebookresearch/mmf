@@ -8,8 +8,6 @@ from copy import deepcopy
 from unittest.mock import Mock
 
 import torch
-from omegaconf import OmegaConf
-
 from mmf.common.meter import Meter
 from mmf.common.registry import registry
 from mmf.common.report import Report
@@ -17,6 +15,7 @@ from mmf.models.base_model import BaseModel
 from mmf.trainers.callbacks.logistics import LogisticsCallback
 from mmf.utils.file_io import PathManager
 from mmf.utils.logger import setup_logger
+from omegaconf import OmegaConf
 
 
 class SimpleModule(BaseModel):

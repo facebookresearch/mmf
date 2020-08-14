@@ -3,11 +3,11 @@
 from copy import deepcopy
 
 import torch
-from torch import nn
-
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
 from mmf.modules.layers import ClassifierLayer, ConvNet, Flatten
+from torch import nn
+
 
 _TEMPLATES = {
     "question_vocab_size": "{}_text_vocab_size",

@@ -5,11 +5,10 @@ import unittest
 from copy import deepcopy
 
 import torch
-from omegaconf import OmegaConf
-
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
 from mmf.trainers.callbacks.lr_scheduler import LRSchedulerCallback
+from omegaconf import OmegaConf
 
 
 class SimpleModule(BaseModel):

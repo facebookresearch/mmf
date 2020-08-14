@@ -2,7 +2,6 @@
 import logging
 
 import omegaconf
-
 from mmf.common import typings as mmf_typings
 from mmf.common.dataset_loader import DatasetLoader
 from mmf.common.registry import registry
@@ -20,6 +19,7 @@ from mmf.trainers.core.reporting import TrainerReportingMixin
 from mmf.trainers.core.training_loop import TrainerTrainingLoopMixin
 from mmf.utils.build import build_model, build_optimizer
 from mmf.utils.general import print_model_parameters
+
 
 logger = logging.getLogger(__name__)
 

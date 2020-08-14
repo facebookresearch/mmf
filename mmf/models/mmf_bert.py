@@ -1,6 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import torch
+from mmf.common.registry import registry
+from mmf.models.pythia import Pythia
+from mmf.modules.embeddings import ProjectionEmbedding
+from mmf.utils.transform import transform_to_batch_sequence
 from torch import nn
 from transformers.modeling_bert import (
     BertConfig,
@@ -11,11 +15,6 @@ from transformers.modeling_bert import (
     BertPredictionHeadTransform,
     BertPreTrainingHeads,
 )
-
-from mmf.common.registry import registry
-from mmf.models.pythia import Pythia
-from mmf.modules.embeddings import ProjectionEmbedding
-from mmf.utils.transform import transform_to_batch_sequence
 
 
 @registry.register_model("mmf_bert")

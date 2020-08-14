@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import torch
-
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
 from mmf.modules.layers import ReLUWithWeightNormFC

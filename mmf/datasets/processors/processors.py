@@ -78,7 +78,6 @@ from typing import Any, Dict
 
 import numpy as np
 import torch
-
 from mmf.common.registry import registry
 from mmf.common.typings import ProcessorConfigType
 from mmf.utils.configuration import get_mmf_cache_dir, get_mmf_env
@@ -86,6 +85,7 @@ from mmf.utils.distributed import is_master, synchronize
 from mmf.utils.file_io import PathManager
 from mmf.utils.text import VocabDict
 from mmf.utils.vocab import Vocab, WordToVectorDict
+
 
 logger = logging.getLogger(__name__)
 

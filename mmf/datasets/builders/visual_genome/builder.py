@@ -10,6 +10,7 @@ from mmf.datasets.builders.vqa2.builder import VQA2Builder
 from mmf.utils.download import decompress, download
 from mmf.utils.general import get_mmf_root
 
+
 logger = logging.getLogger(__name__)
 
 

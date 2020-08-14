@@ -4,7 +4,6 @@ from abc import ABC
 from typing import Any, Dict, Type
 
 import torch
-
 from mmf.common.meter import Meter
 from mmf.common.registry import registry
 from mmf.utils.distributed import reduce_dict

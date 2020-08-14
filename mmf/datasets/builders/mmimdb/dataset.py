@@ -2,7 +2,6 @@ import copy
 import json
 
 import torch
-
 from mmf.common.sample import Sample
 from mmf.datasets.mmf_dataset import MMFDataset
 

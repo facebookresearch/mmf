@@ -7,10 +7,10 @@ import os
 from bisect import bisect
 
 import torch
-from torch import nn
-
 from mmf.utils.distributed import get_rank, get_world_size
 from mmf.utils.file_io import PathManager
+from torch import nn
+
 
 logger = logging.getLogger(__name__)
 

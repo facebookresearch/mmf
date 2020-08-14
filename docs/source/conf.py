@@ -35,10 +35,10 @@
 import datetime
 
 import pytorch_sphinx_theme
+from mmf import version
 from packaging.version import parse
 from recommonmark.transform import AutoStructify
 
-from mmf import version
 
 parsed_version = parse(version.__version__)
 

@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import torch
-
 from mmf.common.sample import Sample
 from mmf.datasets.builders.vqa2 import VQA2Dataset
 from mmf.utils.distributed import byte_tensor_to_object, object_to_byte_tensor

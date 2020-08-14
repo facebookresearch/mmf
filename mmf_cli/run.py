@@ -6,7 +6,6 @@ import random
 import typing
 
 import torch
-
 from mmf.common.registry import registry
 from mmf.utils.build import build_config, build_trainer
 from mmf.utils.configuration import Configuration
@@ -15,6 +14,7 @@ from mmf.utils.env import set_seed, setup_imports
 from mmf.utils.flags import flags
 from mmf.utils.general import log_device_names
 from mmf.utils.logger import setup_logger, setup_very_basic_config
+
 
 setup_very_basic_config()
 

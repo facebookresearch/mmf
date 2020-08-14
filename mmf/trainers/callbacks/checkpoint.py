@@ -4,6 +4,7 @@ import logging
 from mmf.trainers.callbacks.base import Callback
 from mmf.utils.checkpoint import Checkpoint
 
+
 logger = logging.getLogger(__name__)
 
 

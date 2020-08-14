@@ -1,11 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import torch
-from torch import nn
-
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
 from mmf.modules.embeddings import BiLSTMTextEmbedding
 from mmf.modules.layers import BCNet, BiAttention, FCNet, WeightNormClassifier
+from torch import nn
 
 
 @registry.register_model("ban")

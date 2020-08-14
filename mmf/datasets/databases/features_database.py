@@ -3,11 +3,11 @@ import logging
 from multiprocessing.pool import ThreadPool
 
 import tqdm
-
 from mmf.datasets.databases.image_database import ImageDatabase
 from mmf.datasets.databases.readers.feature_readers import FeatureReader
 from mmf.utils.distributed import is_master
 from mmf.utils.general import get_absolute_path
+
 
 logger = logging.getLogger(__name__)
 

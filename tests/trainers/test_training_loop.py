@@ -4,11 +4,11 @@ import unittest
 from unittest.mock import MagicMock
 
 import torch
-from omegaconf import OmegaConf
-
 from mmf.common.sample import SampleList
 from mmf.trainers.core.profiling import TrainerProfilingMixin
 from mmf.trainers.core.training_loop import TrainerTrainingLoopMixin
+from omegaconf import OmegaConf
+
 from tests.test_utils import NumbersDataset, SimpleModel
 
 
@@ -34,11 +34,7 @@ class TrainerTrainingLoopMock(TrainerTrainingLoopMixin, TrainerProfilingMixin):
         self.optimizer.zero_grad = MagicMock(return_value=None)
         dataset = NumbersDataset(num_train_data)
         self.train_loader = torch.utils.data.DataLoader(
-            dataset=dataset,
-            batch_size=1,
-            shuffle=False,
-            num_workers=1,
-            drop_last=False,
+            dataset=dataset, batch_size=1, shuffle=False, num_workers=1, drop_last=False
         )
         self.on_batch_start = MagicMock(return_value=None)
         self.logistics_callback = MagicMock(return_value=None)

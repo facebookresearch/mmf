@@ -8,7 +8,6 @@ from collections import Counter
 import h5py
 import numpy as np
 import tqdm
-
 from mmf.utils.process_answers import preprocess_answer
 from mmf.utils.text_processing import text_tokenize as tokenize
 

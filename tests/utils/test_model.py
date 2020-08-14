@@ -1,8 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import torch
-from torch import nn
-
 from mmf.common.registry import registry
+from torch import nn
 
 
 class TestDecoderModel(nn.Module):

@@ -5,10 +5,9 @@ import os
 import torch
 import torchvision
 import torchvision.datasets.folder as tv_helpers
-from PIL import Image
-
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path
+from PIL import Image
 
 
 def get_possible_image_paths(path):

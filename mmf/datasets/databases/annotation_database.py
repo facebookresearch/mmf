@@ -3,7 +3,6 @@ import json
 
 import numpy as np
 import torch
-
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path
 

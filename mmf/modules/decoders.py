@@ -1,9 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import torch
+from mmf.common.registry import registry
 from torch import nn
 from torch.nn.utils.weight_norm import weight_norm
-
-from mmf.common.registry import registry
 
 
 class VisDialDiscriminator(nn.Module):

@@ -2,7 +2,6 @@
 import warnings
 
 import torch
-
 from mmf.common.sample import Sample
 
 

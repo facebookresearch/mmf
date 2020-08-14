@@ -4,9 +4,8 @@ import math
 from typing import Optional, Tuple, Type
 
 import torch
-from torch import nn
-
 from mmf.modules.layers import GatedTanh, ModalCombineLayer, TransformLayer
+from torch import nn
 
 
 class AttentionLayer(nn.Module):

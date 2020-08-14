@@ -12,6 +12,7 @@ from mmf.datasets.builders.clevr.dataset import CLEVRDataset
 from mmf.utils.download import download
 from mmf.utils.general import get_mmf_root
 
+
 logger = logging.getLogger(__name__)
 
 

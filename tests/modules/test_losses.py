@@ -3,11 +3,11 @@ import collections
 import unittest
 from unittest.mock import MagicMock
 
-import torch
-
 import mmf.modules.losses as losses
+import torch
 from mmf.common.registry import registry
 from mmf.common.sample import SampleList
+
 
 RETURN_VALUE = torch.tensor(1.0)
 

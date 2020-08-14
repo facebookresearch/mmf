@@ -5,14 +5,14 @@ import warnings
 from typing import Any, Dict, Type
 
 import torch
-from omegaconf import OmegaConf
-
 from mmf.common import typings as mmf_typings
 from mmf.common.registry import registry
 from mmf.datasets.processors.processors import Processor
 from mmf.utils.configuration import Configuration
 from mmf.utils.distributed import is_dist_initialized
 from mmf.utils.general import get_optimizer_parameters
+from omegaconf import OmegaConf
+
 
 ProcessorType = Type[Processor]
 ProcessorDict = Dict[str, ProcessorType]

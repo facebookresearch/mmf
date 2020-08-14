@@ -6,11 +6,11 @@ from typing import Any, Dict, Tuple, Type
 
 import torch
 import tqdm
-
 from mmf.common.meter import Meter
 from mmf.common.report import Report
 from mmf.common.sample import to_device
 from mmf.utils.distributed import is_master
+
 
 logger = logging.getLogger(__name__)
 

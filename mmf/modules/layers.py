@@ -3,11 +3,10 @@
 from typing import Optional
 
 import torch
-from torch import nn
-from torch.nn.utils.weight_norm import weight_norm
-
 from mmf.common.registry import registry
 from mmf.modules.decoders import LanguageDecoder
+from torch import nn
+from torch.nn.utils.weight_norm import weight_norm
 
 
 class ConvNet(nn.Module):

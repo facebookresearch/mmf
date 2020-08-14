@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import torch
-
 from mmf.common.sample import Sample
 from mmf.datasets.builders.coco import COCODataset
 

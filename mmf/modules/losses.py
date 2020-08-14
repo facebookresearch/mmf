@@ -31,9 +31,8 @@ import warnings
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.utils.rnn import pack_padded_sequence
-
 from mmf.common.registry import registry
+from torch.nn.utils.rnn import pack_padded_sequence
 
 
 class Losses(nn.Module):

@@ -4,9 +4,6 @@ import json
 import logging
 import os
 
-from torch.utils.data import DataLoader, Dataset
-from torch.utils.data.distributed import DistributedSampler
-
 from mmf.common.batch_collator import BatchCollator
 from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env
@@ -18,6 +15,9 @@ from mmf.utils.general import (
     get_batch_size,
 )
 from mmf.utils.timer import Timer
+from torch.utils.data import DataLoader, Dataset
+from torch.utils.data.distributed import DistributedSampler
+
 
 logger = logging.getLogger(__name__)
 

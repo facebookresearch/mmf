@@ -2,9 +2,9 @@ import copy
 import json
 
 import torch
-
 from mmf.common.sample import Sample
 from mmf.datasets.builders.vqa2 import VQA2Dataset
+
 
 LABEL_TO_INT_MAPPING = {"entailment": 0, "neutral": 1, "contradiction": 2}
 

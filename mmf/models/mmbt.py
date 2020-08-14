@@ -9,10 +9,6 @@ import os
 from copy import deepcopy
 
 import torch
-from omegaconf import OmegaConf
-from torch import nn
-from transformers.modeling_bert import BertForPreTraining, BertPredictionHeadTransform
-
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
 from mmf.models.interfaces.mmbt import MMBTGridHMInterface
@@ -20,6 +16,9 @@ from mmf.modules.encoders import MultiModalEncoderBase
 from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
+from omegaconf import OmegaConf
+from torch import nn
+from transformers.modeling_bert import BertForPreTraining, BertPredictionHeadTransform
 
 
 # TODO: Remove after transformers package upgrade to 2.5

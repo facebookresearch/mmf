@@ -6,6 +6,15 @@ import os
 from copy import deepcopy
 
 import torch
+from mmf.common.registry import registry
+from mmf.models import BaseModel
+from mmf.modules.embeddings import BertVisioLinguisticEmbeddings
+from mmf.utils.configuration import get_mmf_cache_dir
+from mmf.utils.modeling import get_optimizer_parameters_for_bert
+from mmf.utils.transform import (
+    transform_to_batch_sequence,
+    transform_to_batch_sequence_dim,
+)
 from omegaconf import OmegaConf
 from torch import nn
 from transformers.modeling_bert import (
@@ -16,16 +25,6 @@ from transformers.modeling_bert import (
     BertPooler,
     BertPredictionHeadTransform,
     BertPreTrainedModel,
-)
-
-from mmf.common.registry import registry
-from mmf.models import BaseModel
-from mmf.modules.embeddings import BertVisioLinguisticEmbeddings
-from mmf.utils.configuration import get_mmf_cache_dir
-from mmf.utils.modeling import get_optimizer_parameters_for_bert
-from mmf.utils.transform import (
-    transform_to_batch_sequence,
-    transform_to_batch_sequence_dim,
 )
 
 

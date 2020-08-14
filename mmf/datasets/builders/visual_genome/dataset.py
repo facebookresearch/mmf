@@ -3,10 +3,10 @@ import copy
 import json
 
 import torch
-
 from mmf.common.sample import Sample, SampleList
 from mmf.datasets.builders.vqa2 import VQA2Dataset
 from mmf.datasets.databases.scene_graph_database import SceneGraphDatabase
+
 
 _CONSTANTS = {"image_id_key": "image_id"}
 
