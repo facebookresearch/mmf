@@ -43,7 +43,9 @@ class AnnotationDatabase(torch.utils.data.Dataset):
             self.start_idx = 0
 
     def _load_npy(self, path):
-        self.db = np.load(path, allow_pickle=True)
+        with PathManager.open(path, "rb") as f:
+            self.db = np.load(f, allow_pickle=True)
+
         self.start_idx = 0
 
         if type(self.db) == dict:

@@ -1,0 +1,75 @@
+dataset_config:
+  vqa2:
+      data_dir: ${env.data_dir}/datasets
+      depth_first: false
+      fast_read: false
+      use_images: true
+      use_features: false
+      zoo_requirements:
+      - coco.defaults
+      - vqa2.defaults
+      images:
+        train:
+        - coco/defaults/images/train2014
+        val:
+        - coco/defaults/images/val2014
+        test:
+        - coco/defaults/images/test2015
+      features:
+        train:
+        - coco/defaults/features/trainval2014.lmdb
+        val:
+        - coco/defaults/features/trainval2014.lmdb
+        test:
+        - coco/defaults/features/test2015.lmdb
+      annotations:
+        train:
+        - vqa2/defaults/annotations/imdb_train2014.npy
+        val:
+        - vqa2/defaults/annotations/imdb_val2014.npy
+        test:
+        - vqa2/defaults/annotations/imdb_test2015.npy
+      max_features: 100
+      processors:
+        answer_processor:
+          type: vqa_answer
+          params:
+            num_answers: 10
+            vocab_file: vqa2/defaults/extras/vocabs/answers_vqa.txt
+            preprocessor:
+              type: simple_word
+              params: {}
+        context_processor:
+          type: fasttext
+          params:
+            download_initially: false
+            max_length: 50
+            model_file: wiki.en.bin
+        ocr_token_processor:
+          type: simple_word
+          params: {}
+        bbox_processor:
+          type: bbox
+          params:
+            max_length: 50
+        image_processor:
+          type: torchvision_transforms
+          params:
+            transforms:
+            - type: Resize
+              params:
+                  size: [256, 256]
+            - type: CenterCrop
+              params:
+                size: [224, 224]
+            - ToTensor
+            - GrayScaleTo3Channels
+            - type: Normalize
+              params:
+                mean: [0.46777044, 0.44531429, 0.40661017]
+                std: [0.12221994, 0.12145835, 0.14380469]
+      return_features_info: false
+      # Return OCR information
+      use_ocr: false
+      # Return spatial information of OCR tokens if present
+      use_ocr_info: false
