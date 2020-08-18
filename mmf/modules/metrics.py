@@ -172,7 +172,7 @@ class BaseMetric:
 
     def __init__(self, name, *args, **kwargs):
         self.name = name
-        self.required_params = ["scores", "targets", "id"]
+        self.required_params = ["scores", "targets"]
 
     @property
     def name(self):
