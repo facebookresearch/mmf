@@ -100,7 +100,7 @@ class ConcatBERT(BaseModel):
         segment = sample_list.segment_ids
 
         if self._is_direct_features_input:
-            modal = sample_list.image_features_0
+            modal = sample_list.image_feature_0
         else:
             modal = sample_list.image
 
