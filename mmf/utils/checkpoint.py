@@ -208,15 +208,18 @@ class Checkpoint:
                 self._load_optimizer(ckpt)
 
             self.trainer.early_stop_callback.early_stopping.init_from_checkpoint(ckpt)
-
-            logger.info("Checkpoint loaded")
-
             reset_counts = ckpt_config.reset.all or ckpt_config.reset.counts
 
             if not reset_counts:
                 self._load_counts(ckpt)
         else:
             self._load_pretrained(new_dict)
+
+        logger.info(
+            f"Checkpoint loaded.. num updates:{self.trainer.num_updates} "
+            + f"current iteration:{self.trainer.current_iteration} "
+            + f"current epoch:{self.trainer.current_epoch}"
+        )
 
     def _load_optimizer(self, ckpt):
         if "optimizer" in ckpt:
