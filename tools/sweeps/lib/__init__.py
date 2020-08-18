@@ -85,6 +85,14 @@ def get_args():
             help="save checkpoints and logs in "
             + "<checkpoints-dir>/<prefix>.<save_dir_key>",
         )
+        parser.add_argument(
+            "--workflow",
+            default="faim.mmf_run.train_workflow",
+            help="fblearner workflow name",
+        )
+        parser.add_argument(
+            "--buck-target", default=None, help="fblearner buck-target if required"
+        )
 
     parser.add_argument(
         "--backend", choices=["slurm", "fblearner"], default=default_backend
