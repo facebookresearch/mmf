@@ -18,6 +18,10 @@
 import os
 
 import torch
+from mmf.common.registry import registry
+from mmf.models import BaseModel
+from mmf.utils.configuration import get_mmf_cache_dir
+from mmf.utils.modeling import get_optimizer_parameters_for_bert
 from omegaconf import OmegaConf
 from torch import nn
 from torch.nn import CrossEntropyLoss, SmoothL1Loss
@@ -36,11 +40,6 @@ from transformers.modeling_bert import (
     BertSelfAttention,
     BertSelfOutput,
 )
-
-from mmf.common.registry import registry
-from mmf.models import BaseModel
-from mmf.utils.configuration import get_mmf_cache_dir
-from mmf.utils.modeling import get_optimizer_parameters_for_bert
 
 
 class GeLU(nn.Module):
@@ -531,7 +530,7 @@ class LXMERTForPretraining(nn.Module):
                     output_dim,
                     loss_fct_name,
                     label_shape,
-                    weight
+                    weight,
                 ) = self.visual_loss_config[key]
                 if key == "attr":
                     continue
@@ -657,7 +656,7 @@ class LXMERT(BaseModel):
         bert_input_mask = sample_list.input_mask
         bert_input_type_ids = sample_list.segment_ids
         masked_lm_labels = sample_list.lm_label_ids
-       
+
         # image input
         image_info = getattr(sample_list, "image_info_0", {})
         image_dim_variable = getattr(image_info, "max_features", None)
@@ -730,7 +729,7 @@ class LXMERT(BaseModel):
         return get_optimizer_parameters_for_bert(self.model, config)
 
     def forward(self, sample_list):
-        device = registry.get('config').training.device
+        device = registry.get("config").training.device
         params = self.get_image_and_text_features(sample_list, device)
         if params["visual_feats"] is not None and params["image_dim"] is not None:
             device = params["visual_feats"].device
