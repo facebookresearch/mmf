@@ -77,6 +77,10 @@ class Report(OrderedDict):
     def accumulate_tensor_fields(self, report, field_list):
         for key in field_list:
             if key not in self.keys():
-                raise AttributeError(key)
+                warnings.warn(
+                    f"{key} not found in report. Metrics calculation "
+                    + "might not work as expected."
+                )
+                continue
             if isinstance(self[key], torch.Tensor):
                 self[key] = torch.cat((self[key], report[key]), dim=0)

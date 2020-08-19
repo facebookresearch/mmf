@@ -5,6 +5,8 @@ dataset_config:
     fast_read: false
     use_images: false
     use_features: true
+    zoo_requirements:
+    - coco.defaults
     # annotation_style can be coco or textcaps which allows us to override
     # the dataset class
     annotation_style: coco
