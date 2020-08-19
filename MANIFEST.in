@@ -1,3 +1,5 @@
 include requirements.txt
 include LICENSE
 include NOTICES
+recursive-include mmf/configs/ *.yaml
+recursive-include projects/ *.yaml
