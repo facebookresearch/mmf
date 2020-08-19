@@ -40,7 +40,8 @@ class MaskedVQA2Dataset(VQA2Dataset):
             current_sample.update(features)
 
         current_sample = self._add_masked_question(sample_info, current_sample)
-
+        if self._add_answer:
+            current_sample = self.add_answer_info(sample_info, current_sample)
         return current_sample
 
     def _add_masked_question(self, sample_info, current_sample):

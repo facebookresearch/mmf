@@ -1,0 +1,25 @@
+includes:
+- configs/models/lxmert/defaults.yaml
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 1e-4
+    eps: 1e-8
+
+training:
+  seed: 9595
+  batch_size: 4
+  lr_scheduler: false
+  find_unused_parameters: true
+  use_warmup: true
+  warmup_factor: 0.05
+  warmup_iterations: 1000
+  max_epochs: 20
+  max_updates: null
+  pin_memory: true
+
+
+evaluation:
+  metrics:
+  - vqa_accuracy

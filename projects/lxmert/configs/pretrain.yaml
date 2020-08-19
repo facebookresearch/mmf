@@ -1,0 +1,7 @@
+includes:
+- ./defaults.yaml
+- coco/masked.yaml
+- gqa/masked.yaml
+- visual_genome/masked.yaml
+- vqa2/masked.yaml
+- configs/models/lxmert/defaults.yaml
