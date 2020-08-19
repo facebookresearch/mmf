@@ -351,6 +351,34 @@ class MMBTBase(MultiModalEncoderBase):
         if self.config.use_modal_end_token:
             modal_end_token = sample_list.input_ids[:, -1].clone().detach()
 
+        if hasattr(sample_list, "modal_token_type_ids"):
+            modal_token_type_ids = sample_list.modal_token_type_ids
+        else:
+            token_value = 0
+            segment_ids = sample_list.segment_ids
+            max_id = segment_ids.max()
+            min_id = segment_ids.min()
+            # Case of only one segment
+            if max_id == min_id:
+                # If max_id is greater than 0, that means text is at 0 segment
+                # which means modal will be at 1
+                # In other case, it will be zero, which it already is
+                if max_id == 0:
+                    token_value = 1
+            else:
+                max_segment = self.config.text_encoder.params.get("num_segments", 2) - 1
+                # If max id is not equal to max_segment, it means
+                # text segments start from 0 which means modal will
+                # be last, otherwise, it is 0, which it already is
+                if max_id != max_segment:
+                    token_value = max_segment
+            modal_token_type_ids = torch.full(
+                (input_modal.size(0), 1),
+                fill_value=token_value,
+                dtype=torch.long,
+                device=input_modal.device,
+            )
+
         # See details of inputs at
         # https://github.com/huggingface/transformers/blob/1789c7/src/transformers/modeling_mmbt.py#L101 # noqa
         output = self.mmbt(
@@ -360,7 +388,7 @@ class MMBTBase(MultiModalEncoderBase):
             modal_end_tokens=modal_end_token,
             attention_mask=sample_list.input_mask,
             token_type_ids=sample_list.segment_ids,
-            modal_token_type_ids=None,
+            modal_token_type_ids=modal_token_type_ids,
             position_ids=None,
             modal_position_ids=None,
             head_mask=None,
@@ -423,7 +451,7 @@ class MMBTForPreTraining(nn.Module):
             lm_label_ids = sample_list.lm_label_ids
             # Only take last scores which are text's scores and ignore image scores
             text_scores = (
-                prediction_scores[:, -lm_label_ids.size(1) :]
+                prediction_scores[:, -(lm_label_ids.size(1)) :]
                 .contiguous()
                 .view(-1, self.encoder_config.vocab_size)
             )

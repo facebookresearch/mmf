@@ -183,7 +183,23 @@ class TransformerEncoder(nn.Module):
             cache_dir=os.path.join(get_mmf_cache_dir(), "distributed_{}".format(-1)),
         )
         self.embeddings = self.module.embeddings
+        self.original_config = self.config
         self.config = self.module.config
+        self._init_segment_embeddings()
+
+    def _init_segment_embeddings(self):
+        if self.original_config.get("num_segments", None):
+            num_segments = self.original_config.num_segments
+            if hasattr(self.embeddings, "token_type_embeddings"):
+                new_embeds = nn.Embedding(num_segments, self.config.hidden_size)
+                new_embeds.weight.data[:2].copy_(
+                    self.embeddings.token_type_embeddings.weight
+                )
+                for idx in range(2, num_segments - 1):
+                    new_embeds.weight.data[idx].copy_(
+                        self.embeddings.token_type_embeddings.weight.data.mean(dim=0)
+                    )
+                self.embeddings.token_type_embeddings = new_embeds
 
     def _build_encoder_config(self, config):
         return AutoConfig.from_pretrained(

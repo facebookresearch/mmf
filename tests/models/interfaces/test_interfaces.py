@@ -19,14 +19,12 @@ class TestModelInterfaces(unittest.TestCase):
         )
 
         self.assertEqual(result["label"], 0)
-        np.testing.assert_almost_equal(result["confidence"], 0.9999, decimal=4)
+        np.testing.assert_almost_equal(result["confidence"], 0.9993, decimal=4)
         result = model.classify(
             "https://i.imgur.com/tEcsk5q.jpg", "they have the privilege"
         )
         self.assertEqual(result["label"], 0)
-        np.testing.assert_almost_equal(result["confidence"], 0.9869, decimal=4)
-        result = model.classify(
-            "https://i.imgur.com/tEcsk5q.jpg", "a black man doing nothing"
-        )
+        np.testing.assert_almost_equal(result["confidence"], 0.9777, decimal=4)
+        result = model.classify("https://i.imgur.com/tEcsk5q.jpg", "hitler and jews")
         self.assertEqual(result["label"], 1)
-        np.testing.assert_almost_equal(result["confidence"], 0.6941, decimal=4)
+        np.testing.assert_almost_equal(result["confidence"], 0.6342, decimal=4)

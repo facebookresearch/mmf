@@ -386,17 +386,19 @@ vilbert:
 mmbt:
   hateful_memes:
     images:
+      # bs64.s1.adam_w.lr5e-05.mu22000
       version: 1.0_2020_05_10
       resources:
-      - url: mmf://models/mmbt/mmbt.finetuned.hateful_memes_images.tar.gz
+      - url: mmf://models/mmbt/mmbt.finetuned.hateful_memes_images_2020_08_20.tar.gz
         file_name: mmbt.finetuned.hateful_memes_images.tar.gz
-        hashcode: 8955e70019acbd79348b8fd480949aea181d0586e97faa3771f7a3ae2057ee90
+        hashcode: 0df7a4ab4da9f2f05c2f5fcf6f7c0ce775e80279039a2e6069e958e0f1a2786a
     features:
+      # bs128.s1.adam_w.lr5e-05.mu22000
       version: 1.0_2020_05_10
       resources:
-      - url: mmf://models/mmbt/mmbt.finetuned.hateful_memes_features.tar.gz
-        file_name: mmbt.finetuned.hateful_memes_features.tar.gz
-        hashcode: 3b206003f8e7c79791baaf61edf540f0135e81d822859abd1ad70ff1c14da4bf
+      - url: mmf://models/mmbt/mmbt.finetuned.hateful_memes_features_2020_08_20.tar.gz
+        file_name: mmbt.finetuned.hateful_memes_features_2020_08_20.tar.gz
+        hashcode: e110262220636d89f0434a417e07acb7f9713035ea1083184d896978c5124aa7
     defaults: ${mmbt.hateful_memes.features}
 
 unimodal_image:
