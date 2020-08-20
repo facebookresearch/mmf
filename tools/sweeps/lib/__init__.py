@@ -75,7 +75,7 @@ def get_args():
     else:
         default_backend = "fblearner"
         parser.add_argument(
-            "--checkpoints-dir",
+            "--checkpoints_dir",
             default=os.path.join(
                 "/mnt/vol/gfsai-east/ai-group/users",
                 os.environ["USER"],
