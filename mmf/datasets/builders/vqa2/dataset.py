@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import logging
-import os
 
 import torch
 import tqdm
@@ -25,6 +24,11 @@ class VQA2Dataset(MMFDataset):
         self._should_fast_read = self.config.get("fast_read", False)
         self.use_ocr = self.config.use_ocr
         self.use_ocr_info = self.config.use_ocr_info
+
+    def init_processors(self):
+        super().init_processors()
+        if not self._use_features:
+            self.image_db.transform = self.image_processor
 
     def try_fast_read(self):
         # Don't fast read in case of test set.
@@ -81,13 +85,16 @@ class VQA2Dataset(MMFDataset):
             len(sample_info["question_tokens"]), dtype=torch.int
         )
 
-        if self._use_features is True:
+        if self._use_features:
             features = self.features_db[idx]
             if hasattr(self, "transformer_bbox_processor"):
                 features["image_info_0"] = self.transformer_bbox_processor(
                     features["image_info_0"]
                 )
             current_sample.update(features)
+        else:
+            image_path = sample_info["image_name"] + ".jpg"
+            current_sample.image = self.image_db.from_path(image_path)["images"][0]
 
         # Add details for OCR like OCR bbox, vectors, tokens here
         current_sample = self.add_ocr_details(sample_info, current_sample)

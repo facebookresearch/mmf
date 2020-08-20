@@ -1,0 +1,21 @@
+dataset_config:
+  vqa2:
+      use_images: true
+      use_features: false
+      processors:
+        image_processor:
+          type: torchvision_transforms
+          params:
+            transforms:
+            - type: Resize
+              params:
+                  size: [256, 256]
+            - type: CenterCrop
+              params:
+                size: [224, 224]
+            - ToTensor
+            - GrayScaleTo3Channels
+            - type: Normalize
+              params:
+                mean: [0.46777044, 0.44531429, 0.40661017]
+                std: [0.12221994, 0.12145835, 0.14380469]

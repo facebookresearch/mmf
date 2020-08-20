@@ -20,7 +20,7 @@ class MaskedVQA2Dataset(VQA2Dataset):
         sample_info = self.annotation_db[idx]
         current_sample = Sample()
 
-        if self._use_features is True:
+        if self._use_features:
             features = self.features_db[idx]
 
             if self.config.get("transformer_bbox_processor", False):
@@ -38,6 +38,9 @@ class MaskedVQA2Dataset(VQA2Dataset):
                 )
 
             current_sample.update(features)
+        else:
+            image_path = str(sample_info["image_name"]) + ".jpg"
+            current_sample.image = self.image_db.from_path(image_path)["images"][0]
 
         current_sample = self._add_masked_question(sample_info, current_sample)
         if self._add_answer:

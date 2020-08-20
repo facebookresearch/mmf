@@ -17,7 +17,7 @@ class MaskedCOCODataset(COCODataset):
         sample_info = self.annotation_db[idx]
         current_sample = Sample()
 
-        if self._use_features is True:
+        if self._use_features:
             features = self.features_db[idx]
             if hasattr(self, "transformer_bbox_processor"):
                 features["image_info_0"] = self.transformer_bbox_processor(
@@ -34,6 +34,9 @@ class MaskedCOCODataset(COCODataset):
                 )
 
             current_sample.update(features)
+        else:
+            image_path = str(sample_info["image_name"]) + ".jpg"
+            current_sample.image = self.image_db.from_path(image_path)["images"][0]
 
         current_sample = self._add_masked_caption(sample_info, current_sample)
         return current_sample
