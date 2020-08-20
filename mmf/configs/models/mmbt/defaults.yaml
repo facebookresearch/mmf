@@ -26,6 +26,7 @@ model_config:
     text_encoder:
       type: transformer
       params:
+        num_segments: 2
         bert_model_name: ${model_config.mmbt.bert_model_name}
         # Options below can be overridden to update the bert configuration used
         # to initialize the bert encoder. If some option is missing or
