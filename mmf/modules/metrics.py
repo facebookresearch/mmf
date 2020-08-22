@@ -802,7 +802,7 @@ class MultiLabelMicroF1(MultiLabelF1):
 
 
 @registry.register_metric("multilabel_macro_f1")
-class MultiLabelMacroF1(F1):
+class MultiLabelMacroF1(MultiLabelF1):
     """Metric for calculating Multilabel Macro F1.
 
     **Key:** ``multilabel_macro_f1``

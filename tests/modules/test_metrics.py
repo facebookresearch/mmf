@@ -130,7 +130,7 @@ class TestModuleMetrics(unittest.TestCase):
 
     def test_multilabel_macro_f1(self):
         metric = metrics.MultiLabelMacroF1()
-        self._test_multilabel_metric(metric, 0.13333)
+        self._test_multilabel_metric(metric, 0.355555)
 
     def test_macro_roc_auc(self):
         metric = metrics.MacroROC_AUC()
