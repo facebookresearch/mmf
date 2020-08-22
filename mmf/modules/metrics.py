@@ -268,7 +268,7 @@ class CaptionBleu4Metric(BaseMetric):
         self._bleu_score = bleu_score
         super().__init__("caption_bleu4")
         self.caption_processor = registry.get("coco_caption_processor")
-        self.required_params = ["scores", "answers"]
+        self.required_params = ["scores", "answers", "captions"]
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
         """Calculate accuracy and return it back.
@@ -295,7 +295,10 @@ class CaptionBleu4Metric(BaseMetric):
             references.append(img_captions)
 
         # Hypotheses
-        scores = torch.max(model_output["scores"], dim=-1)[1]
+        if "captions" in model_output:
+            scores = model_output["captions"]
+        else:
+            scores = torch.max(model_output["scores"], dim=-1)[1]
         scores = scores.tolist()
         predictions = []
         for j, _ in enumerate(scores):

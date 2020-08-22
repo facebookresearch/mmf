@@ -453,3 +453,13 @@ movie_mcan:
         file_name: movie_mcan.grid.vqa2_vg.tar.gz
         hashcode: eb155846799d12c0b989490595ce57aa934cd7c71fc9956235e4d9e06cbe8985
     defaults: ${movie_mcan.grid.vqa2_vg}
+
+butd:
+  defaults: ${butd.coco}
+  coco:
+    # Model from project : projects/butd, Karpathy Val: BLEU4 0.36
+    version: 1.0_2020_08_19
+    resources:
+    - url: mmf://models/butd/butd.coco.tar.gz
+      file_name: butd.coco.tar.gz
+      hashcode: 55e57d791e6e5c785b96d8254ef48f3d9b5b107ff1152560b09d868f88c3598f
