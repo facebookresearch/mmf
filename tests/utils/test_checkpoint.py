@@ -13,6 +13,7 @@ from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
 from mmf.trainers.callbacks.checkpoint import CheckpointCallback
 from mmf.trainers.callbacks.early_stopping import EarlyStoppingCallback
+from mmf.trainers.callbacks.lr_scheduler import LRSchedulerCallback
 from mmf.utils.checkpoint import Checkpoint
 from mmf.utils.configuration import load_yaml
 from mmf.utils.file_io import PathManager
@@ -81,6 +82,16 @@ class TestUtilsCheckpoint(unittest.TestCase):
                 "training": {
                     "checkpoint_interval": 1,
                     "early_stop": {"criteria": "val/total_loss"},
+                    "lr_scheduler": True,
+                },
+                "scheduler": {
+                    "type": "multi_step",
+                    "params": {
+                        "use_warmup": False,
+                        "lr_steps": [10, 20],
+                        "lr_ratio": 0.1,
+                        "warmup_factor": 1.0,
+                    },
                 },
             }
         )
@@ -91,6 +102,10 @@ class TestUtilsCheckpoint(unittest.TestCase):
 
         self.trainer.optimizer = torch.optim.Adam(
             self.trainer.model.parameters(), lr=1e-01
+        )
+
+        self.trainer.lr_scheduler_callback = LRSchedulerCallback(
+            self.config, self.trainer
         )
 
     def test_save_config(self):
@@ -550,6 +565,7 @@ class TestUtilsCheckpoint(unittest.TestCase):
 
         loss["losses"]["total_loss"].sum().backward()
         self.trainer.optimizer.step()
+        self.trainer.lr_scheduler_callback._scheduler.step()
 
     def _compare_optimizers(self, a, b, skip_keys=False):
         state_dict_a = a.state_dict()

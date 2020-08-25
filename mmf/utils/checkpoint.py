@@ -211,7 +211,7 @@ class Checkpoint:
             reset_counts = ckpt_config.reset.all or ckpt_config.reset.counts
 
             if not reset_counts:
-                self._load_counts(ckpt)
+                self._load_counts_and_lr_scheduler(ckpt)
         else:
             self._load_pretrained(new_dict)
 
@@ -236,7 +236,7 @@ class Checkpoint:
                 "checkpoint asked to be loaded. Skipping."
             )
 
-    def _load_counts(self, ckpt):
+    def _load_counts_and_lr_scheduler(self, ckpt):
         ckpt_config = self.trainer.config.checkpoint
         if "best_update" in ckpt:
             if ckpt_config.resume_best:
@@ -268,6 +268,18 @@ class Checkpoint:
                 )
 
             self.trainer.num_updates = self.trainer.current_iteration
+
+        lr_scheduler = self.trainer.lr_scheduler_callback._scheduler
+        if lr_scheduler is not None:
+            if "lr_scheduler" in ckpt:
+                lr_scheduler.load_state_dict(ckpt["lr_scheduler"])
+            else:
+                warnings.warn(
+                    "'lr_scheduler' key is not present in the "
+                    "checkpoint asked to be loaded. Setting lr_scheduler's "
+                    "last_epoch to current_iteration."
+                )
+                lr_scheduler.last_epoch = self.trainer.current_iteration
 
         registry.register("current_iteration", self.trainer.current_iteration)
         registry.register("num_updates", self.trainer.num_updates)
@@ -406,6 +418,10 @@ class Checkpoint:
             # Convert to container to avoid any dependencies
             "config": OmegaConf.to_container(self.config, resolve=True),
         }
+
+        lr_scheduler = self.trainer.lr_scheduler_callback._scheduler
+        if lr_scheduler is not None:
+            ckpt["lr_scheduler"] = lr_scheduler.state_dict()
 
         if self.git_repo:
             git_metadata_dict = self._get_vcs_fields()
