@@ -559,3 +559,21 @@ class CrossEntropyLoss(nn.Module):
 
     def forward(self, sample_list, model_output):
         return self.loss_fn(model_output["scores"], sample_list.targets)
+
+
+@registry.register_loss("inbatch_cross_entropy")
+class BatchCrossEntropyLoss(nn.Module):
+    def __init__(self, params=None):
+        super().__init__()
+        if params is None:
+            params = {}
+        self.loss_fn = nn.CrossEntropyLoss(**params)
+
+    def forward(self, sample_list, model_output):
+        bs = len(sample_list['id'])
+        assert model_output['scores'].shape[0] == model_output['scores'].shape[1]
+
+        # our targets are just along the diagonal
+        device = model_output['scores'].device
+        targets = torch.arange(0, bs, dtype=torch.long).to(device=device)
+        return self.loss_fn(model_output["scores"], targets)

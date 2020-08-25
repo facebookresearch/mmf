@@ -1,0 +1,13 @@
+env:
+  ref_index_dir: null
+  ref_rawimage_dir: null
+rag_config:
+  knn: 1
+  retrieve_mode: image
+  ref_set: coco
+  faiss_index_type: L2
+  augment_types: all_caption_str
+  exp: ptdefaults
+
+ret_trainer_config:
+  loss: batch_cross_entropy

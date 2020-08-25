@@ -1,0 +1,9 @@
+training:
+  trainer: mmf_ret
+  task: vqa2
+
+includes:
+- ../../../../mmf/configs/models/mmbt_rag/retriever_${training.task}.yaml
+- ../../../../mmf/configs/datasets/${training.task}/train_retriever.yaml
+- ./default_optimizer_retriever.yaml
+- ./rag_defaults.yaml

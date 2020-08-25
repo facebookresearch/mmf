@@ -1,0 +1,11 @@
+model_config:
+  mmbt:
+    model_data_dir: ${env.data_dir}
+    direct_features_input: true
+    modal_encoder:
+      type: finetune_faster_rcnn_fpn_fc7
+      params:
+        in_dim: 2048
+        bias_file: models/detectron.defaults/fc7_b.pkl
+        weights_file: models/detectron.defaults/fc7_w.pkl
+        model_data_dir: ${model_config.mmbt.model_data_dir}

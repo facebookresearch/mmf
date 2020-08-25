@@ -1,8 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import torch
+import random
+import os
+import json
+
 from mmf.common.sample import Sample
 from mmf.datasets.builders.vqa2 import VQA2Dataset
 from mmf.utils.distributed import byte_tensor_to_object, object_to_byte_tensor
+from mmf.utils.configuration import get_mmf_env
 
 
 class COCODataset(VQA2Dataset):
@@ -79,3 +84,87 @@ class COCODataset(VQA2Dataset):
             predictions.append({"image_id": image_id, "caption": caption})
 
         return predictions
+
+
+class COCOTupleDataset(COCODataset):
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        super().__init__(
+            config, dataset_type, imdb_file_index, *args, **kwargs
+        )
+
+        self.ref_data = self.construct_refdata()
+
+    def construct_refdata(self):
+        ref_index_dir = get_mmf_env('ref_index_dir')
+        ref_jsonl = os.path.join(ref_index_dir, self.config.annotations.ref[0])
+
+        ref_data = {}
+        if os.path.exists(ref_jsonl):
+            with open(ref_jsonl, 'r') as f:
+                for line in f:
+                    data = json.loads(line.rstrip('\n|\r'))
+                    if 'image_name' not in data:
+                        continue
+                    ref_data[str(data['image_name'])] = {}
+                    for k in data:
+                        ref_data[str(data['image_name'])][k] = data[k]
+        else:
+            raise RuntimeError(f"Missing ref file at {ref_jsonl}")
+        return ref_data
+
+    def load_item(self, idx):
+        # everything is a coco reader.
+        sample_info = self.annotation_db[idx]
+        sample_info = self.preprocess_sample_info(sample_info)
+
+        current_sample = self.construct_sample(sample_info, "all_question_str")
+        image_path = sample_info['image_name'] + ".jpg"
+        current_sample.image = self.image_db.from_path(image_path)["images"][0]
+
+        pos_id = str(current_sample['pos_id'])
+        pos_sample_info = self.ref_data[pos_id]
+        pos_sample = self.construct_sample(pos_sample_info, "caption")
+        current_sample.pos_segment_ids = pos_sample.segment_ids
+        current_sample.pos_input_ids = pos_sample.input_ids
+#        current_sample.pos_id = pos_id
+        current_sample.pos_image = self.image_db.from_path(pos_id + ".jpg")["images"][0]
+
+        return current_sample
+
+    def construct_sample(self, sample_info, text_field):
+        current_sample = Sample()
+
+        if "caption" in text_field:
+            if "captions" in sample_info:
+                text_arg = sample_info['captions']
+            else:
+                text_arg = sample_info['all_caption_str']
+        else:
+            text_arg = sample_info[text_field]
+
+        text_processor_argument = {"tokens": text_arg}
+        processed_caption = self.text_processor(text_processor_argument)
+        current_sample.text = processed_caption["text"]
+        if "input_ids" in processed_caption:
+            current_sample.update(processed_caption)
+
+        if "captions" in sample_info:
+            text_arg = sample_info['captions']
+        else:
+            text_arg = sample_info['all_caption_str']
+
+        # used in hinge_align
+        text_processor_argument = {"tokens": text_arg}
+        processed_caption = self.text_processor(text_processor_argument)
+        current_sample.caption_input_ids = processed_caption['input_ids']
+        current_sample.caption_segment_ids = processed_caption['segment_ids']
+
+        current_sample.id = torch.tensor(int(sample_info['image_id']), dtype=torch.int)
+        if "pos_image_ids" in sample_info:
+            pos_id = random.sample(sample_info['pos_image_ids'], 1)[0]
+            current_sample.pos_id = pos_id
+
+        current_sample.modal_embeddings = None
+        image_path = sample_info['image_name'] + ".jpg"
+        current_sample.image = self.image_db.from_path(image_path)["images"][0]
+        return current_sample

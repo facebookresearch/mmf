@@ -1,0 +1,83 @@
+dataset_config:
+  coco_tuple:
+      data_dir: ${env.data_dir}/datasets
+      depth_first: false
+      fast_read: false
+      use_images: true
+      use_features: false
+      images:
+        train:
+        - coco/defaults/images/train2014
+        val:
+        - coco/defaults/images/val2014
+        test:
+        - coco/defaults/images/val2014
+      features:
+        train:
+        - coco/defaults/features/trainval2014.lmdb
+        val:
+        - coco/defaults/features/trainval2014.lmdb
+        test:
+        - coco/defaults/features/test2015.lmdb
+      annotations:
+        train:
+        - coco/defaults/annotations/imdb_karpathy_train_by_image_retrieve.jsonl
+        val:
+        - coco/defaults/annotations/imdb_karpathy_val_by_image_retrieve.jsonl
+        test:
+        - coco/defaults/annotations/imdb_karpathy_val_by_image_retrieve.jsonl
+        ref:
+        - coco_train_dev_retrieverset.jsonl
+      max_features: 100
+      processors:
+        text_processor:
+          type: bert_tokenizer
+          params:
+            tokenizer_config:
+              type: bert-base-uncased
+              params:
+                do_lower_case: true
+            mask_probability: 0
+            max_seq_length: 128
+        answer_processor:
+          type: vqa_answer
+          params:
+            num_answers: 10
+            vocab_file: vqa2/defaults/extras/vocabs/answers_vqa.txt
+            preprocessor:
+              type: simple_word
+              params: {}
+        context_processor:
+          type: fasttext
+          params:
+            download_initially: false
+            max_length: 50
+            model_file: wiki.en.bin
+        ocr_token_processor:
+          type: simple_word
+          params: {}
+        bbox_processor:
+          type: bbox
+          params:
+            max_length: 50
+        image_processor:
+          type: torchvision_transforms
+          params:
+            transforms:
+              - type: Resize
+                params:
+                  size: [256, 256]
+              - type: CenterCrop
+                params:
+                  size: [224, 224]
+              - ToTensor
+              - GrayScaleTo3Channels
+              - type: Normalize
+                params:
+                  mean: [0.46777044, 0.44531429, 0.40661017]
+                  std: [0.12221994, 0.12145835, 0.14380469]
+      return_features_info: false
+      # Return OCR information
+      use_ocr: false
+      # Return spatial information of OCR tokens if present
+      use_ocr_info: false

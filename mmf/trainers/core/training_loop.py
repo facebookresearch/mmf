@@ -163,3 +163,53 @@ class TrainerTrainingLoopMixin(ABC):
             max_updates = len(self.train_loader) * max_epochs
 
         return max_updates
+
+
+class TrainerRetrieverTrainingLoopMixin(TrainerTrainingLoopMixin):
+    def _forward(self, batch: Tensor) -> Dict[str, Any]:
+        batch = self.dataset_loader.prepare_batch(batch)
+        self.profile("Batch prepare time")
+
+        retrieve_modal = self.config.rag_config.retrieve_mode
+        if torch.distributed.is_initialized():
+            model = self.model.module
+        else:
+            model = self.model
+
+        model_output = {}
+        retrieve_modal = self.config.rag_config.retrieve_mode
+
+        if "image" in retrieve_modal:
+            stack_images = torch.cat((batch.image, batch.pos_image), 0)
+            image_embeds = model.ref_encode_image(stack_images)
+            v = int(stack_images.shape[0] / 2)
+
+            Q_image_embeds = model.convert_dims(image_embeds[:v])
+            A_image_embeds = model.convert_dims(image_embeds[v:])
+
+            sim_scores = model.calc_batch_sim(Q_image_embeds, A_image_embeds)
+
+        if "text" in retrieve_modal:
+            Q_text_embeds = model.convert_dims(model.ref_encode_text(
+                batch.input_ids, batch.segment_ids)
+            )
+            A_text_embeds = model.convert_dims(model.ref_encode_text(
+                batch.pos_input_ids, batch.pos_segment_ids)
+            )
+
+            sim_scores = model.calc_batch_sim(Q_text_embeds, A_text_embeds)
+
+        if "image_text" == retrieve_modal:
+            Q_concat = torch.cat((Q_image_embeds, Q_text_embeds), 1)
+            A_concat = torch.cat((A_image_embeds, A_text_embeds), 1)
+            sim_scores = model.calc_batch_sim(Q_concat, A_concat)
+
+        bs = len(batch['id'])
+        device = torch.cuda.current_device()
+        batch['targets'] = torch.arange(0, bs, dtype=torch.long).to(device=device)
+
+        model_output['scores'] = sim_scores
+        model_output['losses'] = model.losses(batch, model_output)
+        report = Report(batch, model_output)
+        self.profile("Forward time")
+        return report

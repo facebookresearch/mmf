@@ -1,0 +1,9 @@
+includes:
+- ./defaults.yaml
+
+model_config:
+  mmbt_rag:
+    training_head_type: classification
+    num_labels: 3129
+    losses:
+      - type: ${ret_trainer_config.loss}

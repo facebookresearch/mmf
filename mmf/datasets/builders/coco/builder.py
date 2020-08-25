@@ -6,7 +6,7 @@
 #
 
 from mmf.common.registry import registry
-from mmf.datasets.builders.coco.dataset import COCODataset
+from mmf.datasets.builders.coco.dataset import COCODataset, COCOTupleDataset
 from mmf.datasets.builders.textcaps.dataset import TextCapsDataset
 from mmf.datasets.builders.vqa2 import VQA2Builder
 
@@ -47,3 +47,10 @@ class COCOBuilder(VQA2Builder):
         dataset = super().load(config, *args, **kwargs)
         dataset.dataset_name = self.dataset_name
         return dataset
+
+@registry.register_builder("coco_tuple")
+class COCOTupleBuilder(COCOBuilder):
+    def __init__(self):
+        super().__init__()
+        self.dataset_name = "coco_tuple"
+        self.set_dataset_class(COCOTupleDataset)

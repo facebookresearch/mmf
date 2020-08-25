@@ -186,8 +186,6 @@ class MMBTModel(nn.Module):
             token_type_ids=modal_token_type_ids,
         )
 
-        input_modal_shape = modal_embeddings.size()[:-1]
-
         if token_type_ids is None:
             token_type_ids = torch.ones(
                 input_txt_shape, dtype=torch.long, device=device
@@ -201,7 +199,45 @@ class MMBTModel(nn.Module):
         )
 
         embedding_output = torch.cat([modal_embeddings, txt_embeddings], 1)
+        input_modal_shape = modal_embeddings.size()[:-1]
 
+        masks = self.construct_masks(
+            embedding_output,
+            input_modal_shape,
+            attention_mask=attention_mask,
+            encoder_attention_mask=encoder_attention_mask,
+            encoder_hidden_states=encoder_hidden_states,
+            head_mask=head_mask
+        )
+
+        extended_attention_mask, encoder_extended_attention_mask, head_mask = masks
+
+        encoder_outputs = self.transformer.encoder(
+            embedding_output,
+            attention_mask=extended_attention_mask,
+            head_mask=head_mask,
+            encoder_hidden_states=encoder_hidden_states,
+            encoder_attention_mask=encoder_extended_attention_mask,
+        )
+
+        sequence_output = encoder_outputs[0]
+        pooled_output = self.transformer.pooler(sequence_output)
+
+        outputs = (sequence_output, pooled_output) + encoder_outputs[
+            1:
+        ]  # add hidden_states and attentions if they are here
+        return outputs  # sequence_output, pooled_output, (hidden_states), (attentions)
+
+    def construct_masks(
+        self,
+        embedding_output,
+        input_modal_shape=None,
+        attention_mask=None,
+        encoder_attention_mask=None,
+        head_mask=None,
+    ):
+
+        device = embedding_output.device
         input_shape = embedding_output.size()[:-1]
 
         if attention_mask is None:
@@ -297,21 +333,7 @@ class MMBTModel(nn.Module):
         else:
             head_mask = [None] * self.config.num_hidden_layers
 
-        encoder_outputs = self.transformer.encoder(
-            embedding_output,
-            attention_mask=extended_attention_mask,
-            head_mask=head_mask,
-            encoder_hidden_states=encoder_hidden_states,
-            encoder_attention_mask=encoder_extended_attention_mask,
-        )
-
-        sequence_output = encoder_outputs[0]
-        pooled_output = self.transformer.pooler(sequence_output)
-
-        outputs = (sequence_output, pooled_output) + encoder_outputs[
-            1:
-        ]  # add hidden_states and attentions if they are here
-        return outputs  # sequence_output, pooled_output, (hidden_states), (attentions)
+        return extended_attention_mask, encoder_extended_attention_mask, head_mask
 
     def get_input_embeddings(self):
         return self.embeddings.word_embeddings
