@@ -37,6 +37,7 @@ module.exports = {
       'challenges/vqa_challenge',
     ],
     Projects: [
+      'projects/butd',
       'projects/m4c',
       'projects/movie_mcan',
     ],
