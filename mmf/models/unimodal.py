@@ -29,7 +29,7 @@ class UnimodalBase(MultiModalEncoderBase):
     def forward(self, x, *args, **kwargs):
         x = self.encoder(x, *args, **kwargs)
         # Case of bert encoder, we only need pooled output
-        if len(x) == 2:
+        if not torch.is_tensor(x) and len(x) == 2:
             x = x[1]
 
         x = torch.flatten(x, start_dim=1)
