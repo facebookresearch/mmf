@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "babel-eslint": "^10.0.3",
-    "docusaurus-plugin-internaldocs-fb": "^0.3.3",
+    "docusaurus-plugin-internaldocs-fb": "^0.3.6",
     "eslint": "^6.7.1",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-prettier": "^6.7.0",
