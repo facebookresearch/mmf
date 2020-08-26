@@ -56,9 +56,6 @@ class TrainerTrainingLoopMixin(ABC):
             # Seed the sampler in case if it is distributed
             self.dataset_loader.seed_sampler("train", self.current_epoch)
 
-            if self.current_epoch > self.max_epochs:
-                break
-
             num_remaining_batches = len(self.train_loader)
             batch_iter = iter(self.train_loader)
 
@@ -66,12 +63,13 @@ class TrainerTrainingLoopMixin(ABC):
 
                 combined_report = None
                 num_batches_for_this_update = min(
-                    self.config.training.update_frequency, num_remaining_batches
+                    self.training_config.update_frequency, num_remaining_batches
                 )
 
                 self._start_update()
 
                 for _ in range(num_batches_for_this_update):
+                    self.on_batch_start()
                     batch = next(batch_iter)
                     self.profile("Batch load time")
 
@@ -86,6 +84,7 @@ class TrainerTrainingLoopMixin(ABC):
                         )
                         combined_report.batch_size += report.batch_size
 
+                    self.on_batch_end(report=combined_report, meter=self.meter)
                 self._finish_update()
 
                 should_log = False
@@ -144,6 +143,8 @@ class TrainerTrainingLoopMixin(ABC):
 
         report = self._forward(batch)
         loss = self._extract_loss(report)
+        # Since losses are batch averaged in MMF, this makes sure the
+        # scaling is right.
         loss /= loss_divisor
         self._backward(loss)
 
@@ -164,6 +165,7 @@ class TrainerTrainingLoopMixin(ABC):
     def _start_update(self):
         self.current_iteration += 1
         logger.debug(self.num_updates + 1)
+        self.on_update_start()
         self.optimizer.zero_grad()
 
     def _backward(self, loss: Tensor) -> None:
@@ -181,7 +183,7 @@ class TrainerTrainingLoopMixin(ABC):
 
         self.optimizer.step()
         self.num_updates += 1
-        self.profile("Finish update")
+        self.profile("Finished update")
 
     def _extract_loss(self, report: Dict[str, Any]) -> Tensor:
         loss_dict = report.losses

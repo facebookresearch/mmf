@@ -15,7 +15,11 @@ from tests.test_utils import NumbersDataset, SimpleModel
 class TrainerTrainingLoopMock(TrainerTrainingLoopMixin, TrainerProfilingMixin):
     def __init__(self, num_train_data, max_updates, max_epochs):
         self.training_config = OmegaConf.create(
-            {"detect_anomaly": False, "evaluation_interval": 10000}
+            {
+                "detect_anomaly": False,
+                "evaluation_interval": 10000,
+                "update_frequency": 1,
+            }
         )
         if max_updates is not None:
             self.training_config["max_updates"] = max_updates
@@ -37,9 +41,11 @@ class TrainerTrainingLoopMock(TrainerTrainingLoopMixin, TrainerProfilingMixin):
             dataset=dataset, batch_size=1, shuffle=False, num_workers=1, drop_last=False
         )
         self.on_batch_start = MagicMock(return_value=None)
+        self.on_update_start = MagicMock(return_value=None)
         self.logistics_callback = MagicMock(return_value=None)
         self.logistics_callback.log_interval = MagicMock(return_value=None)
         self.on_batch_end = MagicMock(return_value=None)
+        self.on_update_end = MagicMock(return_value=None)
         self.meter = MagicMock(return_value=None)
         self.after_training_loop = MagicMock(return_value=None)
 
