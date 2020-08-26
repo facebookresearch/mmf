@@ -1,0 +1,36 @@
+dataset_config:
+  vqa2:
+    data_dir: ${env.data_dir}/datasets
+    depth_first: false
+    fast_read: false
+    use_images: false
+    use_features: true
+    images:
+      val:
+      - coco/defaults/images/train2014
+    features:
+      val:
+      - coco/defaults/features/trainval2014.lmdb
+    annotations:
+      val: 
+      - vqa2/defaults/annotations/imdb_train2014.npy
+    processors:
+      text_processor:
+        type: vocab
+        params:
+          max_length: 52
+          vocab:
+            type: intersected
+            embedding_name: glove.6B.300d
+            vocab_file: coco/defaults/extras/vocabs/vocabulary_captioning_thresh5.txt
+          preprocessor:
+            type: simple_sentence
+            params: {}
+      caption_processor:
+        type: caption
+        params:
+          vocab:
+            type: intersected
+            embedding_name: glove.6B.300d
+            vocab_file: coco/defaults/extras/vocabs/vocabulary_captioning_thresh5.txt
+    min_captions_per_img: 5

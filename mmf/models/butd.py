@@ -10,6 +10,7 @@ from mmf.modules.layers import ClassifierLayer
 class BUTD(Pythia):
     def __init__(self, config):
         super().__init__(config)
+        self.device = registry.get("current_device")
 
     @classmethod
     def config_path(cls):
@@ -70,11 +71,14 @@ class BUTD(Pythia):
             timesteps = max(data["decode_lengths"])
             sample_list.add_field("targets", sample_list.text[:, 1:])
         else:
-            data["texts"] = sample_list.answers.new_full(
+            data["texts"] = torch.full(
                 (batch_size, 1), self.vocab.SOS_INDEX, dtype=torch.long
-            )
+            ).to(device=self.device)
+
             timesteps = self.text_processor.max_length
-            sample_list.add_field("targets", sample_list.answers[:, 0, 1:])
+            if "answers" in sample_list:
+                sample_list.add_field("targets", sample_list.answers[:, 0, 1:])
+
         return data, sample_list, timesteps
 
     def init_hidden_state(self, features):
@@ -116,21 +120,22 @@ class BUTD(Pythia):
         return data, batch_size_t
 
     def forward(self, sample_list):
-        # Stores the output probabilites.
-        scores = sample_list.answers.new_ones(
-            (
-                sample_list.answers.size(0),
-                self.text_processor.max_length,
-                self.vocab_size,
-            ),
-            dtype=torch.float,
-        )
-
         if self.config["inference"]["type"] in ["beam_search", "nucleus_sampling"]:
             decoder = registry.get_decoder_class(self.config["inference"]["type"])(
                 self.vocab, self.config
             )
             sample_list = decoder.init_batch(sample_list)
+
+        elif "answers" in sample_list:
+            # Stores the output probabilites.
+            scores = sample_list.answers.new_ones(
+                (
+                    sample_list.answers.size(0),
+                    self.text_processor.max_length,
+                    self.vocab_size,
+                ),
+                dtype=torch.float,
+            )
 
         batch_size = sample_list.image_feature_0.size(0)
         data, sample_list, timesteps = self.prepare_data(sample_list, batch_size)
@@ -171,7 +176,7 @@ class BUTD(Pythia):
             )
             # Add a dummy loss so that loss calculation is not required
             model_output["losses"][loss_key + "/dummy_loss"] = torch.zeros(
-                batch_size, device=sample_list.answers.device
+                batch_size, device=self.device
             )
         else:
             model_output["scores"] = scores

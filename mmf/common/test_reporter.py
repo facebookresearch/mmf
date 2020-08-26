@@ -151,7 +151,14 @@ class TestReporter(Dataset):
         if not is_master():
             return
 
-        results = self.current_dataset.format_for_prediction(report)
+        inference_type = None
+        if self.config.model == "butd":
+            inference_type = self.config.model_config.butd.inference.type
+
+        if inference_type in ["beam_search", "nucleus_sampling"]:
+            results = self.current_dataset.format_for_caption_generation(report)
+        else:
+            results = self.current_dataset.format_for_prediction(report)
 
         if hasattr(model, "format_for_prediction"):
             results = model.format_for_prediction(results, report)

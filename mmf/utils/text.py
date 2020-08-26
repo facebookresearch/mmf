@@ -228,15 +228,16 @@ class TextDecoder:
     def __init__(self, vocab):
         self._vocab = vocab
         self._vocab_size = vocab.get_size()
+        self.device = registry.get("current_device")
 
         # Lists to store completed sequences and scores
         self._complete_seqs = []
         self._complete_seqs_scores = []
 
     def init_batch(self, sample_list):
-        self.seqs = sample_list.answers.new_full(
+        self.seqs = torch.full(
             (self._decode_size, 1), self._vocab.SOS_INDEX, dtype=torch.long
-        )
+        ).to(device=self.device)
 
         sample_list.image_feature_0 = (
             sample_list.image_feature_0.unsqueeze(1)
@@ -277,9 +278,11 @@ class BeamSearch(TextDecoder):
             "Beam Search can only work with batch size = 1 "
             + "Use training.batch_size=1"
         )
-        self.top_k_scores = sample_list.answers.new_zeros(
+
+        self.top_k_scores = torch.zeros(
             (self._decode_size, 1), dtype=torch.float
-        )
+        ).to(device=self.device)
+
         return super().init_batch(sample_list)
 
     def decode(self, t, data, scores):

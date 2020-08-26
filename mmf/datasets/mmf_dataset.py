@@ -1,11 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import collections
 import os
+import torch
 
 from mmf.datasets.base_dataset import BaseDataset
 from mmf.datasets.databases.annotation_database import AnnotationDatabase
 from mmf.datasets.databases.features_database import FeaturesDatabase
 from mmf.datasets.databases.image_database import ImageDatabase
+from mmf.utils.distributed import byte_tensor_to_object
 
 
 class MMFDataset(BaseDataset):
@@ -49,6 +51,37 @@ class MMFDataset(BaseDataset):
     def build_image_db(self):
         image_path = self._get_path_based_on_index(self.config, "images", self._index)
         return ImageDatabase(self.config, image_path, annotation_db=self.annotation_db)
+
+    def format_for_caption_generation(self, report):
+        id_keys = [k for k in report.keys() if "id" in k]
+        captions = report.captions.tolist()
+        predictions = []
+        remove_unk_from_caption_prediction = getattr(
+            self.config, "remove_unk_from_caption_prediction", False
+        )
+
+        for i in range(len(captions)):
+
+            prediction = {}
+            caption = self.caption_processor(captions[i])["caption"]
+            if remove_unk_from_caption_prediction:
+                caption = caption.replace("<unk>", "")
+                caption = caption.replace("  ", " ").strip()
+
+            prediction['caption'] = caption
+
+            for id_key_name in id_keys:
+                id = report[id_key_name][i]
+
+                if len(id.shape) > 1:
+                    id = byte_tensor_to_object(id)
+                if isinstance(id, torch.Tensor):
+                    id = id.item()
+
+                prediction[id_key_name] = id
+            predictions.append(prediction)
+
+        return predictions
 
     def _get_path_based_on_index(self, config, attribute, index):
         if attribute not in config:

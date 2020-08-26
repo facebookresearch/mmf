@@ -1,0 +1,3 @@
+includes:
+- ../coco/beam_search.yaml
+- ../../../../mmf/configs/datasets/hateful_memes/for_butd_caption_generation.yaml
