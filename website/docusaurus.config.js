@@ -115,4 +115,5 @@ module.exports = {
       },
     ],
   ],
+  plugins: [require.resolve('docusaurus-plugin-internaldocs-fb')],
 };
