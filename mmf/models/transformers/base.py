@@ -21,15 +21,31 @@ class BaseTransformerInput:
 
 
 @dataclass
+class BaseModalityConfigType:
+    type: str  # type of modality, text, image, video, audio etc
+    key: str  # name of modality
+    # segment id to be used for modality. Each modality sould have different segment ids
+    segment_id: int
+    embedding_dim: int  # input dimension for modality embedding
+    position_dim: int  # input dimension for position embedding
+    # eps for layer norm, default is base transformer layer_norm_eps
+    layer_norm_eps: float
+    # dropout probability, default is base transformer hidden_dropout_prob
+    hidden_dropout_prob: float
+
+
+@dataclass
 class BaseTransformerConfigType:
     transformer_base: str  # name of transformer base model
     training_head_type: str  # training head type used for initializing head
-    modalities: List[str]  # list of modalities for the model input
+    modalities: List[BaseModalityConfigType]  # list of modalities for the model input
     initializer_range: float  # std dev of the normal distribution to initialize layers
     initializer_mean: float  # mean of the normal distribution to initialize layers
+    token_noise_std: float  # mean of normal noise for token embeddings
+    token_noise_mean: float  # stddev of normal noise for token embeddings
     layer_norm_weight_fill: float  # layer norm weight initialization
     random_initialize: bool  # random initialize whole network
-    freeze_base: bool  # freeze the base transformer
+    freeze_transformer: bool  # freeze the base transformer
     finetune_lr_multiplier: float  # finetune lr multiplier for base transformer
 
 
