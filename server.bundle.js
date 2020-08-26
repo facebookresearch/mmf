@@ -82,7 +82,7 @@ module.exports =
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 297);
+/******/ 	return __webpack_require__(__webpack_require__.s = 298);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -1783,7 +1783,7 @@ function retry () {
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react_router_dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(26);
 /* harmony import */ var _isInternalUrl__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(20);
-/* harmony import */ var _ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(15);
+/* harmony import */ var _ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(14);
 /**
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -1832,6 +1832,19 @@ module.exports = Marker;
 
 /***/ }),
 /* 14 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/**
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */const canUseDOM=!!(typeof window!=='undefined'&&window.document&&window.document.createElement);const ExecutionEnvironment={canUseDOM,canUseEventListeners:// @ts-ignore
+canUseDOM&&!!(window.addEventListener||window.attachEvent),canUseIntersectionObserver:canUseDOM&&'IntersectionObserver'in window,canUseViewport:canUseDOM&&!!window.screen};/* harmony default export */ __webpack_exports__["a"] = (ExecutionEnvironment);
+
+/***/ }),
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1861,19 +1874,6 @@ exports.fromPromise = function (fn) {
   }, 'name', { value: fn.name })
 }
 
-
-/***/ }),
-/* 15 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/**
- * Copyright (c) Facebook, Inc. and its affiliates.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */const canUseDOM=!!(typeof window!=='undefined'&&window.document&&window.document.createElement);const ExecutionEnvironment={canUseDOM,canUseEventListeners:// @ts-ignore
-canUseDOM&&!!(window.addEventListener||window.attachEvent),canUseIntersectionObserver:canUseDOM&&'IntersectionObserver'in window,canUseViewport:canUseDOM&&!!window.screen};/* harmony default export */ __webpack_exports__["a"] = (ExecutionEnvironment);
 
 /***/ }),
 /* 16 */
@@ -1913,7 +1913,7 @@ function invariant(condition, message) {
 
 "use strict";
 
-const u = __webpack_require__(14).fromCallback
+const u = __webpack_require__(15).fromCallback
 const mkdirs = u(__webpack_require__(260))
 const mkdirsSync = __webpack_require__(261)
 
@@ -3006,7 +3006,7 @@ function createMemoryHistory(props) {
 
 "use strict";
 
-const u = __webpack_require__(14).fromPromise
+const u = __webpack_require__(15).fromPromise
 const fs = __webpack_require__(109)
 
 function pathExists (path) {
@@ -8134,7 +8134,7 @@ Prism.languages.yml = Prism.languages.yaml;
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony default export */ __webpack_exports__["a"] = ({"plugins":[],"themes":[],"customFields":{},"themeConfig":{"image":"img/logo.png","disableDarkMode":true,"googleAnalytics":{"trackingID":"UA-135079836-3"},"gtag":{"trackingID":"UA-135079836-3"},"sidebarCollapsible":false,"navbar":{"title":"","logo":{"alt":"MMF Logo","src":"img/banner_logo.svg"},"links":[{"to":"docs","activeBasePath":"docs","label":"Docs","position":"left"},{"to":"api_redirect","label":"API","position":"left"},{"href":"https://github.com/facebookresearch/mmf","label":"GitHub","position":"left"}]},"footer":{"style":"dark","links":[{"title":"More","items":[{"label":"Blog","href":"https://medium.com/pytorch/bootstrapping-a-multimodal-project-using-mmf-a-pytorch-powered-multimodal-framework-464f75164af7"},{"label":"GitHub","href":"https://github.com/facebookresearch/mmf"}]},{"title":"Legal","items":[{"label":"Privacy","href":"https://opensource.facebook.com/legal/privacy/","target":"_blank","rel":"noreferrer noopener"},{"label":"Terms","href":"https://opensource.facebook.com/legal/terms/","target":"_blank","rel":"noreferrer noopener"}]}],"logo":{"alt":"Facebook Open Source Logo","src":"img/oss_logo.png","href":"https://opensource.facebook.com"},"copyright":"Copyright © 2020 Facebook, Inc. Built with Docusaurus."}},"title":"MMF","tagline":"A modular framework for vision & language multimodal research from Facebook AI Research (FAIR).","url":"https://mmf.sh","baseUrl":"/","favicon":"img/favicon.png","organizationName":"facebookresearch","projectName":"mmf","presets":[["@docusaurus/preset-classic",{"docs":{"sidebarPath":"/home/runner/work/mmf/mmf/mmf_master/website/sidebars.js","homePageId":"getting_started/installation","showLastUpdateAuthor":true,"showLastUpdateTime":true,"editUrl":"https://github.com/facebookresearch/mmf/edit/master/website/"},"theme":{"customCss":"/home/runner/work/mmf/mmf/mmf_master/website/src/css/custom.css"}}]]});
+/* harmony default export */ __webpack_exports__["a"] = ({"plugins":["/home/runner/work/mmf/mmf/mmf_master/website/node_modules/docusaurus-plugin-internaldocs-fb/index.js"],"themes":[],"customFields":{},"themeConfig":{"image":"img/logo.png","disableDarkMode":true,"googleAnalytics":{"trackingID":"UA-135079836-3"},"gtag":{"trackingID":"UA-135079836-3"},"sidebarCollapsible":false,"navbar":{"title":"","logo":{"alt":"MMF Logo","src":"img/banner_logo.svg"},"links":[{"to":"docs","activeBasePath":"docs","label":"Docs","position":"left"},{"to":"api_redirect","label":"API","position":"left"},{"href":"https://github.com/facebookresearch/mmf","label":"GitHub","position":"left"}]},"footer":{"style":"dark","links":[{"title":"More","items":[{"label":"Blog","href":"https://medium.com/pytorch/bootstrapping-a-multimodal-project-using-mmf-a-pytorch-powered-multimodal-framework-464f75164af7"},{"label":"GitHub","href":"https://github.com/facebookresearch/mmf"}]},{"title":"Legal","items":[{"label":"Privacy","href":"https://opensource.facebook.com/legal/privacy/","target":"_blank","rel":"noreferrer noopener"},{"label":"Terms","href":"https://opensource.facebook.com/legal/terms/","target":"_blank","rel":"noreferrer noopener"}]}],"logo":{"alt":"Facebook Open Source Logo","src":"img/oss_logo.png","href":"https://opensource.facebook.com"},"copyright":"Copyright © 2020 Facebook, Inc. Built with Docusaurus."}},"title":"MMF","tagline":"A modular framework for vision & language multimodal research from Facebook AI Research (FAIR).","url":"https://mmf.sh","baseUrl":"/","favicon":"img/favicon.png","organizationName":"facebookresearch","projectName":"mmf","presets":[["@docusaurus/preset-classic",{"docs":{"sidebarPath":"/home/runner/work/mmf/mmf/mmf_master/website/sidebars.js","homePageId":"getting_started/installation","showLastUpdateAuthor":true,"showLastUpdateTime":true,"editUrl":"https://github.com/facebookresearch/mmf/edit/master/website/"},"theme":{"customCss":"/home/runner/work/mmf/mmf/mmf_master/website/src/css/custom.css"}}]]});
 
 /***/ }),
 /* 37 */
@@ -10162,7 +10162,7 @@ module.exports = {
 "use strict";
 
 
-const u = __webpack_require__(14).fromCallback
+const u = __webpack_require__(15).fromCallback
 const rimraf = __webpack_require__(265)
 
 module.exports = {
@@ -11422,7 +11422,7 @@ function renderRoutes(routes, extraProps, switchProps) {
 "use strict";
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _docusaurus_ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(15);
+/* harmony import */ var _docusaurus_ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(14);
 /**
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -12915,7 +12915,7 @@ module.exports =
 "use strict";
 
 
-const u = __webpack_require__(14).fromCallback
+const u = __webpack_require__(15).fromCallback
 const jsonFile = __webpack_require__(273)
 
 module.exports = {
@@ -14621,7 +14621,7 @@ module.exports =
 
 // This is adapted from https://github.com/normalize/mz
 // Copyright (c) 2014-2016 Jonathan Ong me@jongleberry.com and Contributors
-const u = __webpack_require__(14).fromCallback
+const u = __webpack_require__(15).fromCallback
 const fs = __webpack_require__(11)
 
 const api = [
@@ -14872,7 +14872,7 @@ module.exports = {
 "use strict";
 
 
-const u = __webpack_require__(14).fromCallback
+const u = __webpack_require__(15).fromCallback
 module.exports = {
   copy: u(__webpack_require__(263))
 }
@@ -16875,7 +16875,7 @@ var react = __webpack_require__(2);
 var react_default = /*#__PURE__*/__webpack_require__.n(react);
 
 // EXTERNAL MODULE: ./node_modules/@docusaurus/core/lib/client/exports/ExecutionEnvironment.js
-var ExecutionEnvironment = __webpack_require__(15);
+var ExecutionEnvironment = __webpack_require__(14);
 
 // CONCATENATED MODULE: ./node_modules/@docusaurus/core/lib/client/exports/BrowserOnly.js
 /**
@@ -33682,7 +33682,7 @@ module.exports = copy
 "use strict";
 
 
-const u = __webpack_require__(14).fromCallback
+const u = __webpack_require__(15).fromCallback
 const fs = __webpack_require__(11)
 const path = __webpack_require__(6)
 const mkdir = __webpack_require__(18)
@@ -34088,7 +34088,7 @@ module.exports = {
 "use strict";
 
 
-const u = __webpack_require__(14).fromCallback
+const u = __webpack_require__(15).fromCallback
 const path = __webpack_require__(6)
 const fs = __webpack_require__(11)
 const mkdir = __webpack_require__(18)
@@ -34144,7 +34144,7 @@ module.exports = {
 "use strict";
 
 
-const u = __webpack_require__(14).fromCallback
+const u = __webpack_require__(15).fromCallback
 const path = __webpack_require__(6)
 const fs = __webpack_require__(11)
 const mkdir = __webpack_require__(18)
@@ -34212,7 +34212,7 @@ module.exports = {
 "use strict";
 
 
-const u = __webpack_require__(14).fromCallback
+const u = __webpack_require__(15).fromCallback
 const path = __webpack_require__(6)
 const fs = __webpack_require__(11)
 const _mkdirs = __webpack_require__(18)
@@ -34426,7 +34426,7 @@ module.exports = {
 "use strict";
 
 
-const u = __webpack_require__(14).fromCallback
+const u = __webpack_require__(15).fromCallback
 const jsonFile = __webpack_require__(83)
 
 jsonFile.outputJson = u(__webpack_require__(274))
@@ -34714,7 +34714,7 @@ module.exports = moveSync
 "use strict";
 
 
-const u = __webpack_require__(14).fromCallback
+const u = __webpack_require__(15).fromCallback
 module.exports = {
   move: u(__webpack_require__(279))
 }
@@ -34799,7 +34799,7 @@ module.exports = move
 "use strict";
 
 
-const u = __webpack_require__(14).fromCallback
+const u = __webpack_require__(15).fromCallback
 const fs = __webpack_require__(11)
 const path = __webpack_require__(6)
 const mkdir = __webpack_require__(18)
@@ -34980,7 +34980,7 @@ function pointerCoord(event) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _docusaurus_ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(15);
+/* harmony import */ var _docusaurus_ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(14);
 /**
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -34998,7 +34998,7 @@ window.ga('send','pageview');}};})());
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _docusaurus_ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(15);
+/* harmony import */ var _docusaurus_ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(14);
 /* harmony import */ var _generated_docusaurus_config__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(36);
 /**
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -35021,7 +35021,7 @@ window.gtag('config',trackingID,{page_path:location.pathname});}};})());
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var prism_react_renderer_prism__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(35);
-/* harmony import */ var _docusaurus_ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(15);
+/* harmony import */ var _docusaurus_ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(14);
 /* harmony import */ var _generated_docusaurus_config__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(36);
 /**
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -35565,12 +35565,33 @@ if (true) {
 
 /***/ }),
 /* 296 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _docusaurus_ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(14);
+/**
+ * (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
+ *
+ * @format
+ * @ts-check
+ */const INITIAL_SLASH=/^\//;const TRAILING_SLASH=/\/$/;/* harmony default export */ __webpack_exports__["default"] = ((function(){function __internaldocs_set_redirect(location){fetch('https://www.internalfb.com/intern/internaldocs/check',{credentials:'include'}).then(r=>r.json()).then(response=>handleCheckResponse(response)).catch(e=>{// This is expected when external users view the page. Do nothing.
+});}function handleCheckResponse(response){if(!response.showBanner||!response.redirectTo||!response.template){return;}const banner=document.getElementById('internaldocs-banner');if(banner){const url=response.redirectTo.replace(TRAILING_SLASH,'')+'/'+(location&&location.pathname?location.pathname.replace(INITIAL_SLASH,''):'');updateBanner(banner,response.template,url);}}function updateBanner(bannerElement,template,redirectDestination){// template is expected to be of the form 'something something {{label}} something'
+const matches=template.match(/(.*)\{\{([^}]+)\}\}(.*)/);if(!matches){return'';}const before=matches[1]||'';const linkText=matches[2]||'';const after=matches[3]||'';Array.from(bannerElement.childNodes).map(node=>bannerElement.removeChild(node));bannerElement.appendChild(document.createTextNode(before));const linkElement=document.createElement('a');linkElement.href=redirectDestination;linkElement.style.color='#3578e5';linkElement.appendChild(document.createTextNode(linkText));bannerElement.appendChild(linkElement);bannerElement.appendChild(document.createTextNode(after));bannerElement.style.display='block';}function sendPageUpdate(){// Page title can be updated after the routeUpdate event.
+// So wait for the next idle slot.
+setTimeout(()=>{window.top.postMessage({event:'page-update',title:document.title,location:window.location.href,// Version is used by WWW to know which plugin is on a page.
+// When bumping it, you probably want to do it in WWW too
+// e.g https://www.internalfb.com/intern/diff/D22253861/
+version:2},'*');},0);}if(_docusaurus_ExecutionEnvironment__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"].canUseDOM){__internaldocs_set_redirect(window.location);sendPageUpdate();window.__internaldocs_mock_check_response=handleCheckResponse;}return{onRouteUpdate:({location})=>{__internaldocs_set_redirect(location);sendPageUpdate();}};})());
+
+/***/ }),
+/* 297 */
 /***/ (function(module, exports) {
 
 
 
 /***/ }),
-/* 297 */
+/* 298 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -36453,7 +36474,7 @@ var nprogress = __webpack_require__(69);
 var nprogress_default = /*#__PURE__*/__webpack_require__.n(nprogress);
 
 // CONCATENATED MODULE: ./.docusaurus/client-modules.js
-/* harmony default export */ var client_modules = ([__webpack_require__(140),__webpack_require__(140),__webpack_require__(288),__webpack_require__(289),__webpack_require__(290),__webpack_require__(291),__webpack_require__(295)]);
+/* harmony default export */ var client_modules = ([__webpack_require__(140),__webpack_require__(140),__webpack_require__(288),__webpack_require__(289),__webpack_require__(290),__webpack_require__(291),__webpack_require__(295),__webpack_require__(296)]);
 // CONCATENATED MODULE: ./node_modules/@docusaurus/core/lib/client/client-lifecycles-dispatcher.js
 /**
  * Copyright (c) 2017-present, Facebook, Inc.
@@ -36467,7 +36488,7 @@ var nprogress_default = /*#__PURE__*/__webpack_require__.n(nprogress);
 return['onRouteUpdate','onRouteUpdateDelayed'].reduce((lifecycles,lifecycleAction)=>{// eslint-disable-next-line no-param-reassign
 lifecycles[lifecycleAction]=function(...args){dispatchLifecycleAction(lifecycleAction,...args);};return lifecycles;},{});}/* harmony default export */ var client_lifecycles_dispatcher = (createLifecyclesDispatcher());
 // EXTERNAL MODULE: ./node_modules/nprogress/nprogress.css
-var nprogress_nprogress = __webpack_require__(296);
+var nprogress_nprogress = __webpack_require__(297);
 
 // CONCATENATED MODULE: ./node_modules/@docusaurus/core/lib/client/PendingNavigation.js
 /**
