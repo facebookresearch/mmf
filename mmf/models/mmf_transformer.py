@@ -45,6 +45,8 @@ class MMFTransformerEmbeddings(nn.Module):
         model_config: BaseTransformerConfigType,
         transformer_config: Dict[str, Any],
         transformer: Type[nn.Module],
+        *args,
+        **kwargs,
     ):
         super().__init__()
         self.model_config = model_config
@@ -178,7 +180,7 @@ class MMFTransformerEmbeddings(nn.Module):
 
 @registry.register_model("mmf_transformer")
 class MMFTransformer(BaseTransformer):
-    def __init__(self, config: BaseTransformerConfigType):
+    def __init__(self, config: BaseTransformerConfigType, *args, **kwargs):
         super().__init__(config)
 
     @classmethod
@@ -203,7 +205,7 @@ class MMFTransformer(BaseTransformer):
     def build_heads(self):
         """Initialize the classifier head. It takes the output of the
         transformer encoder and passes it through a pooler (we use the pooler from BERT
-        model), then dropout, BertPredictionHeadTransform (which is a liner layer,
+        model), then dropout, BertPredictionHeadTransform (which is a linear layer,
         followed by activation and layer norm) and lastly a linear layer projecting the
         hidden output to classification labels.
         """
