@@ -66,6 +66,7 @@ Example::
             return {"text": text}
 """
 
+import collections
 import copy
 import logging
 import os
@@ -74,7 +75,7 @@ import re
 import warnings
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 import numpy as np
 import torch
@@ -1462,3 +1463,33 @@ class TransformerBboxProcessor(BaseProcessor):
         image_location[:, 3] = image_location[:, 3] / image_h
         item["bbox"] = image_location
         return item
+
+
+@dataclass
+class MultiClassFromFileConfig:
+    # Vocab file containing the strings for the available classes
+    vocab_file: str
+
+
+@registry.register_processor("multi_class_from_file")
+class MultiClassFromFile(BaseProcessor):
+    """Label processor for multi class cases where the labels are
+    saved in a file.
+    """
+
+    def __init__(self, config: MultiClassFromFileConfig, *args, **kwargs):
+        self.label_vocab = VocabDict(config.vocab_file, *args, **kwargs)
+
+    def __call__(self, item: Union[Dict[str, Any], str]) -> Dict[str, Any]:
+        if isinstance(item, collections.abc.Mapping):
+            label = item["label"]
+        else:
+            label = item
+
+        # Remove UNK by subtracting 1 from output
+        # UNK will always be at 0 even if it is not in vocab as it is automatically
+        # always added by vocab dict
+        class_index = self.label_vocab.word2idx(label) - 1
+        assert class_index != -1, f"{label} is not present in vocab file"
+
+        return {"class_index": torch.tensor(class_index, dtype=torch.long)}
