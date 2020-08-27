@@ -42,6 +42,10 @@ training:
     # Size of each batch. If distributed or data_parallel
     # is used, this will be divided equally among GPUs
     batch_size: 512
+    # Run update_frequency=K batches with batch_size=N, accumulate gradients, then do
+    # one update (one optimizer step). The effect is a large effective batch size of
+    # KxN (without incurring the memory overhead of setting batch_size to KxN).
+    update_frequency: 1
     # Number of workers to be used in dataloaders
     num_workers: 4
     # Some datasets allow fast reading by loading everything in the memory

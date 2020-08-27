@@ -277,3 +277,12 @@ def log_device_names():
     if torch.cuda.is_available():
         device_name = torch.cuda.get_device_name()
         logger.info(f"CUDA Device {get_rank()} is: {device_name}")
+
+
+def assert_iterator_finished(iter):
+    try:
+        _ = next(iter)
+    except StopIteration:
+        pass
+    else:
+        assert False

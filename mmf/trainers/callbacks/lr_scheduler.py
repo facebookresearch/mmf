@@ -21,6 +21,6 @@ class LRSchedulerCallback(Callback):
         if self.training_config.lr_scheduler is True:
             self._scheduler = build_scheduler(self.trainer.optimizer, self.config)
 
-    def on_batch_end(self, **kwargs):
+    def on_update_end(self, **kwargs):
         if self._scheduler is not None:
             self._scheduler.step()

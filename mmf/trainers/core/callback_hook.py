@@ -30,14 +30,24 @@ class TrainerCallbackHookMixin(ABC):
             callback.on_train_end(**kwargs)
 
     def on_batch_start(self, **kwargs) -> None:
-        """Called when the training batch begins."""
+        """Called when a forward pass begins."""
         for callback in self.callbacks:
             callback.on_batch_start(**kwargs)
 
     def on_batch_end(self, **kwargs) -> None:
-        """Called when the training batch ends."""
+        """Called when a forward pass ends."""
         for callback in self.callbacks:
             callback.on_batch_end(**kwargs)
+
+    def on_update_start(self, **kwargs) -> None:
+        """Called when the training update begins."""
+        for callback in self.callbacks:
+            callback.on_update_start(**kwargs)
+
+    def on_update_end(self, **kwargs) -> None:
+        """Called when the training update ends."""
+        for callback in self.callbacks:
+            callback.on_update_end(**kwargs)
 
     def on_validation_start(self, **kwargs) -> None:
         """Called when the validation loop begins."""

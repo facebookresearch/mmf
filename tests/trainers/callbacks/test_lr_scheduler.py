@@ -72,9 +72,9 @@ class TestLogisticsCallback(unittest.TestCase):
     def tearDown(self):
         registry.unregister("config")
 
-    def test_on_batch_end(self):
-        self.trainer.lr_scheduler_callback.on_batch_end()
+    def test_on_update_end(self):
+        self.trainer.lr_scheduler_callback.on_update_end()
         self.assertAlmostEqual(self.trainer.optimizer.param_groups[0]["lr"], 1e-02)
 
-        self.trainer.lr_scheduler_callback.on_batch_end()
+        self.trainer.lr_scheduler_callback.on_update_end()
         self.assertAlmostEqual(self.trainer.optimizer.param_groups[0]["lr"], 1e-03)

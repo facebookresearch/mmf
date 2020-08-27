@@ -10,7 +10,7 @@ import torch
 from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.common.sample import to_device
-from mmf.utils.general import clip_gradients
+from mmf.utils.general import assert_iterator_finished, clip_gradients
 from torch import Tensor
 
 
@@ -56,12 +56,56 @@ class TrainerTrainingLoopMixin(ABC):
             # Seed the sampler in case if it is distributed
             self.dataset_loader.seed_sampler("train", self.current_epoch)
 
-            for batch in self.train_loader:
-                self.profile("Batch load time")
-                self.current_iteration += 1
-                logger.debug(self.num_updates + 1)
+            num_remaining_batches = len(self.train_loader)
+            batch_iter = iter(self.train_loader)
 
-                self.run_training_batch(batch)
+            while num_remaining_batches:
+
+                combined_report = None
+                num_batches_for_this_update = min(
+                    self.training_config.update_frequency, num_remaining_batches
+                )
+
+                self._start_update()
+
+                for _ in range(num_batches_for_this_update):
+                    self.on_batch_start()
+                    batch = next(batch_iter)
+                    self.profile("Batch load time")
+
+                    report = self.run_training_batch(batch, num_batches_for_this_update)
+
+                    # accumulate necessary params for metric calculation
+                    if combined_report is None:
+                        combined_report = report
+                    else:
+                        combined_report.accumulate_tensor_fields(
+                            report, self.metrics.required_params
+                        )
+                        combined_report.batch_size += report.batch_size
+
+                    self.on_batch_end(report=combined_report, meter=self.meter)
+                self._finish_update()
+
+                should_log = False
+                if self.num_updates % self.logistics_callback.log_interval == 0:
+                    should_log = True
+                    # Calculate metrics every log interval for debugging
+                    if self.training_config.evaluate_metrics:
+                        combined_report.metrics = self.metrics(
+                            combined_report, combined_report
+                        )
+                    self.update_meter(combined_report, self.meter)
+
+                self.on_update_end(
+                    report=combined_report, meter=self.meter, should_log=should_log
+                )
+
+                num_remaining_batches -= num_batches_for_this_update
+
+                if num_remaining_batches == 0:
+                    # we expect iterator to be finished, based on len(self.train_loader)
+                    assert_iterator_finished(batch_iter)
 
                 # Check if training should be stopped
                 should_break = False
@@ -95,24 +139,16 @@ class TrainerTrainingLoopMixin(ABC):
                 if should_break:
                     break
 
-    def run_training_batch(self, batch: Tensor) -> None:
-        # Train batch start callbacks
-        self.on_batch_start()
+    def run_training_batch(self, batch: Tensor, loss_divisor: int) -> None:
 
         report = self._forward(batch)
         loss = self._extract_loss(report)
+        # Since losses are batch averaged in MMF, this makes sure the
+        # scaling is right.
+        loss /= loss_divisor
         self._backward(loss)
 
-        should_log = False
-        if self.num_updates % self.logistics_callback.log_interval == 0:
-            should_log = True
-            # Calculate metrics every log interval for debugging
-            if self.training_config.evaluate_metrics:
-                report.metrics = self.metrics(report, report)
-            self.update_meter(report, self.meter)
-
-        # Train batch end callbacks
-        self.on_batch_end(report=report, meter=self.meter, should_log=should_log)
+        return report
 
     def _forward(self, batch: Tensor) -> Dict[str, Any]:
         prepared_batch = self.dataset_loader.prepare_batch(batch)
@@ -126,10 +162,17 @@ class TrainerTrainingLoopMixin(ABC):
 
         return report
 
-    def _backward(self, loss: Tensor) -> None:
+    def _start_update(self):
+        self.current_iteration += 1
+        logger.debug(self.num_updates + 1)
+        self.on_update_start()
         self.optimizer.zero_grad()
-        loss.backward()
 
+    def _backward(self, loss: Tensor) -> None:
+        loss.backward()
+        self.profile("Backward time")
+
+    def _finish_update(self):
         if self.training_config.clip_gradients:
             clip_gradients(
                 self.model,
@@ -140,7 +183,7 @@ class TrainerTrainingLoopMixin(ABC):
 
         self.optimizer.step()
         self.num_updates += 1
-        self.profile("Backward time")
+        self.profile("Finished update")
 
     def _extract_loss(self, report: Dict[str, Any]) -> Tensor:
         loss_dict = report.losses

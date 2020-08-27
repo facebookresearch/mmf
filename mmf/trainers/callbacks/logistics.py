@@ -49,7 +49,7 @@ class LogisticsCallback(Callback):
         self.train_timer = Timer()
         self.snapshot_timer = Timer()
 
-    def on_batch_end(self, **kwargs):
+    def on_update_end(self, **kwargs):
         if not kwargs["should_log"]:
             return
         extra = {}

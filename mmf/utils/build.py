@@ -151,6 +151,7 @@ def build_dataloader_and_sampler(
             dataset_instance.dataset_name, dataset_instance.dataset_type
         ),
         num_workers=num_workers,
+        drop_last=False,  # see also MultiDatasetLoader.__len__
         **other_args,
     )
 

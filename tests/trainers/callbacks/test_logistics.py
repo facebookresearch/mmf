@@ -99,12 +99,12 @@ class TestLogisticsCallback(unittest.TestCase):
             int(self.cb.train_timer.get_time_since_start().split("ms")[0]), expected
         )
 
-    def test_on_batch_end(self):
+    def test_on_update_end(self):
         self.cb.on_train_start()
-        self.cb.on_batch_end(meter=self.trainer.meter, should_log=False)
+        self.cb.on_update_end(meter=self.trainer.meter, should_log=False)
         f = PathManager.open(os.path.join(self.tmpdir, "train.log"))
         self.assertFalse(any("time_since_start" in line for line in f.readlines()))
-        self.cb.on_batch_end(meter=self.trainer.meter, should_log=True)
+        self.cb.on_update_end(meter=self.trainer.meter, should_log=True)
         f = PathManager.open(os.path.join(self.tmpdir, "train.log"))
         self.assertTrue(any("time_since_start" in line for line in f.readlines()))
 
