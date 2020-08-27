@@ -7,6 +7,13 @@
  * @format
  */
 
+function FBInternal(elements) {
+  return process.env.FB_INTERNAL ? elements : [];
+}
+function FBInternalWithOssFallback(elements, fallback) {
+  return process.env.FB_INTERNAL ? elements : fallback;
+}
+
 module.exports = {
   docs: {
     'Getting started': [
@@ -31,15 +38,14 @@ module.exports = {
       'tutorials/processors',
       'tutorials/slurm',
     ],
+    ...FBInternal({
+      'FB Internal': ['fb/devserver', 'fb/fblearner'],
+    }),
     Challenges: [
       'challenges/hateful_memes_challenge',
       'challenges/textvqa_challenge',
       'challenges/vqa_challenge',
     ],
-    Projects: [
-      'projects/butd',
-      'projects/m4c',
-      'projects/movie_mcan',
-    ],
+    Projects: ['projects/butd', 'projects/m4c', 'projects/movie_mcan'],
   },
 };
