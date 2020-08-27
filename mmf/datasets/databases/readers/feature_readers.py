@@ -1,11 +1,27 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+
 import os
 import pickle
+from typing import Any
 
 import lmdb
 import numpy as np
 import torch
 from mmf.utils.file_io import PathManager
+
+
+def load_feat(feat_path: str, convert_to_tensor: bool = False) -> Any:
+    with PathManager.open(feat_path, "rb") as f:
+        if feat_path.endswith("npy"):
+            feat = np.load(f, allow_pickle=True)
+            if convert_to_tensor:
+                feat = torch.from_numpy(feat)
+        elif feat_path.endswith("pth"):
+            feat = torch.load(f, map_location=torch.device("cpu"))
+        else:
+            raise AssertionError("Unknown feature type")
+
+    return feat
 
 
 class FeatureReader:
@@ -71,10 +87,7 @@ class FeatureReader:
             # Currently all lmdb features are with ndim == 2 so we are
             # avoiding loading the lmdb to determine feature ndim
             if not self.base_path.endswith(".lmdb") and self.ndim is None:
-                if image_feat_path.endswith("npy"):
-                    feat = np.load(image_feat_path)
-                elif image_feat_path.endswith("pth"):
-                    feat = torch.load(image_feat_path, map_location=torch.device("cpu"))
+                feat = load_feat(image_feat_path)
                 self.ndim = feat.ndim
             self._init_reader()
 
@@ -83,7 +96,8 @@ class FeatureReader:
 
 class FasterRCNNFeatureReader:
     def read(self, image_feat_path):
-        return torch.from_numpy(np.load(image_feat_path)), None
+        feat = load_feat(image_feat_path, convert_to_tensor=True)
+        return feat, None
 
 
 class CHWFeatureReader:
@@ -91,10 +105,7 @@ class CHWFeatureReader:
         self.max_features = max_features
 
     def read(self, image_feat_path):
-        if image_feat_path.endswith("npy"):
-            feat = torch.from_numpy(np.load(image_feat_path))
-        elif image_feat_path.endswith("pth"):
-            feat = torch.load(image_feat_path, map_location=torch.device("cpu"))
+        feat = load_feat(image_feat_path, convert_to_tensor=True)
         assert feat.shape[0] == 1, "batch is not 1"
         b, c, h, w = feat.shape
         if self.max_features:
@@ -108,7 +119,7 @@ class CHWFeatureReader:
 
 class Dim3FeatureReader:
     def read(self, image_feat_path):
-        tmp = np.load(image_feat_path)
+        tmp = load_feat(image_feat_path)
         _, _, c_dim = tmp.shape
         image_feature = torch.from_numpy(np.reshape(tmp, (-1, c_dim)))
         return image_feature, None
@@ -116,7 +127,7 @@ class Dim3FeatureReader:
 
 class HWCFeatureReader:
     def read(self, image_feat_path):
-        tmp = np.load(image_feat_path)
+        tmp = load_feat(image_feat_path)
         assert tmp.shape[0] == 1, "batch is not 1"
         _, _, _, c_dim = tmp.shape
         image_feature = torch.from_numpy(np.reshape(tmp, (-1, c_dim)))
@@ -131,11 +142,11 @@ class PaddedFasterRCNNFeatureReader:
 
     def _load(self, image_feat_path):
         image_info = {}
-        image_info["features"] = np.load(image_feat_path, allow_pickle=True)
+        image_info["features"] = load_feat(image_feat_path)
 
         info_path = "{}_info.npy".format(image_feat_path.split(".npy")[0])
         if PathManager.exists(info_path):
-            image_info.update(np.load(info_path, allow_pickle=True).item())
+            image_info.update(load_feat(info_path).item())
 
         return image_info
 
@@ -233,7 +244,7 @@ class PaddedFeatureRCNNWithBBoxesFeatureReader:
         self.max_loc = max_loc
 
     def read(self, image_feat_path):
-        image_feat_bbox = np.load(image_feat_path)
+        image_feat_bbox = load_feat(image_feat_path)
         image_boxes = image_feat_bbox.item().get("image_bboxes")
         tmp_image_feat = image_feat_bbox.item().get("image_feature")
         image_loc, image_dim = tmp_image_feat.shape
