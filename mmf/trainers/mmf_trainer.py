@@ -55,9 +55,12 @@ class MMFTrainer(
         self.lr_scheduler_callback = LRSchedulerCallback(self.config, self)
 
         # Add callbacks for execution during events
+        self.callbacks.append(self.lr_scheduler_callback)
+        # checkpoint_callback needs to be called after lr_scheduler_callback so that
+        # lr_scheduler_callback._scheduler.step() happens before saving checkpoints
+        # (otherwise the saved last_epoch in scheduler would be wrong)
         self.callbacks.append(self.checkpoint_callback)
         self.callbacks.append(self.logistics_callback)
-        self.callbacks.append(self.lr_scheduler_callback)
 
     def load_datasets(self):
         logger.info("Loading datasets")
