@@ -31,9 +31,9 @@ install_dep: &install_dep
       command: |
         source activate mmf
         pip install --upgrade setuptools
-        pip install --progress-bar off flake8
-        pip install --progress-bar off black
-        pip install --progress-bar off isort==4.3.20
+        pip install --progress-bar off flake8==3.7.9
+        pip install --progress-bar off black==19.3b0
+        pip install --progress-bar off isort==4.3.21
         pip install --progress-bar off pytest
         python setup.py clean --all
         python setup.py install
@@ -48,9 +48,9 @@ install_dep_windows: &install_dep_windows
         pip install --upgrade setuptools certifi
         pip install --progress-bar off torch==1.5.0+cpu torchvision==0.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
         pip install -r requirements.txt
-        pip install --progress-bar off flake8
-        pip install --progress-bar off black
-        pip install --progress-bar off isort==4.3.20
+        pip install --progress-bar off flake8==3.7.9
+        pip install --progress-bar off black==19.3b0
+        pip install --progress-bar off isort==4.3.21
         pip install --progress-bar off pytest
         python setup.py install
         python -c 'import torch; print("Torch version:", torch.__version__)'
