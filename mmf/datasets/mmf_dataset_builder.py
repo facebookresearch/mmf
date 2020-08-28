@@ -1,17 +1,17 @@
 import collections
-import copy
 import os
 import typing
 import warnings
-
-import numpy as np
+from copy import deepcopy
 
 import mmf.utils.download as download
+import torch
 from mmf.datasets.base_dataset_builder import BaseDatasetBuilder
 from mmf.datasets.concat_dataset import MMFConcatDataset
 from mmf.datasets.subset_dataset import MMFSubset
 from mmf.utils.configuration import get_global_config, get_mmf_env, get_zoo_config
 from mmf.utils.general import get_absolute_path
+from omegaconf import open_dict
 
 
 class MMFDatasetBuilder(BaseDatasetBuilder):
@@ -24,7 +24,7 @@ class MMFDatasetBuilder(BaseDatasetBuilder):
         dataset_class=None,
         zoo_variation="defaults",
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(dataset_name)
         self.dataset_class = dataset_class
@@ -124,46 +124,59 @@ class MMFDatasetBuilder(BaseDatasetBuilder):
     def load(self, config, dataset_type, *args, **kwargs):
         self.config = config
 
-        new_config = config
-        split_dataset_from_train = self.config.split_train
+        split_dataset_from_train = self.config.get("split_train", False)
         if split_dataset_from_train:
-            split_range = self._calculate_split_for_dataset_type(dataset_type)
-            new_config = self._modify_dataset_config(config)
+            config = self._modify_dataset_config_for_split(config)
 
-        annotations = self._read_annotations(new_config, dataset_type)
+        annotations = self._read_annotations(config, dataset_type)
         if annotations is None:
             return None
 
         datasets = []
         for imdb_idx in range(len(annotations)):
             dataset_class = self.dataset_class
-            dataset = dataset_class(new_config, dataset_type, imdb_idx)
+            dataset = dataset_class(config, dataset_type, imdb_idx)
             datasets.append(dataset)
 
         dataset = MMFConcatDataset(datasets)
         if split_dataset_from_train:
-            start, end = split_range
-            dataset_length = len(dataset)
-            start, end = round(start * dataset_length), round(end * dataset_length)
-            seed = new_config.split_train.seed
-            indices = np.random.RandomState(seed).permutation(dataset_length)[start:end]
-            dataset = MMFSubset(dataset, indices)
+            dataset = self._split_dataset_from_train(dataset, dataset_type)
 
         self.dataset = dataset
         return self.dataset
 
-    def _modify_dataset_config(self, config):
-        modified_config = copy.deepcopy(config)
-        for data_type in config.split_train:
-            if data_type == "seed":
-                continue
-            if config.use_images:
-                modified_config.images[data_type] = config.images.train
-            if config.use_features:
-                modified_config.features[data_type] = config.features.train
-            modified_config.annotations[data_type] = modified_config.annotations.train
+    def _split_dataset_from_train(self, dataset, dataset_type):
+        if dataset_type in self.config.split_train.keys() or dataset_type == "train":
+            start, end = self._calculate_split_for_dataset_type(dataset_type)
+            dataset_length = len(dataset)
+            start, end = round(start * dataset_length), round(end * dataset_length)
+            if start > end:
+                raise ValueError(
+                    f"Train split ratio for {dataset_type} must be positive."
+                )
+            indices = self._generate_permuted_indexes(dataset_length)[start:end]
+            dataset = MMFSubset(dataset, indices)
+            print(
+                f"Dataset type: {dataset_type} length: {len(dataset)} total: {dataset_length}"
+            )
+        return dataset
 
-        return modified_config
+    def _generate_permuted_indexes(self, dataset_length):
+        generator = torch.Generator()
+        generator.manual_seed(self.config.get("split_train.seed", 123456))
+        return torch.randperm(dataset_length, generator=generator)
+
+    def _modify_dataset_config_for_split(self, config):
+        with open_dict(config):
+            for data_type in config.split_train:
+                if data_type == "seed":
+                    continue
+                if config.use_images:
+                    config.images[data_type] = deepcopy(config.images.train)
+                if config.use_features:
+                    config.features[data_type] = deepcopy(config.features.train)
+                config.annotations[data_type] = deepcopy(config.annotations.train)
+        return config
 
     def _read_annotations(self, config, dataset_type):
         annotations = config.get("annotations", {}).get(dataset_type, [])
@@ -191,11 +204,13 @@ class MMFDatasetBuilder(BaseDatasetBuilder):
                 return (start, start + self.config.split_train[data_type])
             start += self.config.split_train[data_type]
 
-        if start >= 1.0:
+        if start > 1.0:
             raise ValueError(
-                "Ratios of val and test should not exceed 100%."
-                + "Need to leave some percentage for training."
+                "Ratios of val plus test should not exceed 100%."
+                + " Need to leave some percentage for training."
             )
+        elif start == 1.0:
+            warnings.warn("All data in training set is used for val and/or test.")
 
         if dataset_type == "train":
             return (start, 1.0)

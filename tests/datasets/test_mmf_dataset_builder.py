@@ -4,10 +4,9 @@ import os
 import unittest
 from unittest.mock import MagicMock
 
-from omegaconf import OmegaConf
-
 from mmf.datasets.base_dataset import BaseDataset
 from mmf.datasets.mmf_dataset_builder import MMFDatasetBuilder
+from omegaconf import OmegaConf
 
 
 class SimpleMMFDataset(BaseDataset):
