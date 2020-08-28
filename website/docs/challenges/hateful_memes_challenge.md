@@ -38,7 +38,7 @@ mmf_run config=projects/hateful_memes/configs/mmbt/defaults.yaml \
     model=mmbt \
     dataset=hateful_memes \
     run_type=val \
-    resume_file=./save/mmbt_final.pth
+    checkpoint.resume_file=./save/mmbt_final.pth
 ```
 
 This will give you the performance of your model on the validation set. The metrics are AUROC, ACC, Binary F1 etc.
