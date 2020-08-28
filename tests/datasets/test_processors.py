@@ -1,15 +1,18 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os
+import tempfile
 import unittest
 
 import torch
 from mmf.datasets.processors.processors import (
     CaptionProcessor,
     EvalAIAnswerProcessor,
+    MultiClassFromFile,
     MultiHotAnswerFromVocabProcessor,
     TransformerBboxProcessor,
 )
 from mmf.utils.configuration import load_yaml
+from omegaconf import OmegaConf
 
 from ..test_utils import compare_tensors
 
@@ -153,3 +156,20 @@ class TestDatasetProcessors(unittest.TestCase):
                 processed_box, torch.tensor([[1, 1, 1, 1, 0]], dtype=torch.float)
             )
         )
+
+    def test_multi_class_from_file(self):
+        f = tempfile.NamedTemporaryFile(mode="w", delete=False)
+        f.writelines("\n".join(["abc", "bcd", "def", "efg"]))
+        f.close()
+        config = OmegaConf.create({"vocab_file": f.name})
+        processor = MultiClassFromFile(config)
+
+        output = processor({"label": "abc"})
+        self.assertEqual(output["class_index"], 0)
+        output = processor({"label": "efg"})
+        self.assertEqual(output["class_index"], 3)
+        output = processor("def")
+        self.assertEqual(output["class_index"], 2)
+
+        self.assertRaises(AssertionError, processor, {"label": "UNK"})
+        os.unlink(f.name)
