@@ -298,6 +298,7 @@
 <span class="sd">            return {&quot;text&quot;: text}</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -306,7 +307,7 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span><span class="p">,</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">torch</span>
@@ -1694,6 +1695,36 @@
         <span class="n">image_location</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">image_location</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">/</span> <span class="n">image_h</span>
         <span class="n">item</span><span class="p">[</span><span class="s2">&quot;bbox&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">image_location</span>
         <span class="k">return</span> <span class="n">item</span></div>
+
+
+<div class="viewcode-block" id="MultiClassFromFileConfig"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.MultiClassFromFileConfig">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">MultiClassFromFileConfig</span><span class="p">:</span>
+    <span class="c1"># Vocab file containing the strings for the available classes</span>
+    <span class="n">vocab_file</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+<div class="viewcode-block" id="MultiClassFromFile"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.MultiClassFromFile">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;multi_class_from_file&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MultiClassFromFile</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Label processor for multi class cases where the labels are</span>
+<span class="sd">    saved in a file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">MultiClassFromFileConfig</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label_vocab</span> <span class="o">=</span> <span class="n">VocabDict</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">vocab_file</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">item</span>
+
+        <span class="c1"># Remove UNK by subtracting 1 from output</span>
+        <span class="c1"># UNK will always be at 0 even if it is not in vocab as it is automatically</span>
+        <span class="c1"># always added by vocab dict</span>
+        <span class="n">class_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_vocab</span><span class="o">.</span><span class="n">word2idx</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">assert</span> <span class="n">class_index</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> is not present in vocab file&quot;</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;class_index&quot;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">class_index</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)}</span></div>
 </pre></div>
 
              </article>
