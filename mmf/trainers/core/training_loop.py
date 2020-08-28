@@ -10,7 +10,7 @@ import torch
 from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.common.sample import to_device
-from mmf.utils.general import assert_iterator_finished, clip_gradients
+from mmf.utils.general import clip_gradients
 from torch import Tensor
 
 
@@ -56,35 +56,54 @@ class TrainerTrainingLoopMixin(ABC):
             # Seed the sampler in case if it is distributed
             self.dataset_loader.seed_sampler("train", self.current_epoch)
 
-            num_remaining_batches = len(self.train_loader)
-            batch_iter = iter(self.train_loader)
-
-            while num_remaining_batches:
-
-                combined_report = None
-                num_batches_for_this_update = min(
-                    self.training_config.update_frequency, num_remaining_batches
+            # For iterable datasets we cannot determine length of dataset properly.
+            # For those cases we set num_remaining_batches to be the (number of
+            # updates remaining x update_frequency)
+            num_remaining_batches = (
+                (
+                    (self.max_updates - self.num_updates)
+                    * self.training_config.update_frequency
                 )
+                if isinstance(
+                    self.train_loader.current_dataset, torch.utils.data.IterableDataset
+                )
+                else len(self.train_loader)
+            )
 
-                self._start_update()
+            combined_report = None
+            num_batches_for_this_update = 1
+            for idx, batch in enumerate(self.train_loader):
 
-                for _ in range(num_batches_for_this_update):
-                    self.on_batch_start()
-                    batch = next(batch_iter)
-                    self.profile("Batch load time")
+                if (idx + 1) % self.training_config.update_frequency == 0:
+                    combined_report = None
+                    num_batches_for_this_update = min(
+                        self.training_config.update_frequency, num_remaining_batches
+                    )
 
-                    report = self.run_training_batch(batch, num_batches_for_this_update)
+                    self._start_update()
 
-                    # accumulate necessary params for metric calculation
-                    if combined_report is None:
-                        combined_report = report
-                    else:
-                        combined_report.accumulate_tensor_fields(
-                            report, self.metrics.required_params
-                        )
-                        combined_report.batch_size += report.batch_size
+                # batch execution starts here
+                self.on_batch_start()
+                self.profile("Batch load time")
 
-                    self.on_batch_end(report=combined_report, meter=self.meter)
+                report = self.run_training_batch(batch, num_batches_for_this_update)
+
+                # accumulate necessary params for metric calculation
+                if combined_report is None:
+                    combined_report = report
+                else:
+                    combined_report.accumulate_tensor_fields(
+                        report, self.metrics.required_params
+                    )
+                    combined_report.batch_size += report.batch_size
+
+                # batch execution ends here
+                self.on_batch_end(report=combined_report, meter=self.meter)
+
+                # check if an update has finished, if no continue
+                if (idx + 1) % self.training_config.update_frequency:
+                    continue
+
                 self._finish_update()
 
                 should_log = False
@@ -102,10 +121,6 @@ class TrainerTrainingLoopMixin(ABC):
                 )
 
                 num_remaining_batches -= num_batches_for_this_update
-
-                if num_remaining_batches == 0:
-                    # we expect iterator to be finished, based on len(self.train_loader)
-                    assert_iterator_finished(batch_iter)
 
                 # Check if training should be stopped
                 should_break = False
@@ -195,6 +210,15 @@ class TrainerTrainingLoopMixin(ABC):
         max_epochs = self.training_config.max_epochs
         if max_updates is None and max_epochs is None:
             raise ValueError("Neither max_updates nor max_epochs is specified.")
+
+        if isinstance(
+            self.train_loader.current_dataset, torch.utils.data.IterableDataset
+        ):
+            warnings.warn(
+                "max_epochs not supported for Iterable datasets. Falling back "
+                + "to max_updates."
+            )
+            return max_updates
 
         if max_updates is not None and max_epochs is not None:
             warnings.warn(

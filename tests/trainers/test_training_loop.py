@@ -40,6 +40,7 @@ class TrainerTrainingLoopMock(TrainerTrainingLoopMixin, TrainerProfilingMixin):
         self.train_loader = torch.utils.data.DataLoader(
             dataset=dataset, batch_size=1, shuffle=False, num_workers=1, drop_last=False
         )
+        self.train_loader.current_dataset = dataset
         self.on_batch_start = MagicMock(return_value=None)
         self.on_update_start = MagicMock(return_value=None)
         self.logistics_callback = MagicMock(return_value=None)
