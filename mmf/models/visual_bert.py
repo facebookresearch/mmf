@@ -415,7 +415,7 @@ class VisualBERT(BaseModel):
         if sample_list.visual_embeddings_type is None:
             if sample_list.image_mask is not None:
                 sample_list.visual_embeddings_type = torch.zeros_like(
-                    sample_list.image_mask, dtype=torch.long
+                    sample_list.image_mask
                 )
 
         if sample_list.image_mask is not None:
@@ -504,11 +504,9 @@ class VisualBERT(BaseModel):
         # image_feat_variable = batch x ( num_choice x ) image_feature_length x dim
         # Prepare Mask
         if visual_embeddings is not None and image_dim is not None:
-            image_mask = (
-                torch.arange(visual_embeddings.size(-2))
-                .expand(*visual_embeddings.size()[:-1])
-                .cuda()
-            )
+            image_mask = torch.arange(
+                visual_embeddings.size(-2), device=visual_embeddings.device
+            ).expand(*visual_embeddings.size()[:-1])
             if len(image_dim.size()) < len(image_mask.size()):
                 image_dim = image_dim.unsqueeze(-1)
                 assert len(image_dim.size()) == len(image_mask.size())

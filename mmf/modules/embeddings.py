@@ -389,8 +389,10 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
                 )
 
                 position_ids_visual = torch.zeros(
-                    *visual_embeddings.size()[:-1], dtype=torch.long
-                ).cuda()
+                    *visual_embeddings.size()[:-1],
+                    dtype=torch.long,
+                    device=visual_embeddings.device
+                )
 
                 # When fine-tuning the detector , the image_text_alignment is
                 # sometimes padded too long.
@@ -408,8 +410,10 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
                 )
             else:
                 position_ids_visual = torch.zeros(
-                    *visual_embeddings.size()[:-1], dtype=torch.long
-                ).cuda()
+                    *visual_embeddings.size()[:-1],
+                    dtype=torch.long,
+                    device=visual_embeddings.device
+                )
                 position_embeddings_visual = self.position_embeddings_visual(
                     position_ids_visual
                 )
