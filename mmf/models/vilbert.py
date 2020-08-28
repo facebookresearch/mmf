@@ -1261,7 +1261,9 @@ class ViLBERT(BaseModel):
 
             cls_prob = getattr(image_info, "cls_prob", None)
             image_target = np.array(cls_prob, dtype=np.float32)
-            image_target_variable = torch.tensor(image_target, dtype=torch.float).cuda()
+            image_target_variable = torch.tensor(
+                image_target, dtype=torch.float, device=bert_input_ids.device
+            )
 
         return {
             "input_ids": bert_input_ids,
@@ -1287,11 +1289,9 @@ class ViLBERT(BaseModel):
 
         # Prepare Mask
         if params["image_feature"] is not None and params["image_dim"] is not None:
-            image_mask = (
-                torch.arange(params["image_feature"].size(-2))
-                .expand(*params["image_feature"].size()[:-1])
-                .cuda()
-            )
+            image_mask = torch.arange(
+                params["image_feature"].size(-2), device=params["image_feature"].device
+            ).expand(*params["image_feature"].size()[:-1])
             if len(params["image_dim"].size()) < len(image_mask.size()):
                 params["image_dim"] = params["image_dim"].unsqueeze(-1)
                 assert len(params["image_dim"].size()) == len(image_mask.size())
