@@ -661,35 +661,15 @@ class LXMERT(BaseModel):
         image_info = getattr(sample_list, "image_info_0", {})
         image_dim_variable = getattr(image_info, "max_features", None)
         image_feature_variable = getattr(sample_list, "image_feature_0", None)
-        if image_feature_variable is None:
-            raise Exception("object features must be provided for lxmert")
-        bbox = getattr(image_info, "bbox", None)
-        if bbox is None:
-            raise Exception("bounding boxes must be provided for lxmert")
-        else:
-            bbox = torch.tensor(bbox)
-            max_features = torch.tensor(
-                min(image_feature_variable.shape[1], bbox.shape[1]), dtype=torch.int
-            ).to(device)
-            bbox = bbox[:, : max_features.item(), :4]
-            image_h = getattr(image_info, "image_height", None)
-            image_w = getattr(image_info, "image_width", None)
-            if image_h is not None and image_w is not None:
-                image_h = torch.tensor(image_h, dtype=torch.int)
-                image_w = torch.tensor(image_w, dtype=torch.int)
-                image_location = torch.zeros(tuple(bbox.shape))
-                image_location[:, :, 0] /= image_w[:, None]
-                image_location[:, :, 1] /= image_h[:, None]
-                image_location[:, :, 2] /= image_w[:, None]
-                image_location[:, :, 3] /= image_h[:, None]
-            else:
-                image_location = bbox
-            image_location_variable = image_location.to(device)
+        max_features = torch.tensor(
+            image_feature_variable.shape[1], dtype=torch.int
+        ).to(device)
+        image_location_variable = getattr(image_info, "bbox", None)
+        image_location_variable = image_location_variable[:, : max_features.item(), :4]
 
         # aux data
         image_label_variable = getattr(sample_list, "image_labels", None)
         if image_label_variable is not None:
-            image_label_variable = torch.tensor(image_label_variable, dtype=torch.long)
             image_label_variable = image_label_variable[:, : max_features.item(), None]
             image_label_variable = image_label_variable.unsqueeze(-1).to(device)
         cls_prob = getattr(image_info, "cls_prob", None)

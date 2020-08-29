@@ -47,6 +47,12 @@ dataset_config:
         params:
           mask_probability: 0.15
           mask_region_probability: 0.90
+      transformer_bbox_processor:
+        type: transformer_bbox
+        params:
+          bbox_key: bbox
+          image_width_key: image_width
+          image_height_key: image_height
       answer_processor:
         type: vqa_answer
         params:
