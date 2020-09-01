@@ -1,0 +1,7 @@
+# require an issue template to be chosen
+blank_issues_enabled: false
+
+contact_links:
+  - name: MMF Documentation
+    url: https://mmf.sh/docs
+    about: Check if your issue/documentation is already answered in docs
