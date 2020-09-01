@@ -298,7 +298,7 @@ def download(url, path, fname, redownload=True, disable_tqdm=False):
                 + url
                 + ". There may be a download problem."
             )
-        move(resume_file, outfile)
+        shutil.move(resume_file, outfile)
 
     if pbar:
         pbar.close()
@@ -416,11 +416,11 @@ def make_dir(path):
         PathManager.mkdirs(path)
 
 
-def move(path1, path2):
+def copy(path1, path2):
     """
-    Rename the given file.
+    Copy the given file to a new location.
     """
-    shutil.move(path1, path2)
+    shutil.copy(path1, path2)
 
 
 def remove_dir(path):
