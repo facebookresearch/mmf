@@ -7,7 +7,7 @@ import subprocess
 import zipfile
 
 from mmf.utils.configuration import Configuration
-from mmf.utils.download import decompress, move
+from mmf.utils.download import copy, decompress
 from mmf.utils.file_io import PathManager
 
 
@@ -90,9 +90,9 @@ class HMConverter:
             self.checksum(self.args.zip_file, self.POSSIBLE_CHECKSUMS)
 
         src = self.args.zip_file
-        print(f"Moving {src}")
+        print(f"Creating {src}")
         dest = images_path
-        move(src, dest)
+        copy(src, dest)
 
         print(f"Unzipping {src}")
         self.decompress_zip(
@@ -106,21 +106,21 @@ class HMConverter:
         annotations = self.JSONL_FILES
 
         for annotation in annotations:
-            print(f"Moving {annotation}")
+            print(f"Creating {annotation}")
             src = os.path.join(images_path, "data", annotation)
             dest = annotations_path
-            move(src, dest)
+            copy(src, dest)
 
         images = self.IMAGE_FILES
 
         for image_file in images:
             src = os.path.join(images_path, "data", image_file)
             if PathManager.exists(src):
-                print(f"Moving {image_file}")
+                print(f"Creating {image_file}")
             else:
                 continue
             dest = images_path
-            move(src, dest)
+            copy(src, dest)
             if src.endswith(".tar.gz"):
                 decompress(dest, fname=image_file, delete_original=False)
 
