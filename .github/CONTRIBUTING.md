@@ -48,7 +48,7 @@ We take the following factors into consideration before accepting features and P
     * Update the documentation. We use the [Google style docstrings](https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html) in python.
     * Ensure backwards compatibility.
 1. Ensure the test suite passes.
-1. If the PR involves adding (i) a new dataset: update the dataset zoo to enable automatic downloads (ii) a new model: you don't need to update the model zoo, but make sure to describe your results and experiments in PR description.
+1. If the PR involves adding (i) a new dataset: update the dataset zoo to enable automatic downloads (ii) a new model: you don't need to update the model zoo, but make sure to describe your results and experiments in PR description. Also, update the list of the [models](https://mmf.sh/docs/notes/model_zoo/) and the [datasets](https://mmf.sh/docs/notes/dataset_zoo/) in the documentation accordingly.
 1. Follow [commit guidelines](#commit-guidelines) to ensure your commit message follows MMF style.
 1. If you haven't already, complete the Contributor License Agreement ("CLA").
 
