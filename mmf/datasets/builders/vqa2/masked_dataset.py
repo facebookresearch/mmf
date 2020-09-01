@@ -22,8 +22,7 @@ class MaskedVQA2Dataset(VQA2Dataset):
 
         if self._use_features:
             features = self.features_db[idx]
-
-            if self.config.get("transformer_bbox_processor", False):
+            if hasattr(self, "transformer_bbox_processor"):
                 features["image_info_0"] = self.transformer_bbox_processor(
                     features["image_info_0"]
                 )
