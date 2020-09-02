@@ -4,6 +4,7 @@ dataset_config:
     depth_first: false
     fast_read: false
     use_images: false
+    add_answer: false
     use_features: true
     zoo_requirements:
     - coco.defaults
@@ -34,6 +35,14 @@ dataset_config:
               do_lower_case: true
           mask_probability: 0.15
           max_seq_length: 128
+      answer_processor:
+        type: vqa_answer
+        params:
+          num_answers: 10
+          vocab_file: vqa2/defaults/extras/vocabs/answers_vqa.txt
+          preprocessor:
+            type: simple_word
+            params: {}
       masked_region_processor:
         type: masked_region
         params:
