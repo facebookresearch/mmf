@@ -85,6 +85,12 @@ dataset_config:
             params:
               do_lower_case: true
           max_seq_length: 20
+      transformer_bbox_processor:
+        type: transformer_bbox
+        params:
+          bbox_key: bbox
+          image_width_key: image_width
+          image_height_key: image_height
       return_scene_graph: false
       return_objects: false
       return_relationships: false

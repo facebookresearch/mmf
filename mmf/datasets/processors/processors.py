@@ -1451,7 +1451,7 @@ class TransformerBboxProcessor(BaseProcessor):
         image_w = item[self.image_width_key]
         image_h = item[self.image_height_key]
         image_location = torch.zeros((bbox.shape[0], 5), dtype=torch.float)
-        image_location[:, :4] = torch.from_numpy(bbox)
+        image_location[:, :4] = torch.from_numpy(bbox[:, :4])
         image_location[:, 4] = (
             (image_location[:, 3] - image_location[:, 1])
             * (image_location[:, 2] - image_location[:, 0])
