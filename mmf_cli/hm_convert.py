@@ -7,7 +7,7 @@ import subprocess
 import zipfile
 
 from mmf.utils.configuration import Configuration
-from mmf.utils.download import decompress, move
+from mmf.utils.download import copy, decompress, move
 from mmf.utils.file_io import PathManager
 
 
@@ -90,9 +90,9 @@ class HMConverter:
             self.checksum(self.args.zip_file, self.POSSIBLE_CHECKSUMS)
 
         src = self.args.zip_file
-        print(f"Moving {src}")
+        print(f"Copying {src}")
         dest = images_path
-        move(src, dest)
+        copy(src, dest)
 
         print(f"Unzipping {src}")
         self.decompress_zip(
