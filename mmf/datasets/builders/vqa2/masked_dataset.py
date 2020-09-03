@@ -14,9 +14,9 @@ class MaskedVQA2Dataset(VQA2Dataset):
             *args,
             **kwargs
         )
-        self._add_answer = config.get("add_answer", True)
+        self._add_answer = config.get("add_answer", False)
 
-    def load_item(self, idx):
+    def __getitem__(self, idx):
         sample_info = self.annotation_db[idx]
         current_sample = Sample()
 
