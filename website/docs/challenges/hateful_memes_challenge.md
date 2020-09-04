@@ -38,7 +38,8 @@ mmf_run config=projects/hateful_memes/configs/mmbt/defaults.yaml \
     model=mmbt \
     dataset=hateful_memes \
     run_type=val \
-    checkpoint.resume_file=./save/mmbt_final.pth
+    checkpoint.resume_file=./save/mmbt_final.pth \
+    checkpoint.resume_pretrained=False
 ```
 
 This will give you the performance of your model on the validation set. The metrics are AUROC, ACC, Binary F1 etc.
@@ -57,7 +58,8 @@ With MMF you can directly generate the predictions in the required submission fo
 mmf_predict config=projects/hateful_memes/configs/mmbt/defaults.yaml \
     model=mmbt \
     dataset=hateful_memes \
-    run_type=test
+    run_type=test \
+    checkpoint.resume_pretrained=False
 ```
 
 This command will output where the generated predictions csv file is stored.
