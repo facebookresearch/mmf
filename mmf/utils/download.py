@@ -423,6 +423,13 @@ def move(path1, path2):
     shutil.move(path1, path2)
 
 
+def copy(path1, path2):
+    """
+    Copy the given file from path1 to path2.
+    """
+    shutil.copy(path1, path2)
+
+
 def remove_dir(path):
     """
     Remove the given directory, if it exists.
