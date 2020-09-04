@@ -4,7 +4,7 @@ title: Installation
 sidebar_label: Installation
 ---
 
-MMF has been tested on Python 3.7+ and PyTorch 1.5. We recommend using a conda environment to install MMF.
+MMF has been tested on Python 3.7+ and PyTorch 1.6. We recommend using a conda environment to install MMF.
 
 ## Creating a conda environment [Optional]
 
