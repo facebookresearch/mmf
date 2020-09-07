@@ -183,10 +183,7 @@ class Checkpoint:
         else:
             ckpt = self._torch_load(file)
 
-        if "model" in ckpt:
-            ckpt_model = ckpt["model"]
-        else:
-            ckpt_model = ckpt
+        if "model" not in ckpt:
             ckpt = {"model": ckpt}
 
         pretrained_state_mapping = ckpt_config.pretrained_state_mapping
@@ -194,14 +191,10 @@ class Checkpoint:
         if not load_pretrained or force is True:
             pretrained_state_mapping = {}
 
-        new_dict = {}
-
-        new_dict = self.upgrade_state_dict(ckpt_model)
+        state_dict = self.upgrade_state_dict(ckpt["model"])
 
         if len(pretrained_state_mapping.items()) == 0:
-            final_dict = new_dict
-
-            self.trainer.model.load_state_dict(final_dict, strict=False)
+            self.trainer.model.load_state_dict(state_dict, strict=False)
 
             reset_optimizer = ckpt_config.reset.optimizer or ckpt_config.reset.all
             if not reset_optimizer:
@@ -213,7 +206,7 @@ class Checkpoint:
             if not reset_counts:
                 self._load_counts_and_lr_scheduler(ckpt)
         else:
-            self._load_pretrained(new_dict)
+            self._load_pretrained(state_dict)
 
         logger.info("Checkpoint loaded.")
         logger.info(f"Current num updates: {self.trainer.num_updates}")
