@@ -165,18 +165,8 @@ class TestUtilsCheckpoint(unittest.TestCase):
             self.assertFalse(
                 self._compare_optimizers(self.trainer.optimizer, best_optimizer)
             )
-            self.assertFalse(
-                self._compare_optimizers(
-                    self.trainer.optimizer, best_optimizer, skip_keys=True
-                )
-            )
-            self.assertFalse(
-                self._compare_optimizers(self.trainer.optimizer, current_optimizer)
-            )
             self.assertTrue(
-                self._compare_optimizers(
-                    self.trainer.optimizer, current_optimizer, skip_keys=True
-                )
+                self._compare_optimizers(self.trainer.optimizer, current_optimizer)
             )
 
             base_0_weight_current = self.trainer.model.base[0].weight.data.clone()
@@ -192,21 +182,11 @@ class TestUtilsCheckpoint(unittest.TestCase):
                     self.trainer.model.state_dict(), best_model.state_dict()
                 )
             )
-            self.assertFalse(
-                self._compare_optimizers(self.trainer.optimizer, best_optimizer)
-            )
             self.assertTrue(
-                self._compare_optimizers(
-                    self.trainer.optimizer, best_optimizer, skip_keys=True
-                )
+                self._compare_optimizers(self.trainer.optimizer, best_optimizer)
             )
             self.assertFalse(
                 self._compare_optimizers(self.trainer.optimizer, current_optimizer)
-            )
-            self.assertFalse(
-                self._compare_optimizers(
-                    self.trainer.optimizer, current_optimizer, skip_keys=True
-                )
             )
             base_0_weight_best = self.trainer.model.base[0].weight.data.clone()
 
@@ -312,14 +292,8 @@ class TestUtilsCheckpoint(unittest.TestCase):
                     self.trainer.model.state_dict(), after_a_pass.state_dict()
                 )
             )
-            self.assertFalse(
-                self._compare_optimizers(self.trainer.optimizer, original_optimizer)
-            )
-            # Keys will not be same as we just updated the model
             self.assertTrue(
-                self._compare_optimizers(
-                    self.trainer.optimizer, original_optimizer, skip_keys=True
-                )
+                self._compare_optimizers(self.trainer.optimizer, original_optimizer)
             )
 
     def test_resets(self):
@@ -345,13 +319,8 @@ class TestUtilsCheckpoint(unittest.TestCase):
                 )
             )
 
-            self.assertFalse(
-                self._compare_optimizers(self.trainer.optimizer, original_optimizer)
-            )
             self.assertTrue(
-                self._compare_optimizers(
-                    self.trainer.optimizer, original_optimizer, skip_keys=True
-                )
+                self._compare_optimizers(self.trainer.optimizer, original_optimizer)
             )
             self.assertEqual(self.trainer.num_updates, 0)
             self.assertEqual(self.trainer.current_iteration, 0)
@@ -369,13 +338,8 @@ class TestUtilsCheckpoint(unittest.TestCase):
                 )
             )
 
-            self.assertFalse(
-                self._compare_optimizers(self.trainer.optimizer, original_optimizer)
-            )
             self.assertTrue(
-                self._compare_optimizers(
-                    self.trainer.optimizer, original_optimizer, skip_keys=True
-                )
+                self._compare_optimizers(self.trainer.optimizer, original_optimizer)
             )
 
             self.assertEqual(self.trainer.num_updates, 2000)
@@ -396,9 +360,7 @@ class TestUtilsCheckpoint(unittest.TestCase):
             )
 
             self.assertTrue(
-                self._compare_optimizers(
-                    self.trainer.optimizer, original_optimizer, skip_keys=True
-                )
+                self._compare_optimizers(self.trainer.optimizer, original_optimizer)
             )
             self.assertEqual(self.trainer.num_updates, 0)
             self.assertEqual(self.trainer.current_iteration, 0)
@@ -423,11 +385,7 @@ class TestUtilsCheckpoint(unittest.TestCase):
             self.assertFalse(
                 self._compare_optimizers(self.trainer.optimizer, original_optimizer)
             )
-            self.assertFalse(
-                self._compare_optimizers(
-                    self.trainer.optimizer, original_optimizer, skip_keys=True
-                )
-            )
+
             self.assertEqual(self.trainer.num_updates, 1000)
             self.assertEqual(self.trainer.current_iteration, 1000)
             self.assertEqual(self.trainer.current_epoch, 3)
@@ -567,16 +525,15 @@ class TestUtilsCheckpoint(unittest.TestCase):
         self.trainer.optimizer.step()
         self.trainer.lr_scheduler_callback._scheduler.step()
 
-    def _compare_optimizers(self, a, b, skip_keys=False):
+    def _compare_optimizers(self, a, b):
         state_dict_a = a.state_dict()
         state_dict_b = b.state_dict()
         state_a = state_dict_a["state"]
         state_b = state_dict_b["state"]
 
         same = True
-        if not skip_keys:
-            same = same and list(state_a.keys()) == list(state_b.keys())
-            same = same and state_dict_a["param_groups"] == state_dict_b["param_groups"]
+        same = same and list(state_a.keys()) == list(state_b.keys())
+        same = same and state_dict_a["param_groups"] == state_dict_b["param_groups"]
 
         for item1, item2 in zip(state_a.values(), state_b.values()):
             same = same and compare_state_dicts(item1, item2)

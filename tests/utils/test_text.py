@@ -154,17 +154,17 @@ class TestUtilsText(unittest.TestCase):
 
         # these are expected tokens for sum_threshold = 0.5
         expected_tokens = [
-            1.0000e00,
-            2.9140e03,
-            5.9210e03,
-            2.2040e03,
-            5.0550e03,
-            9.2240e03,
-            4.5120e03,
-            1.8200e02,
-            3.6490e03,
-            6.4090e03,
-            2.0000e00,
+            1.0,
+            6319.0,
+            1516.0,
+            3214.0,
+            8798.0,
+            4036.0,
+            282.0,
+            4706.0,
+            8346.0,
+            8620.0,
+            2.0,
         ]
 
         self.assertEqual(tokens[0].tolist(), expected_tokens)
