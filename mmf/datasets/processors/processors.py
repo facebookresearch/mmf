@@ -167,7 +167,7 @@ class Processor:
         elif "processor" in self.__dict__ and hasattr(self.processor, name):
             return getattr(self.processor, name)
         else:
-            raise AttributeError(name)
+            raise AttributeError(f"The processor {name} doesn't exist in the registry.")
 
 
 class BatchProcessor(BaseProcessor):
@@ -188,7 +188,7 @@ class BatchProcessor(BaseProcessor):
         processors_dict = config.get("processors", {})
 
         # Since build_processors also imports processor, import it at runtime to
-        # avoid circulat dependencies
+        # avoid circular dependencies
         from mmf.utils.build import build_processors
 
         self.processors = build_processors(processors_dict, **extra_params)
