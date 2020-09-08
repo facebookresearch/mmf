@@ -35,7 +35,7 @@ The released imdbs contain OCR results and normalized bounding boxes (i.e. in th
 
 For the TextVQA dataset, the downloaded file contains both imdbs with the Rosetta-en OCRs (better performance) and imdbs with Rosetta-ml OCRs (same OCR results as in the previous [LoRRA](http://openaccess.thecvf.com/content_CVPR_2019/papers/Singh_Towards_VQA_Models_That_Can_Read_CVPR_2019_paper.pdf) model). Please download the corresponding OCR feature files.
 
-Note that the object Faster R-CNN features are extracted with [`extract_features_vmb.py`](../../tools/scripts/features/extract_features_vmb.py) and the OCR Faster R-CNN features are extracted with [`extract_ocr_frcn_feature.py`](../../projects/M4C/scripts/extract_ocr_frcn_feature.py).
+Note that the object Faster R-CNN features are extracted with [`extract_features_vmb.py`](https://github.com/facebookresearch/mmf/blob/master/tools/scripts/features/extract_features_vmb.py) and the OCR Faster R-CNN features are extracted with [`extract_ocr_frcn_feature.py`](https://github.com/facebookresearch/mmf/blob/master/projects/m4c/scripts/extract_ocr_frcn_feature.py).
 
 ## Pretrained M4C Models
 
@@ -83,7 +83,7 @@ As with training, you can replace `dataset`, `config` and `checkpoint.resume_zoo
 
 :::note
 
-Use `checkpoint.resume=True` instead of `checkpoint.resume_zoo=m4c.textvqa.with_stvqa` to evaluate your trained snapshots.
+Use `checkpoint.resume=True` AND `checkpoint.resume_best=True` instead of `checkpoint.resume_zoo=m4c.textvqa.with_stvqa` to evaluate your trained snapshots.
 
 :::
 
@@ -108,6 +108,6 @@ As before, for generating prediction for other pretrained model for TextVQA, rep
 
 :::note
 
-To generate predictions on val set, use `run_type=val` instead of `run_type=test`. As before, to generate predictions for your checkpoint, use `checkpoint.resume=True` instead of `checkpoint.resume_zoo=m4c.textvqa.with_stvqa`.
+To generate predictions on val set, use `run_type=val` instead of `run_type=test`. As before, to generate predictions for your checkpoint, use `checkpoint.resume=True` AND `checkpoint.resume_best=True` instead of `checkpoint.resume_zoo=m4c.textvqa.with_stvqa`.
 
 :::
