@@ -336,40 +336,12 @@ similar to some particular values.</p>
 <dl class="py class">
 <dt id="mmf.modules.losses.CombinedLoss">
 <em class="property">class </em><code class="sig-prename descclassname">mmf.modules.losses.</code><code class="sig-name descname">CombinedLoss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">weight_softmax</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CombinedLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.CombinedLoss" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
-<dt id="mmf.modules.losses.CombinedLoss.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CombinedLoss.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.CombinedLoss.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py class">
 <dt id="mmf.modules.losses.CrossEntropyLoss">
 <em class="property">class </em><code class="sig-prename descclassname">mmf.modules.losses.</code><code class="sig-name descname">CrossEntropyLoss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CrossEntropyLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.CrossEntropyLoss" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
-<dt id="mmf.modules.losses.CrossEntropyLoss.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CrossEntropyLoss.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.CrossEntropyLoss.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py class">
 <dt id="mmf.modules.losses.LogitBinaryCrossEntropy">
@@ -462,21 +434,7 @@ loss for each of the losses in <cite>losses</cite>.</p>
 <dl class="py class">
 <dt id="mmf.modules.losses.M4CDecodingBCEWithMaskLoss">
 <em class="property">class </em><code class="sig-prename descclassname">mmf.modules.losses.</code><code class="sig-name descname">M4CDecodingBCEWithMaskLoss</code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#M4CDecodingBCEWithMaskLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.M4CDecodingBCEWithMaskLoss" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
-<dt id="mmf.modules.losses.M4CDecodingBCEWithMaskLoss.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#M4CDecodingBCEWithMaskLoss.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.M4CDecodingBCEWithMaskLoss.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py class">
 <dt id="mmf.modules.losses.MMFLoss">
@@ -497,20 +455,6 @@ which one is the val loss and which one is train loss.</p>
 <p>Since, <code class="docutils literal notranslate"><span class="pre">MMFLoss</span></code> is used by the <code class="docutils literal notranslate"><span class="pre">Losses</span></code> class, end user
 doesn’t need to worry about it.</p>
 </div>
-<dl class="py method">
-<dt id="mmf.modules.losses.MMFLoss.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#MMFLoss.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.MMFLoss.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
@@ -589,21 +533,7 @@ attribute.</p></li>
 <dl class="py class">
 <dt id="mmf.modules.losses.SoftmaxKlDivLoss">
 <em class="property">class </em><code class="sig-prename descclassname">mmf.modules.losses.</code><code class="sig-name descname">SoftmaxKlDivLoss</code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#SoftmaxKlDivLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.SoftmaxKlDivLoss" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
-<dt id="mmf.modules.losses.SoftmaxKlDivLoss.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#SoftmaxKlDivLoss.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.SoftmaxKlDivLoss.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py class">
 <dt id="mmf.modules.losses.TripleLogitBinaryCrossEntropy">
@@ -633,40 +563,12 @@ cross entropy loss for each of branches.</p>
 <dl class="py class">
 <dt id="mmf.modules.losses.WeightedSoftmaxLoss">
 <em class="property">class </em><code class="sig-prename descclassname">mmf.modules.losses.</code><code class="sig-name descname">WeightedSoftmaxLoss</code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#WeightedSoftmaxLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.WeightedSoftmaxLoss" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
-<dt id="mmf.modules.losses.WeightedSoftmaxLoss.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#WeightedSoftmaxLoss.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.WeightedSoftmaxLoss.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py class">
 <dt id="mmf.modules.losses.WrongLoss">
 <em class="property">class </em><code class="sig-prename descclassname">mmf.modules.losses.</code><code class="sig-name descname">WrongLoss</code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#WrongLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.WrongLoss" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
-<dt id="mmf.modules.losses.WrongLoss.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_list</span></em>, <em class="sig-param"><span class="n">model_output</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#WrongLoss.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.WrongLoss.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
+<dd></dd></dl>
 
 </div>
 
