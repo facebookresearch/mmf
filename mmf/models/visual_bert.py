@@ -1,14 +1,17 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+
 # Initial version was taken from https://github.com/uclanlp/visualbert
 # which was cleaned up and adapted for MMF.
 
 import os
 from copy import deepcopy
+from typing import Dict, List, Optional, Tuple
 
 import torch
 from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.modules.embeddings import BertVisioLinguisticEmbeddings
+from mmf.modules.hf_layers import BertEncoderJit, BertLayerJit
 from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
 from mmf.utils.transform import (
@@ -16,12 +19,10 @@ from mmf.utils.transform import (
     transform_to_batch_sequence_dim,
 )
 from omegaconf import OmegaConf
-from torch import nn
+from torch import Tensor, nn
 from transformers.modeling_bert import (
     BertConfig,
-    BertEncoder,
     BertForPreTraining,
-    BertLayer,
     BertPooler,
     BertPredictionHeadTransform,
     BertPreTrainedModel,
@@ -48,28 +49,26 @@ class VisualBERTBase(BertPreTrainedModel):
         config.output_hidden_states = output_hidden_states
 
         self.embeddings = BertVisioLinguisticEmbeddings(config)
-        self.encoder = BertEncoder(config)
+        self.encoder = BertEncoderJit(config)
         self.pooler = BertPooler(config)
         self.bypass_transformer = config.bypass_transformer
 
-        if self.bypass_transformer:
-            self.additional_layer = BertLayer(config)
+        self.additional_layer = BertLayerJit(config)
 
         self.output_attentions = self.config.output_attentions
         self.output_hidden_states = self.config.output_hidden_states
-        self.fixed_head_masks = [None for _ in range(len(self.encoder.layer))]
         self.init_weights()
 
     def forward(
         self,
-        input_ids,
-        attention_mask=None,
-        token_type_ids=None,
-        visual_embeddings=None,
-        position_embeddings_visual=None,
-        visual_embeddings_type=None,
-        image_text_alignment=None,
-    ):
+        input_ids: Tensor,
+        attention_mask: Optional[Tensor] = None,
+        token_type_ids: Optional[Tensor] = None,
+        visual_embeddings: Optional[Tensor] = None,
+        position_embeddings_visual: Optional[Tensor] = None,
+        visual_embeddings_type: Optional[Tensor] = None,
+        image_text_alignment: Optional[Tensor] = None,
+    ) -> Tuple[Tensor, Tensor, List[Tensor]]:
         if attention_mask is None:
             attention_mask = torch.ones_like(input_ids)
         if token_type_ids is None:
@@ -88,9 +87,10 @@ class VisualBERTBase(BertPreTrainedModel):
         # positions we want to attend and -10000.0 for masked positions.
         # Since we are adding it to the raw scores before the softmax, this is
         # effectively the same as removing these entirely.
-        extended_attention_mask = extended_attention_mask.to(
-            dtype=next(self.parameters()).dtype
-        )  # fp16 compatibility
+        if not torch.jit.is_scripting():
+            extended_attention_mask = extended_attention_mask.to(
+                dtype=next(self.parameters()).dtype
+            )  # fp16 compatibility
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
 
         embedding_output = self.embeddings(
@@ -115,29 +115,24 @@ class VisualBERTBase(BertPreTrainedModel):
             ]
 
             encoded_layers = self.encoder(
-                text_embedding_output,
-                text_extended_attention_mask,
-                self.fixed_head_masks,
+                text_embedding_output, text_extended_attention_mask
             )
             sequence_output = encoded_layers[0]
             new_input = torch.cat((sequence_output, visual_part), dim=1)
             final_sequence_output = self.additional_layer(
                 new_input, extended_attention_mask
             )
-            pooled_output = self.pooler(final_sequence_output)
-            return final_sequence_output, pooled_output
+            pooled_output = self.pooler(final_sequence_output[0])
+            return final_sequence_output[0], pooled_output, []
 
         else:
-            encoded_layers = self.encoder(
-                embedding_output, extended_attention_mask, self.fixed_head_masks
-            )
+            encoded_layers = self.encoder(embedding_output, extended_attention_mask)
             sequence_output = encoded_layers[0]
             pooled_output = self.pooler(sequence_output)
-            attn_data_list = []
+            attn_data_list: List[Tensor] = []
 
-            if self.output_attentions:
+            if not torch.jit.is_scripting() and self.output_attentions:
                 attn_data_list = encoded_layers[1:]
-
             return sequence_output, pooled_output, attn_data_list
 
 
@@ -190,6 +185,7 @@ class VisualBERTForPretraining(nn.Module):
         else:
             bert_masked_lm = BertForPreTraining.from_pretrained(
                 self.config.bert_model_name,
+                config=self.bert.config,
                 cache_dir=os.path.join(
                     get_mmf_cache_dir(), "distributed_{}".format(-1)
                 ),
@@ -218,16 +214,16 @@ class VisualBERTForPretraining(nn.Module):
 
     def forward(
         self,
-        input_ids,
-        input_mask,
-        attention_mask=None,
-        token_type_ids=None,
-        visual_embeddings=None,
-        position_embeddings_visual=None,
-        visual_embeddings_type=None,
-        image_text_alignment=None,
-        masked_lm_labels=None,
-    ):
+        input_ids: Tensor,
+        input_mask: Tensor,
+        attention_mask: Optional[Tensor] = None,
+        token_type_ids: Optional[Tensor] = None,
+        visual_embeddings: Optional[Tensor] = None,
+        position_embeddings_visual: Optional[Tensor] = None,
+        visual_embeddings_type: Optional[Tensor] = None,
+        image_text_alignment: Optional[Tensor] = None,
+        masked_lm_labels: Optional[Tensor] = None,
+    ) -> Dict[str, Tensor]:
         sequence_output, pooled_output, attention_weights = self.bert(
             input_ids,
             attention_mask,
@@ -240,12 +236,13 @@ class VisualBERTForPretraining(nn.Module):
 
         output_dict = {}
 
-        if self.output_attentions:
-            output_dict["attention_weights"] = attention_weights
+        if not torch.jit.is_scripting():
+            if self.output_attentions:
+                output_dict["attention_weights"] = attention_weights
 
-        if self.output_hidden_states:
-            output_dict["sequence_output"] = sequence_output
-            output_dict["pooled_output"] = pooled_output
+            if self.output_hidden_states:
+                output_dict["sequence_output"] = sequence_output
+                output_dict["pooled_output"] = pooled_output
 
         prediction_scores, seq_relationship_score = self.cls(
             sequence_output, pooled_output
@@ -323,16 +320,16 @@ class VisualBERTForClassification(nn.Module):
 
     def forward(
         self,
-        input_ids,
-        input_mask,
-        attention_mask=None,
-        token_type_ids=None,
-        visual_embeddings=None,
-        position_embeddings_visual=None,
-        visual_embeddings_type=None,
-        image_text_alignment=None,
-        masked_lm_labels=None,
-    ):
+        input_ids: Tensor,
+        input_mask: Tensor,
+        attention_mask: Optional[Tensor] = None,
+        token_type_ids: Optional[Tensor] = None,
+        visual_embeddings: Optional[Tensor] = None,
+        position_embeddings_visual: Optional[Tensor] = None,
+        visual_embeddings_type: Optional[Tensor] = None,
+        image_text_alignment: Optional[Tensor] = None,
+        masked_lm_labels: Optional[Tensor] = None,
+    ) -> Dict[str, Tensor]:
         sequence_output, pooled_output, attention_weights = self.bert(
             input_ids,
             attention_mask,
@@ -351,12 +348,13 @@ class VisualBERTForClassification(nn.Module):
             )
 
         output_dict = {}
-        if self.output_attentions:
-            output_dict["attention_weights"] = attention_weights
+        if not torch.jit.is_scripting():
+            if self.output_attentions:
+                output_dict["attention_weights"] = attention_weights
 
-        if self.output_hidden_states:
-            output_dict["sequence_output"] = sequence_output
-            output_dict["pooled_output"] = pooled_output
+            if self.output_hidden_states:
+                output_dict["sequence_output"] = sequence_output
+                output_dict["pooled_output"] = pooled_output
 
         if self.pooler_strategy == "vqa":
             # In VQA2 pooling strategy, we use representation from second last token
