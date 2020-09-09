@@ -9,14 +9,14 @@ from mmf.common.registry import registry
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports
 
-from tests.test_utils import dummy_args
+import tests.test_utils as test_utils
 
 
 class TestVisualBertTorchscript(unittest.TestCase):
     def setUp(self):
         setup_imports()
         model_name = "visual_bert"
-        args = dummy_args(model=model_name)
+        args = test_utils.dummy_args(model=model_name)
         configuration = Configuration(args)
         config = configuration.get_config()
         model_class = registry.get_model_class(model_name)
@@ -32,6 +32,7 @@ class TestVisualBertTorchscript(unittest.TestCase):
         for p1, p2 in itertools.zip_longest(mod1.parameters(), mod2.parameters()):
             self.assertTrue(p1.equal(p2), message)
 
+    @test_utils.skip_if_no_network
     def test_load_save_pretrain_model(self):
         self.pretrain_model.model.eval()
         script_model = torch.jit.script(self.pretrain_model.model)
@@ -41,6 +42,7 @@ class TestVisualBertTorchscript(unittest.TestCase):
         loaded_model = torch.jit.load(buffer)
         self.assertModulesEqual(script_model, loaded_model)
 
+    @test_utils.skip_if_no_network
     def test_pretrained_model(self):
         self.pretrain_model.model.eval()
 
@@ -79,6 +81,7 @@ class TestVisualBertTorchscript(unittest.TestCase):
             model_output["masked_lm_loss"], script_output["masked_lm_loss"]
         )
 
+    @test_utils.skip_if_no_network
     def test_load_save_finetune_model(self):
         self.finetune_model.model.eval()
         script_model = torch.jit.script(self.finetune_model.model)
@@ -88,6 +91,7 @@ class TestVisualBertTorchscript(unittest.TestCase):
         loaded_model = torch.jit.load(buffer)
         self.assertModulesEqual(script_model, loaded_model)
 
+    @test_utils.skip_if_no_network
     def test_finetune_model(self):
 
         self.finetune_model.model.eval()
