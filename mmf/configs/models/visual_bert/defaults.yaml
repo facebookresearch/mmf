@@ -8,7 +8,7 @@ model_config:
     bypass_transformer: false
     output_attentions: false
     output_hidden_states: false
-    random_initialize: true
+    random_initialize: false
     freeze_base: false
     finetune_lr_multiplier: 1
     # Default points to BERT pooler strategy which is to take
