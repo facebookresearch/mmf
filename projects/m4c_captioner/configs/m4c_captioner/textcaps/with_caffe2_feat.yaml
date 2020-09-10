@@ -1,0 +1,16 @@
+includes:
+- ./defaults.yaml
+
+dataset_config:
+  textcaps:
+    zoo_requirements:
+    - textvqa.caffe2
+    - textvqa.ocr_en
+    - textcaps.defaults
+    features:
+      train:
+      - textvqa/caffe2/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      val:
+      - textvqa/caffe2/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb
+      test:
+      - textvqa/caffe2/features/open_images/detectron.lmdb,textvqa/ocr_en/features/ocr_en_frcn_features.lmdb

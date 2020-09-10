@@ -247,11 +247,18 @@ m4c_captioner:
   textcaps:
     defaults:
       zoo_requirements: detectron.vmb_weights
+      version: 1.0_2020_09_08
+      resources:
+      - url: mmf://models/m4c_captioner/m4c_captioner.textcaps.defaults.tar.gz
+        file_name: m4c_captioner.textcaps.defaults.tar.gz
+        hashcode: 808659e53d66adead0d09e71d8ef8db5d74697474a2e8f5b4049ea68e0fea341
+    with_caffe2_feat:
+      zoo_requirements: detectron.vmb_weights
       version: 1.0_2020_05_03
       resources:
-      - url: mmf://models/m4c_captioner/m4c_captioner.textcaps.tar.gz
-        file_name: m4c_captioner.textcaps.tar.gz
-        hashcode: 69c8220750933a0472bfdfb95b83d718dc02f7f41f43ce569c02e903896b2cf4
+      - url: mmf://models/m4c_captioner/m4c_captioner.textcaps.with_caffe2_feat.tar.gz
+        file_name: m4c_captioner.textcaps.with_caffe2_feat.tar.gz
+        hashcode: 4ff2d6d9f6fb4800096fe0f25c2fab048cc19fee85fa1a2e4bfa72dd7487b0a2
 
 vilbert:
   pretrained:
