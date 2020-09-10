@@ -195,7 +195,7 @@ class VisualBERTForPretraining(nn.Module):
                 ),
             )
         self.cls = deepcopy(bert_masked_lm.cls)
-        self.loss_fct = nn.CrossEntropyLoss(ignore_index=-1)
+        self.loss_fct = nn.CrossEntropyLoss(ignore_index=-1, weight=[2,3])
         self.init_weights()
 
     def init_weights(self):
