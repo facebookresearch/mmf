@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-# Requires vqa-maskrcnn-benchmark to be built and installed
-# Category mapping for visual genome can be downloaded from
+# Requires vqa-maskrcnn-benchmark (https://gitlab.com/vedanuj/vqa-maskrcnn-benchmark)
+# to be built and installed. Category mapping for visual genome can be downloaded from
 # https://dl.fbaipublicfiles.com/pythia/data/visual_genome_categories.json
 # When the --background flag is set, the index saved with key "objects" in
 # info_list will be +1 of the Visual Genome category mapping above and 0
@@ -25,33 +25,49 @@ from PIL import Image
 
 
 class FeatureExtractor:
-    MODEL_URL = (
-        "https://dl.fbaipublicfiles.com/pythia/detectron_model/detectron_model.pth"
-    )
-    CONFIG_URL = (
-        "https://dl.fbaipublicfiles.com/pythia/detectron_model/detectron_model.yaml"
-    )
+    MODEL_URL = {
+        "X-101": "https://dl.fbaipublicfiles.com/pythia/detectron_model/detectron_model.pth",
+        "X-152": "https://dl.fbaipublicfiles.com/pythia/detectron_model/detectron_model_x152.pth",
+    }
+    CONFIG_URL = {
+        "X-101": "https://dl.fbaipublicfiles.com/pythia/detectron_model/detectron_model.yaml",
+        "X-152": "https://dl.fbaipublicfiles.com/pythia/detectron_model/detectron_model_x152.yaml",
+    }
     MAX_SIZE = 1333
     MIN_SIZE = 800
 
     def __init__(self):
         self.args = self.get_parser().parse_args()
+        self._try_downloading_necessities(self.args.model_name)
         self.detection_model = self._build_detection_model()
 
         os.makedirs(self.args.output_folder, exist_ok=True)
 
-    def _try_downloading_necessities(self):
-        if self.args.model_file is None:
+    def _try_downloading_necessities(self, model_name):
+        if self.args.model_file is None and model_name is not None:
+            model_url = self.MODEL_URL[model_name]
+            config_url = self.CONFIG_URL[model_name]
+            self.args.model_file = model_url.split("/")[-1]
+            self.args.config_file = config_url.split("/")[-1]
+            if os.path.exists(self.args.model_file) and os.path.exists(
+                self.args.config_file
+            ):
+                print(f"model and config file exists in directory: {os.getcwd()}")
+                return
             print("Downloading model and configuration")
-            self.args.model_file = self.MODEL_URL.split("/")[-1]
-            self.args.config_file = self.CONFIG_URL.split("/")[-1]
-            download(self.MODEL_URL, ".", self.args.model_file)
-            download(self.CONFIG_URL, ".", self.args.config_file)
+            download(model_url, ".", self.args.model_file)
+            download(config_url, ".", self.args.config_file)
 
     def get_parser(self):
         parser = argparse.ArgumentParser()
         parser.add_argument(
-            "--model_file", default=None, type=str, help="Detectron model file"
+            "--model_name", default="X-152", type=str, help="Model to use for detection"
+        )
+        parser.add_argument(
+            "--model_file",
+            default=None,
+            type=str,
+            help="Detectron model file. This overrides the model_name param.",
         )
         parser.add_argument(
             "--config_file", default=None, type=str, help="Detectron config file"
@@ -245,7 +261,6 @@ class FeatureExtractor:
 
     def extract_features(self):
         image_dir = self.args.image_dir
-
         if os.path.isfile(image_dir):
             features, infos = self.get_detectron_features([image_dir])
             self._save_feature(image_dir, features[0], infos[0])
