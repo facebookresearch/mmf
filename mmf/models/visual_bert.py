@@ -87,6 +87,7 @@ class VisualBERTBase(BertPreTrainedModel):
         # positions we want to attend and -10000.0 for masked positions.
         # Since we are adding it to the raw scores before the softmax, this is
         # effectively the same as removing these entirely.
+        # Python builtin next is currently not supported in Torchscript
         if not torch.jit.is_scripting():
             extended_attention_mask = extended_attention_mask.to(
                 dtype=next(self.parameters()).dtype
@@ -131,8 +132,14 @@ class VisualBERTBase(BertPreTrainedModel):
             pooled_output = self.pooler(sequence_output)
             attn_data_list: List[Tensor] = []
 
-            if not torch.jit.is_scripting() and self.output_attentions:
-                attn_data_list = encoded_layers[1:]
+            if not torch.jit.is_scripting():
+                if self.output_attentions:
+                    attn_data_list = encoded_layers[1:]
+            else:
+                assert (
+                    not self.output_attentions
+                ), "output_attentions not supported in script mode"
+
             return sequence_output, pooled_output, attn_data_list
 
 
@@ -234,8 +241,7 @@ class VisualBERTForPretraining(nn.Module):
             image_text_alignment,
         )
 
-        output_dict = {}
-
+        output_dict: Dict[str, Tensor] = {}
         if not torch.jit.is_scripting():
             if self.output_attentions:
                 output_dict["attention_weights"] = attention_weights
@@ -243,6 +249,10 @@ class VisualBERTForPretraining(nn.Module):
             if self.output_hidden_states:
                 output_dict["sequence_output"] = sequence_output
                 output_dict["pooled_output"] = pooled_output
+        else:
+            assert not (
+                self.output_attentions or self.output_hidden_states
+            ), "output_attentions or output_hidden_states not supported in script mode"
 
         prediction_scores, seq_relationship_score = self.cls(
             sequence_output, pooled_output
@@ -347,7 +357,7 @@ class VisualBERTForClassification(nn.Module):
                 [pooled_output[: b // 2], pooled_output[b // 2 :]], dim=1
             )
 
-        output_dict = {}
+        output_dict: Dict[str, Tensor] = {}
         if not torch.jit.is_scripting():
             if self.output_attentions:
                 output_dict["attention_weights"] = attention_weights
@@ -355,6 +365,10 @@ class VisualBERTForClassification(nn.Module):
             if self.output_hidden_states:
                 output_dict["sequence_output"] = sequence_output
                 output_dict["pooled_output"] = pooled_output
+        else:
+            assert not (
+                self.output_attentions or self.output_hidden_states
+            ), "output_attentions or output_hidden_states not supported in script mode"
 
         if self.pooler_strategy == "vqa":
             # In VQA2 pooling strategy, we use representation from second last token

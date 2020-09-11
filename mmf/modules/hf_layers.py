@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import math
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import torch
 from torch import Tensor, nn
@@ -20,9 +20,16 @@ class BertSelfAttentionJit(BertSelfAttention):
     https://github.com/huggingface/transformers/blob/v2.3.0/transformers/modeling_bert.py # noqa
 
     Modifies the `forward` function and `transpose_for_scores` function
+
+    Changes to `transpose_for_scores` function ::
+        Changes the `new_x_shape` unpacking as static size inference is not supported
+
+    Changes to `forward` function ::
+        Uses scriptable `nn.functional.softmax` and also removes several static size
+        inference which is not supported.
     """
 
-    def transpose_for_scores(self, x):
+    def transpose_for_scores(self, x: Tensor) -> Tensor:
         new_x_shape = x.size()[:-1] + (
             self.num_attention_heads,
             self.attention_head_size,
@@ -37,7 +44,7 @@ class BertSelfAttentionJit(BertSelfAttention):
         head_mask: Optional[Tensor] = None,
         encoder_hidden_states: Optional[Tensor] = None,
         encoder_attention_mask: Optional[Tensor] = None,
-    ):
+    ) -> Tuple[Tensor, Tensor]:
         mixed_query_layer = self.query(hidden_states)
 
         # If this is instantiated as a cross-attention module, the keys
@@ -91,6 +98,9 @@ class BertAttentionJit(BertAttention):
     https://github.com/huggingface/transformers/blob/v2.3.0/transformers/modeling_bert.py # noqa
 
     Modifies the `forward` function as well as uses scriptable `BertSelfAttentionJit`
+
+    Changes to `forward` function ::
+        Typed inputs and modifies the output to be a List[Tensor]
     """
 
     def __init__(self, config):
@@ -101,12 +111,12 @@ class BertAttentionJit(BertAttention):
 
     def forward(
         self,
-        hidden_states,
+        hidden_states: Tensor,
         attention_mask: Optional[Tensor] = None,
         head_mask: Optional[Tensor] = None,
         encoder_hidden_states: Optional[Tensor] = None,
         encoder_attention_mask: Optional[Tensor] = None,
-    ):
+    ) -> List[Tensor]:
         self_outputs = self.self(
             hidden_states,
             attention_mask,
@@ -127,6 +137,9 @@ class BertLayerJit(nn.Module):
     https://github.com/huggingface/transformers/blob/v2.3.0/transformers/modeling_bert.py # noqa
 
     Modifies the `forward` function as well as uses scriptable `BertAttentionJit`
+
+    Changes to `forward` function::
+        Typed inputs and modifies the output to be a List[Tensor]
     """
 
     def __init__(self, config):
@@ -137,12 +150,12 @@ class BertLayerJit(nn.Module):
 
     def forward(
         self,
-        hidden_states,
+        hidden_states: Tensor,
         attention_mask: Optional[Tensor] = None,
         head_mask: Optional[Tensor] = None,
         encoder_hidden_states: Optional[Tensor] = None,
         encoder_attention_mask: Optional[Tensor] = None,
-    ):
+    ) -> List[Tensor]:
         self_attention_outputs = self.attention(
             hidden_states, attention_mask, head_mask
         )
@@ -163,6 +176,11 @@ class BertEncoderJit(nn.Module):
     https://github.com/huggingface/transformers/blob/v2.3.0/transformers/modeling_bert.py # noqa
 
     Modifies the `forward` function as well as uses scriptable `BertLayerJit`
+
+    Changes to `forward` function::
+        Typed inputs and modifies the output to be of Tuple[Tensor] type in scripting
+        mode. Due to different possible types when `output_hidden_states` or
+        `output_attentions` are enable, we do not support these in scripting mode
     """
 
     def __init__(self, config):
@@ -179,7 +197,7 @@ class BertEncoderJit(nn.Module):
         attention_mask: Optional[Tensor],
         encoder_hidden_states: Optional[Tensor] = None,
         encoder_attention_mask: Optional[Tensor] = None,
-    ):
+    ) -> Tuple[Tensor]:
         all_hidden_states = ()
         all_attentions = ()
         for i, layer_module in enumerate(self.layer):

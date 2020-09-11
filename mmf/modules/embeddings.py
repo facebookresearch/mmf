@@ -395,10 +395,8 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
 
             # We want to averge along the alignment_number dimension.
             image_text_alignment_mask = image_text_alignment_mask.sum(2)
-            image_text_alignment_mask[
-                image_text_alignment_mask == 0
-            ] = torch.tensor(
-                [1]
+            image_text_alignment_mask[image_text_alignment_mask == 0] = torch.tensor(
+                [1], dtype=torch.long
             )  # Avoid devide by zero error
             position_embeddings_visual = (
                 position_embeddings_visual / image_text_alignment_mask.unsqueeze(-1)
@@ -423,7 +421,7 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
             position_embeddings_visual = self.position_embeddings_visual(
                 position_ids_visual
             )
-        
+
         return position_embeddings_visual
 
     def forward(
