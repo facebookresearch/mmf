@@ -322,22 +322,7 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
             deepcopy(self.position_embeddings.weight.data), requires_grad=True
         )
 
-    def forward(
-        self,
-        input_ids,
-        token_type_ids=None,
-        visual_embeddings=None,
-        visual_embeddings_type=None,
-        position_embeddings_visual=None,
-        image_text_alignment=None,
-    ):
-        """
-        input_ids = [batch_size, sequence_length]
-        token_type_ids = [batch_size, sequence_length]
-        visual_embedding = [batch_size, image_feature_length, image_feature_dim]
-        image_text_alignment = [batch_size, image_feature_length, alignment_dim]
-        """
-
+    def encode_text(self, input_ids, token_type_ids=None, *args, **kwargs):
         seq_length = input_ids.size(1)
         position_ids = torch.arange(
             seq_length, dtype=torch.long, device=input_ids.device
@@ -351,83 +336,145 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
         position_embeddings = self.position_embeddings(position_ids)
         token_type_embeddings = self.token_type_embeddings(token_type_ids)
         embeddings = words_embeddings + position_embeddings + token_type_embeddings
+        return embeddings
 
-        if visual_embeddings is not None:
-            visual_embeddings = self.projection(visual_embeddings)
-            token_type_embeddings_visual = self.token_type_embeddings_visual(
-                visual_embeddings_type
+    def encode_image(
+        self,
+        visual_embeddings,
+        visual_embeddings_type=None,
+        position_embeddings_visual=None,
+        image_text_alignment=None,
+        *args,
+        **kwargs,
+    ):
+
+        visual_embeddings = self.projection(visual_embeddings)
+        token_type_embeddings_visual = self.token_type_embeddings_visual(
+            visual_embeddings_type
+        )
+
+        # get position_embeddings
+        # this depends on image_text_alignment
+        position_embeddings_visual = self.get_position_embeddings_visual(
+            visual_embeddings,
+            image_text_alignment=image_text_alignment,
+            position_embeddings_visual=position_embeddings_visual,
+        )
+
+        # calculate visual embeddings
+        v_embeddings = (
+            visual_embeddings
+            + position_embeddings_visual
+            + token_type_embeddings_visual
+        )
+        return v_embeddings
+
+    def get_position_embeddings_visual(
+        self,
+        visual_embeddings,
+        image_text_alignment=None,
+        position_embeddings_visual=None,
+        *args,
+        **kwargs,
+    ):
+
+        if image_text_alignment is not None:
+            # image_text_alignment = Batch x image_length x alignment_number.
+            # Each element denotes the position of the word corresponding to the
+            # image feature. -1 is the padding value.
+            image_text_alignment_mask = (image_text_alignment != -1).long()
+            # Get rid of the -1.
+            image_text_alignment = image_text_alignment_mask * image_text_alignment
+
+            # position_embeddings_visual
+            # = Batch x image_length x alignment length x dim
+            position_embeddings_visual = self.position_embeddings(
+                image_text_alignment
+            ) * image_text_alignment_mask.to(
+                dtype=next(self.parameters()).dtype
+            ).unsqueeze(
+                -1
+            )
+            position_embeddings_visual = position_embeddings_visual.sum(2)
+
+            # We want to averge along the alignment_number dimension.
+            image_text_alignment_mask = image_text_alignment_mask.to(
+                dtype=next(self.parameters()).dtype
+            ).sum(2)
+            image_text_alignment_mask[
+                image_text_alignment_mask == 0
+            ] = 1  # Avoid devide by zero error
+            position_embeddings_visual = (
+                position_embeddings_visual / image_text_alignment_mask.unsqueeze(-1)
             )
 
-            if image_text_alignment is not None:
-                # image_text_alignment = Batch x image_length x alignment_number.
-                # Each element denotes the position of the word corresponding to the
-                # image feature. -1 is the padding value.
-                image_text_alignment_mask = (image_text_alignment != -1).long()
-                # Get rid of the -1.
-                image_text_alignment = image_text_alignment_mask * image_text_alignment
+            position_ids_visual = torch.zeros(
+                *visual_embeddings.size()[:-1],
+                dtype=torch.long,
+                device=visual_embeddings.device,
+            )
 
-                # position_embeddings_visual
-                # = Batch x image_length x alignment length x dim
-                position_embeddings_visual = self.position_embeddings(
-                    image_text_alignment
-                ) * image_text_alignment_mask.to(
-                    dtype=next(self.parameters()).dtype
-                ).unsqueeze(
-                    -1
-                )
-                position_embeddings_visual = position_embeddings_visual.sum(2)
+            # When fine-tuning the detector , the image_text_alignment is
+            # sometimes padded too long.
+            if position_embeddings_visual.size(1) != visual_embeddings.size(1):
+                assert position_embeddings_visual.size(1) >= visual_embeddings.size(1)
+                position_embeddings_visual = position_embeddings_visual[
+                    :, : visual_embeddings.size(1), :
+                ]
 
-                # We want to averge along the alignment_number dimension.
-                image_text_alignment_mask = image_text_alignment_mask.to(
-                    dtype=next(self.parameters()).dtype
-                ).sum(2)
-                image_text_alignment_mask[
-                    image_text_alignment_mask == 0
-                ] = 1  # Avoid devide by zero error
-                position_embeddings_visual = (
-                    position_embeddings_visual / image_text_alignment_mask.unsqueeze(-1)
-                )
+            position_embeddings_visual = (
+                position_embeddings_visual
+                + self.position_embeddings_visual(position_ids_visual)
+            )
+        else:
+            position_ids_visual = torch.zeros(
+                *visual_embeddings.size()[:-1],
+                dtype=torch.long,
+                device=visual_embeddings.device,
+            )
+            position_embeddings_visual = self.position_embeddings_visual(
+                position_ids_visual
+            )
 
-                position_ids_visual = torch.zeros(
-                    *visual_embeddings.size()[:-1],
-                    dtype=torch.long,
-                    device=visual_embeddings.device
-                )
+        return position_embeddings_visual
 
-                # When fine-tuning the detector , the image_text_alignment is
-                # sometimes padded too long.
-                if position_embeddings_visual.size(1) != visual_embeddings.size(1):
-                    assert position_embeddings_visual.size(1) >= visual_embeddings.size(
-                        1
-                    )
-                    position_embeddings_visual = position_embeddings_visual[
-                        :, : visual_embeddings.size(1), :
-                    ]
+    def forward(
+        self,
+        input_ids,
+        token_type_ids=None,
+        visual_embeddings=None,
+        visual_embeddings_type=None,
+        position_embeddings_visual=None,
+        image_text_alignment=None,
+        *args,
+        **kwargs,
+    ):
+        """
+        input_ids = [batch_size, sequence_length]
+        token_type_ids = [batch_size, sequence_length]
+        visual_embedding = [batch_size, image_feature_length, image_feature_dim]
+        image_text_alignment = [batch_size, image_feature_length, alignment_dim]
+        """
 
-                position_embeddings_visual = (
-                    position_embeddings_visual
-                    + self.position_embeddings_visual(position_ids_visual)
-                )
-            else:
-                position_ids_visual = torch.zeros(
-                    *visual_embeddings.size()[:-1],
-                    dtype=torch.long,
-                    device=visual_embeddings.device
-                )
-                position_embeddings_visual = self.position_embeddings_visual(
-                    position_ids_visual
-                )
+        # text embeddings
+        text_embeddings = self.encode_text(input_ids, token_type_ids=token_type_ids)
 
-            v_embeddings = (
-                visual_embeddings
-                + position_embeddings_visual
-                + token_type_embeddings_visual
+        # visual embeddings
+        if visual_embeddings is not None:
+            v_embeddings = self.encode_image(
+                visual_embeddings,
+                visual_embeddings_type=visual_embeddings_type,
+                position_embeddings_visual=position_embeddings_visual,
+                image_text_alignment=image_text_alignment,
             )
 
             # Concate the two:
             embeddings = torch.cat(
-                (embeddings, v_embeddings), dim=1
+                (text_embeddings, v_embeddings), dim=1
             )  # concat the visual embeddings after the attentions
+
+        else:
+            embeddings = text_embeddings
 
         embeddings = self.LayerNorm(embeddings)
         embeddings = self.dropout(embeddings)
