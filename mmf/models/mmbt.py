@@ -7,17 +7,19 @@
 
 import os
 from copy import deepcopy
+from typing import Optional
 
 import torch
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
 from mmf.models.interfaces.mmbt import MMBTGridHMInterface
 from mmf.modules.encoders import MultiModalEncoderBase
+from mmf.modules.hf_layers import replace_with_jit
 from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
 from omegaconf import OmegaConf
-from torch import nn
+from torch import Tensor, nn
 from transformers.modeling_bert import BertForPreTraining, BertPredictionHeadTransform
 
 
@@ -59,11 +61,11 @@ class ModalEmbeddings(nn.Module):
 
     def forward(
         self,
-        input_modal,
-        start_token=None,
-        end_token=None,
-        position_ids=None,
-        token_type_ids=None,
+        input_modal: Tensor,
+        start_token: Optional[Tensor] = None,
+        end_token: Optional[Tensor] = None,
+        position_ids: Optional[Tensor] = None,
+        token_type_ids: Optional[Tensor] = None,
     ):
         token_embeddings = self.proj_embeddings(self.encoder(input_modal))
         seq_length = token_embeddings.size(1)
@@ -144,25 +146,26 @@ class MMBTModel(nn.Module):
 
     def __init__(self, config, transformer, encoder):
         super().__init__()
-        self.config = config
+        self.is_decoder = config.is_decoder
+        self.num_hidden_layers = config.num_hidden_layers
         self.transformer = transformer
         self.modal_encoder = ModalEmbeddings(config, encoder, transformer.embeddings)
 
     def forward(
         self,
-        input_modal,
-        input_ids=None,
-        modal_start_tokens=None,
-        modal_end_tokens=None,
-        attention_mask=None,
-        token_type_ids=None,
-        modal_token_type_ids=None,
-        position_ids=None,
-        modal_position_ids=None,
-        head_mask=None,
-        inputs_embeds=None,
-        encoder_hidden_states=None,
-        encoder_attention_mask=None,
+        input_modal: Tensor,
+        input_ids: Tensor,
+        modal_start_tokens: Optional[Tensor] = None,
+        modal_end_tokens: Optional[Tensor] = None,
+        attention_mask: Optional[Tensor] = None,
+        token_type_ids: Optional[Tensor] = None,
+        modal_token_type_ids: Optional[Tensor] = None,
+        position_ids: Optional[Tensor] = None,
+        modal_position_ids: Optional[Tensor] = None,
+        head_mask: Optional[Tensor] = None,
+        inputs_embeds: Optional[Tensor] = None,
+        encoder_hidden_states: Optional[Tensor] = None,
+        encoder_attention_mask: Optional[Tensor] = None,
     ):
 
         if input_ids is not None and inputs_embeds is not None:
@@ -176,7 +179,7 @@ class MMBTModel(nn.Module):
         else:
             raise ValueError("You have to specify either input_ids or inputs_embeds")
 
-        device = input_ids.device if input_ids is not None else inputs_embeds.device
+        device = inputs_embeds.device if inputs_embeds is not None else input_ids.device
 
         modal_embeddings = self.modal_encoder(
             input_modal,
@@ -227,7 +230,7 @@ class MMBTModel(nn.Module):
         # [batch_size, from_seq_length, to_seq_length]
         # ourselves in which case we just need to make it broadcastable to all heads.
         if attention_mask.dim() == 3:
-            extended_attention_mask = attention_mask[:, None, :, :]
+            attention_mask = attention_mask[:, None, :, :]
 
         # Provided a padding mask of dimensions [batch_size, seq_length]
         # - if the model is a decoder, apply a causal mask in addition to the
@@ -235,82 +238,62 @@ class MMBTModel(nn.Module):
         # - if the model is an encoder, make the mask broadcastable to
         # [batch_size, num_heads, seq_length, seq_length]
         if attention_mask.dim() == 2:
-            if self.config.is_decoder:
+            if self.is_decoder:
                 batch_size, seq_length = input_shape
                 seq_ids = torch.arange(seq_length, device=device)
                 causal_mask = (
                     seq_ids[None, None, :].repeat(batch_size, seq_length, 1)
                     <= seq_ids[None, :, None]
                 )
-                extended_attention_mask = (
+                attention_mask = (
                     causal_mask[:, None, :, :] * attention_mask[:, None, None, :]
                 )
             else:
-                extended_attention_mask = attention_mask[:, None, None, :]
+                attention_mask = attention_mask[:, None, None, :]
 
         # Since attention_mask is 1.0 for positions we want to attend and 0.0 for
         # masked positions, this operation will create a tensor which is 0.0 for
         # positions we want to attend and -10000.0 for masked positions.
         # Since we are adding it to the raw scores before the softmax, this is
         # effectively the same as removing these entirely.
-        extended_attention_mask = extended_attention_mask.to(
-            dtype=next(self.parameters()).dtype
-        )  # fp16 compatibility
-        extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
+        # Python builtin next is currently not supported in Torchscript
+        if not torch.jit.is_scripting():
+            attention_mask = attention_mask.to(
+                dtype=next(self.parameters()).dtype
+            )  # fp16 compatibility
+        attention_mask = (1.0 - attention_mask) * -10000.0
 
         # If a 2D ou 3D attention mask is provided for the cross-attention
         # we need to make broadcastabe to
         # [batch_size, num_heads, seq_length, seq_length]
         if encoder_attention_mask.dim() == 3:
-            encoder_extended_attention_mask = encoder_attention_mask[:, None, :, :]
+            encoder_attention_mask = encoder_attention_mask[:, None, :, :]
         if encoder_attention_mask.dim() == 2:
-            encoder_extended_attention_mask = encoder_attention_mask[:, None, None, :]
+            encoder_attention_mask = encoder_attention_mask[:, None, None, :]
 
-        encoder_extended_attention_mask = encoder_extended_attention_mask.to(
-            dtype=next(self.parameters()).dtype
-        )  # fp16 compatibility
-        encoder_extended_attention_mask = (
-            1.0 - encoder_extended_attention_mask
-        ) * -10000.0
-
-        # Prepare head mask if needed
-        # 1.0 in head_mask indicate we keep the head
-        # attention_probs has shape bsz x n_heads x N x N
-        # input head_mask has shape [num_heads] or [num_hidden_layers x num_heads]
-        # and head_mask is converted to shape
-        # [num_hidden_layers x batch x num_heads x seq_length x seq_length]
-        if head_mask is not None:
-            if head_mask.dim() == 1:
-                head_mask = (
-                    head_mask.unsqueeze(0).unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
-                )
-                head_mask = head_mask.expand(
-                    self.config.num_hidden_layers, -1, -1, -1, -1
-                )
-            elif head_mask.dim() == 2:
-                head_mask = (
-                    head_mask.unsqueeze(1).unsqueeze(-1).unsqueeze(-1)
-                )  # We can specify head_mask for each layer
-            head_mask = head_mask.to(
+        # Python builtin next is currently not supported in Torchscript
+        if not torch.jit.is_scripting():
+            encoder_attention_mask = encoder_attention_mask.to(
                 dtype=next(self.parameters()).dtype
-            )  # switch to fload if need + fp16 compatibility
-        else:
-            head_mask = [None] * self.config.num_hidden_layers
+            )  # fp16 compatibility
+
+        encoder_attention_mask = (1.0 - encoder_attention_mask) * -10000.0
 
         encoder_outputs = self.transformer.encoder(
             embedding_output,
-            attention_mask=extended_attention_mask,
-            head_mask=head_mask,
+            attention_mask=attention_mask,
             encoder_hidden_states=encoder_hidden_states,
-            encoder_attention_mask=encoder_extended_attention_mask,
+            encoder_attention_mask=encoder_attention_mask,
         )
 
         sequence_output = encoder_outputs[0]
         pooled_output = self.transformer.pooler(sequence_output)
 
-        outputs = (sequence_output, pooled_output) + encoder_outputs[
-            1:
-        ]  # add hidden_states and attentions if they are here
+        outputs = (
+            sequence_output,
+            pooled_output,
+            encoder_outputs[1:],
+        )  # add hidden_states and attentions if they are here
         return outputs  # sequence_output, pooled_output, (hidden_states), (attentions)
 
     def get_input_embeddings(self):
@@ -334,28 +317,38 @@ class MMBTBase(MultiModalEncoderBase):
             num_labels=self.config.num_labels,
             modal_hidden_size=self.config.modal_hidden_size,
         )
+        self.use_modal_start_token = self.config.use_modal_start_token
+        self.use_modal_end_token = self.config.use_modal_end_token
+        self.num_max_segment = self.config.text_encoder.params.get("num_segments", 2)
 
         self.mmbt = MMBTModel(self._mmbt_config, text_encoder, modal_encoder)
 
-    def forward(self, sample_list):
-        if self._is_direct_features_input:
-            input_modal = sample_list.image_feature_0
-        else:
-            input_modal = sample_list.image
+    @property
+    def direct_features_input(self):
+        return self._is_direct_features_input
 
-        modal_start_token = None
-        if self.config.use_modal_start_token:
-            modal_start_token = sample_list.input_ids[:, 0].clone().detach()
+    def forward(
+        self,
+        input_modal: Tensor,
+        input_ids: Tensor,
+        segment_ids: Tensor,
+        input_mask: Tensor,
+        modal_token_type_ids: Optional[Tensor] = None,
+    ):
 
-        modal_end_token = None
-        if self.config.use_modal_end_token:
-            modal_end_token = sample_list.input_ids[:, -1].clone().detach()
+        modal_start_token: Optional[Tensor] = None
+        if self.use_modal_start_token:
+            modal_start_token = input_ids[:, 0].clone().detach()
 
-        if hasattr(sample_list, "modal_token_type_ids"):
-            modal_token_type_ids = sample_list.modal_token_type_ids
+        modal_end_token: Optional[Tensor] = None
+        if self.use_modal_end_token:
+            modal_end_token = input_ids[:, -1].clone().detach()
+
+        if modal_token_type_ids is not None:
+            modal_token_type_ids = modal_token_type_ids
         else:
             token_value = 0
-            segment_ids = sample_list.segment_ids
+            segment_ids = segment_ids
             max_id = segment_ids.max()
             min_id = segment_ids.min()
             # Case of only one segment
@@ -366,7 +359,7 @@ class MMBTBase(MultiModalEncoderBase):
                 if max_id == 0:
                     token_value = 1
             else:
-                max_segment = self.config.text_encoder.params.get("num_segments", 2) - 1
+                max_segment = self.num_max_segment - 1
                 # If max id is not equal to max_segment, it means
                 # text segments start from 0 which means modal will
                 # be last, otherwise, it is 0, which it already is
@@ -383,11 +376,11 @@ class MMBTBase(MultiModalEncoderBase):
         # https://github.com/huggingface/transformers/blob/1789c7/src/transformers/modeling_mmbt.py#L101 # noqa
         output = self.mmbt(
             input_modal,
-            input_ids=sample_list.input_ids,
+            input_ids=input_ids,
             modal_start_tokens=modal_start_token,
             modal_end_tokens=modal_end_token,
-            attention_mask=sample_list.input_mask,
-            token_type_ids=sample_list.segment_ids,
+            attention_mask=input_mask,
+            token_type_ids=segment_ids,
             modal_token_type_ids=modal_token_type_ids,
             position_ids=None,
             modal_position_ids=None,
@@ -482,6 +475,9 @@ class MMBTForClassification(nn.Module):
         self.config = config
         self.bert = MMBTBase(config, *args, **kwargs)
         self.encoder_config = self.bert.encoder_config
+        self.num_labels = self.config.num_labels
+        self.output_hidden_states = self.encoder_config.output_hidden_states
+        self.output_attentions = self.encoder_config.output_attentions
 
         self.dropout = nn.Dropout(self.encoder_config.hidden_dropout_prob)
         self.classifier = nn.Sequential(
@@ -489,20 +485,35 @@ class MMBTForClassification(nn.Module):
             nn.Linear(self.encoder_config.hidden_size, self.config.num_labels),
         )
 
-    def forward(self, sample_list):
-        module_output = self.bert(sample_list)
+    def forward(
+        self,
+        input_modal: Tensor,
+        input_ids: Tensor,
+        segment_ids: Tensor,
+        input_mask: Tensor,
+        modal_token_type_ids: Optional[Tensor] = None,
+    ):
+        module_output = self.bert(
+            input_modal=input_modal,
+            input_ids=input_ids,
+            segment_ids=segment_ids,
+            input_mask=input_mask,
+            modal_token_type_ids=modal_token_type_ids,
+        )
         pooled_output = module_output[1]
         output = {}
 
-        if (
-            self.encoder_config.output_hidden_states
-            or self.encoder_config.output_attentions
-        ):
-            output["extras"] = module_output[2:]
+        if not torch.jit.is_scripting():
+            if self.output_hidden_states or self.output_attentions:
+                output["extras"] = module_output[2:]
+        else:
+            assert not (
+                self.output_hidden_states or self.output_attentions
+            ), "output_attentions or output_hidden_states not supported in script mode"
 
         pooled_output = self.dropout(pooled_output)
         logits = self.classifier(pooled_output)
-        reshaped_logits = logits.contiguous().view(-1, self.config.num_labels)
+        reshaped_logits = logits.contiguous().view(-1, self.num_labels)
         output["scores"] = reshaped_logits
 
         return output
@@ -512,6 +523,8 @@ class MMBTForClassification(nn.Module):
 class MMBT(BaseModel):
     def __init__(self, config):
         super().__init__(config)
+        # Replace transformer layers with scriptable JIT layers
+        replace_with_jit()
 
     def build(self):
         if self.config.training_head_type == "pretraining":
@@ -549,7 +562,16 @@ class MMBT(BaseModel):
         return "configs/models/mmbt/pretrain.yaml"
 
     def forward(self, sample_list):
-        return self.model(sample_list)
+        if self.model.bert.direct_features_input:
+            input_modal = sample_list.image_feature_0
+        else:
+            input_modal = sample_list.image
+        return self.model(
+            input_modal,
+            sample_list.input_ids,
+            sample_list.segment_ids,
+            sample_list.input_mask,
+        )
 
     def get_optimizer_parameters(self, config):
         return get_optimizer_parameters_for_bert(self.model, config)

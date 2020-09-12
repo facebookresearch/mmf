@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import io
-import itertools
 import unittest
 
 import torch
@@ -28,10 +27,6 @@ class TestVisualBertTorchscript(unittest.TestCase):
         self.finetune_model = model_class(config.model_config[model_name])
         self.finetune_model.build()
 
-    def assertModulesEqual(self, mod1, mod2, message=None):
-        for p1, p2 in itertools.zip_longest(mod1.parameters(), mod2.parameters()):
-            self.assertTrue(p1.equal(p2), message)
-
     @test_utils.skip_if_no_network
     def test_load_save_pretrain_model(self):
         self.pretrain_model.model.eval()
@@ -40,7 +35,7 @@ class TestVisualBertTorchscript(unittest.TestCase):
         torch.jit.save(script_model, buffer)
         buffer.seek(0)
         loaded_model = torch.jit.load(buffer)
-        self.assertModulesEqual(script_model, loaded_model)
+        self.assertTrue(test_utils.assertModulesEqual(script_model, loaded_model))
 
     @test_utils.skip_if_no_network
     def test_pretrained_model(self):
@@ -89,7 +84,7 @@ class TestVisualBertTorchscript(unittest.TestCase):
         torch.jit.save(script_model, buffer)
         buffer.seek(0)
         loaded_model = torch.jit.load(buffer)
-        self.assertModulesEqual(script_model, loaded_model)
+        self.assertTrue(test_utils.assertModulesEqual(script_model, loaded_model))
 
     @test_utils.skip_if_no_network
     def test_finetune_model(self):

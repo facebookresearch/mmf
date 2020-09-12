@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import argparse
+import itertools
 import platform
 import random
 import socket
@@ -116,3 +117,8 @@ class SimpleModel(torch.nn.Module):
         batch = prepared_batch[DATA_ITEM_KEY]
         model_output = {"losses": {"loss": torch.sum(self.linear(batch))}}
         return model_output
+
+
+def assertModulesEqual(mod1, mod2):
+    for p1, p2 in itertools.zip_longest(mod1.parameters(), mod2.parameters()):
+        return p1.equal(p2)
