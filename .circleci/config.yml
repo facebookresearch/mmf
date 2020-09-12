@@ -9,9 +9,9 @@ orbs:
 # Environments to run the jobs in
 # -------------------------------------------------------------------------------------
 cpu: &cpu
-  docker:
-    - image: circleci/python:3.7
-  resource_class: medium
+  machine:
+    image: ubuntu-1604:201903-01
+  resource_class: large
 
 gpu: &gpu
   environment:
