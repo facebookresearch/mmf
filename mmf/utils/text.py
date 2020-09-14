@@ -94,7 +94,7 @@ def word_tokenize(word, remove=None):
 def load_str_list(fname):
     with PathManager.open(fname) as f:
         lines = f.readlines()
-    lines = [l.strip() for l in lines]
+    lines = [line.strip() for line in lines]
     return lines
 
 
@@ -234,15 +234,18 @@ class TextDecoder:
         self._complete_seqs_scores = []
 
     def init_batch(self, sample_list):
+        img_size = sample_list.image_feature_0.size()
+        self._batch_size, feature_size_1, feature_size_2 = img_size
+        t_batch_size = self._batch_size * self._decode_size
         self.seqs = sample_list.answers.new_full(
-            (self._decode_size, 1), self._vocab.SOS_INDEX, dtype=torch.long
+            (t_batch_size, 1), self._vocab.SOS_INDEX, dtype=torch.long
         )
-
         sample_list.image_feature_0 = (
             sample_list.image_feature_0.unsqueeze(1)
             .expand(-1, self._decode_size, -1, -1)
-            .squeeze(0)
+            .reshape(t_batch_size, feature_size_1, feature_size_2)
         )
+        self.sample_list = sample_list
         return sample_list
 
     def add_next_word(self, seqs, prev_word_inds, next_word_inds):
@@ -273,14 +276,19 @@ class BeamSearch(TextDecoder):
         self._decode_size = config["inference"]["params"]["beam_length"]
 
     def init_batch(self, sample_list):
-        assert sample_list.get_batch_size() == 1, (
-            "Beam Search can only work with batch size = 1 "
-            + "Use training.batch_size=1"
-        )
+        self.sample_list = super().init_batch(sample_list)
+
+        # initialize with t_batch_size = _batch_size * _decode_size
         self.top_k_scores = sample_list.answers.new_zeros(
-            (self._decode_size, 1), dtype=torch.float
+            (self._batch_size * self._decode_size, 1), dtype=torch.float
         )
-        return super().init_batch(sample_list)
+        # maintain _decode_size, _complete_seqs and _complete_seqs_scores
+        # for each example in a batch.
+        self._decode_sizes = [self._decode_size] * self._batch_size
+        for _ in range(self._batch_size):
+            self._complete_seqs.append([])
+            self._complete_seqs_scores.append([])
+        return self.sample_list
 
     def decode(self, t, data, scores):
         # Add predicted scores to top_k_scores
@@ -289,15 +297,22 @@ class BeamSearch(TextDecoder):
 
         # Find next top k scores and words. We flatten the scores tensor here
         # and get the top_k_scores and their indices top_k_words
-        if t == 0:
-            self.top_k_scores, top_k_words = scores[0].topk(
-                self._decode_size, 0, True, True
-            )
-        else:
-            self.top_k_scores, top_k_words = scores.view(-1).topk(
-                self._decode_size, 0, True, True
-            )
-
+        top_k_scores, top_k_words = [], []
+        ex_start = 0
+        for decode_size in self._decode_sizes:
+            ex_end = ex_start + decode_size
+            if t == 0:
+                top_k_score, top_k_word = scores[ex_start].topk(
+                    decode_size, 0, True, True
+                )
+            else:
+                top_k_score, top_k_word = (
+                    scores[ex_start:ex_end].view(-1).topk(decode_size, 0, True, True)
+                )
+            top_k_scores.extend(top_k_score)
+            top_k_words.append(top_k_word)
+            ex_start = ex_end
+        self.top_k_scores = torch.stack(top_k_scores)
         # Convert to vocab indices. top_k_words contain indices from a flattened
         # k x vocab_size tensor. To get prev_word_indices we divide top_k_words
         # by vocab_size to determine which index in the beam among k generated
@@ -305,34 +320,46 @@ class BeamSearch(TextDecoder):
         # modulo vocab_size index. For example :
         # vocab_size : 9491
         # top_k_words : [610, 7, 19592, 9529, 292]
-        # prev_word_inds : [0, 0, 2, 1, 0]
-        # next_word_inds : [610, 7, 610, 38, 292]
-        prev_word_inds = top_k_words // self._vocab_size
-        next_word_inds = top_k_words % self._vocab_size
+        # prev_word_ind : [0, 0, 2, 1, 0]
+        # next_word_ind : [610, 7, 610, 38, 292]
+        # further, shift the prev_word_ind by ex_start to find corresponding example
+        # within a batch.
+
+        ex_start = 0
+        prev_word_inds, next_word_inds = [], []
+        for ex_idx, decode_size in enumerate(self._decode_sizes):
+            prev_word_inds.extend((top_k_words[ex_idx] // self._vocab_size) + ex_start)
+            next_word_inds.extend(top_k_words[ex_idx] % self._vocab_size)
+            ex_start += decode_size
+        prev_word_inds = torch.stack(prev_word_inds)
+        next_word_inds = torch.stack(next_word_inds)
 
         # Add new words to sequences
         self.seqs = self.add_next_word(self.seqs, prev_word_inds, next_word_inds)
-
         # Find completed sequences
         complete_inds, incomplete_inds = self.find_complete_inds(next_word_inds)
 
-        # Add to completed sequences
-        if len(complete_inds) > 0:
-            self._complete_seqs.extend(self.seqs[complete_inds].tolist())
-            self._complete_seqs_scores.extend(self.top_k_scores[complete_inds])
-
-        # Reduce beam length
-        self._decode_size -= len(complete_inds)
+        # Add to completed sequences and Reduce beam length
+        ex_start = 0
+        for ex_idx, decode_size in enumerate(self._decode_sizes):
+            for beam_idx in range(ex_start, ex_start + decode_size):
+                if beam_idx in complete_inds:
+                    top_k_score = self.top_k_scores[beam_idx]
+                    self._complete_seqs[ex_idx].append(self.seqs[beam_idx].tolist())
+                    self._complete_seqs_scores[ex_idx].append(top_k_score)
+                    self._decode_sizes[ex_idx] -= 1
+            ex_start += decode_size
 
         # Proceed with incomplete sequences
-        if self._decode_size == 0:
+        if sum(self._decode_sizes) == 0:
             return True, data, 0
-
         self.seqs = self.seqs[incomplete_inds]
         self.top_k_scores = self.top_k_scores[incomplete_inds].unsqueeze(1)
 
         # TODO: Make the data update generic for any type of model
         # This is specific to BUTD model only.
+        image_feature_0 = self.sample_list.image_feature_0
+        self.sample_list.image_feature_0 = image_feature_0[incomplete_inds]
         data = self.update_data(data, prev_word_inds, next_word_inds, incomplete_inds)
 
         next_beam_length = len(prev_word_inds[incomplete_inds])
@@ -340,12 +367,21 @@ class BeamSearch(TextDecoder):
         return False, data, next_beam_length
 
     def get_result(self):
-        if len(self._complete_seqs_scores) == 0:
-            captions = torch.FloatTensor([0] * 5).unsqueeze(0)
-        else:
-            i = self._complete_seqs_scores.index(max(self._complete_seqs_scores))
-            captions = torch.FloatTensor(self._complete_seqs[i]).unsqueeze(0)
-        return captions
+        captions = []
+        max_len = 0
+        for ex_idx in range(len(self._complete_seqs_scores)):
+            if len(self._complete_seqs_scores[ex_idx]) == 0:
+                captions.append([0] * 5)
+                max_len = max(5, max_len)
+            else:
+                max_score = max(self._complete_seqs_scores[ex_idx])
+                max_idx = self._complete_seqs_scores[ex_idx].index(max_score)
+                captions.append(self._complete_seqs[ex_idx][max_idx])
+                max_len = max(max_len, len(captions[-1]))
+        for ex_idx in range(len(captions)):
+            padded_tokens = [self._vocab.PAD_INDEX] * (max_len - len(captions[ex_idx]))
+            captions[ex_idx].extend(padded_tokens)
+        return torch.FloatTensor(captions)
 
 
 @registry.register_decoder("nucleus_sampling")

@@ -3,6 +3,7 @@ import os
 import unittest
 
 import mmf.utils.text as text_utils
+import numpy as np
 import torch
 from mmf.common.registry import registry
 from mmf.common.sample import Sample, SampleList
@@ -140,7 +141,6 @@ class TestUtilsText(unittest.TestCase):
         model_config = self.config.model_config.butd
         model = TestDecoderModel(model_config, vocab)
         model.build()
-        model.to("cuda")
         model.eval()
 
         sample = Sample()
@@ -155,16 +155,81 @@ class TestUtilsText(unittest.TestCase):
         # these are expected tokens for sum_threshold = 0.5
         expected_tokens = [
             1.0,
-            6319.0,
-            1516.0,
-            3214.0,
-            8798.0,
-            4036.0,
-            282.0,
-            4706.0,
-            8346.0,
-            8620.0,
+            29.0,
+            11.0,
+            11.0,
+            39.0,
+            10.0,
+            31.0,
+            4.0,
+            19.0,
+            39.0,
             2.0,
         ]
 
         self.assertEqual(tokens[0].tolist(), expected_tokens)
+
+
+class TestUtilsTextBeamSearch(unittest.TestCase):
+    TOKENS = ["this", "will", "be", "a", "test", "of", "tokens"]
+    TOKENIZE_EXAMPLE = "This will be a test of tokens?"
+    VOCAB_EXAMPLE_SENTENCES = [
+        "Are there more big green things than large purple shiny cubes?"
+        "How many other things are there of the same shape as the tiny "
+        + "cyan matte object?",
+        "Is the color of the large sphere the same as the large matte cube?"
+        "What material is the big object that is right of the brown cylinder and "
+        "left of the large brown sphere?",
+        "How big is the brown shiny sphere? ;",
+    ]
+
+    def setUp(self):
+        setup_imports()
+        torch.manual_seed(1234)
+        config_path = os.path.join(
+            get_mmf_root(),
+            "..",
+            "projects",
+            "butd",
+            "configs",
+            "coco",
+            "beam_search.yaml",
+        )
+        config_path = os.path.abspath(config_path)
+        args = dummy_args(model="butd", dataset="coco")
+        args.opts.append(f"config={config_path}")
+        configuration = Configuration(args)
+        configuration.config.datasets = "coco"
+        configuration.freeze()
+        self.config = configuration.config
+        registry.register("config", self.config)
+
+    def test_beam_search(self):
+        vocab = text_utils.VocabFromText(self.VOCAB_EXAMPLE_SENTENCES)
+        model_config = self.config.model_config.butd
+        model = TestDecoderModel(model_config, vocab)
+        model.build()
+        model.eval()
+
+        expected_tokens = {
+            1: [1.0, 23.0, 1.0, 24.0, 29.0, 37.0, 40.0, 17.0, 29.0, 2.0],
+            2: [1.0, 0.0, 8.0, 1.0, 28.0, 25.0, 2.0],
+            8: [1.0, 34.0, 1.0, 13.0, 1.0, 2.0],
+            16: [1.0, 25.0, 18.0, 2.0],
+        }
+
+        for batch_size in [1, 2, 8, 16]:
+            samples = []
+            for _ in range(batch_size):
+                sample = Sample()
+                sample.dataset_name = "coco"
+                sample.dataset_type = "test"
+                sample.image_feature_0 = torch.randn(100, 2048)
+                sample.answers = torch.zeros((5, 10), dtype=torch.long)
+                samples.append(sample)
+
+            sample_list = SampleList(samples)
+            tokens = model(sample_list)["captions"]
+            self.assertEqual(
+                np.trim_zeros(tokens[0].tolist()), expected_tokens[batch_size]
+            )
