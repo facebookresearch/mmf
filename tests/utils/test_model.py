@@ -45,6 +45,7 @@ class TestDecoderModel(nn.Module):
         decoder = registry.get_decoder_class(self.config.inference.type)(
             self.vocab, self.config
         )
+        sample_list.add_field("targets", sample_list.answers[:, 0, 1:])
         sample_list = decoder.init_batch(sample_list)
         batch_size = sample_list.image_feature_0.size(0)
         data = {}
@@ -52,15 +53,15 @@ class TestDecoderModel(nn.Module):
             (batch_size, 1), self.vocab.SOS_INDEX, dtype=torch.long
         )
         timesteps = 10
-        sample_list.add_field("targets", sample_list.answers[:, 0, 1:])
         output = None
         batch_size_t = batch_size
         for t in range(timesteps):
             data, batch_size_t = self.get_data_t(data, batch_size_t)
-            output = torch.randn(1, 9491)
+            output = torch.randn(batch_size_t, self.vocab.get_size())
             if t == timesteps - 1:
-                output = torch.ones(1, 9491) * -30
-                output[0][2] = 10
+                # manually add EOS to the first example.
+                output = torch.ones(batch_size_t, self.vocab.get_size()) * -30.0
+                output[0, self.vocab.EOS_INDEX] = 10
             finish, data, batch_size_t = decoder.decode(t, data, output)
             if finish:
                 break
