@@ -30,14 +30,31 @@ class TrainerReportingMixin(ABC):
             # Add metrics to meter only when mode is `eval`
             meter_update_dict = {}
             if not eval_mode:
-                loss_key = report.dataset_type + "/total_loss"
-                reduced_loss = sum([loss.mean() for loss in reduced_loss_dict.values()])
-                if hasattr(reduced_loss, "item"):
-                    reduced_loss = reduced_loss.item()
+                total_loss_key = report.dataset_type + "/total_loss"
+                meter_update_dict, total_loss = self.update_dict(
+                    meter_update_dict, reduced_loss_dict
+                )
+                registry.register(total_loss_key, total_loss)
+                meter_update_dict.update({total_loss_key: total_loss})
 
-                registry.register(loss_key, reduced_loss)
-                meter_update_dict.update({loss_key: reduced_loss})
-                meter_update_dict.update(reduced_loss_dict)
             if hasattr(report, "metrics"):
-                meter_update_dict.update(reduced_metrics_dict)
+                meter_update_dict, _ = self.update_dict(
+                    meter_update_dict, reduced_metrics_dict
+                )
+
             meter.update(meter_update_dict, report.batch_size)
+
+    def update_dict(self, meter_update_dict, values_dict):
+        total_val = 0
+        for key, val in values_dict.items():
+            if torch.is_tensor(val):
+                if val.dim() == 1:
+                    val = val.mean()
+
+            if hasattr(val, "item"):
+                val = val.item()
+
+            meter_update_dict.update({key: val})
+            total_val += val
+
+        return meter_update_dict, total_val
