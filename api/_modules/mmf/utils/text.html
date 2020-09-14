@@ -326,7 +326,7 @@
 <span class="k">def</span> <span class="nf">load_str_list</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
     <span class="k">with</span> <span class="n">PathManager</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">lines</span>
 
 
@@ -466,15 +466,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">def</span> <span class="nf">init_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">):</span>
+        <span class="n">img_size</span> <span class="o">=</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">image_feature_0</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span><span class="p">,</span> <span class="n">feature_size_1</span><span class="p">,</span> <span class="n">feature_size_2</span> <span class="o">=</span> <span class="n">img_size</span>
+        <span class="n">t_batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seqs</span> <span class="o">=</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">answers</span><span class="o">.</span><span class="n">new_full</span><span class="p">(</span>
-            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vocab</span><span class="o">.</span><span class="n">SOS_INDEX</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span>
+            <span class="p">(</span><span class="n">t_batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vocab</span><span class="o">.</span><span class="n">SOS_INDEX</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span>
         <span class="p">)</span>
-
         <span class="n">sample_list</span><span class="o">.</span><span class="n">image_feature_0</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">sample_list</span><span class="o">.</span><span class="n">image_feature_0</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
             <span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">t_batch_size</span><span class="p">,</span> <span class="n">feature_size_1</span><span class="p">,</span> <span class="n">feature_size_2</span><span class="p">)</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_list</span> <span class="o">=</span> <span class="n">sample_list</span>
         <span class="k">return</span> <span class="n">sample_list</span>
 
     <span class="k">def</span> <span class="nf">add_next_word</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seqs</span><span class="p">,</span> <span class="n">prev_word_inds</span><span class="p">,</span> <span class="n">next_word_inds</span><span class="p">):</span>
@@ -505,14 +508,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;inference&quot;</span><span class="p">][</span><span class="s2">&quot;params&quot;</span><span class="p">][</span><span class="s2">&quot;beam_length&quot;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">init_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">get_batch_size</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span>
-            <span class="s2">&quot;Beam Search can only work with batch size = 1 &quot;</span>
-            <span class="o">+</span> <span class="s2">&quot;Use training.batch_size=1&quot;</span>
-        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_list</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">init_batch</span><span class="p">(</span><span class="n">sample_list</span><span class="p">)</span>
+
+        <span class="c1"># initialize with t_batch_size = _batch_size * _decode_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">top_k_scores</span> <span class="o">=</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">answers</span><span class="o">.</span><span class="n">new_zeros</span><span class="p">(</span>
-            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">init_batch</span><span class="p">(</span><span class="n">sample_list</span><span class="p">)</span>
+        <span class="c1"># maintain _decode_size, _complete_seqs and _complete_seqs_scores</span>
+        <span class="c1"># for each example in a batch.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_decode_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_list</span>
 
     <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">scores</span><span class="p">):</span>
         <span class="c1"># Add predicted scores to top_k_scores</span>
@@ -521,15 +529,22 @@
 
         <span class="c1"># Find next top k scores and words. We flatten the scores tensor here</span>
         <span class="c1"># and get the top_k_scores and their indices top_k_words</span>
-        <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">top_k_scores</span><span class="p">,</span> <span class="n">top_k_words</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">top_k_scores</span><span class="p">,</span> <span class="n">top_k_words</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span>
-            <span class="p">)</span>
-
+        <span class="n">top_k_scores</span><span class="p">,</span> <span class="n">top_k_words</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="n">ex_start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">decode_size</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decode_sizes</span><span class="p">:</span>
+            <span class="n">ex_end</span> <span class="o">=</span> <span class="n">ex_start</span> <span class="o">+</span> <span class="n">decode_size</span>
+            <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">top_k_score</span><span class="p">,</span> <span class="n">top_k_word</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="n">ex_start</span><span class="p">]</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span>
+                    <span class="n">decode_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">top_k_score</span><span class="p">,</span> <span class="n">top_k_word</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">scores</span><span class="p">[</span><span class="n">ex_start</span><span class="p">:</span><span class="n">ex_end</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">decode_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">top_k_scores</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">top_k_score</span><span class="p">)</span>
+            <span class="n">top_k_words</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">top_k_word</span><span class="p">)</span>
+            <span class="n">ex_start</span> <span class="o">=</span> <span class="n">ex_end</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top_k_scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">top_k_scores</span><span class="p">)</span>
         <span class="c1"># Convert to vocab indices. top_k_words contain indices from a flattened</span>
         <span class="c1"># k x vocab_size tensor. To get prev_word_indices we divide top_k_words</span>
         <span class="c1"># by vocab_size to determine which index in the beam among k generated</span>
@@ -537,34 +552,46 @@
         <span class="c1"># modulo vocab_size index. For example :</span>
         <span class="c1"># vocab_size : 9491</span>
         <span class="c1"># top_k_words : [610, 7, 19592, 9529, 292]</span>
-        <span class="c1"># prev_word_inds : [0, 0, 2, 1, 0]</span>
-        <span class="c1"># next_word_inds : [610, 7, 610, 38, 292]</span>
-        <span class="n">prev_word_inds</span> <span class="o">=</span> <span class="n">top_k_words</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vocab_size</span>
-        <span class="n">next_word_inds</span> <span class="o">=</span> <span class="n">top_k_words</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vocab_size</span>
+        <span class="c1"># prev_word_ind : [0, 0, 2, 1, 0]</span>
+        <span class="c1"># next_word_ind : [610, 7, 610, 38, 292]</span>
+        <span class="c1"># further, shift the prev_word_ind by ex_start to find corresponding example</span>
+        <span class="c1"># within a batch.</span>
+
+        <span class="n">ex_start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">prev_word_inds</span><span class="p">,</span> <span class="n">next_word_inds</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ex_idx</span><span class="p">,</span> <span class="n">decode_size</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decode_sizes</span><span class="p">):</span>
+            <span class="n">prev_word_inds</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">top_k_words</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vocab_size</span><span class="p">)</span> <span class="o">+</span> <span class="n">ex_start</span><span class="p">)</span>
+            <span class="n">next_word_inds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">top_k_words</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vocab_size</span><span class="p">)</span>
+            <span class="n">ex_start</span> <span class="o">+=</span> <span class="n">decode_size</span>
+        <span class="n">prev_word_inds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">prev_word_inds</span><span class="p">)</span>
+        <span class="n">next_word_inds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">next_word_inds</span><span class="p">)</span>
 
         <span class="c1"># Add new words to sequences</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_next_word</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqs</span><span class="p">,</span> <span class="n">prev_word_inds</span><span class="p">,</span> <span class="n">next_word_inds</span><span class="p">)</span>
-
         <span class="c1"># Find completed sequences</span>
         <span class="n">complete_inds</span><span class="p">,</span> <span class="n">incomplete_inds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_complete_inds</span><span class="p">(</span><span class="n">next_word_inds</span><span class="p">)</span>
 
-        <span class="c1"># Add to completed sequences</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">complete_inds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqs</span><span class="p">[</span><span class="n">complete_inds</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">top_k_scores</span><span class="p">[</span><span class="n">complete_inds</span><span class="p">])</span>
-
-        <span class="c1"># Reduce beam length</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span> <span class="o">-=</span> <span class="nb">len</span><span class="p">(</span><span class="n">complete_inds</span><span class="p">)</span>
+        <span class="c1"># Add to completed sequences and Reduce beam length</span>
+        <span class="n">ex_start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">ex_idx</span><span class="p">,</span> <span class="n">decode_size</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decode_sizes</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">beam_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ex_start</span><span class="p">,</span> <span class="n">ex_start</span> <span class="o">+</span> <span class="n">decode_size</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">beam_idx</span> <span class="ow">in</span> <span class="n">complete_inds</span><span class="p">:</span>
+                    <span class="n">top_k_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">top_k_scores</span><span class="p">[</span><span class="n">beam_idx</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqs</span><span class="p">[</span><span class="n">beam_idx</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">top_k_score</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_decode_sizes</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="n">ex_start</span> <span class="o">+=</span> <span class="n">decode_size</span>
 
         <span class="c1"># Proceed with incomplete sequences</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decode_sizes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="mi">0</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">seqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqs</span><span class="p">[</span><span class="n">incomplete_inds</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">top_k_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">top_k_scores</span><span class="p">[</span><span class="n">incomplete_inds</span><span class="p">]</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># TODO: Make the data update generic for any type of model</span>
         <span class="c1"># This is specific to BUTD model only.</span>
+        <span class="n">image_feature_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_list</span><span class="o">.</span><span class="n">image_feature_0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_list</span><span class="o">.</span><span class="n">image_feature_0</span> <span class="o">=</span> <span class="n">image_feature_0</span><span class="p">[</span><span class="n">incomplete_inds</span><span class="p">]</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">prev_word_inds</span><span class="p">,</span> <span class="n">next_word_inds</span><span class="p">,</span> <span class="n">incomplete_inds</span><span class="p">)</span>
 
         <span class="n">next_beam_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prev_word_inds</span><span class="p">[</span><span class="n">incomplete_inds</span><span class="p">])</span>
@@ -572,12 +599,21 @@
         <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">next_beam_length</span>
 
     <span class="k">def</span> <span class="nf">get_result</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">captions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="p">))</span>
-            <span class="n">captions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">captions</span></div>
+        <span class="n">captions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">max_len</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">ex_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">captions</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span>
+                <span class="n">max_len</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_len</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">max_score</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">])</span>
+                <span class="n">max_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">max_score</span><span class="p">)</span>
+                <span class="n">captions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">][</span><span class="n">max_idx</span><span class="p">])</span>
+                <span class="n">max_len</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_len</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">captions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">ex_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">captions</span><span class="p">)):</span>
+            <span class="n">padded_tokens</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_vocab</span><span class="o">.</span><span class="n">PAD_INDEX</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">max_len</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">captions</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]))</span>
+            <span class="n">captions</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">padded_tokens</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="n">captions</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="NucleusSampling"><a class="viewcode-back" href="../../../lib/utils/text.html#mmf.utils.text.NucleusSampling">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_decoder</span><span class="p">(</span><span class="s2">&quot;nucleus_sampling&quot;</span><span class="p">)</span>
