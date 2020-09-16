@@ -1,0 +1,64 @@
+name: Linter Tests
+
+# This workflow is triggered on pushes to the repository or external PRs.
+on: [push, pull_request]
+
+jobs:
+  lint:
+    # We want to run on external PRs, but not on our own internal PRs as they'll be run
+    # by the push to the branch.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'facebookresearch/mmf'
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        lint: ['flake8', 'black', 'isort']
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout branch 🛎️
+      uses: actions/checkout@v2
+
+    - name: Setup Conda Environment
+      uses: goanpeca/setup-miniconda@v1
+      with:
+        activate-environment: mmf
+        python-version: 3.7
+        auto-update-conda: true
+        use-only-tar-bz2: true
+
+    - name: Install Dependencies
+      shell: bash -l {0}
+      run: |
+        conda activate mmf
+        python -m pip install --upgrade pip
+        pip install --progress-bar off flake8==3.7.9
+        pip install --progress-bar off isort[pyproject]==4.3.21
+        pip install --progress-bar off black==19.3b0
+
+    - name: Run linter
+      shell: bash -l {0}
+      if: matrix.lint == 'flake8'
+      run: |
+        conda activate mmf
+        flake8 --version
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings
+        flake8 . --count --exit-zero --max-complexity=18 --max-line-length=88 --statistics
+
+    - name: Run linter
+      shell: bash -l {0}
+      if: matrix.lint == 'isort'
+      run: |
+        conda activate mmf
+        isort --version
+        isort -c -sp .
+
+    - name: Run linter
+      shell: bash -l {0}
+      if: matrix.lint == 'black'
+      run: |
+        conda activate mmf
+        black --version
+        black --check .
