@@ -19,6 +19,10 @@ class BaseTransformerInput:
     segment_ids: Dict[str, Tensor]  # dict of segment/token type ids for all modalities
     masks: Dict[str, Tensor]  # dict of masks for all modalities
 
+    def __getitem__(self, item):
+        # to access dataclass as a dict, for torchscript support
+        return getattr(self, item)
+
 
 @dataclass
 class BaseModalityConfigType:
