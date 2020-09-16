@@ -1,0 +1,6 @@
+includes:
+- ./defaults.yaml
+
+model_config:
+  visual_bert:
+    training_head_type: pretraining

@@ -398,3 +398,88 @@ vqacp_v2:
         - url: https://computing.ece.vt.edu/~aish/vqacp/vqacp_v2_test_questions.json
           file_name: vqacp_v2_test_questions.json
           compressed: false
+
+localized_narratives:
+  defaults:
+    version: 1.0_2020_09_14
+    resources:
+      features:
+        - url: mmf://datasets/flickr30k/defaults/features/features.tar.gz
+          file_name: features.tar.gz
+          compressed: true
+          hashcode: 679af7902f342480c1e039bb0be3ddabb8b88a4c45a2c17f9b97e4f10689475a
+        - url: mmf://datasets/ade20k/defaults/features/ade20k_train_features.tar.gz
+          file_name: ade20k_train_features.tar.gz
+          hashcode: 723750c87a4ea374424bf3c45ff1bbfdd5baee3ba45141a21e266d6adf9dc906
+          compressed: true
+        - url: mmf://datasets/ade20k/defaults/features/ade20k_val_features.tar.gz
+          file_name: ade20k_val_features.tar.gz
+          hashcode: 3cb968ec4ae62dcc58f38476afd5e3dcb171387ef3fb2f0c37aee1d418f1f4c2
+          compressed: true
+      annotations:
+        - url: https://storage.googleapis.com/localized-narratives/annotations/flickr30k_test_localized_narratives.jsonl
+          file_name: flickr30k_test_localized_narratives.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_validation_localized_narratives.jsonl
+          file_name: open_images_validation_localized_narratives.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/coco_val_localized_narratives.jsonl
+          file_name: coco_val_localized_narratives.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/flickr30k_val_localized_narratives.jsonl
+          file_name: flickr30k_val_localized_narratives.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/ade20k_train_localized_narratives.jsonl
+          file_name: ade20k_train_localized_narratives.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/coco_train_localized_narratives-00000-of-00004.jsonl
+          file_name: coco_train_localized_narratives-00000-of-00004.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/coco_train_localized_narratives-00001-of-00004.jsonl
+          file_name: coco_train_localized_narratives-00001-of-00004.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/coco_train_localized_narratives-00002-of-00004.jsonl
+          file_name: coco_train_localized_narratives-00002-of-00004.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/coco_train_localized_narratives-00003-of-00004.jsonl
+          file_name: coco_train_localized_narratives-00003-of-00004.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/flickr30k_train_localized_narratives.jsonl
+          file_name: flickr30k_train_localized_narratives.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_train_v6_localized_narratives-00000-of-00010.jsonl
+          file_name: open_images_train_v6_localized_narratives-00000-of-00010.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_train_v6_localized_narratives-00001-of-00010.jsonl
+          file_name: open_images_train_v6_localized_narratives-00001-of-00010.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_train_v6_localized_narratives-00002-of-00010.jsonl
+          file_name: open_images_train_v6_localized_narratives-00002-of-00010.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_train_v6_localized_narratives-00003-of-00010.jsonl
+          file_name: open_images_train_v6_localized_narratives-00003-of-00010.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_train_v6_localized_narratives-00004-of-00010.jsonl
+          file_name: open_images_train_v6_localized_narratives-00004-of-00010.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_train_v6_localized_narratives-00005-of-00010.jsonl
+          file_name: open_images_train_v6_localized_narratives-00005-of-00010.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_train_v6_localized_narratives-00006-of-00010.jsonl
+          file_name: open_images_train_v6_localized_narratives-00006-of-00010.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_train_v6_localized_narratives-00007-of-00010.jsonl
+          file_name: open_images_train_v6_localized_narratives-00007-of-00010.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_train_v6_localized_narratives-00008-of-00010.jsonl
+          file_name: open_images_train_v6_localized_narratives-00008-of-00010.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_train_v6_localized_narratives-00009-of-00010.jsonl
+          file_name: open_images_train_v6_localized_narratives-00009-of-00010.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/ade20k_validation_localized_narratives.jsonl
+          file_name: ade20k_validation_localized_narratives.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_test_localized_narratives.jsonl
+          file_name: open_images_test_localized_narratives.jsonl
+          compressed: false
