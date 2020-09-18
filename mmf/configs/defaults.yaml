@@ -126,6 +126,8 @@ training:
     # only be used for debugging purposes
     detect_anomaly: false
 
+    fp16: false
+
 # Configuration for evaluation
 evaluation:
     # Metrics for evaluation
