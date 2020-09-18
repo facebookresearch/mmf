@@ -197,6 +197,7 @@ class TrainerTrainingLoopMixin(ABC):
                 self.num_updates,
                 self.logistics_callback.tb_writer,
                 self.config,
+                scale=self.scaler.get_scale(),
             )
 
         self.scaler.step(self.optimizer)
