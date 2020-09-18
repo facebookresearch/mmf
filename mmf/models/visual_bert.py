@@ -53,7 +53,8 @@ class VisualBERTBase(BertPreTrainedModel):
         self.pooler = BertPooler(config)
         self.bypass_transformer = config.bypass_transformer
 
-        self.additional_layer = BertLayerJit(config)
+        if self.bypass_transformer:
+            self.additional_layer = BertLayerJit(config)
 
         self.output_attentions = self.config.output_attentions
         self.output_hidden_states = self.config.output_hidden_states
@@ -103,7 +104,11 @@ class VisualBERTBase(BertPreTrainedModel):
             image_text_alignment=image_text_alignment,
         )
 
-        if self.bypass_transformer and visual_embeddings is not None:
+        if (
+            self.bypass_transformer
+            and visual_embeddings is not None
+            and hasattr(self, "additional_layer")
+        ):
             assert (
                 not self.output_hidden_states
             )  # Don't support this for the bypass model
