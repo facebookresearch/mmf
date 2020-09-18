@@ -23,6 +23,9 @@ class BatchCollator:
         elif not isinstance(batch, SampleList):
             sample_list = SampleList(batch)
 
+        if sample_list._get_tensor_field() is None:
+            sample_list = SampleList(sample_list.to_dict())
+
         sample_list.dataset_name = self._dataset_name
         sample_list.dataset_type = self._dataset_type
         return sample_list

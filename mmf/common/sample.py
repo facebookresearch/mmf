@@ -179,6 +179,9 @@ class SampleList(OrderedDict):
 
     def get_device(self):
         field_tensor = self._get_tensor_field()
+        assert field_tensor is not None, (
+            f"No tensor field in sample list, available keys: {self.fields()}"
+        )
         return self[field_tensor].device
 
     def get_item_list(self, key):

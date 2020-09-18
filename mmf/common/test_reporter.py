@@ -6,6 +6,7 @@ import os
 
 from mmf.common.batch_collator import BatchCollator
 from mmf.common.registry import registry
+from mmf.utils.build import build_dataloader_and_sampler
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import gather_tensor, is_dist_initialized, is_master
 from mmf.utils.file_io import PathManager
@@ -91,9 +92,7 @@ class TestReporter(Dataset):
             filepath = os.path.join(self.report_folder, filename + ".json")
             self.json_dump(filepath)
 
-        logger.info(
-            f"Wrote evalai predictions for {name} to {os.path.abspath(filepath)}"
-        )
+        logger.info(f"Wrote predictions for {name} to {os.path.abspath(filepath)}")
         self.report = []
 
     def csv_dump(self, filepath):
@@ -108,34 +107,15 @@ class TestReporter(Dataset):
             json.dump(self.report, f)
 
     def get_dataloader(self):
-        other_args = self._add_extra_args_for_dataloader()
-        return DataLoader(
-            dataset=self.current_dataset,
-            collate_fn=BatchCollator(
-                self.current_dataset.dataset_name, self.current_dataset.dataset_type
-            ),
-            num_workers=self.num_workers,
-            pin_memory=self.config.training.pin_memory,
-            **other_args,
+        dataloader, _ = build_dataloader_and_sampler(
+            self.current_dataset, self.training_config
         )
-
-    def _add_extra_args_for_dataloader(self, other_args=None):
-        if other_args is None:
-            other_args = {}
-
-        if is_dist_initialized():
-            other_args["sampler"] = DistributedSampler(
-                self.current_dataset, shuffle=False
-            )
-        else:
-            other_args["shuffle"] = False
-
-        other_args["batch_size"] = get_batch_size()
-
-        return other_args
+        return dataloader
 
     def prepare_batch(self, batch):
-        return self.current_dataset.prepare_batch(batch)
+        if hasattr(self.current_dataset, "prepare_batch"):
+            batch = self.current_dataset.prepare_batch(batch)
+        return batch
 
     def __len__(self):
         return len(self.current_dataset)
