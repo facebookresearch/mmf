@@ -4,31 +4,15 @@ from typing import Dict, List
 
 import torch
 from mmf.common.registry import registry
-from mmf.common.typings import DictConfig
 from mmf.models.transformers.base import (
     BaseTransformer,
     BaseTransformerConfigType,
     BaseTransformerInput,
 )
-from mmf.modules.encoders import MultiModalEncoderBase
+from mmf.utils.build import build_encoder
+from omegaconf import OmegaConf
 from torch import Tensor, nn
 from transformers.modeling_bert import BertPooler, BertPredictionHeadTransform
-
-
-class ImageEncoder(MultiModalEncoderBase):
-    """Extends the MultiModalEncoderBase class which builds the encoder based on
-    the config parameters. We can set the type of image encoder(resnet50, resnet152,
-    resnext50 etc) and other parameters like num of features, type of pooling etc.
-    """
-
-    def __init__(self, config: DictConfig):
-        super().__init__(config)
-
-    def build(self):
-        self.encoder = self._build_modal_encoder(self.config.image_encoder)
-
-    def forward(self, x: Tensor) -> Tensor:
-        return self.encoder(x)
 
 
 @registry.register_model("mmf_transformer")
@@ -52,10 +36,31 @@ class MMFTransformer(BaseTransformer):
         return "configs/models/mmf_transformer/defaults.yaml"
 
     def build_encoders(self):
-        self.image_encoder = ImageEncoder(self.config)
-        if getattr(self.config, "freeze_image_encoder", False):
-            for param in self.image_encoder.parameters():
-                param.requires_grad = False
+        self.encoders = nn.ModuleDict()
+
+        for modality in self.config.modalities:
+            # Support "image_encoder" attribute in config if directly provided
+            if (
+                modality.type == "image"
+                and "encoder" not in modality
+                and "image_encoder" in self.config
+            ):
+                modality.encoder = self.config.image_encoder
+
+            if "encoder" not in modality:
+                # 100 is a random number added to satisfy identity encoder
+                modality.encoder = OmegaConf.create(
+                    {"type": "identity", "params": {"in_dim": 100}}
+                )
+
+            encoder = build_encoder(modality.encoder)
+            self.encoders[modality.key] = encoder
+
+            if modality.type == "image" and getattr(
+                self.config, "freeze_image_encoder", False
+            ):
+                for param in encoder.parameters():
+                    param.requires_grad = False
 
     def build_heads(self):
         """Initialize the classifier head. It takes the output of the
@@ -80,7 +85,8 @@ class MMFTransformer(BaseTransformer):
 
         # Input IDs (or text tokens/image features)
         input_ids: Dict[str, Tensor] = {}
-        for idx, modality in enumerate(self.modality_keys):
+        for idx, encoder in enumerate(self.encoders.values()):
+            modality = self.modality_keys[idx]
             if self.modality_type[idx] == "text":
                 if sample_list["input_ids"].dim() > 2:
                     input_ids[modality] = sample_list["input_ids"][:, idx]
@@ -88,10 +94,17 @@ class MMFTransformer(BaseTransformer):
                     input_ids[modality] = sample_list["input_ids"]
             elif self.modality_type[idx] == "image":
                 if "image" in sample_list:
-                    image_modal = sample_list["image"]
+                    input_ids[modality] = sample_list["image"]
                 else:
-                    image_modal = sample_list["image_feature_0"]
-                input_ids[modality] = self.image_encoder(image_modal)
+                    input_ids[modality] = sample_list["image_feature_0"]
+            else:
+                if modality in sample_list:
+                    input_ids[modality] = sample_list[modality]
+
+            # In the other case feature will be skipped, as it is not present in
+            # the sample list
+            if encoder is not None:
+                input_ids[modality] = encoder(input_ids[modality])
 
         # Position IDs
         position_ids: Dict[str, Tensor] = {}
@@ -132,10 +145,10 @@ class MMFTransformer(BaseTransformer):
                     masks[modality] = sample_list["input_mask"][:, idx]
                 else:
                     masks[modality] = sample_list["input_mask"]
-
-            elif self.modality_type[idx] == "image":
-                if "image_mask" in sample_list:
-                    masks[modality] = sample_list["image_mask"]
+            else:
+                mask_attribute = f"{modality}_mask"
+                if mask_attribute in sample_list:
+                    masks[modality] = sample_list[mask_attribute]
                 else:
                     masks[modality] = torch.ones(
                         input_ids[modality].size()[:-1],

@@ -277,7 +277,7 @@ def build_image_encoder(config, direct_features=False, **kwargs):
 
 
 def build_encoder(config: Union[DictConfig, "mmf.modules.encoders.Encoder.Config"]):
-    from mmf.modules.encoder import Encoder
+    from mmf.modules.encoders import Encoder
 
     # If it is not an OmegaConf object, create the object
     if not isinstance(config, DictConfig) and isinstance(config, Encoder.Config):

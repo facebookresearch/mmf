@@ -74,7 +74,7 @@ class HuggingfaceEmbeddings(nn.Module):
                         padding_idx=self.transformer_config.pad_token_id,
                     )
                 )
-            elif modality.type == "image":
+            else:
                 self.token_embeddings.append(
                     nn.Sequential(
                         nn.Linear(
@@ -85,6 +85,7 @@ class HuggingfaceEmbeddings(nn.Module):
                         ),
                     )
                 )
+
             self.pos_embeddings.append(
                 nn.Embedding(position_dim, self.transformer_config.hidden_size)
             )
