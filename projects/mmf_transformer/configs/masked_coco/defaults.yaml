@@ -1,0 +1,40 @@
+model_config:
+  mmf_transformer:
+    transformer_base: bert-base-uncased
+    training_head_type: pretraining
+    modalities:
+      - type: text
+        key: text
+        segment_id: 0
+      - type: image
+        key: image
+        embedding_dim: 2048
+        position_dim: 100
+        segment_id: 1
+        layer_norm_eps: 1e-12
+        hidden_dropout_prob: 0.1
+    image_encoder:
+      type: default
+      params:
+        in_dim: 2048
+
+dataset_config:
+  masked_coco:
+    return_features_info: true
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 2000
+    num_training_steps: ${training.max_updates}
+
+training:
+  batch_size: 1024
+  lr_scheduler: true
+  max_updates: 88000

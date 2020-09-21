@@ -18,6 +18,7 @@ class BaseTransformerInput:
     position_ids: Dict[str, Tensor]  # dict of position ids for all modalities
     segment_ids: Dict[str, Tensor]  # dict of segment/token type ids for all modalities
     masks: Dict[str, Tensor]  # dict of masks for all modalities
+    masked_lm_labels: Dict[str, Tensor]  # dict of text token masks for all modalities
 
     def __getitem__(self, item):
         # to access dataclass as a dict, for torchscript support
@@ -163,8 +164,7 @@ class BaseTransformer(BaseModel):
         return
 
     def _init_weights(self, module: Type[nn.Module]):
-        """Initialize the weights for different layers.
-        """
+        """Initialize the weights for different layers."""
         if isinstance(module, (nn.Linear, nn.Embedding)):
             module.weight.data.normal_(
                 mean=self.config.initializer_mean, std=self.config.initializer_range
