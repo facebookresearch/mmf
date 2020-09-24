@@ -63,7 +63,7 @@ Let's write down this using example of _CLEVR_ dataset.
 
     @registry.register_builder("clevr")
     class CLEVRBuilder(BaseDatasetBuilder):
-        DOWNLOAD_URL = "https://s3-us-west-1.amazonaws.com/clevr/CLEVR_v1.0.zip"
+        DOWNLOAD_URL = ""https://dl.fbaipublicfiles.com/clevr/CLEVR_v1.0.zip"
 
         def __init__(self):
             # Init should call super().__init__ with the key for the dataset
