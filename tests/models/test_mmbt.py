@@ -5,6 +5,7 @@ import unittest
 
 import torch
 from mmf.common.registry import registry
+from mmf.common.sample import Sample, SampleList
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports
 
@@ -26,8 +27,8 @@ class TestMMBTTorchscript(unittest.TestCase):
 
     @test_utils.skip_if_no_network
     def test_load_save_finetune_model(self):
-        self.finetune_model.model.eval()
-        script_model = torch.jit.script(self.finetune_model.model)
+        self.finetune_model.eval()
+        script_model = torch.jit.script(self.finetune_model)
         buffer = io.BytesIO()
         torch.jit.save(script_model, buffer)
         buffer.seek(0)
@@ -36,27 +37,19 @@ class TestMMBTTorchscript(unittest.TestCase):
 
     @test_utils.skip_if_no_network
     def test_finetune_model(self):
-        self.finetune_model.model.eval()
-        input_ids = torch.randint(low=0, high=30255, size=(1, 128)).long()
-        input_mask = torch.ones((1, 128)).long()
-        segment_ids = torch.zeros(1, 128).long()
-        visual_embeddings = torch.rand((1, 3, 300, 300)).float()
+        self.finetune_model.eval()
+        test_sample = Sample()
+        test_sample.input_ids = torch.randint(low=0, high=30255, size=(128,)).long()
+        test_sample.input_mask = torch.ones((128)).long()
+        test_sample.segment_ids = torch.zeros(128).long()
+        test_sample.image = torch.rand((3, 300, 300)).float()
+        test_sample_list = SampleList([test_sample])
 
         with torch.no_grad():
-            model_output = self.finetune_model.model(
-                input_modal=visual_embeddings,
-                input_ids=input_ids,
-                segment_ids=segment_ids,
-                input_mask=input_mask,
-            )
+            model_output = self.finetune_model.model(test_sample_list)
 
         script_model = torch.jit.script(self.finetune_model.model)
         with torch.no_grad():
-            script_output = script_model(
-                input_modal=visual_embeddings,
-                input_ids=input_ids,
-                segment_ids=segment_ids,
-                input_mask=input_mask,
-            )
+            script_output = script_model(test_sample_list)
 
         self.assertTrue(torch.equal(model_output["scores"], script_output["scores"]))

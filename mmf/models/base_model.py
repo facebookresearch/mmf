@@ -74,7 +74,7 @@ class BaseModel(nn.Module):
         return self._is_pretrained
 
     @is_pretrained.setter
-    def is_pretrained(self, x):
+    def is_pretrained(self, x: bool):
         self._is_pretrained = x
 
     def build(self):
