@@ -16,6 +16,7 @@ from transformers.modeling_bert import (
     BertSelfAttention,
     BertSelfOutput,
 )
+from transformers.modeling_utils import PreTrainedModel
 
 
 def replace_with_jit():
@@ -29,6 +30,7 @@ def replace_with_jit():
     BertSelfAttention.forward = BertSelfAttentionJit.forward
     BertSelfAttention.transpose_for_scores = BertSelfAttentionJit.transpose_for_scores
     BertModel.forward = BertModelJit.forward
+    PreTrainedModel.__ignored_properties__ = ["base_model", "dummy_inputs"]
 
 
 class BertEmbeddingsJit(BertEmbeddings):
@@ -37,6 +39,9 @@ class BertEmbeddingsJit(BertEmbeddings):
     https://github.com/huggingface/transformers/blob/v2.3.0/transformers/modeling_bert.py # noqa
 
     Modifies the `forward` function
+
+    Changes to `forward` function ::
+        Typed inputs and modified device to be input_ids.device by default
     """
 
     def forward(
@@ -187,7 +192,7 @@ class BertAttentionJit(BertAttention):
         return outputs
 
 
-class BertLayerJit(nn.Module):
+class BertLayerJit(BertLayer):
     """
     Torchscriptable version of `BertLayer` from Huggingface transformers v2.3.0
     https://github.com/huggingface/transformers/blob/v2.3.0/transformers/modeling_bert.py # noqa
@@ -197,12 +202,6 @@ class BertLayerJit(nn.Module):
     Changes to `forward` function::
         Typed inputs and modifies the output to be a List[Tensor]
     """
-
-    def __init__(self, config):
-        super().__init__()
-        self.attention = BertAttentionJit(config)
-        self.intermediate = BertIntermediate(config)
-        self.output = BertOutput(config)
 
     def forward(
         self,
@@ -226,7 +225,7 @@ class BertLayerJit(nn.Module):
         return outputs
 
 
-class BertEncoderJit(nn.Module):
+class BertEncoderJit(BertEncoder):
     """
     Torchscriptable version of `BertEncoder` from Huggingface transformers v2.3.0
     https://github.com/huggingface/transformers/blob/v2.3.0/transformers/modeling_bert.py # noqa
@@ -238,14 +237,6 @@ class BertEncoderJit(nn.Module):
         mode. Due to different possible types when `output_hidden_states` or
         `output_attentions` are enable, we do not support these in scripting mode
     """
-
-    def __init__(self, config):
-        super().__init__()
-        self.output_attentions = config.output_attentions
-        self.output_hidden_states = config.output_hidden_states
-        self.layer = nn.ModuleList(
-            [BertLayerJit(config) for _ in range(config.num_hidden_layers)]
-        )
 
     def forward(
         self,

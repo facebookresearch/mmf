@@ -7,7 +7,7 @@
 
 import os
 from copy import deepcopy
-from typing import Optional
+from typing import Dict, Optional
 
 import torch
 from mmf.common.registry import registry
@@ -306,6 +306,8 @@ class MMBTModel(nn.Module):
 class MMBTBase(MultiModalEncoderBase):
     def __init__(self, config, *args, **kwargs):
         super().__init__(config, *args, **kwargs)
+        # Replace transformer layers with scriptable JIT layers
+        replace_with_jit()
 
     def build(self):
         encoders = self._build_encoders(self.config)
@@ -323,32 +325,26 @@ class MMBTBase(MultiModalEncoderBase):
 
         self.mmbt = MMBTModel(self._mmbt_config, text_encoder, modal_encoder)
 
-    @property
-    def direct_features_input(self):
-        return self._is_direct_features_input
+    def forward(self, sample_list: Dict[str, Tensor]):
 
-    def forward(
-        self,
-        input_modal: Tensor,
-        input_ids: Tensor,
-        segment_ids: Tensor,
-        input_mask: Tensor,
-        modal_token_type_ids: Optional[Tensor] = None,
-    ):
+        if self._is_direct_features_input:
+            input_modal = sample_list["image_feature_0"]
+        else:
+            input_modal = sample_list["image"]
 
         modal_start_token: Optional[Tensor] = None
         if self.use_modal_start_token:
-            modal_start_token = input_ids[:, 0].clone().detach()
+            modal_start_token = sample_list["input_ids"][:, 0].clone().detach()
 
         modal_end_token: Optional[Tensor] = None
         if self.use_modal_end_token:
-            modal_end_token = input_ids[:, -1].clone().detach()
+            modal_end_token = sample_list["input_ids"][:, -1].clone().detach()
 
-        if modal_token_type_ids is not None:
-            modal_token_type_ids = modal_token_type_ids
+        if "modal_token_type_ids" in sample_list:
+            modal_token_type_ids = sample_list["modal_token_type_ids"]
         else:
             token_value = 0
-            segment_ids = segment_ids
+            segment_ids = sample_list["segment_ids"]
             max_id = segment_ids.max()
             min_id = segment_ids.min()
             # Case of only one segment
@@ -376,11 +372,11 @@ class MMBTBase(MultiModalEncoderBase):
         # https://github.com/huggingface/transformers/blob/1789c7/src/transformers/modeling_mmbt.py#L101 # noqa
         output = self.mmbt(
             input_modal,
-            input_ids=input_ids,
+            input_ids=sample_list["input_ids"],
             modal_start_tokens=modal_start_token,
             modal_end_tokens=modal_end_token,
-            attention_mask=input_mask,
-            token_type_ids=segment_ids,
+            attention_mask=sample_list["input_mask"],
+            token_type_ids=sample_list["segment_ids"],
             modal_token_type_ids=modal_token_type_ids,
             position_ids=None,
             modal_position_ids=None,
@@ -485,21 +481,8 @@ class MMBTForClassification(nn.Module):
             nn.Linear(self.encoder_config.hidden_size, self.config.num_labels),
         )
 
-    def forward(
-        self,
-        input_modal: Tensor,
-        input_ids: Tensor,
-        segment_ids: Tensor,
-        input_mask: Tensor,
-        modal_token_type_ids: Optional[Tensor] = None,
-    ):
-        module_output = self.bert(
-            input_modal=input_modal,
-            input_ids=input_ids,
-            segment_ids=segment_ids,
-            input_mask=input_mask,
-            modal_token_type_ids=modal_token_type_ids,
-        )
+    def forward(self, sample_list: Dict[str, Tensor]):
+        module_output = self.bert(sample_list)
         pooled_output = module_output[1]
         output = {}
 
@@ -523,8 +506,6 @@ class MMBTForClassification(nn.Module):
 class MMBT(BaseModel):
     def __init__(self, config):
         super().__init__(config)
-        # Replace transformer layers with scriptable JIT layers
-        replace_with_jit()
 
     def build(self):
         if self.config.training_head_type == "pretraining":
@@ -561,17 +542,8 @@ class MMBT(BaseModel):
     def config_path(cls):
         return "configs/models/mmbt/pretrain.yaml"
 
-    def forward(self, sample_list):
-        if self.model.bert.direct_features_input:
-            input_modal = sample_list.image_feature_0
-        else:
-            input_modal = sample_list.image
-        return self.model(
-            input_modal,
-            sample_list.input_ids,
-            sample_list.segment_ids,
-            sample_list.input_mask,
-        )
+    def forward(self, sample_list: Dict[str, Tensor]):
+        return self.model(sample_list)
 
     def get_optimizer_parameters(self, config):
         return get_optimizer_parameters_for_bert(self.model, config)
