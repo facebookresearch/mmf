@@ -202,6 +202,11 @@ class TrainerTrainingLoopMixin(ABC):
 
     def _extract_loss(self, report: Dict[str, Any]) -> Tensor:
         loss_dict = report.losses
+        assert len(loss_dict) != 0, (
+            "Model returned an empty loss dict. "
+            "Did you forget to (i) define losses in your model configuration or"
+            "(ii) return losses dict from your model?"
+        )
         loss = sum([loss.mean() for loss in loss_dict.values()])
         return loss
 

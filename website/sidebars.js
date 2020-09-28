@@ -33,7 +33,7 @@ module.exports = {
     ],
     Tutorials: [
       'tutorials/dataset',
-      'tutorials/concat_bert',
+      'tutorials/concat_bert_tutorial',
       'tutorials/checkpointing',
       'tutorials/processors',
       'tutorials/slurm',
