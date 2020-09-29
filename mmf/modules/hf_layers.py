@@ -30,7 +30,7 @@ def replace_with_jit():
     BertSelfAttention.forward = BertSelfAttentionJit.forward
     BertSelfAttention.transpose_for_scores = BertSelfAttentionJit.transpose_for_scores
     BertModel.forward = BertModelJit.forward
-    PreTrainedModel.__ignored_properties__ = ["base_model", "dummy_inputs"]
+    PreTrainedModel.__jit_unused_properties__ = ["base_model", "dummy_inputs"]
 
 
 class BertEmbeddingsJit(BertEmbeddings):

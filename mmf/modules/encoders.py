@@ -212,7 +212,7 @@ class TransformerEncoder(nn.Module):
 
 
 class MultiModalEncoderBase(nn.Module):
-    __ignored_properties__ = ["encoder_config"]
+    __jit_unused_properties__ = ["encoder_config"]
 
     def __init__(self, config, *args, **kwargs):
         super().__init__()
