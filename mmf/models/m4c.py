@@ -7,8 +7,9 @@ import torch
 import torch.nn.functional as F
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
-from mmf.modules.encoders import ImageFeatureEncoder
 from mmf.modules.layers import ClassifierLayer
+from mmf.utils.build import build_image_encoder
+from omegaconf import OmegaConf
 from torch import nn
 from transformers.modeling_bert import (
     BertConfig,
@@ -44,6 +45,19 @@ class M4C(BaseModel):
         self._build_mmt()
         self._build_output()
 
+    def _build_encoder_config(self):
+        return OmegaConf.create(
+            {
+                "type": "finetune_faster_rcnn_fpn_fc7",
+                "params": {
+                    "in_dim": 2048,
+                    "weights_file": "models/detectron.defaults/fc7_w.pkl",
+                    "bias_file": "models/detectron.defaults/fc7_b.pkl",
+                    "model_data_dir": self.config.model_data_dir,
+                },
+            }
+        )
+
     def _build_txt_encoding(self):
         TEXT_BERT_HIDDEN_SIZE = 768
 
@@ -77,12 +91,8 @@ class M4C(BaseModel):
 
     def _build_obj_encoding(self):
         # object appearance feature: Faster R-CNN
-        self.obj_faster_rcnn_fc7 = ImageFeatureEncoder(
-            encoder_type="finetune_faster_rcnn_fpn_fc7",
-            in_dim=2048,
-            weights_file="models/detectron.defaults/fc7_w.pkl",
-            bias_file="models/detectron.defaults/fc7_b.pkl",
-            model_data_dir=self.config.model_data_dir,
+        self.obj_faster_rcnn_fc7 = build_image_encoder(
+            self._build_encoder_config(), direct_features=True
         )
         # apply smaller lr to pretrained Faster R-CNN fc7
         self.finetune_modules.append(
@@ -111,12 +121,8 @@ class M4C(BaseModel):
         self.remove_ocr_bbox = getattr(self.config.ocr, "remove_ocr_bbox", False)
 
         # OCR appearance feature: Faster R-CNN
-        self.ocr_faster_rcnn_fc7 = ImageFeatureEncoder(
-            encoder_type="finetune_faster_rcnn_fpn_fc7",
-            in_dim=2048,
-            weights_file="models/detectron.defaults/fc7_w.pkl",
-            bias_file="models/detectron.defaults/fc7_b.pkl",
-            model_data_dir=self.config.model_data_dir,
+        self.ocr_faster_rcnn_fc7 = build_image_encoder(
+            self._build_encoder_config, direct_features=True
         )
         self.finetune_modules.append(
             {"module": self.ocr_faster_rcnn_fc7, "lr_scale": self.config.lr_scale_frcn}
