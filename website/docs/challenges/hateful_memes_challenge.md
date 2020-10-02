@@ -4,7 +4,7 @@ title: Hateful Memes Challenge
 sidebar_label: Hateful Memes Challenge
 ---
 
-The Hateful Memes challenge is available at [this link](https://www.drivendata.org/competitions/64/hateful-memes).
+The Hateful Memes challenge is available at [this link](https://www.drivendata.org/competitions/70/hateful-memes-phase-2/data/).
 
 In MMF, we provide the starter code and baseline pretrained models for this challenge and the configurations used for training the reported baselines. For more details check [this link](https://github.com/facebookresearch/mmf/tree/master/projects/hateful_memes).
 
@@ -66,9 +66,21 @@ This command will output where the generated predictions csv file is stored.
 
 ## Submission for Challenge
 
-Next you can upload the generated csv file on DrivenData in their [submissions](https://www.drivendata.org/competitions/64/hateful-memes/submissions/) page for Hateful Memes.
+Next you can upload the generated csv file on DrivenData in their [submissions](https://www.drivendata.org/competitions/70/hateful-memes-phase-2/data//submissions/) page for Hateful Memes.
 
 More details will be added once the challenge submission phase is live.
+
+
+## Predicting for Phase 1
+
+If you want to submit prediction for phase 1, you will need to use command line opts to override the jsonl files that are loaded. At the end of any command you run, add the following to load seen dev and test splits:
+
+```sh
+dataset_config.hateful_memes.annotations.val[0]=hateful_memes/defaults/annotations/dev_seen.jsonl \
+dataset_config.hateful_memes.annotations.test[0]=hateful_memes/defaults/annotations/test_seen.jsonl
+```
+
+This will load the phase 1 files for you and evaluate those.
 
 ## Building on top of MMF and Open Sourcing your code
 
