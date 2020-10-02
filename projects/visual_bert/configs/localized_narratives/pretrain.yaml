@@ -2,6 +2,7 @@ includes:
 - ../../../../mmf/configs/datasets/coco2017/masked.yaml
 - ../../../../mmf/configs/datasets/flickr30k/masked.yaml
 - ../../../../mmf/configs/datasets/localized_narratives/masked.yaml
+- ../../../../mmf/configs/datasets/localized_narratives/defaults.yaml
 
 model_config:
   visual_bert:

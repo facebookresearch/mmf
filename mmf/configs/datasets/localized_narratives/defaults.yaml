@@ -1,0 +1,49 @@
+dataset_config:
+  localized_narratives:
+    data_dir: ${env.data_dir}/datasets
+    depth_first: false
+    fast_read: false
+    use_images: false
+    use_features: true
+    zoo_requirements:
+    - localized_narratives.defaults
+    - flickr30k.defaults
+    - ade20k.defaults
+    trace_mode: true
+    features:
+      train:
+      - flickr30k/defaults/features/detectron.lmdb
+      - ade20k/defaults/features/ade20k_train.lmdb
+      val:
+      - flickr30k/defaults/features/detectron.lmdb
+      - ade20k/defaults/features/ade20k_val.lmdb
+      test:
+      - flickr30k/defaults/features/detectron.lmdb
+    annotations:
+      train:
+      - localized_narratives/defaults/annotations/flickr30k_train_localized_narratives.jsonl
+      - localized_narratives/defaults/annotations/ade20k_train_localized_narratives.jsonl
+      val:
+      - localized_narratives/defaults/annotations/flickr30k_val_localized_narratives.jsonl
+      - localized_narratives/defaults/annotations/ade20k_validation_localized_narratives.jsonl
+      test:
+      - localized_narratives/defaults/annotations/flickr30k_test_localized_narratives.jsonl
+    max_features: 100
+    processors:
+      text_image_processor:
+          type: text_token_overlap_with_image_bbox
+          params:
+            trace_num_samples: 8
+            remove_punctuations: true
+            text_processor:
+              tokenizer_config:
+                type: bert-base-uncased
+                params:
+                  do_lower_case: true
+              max_seq_length: 64
+      transformer_bbox_processor:
+        type: transformer_bbox
+        params:
+          bbox_key: bbox
+          image_width_key: image_width
+          image_height_key: image_height
