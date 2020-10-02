@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-from copy import deepcopy
-from typing import Any, Dict, List, Type
+from typing import Dict, List
 
 import torch
 from mmf.common.registry import registry
@@ -32,156 +31,21 @@ class ImageEncoder(MultiModalEncoderBase):
         return self.encoder(x)
 
 
-class MMFTransformerEmbeddings(nn.Module):
-    """Embedding class that can take any number of image or text modalities, each can
-    have their input id, position id and segment id. We generate embeddings of
-    dimension config.hidden_size for each and then first add the three embeddings
-    for each modality to have a modality specific embedding. We then concat the
-    modality specific embeddings to have a joint embedding.
-    """
-
-    def __init__(
-        self,
-        model_config: BaseTransformerConfigType,
-        transformer_config: Dict[str, Any],
-        transformer: Type[nn.Module],
-        *args,
-        **kwargs,
-    ):
-        super().__init__()
-        self.model_config = model_config
-        self.transformer_config = transformer_config
-
-        self.token_embeddings = nn.ModuleList()
-        self.pos_embeddings = nn.ModuleList()
-        self.layer_norms = nn.ModuleList()
-        self.dropouts = nn.ModuleList()
-        self.modality_keys: List = []
-
-        # Build layers for each modality and initialize
-        self.build_layers()
-        self.init_weights(transformer)
-
-        assert (
-            len(self.token_embeddings)
-            == len(self.pos_embeddings)
-            == len(self.layer_norms)
-            == len(self.dropouts)
-            == len(self.model_config.modalities)
-        )
-
-    def build_layers(self):
-
-        for modality in self.model_config.modalities:
-            self.modality_keys.append(modality.key)
-            layer_norm_eps = modality.get(
-                "layer_norm_eps", self.transformer_config.layer_norm_eps
-            )
-            position_dim = modality.get(
-                "position_dim", self.transformer_config.max_position_embeddings
-            )
-            hidden_dropout_prob = modality.get(
-                "hidden_dropout_prob", self.transformer_config.hidden_dropout_prob
-            )
-            if modality.type == "text":
-                self.token_embeddings.append(
-                    nn.Embedding(
-                        self.transformer_config.vocab_size,
-                        self.transformer_config.hidden_size,
-                        padding_idx=self.transformer_config.pad_token_id,
-                    )
-                )
-            elif modality.type == "image":
-                self.token_embeddings.append(
-                    nn.Sequential(
-                        nn.Linear(
-                            modality.embedding_dim, self.transformer_config.hidden_size
-                        ),
-                        torch.nn.LayerNorm(
-                            self.transformer_config.hidden_size, eps=layer_norm_eps
-                        ),
-                    )
-                )
-            self.pos_embeddings.append(
-                nn.Embedding(position_dim, self.transformer_config.hidden_size)
-            )
-            self.layer_norms.append(
-                torch.nn.LayerNorm(
-                    self.transformer_config.hidden_size, eps=layer_norm_eps
-                )
-            )
-            self.dropouts.append(nn.Dropout(hidden_dropout_prob))
-
-        self.token_type_embeddings = nn.Embedding(
-            len(self.model_config.modalities), self.transformer_config.hidden_size
-        )
-
-    def init_weights(self, transformer: Type[nn.Module]):
-        for idx, modality in enumerate(self.model_config.modalities):
-            if modality.type == "text":
-                self.token_embeddings[idx] = transformer.embeddings.word_embeddings
-                self.layer_norms[idx] = transformer.embeddings.LayerNorm
-
-            self.pos_embeddings[idx].weight = nn.Parameter(
-                deepcopy(transformer.embeddings.position_embeddings.weight.data),
-                requires_grad=True,
-            )
-
-        # Token Type or Segment Embeddings
-        if hasattr(transformer.embeddings, "token_type_embeddings"):
-            token_vocab_size = self.transformer_config.type_vocab_size
-            self.token_type_embeddings.weight.data[:token_vocab_size].copy_(
-                transformer.embeddings.token_type_embeddings.weight
-            )
-            for idx in range(token_vocab_size, len(self.model_config.modalities)):
-                self.token_type_embeddings.weight.data[idx].copy_(
-                    transformer.embeddings.token_type_embeddings.weight.data.mean(dim=0)
-                )
-                # Add random normal noise
-                self.token_type_embeddings.weight.data[idx] += torch.normal(
-                    self.model_config.token_noise_mean,
-                    self.model_config.token_noise_std,
-                    size=self.token_type_embeddings.weight.data[idx].size(),
-                )
-
-    def forward(
-        self,
-        input_ids: Dict[str, Tensor],
-        position_ids: Dict[str, Tensor],
-        segment_ids: Dict[str, Tensor],
-    ) -> Tensor:
-        list_embeddings = []
-        for idx, (token_emb, pos_emb, layer_norm, dropout) in enumerate(
-            zip(
-                self.token_embeddings,
-                self.pos_embeddings,
-                self.layer_norms,
-                self.dropouts,
-            )
-        ):
-            modality_name = self.modality_keys[idx]
-            total_embedding = token_emb(input_ids[modality_name])
-            if modality_name in position_ids:
-                total_embedding += pos_emb(position_ids[modality_name])
-
-            if modality_name in segment_ids:
-                total_embedding += self.token_type_embeddings(
-                    segment_ids[modality_name]
-                )
-
-            list_embeddings.append(dropout(layer_norm(total_embedding)))
-
-        return torch.cat(list_embeddings, dim=1)
-
-
 @registry.register_model("mmf_transformer")
 class MMFTransformer(BaseTransformer):
     def __init__(self, config: BaseTransformerConfigType, *args, **kwargs):
         super().__init__(config)
         self.num_labels = self.config.num_labels
         self.modality_keys: List = []
+        self.modality_type: List = []
+        self.modality_segments: List = []
         for modality in self.config.modalities:
             self.modality_keys.append(modality.key)
+            self.modality_type.append(modality.type)
+            if "segment_id" in modality:
+                self.modality_segments.append(modality.segment_id)
+            else:
+                self.modality_segments.append(-1)
 
     @classmethod
     def config_path(cls) -> str:
@@ -193,15 +57,6 @@ class MMFTransformer(BaseTransformer):
             for param in self.image_encoder.parameters():
                 param.requires_grad = False
 
-    def build_embeddings(self):
-        """Initialize the embedding class we will use for multiple
-        modalities (here just text and image). For the text embeeddings we will use the
-        pretrained weights from the trasnformer model rather than training from scratch.
-        """
-        self.embeddings = MMFTransformerEmbeddings(
-            self.config, self.transformer_config, self.transformer
-        )
-
     def build_heads(self):
         """Initialize the classifier head. It takes the output of the
         transformer encoder and passes it through a pooler (we use the pooler from BERT
@@ -209,14 +64,15 @@ class MMFTransformer(BaseTransformer):
         followed by activation and layer norm) and lastly a linear layer projecting the
         hidden output to classification labels.
         """
+        transformer_config = self.backend.get_config()
+        self.pooler = BertPooler(transformer_config)
         self.classifier = nn.Sequential(
-            BertPooler(self.transformer_config),
-            nn.Dropout(self.transformer_config.hidden_dropout_prob),
-            BertPredictionHeadTransform(self.transformer_config),
-            nn.Linear(self.transformer_config.hidden_size, self.config.num_labels),
+            nn.Dropout(transformer_config.hidden_dropout_prob),
+            BertPredictionHeadTransform(transformer_config),
+            nn.Linear(transformer_config.hidden_size, self.config.num_labels),
         )
 
-    def preprocess_sample(self, sample_list: Dict[str, Any]) -> BaseTransformerInput:
+    def preprocess_sample(self, sample_list: Dict[str, Tensor]) -> BaseTransformerInput:
         """Preprocess the sample list elements and form a BaseTransformerInput
         type object. This object standardizes how we represent multiple modalities.
         Check the definition of this dataclass in BaseTransformer.
@@ -224,102 +80,88 @@ class MMFTransformer(BaseTransformer):
 
         # Input IDs (or text tokens/image features)
         input_ids: Dict[str, Tensor] = {}
-        for idx, modality in enumerate(self.config.modalities):
-            if modality.type == "text":
-                if sample_list.input_ids.dim() > 2:
-                    input_ids[modality.key] = sample_list.input_ids[:, idx]
+        for idx, modality in enumerate(self.modality_keys):
+            if self.modality_type[idx] == "text":
+                if sample_list["input_ids"].dim() > 2:
+                    input_ids[modality] = sample_list["input_ids"][:, idx]
                 else:
-                    input_ids[modality.key] = sample_list.input_ids
-            elif modality.type == "image":
+                    input_ids[modality] = sample_list["input_ids"]
+            elif self.modality_type[idx] == "image":
                 if "image" in sample_list:
-                    image_modal = sample_list.image
+                    image_modal = sample_list["image"]
                 else:
-                    image_modal = sample_list.image_feature_0
-                input_ids[modality.key] = self.image_encoder(image_modal)
+                    image_modal = sample_list["image_feature_0"]
+                input_ids[modality] = self.image_encoder(image_modal)
 
         # Position IDs
         position_ids: Dict[str, Tensor] = {}
-        for modality in self.config.modalities:
-            position_ids[modality.key] = (
+        for modality in self.modality_keys:
+            position_ids[modality] = (
                 torch.arange(
                     0,
-                    input_ids[modality.key].size(1),
+                    input_ids[modality].size(1),
                     dtype=torch.long,
-                    device=input_ids[modality.key].device,
+                    device=input_ids[modality].device,
                 )
                 .unsqueeze(0)
-                .expand(input_ids[modality.key].size()[:2])
+                .expand(input_ids[modality].size()[:2])
             )
 
         # Segment IDs
         segment_ids: Dict[str, Tensor] = {}
-        for idx, modality in enumerate(self.config.modalities):
-            if modality.type == "text" and hasattr(sample_list, "segment_ids"):
-                if sample_list.segment_ids.dim() > 2:
-                    segment_ids[modality.key] = sample_list.segment_ids[:, idx]
+        for idx, modality in enumerate(self.modality_keys):
+            if self.modality_segments[idx] == -1:
+                continue
+            if self.modality_type[idx] == "text" and "segment_ids" in sample_list:
+                if sample_list["segment_ids"].dim() > 2:
+                    segment_ids[modality] = sample_list["segment_ids"][:, idx]
                 else:
-                    segment_ids[modality.key] = sample_list.segment_ids
-            elif hasattr(modality, "segment_id"):
-                segment_ids[modality.key] = torch.zeros(
-                    input_ids[modality.key].size()[:2],
+                    segment_ids[modality] = sample_list["segment_ids"]
+            else:
+                segment_ids[modality] = torch.zeros(
+                    input_ids[modality].size()[:2],
                     dtype=torch.long,
-                    device=input_ids[modality.key].device,
-                ).fill_(modality.segment_id)
+                    device=input_ids[modality].device,
+                ).fill_(self.modality_segments[idx])
 
         # Masks
         masks: Dict[str, Tensor] = {}
-        for idx, modality in enumerate(self.config.modalities):
-            if modality.type == "text":
-                if sample_list.input_mask.dim() > 2:
-                    masks[modality.key] = sample_list.input_mask[:, idx]
+        for idx, modality in enumerate(self.modality_keys):
+            if self.modality_type[idx] == "text":
+                if sample_list["input_mask"].dim() > 2:
+                    masks[modality] = sample_list["input_mask"][:, idx]
                 else:
-                    masks[modality.key] = sample_list.input_mask
+                    masks[modality] = sample_list["input_mask"]
 
-            elif modality.type == "image":
+            elif self.modality_type[idx] == "image":
                 if "image_mask" in sample_list:
-                    masks[modality.key] = sample_list.image_mask
+                    masks[modality] = sample_list["image_mask"]
                 else:
-                    masks[modality.key] = torch.ones(
-                        input_ids[modality.key].size()[:-1],
+                    masks[modality] = torch.ones(
+                        input_ids[modality].size()[:-1],
                         dtype=torch.long,
-                        device=input_ids[modality.key].device,
+                        device=input_ids[modality].device,
                     )
 
         return BaseTransformerInput(input_ids, position_ids, segment_ids, masks)
-
-    def transformer_encode(self, embedding, attention_mask):
-        return self.transformer.encoder(
-            embedding, attention_mask, [None] * len(self.transformer.encoder.layer)
-        )
 
     def forward(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
         # Sample preprocess
         output = self.preprocess_sample(sample_list)
 
-        # Transformer Input Embeddings
-        embedding_output = self.embeddings(
-            input_ids=output["input_ids"],
-            position_ids=output["position_ids"],
-            segment_ids=output["segment_ids"],
-        )
-
-        # Transformer Attention mask
-        # concat the attention masks for all modalities
+        # Arrange masks in a list
         masks = []
         for modality in self.modality_keys:
-            masks.append(output["masks"][modality])
-        attention_mask = torch.cat(masks, dim=-1)
-        extended_attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
-        extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
+            masks.append(output.masks[modality])
 
-        # Transformer Encoder
-        encoded_layers = self.transformer_encode(
-            embedding_output,  # combined embedding
-            extended_attention_mask,  # combined attention mask
+        # Call transformer backend
+        sequence_output, _ = self.backend(
+            output.input_ids, output.position_ids, output.segment_ids, masks
         )
 
         # Transformer Heads
-        head_output = self.classifier(encoded_layers[0])
+        pooled_output = self.pooler(sequence_output)
+        head_output = self.classifier(pooled_output)
 
         # Postprocess outputs
         return self.postprocess_output(head_output)

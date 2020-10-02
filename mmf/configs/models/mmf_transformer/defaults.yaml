@@ -2,11 +2,17 @@ model_config:
   mmf_transformer:
     transformer_base: bert-base-uncased
     training_head_type: classification
+    backend:
+      type: huggingface
+      params: {}
     num_labels: 2
     modalities:
       - type: text
         key: text
+        position_dim: 512
         segment_id: 0
+        layer_norm_eps: 1e-12
+        hidden_dropout_prob: 0.1
       - type: image
         key: image
         embedding_dim: 2048
