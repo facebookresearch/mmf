@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import os
 import subprocess
+import warnings
 import zipfile
 
 from mmf.utils.configuration import Configuration
@@ -13,11 +14,19 @@ from mmf.utils.file_io import PathManager
 
 class HMConverter:
     IMAGE_FILES = ["img.tar.gz", "img"]
-    JSONL_FILES = ["train.jsonl", "dev.jsonl", "test.jsonl"]
+    JSONL_PHASE_ONE_FILES = ["train.jsonl", "dev.jsonl", "test.jsonl"]
+    JSONL_PHASE_TWO_FILES = [
+        "train.jsonl",
+        "dev_seen.jsonl",
+        "test_seen.jsonl",
+        "dev_unseen.jsonl",
+        "test_unseen.jsonl",
+    ]
     POSSIBLE_CHECKSUMS = [
         "d8f1073f5fbf1b08a541cc2325fc8645619ab8ed768091fb1317d5c3a6653a77",
         "a424c003b7d4ea3f3b089168b5f5ea73b90a3ff043df4b8ff4d7ed87c51cb572",
         "6e609b8c230faff02426cf462f0c9528957b7884d68c60ebc26ff83846e5f80f",
+        "c1363aae9649c79ae4abfdb151b56d3d170187db77757f3daa80856558ac367c",
     ]
 
     def __init__(self):
@@ -26,12 +35,27 @@ class HMConverter:
         self.configuration = Configuration()
 
     def assert_files(self, folder):
-        files_needed = self.JSONL_FILES
-
+        files_needed = self.JSONL_PHASE_ONE_FILES
+        phase_one = True
         for file in files_needed:
-            assert PathManager.exists(
-                os.path.join(folder, "data", file)
-            ), f"{file} doesn't exist in {folder}"
+            try:
+                assert PathManager.exists(
+                    os.path.join(folder, "data", file)
+                ), f"{file} doesn't exist in {folder}"
+            except AssertionError:
+                phase_one = False
+
+        if not phase_one:
+            files_needed = self.JSONL_PHASE_TWO_FILES
+            for file in files_needed:
+                assert PathManager.exists(
+                    os.path.join(folder, "data", file)
+                ), f"{file} doesn't exist in {folder}"
+        else:
+            warnings.warn(
+                "You are on Phase 1 of the Hateful Memes Challenge. "
+                "Please update to Phase 2"
+            )
 
         files_needed = self.IMAGE_FILES
 
@@ -42,6 +66,8 @@ class HMConverter:
 
         if not exists:
             raise AssertionError("Neither img or img.tar.gz exists in current zip")
+
+        return phase_one
 
     def get_parser(self):
         parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
@@ -110,16 +136,20 @@ class HMConverter:
             dest, fname=os.path.basename(src), password=self.args.password
         )
 
-        self.assert_files(images_path)
+        phase_one = self.assert_files(images_path)
 
         annotations_path = os.path.join(base_path, "annotations")
         PathManager.mkdirs(annotations_path)
-        annotations = self.JSONL_FILES
+        annotations = (
+            self.JSONL_PHASE_ONE_FILES
+            if phase_one is True
+            else self.JSONL_PHASE_TWO_FILES
+        )
 
         for annotation in annotations:
             print(f"Moving {annotation}")
             src = os.path.join(images_path, "data", annotation)
-            dest = annotations_path
+            dest = os.path.join(annotations_path, annotation)
             move(src, dest)
 
         images = self.IMAGE_FILES
@@ -130,7 +160,7 @@ class HMConverter:
                 print(f"Moving {image_file}")
             else:
                 continue
-            dest = images_path
+            dest = os.path.join(images_path, image_file)
             move(src, dest)
             if src.endswith(".tar.gz"):
                 decompress(dest, fname=image_file, delete_original=False)
@@ -158,7 +188,7 @@ class HMConverter:
         try:
             # Python's zip file module is very slow with password encrypted files
             # Try command line
-            command = ["unzip", "-q", "-d", dest]
+            command = ["unzip", "-o", "-q", "-d", dest]
             if password:
                 command += ["-P", password]
             command += [path]

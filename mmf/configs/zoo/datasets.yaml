@@ -220,12 +220,12 @@ coco:
 
 hateful_memes:
   defaults:
-    version: 1.0_2020_05_11
+    version: 1.0_2020_10_01
     resources:
       features:
-      - url: mmf://datasets/hateful_memes/defaults/features/features.tar.gz
+      - url: mmf://datasets/hateful_memes/defaults/features/features_2020_10_01.tar.gz
         file_name: features.tar.gz
-        hashcode: 1eb8e5379fcf8f91fda92aa8f5926a536f3788bf07fe0f72ea7efc2d8427f12d
+        hashcode: ed23243d17485f1c960c073d81420187ab62cbaec2bfa6bc3954ae0252216b73
       extras:
       - url: mmf://datasets/hateful_memes/defaults/extras.tar.gz
         file_name: extras.tar.gz

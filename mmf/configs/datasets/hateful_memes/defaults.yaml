@@ -23,9 +23,9 @@ dataset_config:
       train:
       - hateful_memes/defaults/annotations/train.jsonl
       val:
-      - hateful_memes/defaults/annotations/dev.jsonl
+      - hateful_memes/defaults/annotations/dev_unseen.jsonl
       test:
-      - hateful_memes/defaults/annotations/test.jsonl
+      - hateful_memes/defaults/annotations/test_unseen.jsonl
     max_features: 100
     processors:
       text_processor:
