@@ -1,102 +1,13 @@
 dataset_config:
-  visual_genome:
-      data_dir: ${env.data_dir}
-      depth_first: false
-      fast_read: false
-      use_images: false
-      use_features: true
-      add_answer: true
-      max_features: 36
-      features:
-          train:
-          - visual_genome/detectron_fix_100/fc6/,visual_genome/resnet152/
-          - visual_genome/detectron_fix_100/fc6/,visual_genome/resnet152/
-      annotations:
-          train:
-          - imdb/visual_genome/vg_question_answers.jsonl
-          - imdb/visual_genome/vg_question_answers_placeholder.jsonl
-      scene_graph_files:
-          train:
-          - imdb/visual_genome/vg_scene_graphs.jsonl
-          - imdb/visual_genome/vg_scene_graphs_placeholder.jsonl
-      processors:
-        answer_processor:
-          type: vqa_answer
-          params:
-            num_answers: 1
-            vocab_file: vocabs/answers_vqa.txt
-            preprocessor:
-              type: simple_word
-              params: {}
-        vg_answer_preprocessor:
-          type: simple_word
-          params: {}
-        attribute_processor:
-          type: vocab
-          params:
-            max_length: 1
-            vocab:
-              type: random
-              vocab_file: vocabs/vocabulary_100k.txt
-        name_processor:
-          type: vocab
-          params:
-            max_length: 1
-            vocab:
-              type: random
-              vocab_file: vocabs/vocabulary_100k.txt
-        predicate_processor:
-          type: vocab
-          params:
-            max_length: 1
-            vocab:
-              type: random
-              vocab_file: vocabs/vocabulary_100k.txt
-        synset_processor:
-          type: vocab
-          params:
-            max_length: 1
-            vocab:
-              type: random
-              vocab_file: vocabs/vg_synsets.txt
-        bbox_processor:
-          type: bbox
-          params:
-            max_length: 36
-      masked_token_processor:
-        type: masked_token
-        params:
-          tokenizer_config:
-            type: bert-base-uncased
-            params:
-              do_lower_case: true
-          mask_probability: 0.15
-          max_seq_length: 20
-      masked_region_processor:
-        type: masked_region
-        params:
-          mask_probability: 0.15
-          mask_region_probability: 0.90
-      text_processor:
-        type: bert_tokenizer
-        params:
-          tokenizer_config:
-            type: bert-base-uncased
-            params:
-              do_lower_case: true
-          max_seq_length: 20
-      transformer_bbox_processor:
-        type: transformer_bbox
-        params:
-          bbox_key: bbox
-          image_width_key: image_width
-          image_height_key: image_height
-      return_scene_graph: false
-      return_objects: false
-      return_relationships: false
-      return_features_info: true
-      no_unk: false
-      # Return OCR information
-      use_ocr: false
-      # Return spatial information of OCR tokens if present
-      use_ocr_info: false
+  masked_visual_genome:
+    use_features: true
+    add_answer: true
+    max_features: 36
+    features:
+        train:
+        - visual_genome/detectron_fix_100/fc6/,visual_genome/resnet152/
+        - visual_genome/detectron_fix_100/fc6/,visual_genome/resnet152/
+    annotations:
+        train:
+        - imdb/visual_genome/vg_question_answers.jsonl
+        - imdb/visual_genome/vg_question_answers_placeholder.jsonl
