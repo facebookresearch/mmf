@@ -1,27 +1,20 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-import os
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List, NamedTuple, Tuple, Type
 
+from mmf.common.registry import registry
 from mmf.models import BaseModel
-from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
-from omegaconf import OmegaConf
 from torch import Tensor, nn
-from transformers import AutoConfig, AutoModel
 
 
-@dataclass
-class BaseTransformerInput:
+class BaseTransformerInput(NamedTuple):
     input_ids: Dict[str, Tensor]  # dict of input ids for all modalities
     position_ids: Dict[str, Tensor]  # dict of position ids for all modalities
     segment_ids: Dict[str, Tensor]  # dict of segment/token type ids for all modalities
     masks: Dict[str, Tensor]  # dict of masks for all modalities
-
-    def __getitem__(self, item):
-        # to access dataclass as a dict, for torchscript support
-        return getattr(self, item)
 
 
 @dataclass
@@ -53,6 +46,93 @@ class BaseTransformerConfigType:
     finetune_lr_multiplier: float  # finetune lr multiplier for base transformer
 
 
+class BaseTransformerBackend(nn.Module, ABC):
+    def __init__(self, config: BaseTransformerConfigType, *args, **kwargs):
+        super().__init__()
+        self.config = config
+        self.build_transformer_config()
+        self.build_transformer_base()
+        self.build_embeddings()
+
+    @abstractmethod
+    def build_transformer_config(self):
+        """Build the transformer base model config.
+
+        Warning: Empty shell for code to be implemented in other class.
+        """
+
+    @abstractmethod
+    def build_transformer_base(self):
+        """Build the transformer base model.
+
+        Warning: Empty shell for code to be implemented in other class.
+        """
+
+    @abstractmethod
+    def build_embeddings(self):
+        """Build the multimodal embeddings using the transformer base
+        embeddings.
+
+        Warning: Empty shell for code to be implemented in other class.
+        """
+
+    @abstractmethod
+    def get_config(self):
+        """Return the transformer configuration. This can be the config built
+        in `build_transformer_config` or the model config passed to init.
+
+        Warning: Empty shell for code to be implemented in other class.
+        """
+
+    @abstractmethod
+    def generate_embeddings(
+        self,
+        tokens_ids: Dict[str, Tensor],
+        position_ids: Dict[str, Tensor],
+        segment_ids: Dict[str, Tensor],
+        attention_mask: Tensor,
+    ) -> Tensor:
+        """Generate the multimodal embeddings.
+
+        Warning: Empty shell for code to be implemented in other class.
+        """
+
+    @abstractmethod
+    def generate_attention_mask(self, masks: List[Tensor]) -> Tensor:
+        """Generate attention mask.
+
+        Warning: Empty shell for code to be implemented in other class.
+        """
+
+    @abstractmethod
+    def generate_encoded_layers(self, embedding, attention_mask) -> List[Tensor]:
+        """Generate the output from transformer layers. Return the encoded layers.
+
+        Warning: Empty shell for code to be implemented in other class.
+        """
+
+    def forward(
+        self,
+        tokens_ids: Dict[str, Tensor],
+        position_ids: Dict[str, Tensor],
+        segment_ids: Dict[str, Tensor],
+        masks: List[Tensor],
+    ) -> Tuple[Tensor, List[Tensor]]:
+        # Attention mask
+        attention_mask = self.generate_attention_mask(masks)
+
+        # Multimodal Embeddings
+        embedding = self.generate_embeddings(
+            tokens_ids, position_ids, segment_ids, attention_mask
+        )
+
+        # Encoder
+        encoded_layers = self.generate_encoded_layers(embedding, attention_mask)
+
+        # Output Tuple(sequence output, all encoded layers)
+        return encoded_layers[-1], encoded_layers
+
+
 class BaseTransformer(BaseModel):
     def __init__(self, config: BaseTransformerConfigType):
         """Initialize the config which is the model configuration and transformer_config
@@ -60,17 +140,13 @@ class BaseTransformer(BaseModel):
         """
         super().__init__(config)
         self.config = config
-        self.transformer_config = AutoConfig.from_pretrained(
-            config.transformer_base, **OmegaConf.to_container(config)
-        )
 
     def build(self):
         """Build the different parts of the multimodal transformer model and
         initializes weights.
         """
-        self.build_transformer()
+        self.build_backend()
         self.build_encoders()
-        self.build_embeddings()
         self.build_heads()
         self.build_losses()
 
@@ -91,47 +167,16 @@ class BaseTransformer(BaseModel):
         """
         return
 
-    def build_embeddings(self):
-        """Build the embeddings for the different input modalities.
-
-        Example ::
-
-            # For text
-            self.word_embeddings = nn.Embedding(
-                config.vocab_size, config.hidden_size, padding_idx=0
-            )
-            self.position_embeddings = nn.Embedding(
-                config.max_position_embeddings, config.hidden_size
-            )
-
-            # For image
-            self.img_embeddings = nn.Sequential(
-                nn.Linear(img_dim, config.hidden_size),
-                torch.nn.LayerNorm(config.hidden_size, eps=1e-12),
-            )
+    def build_backend(self):
+        """Build the transformer backend. Use the `BaseTransformerBackend` base class
+        to inherit from when building a new backend. All the layers in the transformer
+        backend model will be available (encoder, embeddings etc.) for use. Adjust
+        your derived class based on the transformer backend you want to use.
         """
-        return
-
-    def build_transformer(self):
-        """Build the transformer encoder. This uses transformers AutoModel to load a
-        pretrained model given the name of the transformer based model. All the layers
-        in the transformer model will be available (encoder, embeddings etc.) for use.
-        Different HUggingface transformer models have different naming conventions for
-        the layers. Adjust your derived class based on the transformer base you want to
-        use.
-
-        Example ::
-
-            self.transformer = AutoModel.from_pretrained(
-                "bert-base-uncased",
-                config=self.transformer_config,
-            )
-        """
-        self.transformer = AutoModel.from_pretrained(
-            self.config.transformer_base,
-            config=self.transformer_config,
-            cache_dir=os.path.join(get_mmf_cache_dir(), "distributed_{}".format(-1)),
-        )
+        backend_config = self.config.get("backend", {})
+        backend_type = getattr(backend_config, "type", "huggingface")
+        backend_class = registry.get_transformer_backend_class(backend_type)
+        self.backend = backend_class(self.config)
 
     def build_heads(self):
         """Build the different heads for the model. It can be either the pretraining

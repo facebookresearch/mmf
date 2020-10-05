@@ -47,7 +47,7 @@ def get_optimizer_parameters_for_bert(module, config):
     model_config = getattr(config.model_config, config.model, {})
     finetune_lr_multiplier = getattr(model_config, "finetune_lr_multiplier", 1)
     # Finetune the bert pretrained part with finetune_lr_multiplier if it is set
-    encoder = module.transformer if hasattr(module, "transformer") else module.bert
+    encoder = module.backend if hasattr(module, "backend") else module.bert
     parameters = get_bert_configured_parameters(encoder, lr * finetune_lr_multiplier)
     # Classifier will be trained on the normal lr
     parameters += get_bert_configured_parameters(module.classifier, lr)
