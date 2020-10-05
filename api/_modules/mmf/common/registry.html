@@ -253,6 +253,7 @@
 <span class="sd">- Register a optimizer: ``@registry.register_optimizer``</span>
 <span class="sd">- Register a scheduler: ``@registry.register_scheduler``</span>
 <span class="sd">- Register a decoder: ``@registry.register_decoder``</span>
+<span class="sd">- Register a transformer backend: ``@registry.register_transformer_backend``</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.env</span> <span class="kn">import</span> <span class="n">setup_imports</span>
 
@@ -279,6 +280,7 @@
         <span class="s2">&quot;scheduler_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s2">&quot;processor_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s2">&quot;decoder_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;transformer_backend_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="p">{},</span>
     <span class="p">}</span>
 
@@ -497,6 +499,14 @@
 
         <span class="k">return</span> <span class="n">wrap</span>
 
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_transformer_backend</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;transformer_backend_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">func</span>
+
+        <span class="k">return</span> <span class="n">wrap</span>
+
 <div class="viewcode-block" id="Registry.register_decoder"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_decoder">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">register_decoder</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register a decoder to registry with key &#39;name&#39;</span>
@@ -585,6 +595,10 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_decoder_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;decoder_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_transformer_backend_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;transformer_backend_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Registry.get"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.get">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">no_warning</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
