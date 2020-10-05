@@ -1,0 +1,34 @@
+model_config:
+  visual_bert:
+    hidden_size: 768
+    hidden_dropout_prob: 0.1
+    training_head_type: classification
+    num_labels: 3129
+
+dataset_config:
+  masked_localized_narratives:
+    return_features_info: true
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 1000
+    num_training_steps: 11000
+
+training:
+  batch_size: 32
+  lr_scheduler: true
+  num_workers: 0
+  # Don't forget to update schedule_attributes if you update this
+  max_updates: 88000
+  find_unused_parameters: true
+
+checkpoint:
+  pretrained_state_mapping:
+    model.bert: model.bert

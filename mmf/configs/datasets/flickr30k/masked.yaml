@@ -1,0 +1,35 @@
+dataset_config:
+  masked_flickr30k:
+    data_dir: ${env.data_dir}/datasets
+    depth_first: false
+    fast_read: false
+    use_images: false
+    use_features: true
+    zoo_requirements:
+    - flickr30k.defaults
+    features:
+      train:
+      - flickr30k/defaults/features/detectron.lmdb
+      val:
+      - flickr30k/defaults/features/detectron.lmdb
+      test:
+      - flickr30k/defaults/features/detectron.lmdb
+    annotations:
+      train:
+      - localized_narratives/defaults/annotations/flickr30k_train_localized_narratives.jsonl
+      val:
+      - localized_narratives/defaults/annotations/flickr30k_val_localized_narratives.jsonl
+      test:
+      - localized_narratives/defaults/annotations/flickr30k_test_localized_narratives.jsonl
+    max_features: 100
+    use_image_feature_masks: false
+    processors:
+      masked_token_processor:
+        type: masked_token
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0.15
+          max_seq_length: 64
