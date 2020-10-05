@@ -36,7 +36,7 @@ Learn more about MMF [here](https://mmf.sh/docs).
 
 If you use MMF in your work or use any models published in MMF, please cite:
 
-```
+```bibtex
 @misc{singh2020mmf,
   author =       {Singh, Amanpreet and Goswami, Vedanuj and Natarajan, Vivek and Jiang, Yu and Chen, Xinlei and Shah, Meet and
                  Rohrbach, Marcus and Batra, Dhruv and Parikh, Devi},
