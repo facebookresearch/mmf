@@ -1,0 +1,73 @@
+dataset_config:
+  masked_localized_narratives:
+    data_dir: ${env.data_dir}/datasets
+    use_images: False
+    use_features: True
+    zoo_requirements:
+    - localized_narratives.defaults
+    - ade20k.defaults
+    - coco.defaults
+    - flickr30k.defaults
+    features:
+      train:
+      - flickr30k/defaults/features/detectron.lmdb
+      - ade20k/defaults/features/ade20k_train.lmdb
+      - coco/defaults/features/coco_train2017.lmdb
+      - coco/defaults/features/coco_train2017.lmdb
+      - coco/defaults/features/coco_train2017.lmdb
+      - coco/defaults/features/coco_train2017.lmdb
+      - localized_narratives/defaults/features/ln_open_images_train.lmdb
+      - localized_narratives/defaults/features/ln_open_images_train.lmdb
+      - localized_narratives/defaults/features/ln_open_images_train.lmdb
+      - localized_narratives/defaults/features/ln_open_images_train.lmdb
+      - localized_narratives/defaults/features/ln_open_images_train.lmdb
+      - localized_narratives/defaults/features/ln_open_images_train.lmdb
+      - localized_narratives/defaults/features/ln_open_images_train.lmdb
+      - localized_narratives/defaults/features/ln_open_images_train.lmdb
+      - localized_narratives/defaults/features/ln_open_images_train.lmdb
+      - localized_narratives/defaults/features/ln_open_images_train.lmdb
+      val:
+      - flickr30k/defaults/features/detectron.lmdb
+      - ade20k/defaults/features/ade20k_val.lmdb
+      - localized_narratives/defaults/features/open_images_val.lmdb
+      - coco/defaults/features/coco_val2017.lmdb
+      test:
+      - flickr30k/defaults/features/detectron.lmdb
+      - localized_narratives/defaults/features/open_images_test.lmdb
+    annotations:
+      train:
+      - localized_narratives/defaults/annotations/flickr30k_train_localized_narratives.jsonl
+      - localized_narratives/defaults/annotations/ade20k_train_localized_narratives.jsonl
+      - localized_narratives/defaults/annotations/coco_train_localized_narratives-00000-of-00004.jsonl
+      - localized_narratives/defaults/annotations/coco_train_localized_narratives-00001-of-00004.jsonl
+      - localized_narratives/defaults/annotations/coco_train_localized_narratives-00002-of-00004.jsonl
+      - localized_narratives/defaults/annotations/coco_train_localized_narratives-00003-of-00004.jsonl
+      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00000-of-00010.jsonl
+      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00001-of-00010.jsonl
+      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00002-of-00010.jsonl
+      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00003-of-00010.jsonl
+      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00004-of-00010.jsonl
+      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00005-of-00010.jsonl
+      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00006-of-00010.jsonl
+      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00007-of-00010.jsonl
+      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00008-of-00010.jsonl
+      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00009-of-00010.jsonl
+      val:
+      - localized_narratives/defaults/annotations/flickr30k_val_localized_narratives.jsonl
+      - localized_narratives/defaults/annotations/ade20k_validation_localized_narratives.jsonl
+      - localized_narratives/defaults/annotations/open_images_validation_localized_narratives.jsonl
+      - localized_narratives/defaults/annotations/coco_val_localized_narratives.jsonl
+      test:
+      - localized_narratives/defaults/annotations/flickr30k_test_localized_narratives.jsonl
+      - localized_narratives/defaults/annotations/open_images_test_localized_narratives.jsonl
+    processors:
+      masked_token_processor:
+        type: masked_token
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: True
+          mask_probability: 0.15
+          max_seq_length: 64
+

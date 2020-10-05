@@ -1,0 +1,37 @@
+dataset_config:
+  masked_coco2017:
+    data_dir: ${env.data_dir}/datasets
+    depth_first: false
+    fast_read: false
+    use_images: false
+    use_features: true
+    zoo_requirements:
+    - coco.defaults
+    features:
+      train:
+      - coco/defaults/features/coco_train2017.lmdb
+      - coco/defaults/features/coco_train2017.lmdb
+      - coco/defaults/features/coco_train2017.lmdb
+      - coco/defaults/features/coco_train2017.lmdb
+      val:
+      - coco/defaults/features/coco_val2017.lmdb
+    annotations:
+      train:
+      - localized_narratives/defaults/annotations/coco_train_localized_narratives-00000-of-00004.jsonl
+      - localized_narratives/defaults/annotations/coco_train_localized_narratives-00001-of-00004.jsonl
+      - localized_narratives/defaults/annotations/coco_train_localized_narratives-00002-of-00004.jsonl
+      - localized_narratives/defaults/annotations/coco_train_localized_narratives-00003-of-00004.jsonl
+      val:
+      - localized_narratives/defaults/annotations/coco_val_localized_narratives.jsonl
+    max_features: 100
+    use_image_feature_masks: false
+    processors:
+      masked_token_processor:
+        type: masked_token
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0.15
+          max_seq_length: 64
