@@ -200,10 +200,11 @@ class Checkpoint:
             if not reset_optimizer:
                 self._load_optimizer(ckpt)
 
-            self.trainer.early_stop_callback.early_stopping.init_from_checkpoint(ckpt)
             reset_counts = ckpt_config.reset.all or ckpt_config.reset.counts
-
             if not reset_counts:
+                self.trainer.early_stop_callback.early_stopping.init_from_checkpoint(
+                    ckpt
+                )
                 self._load_counts_and_lr_scheduler(ckpt)
         else:
             self._load_pretrained(state_dict)
