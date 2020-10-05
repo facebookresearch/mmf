@@ -16,8 +16,8 @@ class TestOptimizers(unittest.TestCase):
         )
 
     def test_build_optimizer_simple_model(self):
-        model = SimpleModel(1)
-
+        model = SimpleModel({"in_dim": 1})
+        model.build()
         optimizer = build_optimizer(model, self.config)
         self.assertTrue(isinstance(optimizer, torch.optim.Optimizer))
         self.assertEqual(len(optimizer.param_groups), 1)

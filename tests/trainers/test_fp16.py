@@ -12,7 +12,7 @@ class SimpleModelWithFp16Assert(SimpleModel):
         batch_tensor = sample_list[list(sample_list.keys())[0]]
         # Start should be fp32
         assert batch_tensor.dtype == torch.float32
-        batch_tensor = self.linear(batch_tensor)
+        batch_tensor = self.classifier(batch_tensor)
 
         # In between operation should be fp16
         assert batch_tensor.dtype == torch.float16
@@ -35,7 +35,8 @@ class MMFTrainerMock(TrainerTrainingLoopMock):
             assert (
                 torch.cuda.is_available()
             ), "MMFTrainerMock fp16 requires cuda enabled"
-            self.model = SimpleModelWithFp16Assert(1)
+            self.model = SimpleModelWithFp16Assert({"in_dim": 1})
+            self.model.build()
             self.model = self.model.cuda()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-3)
 
