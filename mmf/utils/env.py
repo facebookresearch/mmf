@@ -2,6 +2,7 @@
 
 import glob
 import importlib
+import logging
 import os
 import random
 import sys
@@ -28,7 +29,7 @@ def set_seed(seed):
     return seed
 
 
-def import_user_module(user_dir: str, no_print: bool = False):
+def import_user_module(user_dir: str):
     """Given a user dir, this function imports it as a module.
 
     This user_module is expected to have an __init__.py at its root.
@@ -37,18 +38,25 @@ def import_user_module(user_dir: str, no_print: bool = False):
 
     Args:
         user_dir (str): directory which has to be imported
-        no_print (bool): This function won't print anything if set to true
     """
+    logger = logging.getLogger(__name__)
     if user_dir:
         user_dir = get_absolute_path(user_dir)
         module_parent, module_name = os.path.split(user_dir)
 
-        if module_name not in sys.modules:
-            sys.path.insert(0, module_parent)
-            if not no_print:
-                print(f"Importing user_dir from {user_dir}")
-            importlib.import_module(module_name)
-            sys.path.pop(0)
+        if module_name in sys.modules:
+            module_bak = sys.modules[module_name]
+            del sys.modules[module_name]
+        else:
+            module_bak = None
+
+        logger.info(f"Importing from {user_dir}")
+        sys.path.insert(0, module_parent)
+        importlib.import_module(module_name)
+
+        sys.modules["mmf_user_dir"] = sys.modules[module_name]
+        if module_bak is not None and module_name != "mmf_user_dir":
+            sys.modules[module_name] = module_bak
 
 
 def import_files(file_path: str, module_name: str = None):
