@@ -1,5 +1,5 @@
 ---
-id: concat_bert
+id: concat_bert_tutorial
 title: 'Tutorial: Adding a model - Concat BERT'
 sidebar_label: Adding a model - Concat BERT
 ---
@@ -14,7 +14,7 @@ Follow the prerequisites for installation and dataset [here](https://github.com/
 
 ## Using MMF to build the model
 
-We will start building our model `ConcatBERT` using the various building blocks available in MMF. Helper builder methods like `build_image_encoder` for building image encoders, `build_text_encoder` for building text encoders, `build_classifier_layer` for classifier layers etc take configurable params which are defined in the config we will create in the next section. Follow the code and read through the comments to understand how the model is implemented.
+We will start building our model `ConcatBERTTutorial` using the various building blocks available in MMF. Helper builder methods like `build_image_encoder` for building image encoders, `build_text_encoder` for building text encoders, `build_classifier_layer` for classifier layers etc take configurable params which are defined in the config we will create in the next section. Follow the code and read through the comments to understand how the model is implemented.
 
 ```python
 
@@ -34,9 +34,9 @@ from mmf.utils.build import (
 )
 
 
-# Register the model for MMF, "concat_bert" key would be used to find the model
-@registry.register_model("concat_bert")
-class ConcatBERT(BaseModel):
+# Register the model for MMF, "concat_bert_tutorial" key would be used to find the model
+@registry.register_model("concat_bert_tutorial")
+class ConcatBERTTutorial(BaseModel):
     # All models in MMF get first argument as config which contains all
     # of the information you stored in this model's config (hyperparameters)
     def __init__(self, config):
@@ -50,7 +50,7 @@ class ConcatBERT(BaseModel):
     @classmethod
     def config_path(cls):
         # Relative to user dir root
-        return "configs/models/concat_bert/defaults.yaml"
+        return "configs/models/concat_bert_tutorial/defaults.yaml"
 
     # Each method need to define a build method where the model's modules
     # are actually build and assigned to the model
@@ -145,11 +145,11 @@ We will define two configs needed for our experiments: (i) a model config for th
 
 ## Model Config
 
-We will now create the model config file with the params we used while creating the model and store the config in `configs/models/concat_bert/defaults.yaml`.
+We will now create the model config file with the params we used while creating the model and store the config in `configs/models/concat_bert_tutorial/defaults.yaml`.
 
 ```yaml
 model_config:
-  concat_bert:
+  concat_bert_tutorial:
     # Type of bert model
     bert_model_name: bert-base-uncased
     direct_features_input: false
@@ -192,14 +192,14 @@ model_config:
 
 ## Experiment Config
 
-In the next step, we will create the experiment config which will tell MMF which dataset, optimizer, scheduler, metrics for evalauation to use. We will save this config in `configs/experiments/concat_bert/defaults.yaml`:
+In the next step, we will create the experiment config which will tell MMF which dataset, optimizer, scheduler, metrics for evalauation to use. We will save this config in `configs/experiments/concat_bert_tutorial/defaults.yaml`:
 
 ```yaml
 includes:
   - configs/datasets/hateful_memes/bert.yaml
 
 model_config:
-  trying:
+  concat_bert_tutorial:
     classifier:
       type: mlp
       params:
@@ -241,10 +241,10 @@ We include the `bert.yaml` config in this as we want to use BERT tokenizer for p
 Now we are ready to train and evaluate our model with the experiment config we created in previous step.
 
 ```bash
-mmf_run config="configs/experiments/concat_bert/defaults.yaml" \
-    model=concat_bert \
+mmf_run config="configs/experiments/concat_bert_tutorial/defaults.yaml" \
+    model=concat_bert_tutorial \
     dataset=hateful_memes \
     run_type=train_val
 ```
 
-When training ends it will save a final model `concat_bert_final.pth` in the experiment folder under `./save` directory. More details about checkpoints can be found [here](https://mmf.sh/docs/tutorials/checkpointing). The command will also generate validation scores after the training gets over.
+When training ends it will save a final model `concat_bert_tutorial_final.pth` in the experiment folder under `./save` directory. More details about checkpoints can be found [here](https://mmf.sh/docs/tutorials/checkpointing). The command will also generate validation scores after the training gets over.
