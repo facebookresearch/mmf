@@ -2,11 +2,10 @@
 
 import unittest
 
+import tests.test_utils as test_utils
 import torch
 from mmf.common.batch_collator import BatchCollator
 from mmf.common.sample import Sample
-
-import tests.test_utils as test_utils
 
 
 class TestBatchCollator(unittest.TestCase):

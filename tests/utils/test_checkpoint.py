@@ -18,7 +18,6 @@ from mmf.utils.checkpoint import Checkpoint
 from mmf.utils.configuration import load_yaml
 from mmf.utils.file_io import PathManager
 from omegaconf import OmegaConf
-
 from tests.test_utils import compare_state_dicts
 
 

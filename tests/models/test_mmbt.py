@@ -3,13 +3,12 @@
 import io
 import unittest
 
+import tests.test_utils as test_utils
 import torch
 from mmf.common.registry import registry
 from mmf.common.sample import Sample, SampleList
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports
-
-import tests.test_utils as test_utils
 
 
 class TestMMBTTorchscript(unittest.TestCase):
@@ -40,7 +39,7 @@ class TestMMBTTorchscript(unittest.TestCase):
         self.finetune_model.eval()
         test_sample = Sample()
         test_sample.input_ids = torch.randint(low=0, high=30255, size=(128,)).long()
-        test_sample.input_mask = torch.ones((128)).long()
+        test_sample.input_mask = torch.ones(128).long()
         test_sample.segment_ids = torch.zeros(128).long()
         test_sample.image = torch.rand((3, 300, 300)).float()
         test_sample_list = SampleList([test_sample])
