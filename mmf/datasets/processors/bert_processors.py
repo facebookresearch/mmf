@@ -26,6 +26,9 @@ class MaskedTokenProcessor(BaseProcessor):
     def get_vocab_size(self):
         return len(self._tokenizer)
 
+    def tokenize(self, tokens):
+        return self._tokenizer.tokenize(tokens)
+
     def _random_word(self, tokens, probability=0.15):
         labels = []
         for idx, token in enumerate(tokens):
@@ -122,11 +125,11 @@ class MaskedTokenProcessor(BaseProcessor):
         text_a = item["text_a"]
         text_b = item.get("text_b", None)
 
-        tokens_a = self._tokenizer.tokenize(text_a)
+        tokens_a = self.tokenize(text_a)
         tokens_b = None
 
         if text_b:
-            tokens_b = self._tokenizer.tokenize(text_b)
+            tokens_b = self.tokenize(text_b)
 
         self._truncate_seq_pair(tokens_a, tokens_b, self._max_seq_length - 2)
         output = self._convert_to_indices(
@@ -153,14 +156,14 @@ class BertTokenizer(MaskedTokenProcessor):
         if isinstance(text_a, list):
             text_a = " ".join(text_a)
 
-        tokens_a = self._tokenizer.tokenize(text_a)
+        tokens_a = self.tokenize(text_a)
 
         # 'text_b' can be defined in the dataset preparation
         tokens_b = None
         if "text_b" in item:
             text_b = item["text_b"]
             if text_b:
-                tokens_b = self._tokenizer.tokenize(text_b)
+                tokens_b = self.tokenize(text_b)
 
         self._truncate_seq_pair(tokens_a, tokens_b, self._max_seq_length - 2)
         output = self._convert_to_indices(
@@ -181,6 +184,7 @@ class MultiSentenceBertTokenizer(BertTokenizer):
     def __init__(self, config, *args, **kwargs):
         super().__init__(config, *args, **kwargs)
         self.fusion_strategy = config.get("fusion", "concat")
+        self.tokenizer = super().__call__
 
     def __call__(self, item):
         texts = item["text"]
@@ -190,7 +194,7 @@ class MultiSentenceBertTokenizer(BertTokenizer):
         processed = []
         for idx, text in enumerate(texts):
             sample = Sample()
-            processed_text = super().__call__({"text": text})
+            processed_text = self.tokenizer({"text": text})
             sample.update(processed_text)
             sample.segment_ids.fill_(idx)
             processed.append(sample)
