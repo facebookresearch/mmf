@@ -3,9 +3,8 @@
 import unittest
 
 import numpy as np
-from mmf.models.mmbt import MMBT
-
 import tests.test_utils as test_utils
+from mmf.models.mmbt import MMBT
 
 
 class TestModelInterfaces(unittest.TestCase):

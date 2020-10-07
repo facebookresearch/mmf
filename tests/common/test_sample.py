@@ -1,10 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
+import tests.test_utils as test_utils
 import torch
 from mmf.common.sample import Sample, to_device
-
-import tests.test_utils as test_utils
 
 
 class TestSample(unittest.TestCase):

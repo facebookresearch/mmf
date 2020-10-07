@@ -7,7 +7,6 @@ from io import StringIO
 from mmf.common.registry import registry
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports
-
 from tests.test_utils import dummy_args
 
 

@@ -10,7 +10,6 @@ from mmf.common.sample import Sample, SampleList
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports
 from mmf.utils.general import get_mmf_root
-
 from tests.test_utils import dummy_args
 from tests.utils.test_model import TestDecoderModel
 
