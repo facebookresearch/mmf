@@ -249,7 +249,10 @@ def build_classifier_layer(config, *args, **kwargs):
 
 
 def build_text_encoder(config, *args, **kwargs):
-    from mmf.modules.encoders import TextEncoder
+    try:
+        from mmf.modules.fb.encoders import TextEncoder
+    except ImportError:
+        from mmf.modules.encoders import TextEncoder
 
     text_encoder = TextEncoder(config, *args, **kwargs)
     return text_encoder.module
