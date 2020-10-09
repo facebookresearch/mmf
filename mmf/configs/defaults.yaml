@@ -161,7 +161,11 @@ run_type: train_inference
 
 # Configuration for optimizer, examples can be found in models' configs in
 # configs folder
-optimizer: {}
+optimizer:
+    # Whether to allow some of the model's parameters not to be used by the
+    # optimizer. Default is false to guard against missing parameters due to
+    # implementation errors in a model's get_optimizer_parameters
+    allow_unused_parameters: false
 
 # Configuration for scheduler, examples can be found in models' configs
 scheduler: {}
