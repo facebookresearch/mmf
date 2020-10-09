@@ -18,6 +18,7 @@ class TrainerTrainingLoopMock(TrainerTrainingLoopMixin, TrainerProfilingMixin):
                 "detect_anomaly": False,
                 "evaluation_interval": 10000,
                 "update_frequency": 1,
+                "fp16": True,
             }
         )
         if max_updates is not None:
@@ -47,7 +48,12 @@ class TrainerTrainingLoopMock(TrainerTrainingLoopMixin, TrainerProfilingMixin):
         self.on_batch_end = MagicMock(return_value=None)
         self.on_update_end = MagicMock(return_value=None)
         self.meter = MagicMock(return_value=None)
+        loss_mock = MagicMock()
+        loss_mock.backward = MagicMock()
         self.after_training_loop = MagicMock(return_value=None)
+        self.scaler = MagicMock()
+        self.scaler.scale = MagicMock(return_value=loss_mock)
+        self.scaler.step = MagicMock(return_value=None)
 
 
 class TestTrainingLoop(unittest.TestCase):

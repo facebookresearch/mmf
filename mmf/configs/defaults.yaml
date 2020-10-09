@@ -286,3 +286,5 @@ checkpoint:
         optimizer: false
         # All counts such as best_update, current_iteration etc will be reset
         counts: false
+        # If fp16 scaler should be reset or not
+        fp16_scaler: false

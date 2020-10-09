@@ -206,6 +206,10 @@ class Checkpoint:
                     ckpt
                 )
                 self._load_counts_and_lr_scheduler(ckpt)
+
+            reset_scaler = ckpt_config.reset.all or ckpt_config.reset.fp16_scaler
+            if not reset_scaler:
+                self._load_fp16_scaler(ckpt)
         else:
             self._load_pretrained(state_dict)
 
@@ -280,6 +284,12 @@ class Checkpoint:
 
         self.trainer.current_epoch = ckpt.get("best_epoch", self.trainer.current_epoch)
         registry.register("current_epoch", self.trainer.current_epoch)
+
+    def _load_fp16_scaler(self, ckpt):
+        scaler = getattr(self.trainer, "scaler", None)
+        scaler_dict = ckpt.get("fp16_scaler", None)
+        if scaler_dict is not None:
+            scaler.load_state_dict(scaler_dict)
 
     def _load_pretrained(self, ckpt):
         model = self.trainer.model
@@ -396,6 +406,11 @@ class Checkpoint:
         )
         model = self.trainer.model
         data_parallel = registry.get("data_parallel") or registry.get("distributed")
+        fp16_scaler = getattr(self.trainer, "scaler", None)
+        fp16_scaler_dict = None
+
+        if fp16_scaler is not None:
+            fp16_scaler_dict = fp16_scaler.state_dict()
 
         if data_parallel is True:
             model = model.module
@@ -409,6 +424,7 @@ class Checkpoint:
             "num_updates": update,
             "best_update": best_update,
             "best_metric_value": best_metric,
+            "fp16_scaler": fp16_scaler_dict,
             # Convert to container to avoid any dependencies
             "config": OmegaConf.to_container(self.config, resolve=True),
         }
