@@ -106,7 +106,9 @@ class NumbersDataset(torch.utils.data.Dataset):
         self.data_item_key = data_item_key
 
     def __getitem__(self, idx):
-        return {self.data_item_key: torch.tensor(idx, dtype=torch.float32)}
+        return {
+            self.data_item_key: torch.tensor(idx, dtype=torch.float32).unsqueeze(-1)
+        }
 
     def __len__(self):
         return self.num_examples

@@ -288,7 +288,7 @@ class Checkpoint:
     def _load_fp16_scaler(self, ckpt):
         scaler = getattr(self.trainer, "scaler", None)
         scaler_dict = ckpt.get("fp16_scaler", None)
-        if scaler_dict is not None:
+        if scaler is not None and scaler_dict is not None:
             scaler.load_state_dict(scaler_dict)
 
     def _load_pretrained(self, ckpt):

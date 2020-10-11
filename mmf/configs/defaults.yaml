@@ -126,6 +126,9 @@ training:
     # only be used for debugging purposes
     detect_anomaly: false
 
+    # FP16 support through torch.cuda.amp autocast and grad scaler.
+    # Set to true to activate fp16 for faster performance with negligible
+    # drop in results.
     fp16: false
 
 # Configuration for evaluation
