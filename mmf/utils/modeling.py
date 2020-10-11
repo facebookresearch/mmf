@@ -1,7 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import logging
+
 from torch import nn
 
+
+logger = logging.getLogger(__name__)
 
 ACT2FN = {
     "relu": nn.ReLU,
@@ -38,18 +42,26 @@ def get_bert_configured_parameters(module, lr=None):
 
 
 def get_optimizer_parameters_for_bert(module, config):
-    # Pretraining has same LR for all of the parts
-    if module.config.training_head_type == "pretraining":
-        return get_bert_configured_parameters(module)
-
-    # For finetuning setup, we have classifier
     lr = config.optimizer.params.lr
     model_config = getattr(config.model_config, config.model, {})
     finetune_lr_multiplier = getattr(model_config, "finetune_lr_multiplier", 1)
-    # Finetune the bert pretrained part with finetune_lr_multiplier if it is set
-    encoder = module.backend if hasattr(module, "backend") else module.bert
-    parameters = get_bert_configured_parameters(encoder, lr * finetune_lr_multiplier)
-    # Classifier will be trained on the normal lr
-    parameters += get_bert_configured_parameters(module.classifier, lr)
+
+    # For pretraining or when finetune_lr_multiplier == 1, all modules will be trained
+    # with default lr.
+    if module.config.training_head_type == "pretraining" or finetune_lr_multiplier == 1:
+        return get_bert_configured_parameters(module)
+
+    # For non pretraining heads, where finetune_lr_multiplier != 1, all modules other
+    # than classifier will be trained with (lr * finetune_lr_multiplier).
+    parameters = []
+    for name, submodule in module.named_children():
+        if name == "classifier":
+            continue
+        parameters += get_bert_configured_parameters(
+            submodule, lr * finetune_lr_multiplier
+        )
+        logger.info(f"Overriding {name} module's LR to {lr * finetune_lr_multiplier}")
+    # Classifier will be trained with default lr.
+    parameters += get_bert_configured_parameters(module.classifier)
 
     return parameters
