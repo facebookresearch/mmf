@@ -122,7 +122,7 @@ class M4C(BaseModel):
 
         # OCR appearance feature: Faster R-CNN
         self.ocr_faster_rcnn_fc7 = build_image_encoder(
-            self._build_encoder_config, direct_features=True
+            self._build_encoder_config(), direct_features=True
         )
         self.finetune_modules.append(
             {"module": self.ocr_faster_rcnn_fc7, "lr_scale": self.config.lr_scale_frcn}
