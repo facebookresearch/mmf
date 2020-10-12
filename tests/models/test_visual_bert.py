@@ -28,8 +28,9 @@ class TestVisualBertTorchscript(unittest.TestCase):
 
     @test_utils.skip_if_no_network
     def test_load_save_pretrain_model(self):
-        self.pretrain_model.model.eval()
-        script_model = torch.jit.script(self.pretrain_model.model)
+        module = self.pretrain_model.get_torchscriptable_module()
+        module.eval()
+        script_model = torch.jit.script(module)
         buffer = io.BytesIO()
         torch.jit.save(script_model, buffer)
         buffer.seek(0)
@@ -38,7 +39,8 @@ class TestVisualBertTorchscript(unittest.TestCase):
 
     @test_utils.skip_if_no_network
     def test_pretrained_model(self):
-        self.pretrain_model.model.eval()
+        module = self.pretrain_model.get_torchscriptable_module()
+        module.eval()
 
         input_ids = torch.randint(low=0, high=30255, size=(1, 128)).long()
         input_mask = torch.ones((1, 128)).long()
@@ -51,7 +53,7 @@ class TestVisualBertTorchscript(unittest.TestCase):
         self.pretrain_model.eval()
 
         with torch.no_grad():
-            model_output = self.pretrain_model.model(
+            model_output = module(
                 input_ids=input_ids,
                 input_mask=input_mask,
                 attention_mask=attention_mask,
@@ -60,7 +62,7 @@ class TestVisualBertTorchscript(unittest.TestCase):
                 visual_embeddings_type=visual_embeddings_type,
                 masked_lm_labels=masked_lm_labels,
             )
-        script_model = torch.jit.script(self.pretrain_model.model)
+        script_model = torch.jit.script(module)
         with torch.no_grad():
             script_output = script_model(
                 input_ids=input_ids,

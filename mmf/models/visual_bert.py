@@ -403,6 +403,9 @@ class VisualBERT(BaseModel):
     def config_path(cls):
         return "configs/models/visual_bert/pretrain.yaml"
 
+    def get_torchscriptable_module(self):
+        return self.model
+
     def build(self):
         if self.config.training_head_type == "pretraining":
             self.model = VisualBERTForPretraining(self.config)

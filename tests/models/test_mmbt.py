@@ -35,8 +35,9 @@ class TestMMBTTorchscript(unittest.TestCase):
 
     @test_utils.skip_if_no_network
     def test_load_save_finetune_model(self):
-        self.finetune_model.eval()
-        script_model = torch.jit.script(self.finetune_model)
+        module = self.finetune_model.get_torchscriptable_module()
+        module.eval()
+        script_model = torch.jit.script(module)
         buffer = io.BytesIO()
         torch.jit.save(script_model, buffer)
         buffer.seek(0)
@@ -45,7 +46,8 @@ class TestMMBTTorchscript(unittest.TestCase):
 
     @test_utils.skip_if_no_network
     def test_finetune_model(self):
-        self.finetune_model.eval()
+        module = self.finetune_model.get_torchscriptable_module()
+        module.eval()
         test_sample = Sample()
         test_sample.input_ids = torch.randint(low=0, high=30255, size=(128,)).long()
         test_sample.input_mask = torch.ones(128).long()
@@ -56,7 +58,7 @@ class TestMMBTTorchscript(unittest.TestCase):
         with torch.no_grad():
             model_output = self.finetune_model.model(test_sample_list)
 
-        script_model = torch.jit.script(self.finetune_model.model)
+        script_model = torch.jit.script(module)
         with torch.no_grad():
             script_output = script_model(test_sample_list)
 

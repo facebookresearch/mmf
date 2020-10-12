@@ -228,3 +228,9 @@ class BaseModel(nn.Module):
         instance.eval()
 
         return instance
+
+    def get_torchscriptable_module(self):
+        """If a subset of the model is only torchscriptable, use this property
+        to return that subset.
+        """
+        return self
