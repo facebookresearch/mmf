@@ -2,8 +2,9 @@
 
 import os
 import warnings
-from typing import Any, Dict, Type
+from typing import Any, Dict, Type, Union
 
+import mmf
 import torch
 from mmf.common import typings as mmf_typings
 from mmf.common.registry import registry
@@ -11,7 +12,7 @@ from mmf.datasets.processors.processors import Processor
 from mmf.utils.configuration import Configuration
 from mmf.utils.distributed import is_dist_initialized
 from mmf.utils.general import get_optimizer_parameters
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 
 
 ProcessorType = Type[Processor]
@@ -57,9 +58,16 @@ def build_trainer(config: mmf_typings.DictConfig) -> Any:
     return trainer_obj
 
 
-def build_model(config):
-    model_name = config.model
+def build_model(
+    config: Union[DictConfig, "mmf.models.base_model.BaseModel.Config"]
+) -> "mmf.models.base_model.BaseModel":
+    from mmf.models.base_model import BaseModel
 
+    # If it is not an OmegaConf object, create the object
+    if not isinstance(config, DictConfig) and isinstance(config, BaseModel.Config):
+        config = OmegaConf.structured(config)
+
+    model_name = config.model
     model_class = registry.get_model_class(model_name)
 
     if model_class is None:

@@ -7,8 +7,17 @@ import tests.test_utils as test_utils
 import torch
 from mmf.common.registry import registry
 from mmf.common.sample import Sample, SampleList
+from mmf.models.mmbt import MMBT
+from mmf.modules.encoders import (
+    ImageEncoder,
+    ImageEncoderTypes,
+    ResNet152ImageEncoder,
+    TextEncoder,
+    TextEncoderTypes,
+)
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports
+from omegaconf import OmegaConf
 
 
 class TestMMBTTorchscript(unittest.TestCase):
@@ -52,3 +61,48 @@ class TestMMBTTorchscript(unittest.TestCase):
             script_output = script_model(test_sample_list)
 
         self.assertTrue(torch.equal(model_output["scores"], script_output["scores"]))
+
+
+class TestMMBTConfig(unittest.TestCase):
+    def test_mmbt_from_params(self):
+        # default init
+        mmbt = MMBT.from_params(
+            modal_encoder=ImageEncoder.Config(
+                type=ImageEncoderTypes.resnet152,
+                params=ResNet152ImageEncoder.Config(pretrained=False),
+            ),
+            text_encoder=TextEncoder.Config(type=TextEncoderTypes.identity),
+        )
+
+        config = OmegaConf.structured(
+            MMBT.Config(
+                modal_encoder=ImageEncoder.Config(
+                    type=ImageEncoderTypes.resnet152,
+                    params=ResNet152ImageEncoder.Config(pretrained=False),
+                ),
+                text_encoder=TextEncoder.Config(type=TextEncoderTypes.identity),
+            )
+        )
+        self.assertIsNotNone(mmbt)
+        # Make sure that the config is created from MMBT.Config
+        self.assertEqual(mmbt.config, config)
+
+    @test_utils.skip_if_no_network
+    def test_mmbt_pretrained(self):
+        mmbt = MMBT.from_params()
+        self.assertIsNotNone(mmbt)
+
+    def test_mmbt_directly_from_config(self):
+        config = OmegaConf.structured(
+            MMBT.Config(
+                modal_encoder=ImageEncoder.Config(
+                    type=ImageEncoderTypes.resnet152,
+                    params=ResNet152ImageEncoder.Config(pretrained=False),
+                ),
+                text_encoder=TextEncoder.Config(type=TextEncoderTypes.identity),
+            )
+        )
+        mmbt = MMBT(config)
+        self.assertIsNotNone(mmbt)
+        # Make sure that the config is created from MMBT.Config
+        self.assertEqual(mmbt.config, config)
