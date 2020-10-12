@@ -43,12 +43,15 @@ Example::
 import collections
 import warnings
 from copy import deepcopy
+from dataclasses import dataclass
+from typing import Union
 
 from mmf.common.registry import registry
 from mmf.common.sample import to_device
 from mmf.modules.losses import Losses
 from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.download import download_pretrained_model
+from omegaconf import MISSING, DictConfig, OmegaConf
 from torch import nn
 
 
@@ -63,11 +66,23 @@ class BaseModel(nn.Module):
 
     """
 
-    def __init__(self, config):
+    @dataclass
+    class Config:
+        # Name of the model that is used in registry
+        model: str = MISSING
+
+    def __init__(self, config: Union[DictConfig, Config]):
         super().__init__()
+        if not isinstance(config, DictConfig) and isinstance(config, self.Config):
+            config = OmegaConf.structured(config)
+
         self.config = config
         self._logged_warning = {"losses_present": False}
         self._is_pretrained = False
+
+    @classmethod
+    def from_params(cls, **kwargs):
+        return cls(OmegaConf.structured(cls.Config(**kwargs)))
 
     @property
     def is_pretrained(self):

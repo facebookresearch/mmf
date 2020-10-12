@@ -7,18 +7,28 @@
 
 import os
 from copy import deepcopy
-from typing import Dict, Optional
+from dataclasses import dataclass
+from typing import Dict, Optional, Union
 
 import torch
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
 from mmf.models.interfaces.mmbt import MMBTGridHMInterface
-from mmf.modules.encoders import MultiModalEncoderBase
+from mmf.modules.encoders import (
+    Encoder,
+    ImageEncoder,
+    ImageEncoderTypes,
+    MultiModalEncoderBase,
+    ResNet152ImageEncoder,
+    TextEncoder,
+    TextEncoderTypes,
+    TransformerEncoder,
+)
 from mmf.modules.hf_layers import replace_with_jit
 from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
-from omegaconf import OmegaConf
+from omegaconf import II, DictConfig, OmegaConf
 from torch import Tensor, nn
 from transformers.modeling_bert import BertForPreTraining, BertPredictionHeadTransform
 
@@ -328,7 +338,10 @@ class MMBTBase(MultiModalEncoderBase):
     def forward(self, sample_list: Dict[str, Tensor]):
 
         if self._is_direct_features_input:
-            input_modal = sample_list["image_feature_0"]
+            if "input_modal" in sample_list:
+                input_modal = sample_list["input_modal"]
+            else:
+                input_modal = sample_list["image_feature_0"]
         else:
             input_modal = sample_list["image"]
 
@@ -352,14 +365,15 @@ class MMBTBase(MultiModalEncoderBase):
                 # If max_id is greater than 0, that means text is at 0 segment
                 # which means modal will be at 1
                 # In other case, it will be zero, which it already is
-                if max_id == 0:
+                # NOTE: We compare with tensor here due to TorchScript compliance
+                if max_id == torch.tensor(0, dtype=max_id.dtype):
                     token_value = 1
             else:
                 max_segment = self.num_max_segment - 1
                 # If max id is not equal to max_segment, it means
                 # text segments start from 0 which means modal will
                 # be last, otherwise, it is 0, which it already is
-                if max_id != max_segment:
+                if max_id != torch.tensor(max_segment, dtype=max_id.dtype):
                     token_value = max_segment
             modal_token_type_ids = torch.full(
                 (input_modal.size(0), 1),
@@ -367,6 +381,10 @@ class MMBTBase(MultiModalEncoderBase):
                 dtype=torch.long,
                 device=input_modal.device,
             )
+
+        # In case of XRAY, there might be only two dims
+        if input_modal.dim() == 2:
+            input_modal = input_modal.unsqueeze(dim=1)
 
         # See details of inputs at
         # https://github.com/huggingface/transformers/blob/1789c7/src/transformers/modeling_mmbt.py#L101 # noqa
@@ -474,6 +492,7 @@ class MMBTForClassification(nn.Module):
         self.num_labels = self.config.num_labels
         self.output_hidden_states = self.encoder_config.output_hidden_states
         self.output_attentions = self.encoder_config.output_attentions
+        self.fused_feature_only = self.config.fused_feature_only
 
         self.dropout = nn.Dropout(self.encoder_config.hidden_dropout_prob)
         self.classifier = nn.Sequential(
@@ -495,6 +514,11 @@ class MMBTForClassification(nn.Module):
             ), "output_attentions or output_hidden_states not supported in script mode"
 
         pooled_output = self.dropout(pooled_output)
+
+        if self.fused_feature_only:
+            output["fused_feature"] = self.classifier[0](pooled_output)
+            return output
+
         logits = self.classifier(pooled_output)
         reshaped_logits = logits.contiguous().view(-1, self.num_labels)
         output["scores"] = reshaped_logits
@@ -504,7 +528,35 @@ class MMBTForClassification(nn.Module):
 
 @registry.register_model("mmbt")
 class MMBT(BaseModel):
-    def __init__(self, config):
+    @dataclass
+    class Config(BaseModel.Config):
+        model: str = "mmbt"
+        # classification or pretraining
+        training_head_type: str = "pretraining"
+        bert_model_name: str = "bert-base-uncased"
+        direct_features_input: bool = False
+        freeze_text: bool = False
+        freeze_modal: bool = False
+        freeze_complete_base: bool = False
+        finetune_lr_multiplier: float = 1
+        # Dimension of the embedding finally returned by the modal encoder
+        modal_hidden_size: int = 2048
+        text_hidden_size: int = 768
+        num_labels: int = 2
+        # This actually is Union[ImageEncoderConfig, ImageFeatureEncoderConfig]
+        modal_encoder: Encoder.Config = ImageEncoder.Config(
+            type=ImageEncoderTypes.resnet152, params=ResNet152ImageEncoder.Config()
+        )
+        text_encoder: Encoder.Config = TextEncoder.Config(
+            type=TextEncoderTypes.transformer,
+            params=TransformerEncoder.Config(bert_model_name=II("bert_model_name")),
+        )
+        use_modal_start_token: bool = True
+        use_modal_end_token: bool = True
+        fused_feature_only: bool = False
+        output_dim: int = 768
+
+    def __init__(self, config: Union[DictConfig, Config], *args, **kwargs):
         super().__init__(config)
 
     def build(self):
