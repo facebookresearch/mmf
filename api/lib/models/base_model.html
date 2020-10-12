@@ -273,7 +273,7 @@ should contain a <cite>scores</cite> field. Losses are automatically calculated 
 </div>
 <dl class="py class">
 <dt id="mmf.models.base_model.BaseModel">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.models.base_model.</code><code class="sig-name descname">BaseModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/models/base_model.html#BaseModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.models.base_model.BaseModel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">mmf.models.base_model.</code><code class="sig-name descname">BaseModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>omegaconf.dictconfig.DictConfig<span class="p">, </span><a class="reference internal" href="#mmf.models.base_model.BaseModel.Config" title="mmf.models.base_model.BaseModel.Config">mmf.models.base_model.BaseModel.Config</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/models/base_model.html#BaseModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.models.base_model.BaseModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>For integration with Pythia’s trainer, datasets and other features,
 models needs to inherit this class, call <cite>super</cite>, write a build function,
 write a forward function taking a <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> as input and returning a
@@ -283,6 +283,11 @@ dict as output and finally, register it using <code class="docutils literal notr
 <dd class="field-odd"><p><strong>config</strong> (<em>DictConfig</em>) – <code class="docutils literal notranslate"><span class="pre">model_config</span></code> configuration from global config.</p>
 </dd>
 </dl>
+<dl class="py class">
+<dt id="mmf.models.base_model.BaseModel.Config">
+<em class="property">class </em><code class="sig-name descname">Config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'???'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/models/base_model.html#BaseModel.Config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.models.base_model.BaseModel.Config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt id="mmf.models.base_model.BaseModel.build">
 <code class="sig-name descname">build</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/models/base_model.html#BaseModel.build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.models.base_model.BaseModel.build" title="Permalink to this definition">¶</a></dt>
