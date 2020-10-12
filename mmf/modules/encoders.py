@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import pickle
+from copy import deepcopy
 
 import torch
 import torchvision
@@ -18,18 +19,25 @@ from transformers.modeling_auto import AutoModel
 
 
 class ImageFeatureEncoder(nn.Module):
-    def __init__(self, encoder_type, in_dim, **kwargs):
+    def __init__(self, config, *args, **kwargs):
         super().__init__()
+        encoder_type = config.type
+        assert (
+            "in_dim" in config.params
+        ), "ImageFeatureEncoder require 'in_dim' param in config"
+        params = config.params
 
         if encoder_type == "default" or encoder_type == "identity":
             self.module = Identity()
-            self.module.in_dim = in_dim
-            self.module.out_dim = in_dim
+            self.module.in_dim = params.in_dim
+            self.module.out_dim = params.in_dim
         elif encoder_type == "projection":
-            module_type = kwargs.pop("module", "linear")
-            self.module = ProjectionEmbedding(module_type, in_dim, **kwargs)
+            if "module" not in params:
+                params = deepcopy(params)
+                params.module = "linear"
+            self.module = ProjectionEmbedding(**params)
         elif encoder_type == "finetune_faster_rcnn_fpn_fc7":
-            self.module = FinetuneFasterRcnnFpnFc7(in_dim, **kwargs)
+            self.module = FinetuneFasterRcnnFpnFc7(**params)
         else:
             raise NotImplementedError("Unknown Image Encoder: %s" % encoder_type)
 
