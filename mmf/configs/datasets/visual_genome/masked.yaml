@@ -1,0 +1,64 @@
+dataset_config:
+  masked_visual_genome:
+      data_dir: ${env.data_dir}
+      depth_first: false
+      fast_read: false
+      use_images: false
+      use_features: true
+      add_answer: true
+      features:
+          train:
+          - visual_genome/detectron_fix_100/fc6/,visual_genome/resnet152/
+          val:
+          - visual_genome/detectron_fix_100/fc6/,visual_genome/resnet152/
+          test:
+          - visual_genome/detectron_fix_100/fc6/,visual_genome/resnet152/
+      annotations:
+          train:
+          - imdb/visual_genome/vg_question_answers.jsonl
+          val:
+          - imdb/visual_genome/vg_question_answers_placeholder.jsonl
+          test:
+          - imdb/visual_genome/vg_question_answers_placeholder.jsonl
+      max_features: 100
+      processors:
+        masked_token_processor:
+          type: masked_token
+          params:
+            tokenizer_config:
+              type: bert-base-uncased
+              params:
+                do_lower_case: true
+            mask_probability: 0.15
+            max_seq_length: 128
+        masked_region_processor:
+          type: masked_region
+          params:
+            mask_probability: 0.15
+            mask_region_probability: 0.90
+        transformer_bbox_processor:
+            type: transformer_bbox
+            params:
+              bbox_key: bbox
+              image_width_key: image_width
+              image_height_key: image_height
+        answer_processor:
+          type: vqa_answer
+          params:
+            num_answers: 1
+            vocab_file: vocabs/answers_vqa.txt
+            preprocessor:
+              type: simple_word
+              params: {}
+        vg_answer_preprocessor:
+          type: simple_word
+          params: {}
+      return_scene_graph: false
+      return_objects: false
+      return_relationships: false
+      return_features_info: true
+      no_unk: false
+      # Return OCR information
+      use_ocr: false
+      # Return spatial information of OCR tokens if present
+      use_ocr_info: false
