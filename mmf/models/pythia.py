@@ -82,6 +82,7 @@ class Pythia(BaseModel):
         for feat_encoder in feat_encoders_list_config:
             feat_encoder_config = copy.deepcopy(feat_encoder)
             feat_encoder_config.params.model_data_dir = self.config.model_data_dir
+            feat_encoder_config.params.in_dim = feature_dim
             feat_model = build_image_encoder(feat_encoder_config, direct_features=True)
             feat_encoders.append(feat_model)
             setattr(self, attr + "_feature_dim", feat_model.out_dim)
