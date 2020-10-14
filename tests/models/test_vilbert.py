@@ -1,0 +1,138 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
+import tempfile
+import unittest
+
+import tests.test_utils as test_utils
+import torch
+from mmf.common.registry import registry
+from mmf.utils.configuration import Configuration
+from mmf.utils.env import setup_imports
+
+
+class TestViLBertTorchscript(unittest.TestCase):
+    def setUp(self):
+        setup_imports()
+        model_name = "vilbert"
+        args = test_utils.dummy_args(model=model_name)
+        configuration = Configuration(args)
+        config = configuration.get_config()
+        model_class = registry.get_model_class(model_name)
+        self.vision_feature_size = 1024
+        self.vision_target_size = 1279
+        config.model_config[model_name]["training_head_type"] = "pretraining"
+        config.model_config[model_name][
+            "visual_embedding_dim"
+        ] = self.vision_feature_size
+        config.model_config[model_name]["v_feature_size"] = self.vision_feature_size
+        config.model_config[model_name]["v_target_size"] = self.vision_target_size
+        config.model_config[model_name]["dynamic_attention"] = False
+        self.pretrain_model = model_class(config.model_config[model_name])
+        self.pretrain_model.build()
+        config.model_config[model_name]["training_head_type"] = "classification"
+        config.model_config[model_name]["num_labels"] = 2
+        self.finetune_model = model_class(config.model_config[model_name])
+        self.finetune_model.build()
+
+    # TODO: fix windows unit test with python version of 3.6 and 3.8
+    @test_utils.skip_if_no_network
+    @test_utils.skip_if_windows
+    def test_load_save_pretrain_model(self):
+        self.pretrain_model.model.eval()
+        script_model = torch.jit.script(self.pretrain_model.model)
+        with tempfile.NamedTemporaryFile() as tmp:
+            torch.jit.save(script_model, tmp)
+            loaded_model = torch.jit.load(tmp.name)
+        self.assertTrue(test_utils.assertModulesEqual(script_model, loaded_model))
+
+    # TODO: fix windows unit test with python version of 3.6 and 3.8
+    @test_utils.skip_if_no_network
+    @test_utils.skip_if_windows
+    def test_load_save_finetune_model(self):
+        self.finetune_model.model.eval()
+        script_model = torch.jit.script(self.finetune_model.model)
+        with tempfile.NamedTemporaryFile() as tmp:
+            torch.jit.save(script_model, tmp)
+            loaded_model = torch.jit.load(tmp.name)
+        self.assertTrue(test_utils.assertModulesEqual(script_model, loaded_model))
+
+    @test_utils.skip_if_no_network
+    def test_pretrained_model(self):
+        self.pretrain_model.model.eval()
+        num_bbox_per_image = 10
+        input_ids = torch.randint(low=0, high=30255, size=(1, 128)).long()
+        attention_mask = torch.ones((1, 128)).long()
+        token_type_ids = torch.zeros(1, 128).long()
+        visual_embeddings = torch.rand(
+            (1, num_bbox_per_image, self.vision_feature_size)
+        ).float()
+        image_attention_mask = torch.zeros((1, num_bbox_per_image)).long()
+        visual_locations = torch.rand((1, num_bbox_per_image, 5)).float()
+        masked_lm_labels = torch.zeros((1, 128), dtype=torch.long).fill_(-1)
+        image_target = torch.zeros(1, num_bbox_per_image, self.vision_target_size)
+        image_label = torch.ones(1, num_bbox_per_image).fill_(-1)
+        self.pretrain_model.eval()
+
+        with torch.no_grad():
+            model_output = self.pretrain_model.model(
+                input_ids=input_ids,
+                image_feature=visual_embeddings,
+                image_location=visual_locations,
+                token_type_ids=token_type_ids,
+                attention_mask=attention_mask,
+                image_attention_mask=image_attention_mask,
+                masked_lm_labels=masked_lm_labels,
+                image_label=image_label,
+                image_target=image_target,
+            )
+        script_model = torch.jit.script(self.pretrain_model.model)
+        with torch.no_grad():
+            script_output = script_model(
+                input_ids=input_ids,
+                image_feature=visual_embeddings,
+                image_location=visual_locations,
+                token_type_ids=token_type_ids,
+                attention_mask=attention_mask,
+                image_attention_mask=image_attention_mask,
+                masked_lm_labels=masked_lm_labels,
+                image_label=image_label,
+                image_target=image_target,
+            )
+        self.assertEqual(
+            model_output["masked_lm_loss"], script_output["masked_lm_loss"]
+        )
+
+    @test_utils.skip_if_no_network
+    def test_finetune_model(self):
+        self.finetune_model.model.eval()
+        num_bbox_per_image = 10
+        input_ids = torch.randint(low=0, high=30255, size=(1, 128)).long()
+        attention_mask = torch.ones((1, 128)).long()
+        token_type_ids = torch.zeros(1, 128).long()
+        visual_embeddings = torch.rand(
+            (1, num_bbox_per_image, self.vision_feature_size)
+        ).float()
+        image_attention_mask = torch.zeros((1, num_bbox_per_image)).long()
+        visual_locations = torch.rand((1, num_bbox_per_image, 5)).float()
+        self.finetune_model.eval()
+
+        with torch.no_grad():
+            model_output = self.finetune_model.model(
+                input_ids=input_ids,
+                image_feature=visual_embeddings,
+                image_location=visual_locations,
+                token_type_ids=token_type_ids,
+                attention_mask=attention_mask,
+                image_attention_mask=image_attention_mask,
+            )
+        script_model = torch.jit.script(self.finetune_model.model)
+        with torch.no_grad():
+            script_output = script_model(
+                input_ids=input_ids,
+                image_feature=visual_embeddings,
+                image_location=visual_locations,
+                token_type_ids=token_type_ids,
+                attention_mask=attention_mask,
+                image_attention_mask=image_attention_mask,
+            )
+        self.assertTrue(torch.equal(model_output["scores"], script_output["scores"]))
