@@ -344,7 +344,6 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
         self,
         visual_embeddings: Tensor,
         visual_embeddings_type: Tensor,
-        position_embeddings_visual: Optional[Tensor] = None,
         image_text_alignment: Optional[Tensor] = None,
     ) -> Tensor:
 
@@ -356,9 +355,7 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
         # get position_embeddings
         # this depends on image_text_alignment
         position_embeddings_visual = self.get_position_embeddings_visual(
-            visual_embeddings,
-            image_text_alignment=image_text_alignment,
-            position_embeddings_visual=position_embeddings_visual,
+            visual_embeddings, image_text_alignment=image_text_alignment
         )
 
         # calculate visual embeddings
@@ -370,10 +367,7 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
         return v_embeddings
 
     def get_position_embeddings_visual(
-        self,
-        visual_embeddings: Tensor,
-        image_text_alignment: Optional[Tensor] = None,
-        position_embeddings_visual: Optional[Tensor] = None,
+        self, visual_embeddings: Tensor, image_text_alignment: Optional[Tensor] = None
     ) -> Tensor:
 
         if image_text_alignment is not None:
@@ -430,7 +424,6 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
         token_type_ids: Optional[Tensor] = None,
         visual_embeddings: Optional[Tensor] = None,
         visual_embeddings_type: Optional[Tensor] = None,
-        position_embeddings_visual: Optional[Tensor] = None,
         image_text_alignment: Optional[Tensor] = None,
     ) -> Tensor:
         """
@@ -448,7 +441,6 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
             v_embeddings = self.encode_image(
                 visual_embeddings,
                 visual_embeddings_type=visual_embeddings_type,
-                position_embeddings_visual=position_embeddings_visual,
                 image_text_alignment=image_text_alignment,
             )
 
