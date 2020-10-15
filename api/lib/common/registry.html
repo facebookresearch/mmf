@@ -252,6 +252,7 @@ register different kind of classes.</p>
 <li><p>Register a processor: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_processor</span></code></p></li>
 <li><p>Register a optimizer: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_optimizer</span></code></p></li>
 <li><p>Register a scheduler: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_scheduler</span></code></p></li>
+<li><p>Register a encoder: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_encoder</span></code></p></li>
 <li><p>Register a decoder: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_decoder</span></code></p></li>
 <li><p>Register a transformer backend: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_transformer_backend</span></code></p></li>
 </ul>
@@ -338,6 +339,27 @@ internal operations. Default: False</p></li>
 
 <span class="nd">@registry</span><span class="o">.</span><span class="n">register_decoder</span><span class="p">(</span><span class="s2">&quot;nucleus_sampling&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">NucleusSampling</span><span class="p">(</span><span class="n">TextDecoder</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="mmf.common.registry.Registry.register_encoder">
+<em class="property">classmethod </em><code class="sig-name descname">register_encoder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_encoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_encoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a encoder to registry with key ‘name’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> – Key with which the encoder will be registered.</p>
+</dd>
+</dl>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
+<span class="kn">from</span> <span class="nn">mmf.modules.encoders</span> <span class="kn">import</span> <span class="n">Encoder</span>
+
+
+<span class="nd">@registry</span><span class="o">.</span><span class="n">register_encoder</span><span class="p">(</span><span class="s2">&quot;transformer&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">TransformerEncoder</span><span class="p">(</span><span class="n">Encoder</span><span class="p">):</span>
     <span class="o">...</span>
 </pre></div>
 </div>
