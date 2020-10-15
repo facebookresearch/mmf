@@ -27,11 +27,13 @@ in the following way:
 """
 import collections
 import warnings
+from typing import Dict
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from mmf.common.registry import registry
+from torch import Tensor
 from torch.nn.utils.rnn import pack_padded_sequence
 
 
@@ -66,12 +68,18 @@ class Losses(nn.Module):
 
     def __init__(self, loss_list):
         super().__init__()
-        self.losses = []
-        self._evaluation_predict = registry.get("config").evaluation.predict
+        self.losses = nn.ModuleList()
+        config = registry.get("config")
+        self._evaluation_predict = False
+        if config:
+            self._evaluation_predict = config.get("evaluation", {}).get(
+                "predict", False
+            )
+
         for loss in loss_list:
             self.losses.append(MMFLoss(loss))
 
-    def forward(self, sample_list, model_output, *args, **kwargs):
+    def forward(self, sample_list: Dict[str, Tensor], model_output: Dict[str, Tensor]):
         """Takes in the original ``SampleList`` returned from DataLoader
         and `model_output` returned from the model and returned a Dict containing
         loss for each of the losses in `losses`.
@@ -85,7 +93,7 @@ class Losses(nn.Module):
 
         """
         output = {}
-        if not hasattr(sample_list, "targets"):
+        if "targets" not in sample_list:
             if not self._evaluation_predict:
                 warnings.warn(
                     "Sample list has not field 'targets', are you "
@@ -95,13 +103,14 @@ class Losses(nn.Module):
             return output
 
         for loss in self.losses:
-            output.update(loss(sample_list, model_output, *args, **kwargs))
+            output.update(loss(sample_list, model_output))
 
-        registry_loss_key = "{}.{}.{}".format(
-            "losses", sample_list.dataset_name, sample_list.dataset_type
-        )
-        # Register the losses to registry
-        registry.register(registry_loss_key, output)
+        if not torch.jit.is_scripting():
+            registry_loss_key = "{}.{}.{}".format(
+                "losses", sample_list["dataset_name"], sample_list["dataset_type"]
+            )
+            # Register the losses to registry
+            registry.register(registry_loss_key, output)
 
         return output
 
@@ -162,8 +171,8 @@ class MMFLoss(nn.Module):
                 loss_params = {}
             self.loss_criterion = loss_class(**loss_params)
 
-    def forward(self, sample_list, model_output, *args, **kwargs):
-        loss = self.loss_criterion(sample_list, model_output, *args, **kwargs)
+    def forward(self, sample_list: Dict[str, Tensor], model_output: Dict[str, Tensor]):
+        loss = self.loss_criterion(sample_list, model_output)
 
         if not isinstance(loss, torch.Tensor):
             loss = torch.tensor(loss, dtype=torch.float)
@@ -171,10 +180,12 @@ class MMFLoss(nn.Module):
         if loss.dim() == 0:
             loss = loss.view(1)
 
-        key = "{}/{}/{}".format(
-            sample_list.dataset_type, sample_list.dataset_name, self.name
-        )
-
+        if not torch.jit.is_scripting():
+            key = "{}/{}/{}".format(
+                sample_list.dataset_type, sample_list.dataset_name, self.name
+            )
+        else:
+            key = f"{self.name}"
         return {key: loss}
 
 
