@@ -122,16 +122,6 @@ class BertVisualAnswerHead(nn.Module):
             in_dim = hid_dim
             out_dim = config.num_labels
 
-        add_gqa = isinstance(num_labels, list)
-        if add_gqa:
-            self.logit_gqa = nn.Sequential(
-                nn.Linear(in_dim, hid_dim * 2),
-                GeLU(),
-                BertLayerNorm(hid_dim * 2, eps=1e-12),
-                nn.Linear(hid_dim * 2, num_labels[1]),
-            )
-            out_dim = num_labels[0]
-
         self.logit_fc = nn.Sequential(
             nn.Linear(in_dim, hid_dim * 2),
             GeLU(),
@@ -140,10 +130,7 @@ class BertVisualAnswerHead(nn.Module):
         )
 
     def forward(self, hidden_states, name=None):
-        if name is None or "gqa" not in name:
-            return self.logit_fc(hidden_states)
-        else:
-            return self.logit_gqa(hidden_states)
+        return self.logit_fc(hidden_states)
 
 
 class BertVisualObjHead(nn.Module):
