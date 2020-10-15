@@ -13,7 +13,6 @@ from mmf.modules.embeddings import ProjectionEmbedding, TextEmbedding
 from mmf.modules.hf_layers import BertModelJit
 from mmf.modules.layers import Identity
 from mmf.utils.build import build_image_encoder, build_text_encoder
-from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path
@@ -320,9 +319,7 @@ class TransformerEncoder(Encoder):
     def __init__(self, config: Config, *args, **kwargs):
         super().__init__()
         self.config = config
-        hf_params = {
-            "config": self._build_encoder_config(config),
-        }
+        hf_params = {"config": self._build_encoder_config(config)}
 
         # For BERT models, initialize using Jit version
         if self.config.bert_model_name.startswith("bert-"):
