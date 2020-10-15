@@ -1,18 +1,9 @@
 # Use 2.1 for orbs
 version: 2.1
 
-# Include windows orb for windows bui
-orbs:
-  win: circleci/windows@2.2.0
-
 # -------------------------------------------------------------------------------------
 # Environments to run the jobs in
 # -------------------------------------------------------------------------------------
-cpu: &cpu
-  machine:
-    image: ubuntu-1604:201903-01
-  resource_class: large
-
 gpu: &gpu
   environment:
     CUDA_VERSION: "10.2"
@@ -40,31 +31,8 @@ install_dep: &install_dep
         python -c 'import torch; print("Torch version:", torch.__version__)'
         python -m torch.utils.collect_env
 
-install_dep_windows: &install_dep_windows
-  - run:
-      name: Install Dependencies for Windows
-      command: |
-        source activate mmf
-        pip install --upgrade setuptools certifi
-        pip install --progress-bar off torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-        pip install -r requirements.txt
-        pip install --progress-bar off flake8==3.7.9
-        pip install --progress-bar off black==19.3b0
-        pip install --progress-bar off isort==4.3.21
-        pip install --progress-bar off pytest
-        python setup.py install
-        python -c 'import torch; print("Torch version:", torch.__version__)'
-        python -m torch.utils.collect_env
-
 
 install_repo: &install_repo
-  - run:
-      name: Install Repository
-      command: |
-        source activate mmf
-        python setup.py build develop
-
-install_repo_windows: &install_repo_windows
   - run:
       name: Install Repository
       command: |
@@ -78,17 +46,6 @@ run_unittests: &run_unittests
         source activate mmf
         cd tests
         pytest --junitxml=test-results/junit.xml -v .
-
-run_flake8: &run_flake8
-  - run:
-      name: Run Linter (flake8)
-      command: |
-        source activate mmf
-        flake8 --version
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings
-        flake8 . --count --exit-zero --max-complexity=18 --max-line-length=88 --statistics
 
 install_nvidia_driver: &install_nvidia_driver
   - run:
@@ -121,81 +78,12 @@ create_conda_env: &create_conda_env
         which pip
         pip install --upgrade pip
 
-create_conda_env_windows: &create_conda_env_windows
-  - run:
-      name: Create Conda Environment
-      command: |
-        conda init bash
-        source ~/.bash_profile
-        conda create -y -n mmf python=3.7
-        source activate mmf
-        python --version
-        which python
-        which pip
-        pip install --user --upgrade pip
-
-run_black: &run_black
-  - run:
-      name: Run Linter (black)
-      command: |
-        source activate mmf
-        black --version
-        black --check .
-
-run_isort: &run_isort
-  - run:
-      name: Run Linter (isort)
-      command: |
-        source activate mmf
-        isort --version
-        isort -c -sp .
 
 # -------------------------------------------------------------------------------------
 # Jobs to run
 # -------------------------------------------------------------------------------------
 
 jobs:
-  windows_build:
-    executor:
-      name: win/default
-      shell: bash.exe
-
-    steps:
-      - checkout
-      - <<: *create_conda_env_windows
-      - restore_cache:
-          key: *cache_key
-      - <<: *install_dep_windows
-      - <<: *install_repo_windows
-      - save_cache:
-          key: *cache_key
-          paths:
-            - C:\tools\miniconda3\envs\mmf
-
-  cpu_tests:
-    <<: *cpu
-
-    working_directory: ~/mmf
-
-    steps:
-      - checkout
-      - <<: *create_conda_env
-      - restore_cache:
-          key: *cache_key
-      - <<: *install_dep
-      # Cache the miniconda directory that contains dependencies
-      - save_cache:
-          paths:
-            - ~/miniconda/
-          key: *cache_key
-      - <<: *install_repo
-      - <<: *run_isort
-      - <<: *run_black
-      - <<: *run_flake8
-      - <<: *run_unittests
-      - store_test_results:
-          path: tests/test-results
-
   # GPU config initially taken from detectron2
   gpu_tests:
     <<: *gpu
@@ -231,6 +119,4 @@ workflows:
   version: 2
   build:
     jobs:
-      - cpu_tests
       - gpu_tests
-      - windows_build
