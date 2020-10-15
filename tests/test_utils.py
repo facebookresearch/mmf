@@ -1,12 +1,16 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+
 import argparse
 import itertools
+import os
 import platform
 import random
 import socket
+import tempfile
 import unittest
 
 import torch
+from mmf.common.sample import Sample, SampleList
 
 
 def compare_tensors(a, b):
@@ -122,3 +126,42 @@ class SimpleModel(torch.nn.Module):
 def assertModulesEqual(mod1, mod2):
     for p1, p2 in itertools.zip_longest(mod1.parameters(), mod2.parameters()):
         return p1.equal(p2)
+
+
+def setup_proxy():
+    # Enable proxy in FB dev env
+    if not is_network_reachable() and (
+        os.getenv("SANDCASTLE") == "1"
+        or os.getenv("TW_JOB_USER") == "sandcastle"
+        or socket.gethostname().startswith("dev")
+    ):
+        os.environ["HTTPS_PROXY"] = "http://fwdproxy:8080"
+        os.environ["HTTP_PROXY"] = "http://fwdproxy:8080"
+
+
+def compare_torchscript_transformer_models(model, vocab_size):
+    test_sample = Sample()
+    test_sample.input_ids = torch.randint(low=0, high=vocab_size, size=(128,)).long()
+    test_sample.input_mask = torch.ones(128).long()
+    test_sample.segment_ids = torch.zeros(128).long()
+    test_sample.image_feature_0 = torch.rand((1, 100, 2048)).float()
+    test_sample.image = torch.rand((3, 300, 300)).float()
+    test_sample_list = SampleList([test_sample])
+
+    with torch.no_grad():
+        model_output = model(test_sample_list)
+
+    script_model = torch.jit.script(model)
+    with torch.no_grad():
+        script_output = script_model(test_sample_list)
+
+    return torch.equal(model_output["scores"], script_output["scores"])
+
+
+def verify_torchscript_models(model):
+    model.eval()
+    script_model = torch.jit.script(model)
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        torch.jit.save(script_model, tmp)
+        loaded_model = torch.jit.load(tmp.name)
+    return assertModulesEqual(script_model, loaded_model)
