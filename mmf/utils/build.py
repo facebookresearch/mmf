@@ -258,22 +258,46 @@ def build_classifier_layer(config, *args, **kwargs):
 
 def build_text_encoder(config, *args, **kwargs):
     try:
-        from mmf.modules.fb.encoders import TextEncoder
+        from mmf.modules.fb.encoders import TextEncoderFactory
     except ImportError:
-        from mmf.modules.encoders import TextEncoder
+        from mmf.modules.encoders import TextEncoderFactory
 
-    text_encoder = TextEncoder(config, *args, **kwargs)
+    text_encoder = TextEncoderFactory(config, *args, **kwargs)
     return text_encoder.module
 
 
 def build_image_encoder(config, direct_features=False, **kwargs):
-    from mmf.modules.encoders import ImageEncoder, ImageFeatureEncoder
+    from mmf.modules.encoders import ImageEncoderFactory, ImageFeatureEncoderFactory
 
     if direct_features:
-        module = ImageFeatureEncoder(config)
+        module = ImageFeatureEncoderFactory(config)
     else:
-        module = ImageEncoder(config)
+        module = ImageEncoderFactory(config)
     return module.module
+
+
+def build_encoder(config: Union[DictConfig, "mmf.modules.encoders.Encoder.Config"]):
+    from mmf.modules.encoder import Encoder
+
+    # If it is not an OmegaConf object, create the object
+    if not isinstance(config, DictConfig) and isinstance(config, Encoder.Config):
+        config = OmegaConf.structured(config)
+
+    if "type" in config:
+        # Support config initialization in form of
+        # encoder:
+        #   type: identity # noqa
+        #   params:
+        #       in_dim: 256
+        name = config.type
+        params = config.params
+    else:
+        # Structured Config support
+        name = config.name
+        params = config
+
+    encoder_cls = registry.get_encoder_class(name)
+    return encoder_cls(params)
 
 
 def build_processors(

@@ -9,10 +9,10 @@ from mmf.common.registry import registry
 from mmf.common.sample import Sample, SampleList
 from mmf.models.mmbt import MMBT
 from mmf.modules.encoders import (
-    ImageEncoder,
+    ImageEncoderFactory,
     ImageEncoderTypes,
     ResNet152ImageEncoder,
-    TextEncoder,
+    TextEncoderFactory,
     TextEncoderTypes,
 )
 from mmf.utils.configuration import Configuration
@@ -67,20 +67,20 @@ class TestMMBTConfig(unittest.TestCase):
     def test_mmbt_from_params(self):
         # default init
         mmbt = MMBT.from_params(
-            modal_encoder=ImageEncoder.Config(
+            modal_encoder=ImageEncoderFactory.Config(
                 type=ImageEncoderTypes.resnet152,
                 params=ResNet152ImageEncoder.Config(pretrained=False),
             ),
-            text_encoder=TextEncoder.Config(type=TextEncoderTypes.identity),
+            text_encoder=TextEncoderFactory.Config(type=TextEncoderTypes.identity),
         )
 
         config = OmegaConf.structured(
             MMBT.Config(
-                modal_encoder=ImageEncoder.Config(
+                modal_encoder=ImageEncoderFactory.Config(
                     type=ImageEncoderTypes.resnet152,
                     params=ResNet152ImageEncoder.Config(pretrained=False),
                 ),
-                text_encoder=TextEncoder.Config(type=TextEncoderTypes.identity),
+                text_encoder=TextEncoderFactory.Config(type=TextEncoderTypes.identity),
             )
         )
         self.assertIsNotNone(mmbt)
@@ -95,11 +95,11 @@ class TestMMBTConfig(unittest.TestCase):
     def test_mmbt_directly_from_config(self):
         config = OmegaConf.structured(
             MMBT.Config(
-                modal_encoder=ImageEncoder.Config(
+                modal_encoder=ImageEncoderFactory.Config(
                     type=ImageEncoderTypes.resnet152,
                     params=ResNet152ImageEncoder.Config(pretrained=False),
                 ),
-                text_encoder=TextEncoder.Config(type=TextEncoderTypes.identity),
+                text_encoder=TextEncoderFactory.Config(type=TextEncoderTypes.identity),
             )
         )
         mmbt = MMBT(config)

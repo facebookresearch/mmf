@@ -15,12 +15,12 @@ from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
 from mmf.models.interfaces.mmbt import MMBTGridHMInterface
 from mmf.modules.encoders import (
-    Encoder,
-    ImageEncoder,
+    EncoderFactory,
+    ImageEncoderFactory,
     ImageEncoderTypes,
     MultiModalEncoderBase,
     ResNet152ImageEncoder,
-    TextEncoder,
+    TextEncoderFactory,
     TextEncoderTypes,
     TransformerEncoder,
 )
@@ -544,10 +544,10 @@ class MMBT(BaseModel):
         text_hidden_size: int = 768
         num_labels: int = 2
         # This actually is Union[ImageEncoderConfig, ImageFeatureEncoderConfig]
-        modal_encoder: Encoder.Config = ImageEncoder.Config(
+        modal_encoder: EncoderFactory.Config = ImageEncoderFactory.Config(
             type=ImageEncoderTypes.resnet152, params=ResNet152ImageEncoder.Config()
         )
-        text_encoder: Encoder.Config = TextEncoder.Config(
+        text_encoder: EncoderFactory.Config = TextEncoderFactory.Config(
             type=TextEncoderTypes.transformer,
             params=TransformerEncoder.Config(bert_model_name=II("bert_model_name")),
         )
