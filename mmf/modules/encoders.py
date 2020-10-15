@@ -10,6 +10,7 @@ import torch
 import torchvision
 from mmf.common.registry import registry
 from mmf.modules.embeddings import ProjectionEmbedding, TextEmbedding
+from mmf.modules.hf_layers import BertModelJit
 from mmf.modules.layers import Identity
 from mmf.utils.build import build_image_encoder, build_text_encoder
 from mmf.utils.configuration import get_mmf_cache_dir
@@ -319,11 +320,19 @@ class TransformerEncoder(Encoder):
     def __init__(self, config: Config, *args, **kwargs):
         super().__init__()
         self.config = config
-        self.module = AutoModel.from_pretrained(
-            self.config.bert_model_name,
-            config=self._build_encoder_config(config),
-            cache_dir=os.path.join(get_mmf_cache_dir(), "distributed_{}".format(-1)),
-        )
+        hf_params = {
+            "config": self._build_encoder_config(config),
+        }
+
+        # For BERT models, initialize using Jit version
+        if self.config.bert_model_name.startswith("bert-"):
+            self.module = BertModelJit.from_pretrained(
+                self.config.bert_model_name, **hf_params
+            )
+        else:
+            self.module = AutoModel.from_pretrained(
+                self.config.bert_model_name, **hf_params
+            )
         self.embeddings = self.module.embeddings
         self.original_config = self.config
         self.config = self.module.config

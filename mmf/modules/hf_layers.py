@@ -11,6 +11,7 @@ from transformers.modeling_bert import (
     BertEncoder,
     BertLayer,
     BertModel,
+    BertPooler,
     BertSelfAttention,
     BertSelfOutput,
 )
@@ -100,7 +101,7 @@ class BertSelfAttentionJit(BertSelfAttention):
 
     def forward(
         self,
-        hidden_states,
+        hidden_states: Tensor,
         attention_mask: Optional[Tensor] = None,
         head_mask: Optional[Tensor] = None,
         encoder_hidden_states: Optional[Tensor] = None,
@@ -203,6 +204,13 @@ class BertLayerJit(BertLayer):
         Typed inputs and modifies the output to be a List[Tensor]
     """
 
+    def __init__(self, config):
+        super().__init__(config)
+        self.attention = BertAttentionJit(config)
+        self.is_decoder = config.is_decoder
+        if self.is_decoder:
+            self.crossattention = BertAttentionJit(config)
+
     def forward(
         self,
         hidden_states: Tensor,
@@ -238,12 +246,21 @@ class BertEncoderJit(BertEncoder):
         `output_attentions` are enable, we do not support these in scripting mode
     """
 
+    def __init__(self, config):
+        super().__init__(config)
+        self.output_attentions = config.output_attentions
+        self.output_hidden_states = config.output_hidden_states
+        self.layer = nn.ModuleList(
+            [BertLayerJit(config) for _ in range(config.num_hidden_layers)]
+        )
+
     def forward(
         self,
         hidden_states: Tensor,
         attention_mask: Optional[Tensor],
         encoder_hidden_states: Optional[Tensor] = None,
         encoder_attention_mask: Optional[Tensor] = None,
+        head_mask: Optional[Tensor] = None,
     ) -> Tuple[Tensor]:
         all_hidden_states = ()
         all_attentions = ()
@@ -288,9 +305,20 @@ class BertModelJit(BertModel):
         Tuple[Tensor, Tensor, List[Tensor]]
     """
 
+    __jit_unused_properties__ = ["base_model", "dummy_inputs"]
+
+    def __init__(self, config):
+        super().__init__(config)
+        self.config = config
+        self.embeddings = BertEmbeddingsJit(config)
+        self.encoder = BertEncoderJit(config)
+        self.pooler = BertPooler(config)
+
+        self.init_weights()
+
     def forward(
         self,
-        input_ids,
+        input_ids: Tensor,
         attention_mask: Optional[Tensor] = None,
         token_type_ids: Optional[Tensor] = None,
         position_ids: Optional[Tensor] = None,
