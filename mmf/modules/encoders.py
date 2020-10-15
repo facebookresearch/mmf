@@ -4,9 +4,11 @@ import pickle
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 import torch
 import torchvision
+from mmf.common.registry import registry
 from mmf.modules.embeddings import ProjectionEmbedding, TextEmbedding
 from mmf.modules.layers import Identity
 from mmf.utils.build import build_image_encoder, build_text_encoder
@@ -20,17 +22,22 @@ from transformers.configuration_auto import AutoConfig
 from transformers.modeling_auto import AutoModel
 
 
-# SuperClass for encoder params
-@dataclass
-class EncoderParams:
-    pass
-
-
 class Encoder(nn.Module):
     @dataclass
     class Config:
+        name: str = MISSING
+
+    @classmethod
+    def from_params(cls, **kwargs):
+        config = OmegaConf.structured(cls.Config(**kwargs))
+        return cls(config)
+
+
+class EncoderFactory(nn.Module):
+    @dataclass
+    class Config:
         type: str = MISSING
-        params: EncoderParams = EncoderParams()
+        params: Encoder.Config = MISSING
 
 
 class ImageFeatureEncoderTypes(Enum):
@@ -41,15 +48,17 @@ class ImageFeatureEncoderTypes(Enum):
 
 
 @dataclass
-class ImageFeatureEncoderBaseParams(EncoderParams):
-    in_dim: int = MISSING
-
-
 class ImageFeatureEncoder(Encoder):
     @dataclass
     class Config(Encoder.Config):
+        in_dim: int = MISSING
+
+
+class ImageFeatureEncoderFactory(EncoderFactory):
+    @dataclass
+    class Config(EncoderFactory.Config):
         type: ImageFeatureEncoderTypes = MISSING
-        params: EncoderParams = ImageFeatureEncoderBaseParams()
+        params: ImageFeatureEncoder.Config = MISSING
 
     def __init__(self, config: Config, *args, **kwargs):
         super().__init__()
@@ -82,17 +91,24 @@ class ImageFeatureEncoder(Encoder):
         return self.module(*args, **kwargs)
 
 
-class FinetuneFasterRcnnFpnFc7(nn.Module):
-    def __init__(
-        self, in_dim, weights_file, bias_file, model_data_dir, *args, **kwargs
-    ):
-        super().__init__()
-        model_data_dir = get_absolute_path(model_data_dir)
+@registry.register_encoder("finetune_faster_rcnn_fpn_fc7")
+class FinetuneFasterRcnnFpnFc7(ImageFeatureEncoder):
+    @dataclass
+    class Config(ImageFeatureEncoder.Config):
+        name: str = "finetune_faster_rcnn_fpn_fc7"
+        in_dim: int = MISSING
+        weights_file: str = "fc7_w.pkl"
+        bias_file: str = "fc7_b.pkl"
+        model_data_dir: str = MISSING
 
-        if not os.path.isabs(weights_file):
-            weights_file = os.path.join(model_data_dir, weights_file)
-        if not os.path.isabs(bias_file):
-            bias_file = os.path.join(model_data_dir, bias_file)
+    def __init__(self, config: Config, *args, **kwargs):
+        super().__init__()
+        model_data_dir = get_absolute_path(config.model_data_dir)
+
+        if not os.path.isabs(config.weights_file):
+            weights_file = os.path.join(model_data_dir, config.weights_file)
+        if not os.path.isabs(config.bias_file):
+            bias_file = os.path.join(model_data_dir, config.bias_file)
 
         if not PathManager.exists(bias_file) or not PathManager.exists(weights_file):
             download_path = download_pretrained_model("detectron.vmb_weights")
@@ -105,7 +121,7 @@ class FinetuneFasterRcnnFpnFc7(nn.Module):
             bias = pickle.load(b)
         out_dim = bias.shape[0]
 
-        self.lc = nn.Linear(in_dim, out_dim)
+        self.lc = nn.Linear(config.in_dim, out_dim)
         self.lc.weight.data.copy_(torch.from_numpy(weights))
         self.lc.bias.data.copy_(torch.from_numpy(bias))
         self.out_dim = out_dim
@@ -116,17 +132,32 @@ class FinetuneFasterRcnnFpnFc7(nn.Module):
         return i3
 
 
+@registry.register_encoder("identity")
+class IdentityEncoder(Encoder):
+    @dataclass
+    class Config(Encoder.Config):
+        name: str = "identity"
+        in_dim: int = MISSING
+
+    def __init__(self, config: Config):
+        self.module = nn.Identity()
+        self.in_dim = config.in_dim
+        self.out_dim = config.out_dim
+
+    def forward(self, x):
+        return self.module(x)
+
+
 class ImageEncoderTypes(Enum):
     default = "default"
     identity = "identity"
     resnet152 = "resnet152"
 
 
-class ImageEncoder(Encoder):
+class ImageEncoderFactory(EncoderFactory):
     @dataclass
-    class Config(Encoder.Config):
+    class Config(EncoderFactory.Config):
         type: ImageEncoderTypes = MISSING
-        params: EncoderParams = EncoderParams()
 
     def __init__(self, config: Config, *args, **kwargs):
         super().__init__()
@@ -154,9 +185,11 @@ class ImageEncoder(Encoder):
 
 
 # Taken from facebookresearch/mmbt with some modifications
-class ResNet152ImageEncoder(nn.Module):
+@registry.register_encoder("resnet152")
+class ResNet152ImageEncoder(Encoder):
     @dataclass
-    class Config(EncoderParams):
+    class Config(Encoder.Config):
+        name: str = "resnet152"
         pretrained: bool = True
         # "avg" or "adaptive"
         pool_type: str = "avg"
@@ -203,12 +236,12 @@ class TextEncoderTypes(Enum):
     embedding = "embedding"
 
 
-class TextEncoder(nn.Module):
+class TextEncoderFactory(EncoderFactory):
     @dataclass
-    class Config(Encoder.Config):
+    class Config(EncoderFactory.Config):
         # identity, transformer or embedding as of now
         type: TextEncoderTypes = MISSING
-        params: EncoderParams = EncoderParams()
+        params: Encoder.Config = MISSING
 
     def __init__(self, config: Config, *args, **kwargs):
         super().__init__()
@@ -230,8 +263,17 @@ class TextEncoder(nn.Module):
         return self.module(*args, **kwargs)
 
 
-class TextEmbeddingEncoder(nn.Module):
-    def __init__(self, config):
+@registry.register_encoder("text_embedding")
+class TextEmbeddingEncoder(Encoder):
+    @dataclass
+    class Config(Encoder.Config):
+        name: str = "text_embedding"
+        operator: str = MISSING
+        # Keeping this Any for now as this
+        # needs a separate refactor PR.
+        embedding_params: Any = MISSING
+
+    def __init__(self, config: Config):
         super().__init__()
         self._operator = config.operator
         self._embedding_params = config.embedding_params
@@ -252,9 +294,11 @@ class TextEmbeddingEncoder(nn.Module):
         return x.squeeze()
 
 
-class TransformerEncoder(nn.Module):
+@registry.register_encoder("transformer")
+class TransformerEncoder(Encoder):
     @dataclass
-    class Config(EncoderParams):
+    class Config(Encoder.Config):
+        name: str = "transformer"
         num_segments: int = 2
         bert_model_name: str = "bert-base-uncased"
         # Options below can be overridden to update the bert configuration used
@@ -309,14 +353,18 @@ class TransformerEncoder(nn.Module):
         return self.module(*args, **kwargs)[1]
 
 
-class MultiModalEncoderBase(nn.Module):
+class MultiModalEncoderBase(Encoder):
     __jit_unused_properties__ = ["encoder_config"]
 
     @dataclass
-    class Config(EncoderParams):
+    class Config(Encoder.Config):
         # This actually is Union[ImageEncoderConfig, ImageFeatureEncoderConfig]
-        modal_encoder: Encoder.Config = ResNet152ImageEncoder.Config()
-        text_encoder: TextEncoder.Config = TransformerEncoder.Config()
+        modal_encoder: EncoderFactory.Config = ImageEncoderFactory.Config(
+            type=ImageEncoderTypes.resnet152, params=ResNet152ImageEncoder.Config()
+        )
+        text_encoder: EncoderFactory.Config = TextEncoderFactory.Config(
+            type=TextEncoderTypes.transformer, params=TransformerEncoder.Config()
+        )
         direct_features_input: bool = False
         modal_hidden_size: int = 2048
         text_hidden_size: int = 768

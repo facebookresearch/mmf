@@ -20,6 +20,7 @@ Various decorators for registry different kind of classes with unique keys
 - Register a processor: ``@registry.register_processor``
 - Register a optimizer: ``@registry.register_optimizer``
 - Register a scheduler: ``@registry.register_scheduler``
+- Register a encoder: ``@registry.register_encoder``
 - Register a decoder: ``@registry.register_decoder``
 - Register a transformer backend: ``@registry.register_transformer_backend``
 """
@@ -47,6 +48,7 @@ class Registry:
         "optimizer_name_mapping": {},
         "scheduler_name_mapping": {},
         "processor_name_mapping": {},
+        "encoder_name_mapping": {},
         "decoder_name_mapping": {},
         "transformer_backend_name_mapping": {},
         "state": {},
@@ -306,6 +308,36 @@ class Registry:
         return wrap
 
     @classmethod
+    def register_encoder(cls, name):
+        r"""Register a encoder to registry with key 'name'
+
+        Args:
+            name: Key with which the encoder will be registered.
+
+        Usage::
+
+            from mmf.common.registry import registry
+            from mmf.modules.encoders import Encoder
+
+
+            @registry.register_encoder("transformer")
+            class TransformerEncoder(Encoder):
+                ...
+
+        """
+
+        def wrap(encoder_cls):
+            from mmf.modules.encoders import Encoder
+
+            assert issubclass(
+                encoder_cls, Encoder
+            ), "All encoders must inherit Encoder class"
+            cls.mapping["encoder_name_mapping"][name] = encoder_cls
+            return encoder_cls
+
+        return wrap
+
+    @classmethod
     def register(cls, name, obj):
         r"""Register an item to registry with key 'name'
 
@@ -363,6 +395,10 @@ class Registry:
     @classmethod
     def get_decoder_class(cls, name):
         return cls.mapping["decoder_name_mapping"].get(name, None)
+
+    @classmethod
+    def get_encoder_class(cls, name):
+        return cls.mapping["encoder_name_mapping"].get(name, None)
 
     @classmethod
     def get_transformer_backend_class(cls, name):
