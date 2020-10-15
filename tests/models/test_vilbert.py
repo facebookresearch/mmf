@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-import tempfile
 import unittest
 
 import tests.test_utils as test_utils
@@ -10,8 +9,12 @@ from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports
 
 
+BERT_VOCAB_SIZE = 30255
+
+
 class TestViLBertTorchscript(unittest.TestCase):
     def setUp(self):
+        test_utils.setup_proxy()
         setup_imports()
         model_name = "vilbert"
         args = test_utils.dummy_args(model=model_name)
@@ -35,32 +38,19 @@ class TestViLBertTorchscript(unittest.TestCase):
         self.finetune_model.build()
 
     # TODO: fix windows unit test with python version of 3.6 and 3.8
-    @test_utils.skip_if_no_network
     @test_utils.skip_if_windows
     def test_load_save_pretrain_model(self):
-        self.pretrain_model.model.eval()
-        script_model = torch.jit.script(self.pretrain_model.model)
-        with tempfile.NamedTemporaryFile() as tmp:
-            torch.jit.save(script_model, tmp)
-            loaded_model = torch.jit.load(tmp.name)
-        self.assertTrue(test_utils.assertModulesEqual(script_model, loaded_model))
+        self.assertTrue(test_utils.verify_torchscript_models(self.pretrain_model.model))
 
     # TODO: fix windows unit test with python version of 3.6 and 3.8
-    @test_utils.skip_if_no_network
     @test_utils.skip_if_windows
     def test_load_save_finetune_model(self):
-        self.finetune_model.model.eval()
-        script_model = torch.jit.script(self.finetune_model.model)
-        with tempfile.NamedTemporaryFile() as tmp:
-            torch.jit.save(script_model, tmp)
-            loaded_model = torch.jit.load(tmp.name)
-        self.assertTrue(test_utils.assertModulesEqual(script_model, loaded_model))
+        self.assertTrue(test_utils.verify_torchscript_models(self.finetune_model.model))
 
-    @test_utils.skip_if_no_network
     def test_pretrained_model(self):
         self.pretrain_model.model.eval()
         num_bbox_per_image = 10
-        input_ids = torch.randint(low=0, high=30255, size=(1, 128)).long()
+        input_ids = torch.randint(low=0, high=BERT_VOCAB_SIZE, size=(1, 128)).long()
         attention_mask = torch.ones((1, 128)).long()
         token_type_ids = torch.zeros(1, 128).long()
         visual_embeddings = torch.rand(
@@ -102,11 +92,10 @@ class TestViLBertTorchscript(unittest.TestCase):
             model_output["masked_lm_loss"], script_output["masked_lm_loss"]
         )
 
-    @test_utils.skip_if_no_network
     def test_finetune_model(self):
         self.finetune_model.model.eval()
         num_bbox_per_image = 10
-        input_ids = torch.randint(low=0, high=30255, size=(1, 128)).long()
+        input_ids = torch.randint(low=0, high=BERT_VOCAB_SIZE, size=(1, 128)).long()
         attention_mask = torch.ones((1, 128)).long()
         token_type_ids = torch.zeros(1, 128).long()
         visual_embeddings = torch.rand(

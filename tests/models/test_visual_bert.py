@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-import io
 import unittest
 
 import tests.test_utils as test_utils
@@ -12,8 +11,39 @@ from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports
 
 
+BERT_VOCAB_SIZE = 30255
+
+
 class TestVisualBertTorchscript(unittest.TestCase):
     def setUp(self):
+        test_utils.setup_proxy()
+        setup_imports()
+        replace_with_jit()
+        model_name = "visual_bert"
+        args = test_utils.dummy_args(model=model_name)
+        configuration = Configuration(args)
+        config = configuration.get_config()
+        model_class = registry.get_model_class(model_name)
+        config.model_config[model_name]["training_head_type"] = "classification"
+        config.model_config[model_name]["num_labels"] = 2
+        self.finetune_model = model_class(config.model_config[model_name])
+        self.finetune_model.build()
+
+    def test_load_save_finetune_model(self):
+        self.assertTrue(test_utils.verify_torchscript_models(self.finetune_model))
+
+    def test_finetune_model(self):
+        model = self.finetune_model.eval()
+        self.assertTrue(
+            test_utils.compare_torchscript_transformer_models(
+                model, vocab_size=BERT_VOCAB_SIZE
+            )
+        )
+
+
+class TestVisualBertPretraining(unittest.TestCase):
+    def setUp(self):
+        test_utils.setup_proxy()
         setup_imports()
         replace_with_jit()
         model_name = "visual_bert"
@@ -24,24 +54,12 @@ class TestVisualBertTorchscript(unittest.TestCase):
         self.pretrain_model = model_class(config.model_config[model_name])
         self.pretrain_model.build()
 
-        config.model_config[model_name]["training_head_type"] = "classification"
-        config.model_config[model_name]["num_labels"] = 2
-        self.finetune_model = model_class(config.model_config[model_name])
-        self.finetune_model.build()
-
-    @test_utils.skip_if_no_network
-    def test_pretrained_model_jit_assertion(self):
-        self.pretrain_model.eval()
-        self.assertRaises(RuntimeError, torch.jit.script(self.pretrain_model))
-
-    @test_utils.skip_if_no_network
     def test_pretrained_model(self):
-        self.pretrain_model.eval()
-
         sample_list = SampleList()
 
         sample_list.add_field(
-            "input_ids", torch.randint(low=0, high=30255, size=(1, 128)).long()
+            "input_ids",
+            torch.randint(low=0, high=BERT_VOCAB_SIZE, size=(1, 128)).long(),
         )
         sample_list.add_field("input_mask", torch.ones((1, 128)).long())
         sample_list.add_field("segment_ids", torch.zeros(1, 128).long())
@@ -60,34 +78,3 @@ class TestVisualBertTorchscript(unittest.TestCase):
         self.assertTrue("losses" in model_output)
         self.assertTrue("random/test/masked_lm_loss" in model_output["losses"])
         self.assertTrue(model_output["losses"]["random/test/masked_lm_loss"] == 0)
-
-    @test_utils.skip_if_no_network
-    def test_load_save_finetune_model(self):
-        self.finetune_model.eval()
-        script_model = torch.jit.script(self.finetune_model)
-        buffer = io.BytesIO()
-        torch.jit.save(script_model, buffer)
-        buffer.seek(0)
-        loaded_model = torch.jit.load(buffer)
-        self.assertTrue(test_utils.assertModulesEqual(script_model, loaded_model))
-
-    @test_utils.skip_if_no_network
-    def test_finetune_model(self):
-        self.finetune_model.eval()
-        sample_list = SampleList()
-
-        sample_list.add_field(
-            "input_ids", torch.randint(low=0, high=30255, size=(1, 128)).long()
-        )
-        sample_list.add_field("input_mask", torch.ones((1, 128)).long())
-        sample_list.add_field("segment_ids", torch.zeros(1, 128).long())
-        sample_list.add_field("image_feature_0", torch.rand((1, 100, 2048)).float())
-
-        with torch.no_grad():
-            model_output = self.finetune_model(sample_list)
-
-        script_model = torch.jit.script(self.finetune_model)
-        with torch.no_grad():
-            script_output = script_model(sample_list)
-
-        self.assertTrue(torch.equal(model_output["scores"], script_output["scores"]))

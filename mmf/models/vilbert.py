@@ -158,7 +158,7 @@ class BertImageSelfAttention(nn.Module):
         self.key = nn.Linear(config.v_hidden_size, self.all_head_size)
         self.value = nn.Linear(config.v_hidden_size, self.all_head_size)
 
-        if self.dynamic_attention or torch.jit.is_scripting():
+        if self.dynamic_attention:
             self.dyLinear_q = nn.Linear(config.hidden_size, self.all_head_size)
             self.dyLinear_k = nn.Linear(config.hidden_size, self.all_head_size)
 
