@@ -143,6 +143,17 @@ def get_optimizer_parameters(model, config):
     if is_parallel and hasattr(model.module, "get_optimizer_parameters"):
         parameters = model.module.get_optimizer_parameters(config)
 
+    # If parameters are a generator, convert to a list first
+    parameters = list(parameters)
+
+    if len(parameters) == 0:
+        raise ValueError("optimizer got an empty parameter list")
+
+    # If parameters are in format of list, instead of grouped params
+    # convert them to grouped params form
+    if not isinstance(parameters[0], dict):
+        parameters = [{"params": parameters}]
+
     for group in parameters:
         group["params"] = list(group["params"])
 
