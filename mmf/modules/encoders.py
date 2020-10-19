@@ -47,7 +47,6 @@ class ImageFeatureEncoderTypes(Enum):
     frcnn_fc7 = "finetune_faster_rcnn_fpn_fc7"
 
 
-@dataclass
 class ImageFeatureEncoder(Encoder):
     @dataclass
     class Config(Encoder.Config):
@@ -81,7 +80,7 @@ class ImageFeatureEncoderFactory(EncoderFactory):
                 params.module = "linear"
             self.module = ProjectionEmbedding(**params)
         elif encoder_type == "finetune_faster_rcnn_fpn_fc7":
-            self.module = FinetuneFasterRcnnFpnFc7(**params)
+            self.module = FinetuneFasterRcnnFpnFc7(params)
         else:
             raise NotImplementedError("Unknown Image Encoder: %s" % encoder_type)
 
@@ -140,9 +139,10 @@ class IdentityEncoder(Encoder):
         in_dim: int = MISSING
 
     def __init__(self, config: Config):
+        super().__init__()
         self.module = nn.Identity()
         self.in_dim = config.in_dim
-        self.out_dim = config.out_dim
+        self.out_dim = config.in_dim
 
     def forward(self, x):
         return self.module(x)
