@@ -97,12 +97,21 @@ class MaskedTokenProcessor(BaseProcessor):
         input_ids = self._tokenizer.convert_tokens_to_ids(tokens)
         input_mask = [1] * len(input_ids)
 
-        # Zero-pad up to the sequence length.
-        while len(input_ids) < self._max_seq_length:
-            input_ids.append(0)
-            input_mask.append(0)
-            segment_ids.append(0)
-            lm_label_ids.append(-1)
+        output = self._prepare_processed_output(
+            input_ids, input_mask, segment_ids, lm_label_ids
+        )
+        return {**output, "tokens": tokens}
+
+    def _prepare_processed_output(
+        self, input_ids, input_mask, segment_ids, lm_label_ids
+    ):
+        assert (
+            len(input_ids) == len(input_mask) == len(segment_ids) == len(lm_label_ids)
+        )
+        input_ids += (self._max_seq_length - len(input_ids)) * [0]
+        input_mask += (self._max_seq_length - len(input_mask)) * [0]
+        segment_ids += (self._max_seq_length - len(segment_ids)) * [0]
+        lm_label_ids += (self._max_seq_length - len(lm_label_ids)) * [-1]
 
         assert len(input_ids) == self._max_seq_length
         assert len(input_mask) == self._max_seq_length
@@ -113,12 +122,12 @@ class MaskedTokenProcessor(BaseProcessor):
         input_mask = torch.tensor(input_mask, dtype=torch.long)
         segment_ids = torch.tensor(segment_ids, dtype=torch.long)
         lm_label_ids = torch.tensor(lm_label_ids, dtype=torch.long)
+
         return {
             "input_ids": input_ids,
             "input_mask": input_mask,
             "segment_ids": segment_ids,
             "lm_label_ids": lm_label_ids,
-            "tokens": tokens,
         }
 
     def __call__(self, item):
@@ -206,3 +215,119 @@ class MultiSentenceBertTokenizer(BertTokenizer):
             processed.segment_ids = processed.segment_ids.view(-1)
             processed.lm_label_ids = processed.lm_label_ids.view(-1)
         return processed.to_dict()
+
+
+@registry.register_processor("masked_multi_sentence_bert_tokenizer")
+class MaskedMultiSentenceBertTokenizer(BertTokenizer):
+    def __init__(self, config, *args, **kwargs):
+        super().__init__(config, *args, **kwargs)
+        self.fusion_strategy = config.get("fusion", "concat")
+        self._probability = config.get("mask_probability", 0.15)
+        self._type = config.get("type", None)
+        self._with_sentence_seperator = config.get("with_sentence_separator", False)
+
+    def __call__(self, item):
+        sentences = item["sentences"]
+        sentences, sentence_tokens = self._tokenize_sentences(sentences)
+        assert len(sentences) == len(sentence_tokens)
+
+        if "two_sentences" in self._type:
+            return self._two_sentences(sentence_tokens)
+        elif "rand_sentences" in self._type:
+            return self._rand_sentences(sentence_tokens)
+        else:  # self._type == "full_sentences":
+            return self._full_sentences(sentence_tokens)
+
+    def _tokenize_sentences(self, texts):
+        sentences, sentence_tokens = [], []
+        for sentence in texts:
+            sentence = sentence.strip()
+            tokens = self._tokenizer.tokenize(sentence)
+            sentences.append(sentence)
+            sentence_tokens.append(tokens)
+        return sentences, sentence_tokens
+
+    def _two_sentences(self, sentence_tokens):
+        """Concatnate only two sentences starting with either 0 or random index.
+        With optional separator. Truncate or else pad to max_seq_length.
+        """
+        has_two_or_more_sentences = len(sentence_tokens) > 1
+        if "rand" in self._type:
+            start_idx = (
+                random.randint(0, len(sentence_tokens) - 2)
+                if has_two_or_more_sentences
+                else 0
+            )
+        else:
+            start_idx = 0
+        end_idx = start_idx + 2 if has_two_or_more_sentences else len(sentence_tokens)
+        return self._full_sentences(sentence_tokens[start_idx:end_idx])
+
+    def _rand_sentences(self, sentence_tokens):
+        """Concatnate all consecutive sentences with optional separator.
+        Start with a random sentence index aiming to fill max_seq_length.
+        Pad till max_seq_length.
+        """
+        sentence_separater = self._sentence_separator("sentence")
+
+        # max_start_idx is the upper bound of the random index generator with the goal
+        # to freducing the need for padding as much as possible. Note: padding may still
+        # be necessary if total length is smaller than max_seq_length
+        max_start_idx = 0
+        length_to_fullfill = self._max_seq_length - 2
+        # rest_token_length is the token length from idx;
+        # It starts as the length + seperators
+        rest_token_length = (
+            sum(len(x) for x in sentence_tokens) + len(sentence_tokens) - 1
+        )
+        for idx, sentence_token in enumerate(sentence_tokens):
+            if (
+                rest_token_length - len(sentence_token) - len(sentence_separater)
+                < length_to_fullfill
+            ):
+                max_start_idx = idx
+                break
+            rest_token_length -= len(sentence_token) + 1
+
+        random_idx = random.randint(0, max_start_idx - 1 if max_start_idx > 0 else 0)
+        return self._full_sentences(sentence_tokens[random_idx:])
+
+    def _full_sentences(self, sentence_tokens):
+        """Concatnate all sentences starting with sentence index 0.
+        With optional separator. Truncate or else pad to max_seq_length.
+        """
+        tokens = []
+        lm_label_ids = []
+        for idx, sentence_token in enumerate(sentence_tokens):
+            token_a, label_a = self._random_word(
+                sentence_token, probability=self._probability
+            )
+            if idx == len(sentence_tokens) - 1:
+                tokens += token_a
+                lm_label_ids += label_a
+            else:
+                tokens += token_a + self._sentence_separator("sentence")
+                lm_label_ids += label_a + self._sentence_separator("id")
+
+        tokens = tokens[: self._max_seq_length - 2]
+        tokens = [self._CLS_TOKEN] + tokens + [self._SEP_TOKEN]
+        lm_label_ids = lm_label_ids[: self._max_seq_length - 2]
+        lm_label_ids = [-1] + lm_label_ids + [-1]
+        segment_ids = [0] * len(tokens)
+        input_ids = self._tokenizer.convert_tokens_to_ids(tokens)
+        input_mask = [1] * len(input_ids)
+
+        output = self._prepare_processed_output(
+            input_ids, input_mask, segment_ids, lm_label_ids
+        )
+        return {
+            **output,
+            "tokens": tokens,
+            "is_correct": torch.tensor(True, dtype=torch.long),
+        }
+
+    def _sentence_separator(self, key):
+        if self._with_sentence_seperator:
+            return {"sentence": [self._SEP_TOKEN], "id": [-1]}[key]
+        else:
+            return []

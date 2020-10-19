@@ -19,9 +19,11 @@ class MaskedLocalizedNarrativesDatasetMixin(ABC):
     def __getitem__(self, idx: int) -> Sample:
         sample_info = self.annotation_db[idx]
         current_sample = Sample()
-        processed_caption = self.masked_token_processor(
-            {"text_a": sample_info["caption"], "text_b": "", "is_correct": True}
-        )
+        sentences = [sentence.strip() for sentence in sample_info["caption"].split(".")]
+        sentences = list(filter(lambda x: len(x) > 0, sentences))
+        sentences = [sentence + "." for sentence in sentences]
+
+        processed_caption = self.masked_token_processor({"sentences": sentences})
         current_sample.update(processed_caption)
         current_sample.image_id = sample_info["image_id"]
         current_sample.feature_path = sample_info["feature_path"]

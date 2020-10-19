@@ -15,6 +15,8 @@ dataset_config:
       - coco/defaults/features/coco_train2017.lmdb
       val:
       - coco/defaults/features/coco_val2017.lmdb
+      test:
+      - coco/defaults/features/coco_val2017.lmdb
     annotations:
       train:
       - localized_narratives/defaults/annotations/coco_train_localized_narratives-00000-of-00004.jsonl
@@ -23,15 +25,17 @@ dataset_config:
       - localized_narratives/defaults/annotations/coco_train_localized_narratives-00003-of-00004.jsonl
       val:
       - localized_narratives/defaults/annotations/coco_val_localized_narratives.jsonl
+      test:
+      - localized_narratives/defaults/annotations/coco_val_localized_narratives.jsonl
     max_features: 100
     use_image_feature_masks: false
     processors:
       masked_token_processor:
-        type: masked_token
+        type: masked_multi_sentence_bert_tokenizer
         params:
           tokenizer_config:
             type: bert-base-uncased
             params:
               do_lower_case: true
           mask_probability: 0.15
-          max_seq_length: 64
+          max_seq_length: 128

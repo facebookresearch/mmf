@@ -62,12 +62,11 @@ dataset_config:
       - localized_narratives/defaults/annotations/open_images_test_localized_narratives.jsonl
     processors:
       masked_token_processor:
-        type: masked_token
+        type: masked_multi_sentence_bert_tokenizer
         params:
           tokenizer_config:
             type: bert-base-uncased
             params:
-              do_lower_case: True
+              do_lower_case: true
           mask_probability: 0.15
-          max_seq_length: 64
-
+          max_seq_length: 128
