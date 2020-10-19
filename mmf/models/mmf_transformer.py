@@ -39,21 +39,20 @@ class MMFTransformer(BaseTransformer):
         self.encoders = nn.ModuleDict()
 
         for modality in self.config.modalities:
-            # Support "image_encoder" attribute in config if directly provided
-            if (
-                modality.type == "image"
-                and "encoder" not in modality
-                and "image_encoder" in self.config
-            ):
-                modality.encoder = self.config.image_encoder
-
             if "encoder" not in modality:
-                # 100 is a random number added to satisfy identity encoder
-                modality.encoder = OmegaConf.create(
-                    {"type": "identity", "params": {"in_dim": 100}}
-                )
+                # Support "image_encoder" attribute in config if directly provided
+                if modality.type == "image" and "image_encoder" in self.config:
+                    encoder_config = self.config.image_encoder
+                else:
+                    # 100 is a random number added to satisfy identity encoder
+                    # Set encoder to identity
+                    encoder_config = OmegaConf.create(
+                        {"type": "identity", "params": {"in_dim": 100}}
+                    )
+            else:
+                encoder_config = modality.encoder
 
-            encoder = build_encoder(modality.encoder)
+            encoder = build_encoder(encoder_config)
             self.encoders[modality.key] = encoder
 
             if modality.type == "image" and getattr(

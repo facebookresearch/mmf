@@ -3,6 +3,7 @@
 import copy
 from typing import Any, Dict, List, Optional, Tuple
 
+import omegaconf
 import torch
 from mmf.common.registry import registry
 from mmf.common.typings import DictConfig
@@ -69,8 +70,9 @@ class MoVieMcan(BaseModel):
         setattr(self, attr + "_feature_dim", feature_dim)
 
         feat_encoder_config = copy.deepcopy(feat_encoder)
-        feat_encoder_config.params.model_data_dir = self.config.model_data_dir
-        feat_encoder_config.params.in_dim = feature_dim
+        with omegaconf.open_dict(feat_encoder_config):
+            feat_encoder_config.params.model_data_dir = self.config.model_data_dir
+            feat_encoder_config.params.in_dim = feature_dim
         feat_model = build_image_encoder(feat_encoder_config, direct_features=True)
 
         setattr(self, attr + "_feature_dim", feat_model.out_dim)
