@@ -19,6 +19,7 @@ model_config:
       params:
         model_data_dir: ${model_config.movie_mcan.model_data_dir}
         cond_features: 1024
+        in_dim: ${model_config.movie_mcan.image_feature_dim}
     text_embeddings:
       type: mcan
       params:
