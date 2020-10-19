@@ -4,9 +4,9 @@ import unittest
 
 import tests.test_utils as test_utils
 import torch
-from mmf.common.registry import registry
 from mmf.common.sample import SampleList
 from mmf.modules.hf_layers import replace_with_jit
+from mmf.utils.build import build_model
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports
 
@@ -23,11 +23,11 @@ class TestVisualBertTorchscript(unittest.TestCase):
         args = test_utils.dummy_args(model=model_name)
         configuration = Configuration(args)
         config = configuration.get_config()
-        model_class = registry.get_model_class(model_name)
-        config.model_config[model_name]["training_head_type"] = "classification"
-        config.model_config[model_name]["num_labels"] = 2
-        self.finetune_model = model_class(config.model_config[model_name])
-        self.finetune_model.build()
+        model_config = config.model_config[model_name]
+        model_config["training_head_type"] = "classification"
+        model_config["num_labels"] = 2
+        model_config.model = model_name
+        self.finetune_model = build_model(model_config)
 
     def test_load_save_finetune_model(self):
         self.assertTrue(test_utils.verify_torchscript_models(self.finetune_model))
@@ -50,9 +50,9 @@ class TestVisualBertPretraining(unittest.TestCase):
         args = test_utils.dummy_args(model=model_name)
         configuration = Configuration(args)
         config = configuration.get_config()
-        model_class = registry.get_model_class(model_name)
-        self.pretrain_model = model_class(config.model_config[model_name])
-        self.pretrain_model.build()
+        model_config = config.model_config[model_name]
+        model_config.model = model_name
+        self.pretrain_model = build_model(model_config)
 
     def test_pretrained_model(self):
         sample_list = SampleList()

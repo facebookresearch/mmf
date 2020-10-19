@@ -3,7 +3,7 @@
 import unittest
 
 import tests.test_utils as test_utils
-from mmf.common.registry import registry
+from mmf.utils.build import build_model
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports
 
@@ -21,11 +21,8 @@ class TestMMFTransformerTorchscript(unittest.TestCase):
         args = test_utils.dummy_args(model=self.model_name)
         configuration = Configuration(args)
         self.config = configuration.get_config()
-        self.model_class = registry.get_model_class(self.model_name)
-        self.finetune_model = self.model_class(
-            self.config.model_config[self.model_name]
-        )
-        self.finetune_model.build()
+        self.config.model_config[self.model_name].model = self.model_name
+        self.finetune_model = build_model(self.config.model_config[self.model_name])
 
     def test_load_save_finetune_model(self):
         self.assertTrue(test_utils.verify_torchscript_models(self.finetune_model))
@@ -40,8 +37,7 @@ class TestMMFTransformerTorchscript(unittest.TestCase):
 
     def test_finetune_roberta_base(self):
         self.config.model_config[self.model_name]["transformer_base"] = "roberta-base"
-        model = self.model_class(self.config.model_config[self.model_name])
-        model.build()
+        model = build_model(self.config.model_config[self.model_name])
         model.eval()
         self.assertTrue(
             test_utils.compare_torchscript_transformer_models(
@@ -54,8 +50,7 @@ class TestMMFTransformerTorchscript(unittest.TestCase):
         self.config.model_config[self.model_name][
             "transformer_base"
         ] = "xlm-roberta-base"
-        model = self.model_class(self.config.model_config[self.model_name])
-        model.build()
+        model = build_model(self.config.model_config[self.model_name])
         model.eval()
         self.assertTrue(
             test_utils.compare_torchscript_transformer_models(
