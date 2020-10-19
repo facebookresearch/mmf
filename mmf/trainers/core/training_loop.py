@@ -171,8 +171,11 @@ class TrainerTrainingLoopMixin(ABC):
         prepared_batch = to_device(prepared_batch, torch.device("cuda"))
         self.profile("Batch prepare time")
         # Arguments should be a dict at this point
-        model_output = self.model(prepared_batch)
-        report = Report(prepared_batch, model_output)
+
+        with torch.cuda.amp.autocast(enabled=self.training_config.fp16):
+            model_output = self.model(prepared_batch)
+            report = Report(prepared_batch, model_output)
+
         self.profile("Forward time")
 
         return report
@@ -184,7 +187,7 @@ class TrainerTrainingLoopMixin(ABC):
         self.optimizer.zero_grad()
 
     def _backward(self, loss: Tensor) -> None:
-        loss.backward()
+        self.scaler.scale(loss).backward()
         self.profile("Backward time")
 
     def _finish_update(self):
@@ -194,9 +197,12 @@ class TrainerTrainingLoopMixin(ABC):
                 self.num_updates,
                 self.logistics_callback.tb_writer,
                 self.config,
+                scale=self.scaler.get_scale(),
             )
 
-        self.optimizer.step()
+        self.scaler.step(self.optimizer)
+        self.scaler.update()
+
         self.num_updates += 1
         self.profile("Finished update")
 

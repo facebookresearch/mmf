@@ -24,24 +24,17 @@ def lr_lambda_update(i_iter, cfg):
         return pow(cfg.training.lr_ratio, idx)
 
 
-def clip_gradients(model, i_iter, writer, config):
-    # TODO: Fix question model retrieval
+def clip_gradients(model, i_iter, writer, config, scale=1.0):
     max_grad_l2_norm = config.training.max_grad_l2_norm
     clip_norm_mode = config.training.clip_norm_mode
 
     if max_grad_l2_norm is not None:
         if clip_norm_mode == "all":
-            norm = nn.utils.clip_grad_norm_(model.parameters(), max_grad_l2_norm)
-            if writer is not None:
-                writer.add_scalars({"grad_norm": norm}, i_iter)
-
-        elif clip_norm_mode == "question":
-            question_embedding = model.module.question_embedding_module
-            norm = nn.utils.clip_grad_norm(
-                question_embedding.parameters(), max_grad_l2_norm
+            norm = nn.utils.clip_grad_norm_(
+                model.parameters(), max_grad_l2_norm * scale
             )
             if writer is not None:
-                writer.add_scalars({"question_grad_norm": norm}, i_iter)
+                writer.add_scalars({"grad_norm": norm}, i_iter)
         else:
             raise NotImplementedError(
                 "Clip norm mode %s not implemented" % clip_norm_mode

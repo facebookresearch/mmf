@@ -18,7 +18,7 @@ from mmf.utils.checkpoint import Checkpoint
 from mmf.utils.configuration import load_yaml
 from mmf.utils.file_io import PathManager
 from omegaconf import OmegaConf
-from tests.test_utils import compare_state_dicts
+from tests.test_utils import compare_state_dicts, skip_if_no_cuda
 
 
 @contextlib.contextmanager
@@ -73,7 +73,12 @@ class TestUtilsCheckpoint(unittest.TestCase):
                 "model_config": {},
                 "checkpoint": {
                     "save_git_details": False,
-                    "reset": {"optimizer": False, "counts": False, "all": False},
+                    "reset": {
+                        "optimizer": False,
+                        "counts": False,
+                        "all": False,
+                        "fp16_scaler": False,
+                    },
                     "pretrained_state_mapping": {"base_test": "base"},
                     "max_to_keep": 5,
                 },
@@ -98,6 +103,7 @@ class TestUtilsCheckpoint(unittest.TestCase):
         self.trainer.config = deepcopy(self.config)
 
         self.trainer.model = SimpleModule()
+        self.trainer.scaler = torch.cuda.amp.GradScaler()
 
         self.trainer.optimizer = torch.optim.Adam(
             self.trainer.model.parameters(), lr=1e-01
@@ -303,6 +309,7 @@ class TestUtilsCheckpoint(unittest.TestCase):
 
             original_optimizer = deepcopy(self.trainer.optimizer)
             original_model = deepcopy(self.trainer.model)
+            original_scaler = deepcopy(self.trainer.scaler)
 
             self.trainer.current_epoch = 3
             checkpoint.save(2000, update_best=True)
@@ -321,6 +328,13 @@ class TestUtilsCheckpoint(unittest.TestCase):
             self.assertTrue(
                 self._compare_optimizers(self.trainer.optimizer, original_optimizer)
             )
+
+            self.assertTrue(
+                compare_state_dicts(
+                    self.trainer.scaler.state_dict(), original_scaler.state_dict()
+                )
+            )
+
             self.assertEqual(self.trainer.num_updates, 0)
             self.assertEqual(self.trainer.current_iteration, 0)
             self.assertEqual(self.trainer.current_epoch, 4)
@@ -388,6 +402,47 @@ class TestUtilsCheckpoint(unittest.TestCase):
             self.assertEqual(self.trainer.num_updates, 1000)
             self.assertEqual(self.trainer.current_iteration, 1000)
             self.assertEqual(self.trainer.current_epoch, 3)
+
+    @skip_if_no_cuda
+    def test_checkpoint_scaler_loading(self):
+        with mock_env_with_temp():
+            original_scaler = deepcopy(self.trainer.scaler)
+
+            checkpoint = Checkpoint(self.trainer)
+            self._init_early_stopping(checkpoint)
+
+            self._do_a_fp16_pass()
+            checkpoint.save(1000)
+            self.trainer.config.checkpoint.resume = True
+            self.trainer.config.checkpoint.reset.all = False
+            self.trainer.config.checkpoint.reset.optimizer = True
+            self.trainer.config.checkpoint.reset.counts = True
+            self.trainer.config.checkpoint.reset.fp16_scaler = True
+
+            # Reset to make it same as the default grad scaler
+            self.trainer.scaler = torch.cuda.amp.GradScaler()
+            checkpoint.load_state_dict()
+            self.assertTrue(
+                compare_state_dicts(
+                    self.trainer.scaler.state_dict(), original_scaler.state_dict()
+                )
+            )
+
+            self._do_a_fp16_pass()
+            checkpoint.save(2000)
+            self.trainer.config.checkpoint.reset.all = False
+            self.trainer.config.checkpoint.reset.optimizer = True
+            self.trainer.config.checkpoint.reset.counts = True
+            self.trainer.config.checkpoint.reset.fp16_scaler = False
+
+            # Reset again to make it same as the default grad scaler
+            self.trainer.scaler = torch.cuda.amp.GradScaler()
+            checkpoint.load_state_dict()
+            self.assertFalse(
+                compare_state_dicts(
+                    self.trainer.scaler.state_dict(), original_scaler.state_dict()
+                )
+            )
 
     def test_max_to_keep(self):
         with mock_env_with_temp():
@@ -522,6 +577,22 @@ class TestUtilsCheckpoint(unittest.TestCase):
 
         loss["losses"]["total_loss"].sum().backward()
         self.trainer.optimizer.step()
+        self.trainer.lr_scheduler_callback._scheduler.step()
+
+    def _do_a_fp16_pass(self):
+        self.trainer.optimizer.zero_grad()
+        self.trainer.model.train()
+        self.trainer.model.cuda()
+        with contextlib.redirect_stdout(StringIO()):
+            with torch.cuda.amp.autocast():
+                loss = self.trainer.model(
+                    torch.rand(5, 5, requires_grad=True).cuda(),
+                    torch.empty(5, dtype=torch.long).random_(5).cuda(),
+                )
+
+        self.trainer.scaler.scale(loss["losses"]["total_loss"].sum()).backward()
+        self.trainer.scaler.step(self.trainer.optimizer)
+        self.trainer.scaler.update()
         self.trainer.lr_scheduler_callback._scheduler.step()
 
     def _compare_optimizers(self, a, b):

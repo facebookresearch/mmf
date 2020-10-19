@@ -126,6 +126,11 @@ training:
     # only be used for debugging purposes
     detect_anomaly: false
 
+    # FP16 support through torch.cuda.amp autocast and grad scaler.
+    # Set to true to activate fp16 for faster performance with negligible
+    # drop in results.
+    fp16: false
+
 # Configuration for evaluation
 evaluation:
     # Metrics for evaluation
@@ -284,3 +289,5 @@ checkpoint:
         optimizer: false
         # All counts such as best_update, current_iteration etc will be reset
         counts: false
+        # If fp16 scaler should be reset or not
+        fp16_scaler: false

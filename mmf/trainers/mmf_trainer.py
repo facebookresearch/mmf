@@ -2,6 +2,7 @@
 import logging
 
 import omegaconf
+import torch
 from mmf.common import typings as mmf_typings
 from mmf.common.dataset_loader import DatasetLoader
 from mmf.common.registry import registry
@@ -39,6 +40,8 @@ class MMFTrainer(
 
     def load(self):
         super().load()
+        self.load_fp16_scaler()
+
         # Callbacks
         self.on_init_start()
 
@@ -97,6 +100,15 @@ class MMFTrainer(
         metrics = self.config.evaluation.get("metrics", [])
         self.metrics = Metrics(metrics)
         self.metrics_params = self.metrics.required_params
+
+    def load_fp16_scaler(self):
+        if self.training_config.fp16:
+            assert (
+                torch.__version__ >= "1.6"
+            ), "Using fp16 requires torch version >- 1.6"
+            assert self.device != torch.device("cpu"), "fp16 cannot be used on cpu"
+
+        self.scaler = torch.cuda.amp.GradScaler(enabled=self.training_config.fp16)
 
     def train(self):
         logger.info("===== Model =====")
