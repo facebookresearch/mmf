@@ -335,6 +335,33 @@ class MMBTBase(MultiModalEncoderBase):
 
         self.mmbt = MMBTModel(self._mmbt_config, text_encoder, modal_encoder)
 
+    def extract_modal_end_token(self, sample_list: Dict[str, Tensor]):
+        # compute the position of the last non-masked token, which is <sep>
+        gather_index = sample_list["input_mask"].sum(1, keepdim=True) - 1
+        modal_end_token = (
+            torch.gather(sample_list["input_ids"], 1, gather_index)
+            .squeeze(1)
+            .clone()
+            .detach()
+        )
+
+        batch_size = sample_list["input_ids"].size(0)
+        device = sample_list["input_ids"].device
+        # remove start_token in input_ids
+        sample_list["input_ids"] = torch.cat(
+            [sample_list["input_ids"][:, 1:], sample_list["input_ids"][:, -1:]], dim=1
+        )
+        # update input_mask
+        sample_list["input_mask"] = torch.cat(
+            [
+                sample_list["input_mask"][:, 1:],
+                torch.zeros([batch_size, 1], dtype=torch.long, device=device),
+            ],
+            dim=1,
+        )
+
+        return modal_end_token
+
     def forward(self, sample_list: Dict[str, Tensor]):
 
         if self._is_direct_features_input:
@@ -351,7 +378,7 @@ class MMBTBase(MultiModalEncoderBase):
 
         modal_end_token: Optional[Tensor] = None
         if self.use_modal_end_token:
-            modal_end_token = sample_list["input_ids"][:, -1].clone().detach()
+            modal_end_token = self.extract_modal_end_token(sample_list)
 
         if "modal_token_type_ids" in sample_list:
             modal_token_type_ids = sample_list["modal_token_type_ids"]
