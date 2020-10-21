@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import copy
 
+import omegaconf
 import torch
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
@@ -81,8 +82,9 @@ class Pythia(BaseModel):
 
         for feat_encoder in feat_encoders_list_config:
             feat_encoder_config = copy.deepcopy(feat_encoder)
-            feat_encoder_config.params.model_data_dir = self.config.model_data_dir
-            feat_encoder_config.params.in_dim = feature_dim
+            with omegaconf.open_dict(feat_encoder_config):
+                feat_encoder_config.params.model_data_dir = self.config.model_data_dir
+                feat_encoder_config.params.in_dim = feature_dim
             feat_model = build_image_encoder(feat_encoder_config, direct_features=True)
             feat_encoders.append(feat_model)
             setattr(self, attr + "_feature_dim", feat_model.out_dim)
