@@ -87,7 +87,7 @@ def get_args():
         )
         parser.add_argument(
             "--workflow",
-            default="faim.mmf_run.train_workflow",
+            default="faim.mmf_run.train_workflow@faim",
             help="fblearner workflow name",
         )
         parser.add_argument(
@@ -106,11 +106,6 @@ def get_args():
         "--run-as-secure-group",
         help="secure group to use",
         default="fair_research_and_engineering",
-    )
-    parser.add_argument(
-        "--torch_home",
-        help="torch cache path",
-        default="/mnt/vol/gfsfblearner-oregon/users/vedanuj/torch/",
     )
 
     # Slurm params
