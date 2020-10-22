@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import collections
 from copy import deepcopy
 
 import torch
@@ -29,7 +30,7 @@ class UnimodalBase(MultiModalEncoderBase):
     def forward(self, x, *args, **kwargs):
         x = self.encoder(x, *args, **kwargs)
         # Case of bert encoder, we only need pooled output
-        if not torch.is_tensor(x) and len(x) == 2:
+        if isinstance(x, collections.abc.Sequence) and len(x) >= 2:
             x = x[1]
 
         x = torch.flatten(x, start_dim=1)
