@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from mmf.common.registry import registry
 from mmf.common.sample import SampleList
+from mmf.utils.general import get_current_device
 from torch.utils.data.dataset import Dataset
 
 
@@ -24,7 +25,7 @@ class BaseDataset(Dataset):
         self._dataset_name = dataset_name
         self._dataset_type = dataset_type
         self._global_config = registry.get("config")
-        self._device = registry.get("current_device")
+        self._device = get_current_device()
         self.use_cuda = "cuda" in str(self._device)
 
     def load_item(self, idx):
