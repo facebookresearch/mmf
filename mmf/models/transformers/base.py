@@ -42,7 +42,6 @@ class BaseTransformerConfigType:
     token_noise_mean: float  # stddev of normal noise for token embeddings
     layer_norm_weight_fill: float  # layer norm weight initialization
     random_initialize: bool  # random initialize whole network
-    freeze_transformer: bool  # freeze the base transformer
     finetune_lr_multiplier: float  # finetune lr multiplier for base transformer
 
 
@@ -178,6 +177,10 @@ class BaseTransformer(BaseModel):
         backend_class = registry.get_transformer_backend_class(backend_type)
         self.backend = backend_class(self.config)
 
+        if backend_config.get("freeze", False):
+            for param in self.backend.parameters():
+                param.requires_grad = False
+
     def build_heads(self):
         """Build the different heads for the model. It can be either the pretraining
         head or the classifier heads.
@@ -208,8 +211,7 @@ class BaseTransformer(BaseModel):
         return
 
     def _init_weights(self, module: Type[nn.Module]):
-        """Initialize the weights for different layers.
-        """
+        """Initialize the weights for different layers."""
         if isinstance(module, (nn.Linear, nn.Embedding)):
             module.weight.data.normal_(
                 mean=self.config.initializer_mean, std=self.config.initializer_range

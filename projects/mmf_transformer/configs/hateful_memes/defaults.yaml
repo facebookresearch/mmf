@@ -36,4 +36,6 @@ training:
 
 checkpoint:
   pretrained_state_mapping:
-    transformer: transformer
+    pooler: pooler
+    backend.transformer: backend.transformer
+    backend.embeddings: backend.embeddings
