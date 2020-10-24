@@ -4,6 +4,7 @@ model_config:
     training_head_type: classification
     backend:
       type: huggingface
+      freeze: false
       params: {}
     num_labels: 2
     modalities:
@@ -32,6 +33,5 @@ model_config:
     token_noise_mean: 0.0
     layer_norm_weight_fill: 1.0
     random_initialize: false
-    freeze_transformer: false
     freeze_image_encoder: false
     finetune_lr_multiplier: 1
