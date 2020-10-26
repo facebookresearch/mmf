@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 from mmf.trainers.callbacks.base import Callback
+from mmf.utils.checkpoint import consolidate_optim_state_dict
 from mmf.utils.distributed import broadcast_scalar
 from mmf.utils.early_stopping import EarlyStopping
 
@@ -32,6 +33,8 @@ class EarlyStoppingCallback(Callback):
         )
 
     def on_validation_end(self, **kwargs):
+        # Consolidate the state dict of sharded optimizers
+        consolidate_optim_state_dict(self.trainer.optimizer)
         stop = self.early_stopping(
             self.trainer.num_updates, self.trainer.current_iteration, kwargs["meter"]
         )

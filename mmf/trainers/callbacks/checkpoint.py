@@ -2,7 +2,7 @@
 import logging
 
 from mmf.trainers.callbacks.base import Callback
-from mmf.utils.checkpoint import Checkpoint
+from mmf.utils.checkpoint import Checkpoint, consolidate_optim_state_dict
 
 
 logger = logging.getLogger(__name__)
@@ -33,6 +33,8 @@ class CheckpointCallback(Callback):
     def on_update_end(self, **kwargs):
         if self.trainer.num_updates % self.checkpoint_interval == 0:
             logger.info("Checkpoint time. Saving a checkpoint.")
+            # Consolidate the state dict of sharded optimizers
+            consolidate_optim_state_dict(self.trainer.optimizer)
             self._checkpoint.save(
                 self.trainer.num_updates,
                 self.trainer.current_iteration,

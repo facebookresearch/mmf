@@ -80,6 +80,11 @@ def load_pretrained_model(model_name_or_path, *args, **kwargs):
     return {"config": model_config, "checkpoint": ckpt, "full_config": config}
 
 
+def consolidate_optim_state_dict(optimizer):
+    if hasattr(optimizer, "consolidate_state_dict"):
+        optimizer.consolidate_state_dict(recipient_rank=0)
+
+
 class Checkpoint:
     def __init__(self, trainer):
         """
