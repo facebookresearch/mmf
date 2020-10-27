@@ -396,7 +396,11 @@ def to_device(
     if isinstance(device, str):
         device = torch.device(device)
 
-    if not torch.cuda.is_available():
+    # default valude of device_type is cuda
+    # since other device types such as xla can be passed
+    # falling back to cpu should only happen when device_type
+    # is set to cude but cuda is not available.
+    if not torch.cuda.is_available() and device == "cuda":
         device = torch.device("cpu")
     # to_device is specifically for SampleList
     # if user is passing something custom built

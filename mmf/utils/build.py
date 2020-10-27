@@ -10,10 +10,16 @@ from mmf.common import typings as mmf_typings
 from mmf.common.registry import registry
 from mmf.datasets.processors.processors import Processor
 from mmf.utils.configuration import Configuration
-from mmf.utils.distributed import is_dist_initialized
+from mmf.utils.distributed import is_dist_initialized, is_xla
 from mmf.utils.general import get_optimizer_parameters
 from omegaconf import DictConfig, OmegaConf
 
+try:
+    import torch_xla.core.xla_model as xm
+    import torch_xla.distributed.parallel_loader as pl
+except ImportError:
+    xm = None
+    pl = None
 
 ProcessorType = Type[Processor]
 ProcessorDict = Dict[str, ProcessorType]
@@ -152,6 +158,18 @@ def build_dataloader_and_sampler(
     if not isinstance(dataset_instance, torch.utils.data.IterableDataset):
         other_args = _add_extra_args_for_dataloader(dataset_instance, other_args)
 
+    if is_xla():
+        dataset_type = dataset_instance.dataset_type
+        shuffle=True
+        other_args["sampler"] = torch.utils.data.DistributedSampler(
+                dataset_instance, 
+                num_replicas=xm.xrt_world_size(),
+                rank=xm.get_ordinal(),
+                shuffle=shuffle
+            )
+        other_args.pop("shuffle")
+
+
     loader = torch.utils.data.DataLoader(
         dataset=dataset_instance,
         pin_memory=pin_memory,
@@ -162,6 +180,10 @@ def build_dataloader_and_sampler(
         drop_last=False,  # see also MultiDatasetLoader.__len__
         **other_args,
     )
+
+    if is_xla():
+        device = xm.xla_device()
+        loader = pl.MpDeviceLoader(loader, device)
 
     if num_workers >= 0:
         # Suppress leaking semaphore warning

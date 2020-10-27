@@ -10,7 +10,7 @@ import warnings
 import torch
 from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env, load_yaml
-from mmf.utils.distributed import is_master, synchronize
+from mmf.utils.distributed import is_master, synchronize, is_xla
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import updir
@@ -21,6 +21,11 @@ try:
     import git
 except ImportError:
     git = None
+
+try:
+    import torch_xla.core.xla_model as xm
+except ImportError:
+    xm = None
 
 logger = logging.getLogger(__name__)
 
@@ -379,15 +384,26 @@ class Checkpoint:
             "git/diff": self.git_repo.git.diff("--no-prefix"),
         }
 
+
+
+    def save_func(self):
+        if is_xla():
+            return xm.save
+        else:
+            return torch.save
+
     def save(self, update, iteration=None, update_best=False):
         # Only save in main process
-        if not is_master():
+        if not is_master() and not is_xla():
             return
+
+        logger.info("Checkpoint save operation started!")
 
         if not iteration:
             iteration = update
 
         ckpt_filepath = os.path.join(self.models_foldername, "model_%d.ckpt" % update)
+
         best_ckpt_filepath = os.path.join(
             self.ckpt_foldername, self.ckpt_prefix + "best.ckpt"
         )
@@ -437,22 +453,28 @@ class Checkpoint:
             git_metadata_dict = self._get_vcs_fields()
             ckpt.update(git_metadata_dict)
 
+        logger.info("Saving  checkpoint")
         with PathManager.open(ckpt_filepath, "wb") as f:
-            torch.save(ckpt, f)
+            self.save_func()(ckpt, f)
 
         if update_best:
+            logger.info("Saving best checkpoint")
             with PathManager.open(best_ckpt_filepath, "wb") as f:
-                torch.save(ckpt, f)
+                self.save_func()(ckpt, f)
 
         # Save current always
+
+        logger.info("Saving Current checkpoint")
         with PathManager.open(current_ckpt_filepath, "wb") as f:
-            torch.save(ckpt, f)
+            self.save_func()(ckpt, f)
 
         # Remove old checkpoints if max_to_keep is set
         if self.max_to_keep > 0:
             if len(self.saved_iterations) == self.max_to_keep:
                 self.remove(self.saved_iterations.pop(0))
             self.saved_iterations.append(update)
+
+        logger.info("Checkpoint save operation finished!")
 
     def remove(self, update):
         ckpt_filepath = os.path.join(self.models_foldername, "model_%d.ckpt" % update)
@@ -468,6 +490,6 @@ class Checkpoint:
             self._load(best_path, force=True)
 
     def finalize(self):
-        if is_master():
+        if is_master() or is_xla():
             with PathManager.open(self.pth_filepath, "wb") as f:
-                torch.save(self.trainer.model.state_dict(), f)
+                self.save_func()(self.trainer.model.state_dict(), f)

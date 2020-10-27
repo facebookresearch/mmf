@@ -20,9 +20,17 @@ class TrainerDeviceMixin(ABC):
         torch.backends.cudnn.benchmark = False
 
     def configure_device(self) -> None:
-        self.local_rank = self.config.device_id
-        self.device = self.local_rank
-        self.distributed = False
+        if getattr(self.config.training, 'device', 'cuda') == 'xla':
+            import torch_xla.core.xla_model as xm
+            self.device = xm.xla_device()
+            self.distributed = True
+            self.local_rank = xm.get_local_ordinal()
+            self.tpu = True
+        else:
+            self.tpu = False
+            self.local_rank = self.config.device_id
+            self.device = self.local_rank
+            self.distributed = False
 
         # Will be updated later based on distributed setup
         registry.register("global_device", self.device)
@@ -30,9 +38,9 @@ class TrainerDeviceMixin(ABC):
         if self.config.distributed.init_method is not None:
             self.distributed = True
             self.device = torch.device("cuda", self.local_rank)
-        elif torch.cuda.is_available():
+        elif torch.cuda.is_available() and not self.tpu:
             self.device = torch.device("cuda")
-        else:
+        elif not self.tpu:
             self.device = torch.device("cpu")
 
         registry.register("current_device", self.device)

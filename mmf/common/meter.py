@@ -60,8 +60,8 @@ class Meter:
             if isinstance(v, torch.Tensor):
                 if v.dim() != 0:
                     v = v.mean()
-                v = v.item()
-            assert isinstance(v, (float, int))
+                #v = v.item()
+            #assert isinstance(v, (float, int))
             self.meters[k].update(v, batch_size)
 
     def update_from_meter(self, meter):
