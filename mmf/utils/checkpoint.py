@@ -194,7 +194,27 @@ class Checkpoint:
         state_dict = self.upgrade_state_dict(ckpt["model"])
 
         if len(pretrained_state_mapping.items()) == 0:
-            self.trainer.model.load_state_dict(state_dict, strict=False)
+            incompatible_keys = self.trainer.model.load_state_dict(
+                state_dict, strict=False
+            )
+            if len(incompatible_keys.missing_keys) != 0:
+                logger.warning(
+                    f"Missing keys {incompatible_keys.missing_keys} in the"
+                    + " checkpoint.\n"
+                    + "If this is not your checkpoint, please open up an "
+                    + "issue on MMF GitHub. \n"
+                    + f"Unexpected keys if any: {incompatible_keys.unexpected_keys}"
+                )
+
+            if len(incompatible_keys.unexpected_keys) != 0:
+                logger.warning(
+                    "Unexpected keys in state dict: "
+                    + f"{incompatible_keys.unexpected_keys} \n"
+                    + "This is usually not a problem with pretrained models, but "
+                    + "if this is your own model, please double check. \n"
+                    + "If you think this is an issue, please open up a "
+                    + "bug at MMF GitHub."
+                )
 
             reset_optimizer = ckpt_config.reset.optimizer or ckpt_config.reset.all
             if not reset_optimizer:
@@ -320,18 +340,26 @@ class Checkpoint:
             self.trainer.model,
             (torch.nn.DataParallel, torch.nn.parallel.DistributedDataParallel),
         )
+        if data_parallel:
+            model = self.trainer.model.module
+        else:
+            model = self.trainer.model
+
         new_dict = {}
         for attr in state_dict:
-            new_attr = attr
-
+            new_attr = model.format_state_key(attr)
             if not data_parallel and attr.startswith("module."):
                 # In case the ckpt was actually a data parallel model
                 # replace first module. from dataparallel with empty string
-                new_dict[new_attr.replace("module.", "", 1)] = state_dict[attr]
+                new_attr = new_attr.replace("module.", "", 1)
             elif data_parallel and not attr.startswith("module."):
-                new_dict["module." + new_attr] = state_dict[attr]
-            else:
-                new_dict[new_attr] = state_dict[attr]
+                new_attr = "module." + new_attr
+
+            # Log if key has changed but not when the difference
+            # is only due to data parallel's `module`
+            if new_attr != attr and ("module." + new_attr != attr):
+                logger.info(f"Will load key {new_attr} from {attr}")
+            new_dict[new_attr] = state_dict[attr]
         return new_dict
 
     def _load_from_zoo(self, file):
