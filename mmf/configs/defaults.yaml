@@ -171,6 +171,9 @@ optimizer:
     # optimizer. Default is false to guard against missing parameters due to
     # implementation errors in a model's get_optimizer_parameters
     allow_unused_parameters: false
+    # Whether to enable optimizer state sharding. It uses ZeRO optimizer state
+    # sharding method as described here https://arxiv.org/abs/1910.02054.
+    enable_state_sharding: false
 
 # Configuration for scheduler, examples can be found in models' configs
 scheduler: {}

@@ -226,7 +226,24 @@ def build_optimizer(model, config):
             )
 
     parameters = get_optimizer_parameters(model, config)
-    optimizer = optimizer_class(parameters, **params)
+
+    if optimizer_config.get("enable_state_sharding", False):
+        # TODO(vedanuj): Remove once OSS is moved to PT upstream
+        try:
+            from fairscale.optim.oss import OSS
+        except ImportError:
+            print(
+                "Optimizer state sharding requires fairscale. "
+                + "Install using pip install fairscale."
+            )
+            raise
+
+        assert (
+            is_dist_initialized()
+        ), "Optimizer state sharding can only be used in distributed mode."
+        optimizer = OSS(params=parameters, optim=optimizer_class, **params)
+    else:
+        optimizer = optimizer_class(parameters, **params)
     return optimizer
 
 
