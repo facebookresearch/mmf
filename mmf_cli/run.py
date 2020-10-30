@@ -14,7 +14,7 @@ from mmf.utils.env import set_seed, setup_imports
 from mmf.utils.flags import flags
 from mmf.utils.general import log_device_names
 from mmf.utils.logger import setup_logger, setup_very_basic_config
-
+import pdb
 
 setup_very_basic_config()
 
@@ -47,6 +47,7 @@ def main(configuration, init_distributed=False, predict=False):
     logger.info(f"Torch version: {torch.__version__}")
     log_device_names()
     logger.info(f"Using seed {config.training.seed}")
+    logger.info(f"Batch size is: {config.training.batch_size}")
 
     trainer = build_trainer(config)
     trainer.load()
@@ -59,7 +60,7 @@ def main(configuration, init_distributed=False, predict=False):
 def distributed_main(device_id, configuration, predict=False):
     config = configuration.get_config()
     config.device_id = device_id
-
+    #print('########################### device id',config.device_id)
     if config.distributed.rank is None:
         config.distributed.rank = config.start_rank + device_id
 
@@ -80,6 +81,7 @@ def run(opts: typing.Optional[typing.List[str]] = None, predict: bool = False):
             prediction mode. Defaults to False.
     """
     setup_imports()
+    #pdb.set_trace()
 
     if opts is None:
         parser = flags.get_parser()

@@ -3,7 +3,7 @@
 from mmf.common.sample import SampleList
 from mmf.common.test_reporter import TestReporter
 from mmf.datasets.multi_dataset_loader import MultiDatasetLoader
-
+import torch
 
 class DatasetLoader:
     def __init__(self, config):
@@ -11,12 +11,15 @@ class DatasetLoader:
 
     def load_datasets(self):
         self.train_dataset = MultiDatasetLoader("train")
+
         self.val_dataset = MultiDatasetLoader("val")
         self.test_dataset = MultiDatasetLoader("test")
 
         self.train_dataset.load(self.config)
         self.val_dataset.load(self.config)
         self.test_dataset.load(self.config)
+
+        torch.save(self.train_dataset, 'train_dataset.torch')
 
         # If number of datasets is one, this will return the first loader
         self.train_loader = self.train_dataset

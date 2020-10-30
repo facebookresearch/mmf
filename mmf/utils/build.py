@@ -59,13 +59,13 @@ def build_trainer(config: mmf_typings.DictConfig) -> Any:
 
 def build_model(config):
     model_name = config.model
-
+    print('######### model_name is ', model_name)
     model_class = registry.get_model_class(model_name)
 
     if model_class is None:
         raise RuntimeError(f"No model registered for name: {model_name}")
     model = model_class(config)
-
+    print('######### model is ', model)
     if hasattr(model, "build"):
         model.load_requirements()
         model.build()
@@ -96,6 +96,8 @@ def build_dataset(
     from mmf.utils.configuration import load_yaml_with_defaults
 
     dataset_builder = registry.get_builder_class(dataset_key)
+    print('##### dataset key:', dataset_key)
+    print('##### dataset_builder:', dataset_builder)
     assert dataset_builder, (
         f"Key {dataset_key} doesn't have a registered " + "dataset builder"
     )
@@ -108,7 +110,9 @@ def build_dataset(
 
     builder_instance: mmf_typings.DatasetBuilderType = dataset_builder()
     builder_instance.build_dataset(config, dataset_type)
+    print('##### builder_instance:', builder_instance)
     dataset = builder_instance.load_dataset(config, dataset_type)
+    print('########## type of dataset :', type(dataset))
     if hasattr(builder_instance, "update_registry_for_model"):
         builder_instance.update_registry_for_model(config)
 

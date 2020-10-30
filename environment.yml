@@ -1,0 +1,38 @@
+name: mmf
+dependencies:
+  - python=3.7
+  - pip:
+    - ipython>=7.11.1
+    - ipdb>=0.12.3
+    - numpy==1.18.1
+    - opencv-python==4.1.2.30
+    - Pillow==6.1
+    - torch==1.5.0
+    - torchvision==0.6.0
+    - tensorboard==2.1.0
+    - deepdish>=0.3.6
+    - tqdm>=4.43.0
+    - demjson==2.2.4
+    - torchtext=0.5.0
+    - GitPython=3.1.0
+    - requests==2.23.0
+    - fasttext==0.9.1
+    - nltk==3.4.5
+    - editdistance==0.5.3
+    - transformers==2.3.0
+    - sklearn==0.0
+    - omegaconf==2.0.1rc4
+    - lmdb==0.98
+    - termcolor==1.1.0
+    - attrdict>=2.0.1
+    - moviepy==1.0.1
+    - hydra-core==0.11.3
+    - pytest==5.3.4
+    - pytest-mock==2.0.0
+    - psutil==5.6.7
+    - matplotlib==3.1.3
+    - rospkg==1.2.3
+    - pycryptodome==3.9.6
+    - gnupg==2.3.1
+    - empy==3.3.4
+    # - git+ssh://git@github.com/fairinternal/digit-interface.git@master

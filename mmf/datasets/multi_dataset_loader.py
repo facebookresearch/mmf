@@ -117,7 +117,7 @@ class MultiDatasetLoader:
     def build_datasets(self, config):
         self.config = config
         self._process_datasets()
-
+        print('### self.config.dataset_config:', self.config.dataset_config )
         for dataset in self._given_datasets:
             if dataset in self.config.dataset_config:
                 dataset_config = self.config.dataset_config[dataset]

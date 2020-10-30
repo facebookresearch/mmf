@@ -12,7 +12,8 @@ from mmf.common.report import Report
 from mmf.common.sample import to_device
 from mmf.utils.general import clip_gradients
 from torch import Tensor
-
+import pdb
+import pickle
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +52,8 @@ class TrainerTrainingLoopMixin(ABC):
         should_break = False
         while self.num_updates < self.max_updates and not should_break:
             self.current_epoch += 1
-            registry.register("current_epoch", self.current_epoch)
-
+            registry.register("current_epoch", self.current_epoch)    
+            logger.info(f'Running training epoch {self.current_epoch},  update {self.num_updates}:')
             # Seed the sampler in case if it is distributed
             self.dataset_loader.seed_sampler("train", self.current_epoch)
 
@@ -72,7 +73,10 @@ class TrainerTrainingLoopMixin(ABC):
 
             combined_report = None
             num_batches_for_this_update = 1
+            torch.save(self.train_loader, 'train_loader.torch')
+            print('############## saved train loader')
             for idx, batch in enumerate(self.train_loader):
+                print(f'#################### Running training epoch {self.current_epoch}, update: {self.num_updates} :')
 
                 if (idx + 1) % self.training_config.update_frequency == 0:
                     combined_report = None
@@ -85,8 +89,11 @@ class TrainerTrainingLoopMixin(ABC):
                 # batch execution starts here
                 self.on_batch_start()
                 self.profile("Batch load time")
-
+                torch.save(batch, 'batch.torch')
+                print('############## saved batch')
                 report = self.run_training_batch(batch, num_batches_for_this_update)
+                #pickle.dump(report, open('report.pkl','wb'))
+                #print('############## later cannot laod the saved report usig torch or pickle')
 
                 # accumulate necessary params for metric calculation
                 if combined_report is None:
@@ -155,7 +162,8 @@ class TrainerTrainingLoopMixin(ABC):
                     break
 
     def run_training_batch(self, batch: Tensor, loss_divisor: int) -> None:
-
+        
+        #logger.info('Stepping into running training batch')
         report = self._forward(batch)
         loss = self._extract_loss(report)
         # Since losses are batch averaged in MMF, this makes sure the
@@ -166,7 +174,10 @@ class TrainerTrainingLoopMixin(ABC):
         return report
 
     def _forward(self, batch: Tensor) -> Dict[str, Any]:
+        #pdb.set_trace()
         prepared_batch = self.dataset_loader.prepare_batch(batch)
+        pickle.dump(prepared_batch, open('prepared_batch.pkl','wb'))
+        print('############## saved prepared batch')
         # Move the sample list to device if it isn't as of now.
         prepared_batch = to_device(prepared_batch, torch.device("cuda"))
         self.profile("Batch prepare time")

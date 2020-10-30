@@ -96,7 +96,7 @@ class BaseModel(nn.Module):
                 "No losses are defined in model configuration. You are expected "
                 "to return loss in your return dict from forward."
             )
-
+        print('#############losses: ', losses)
         self.losses = Losses(losses)
 
     @classmethod

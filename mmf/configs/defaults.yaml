@@ -47,7 +47,7 @@ training:
     # KxN (without incurring the memory overhead of setting batch_size to KxN).
     update_frequency: 1
     # Number of workers to be used in dataloaders
-    num_workers: 4
+    num_workers: 1  #4
     # Some datasets allow fast reading by loading everything in the memory
     # Use this to enable it
     fast_read: false
@@ -225,7 +225,7 @@ distributed:
     world_size: ${device_count:}
     # Set if you do not want spawn multiple processes even if
     # multiple GPUs are visible
-    no_spawn: false
+    no_spawn: false   #looks like not distributed main alone runs to error 
 
 # Configuration for checkpointing including resuming and loading pretrained models
 checkpoint:

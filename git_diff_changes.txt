@@ -1,0 +1,315 @@
+diff --git a/mmf/common/dataset_loader.py b/mmf/common/dataset_loader.py
+index e0de06a..a0d5d45 100644
+--- a/mmf/common/dataset_loader.py
++++ b/mmf/common/dataset_loader.py
+@@ -3,7 +3,7 @@
+ from mmf.common.sample import SampleList
+ from mmf.common.test_reporter import TestReporter
+ from mmf.datasets.multi_dataset_loader import MultiDatasetLoader
+-
++import torch
+ 
+ class DatasetLoader:
+     def __init__(self, config):
+@@ -11,6 +11,7 @@ class DatasetLoader:
+ 
+     def load_datasets(self):
+         self.train_dataset = MultiDatasetLoader("train")
++
+         self.val_dataset = MultiDatasetLoader("val")
+         self.test_dataset = MultiDatasetLoader("test")
+ 
+@@ -18,6 +19,8 @@ class DatasetLoader:
+         self.val_dataset.load(self.config)
+         self.test_dataset.load(self.config)
+ 
++        torch.save(self.train_dataset, 'train_dataset.torch')
++
+         # If number of datasets is one, this will return the first loader
+         self.train_loader = self.train_dataset
+         self.val_loader = self.val_dataset
+diff --git a/mmf/configs/defaults.yaml b/mmf/configs/defaults.yaml
+index dd512f9..07c5964 100644
+--- a/mmf/configs/defaults.yaml
++++ b/mmf/configs/defaults.yaml
+@@ -47,7 +47,7 @@ training:
+     # KxN (without incurring the memory overhead of setting batch_size to KxN).
+     update_frequency: 1
+     # Number of workers to be used in dataloaders
+-    num_workers: 4
++    num_workers: 1  #4
+     # Some datasets allow fast reading by loading everything in the memory
+     # Use this to enable it
+     fast_read: false
+@@ -225,7 +225,7 @@ distributed:
+     world_size: ${device_count:}
+     # Set if you do not want spawn multiple processes even if
+     # multiple GPUs are visible
+-    no_spawn: false
++    no_spawn: false   #looks like not distributed main alone runs to error 
+ 
+ # Configuration for checkpointing including resuming and loading pretrained models
+ checkpoint:
+diff --git a/mmf/datasets/multi_dataset_loader.py b/mmf/datasets/multi_dataset_loader.py
+index fd9bdf9..04809f0 100644
+--- a/mmf/datasets/multi_dataset_loader.py
++++ b/mmf/datasets/multi_dataset_loader.py
+@@ -117,7 +117,7 @@ class MultiDatasetLoader:
+     def build_datasets(self, config):
+         self.config = config
+         self._process_datasets()
+-
++        print('### self.config.dataset_config:', self.config.dataset_config )
+         for dataset in self._given_datasets:
+             if dataset in self.config.dataset_config:
+                 dataset_config = self.config.dataset_config[dataset]
+diff --git a/mmf/models/base_model.py b/mmf/models/base_model.py
+index c6302e8..c6712e6 100644
+--- a/mmf/models/base_model.py
++++ b/mmf/models/base_model.py
+@@ -96,7 +96,7 @@ class BaseModel(nn.Module):
+                 "No losses are defined in model configuration. You are expected "
+                 "to return loss in your return dict from forward."
+             )
+-
++        print('#############losses: ', losses)
+         self.losses = Losses(losses)
+ 
+     @classmethod
+diff --git a/mmf/models/vilbert.py b/mmf/models/vilbert.py
+index 78b303a..bdc23b3 100644
+--- a/mmf/models/vilbert.py
++++ b/mmf/models/vilbert.py
+@@ -3,6 +3,7 @@
+ import math
+ import os
+ from copy import deepcopy
++import logging
+ 
+ import numpy as np
+ import torch
+@@ -26,7 +27,9 @@ from transformers.modeling_bert import (
+     BertPreTrainedModel,
+     BertSelfOutput,
+ )
++import pickle
+ 
++logger = logging.getLogger(__name__)
+ 
+ class BertSelfAttention(nn.Module):
+     def __init__(self, config):
+@@ -848,6 +851,10 @@ class ViLBERTBase(BertPreTrainedModel):
+         output_all_encoded_layers=False,
+         output_all_attention_masks=False,
+     ):
++        logger.info("HERE I AM")
++        import pdb; pdb.set_trace()
++        
++        #logger.info(f'{input_txt,image_feature,image_location,}')
+         if attention_mask is None:
+             attention_mask = torch.ones_like(input_txt)
+         if token_type_ids is None:
+@@ -948,6 +955,7 @@ class ViLBERTForPretraining(nn.Module):
+             ),
+             cache_dir=os.path.join(get_mmf_cache_dir(), "distributed_{}".format(-1)),
+         )
++        print('######################\n#################### bert model is:', self.bert)
+         self.cls = BertPreTrainingHeads(config)
+         self.vocab_size = self.config.vocab_size
+         self.visual_target = config.visual_target
+@@ -993,7 +1001,7 @@ class ViLBERTForPretraining(nn.Module):
+         next_sentence_label=None,
+         output_all_attention_masks=False,
+     ):
+-
++        import pdb; pdb.set_trace()
+         (
+             sequence_output_t,
+             sequence_output_v,
+@@ -1196,7 +1204,9 @@ class ViLBERTForClassification(nn.Module):
+ class ViLBERT(BaseModel):
+     def __init__(self, config):
+         super().__init__(config)
+-
++        #print('######### saved config')
++        #pickle.dump(config, open('masked_coco_config.pkl','wb'))
++        
+     @classmethod
+     def config_path(cls):
+         return "configs/models/vilbert/pretrain.yaml"
+@@ -1211,6 +1221,7 @@ class ViLBERT(BaseModel):
+         )
+ 
+     def build(self):
++        print('########### Building vilbert:')
+         if self.config.training_head_type == "pretraining":
+             self.model = ViLBERTForPretraining(self.config)
+         else:
+@@ -1327,5 +1338,6 @@ class ViLBERT(BaseModel):
+             # if params["is_random_next"] is not None:
+             #     output_dict["losses"][loss_key + "/next_sentence_loss"]
+             #       = output_dict.pop("next_sentence_loss")
+-
++        pickle.dump(output_dict, open('output_dic.pkl','wb'))
++        print('################## Saved vilbert output')
+         return output_dict
+diff --git a/mmf/trainers/core/training_loop.py b/mmf/trainers/core/training_loop.py
+index 0a35d4f..dce98e1 100644
+--- a/mmf/trainers/core/training_loop.py
++++ b/mmf/trainers/core/training_loop.py
+@@ -12,7 +12,8 @@ from mmf.common.report import Report
+ from mmf.common.sample import to_device
+ from mmf.utils.general import clip_gradients
+ from torch import Tensor
+-
++import pdb
++import pickle
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -51,8 +52,8 @@ class TrainerTrainingLoopMixin(ABC):
+         should_break = False
+         while self.num_updates < self.max_updates and not should_break:
+             self.current_epoch += 1
+-            registry.register("current_epoch", self.current_epoch)
+-
++            registry.register("current_epoch", self.current_epoch)    
++            logger.info(f'Running training epoch {self.current_epoch},  update {self.num_updates}:')
+             # Seed the sampler in case if it is distributed
+             self.dataset_loader.seed_sampler("train", self.current_epoch)
+ 
+@@ -72,7 +73,10 @@ class TrainerTrainingLoopMixin(ABC):
+ 
+             combined_report = None
+             num_batches_for_this_update = 1
++            torch.save(self.train_loader, 'train_loader.torch')
++            print('############## saved train loader')
+             for idx, batch in enumerate(self.train_loader):
++                print(f'#################### Running training epoch {self.current_epoch}, update: {self.num_updates} :')
+ 
+                 if (idx + 1) % self.training_config.update_frequency == 0:
+                     combined_report = None
+@@ -85,8 +89,11 @@ class TrainerTrainingLoopMixin(ABC):
+                 # batch execution starts here
+                 self.on_batch_start()
+                 self.profile("Batch load time")
+-
++                torch.save(batch, 'batch.torch')
++                print('############## saved batch')
+                 report = self.run_training_batch(batch, num_batches_for_this_update)
++                #pickle.dump(report, open('report.pkl','wb'))
++                #print('############## later cannot laod the saved report usig torch or pickle')
+ 
+                 # accumulate necessary params for metric calculation
+                 if combined_report is None:
+@@ -155,7 +162,8 @@ class TrainerTrainingLoopMixin(ABC):
+                     break
+ 
+     def run_training_batch(self, batch: Tensor, loss_divisor: int) -> None:
+-
++        
++        #logger.info('Stepping into running training batch')
+         report = self._forward(batch)
+         loss = self._extract_loss(report)
+         # Since losses are batch averaged in MMF, this makes sure the
+@@ -166,7 +174,10 @@ class TrainerTrainingLoopMixin(ABC):
+         return report
+ 
+     def _forward(self, batch: Tensor) -> Dict[str, Any]:
++        #pdb.set_trace()
+         prepared_batch = self.dataset_loader.prepare_batch(batch)
++        pickle.dump(prepared_batch, open('prepared_batch.pkl','wb'))
++        print('############## saved prepared batch')
+         # Move the sample list to device if it isn't as of now.
+         prepared_batch = to_device(prepared_batch, torch.device("cuda"))
+         self.profile("Batch prepare time")
+diff --git a/mmf/utils/build.py b/mmf/utils/build.py
+index 07d200d..4f63f0d 100644
+--- a/mmf/utils/build.py
++++ b/mmf/utils/build.py
+@@ -59,13 +59,13 @@ def build_trainer(config: mmf_typings.DictConfig) -> Any:
+ 
+ def build_model(config):
+     model_name = config.model
+-
++    print('######### model_name is ', model_name)
+     model_class = registry.get_model_class(model_name)
+ 
+     if model_class is None:
+         raise RuntimeError(f"No model registered for name: {model_name}")
+     model = model_class(config)
+-
++    print('######### model is ', model)
+     if hasattr(model, "build"):
+         model.load_requirements()
+         model.build()
+@@ -96,6 +96,8 @@ def build_dataset(
+     from mmf.utils.configuration import load_yaml_with_defaults
+ 
+     dataset_builder = registry.get_builder_class(dataset_key)
++    print('##### dataset key:', dataset_key)
++    print('##### dataset_builder:', dataset_builder)
+     assert dataset_builder, (
+         f"Key {dataset_key} doesn't have a registered " + "dataset builder"
+     )
+@@ -108,7 +110,9 @@ def build_dataset(
+ 
+     builder_instance: mmf_typings.DatasetBuilderType = dataset_builder()
+     builder_instance.build_dataset(config, dataset_type)
++    print('##### builder_instance:', builder_instance)
+     dataset = builder_instance.load_dataset(config, dataset_type)
++    print('########## type of dataset :', type(dataset))
+     if hasattr(builder_instance, "update_registry_for_model"):
+         builder_instance.update_registry_for_model(config)
+ 
+diff --git a/mmf_cli/run.py b/mmf_cli/run.py
+index 9ba4b6f..c5c7a4e 100644
+--- a/mmf_cli/run.py
++++ b/mmf_cli/run.py
+@@ -14,7 +14,7 @@ from mmf.utils.env import set_seed, setup_imports
+ from mmf.utils.flags import flags
+ from mmf.utils.general import log_device_names
+ from mmf.utils.logger import setup_logger, setup_very_basic_config
+-
++import pdb
+ 
+ setup_very_basic_config()
+ 
+@@ -47,6 +47,7 @@ def main(configuration, init_distributed=False, predict=False):
+     logger.info(f"Torch version: {torch.__version__}")
+     log_device_names()
+     logger.info(f"Using seed {config.training.seed}")
++    logger.info(f"Batch size is: {config.training.batch_size}")
+ 
+     trainer = build_trainer(config)
+     trainer.load()
+@@ -59,7 +60,7 @@ def main(configuration, init_distributed=False, predict=False):
+ def distributed_main(device_id, configuration, predict=False):
+     config = configuration.get_config()
+     config.device_id = device_id
+-
++    #print('########################### device id',config.device_id)
+     if config.distributed.rank is None:
+         config.distributed.rank = config.start_rank + device_id
+ 
+@@ -80,6 +81,7 @@ def run(opts: typing.Optional[typing.List[str]] = None, predict: bool = False):
+             prediction mode. Defaults to False.
+     """
+     setup_imports()
++    #pdb.set_trace()
+ 
+     if opts is None:
+         parser = flags.get_parser()
+diff --git a/projects/vilbert/configs/vqa2/defaults.yaml b/projects/vilbert/configs/vqa2/defaults.yaml
+index b53d6f6..c872d8d 100644
+--- a/projects/vilbert/configs/vqa2/defaults.yaml
++++ b/projects/vilbert/configs/vqa2/defaults.yaml
+@@ -42,7 +42,7 @@ evaluation:
+   - vqa_accuracy
+ 
+ training:
+-  batch_size: 480
++  batch_size: 32 #480
+   lr_scheduler: true
+   # Don't forget to update schedule_attributes if you update this
+   max_updates: 60000

@@ -3,6 +3,7 @@
 import math
 import os
 from copy import deepcopy
+import logging
 
 import numpy as np
 import torch
@@ -26,7 +27,9 @@ from transformers.modeling_bert import (
     BertPreTrainedModel,
     BertSelfOutput,
 )
+import pickle
 
+logger = logging.getLogger(__name__)
 
 class BertSelfAttention(nn.Module):
     def __init__(self, config):
@@ -848,6 +851,10 @@ class ViLBERTBase(BertPreTrainedModel):
         output_all_encoded_layers=False,
         output_all_attention_masks=False,
     ):
+        logger.info("HERE I AM")
+        import pdb; pdb.set_trace()
+        
+        #logger.info(f'{input_txt,image_feature,image_location,}')
         if attention_mask is None:
             attention_mask = torch.ones_like(input_txt)
         if token_type_ids is None:
@@ -948,6 +955,7 @@ class ViLBERTForPretraining(nn.Module):
             ),
             cache_dir=os.path.join(get_mmf_cache_dir(), "distributed_{}".format(-1)),
         )
+        print('######################\n#################### bert model is:', self.bert)
         self.cls = BertPreTrainingHeads(config)
         self.vocab_size = self.config.vocab_size
         self.visual_target = config.visual_target
@@ -993,7 +1001,7 @@ class ViLBERTForPretraining(nn.Module):
         next_sentence_label=None,
         output_all_attention_masks=False,
     ):
-
+        import pdb; pdb.set_trace()
         (
             sequence_output_t,
             sequence_output_v,
@@ -1196,7 +1204,9 @@ class ViLBERTForClassification(nn.Module):
 class ViLBERT(BaseModel):
     def __init__(self, config):
         super().__init__(config)
-
+        #print('######### saved config')
+        #pickle.dump(config, open('masked_coco_config.pkl','wb'))
+        
     @classmethod
     def config_path(cls):
         return "configs/models/vilbert/pretrain.yaml"
@@ -1211,6 +1221,7 @@ class ViLBERT(BaseModel):
         )
 
     def build(self):
+        print('########### Building vilbert:')
         if self.config.training_head_type == "pretraining":
             self.model = ViLBERTForPretraining(self.config)
         else:
@@ -1327,5 +1338,6 @@ class ViLBERT(BaseModel):
             # if params["is_random_next"] is not None:
             #     output_dict["losses"][loss_key + "/next_sentence_loss"]
             #       = output_dict.pop("next_sentence_loss")
-
+        pickle.dump(output_dict, open('output_dic.pkl','wb'))
+        print('################## Saved vilbert output')
         return output_dict

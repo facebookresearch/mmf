@@ -42,7 +42,7 @@ evaluation:
   - vqa_accuracy
 
 training:
-  batch_size: 480
+  batch_size: 32 #480
   lr_scheduler: true
   # Don't forget to update schedule_attributes if you update this
   max_updates: 60000
