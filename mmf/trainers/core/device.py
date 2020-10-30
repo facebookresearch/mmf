@@ -30,12 +30,13 @@ class TrainerDeviceMixin(ABC):
         if self.config.distributed.init_method is not None:
             self.distributed = True
             self.device = torch.device("cuda", self.local_rank)
+            torch.cuda.set_device(self.local_rank)
         elif torch.cuda.is_available():
             self.device = torch.device("cuda")
+            torch.cuda.set_device(0)
         else:
             self.device = torch.device("cpu")
 
-        registry.register("current_device", self.device)
         registry.register("global_device", self.config.distributed.rank)
 
     def parallelize_model(self) -> None:
