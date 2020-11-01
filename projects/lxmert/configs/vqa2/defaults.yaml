@@ -54,3 +54,4 @@ training:
 checkpoint:
   pretrained_state_mapping:
     model.bert: model.bert
+    model.classifier: model.classifier

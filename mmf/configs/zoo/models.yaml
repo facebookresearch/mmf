@@ -1,3 +1,40 @@
+lxmert:
+  pretrained:
+    vqa2:
+      defaults:
+        version: 1.0
+        resources:
+        - url: 
+          file_name: vqa_pretrained.pth
+    gqa:
+      defaults:
+        version: 1.0
+        resources:
+        - url: 
+          file_name: gqa_pretrained.pth
+          
+    nlvr:
+      defaults:
+        version: 1.0
+        resources:
+        - url: 
+          file_name: nlvr_pretrained.pth      
+          
+                
+  finetuned:
+    vqa2:
+      defaults:
+        version: 1.0
+        resources:
+        - url: 
+          file_name: vqa_finetuned.pth     
+    gqa:
+      defaults:
+        version: 1.0
+        resources:
+        - url: 
+          file_name: gqa_finetuned.pth 
+
 visual_bert:
   pretrained:
     coco:
