@@ -30,6 +30,13 @@ class MoVieMcan(BaseModel):
     def config_path(cls):
         return "configs/models/movie_mcan/defaults.yaml"
 
+    @classmethod
+    def format_state_key(cls, key):
+        key = key.replace(
+            "image_feature_encoders.0.module.lc", "image_feature_encoders.0.lc"
+        )
+        return key
+
     def build(self):
         self.image_feature_dim = 2048
         self._build_word_embedding()

@@ -30,7 +30,11 @@ class Pythia(BaseModel):
 
     @classmethod
     def format_state_key(cls, key):
-        return key.replace("fa_history", "fa_context")
+        key = key.replace("fa_history", "fa_context")
+        key = key.replace(
+            "image_feature_encoders.0.module.lc", "image_feature_encoders.0.lc"
+        )
+        return key
 
     def build(self):
         self._build_word_embedding()
