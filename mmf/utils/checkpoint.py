@@ -321,11 +321,12 @@ class Checkpoint:
             key += "."
             value += "."
             for attr in ckpt:
+                if hasattr(model, "format_state_key"):
+                    formatted_attr = model.format_state_key(attr)
+                else:
+                    formatted_attr = attr
+
                 for own_attr in own_state:
-                    if hasattr(model, "format_state_key"):
-                        formatted_attr = model.format_state_key(attr)
-                    else:
-                        formatted_attr = attr
                     if (
                         key in own_attr
                         and value in formatted_attr
