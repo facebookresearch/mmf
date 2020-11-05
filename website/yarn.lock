@@ -5674,6 +5674,11 @@ internal-slot@^1.0.2:
     has "^1.0.3"
     side-channel "^1.0.2"
 
+internaldocs-fb-helpers@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/internaldocs-fb-helpers/-/internaldocs-fb-helpers-1.1.0.tgz#b2bbcfd06e7c902bd73d2d5e4208019db06935e4"
+  integrity sha512-KnVBhR88NNVklckj39wGu489i8wsUhlbLXXSsySas9lV5LWIZml6s/X0Zo1yzglAzzPxCv3OQw+pW7BGYwaMvw==
+
 interpret@^1.0.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/interpret/-/interpret-1.2.0.tgz#d5061a6224be58e8083985f5014d844359576296"

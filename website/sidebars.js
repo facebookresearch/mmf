@@ -7,12 +7,7 @@
  * @format
  */
 
-function FBInternal(elements) {
-  return process.env.FB_INTERNAL ? elements : [];
-}
-function FBInternalWithOssFallback(elements, fallback) {
-  return process.env.FB_INTERNAL ? elements : fallback;
-}
+const {fbInternalOnly} = require('internaldocs-fb-helpers');
 
 module.exports = {
   docs: {
@@ -39,7 +34,7 @@ module.exports = {
       'tutorials/processors',
       'tutorials/slurm',
     ],
-    ...FBInternal({
+    ...fbInternalOnly({
       'FB Internal': ['fb/devserver', 'fb/fblearner'],
     }),
     Challenges: [
