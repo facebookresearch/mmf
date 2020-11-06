@@ -614,8 +614,9 @@ class MMBT(BaseModel):
         model = super().from_pretrained(model_name, *args, **kwargs)
         config = load_pretrained_model(model_name)["full_config"]
         OmegaConf.set_struct(config, True)
-        if model_name == "mmbt.hateful_memes.images":
+        if model_name == "mmbt.hateful_memes.images" or kwargs.get("interface"):
             return MMBTGridHMInterface(model, config)
+        return model
 
     @classmethod
     def config_path(cls):

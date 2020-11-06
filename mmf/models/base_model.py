@@ -52,6 +52,7 @@ from mmf.common.sample import to_device
 from mmf.modules.losses import Losses
 from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.download import download_pretrained_model
+from mmf.utils.file_io import PathManager
 from omegaconf import MISSING, DictConfig, OmegaConf
 from torch import nn
 
@@ -211,15 +212,16 @@ class BaseModel(nn.Module):
         return results
 
     @classmethod
-    def from_pretrained(cls, model_name, *args, **kwargs):
-        model_key = model_name.split(".")[0]
-        model_cls = registry.get_model_class(model_key)
-        assert (
-            model_cls == cls
-        ), f"Incorrect pretrained model key {model_name} for class {cls.__name__}"
-        output = load_pretrained_model(model_name, *args, **kwargs)
+    def from_pretrained(cls, model_name_or_path, *args, **kwargs):
+        if not PathManager.isfile(model_name_or_path):
+            model_key = model_name_or_path.split(".")[0]
+            model_cls = registry.get_model_class(model_key)
+            assert (
+                model_cls == cls
+            ), f"Incorrect pretrained model key {model_name_or_path} "
+            "for class {cls.__name__}"
+        output = load_pretrained_model(model_name_or_path, *args, **kwargs)
         config, checkpoint = output["config"], output["checkpoint"]
-
         # Some models need registry updates to be load pretrained model
         # If they have this method, call it so they can update accordingly
         if hasattr(cls, "update_registry_for_pretrained"):
