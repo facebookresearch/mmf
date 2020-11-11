@@ -273,6 +273,7 @@
 
 
 <span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -285,6 +286,9 @@
 <span class="kn">from</span> <span class="nn">mmf.utils.download</span> <span class="kn">import</span> <span class="n">download_pretrained_model</span>
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span><span class="p">,</span> <span class="n">DictConfig</span><span class="p">,</span> <span class="n">OmegaConf</span>
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span>
+
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="BaseModel"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel">[docs]</a><span class="k">class</span> <span class="nc">BaseModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
@@ -456,7 +460,27 @@
         <span class="n">instance</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
         <span class="n">instance</span><span class="o">.</span><span class="n">is_pretrained</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">instance</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
-        <span class="n">instance</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">)</span>
+        <span class="n">incompatible_keys</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">incompatible_keys</span><span class="o">.</span><span class="n">missing_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Missing keys </span><span class="si">{</span><span class="n">incompatible_keys</span><span class="o">.</span><span class="n">missing_keys</span><span class="si">}</span><span class="s2"> in the&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot; checkpoint.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;If this is not your checkpoint, please open up an &quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;issue on MMF GitHub. </span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;Unexpected keys if any: </span><span class="si">{</span><span class="n">incompatible_keys</span><span class="o">.</span><span class="n">unexpected_keys</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">incompatible_keys</span><span class="o">.</span><span class="n">unexpected_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Unexpected keys in state dict: &quot;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">incompatible_keys</span><span class="o">.</span><span class="n">unexpected_keys</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;This is usually not a problem with pretrained models, but &quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;if this is your own model, please double check. </span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;If you think this is an issue, please open up a &quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;bug at MMF GitHub.&quot;</span>
+            <span class="p">)</span>
+
         <span class="n">instance</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">instance</span></div>
