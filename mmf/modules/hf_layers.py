@@ -15,7 +15,14 @@ from transformers.modeling_bert import (
     BertSelfAttention,
     BertSelfOutput,
 )
-from transformers.modeling_roberta import RobertaEmbeddings
+from transformers.modeling_roberta import (
+    RobertaAttention,
+    RobertaEmbeddings,
+    RobertaEncoder,
+    RobertaLayer,
+    RobertaModel,
+    RobertaSelfAttention,
+)
 from transformers.modeling_utils import PreTrainedModel
 
 
@@ -30,8 +37,21 @@ def replace_with_jit():
     BertSelfAttention.forward = BertSelfAttentionJit.forward
     BertSelfAttention.transpose_for_scores = BertSelfAttentionJit.transpose_for_scores
     BertModel.forward = BertModelJit.forward
-    PreTrainedModel.__jit_unused_properties__ = ["base_model", "dummy_inputs"]
+    PreTrainedModel.__jit_unused_properties__ = [
+        "base_model",
+        "dummy_inputs",
+        "device",
+        "dtype",
+    ]
     RobertaEmbeddings.forward = RobertaEmbeddingsJit.forward
+    RobertaEncoder.forward = BertEncoderJit.forward
+    RobertaLayer.forward = BertLayerJit.forward
+    RobertaAttention.forward = BertAttentionJit.forward
+    RobertaSelfAttention.forward = BertSelfAttentionJit.forward
+    RobertaSelfAttention.transpose_for_scores = (
+        BertSelfAttentionJit.transpose_for_scores
+    )
+    RobertaModel.forward = BertModelJit.forward
 
 
 class BertEmbeddingsJit(BertEmbeddings):
@@ -260,12 +280,15 @@ class BertEncoderJit(BertEncoder):
         attention_mask: Optional[Tensor],
         encoder_hidden_states: Optional[Tensor] = None,
         encoder_attention_mask: Optional[Tensor] = None,
+        output_attentions: bool = False,
+        output_hidden_states: bool = False,
+        return_dict: bool = False,
         head_mask: Optional[Tensor] = None,
     ) -> Tuple[Tensor]:
         all_hidden_states = ()
         all_attentions = ()
         for i, layer_module in enumerate(self.layer):
-            if not torch.jit.is_scripting() and self.output_hidden_states:
+            if not torch.jit.is_scripting() and output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states,)
 
             layer_outputs = layer_module(
@@ -277,18 +300,18 @@ class BertEncoderJit(BertEncoder):
             )
             hidden_states = layer_outputs[0]
 
-            if not torch.jit.is_scripting() and self.output_attentions:
+            if not torch.jit.is_scripting() and output_attentions:
                 all_attentions = all_attentions + (layer_outputs[1],)
 
         # Add last layer
-        if not torch.jit.is_scripting() and self.output_hidden_states:
+        if not torch.jit.is_scripting() and output_hidden_states:
             all_hidden_states = all_hidden_states + (hidden_states,)
 
         outputs = (hidden_states,)
         if not torch.jit.is_scripting():
-            if self.output_hidden_states:
+            if output_hidden_states:
                 outputs = outputs + (all_hidden_states,)
-            if self.output_attentions:
+            if output_attentions:
                 outputs = outputs + (all_attentions,)
         return outputs  # last-layer hidden state, (all hidden states), (all attentions)
 
@@ -305,7 +328,7 @@ class BertModelJit(BertModel):
         Tuple[Tensor, Tensor, List[Tensor]]
     """
 
-    __jit_unused_properties__ = ["base_model", "dummy_inputs"]
+    __jit_unused_properties__ = ["base_model", "dummy_inputs", "device", "dtype"]
 
     def __init__(self, config):
         super().__init__(config)
@@ -327,7 +350,7 @@ class BertModelJit(BertModel):
         encoder_hidden_states: Optional[Tensor] = None,
         encoder_attention_mask: Optional[Tensor] = None,
     ) -> Tuple[Tensor, Tensor, List[Tensor]]:
-        """ Forward pass on the Model.
+        """Forward pass on the Model.
         The model can behave as an encoder (with only self-attention) as well
         as a decoder, in which case a layer of cross-attention is added between
         the self-attention layers, following the architecture described in

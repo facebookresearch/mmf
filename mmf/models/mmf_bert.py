@@ -10,7 +10,6 @@ from transformers.modeling_bert import (
     BertConfig,
     BertEmbeddings,
     BertForPreTraining,
-    BertLayerNorm,
     BertPooler,
     BertPredictionHeadTransform,
     BertPreTrainingHeads,
@@ -81,7 +80,7 @@ class MMFBert(Pythia):
         self.text_embedding = nn.MultiheadAttention(**self.config.text_embeddings[0])
 
     def _tie_or_clone_weights(self, first_module, second_module):
-        """ Tie or clone module weights depending of weither we are using
+        """Tie or clone module weights depending of weither we are using
         TorchScript or not
         """
         if self.config.torchscript:
@@ -90,9 +89,9 @@ class MMFBert(Pythia):
             first_module.weight = second_module.weight
 
     def tie_weights(self):
-        """ Make sure we are sharing the input and output embeddings.
-            Export to TorchScript can't handle parameter sharing so we are cloning
-            them instead.
+        """Make sure we are sharing the input and output embeddings.
+        Export to TorchScript can't handle parameter sharing so we are cloning
+        them instead.
         """
         if hasattr(self, "cls"):
             self._tie_or_clone_weights(
@@ -271,14 +270,13 @@ class MMFBert(Pythia):
         return feature_embedding_total, feature_attentions
 
     def init_weights(self, module):
-        """ Initialize the weights.
-        """
+        """Initialize the weights."""
         if isinstance(module, (nn.Linear, nn.Embedding)):
             # Slightly different from the TF version which uses truncated_normal
             # for initialization
             # cf https://github.com/pytorch/pytorch/pull/5617
             module.weight.data.normal_(mean=0.0, std=self.bert_config.initializer_range)
-        elif isinstance(module, BertLayerNorm):
+        elif isinstance(module, nn.LayerNorm):
             module.bias.data.zero_()
             module.weight.data.fill_(1.0)
         if isinstance(module, nn.Linear) and module.bias is not None:
