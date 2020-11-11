@@ -41,6 +41,7 @@ Example::
 
 
 import collections
+import logging
 import warnings
 from copy import deepcopy
 from dataclasses import dataclass
@@ -53,6 +54,9 @@ from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.download import download_pretrained_model
 from omegaconf import MISSING, DictConfig, OmegaConf
 from torch import nn
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseModel(nn.Module):
@@ -224,7 +228,27 @@ class BaseModel(nn.Module):
         instance = cls(config)
         instance.is_pretrained = True
         instance.build()
-        instance.load_state_dict(checkpoint)
+        incompatible_keys = instance.load_state_dict(checkpoint, strict=False)
+
+        if len(incompatible_keys.missing_keys) != 0:
+            logger.warning(
+                f"Missing keys {incompatible_keys.missing_keys} in the"
+                + " checkpoint.\n"
+                + "If this is not your checkpoint, please open up an "
+                + "issue on MMF GitHub. \n"
+                + f"Unexpected keys if any: {incompatible_keys.unexpected_keys}"
+            )
+
+        if len(incompatible_keys.unexpected_keys) != 0:
+            logger.warning(
+                "Unexpected keys in state dict: "
+                + f"{incompatible_keys.unexpected_keys} \n"
+                + "This is usually not a problem with pretrained models, but "
+                + "if this is your own model, please double check. \n"
+                + "If you think this is an issue, please open up a "
+                + "bug at MMF GitHub."
+            )
+
         instance.eval()
 
         return instance

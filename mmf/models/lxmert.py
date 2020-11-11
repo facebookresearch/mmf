@@ -32,7 +32,6 @@ from transformers.modeling_bert import (
     BertEmbeddings,
     BertIntermediate,
     BertLayer,
-    BertLayerNorm,
     BertOutput,
     BertPooler,
     BertPredictionHeadTransform,
@@ -80,7 +79,7 @@ class BertClassificationHead(nn.Module):
         self.logit_fc = nn.Sequential(
             nn.Linear(in_dim, hid_dim * 2),
             GeLU(),
-            BertLayerNorm(hid_dim * 2, eps=1e-12),
+            nn.LayerNorm(hid_dim * 2, eps=1e-12),
             nn.Linear(hid_dim * 2, out_dim),
         )
 
@@ -127,7 +126,7 @@ class BertVisualAnswerHead(nn.Module):
             self.logit_gqa = nn.Sequential(
                 nn.Linear(in_dim, hid_dim * 2),
                 GeLU(),
-                BertLayerNorm(hid_dim * 2, eps=1e-12),
+                nn.LayerNorm(hid_dim * 2, eps=1e-12),
                 nn.Linear(hid_dim * 2, num_labels[1]),
             )
             out_dim = num_labels[0]
@@ -135,7 +134,7 @@ class BertVisualAnswerHead(nn.Module):
         self.logit_fc = nn.Sequential(
             nn.Linear(in_dim, hid_dim * 2),
             GeLU(),
-            BertLayerNorm(hid_dim * 2, eps=1e-12),
+            nn.LayerNorm(hid_dim * 2, eps=1e-12),
             nn.Linear(hid_dim * 2, out_dim),
         )
 
@@ -190,11 +189,11 @@ class VisualFeatEncoder(nn.Module):
 
         # Object feature encoding
         self.visn_fc = nn.Linear(feat_dim, config.hidden_size)
-        self.visn_layer_norm = BertLayerNorm(config.hidden_size, eps=1e-12)
+        self.visn_layer_norm = nn.LayerNorm(config.hidden_size, eps=1e-12)
 
         # Box position encoding
         self.box_fc = nn.Linear(pos_dim, config.hidden_size)
-        self.box_layer_norm = BertLayerNorm(config.hidden_size, eps=1e-12)
+        self.box_layer_norm = nn.LayerNorm(config.hidden_size, eps=1e-12)
 
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
@@ -452,9 +451,9 @@ class LXMERTForPretraining(nn.Module):
             self.tie_weights()
 
     def tie_weights(self):
-        """ Make sure we are sharing the input and output embeddings.
-            Export to TorchScript can't handle parameter sharing so we are cloning
-            them instead.
+        """Make sure we are sharing the input and output embeddings.
+        Export to TorchScript can't handle parameter sharing so we are cloning
+        them instead.
         """
         self._tie_or_clone_weights(
             self.cls.predictions.decoder, self.bert.embeddings.word_embeddings

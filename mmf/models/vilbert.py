@@ -21,7 +21,6 @@ from transformers.modeling_bert import (
     BertConfig,
     BertEmbeddings,
     BertIntermediate,
-    BertLayerNorm,
     BertLMPredictionHead,
     BertOutput,
     BertPredictionHeadTransform,
@@ -239,7 +238,7 @@ class BertImageSelfOutput(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.dense = nn.Linear(config.v_hidden_size, config.v_hidden_size)
-        self.LayerNorm = BertLayerNorm(config.v_hidden_size, eps=1e-12)
+        self.LayerNorm = nn.LayerNorm(config.v_hidden_size, eps=1e-12)
         self.dropout = nn.Dropout(config.v_hidden_dropout_prob)
 
     def forward(self, hidden_states: Tensor, input_tensor: Tensor) -> Tensor:
@@ -288,7 +287,7 @@ class BertImageOutput(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.dense = nn.Linear(config.v_intermediate_size, config.v_hidden_size)
-        self.LayerNorm = BertLayerNorm(config.v_hidden_size, eps=1e-12)
+        self.LayerNorm = nn.LayerNorm(config.v_hidden_size, eps=1e-12)
         self.dropout = nn.Dropout(config.v_hidden_dropout_prob)
 
     def forward(self, hidden_states: Tensor, input_tensor: Tensor) -> Tensor:
@@ -469,14 +468,14 @@ class BertBiOutput(nn.Module):
         super().__init__()
 
         self.dense1 = nn.Linear(config.bi_hidden_size, config.v_hidden_size)
-        self.LayerNorm1 = BertLayerNorm(config.v_hidden_size, eps=1e-12)
+        self.LayerNorm1 = nn.LayerNorm(config.v_hidden_size, eps=1e-12)
         self.dropout1 = nn.Dropout(config.v_hidden_dropout_prob)
 
         self.q_dense1 = nn.Linear(config.bi_hidden_size, config.v_hidden_size)
         self.q_dropout1 = nn.Dropout(config.v_hidden_dropout_prob)
 
         self.dense2 = nn.Linear(config.bi_hidden_size, config.hidden_size)
-        self.LayerNorm2 = BertLayerNorm(config.hidden_size, eps=1e-12)
+        self.LayerNorm2 = nn.LayerNorm(config.hidden_size, eps=1e-12)
         self.dropout2 = nn.Dropout(config.hidden_dropout_prob)
 
         self.q_dense2 = nn.Linear(config.bi_hidden_size, config.hidden_size)
@@ -827,7 +826,7 @@ class BertImgPredictionHeadTransform(nn.Module):
             self.transform_act_fn = ACT2FN[config.hidden_act]
         else:
             self.transform_act_fn = config.v_hidden_act
-        self.LayerNorm = BertLayerNorm(config.v_hidden_size, eps=1e-12)
+        self.LayerNorm = nn.LayerNorm(config.v_hidden_size, eps=1e-12)
 
     def forward(self, hidden_states: Tensor) -> Tensor:
         hidden_states = self.dense(hidden_states)
@@ -891,7 +890,7 @@ class BertImageFeatureEmbeddings(nn.Module):
 
         self.image_embeddings = nn.Linear(config.v_feature_size, config.v_hidden_size)
         self.image_location_embeddings = nn.Linear(5, config.v_hidden_size)
-        self.LayerNorm = BertLayerNorm(config.v_hidden_size, eps=1e-12)
+        self.LayerNorm = nn.LayerNorm(config.v_hidden_size, eps=1e-12)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
     def forward(self, image_feature: Tensor, image_location: Tensor) -> Tensor:
@@ -1080,9 +1079,9 @@ class ViLBERTForPretraining(nn.Module):
             self.tie_weights()
 
     def tie_weights(self):
-        """ Make sure we are sharing the input and output embeddings.
-            Export to TorchScript can't handle parameter sharing so we are cloning
-            them instead.
+        """Make sure we are sharing the input and output embeddings.
+        Export to TorchScript can't handle parameter sharing so we are cloning
+        them instead.
         """
         self._tie_or_clone_weights(
             self.cls.predictions.decoder, self.bert.embeddings.word_embeddings
