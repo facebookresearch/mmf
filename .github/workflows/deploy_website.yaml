@@ -20,7 +20,7 @@ jobs:
         path: mmf_master
 
     - name: Setup Miniconda
-      uses: goanpeca/setup-miniconda@v1
+      uses: conda-incubator/setup-miniconda@v2
       with:
         activate-environment: mmf
         python-version: 3.7
