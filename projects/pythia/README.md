@@ -34,5 +34,5 @@ Follow installation instructions in the [documentation](https://mmf.readthedocs.
 ## Training
 To train Pythia model on the VQA2.0 dataset, run the following command
 ```
-mmf_run config=projects/mmf/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=pythia
+mmf_run config=projects/pythia/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=pythia
 ```
