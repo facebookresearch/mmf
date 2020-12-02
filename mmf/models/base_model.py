@@ -60,7 +60,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaseModel(nn.Module):
-    """For integration with Pythia's trainer, datasets and other features,
+    """For integration with MMF's trainer, datasets and other features,
     models needs to inherit this class, call `super`, write a build function,
     write a forward function taking a ``SampleList`` as input and returning a
     dict as output and finally, register it using ``@registry.register_model``
@@ -124,8 +124,8 @@ class BaseModel(nn.Module):
 
     @classmethod
     def format_state_key(cls, key):
-        """Can be implemented if something special needs to be done
-        key when pretrained model is being load. This will adapt and return
+        """Can be implemented if something special needs to be done to the
+        key when pretrained model is being loaded. This will adapt and return
         keys according to that. Useful for backwards compatibility. See
         updated load_state_dict below. For an example, see VisualBERT model's
         code.

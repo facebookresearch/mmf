@@ -33,12 +33,6 @@ class M4C(BaseModel):
     def config_path(cls):
         return "configs/models/m4c/defaults.yaml"
 
-    @classmethod
-    def format_state_key(cls, key):
-        key = key.replace("obj_faster_rcnn_fc7.module.lc", "obj_faster_rcnn_fc7.lc")
-        key = key.replace("ocr_faster_rcnn_fc7.module.lc", "ocr_faster_rcnn_fc7.lc")
-        return key
-
     def build(self):
         # modules requiring custom learning rates (usually for finetuning)
         self.finetune_modules = []
