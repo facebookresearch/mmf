@@ -292,7 +292,7 @@
 
 
 <div class="viewcode-block" id="BaseModel"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel">[docs]</a><span class="k">class</span> <span class="nc">BaseModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;For integration with Pythia&#39;s trainer, datasets and other features,</span>
+    <span class="sd">&quot;&quot;&quot;For integration with MMF&#39;s trainer, datasets and other features,</span>
 <span class="sd">    models needs to inherit this class, call `super`, write a build function,</span>
 <span class="sd">    write a forward function taking a ``SampleList`` as input and returning a</span>
 <span class="sd">    dict as output and finally, register it using ``@registry.register_model``</span>
@@ -356,8 +356,8 @@
 
 <div class="viewcode-block" id="BaseModel.format_state_key"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.format_state_key">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">format_state_key</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Can be implemented if something special needs to be done</span>
-<span class="sd">        key when pretrained model is being load. This will adapt and return</span>
+        <span class="sd">&quot;&quot;&quot;Can be implemented if something special needs to be done to the</span>
+<span class="sd">        key when pretrained model is being loaded. This will adapt and return</span>
 <span class="sd">        keys according to that. Useful for backwards compatibility. See</span>
 <span class="sd">        updated load_state_dict below. For an example, see VisualBERT model&#39;s</span>
 <span class="sd">        code.</span>

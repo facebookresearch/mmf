@@ -274,7 +274,7 @@ should contain a <cite>scores</cite> field. Losses are automatically calculated 
 <dl class="py class">
 <dt id="mmf.models.base_model.BaseModel">
 <em class="property">class </em><code class="sig-prename descclassname">mmf.models.base_model.</code><code class="sig-name descname">BaseModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>omegaconf.dictconfig.DictConfig<span class="p">, </span><a class="reference internal" href="#mmf.models.base_model.BaseModel.Config" title="mmf.models.base_model.BaseModel.Config">mmf.models.base_model.BaseModel.Config</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/models/base_model.html#BaseModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.models.base_model.BaseModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>For integration with Pythia’s trainer, datasets and other features,
+<dd><p>For integration with MMF’s trainer, datasets and other features,
 models needs to inherit this class, call <cite>super</cite>, write a build function,
 write a forward function taking a <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> as input and returning a
 dict as output and finally, register it using <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_model</span></code></p>
@@ -307,8 +307,8 @@ should already be gathered in report.</p>
 <dl class="py method">
 <dt id="mmf.models.base_model.BaseModel.format_state_key">
 <em class="property">classmethod </em><code class="sig-name descname">format_state_key</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/models/base_model.html#BaseModel.format_state_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.models.base_model.BaseModel.format_state_key" title="Permalink to this definition">¶</a></dt>
-<dd><p>Can be implemented if something special needs to be done
-key when pretrained model is being load. This will adapt and return
+<dd><p>Can be implemented if something special needs to be done to the
+key when pretrained model is being loaded. This will adapt and return
 keys according to that. Useful for backwards compatibility. See
 updated load_state_dict below. For an example, see VisualBERT model’s
 code.</p>
