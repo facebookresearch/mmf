@@ -92,7 +92,7 @@ class LMDBConversion:
                 tmp_dict["image_id"] = img_id
                 tmp_dict["bbox"] = item["bbox"]
                 tmp_dict["num_boxes"] = item["num_boxes"]
-                tmp_dict["image_height"] = item["image_width"]
+                tmp_dict["image_height"] = item["image_height"]
                 tmp_dict["image_width"] = item["image_width"]
                 tmp_dict["objects"] = item["objects"]
                 tmp_dict["cls_prob"] = item["cls_prob"]
