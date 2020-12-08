@@ -284,6 +284,7 @@
 <span class="kn">from</span> <span class="nn">mmf.modules.losses</span> <span class="kn">import</span> <span class="n">Losses</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.checkpoint</span> <span class="kn">import</span> <span class="n">load_pretrained_model</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.download</span> <span class="kn">import</span> <span class="n">download_pretrained_model</span>
+<span class="kn">from</span> <span class="nn">mmf.utils.file_io</span> <span class="kn">import</span> <span class="n">PathManager</span>
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span><span class="p">,</span> <span class="n">DictConfig</span><span class="p">,</span> <span class="n">OmegaConf</span>
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span>
 
@@ -443,15 +444,16 @@
         <span class="k">return</span> <span class="n">results</span></div>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_pretrained</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">model_key</span> <span class="o">=</span> <span class="n">model_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">model_cls</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get_model_class</span><span class="p">(</span><span class="n">model_key</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="p">(</span>
-            <span class="n">model_cls</span> <span class="o">==</span> <span class="bp">cls</span>
-        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Incorrect pretrained model key </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2"> for class </span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="n">load_pretrained_model</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">from_pretrained</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">model_name_or_path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">PathManager</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">model_name_or_path</span><span class="p">):</span>
+            <span class="n">model_key</span> <span class="o">=</span> <span class="n">model_name_or_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">model_cls</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get_model_class</span><span class="p">(</span><span class="n">model_key</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="n">model_cls</span> <span class="o">==</span> <span class="bp">cls</span>
+            <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Incorrect pretrained model key </span><span class="si">{</span><span class="n">model_name_or_path</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="s2">&quot;for class </span><span class="si">{cls.__name__}</span><span class="s2">&quot;</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">load_pretrained_model</span><span class="p">(</span><span class="n">model_name_or_path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">config</span><span class="p">,</span> <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;config&quot;</span><span class="p">],</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;checkpoint&quot;</span><span class="p">]</span>
-
         <span class="c1"># Some models need registry updates to be load pretrained model</span>
         <span class="c1"># If they have this method, call it so they can update accordingly</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;update_registry_for_pretrained&quot;</span><span class="p">):</span>
