@@ -99,7 +99,7 @@ module.exports = {
   },
   presets: [
     [
-      '@docusaurus/preset-classic',
+      require.resolve('docusaurus-plugin-internaldocs-fb/docusaurus-preset'),
       {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
@@ -115,5 +115,4 @@ module.exports = {
       },
     ],
   ],
-  plugins: [require.resolve('docusaurus-plugin-internaldocs-fb')],
 };

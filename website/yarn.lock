@@ -3757,10 +3757,13 @@ doctrine@^3.0.0:
   dependencies:
     esutils "^2.0.2"
 
-docusaurus-plugin-internaldocs-fb@^0.5.2:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/docusaurus-plugin-internaldocs-fb/-/docusaurus-plugin-internaldocs-fb-0.5.2.tgz#635a8a7958aa64b71a92b1424a6f2a1f3d8f75a5"
-  integrity sha512-BW/Qv3P3Ztil0W3SQExL/Yq2wLEJ+IfsoGZo+3v5Gfd/fV/Oqe1EfnrW40fqhfKJFNnTKuSdP77dL8UGV0ejHA==
+docusaurus-plugin-internaldocs-fb@^0.5.5:
+  version "0.5.5"
+  resolved "https://registry.yarnpkg.com/docusaurus-plugin-internaldocs-fb/-/docusaurus-plugin-internaldocs-fb-0.5.5.tgz#3d90fd20ae68c13722459ec2fac66d81d9805732"
+  integrity sha512-6Yg+lvekTTCCeoUVOSfb822K9z0Mlr0a5V1vleKUd134dlMRJZAywtd2z6fteD47zXtgFfi0V7pVEHz+4H9m2A==
+  dependencies:
+    internaldocs-fb-helpers "^1.1.0"
+    remark-mdx-filter-imports "^0.1.1"
 
 doiuse@^2.3.0:
   version "2.6.0"
@@ -9262,6 +9265,13 @@ remark-footnotes@1.0.0:
   resolved "https://registry.yarnpkg.com/remark-footnotes/-/remark-footnotes-1.0.0.tgz#9c7a97f9a89397858a50033373020b1ea2aad011"
   integrity sha512-X9Ncj4cj3/CIvLI2Z9IobHtVi8FVdUrdJkCNaL9kdX8ohfsi18DXHsCVd/A7ssARBdccdDb5ODnt62WuEWaM/g==
 
+remark-mdx-filter-imports@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/remark-mdx-filter-imports/-/remark-mdx-filter-imports-0.1.1.tgz#31791442e8e0d6b5ee0c42838e9076c426f56d98"
+  integrity sha512-fZdKz9Z2/bUJgE82D92j1Y0qzPJPowOLmem4kQYeA/ELlGEEnYvNnsmqf17kjM+DjPC2p9c7mz8vZG7lWrSwuA==
+  dependencies:
+    unist-util-visit "^2.0.3"
+
 remark-mdx@^1.6.4:
   version "1.6.4"
   resolved "https://registry.yarnpkg.com/remark-mdx/-/remark-mdx-1.6.4.tgz#51c6eba0abb97591f0926c195e088bdb025c0b8a"
@@ -11067,6 +11077,15 @@ unist-util-visit@2.0.2, unist-util-visit@^2.0.0, unist-util-visit@^2.0.1, unist-
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/unist-util-visit/-/unist-util-visit-2.0.2.tgz#3843782a517de3d2357b4c193b24af2d9366afb7"
   integrity sha512-HoHNhGnKj6y+Sq+7ASo2zpVdfdRifhTgX2KTU3B/sO/TTlZchp7E3S4vjRzDJ7L60KmrCPsQkVK3lEF3cz36XQ==
+  dependencies:
+    "@types/unist" "^2.0.0"
+    unist-util-is "^4.0.0"
+    unist-util-visit-parents "^3.0.0"
+
+unist-util-visit@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/unist-util-visit/-/unist-util-visit-2.0.3.tgz#c3703893146df47203bb8a9795af47d7b971208c"
+  integrity sha512-iJ4/RczbJMkD0712mGktuGpm/U4By4FfDonL7N/9tATGIF4imikjOuagyMY53tnZq3NP6BcmlrHhEKAfGWjh7Q==
   dependencies:
     "@types/unist" "^2.0.0"
     unist-util-is "^4.0.0"
