@@ -81,7 +81,7 @@ from mmf.common.registry import registry
 
 ```
 
-Find more details about Registry class in its documentation [common/registry](../lib/common/registry).
+Find more details about Registry class in its documentation [common/registry](https://mmf.sh/api/lib/common/registry.html).
 
 ## Configuration
 
@@ -115,8 +115,8 @@ It is always helpful to verify your config overrides and final configuration val
 
 ## Processors
 
-The main aim of processors is to keep data processing pipelines as similar as possible for different datasets and allow code reusability. Processors take in a dict with keys corresponding to data they need and return back a dict with processed data. This helps keep processors independent of the rest of the logic by fixing the signatures they require. Processors are used in all of the datasets to hand off the data processing needs. Learn more about processors in the [documentation for processors](../lib/datasets/processors).
+The main aim of processors is to keep data processing pipelines as similar as possible for different datasets and allow code reusability. Processors take in a dict with keys corresponding to data they need and return back a dict with processed data. This helps keep processors independent of the rest of the logic by fixing the signatures they require. Processors are used in all of the datasets to hand off the data processing needs. Learn more about processors in the [documentation for processors](https://mmf.sh/api/lib/datasets/processors.html).
 
 ## Sample List
 
-[SampleList](../lib/datasets/sample#mmf.common.sample.SampleList) has been inspired from BBoxList in maskrcnn-benchmark, but is more generic. All datasets integrated with MMF need to return a [Sample](../lib/datasets/sample#mmf.common.sample.Sample) which will be collated into `SampleList`. Now, `SampleList` comes with a lot of handy functions which enable easy batching and access of things. For e.g. `Sample` is a dict with some keys. In `SampleList`, values for these keys will be smartly clubbed based on whether it is a tensor or a list and assigned back to that dict. So, end user gets these keys clubbed nicely together and can use them in their model. Models integrated with Pythia receive a `SampleList` as an argument which again makes the trainer unopinionated about the models as well as the datasets. Learn more about `Sample` and `SampleList` in their [documentation](../lib/common/sample).
+[SampleList](https://mmf.sh/api/lib/common/sample.html#mmf.common.sample.SampleList) has been inspired from BBoxList in maskrcnn-benchmark, but is more generic. All datasets integrated with MMF need to return a [Sample](https://mmf.sh/api/lib/common/sample.html#mmf.common.sample.Sample) which will be collated into `SampleList`. Now, `SampleList` comes with a lot of handy functions which enable easy batching and access of things. For e.g. `Sample` is a dict with some keys. In `SampleList`, values for these keys will be smartly clubbed based on whether it is a tensor or a list and assigned back to that dict. So, end user gets these keys clubbed nicely together and can use them in their model. Models integrated with Pythia receive a `SampleList` as an argument which again makes the trainer unopinionated about the models as well as the datasets. Learn more about `Sample` and `SampleList` in their [documentation](https://mmf.sh/api/lib/common/sample.html).

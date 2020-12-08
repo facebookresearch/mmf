@@ -48,7 +48,7 @@ Full base defaults config can be seen [below](#base-defaults-config). This confi
 
 ## Dataset Config
 
-Each dataset [registered](../lib/common/registry) to MMF can define its defaults config by specifying it in classmethod `config_path` ([example](https://github.com/facebookresearch/mmf/blob/ae1689c0e2f9d8f51f337676495057168751c5ea/mmf/datasets/builders/ocrvqa/builder.py#L15)). If `processors` key whose value is a dictionary is specified, processors will be initialized by the dataset builder. If dataset builder inherits from MMFDatasetBuilder, it will look for `annotations`, `features` and `images` field as well in the configuration. A sample config for a builder inheriting MMFDatasetBuilder would look like:
+Each dataset [registered](https://mmf.sh/api/lib/common/registry.html) to MMF can define its defaults config by specifying it in classmethod `config_path` ([example](https://github.com/facebookresearch/mmf/blob/ae1689c0e2f9d8f51f337676495057168751c5ea/mmf/datasets/builders/ocrvqa/builder.py#L15)). If `processors` key whose value is a dictionary is specified, processors will be initialized by the dataset builder. If dataset builder inherits from MMFDatasetBuilder, it will look for `annotations`, `features` and `images` field as well in the configuration. A sample config for a builder inheriting MMFDatasetBuilder would look like:
 
 ```yaml
 dataset_config:
@@ -88,7 +88,7 @@ User needs to specify the dataset they are using by adding `dataset=<dataset_key
 
 ## Model Config
 
-Similar to dataset config, each model [registered](../lib/common/registry) to MMF can define its config. this is defined by model's `config_path` classmethod ([example](https://github.com/facebookresearch/mmf/blob/ae1689c0e2f9d8f51f337676495057168751c5ea/mmf/models/cnn_lstm.py#L40)). Configs for models live at [mmf/configs/models](https://github.com/facebookresearch/mmf/tree/ae1689c0e2f9d8f51f337676495057168751c5ea/mmf/configs/models). Again, like datasets models also provide some variations which can be used by including configs for those variations in the user config.
+Similar to dataset config, each model [registered](https://mmf.sh/api/lib/common/registry.html) to MMF can define its config. this is defined by model's `config_path` classmethod ([example](https://github.com/facebookresearch/mmf/blob/ae1689c0e2f9d8f51f337676495057168751c5ea/mmf/models/cnn_lstm.py#L40)). Configs for models live at [mmf/configs/models](https://github.com/facebookresearch/mmf/tree/ae1689c0e2f9d8f51f337676495057168751c5ea/mmf/configs/models). Again, like datasets models also provide some variations which can be used by including configs for those variations in the user config.
 
 User needs to specify the model they want to use by adding `model=<model_key>` option to their command. A sample model config would look like:
 
