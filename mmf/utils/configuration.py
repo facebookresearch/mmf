@@ -199,6 +199,15 @@ def resolve_dir(env_variable, default="data"):
     return dir_path
 
 
+def register_resolvers():
+    OmegaConf.clear_resolvers()
+    # Device count resolver
+    device_count = max(1, torch.cuda.device_count())
+    OmegaConf.register_resolver("device_count", lambda: device_count)
+    OmegaConf.register_resolver("resolve_cache_dir", resolve_cache_dir)
+    OmegaConf.register_resolver("resolve_dir", resolve_dir)
+
+
 class Configuration:
     def __init__(self, args=None, default_only=False):
         self.config = {}
@@ -216,6 +225,8 @@ class Configuration:
 
         if default_only:
             other_configs = {}
+            self._user_config = {}
+            self._opts_config = {}
         else:
             other_configs = self._build_other_configs()
 
@@ -230,6 +241,16 @@ class Configuration:
             OmegaConf.to_container(self.config, resolve=True)
         )
         registry.register("config", self.config)
+
+    @classmethod
+    def build_with_config(cls, config):
+        configuration = Configuration()
+        configuration.config = config
+        configuration._user_config = {}
+        configuration._default_config = config
+        configuration._opts_config = {}
+        registry.register("config", config)
+        return configuration
 
     def _build_default_config(self):
         self.default_config_path = get_default_config_path()
@@ -363,12 +384,7 @@ class Configuration:
         return OmegaConf.create(args_dict)
 
     def _register_resolvers(self):
-        OmegaConf.clear_resolvers()
-        # Device count resolver
-        device_count = max(1, torch.cuda.device_count())
-        OmegaConf.register_resolver("device_count", lambda: device_count)
-        OmegaConf.register_resolver("resolve_cache_dir", resolve_cache_dir)
-        OmegaConf.register_resolver("resolve_dir", resolve_dir)
+        register_resolvers()
 
     def _merge_with_dotlist(self, config, opts):
         # TODO: To remove technical debt, a possible solution is to use

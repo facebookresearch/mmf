@@ -148,10 +148,10 @@ model_config: {}
 # for different datasets included in MMF are included in dataset folder
 # which can be mixed and matched to train multiple datasets together
 # An example for mixing all vqa datasets is present under vqa folder
-dataset_config: {}
+dataset_config: ???
 
 # Defines which datasets from the above tasks you want to train on
-datasets: []
+datasets: ???
 
 # Defines which model you want to train on
 model: null
@@ -238,6 +238,9 @@ distributed:
     # Set if you do not want spawn multiple processes even if
     # multiple GPUs are visible
     no_spawn: false
+    # Used for internal purposes
+    start_rank: 0
+    device_id: 0
 
 # Configuration for checkpointing including resuming and loading pretrained models
 checkpoint:

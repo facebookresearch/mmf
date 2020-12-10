@@ -20,7 +20,7 @@ class TrainerDeviceMixin(ABC):
         torch.backends.cudnn.benchmark = False
 
     def configure_device(self) -> None:
-        self.local_rank = self.config.device_id
+        self.local_rank = self.config.distributed.device_id
         self.device = self.local_rank
         self.distributed = False
 
