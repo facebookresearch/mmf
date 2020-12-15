@@ -22,8 +22,8 @@ visual_bert:
         # Model from project :  projects/pretrain_vl_right
         version: 1.0_2020_05_19
         resources:
-        - url: mmf://models/visual_bert/visual_bert.pretrained.coco.tar.gz
-          file_name: visual_bert.pretrained.coco.tar.gz
+        - url: mmf://models/visual_bert/visual_bert.pretrained.coco_ten_pc.tar.gz
+          file_name: visual_bert.pretrained.coco_ten_pc.tar.gz
           hashcode: 3b4d30768180b375a7d71a74568232a40f780a0774f9c624032081b083793727
       full_train_val:
         # COCO Train+Val 100%
