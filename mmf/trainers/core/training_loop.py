@@ -42,7 +42,7 @@ class TrainerTrainingLoopMixin(ABC):
             and self.num_updates % self.training_config.evaluation_interval != 0
         ):
             # Create a new meter for this case
-            report, meter = self.evaluation_loop(self.val_loader)
+            report, meter = self.evaluation_loop("val")
 
             # Validation end callbacks
             self.on_validation_end(report=report, meter=meter)
@@ -132,7 +132,7 @@ class TrainerTrainingLoopMixin(ABC):
                     logger.info("Evaluation time. Running on full validation set...")
                     # Validation and Early stopping
                     # Create a new meter for this case
-                    report, meter = self.evaluation_loop(self.val_loader)
+                    report, meter = self.evaluation_loop("val")
 
                     # Validation end callbacks
                     stop = self.early_stop_callback.on_validation_end(
