@@ -20,8 +20,10 @@ MAX_SIZE_LIMIT = 65533
 BYTE_SIZE = 256
 logger = logging.getLogger(__name__)
 
-def synchronize():
-    if not dist.is_available():
+def synchronize(message='sync-workers'):
+    if is_xla():
+        xm.rendezvous(message)
+    elif not dist.is_available():
         return
     if not dist.is_nccl_available():
         return

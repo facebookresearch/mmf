@@ -10,7 +10,7 @@ from mmf.common import typings as mmf_typings
 from mmf.common.registry import registry
 from mmf.datasets.processors.processors import Processor
 from mmf.utils.configuration import Configuration
-from mmf.utils.distributed import is_dist_initialized, is_xla
+from mmf.utils.distributed import is_dist_initialized, is_xla, is_master, synchronize
 from mmf.utils.general import get_optimizer_parameters
 from omegaconf import DictConfig, OmegaConf
 
@@ -82,7 +82,12 @@ def build_model(
 
     if hasattr(model, "build"):
         model.load_requirements()
-        model.build()
+        if is_master():
+            model.build()
+            synchronize()
+        else:
+            synchronize()
+            model.build()
         model.init_losses()
 
     return model
