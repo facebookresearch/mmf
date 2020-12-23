@@ -6,7 +6,7 @@ from collections import OrderedDict
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, Dict
 
 import torch
 import torchvision
@@ -185,6 +185,7 @@ class IdentityEncoder(Encoder):
 class ImageEncoderTypes(Enum):
     default = "default"
     identity = "identity"
+    torchvision_resnet = "torchvision_resnet"
     resnet152 = "resnet152"
     detectron2_resnet = "detectron2_resnet"
 
@@ -208,9 +209,10 @@ class ImageEncoderFactory(EncoderFactory):
             self.module.out_dim = params.in_dim
         elif self._type == "resnet152":
             self.module = ResNet152ImageEncoder(params)
+        elif self._type == "torchvision_resnet":
+            self.module = TorchvisionResNetImageEncoder(params)
         elif self._type == "detectron2_resnet":
             self.module = Detectron2ResnetImageEncoder(params)
-
         else:
             raise NotImplementedError("Unknown Image Encoder: %s" % self._type)
 
@@ -266,6 +268,34 @@ class ResNet152ImageEncoder(Encoder):
         out = torch.flatten(out, start_dim=2)
         out = out.transpose(1, 2).contiguous()
         return out  # BxNx2048
+
+
+@registry.register_encoder("torchvision_resnet")
+class TorchvisionResNetImageEncoder(Encoder):
+    @dataclass
+    class Config(Encoder.Config):
+        name: str = "resnet50"
+        pretrained: bool = False
+        zero_init_residual: bool = True
+
+    def __init__(self, config: Config, *args, **kwargs):
+        super().__init__()
+        self.config = config
+
+        model = getattr(torchvision.models, config.name)(
+            pretrained=config.pretrained, zero_init_residual=config.zero_init_residual
+        )
+        # Set avgpool and fc layers in torchvision to Identity.
+        model.avgpool = Identity()
+        model.fc = Identity()
+
+        self.model = model
+        self.out_dim = 2048
+
+    def forward(self, x):
+        # B x 3 x 224 x 224 -> B x 2048 x 7 x 7
+        out = self.model(x)
+        return out
 
 
 @registry.register_encoder("detectron2_resnet")
