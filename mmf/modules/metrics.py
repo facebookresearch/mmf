@@ -1022,3 +1022,56 @@ class RecallAtPrecisionK(BaseMetric):
             value = 0
 
         return expected.new_tensor(value, dtype=torch.float)
+
+
+@registry.register_metric("detection_mean_ap")
+class DetectionMeanAP(BaseMetric):
+    """Metric for calculating the detection mean average precision (mAP) using the COCO
+    evaluation toolkit, returning the default COCO-style mAP@IoU=0.50:0.95
+
+    **Key:** ``detection_mean_ap``
+    """
+
+    def __init__(self, dataset_json_files, *args, **kwargs):
+        """Initialization function detection mean AP (mAP)
+
+        Args:
+            dataset_json_files (Dict): paths to the dataset (instance) json files
+                for each dataset type and dataset name in the following format:
+                ``{'val/detection_coco': '/path/to/instances_val2017.json', ...}``
+
+        """
+        super().__init__("detection_mean_ap")
+        self.required_params = []
+        self.dataset_json_files = dataset_json_files
+
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate detection mean AP (mAP) from the prediction list and the dataset
+        annotations. The function returns COCO-style mAP@IoU=0.50:0.95.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration.
+            model_output (Dict): Dict returned by model. This should contain
+                                "prediction_report" field, which is a list of
+                                detection predictions from the model.
+
+        Returns:
+            torch.FloatTensor: COCO-style mAP@IoU=0.50:0.95.
+
+        """
+        predictions = model_output.prediction_report
+
+        from pycocotools.coco import COCO
+        from pycocotools.cocoeval import COCOeval
+
+        key = f"{sample_list.dataset_type}/{sample_list.dataset_name}"
+        cocoGt = COCO(self.dataset_json_files[key])
+        cocoDt = cocoGt.loadRes(predictions)
+        cocoEval = COCOeval(cocoGt, cocoDt, "bbox")
+        cocoEval.evaluate()
+        cocoEval.accumulate()
+        cocoEval.summarize()
+
+        mAP = torch.tensor(cocoEval.stats[0], dtype=torch.float).cuda()
+        return mAP
