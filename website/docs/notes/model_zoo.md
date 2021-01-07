@@ -4,18 +4,24 @@ title: Model Zoo
 sidebar_label: Model Zoo
 ---
 
-Here is the current list of models currently implemented in MMF:
+Here is the list of models currently implemented in MMF:
 
-- **M4C** Iterative Answer Prediction with Pointer-Augmented Multimodal Transformers for TextVQA [[arXiv](https://arxiv.org/abs/1911.06258)] [[project](https://github.com/facebookresearch/mmf/tree/master/projects/m4c)]
-- **ViLBERT** ViLBERT: Pretraining Task-Agnostic Visiolinguistic Representations for Vision-and-Language Tasks [[arXiv](https://arxiv.org/abs/1908.02265)] [[project](https://github.com/facebookresearch/mmf/tree/master/projects/vilbert)]
-- **VisualBert** Visualbert: A simple and performant baseline for vision and language [[arXiv](https://arxiv.org/abs/1908.03557)] [[project](https://arxiv.org/abs/1908.03557)]
-- **LoRRA** Towards VQA Models That Can Read [[arXiv](https://arxiv.org/abs/1904.08920)] [[project](https://github.com/facebookresearch/mmf/tree/master/projects/lorra)]
-- **M4C Captioner** TextCaps: a Dataset for Image Captioning with Reading Comprehension [[arXiv](https://arxiv.org/abs/2003.12462)] [[project](https://github.com/facebookresearch/mmf/tree/master/projects/m4c_captioner)]
-- **LXMERT** LXMERT: Learning Cross-Modality Encoder Representations from Transformers [[arXiv](https://arxiv.org/abs/1908.07490)] [[project](https://github.com/facebookresearch/mmf/tree/master/projects/lxmert)]
-- **Pythia** Pythia v0. 1: the winning entry to the vqa challenge 2018 [[arXiv](https://arxiv.org/abs/1807.09956)] [[project](https://github.com/facebookresearch/mmf/tree/master/projects/pythia)]
-- **BUTD** Bottom-up and top-down attention for image captioning and visual question answering [[arXiv](https://arxiv.org/abs/1707.07998)] [[project](https://github.com/facebookresearch/mmf/tree/master/projects/butd)]
-- **MMBT** Supervised Multimodal Bitransformers for Classifying Images and Text [[arXiv](https://arxiv.org/abs/1909.02950)] [[project](https://github.com/facebookresearch/mmf/tree/master/projects/mmbt)]
-- **MoViE** Revisiting Modulated Convolutions for Visual Counting and Beyond [[arXiv](https://arxiv.org/abs/2004.11883)] [[project](https://github.com/facebookresearch/mmf/tree/master/projects/movie_mcan)]
-- **BAN** Bilinear Attention Networks [[arXiv](https://arxiv.org/abs/1805.07932)] [[project](https://github.com/facebookresearch/mmf/tree/master/projects/ban)]
+| Model           | Key                                  | Datasets                                 | Notes
+| --------------- | ------------------------------------ | ---------------------------------------- | ----------------------------------------------------------- |
+| BAN             | ban                                  | textvqa, vizwiz, vqa2                    | [BAN](https://arxiv.org/abs/1805.07932) support is preliminary and hasn't been properly fine-tuned yet. |
+| BUTD            | butd                                 | coco                                     | [paper](https://arxiv.org/abs/1707.07998)                   |
+| CNN LSTM        | cnn_lstm                             | clevr                                    |                                                             |
+| FUSIONS         | concat_bert, late_fusion, concat_bow | hateful_memes                            |                                                             |
+| LoRRA           | lorra                                | vqa2, textvqa, vizwiz                    | [paper](https://arxiv.org/abs/1904.08920)                   |
+| LXMERT          | lxmert                               | coco, gqa, visual_genome, vqa2           | [paper](https://arxiv.org/abs/1908.07490)                   |
+| M4C             | m4c                                  | ocrvqa, stvqa, textvqa                   | [paper](https://arxiv.org/pdf/1911.06258.pdf)               |
+| M4C Captioner   | m4c_captioner                        | coco, textcaps                           | [paper](https://arxiv.org/pdf/2003.12462.pdf)               |
+| MMBT            | mmbt                                 | hateful_memes, coco, mmimdb, okvqa, vqa2 | [paper](https://arxiv.org/abs/1909.02950)                   |
+| MMF Transformer | mmf_transformer                      | hateful_memes, okvqa, vqa2               |                                                             |
+| Movie MCAN      | movie_mcan                           | vqa2                                     | [paper](https://arxiv.org/abs/2004.11883)                   |
+| Pythia          | pythia                               | textvqa, vizwiz, vqa2, visual_genome     | [paper](https://arxiv.org/abs/1904.08920)                   |
+| Unimodal        | unimodal                             | hateful_memes                            |                                                             |
+| VilBERT         | vilbert                              | hateful_memes, coco, conceptual_captions, vqa2, mmimdb, nlvr2, visual_entailment, vizwiz, vqa2 |[paper](https://arxiv.org/abs/1908.02265)|
+| Visual BERT     | visual_bert                          | gqa, hateful_memes, localized_narratives, coco, conceptual_captions, sbu, vqa2, mmimdb, nlvr2, visual_entailment, vizwiz|[paper](https://arxiv.org/abs/1908.03557)|
 
-In addition to the above MMF also has implementations of models ConcatBERT, ConcatBOW, LateFusion, Unimodal Text, Unimodal Image, VisDial, MMFBERT etc. We are adding many more new models which will be available soon.
+We are adding many more new models which will be available soon.

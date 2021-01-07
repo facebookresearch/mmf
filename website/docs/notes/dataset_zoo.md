@@ -4,20 +4,31 @@ title: Dataset Zoo
 sidebar_label: Dataset Zoo
 ---
 
-Here is the current list of datasets currently supported in MMF:
+Here is the list of datasets currently supported in MMF:
 
-- **CLEVR** [Paper : CLEVR A Diagnostic Dataset for Compositional Language and Elementary Visual Reasoning][arxiv](https://arxiv.org/abs/1612.06890)]
-- **COCO Captions** [Paper : Microsoft COCO Captions: Data Collection and Evaluation Server][arxiv](https://arxiv.org/abs/1504.00325)]
-- **Conceptual Captions** [Paper : Conceptual Captions: A Cleaned, Hypernymed, Image Alt-text Dataset For Automatic Image Captioning][website](https://ai.google.com/research/ConceptualCaptions)]
-- **Hateful Memes** [Paper : The Hateful Memes Challenge: Detecting Hate Speech in Multimodal Memes][arxiv](https://arxiv.org/abs/2005.04790)]
-- **MM IMDB** [Paper : Gated Multimodal Units for Information Fusion][arxiv](https://arxiv.org/abs/1702.01992)] [[website](http://lisi1.unal.edu.co/mmimdb)]
-- **NLVR2** [Paper : A Corpus for Reasoning About Natural Language Grounded in Photographs][arxiv](https://arxiv.org/abs/1811.00491)] [[website](http://lil.nlp.cornell.edu/nlvr/)]
-- **OCRVQA** [Paper : OCR-VQA: Visual Question Answering by Reading Text in Images][website](https://ocr-vqa.github.io/)]
-- **STVQA** [Paper : Scene Text Visual Question Answering][arxiv](https://arxiv.org/abs/1905.13648)]
-- **TextVQA** [Paper : Towards VQA Models That Can Read][arxiv](https://arxiv.org/abs/1904.08920)] [[website](https://textvqa.org/)]
-- **TextCaps** [Paper : TextCaps: a Dataset for Image Captioning with Reading Comprehension][arxiv](https://arxiv.org/abs/2003.12462)]
-- **Visual Dialog** [Paper : Visual Dialog][website](https://visualdialog.org/)]
-- **SNLI-VE** [Paper : Visual Entailment: A Novel Task for Fine-Grained Image Understanding][arxiv](https://arxiv.org/abs/1901.06706)] [[website](https://github.com/necla-ml/SNLI-VE)]
-- **Visual Genome** [Paper : Visual Genome: Connecting Language and Vision Using Crowdsourced Dense Image Annotations][arxiv](https://arxiv.org/abs/1602.07332)] [[website](https://visualgenome.org/)]
-- **VizWiZ** [Paper : VizWiz Grand Challenge: Answering Visual Questions from Blind People][arxiv](https://arxiv.org/abs/1802.08218)] [[website](https://vizwiz.org/)]
-- **VQA2.0** [Paper : VQA: Visual Question Answering][arxiv](https://arxiv.org/abs/1505.00468)] [[website](https://visualqa.org/)]
+| Datasets             | Key                  | Notes                                                                                                             |
+| -------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| CLEVR                | clevr                | [website](https://cs.stanford.edu/people/jcjohns/clevr/), [paper](https://arxiv.org/abs/1612.06890)                                                          |
+| MS COCO 2014         | coco                 | coco has other types of data available (ie, detection), mmf only has coco caption dataset implemented, [website](https://cocodataset.org/), [paper](https://arxiv.org/abs/1504.00325)|
+| MS COCO 2017         | coco17               | coco has other types of data available (ie, detection), mmf only has coco caption dataset implemented, [website](https://cocodataset.org/), [paper](https://arxiv.org/abs/1504.00325)|
+| Conceptual Captions  | conceptual_captions  | [github](https://github.com/google-research-datasets/conceptual-captions), [website](https://ai.google.com/research/ConceptualCaptions) |
+| Flickr30k            | flickr30k            | [github](https://github.com/BryanPlummer/flickr30k_entities)                                                     |
+| GQA                  | gqa                  | [website](https://cs.stanford.edu/people/dorarad/gqa/about.html)                                                 |
+| Hateful Memes        | hateful_memes        | [paper](https://arxiv.org/abs/2005.04790)                                                                         |
+| Localized Narratives | localized_narratives | [website](https://google.github.io/localized-narratives/)                                                         |
+| MM IMDB              | mmimdb               | [website](http://lisi1.unal.edu.co/mmimdb/), [paper](https://arxiv.org/abs/1702.01992) |
+| NLVR2                | nlvr2                | [website](http://lil.nlp.cornell.edu/nlvr/), [paper](https://arxiv.org/abs/1811.00491) |
+| OCRVQA               | ocrvqa               | [website](https://ocr-vqa.github.io/)                                                                             |
+| OKVQA                | okvqa                | [website](https://okvqa.allenai.org/)                                                                             |
+| SBU Captions         | masked_sbu           | [website](http://www.cs.virginia.edu/~vicente/sbucaptions/)                                                       |
+| Scene Text VQA       | stvqa                | [paper](https://arxiv.org/abs/1905.13648)                                   |
+| Text Caps            | text_caps            | [website](https://textvqa.org/textcaps)                                                                           |
+| TextVQA              | textvqa              | [website](https://textvqa.org/)                                                                                   |
+| VisualDialog         | visdial              | [website](https://visualdialog.org/)                                                                              |
+| Visual Genome        | visual_genome        | [website](https://visualgenome.org/), [paper](https://arxiv.org/abs/1602.07332) |
+| SNLI-VE              | visual_entailment    | [github](https://github.com/necla-ml/SNLI-VE), [paper](https://arxiv.org/abs/1901.06706) |
+| VizWiz               | vizwiz               | [website](https://vizwiz.org/), [paper](https://arxiv.org/abs/1802.08218) |
+| VQA 2.0              | vqa2                 | [website](https://visualqa.org/), [paper](https://arxiv.org/abs/1505.00468)        |
+| VQA CP V2            | vqacp_v2             | [paper](https://arxiv.org/pdf/1712.00377.pdf)|
+
+We are adding many more new datasets which will be available soon.
