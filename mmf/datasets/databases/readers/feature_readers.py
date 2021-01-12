@@ -116,6 +116,7 @@ class CHWFeatureReader:
         if self.max_features:
             padded_feat = torch.zeros((b, c, self.img_h, self.img_w), dtype=torch.float)
             padded_feat[:, :, :h, :w] = feat
+            feat = padded_feat
         feat = feat.squeeze(0)
         return feat, None
 
