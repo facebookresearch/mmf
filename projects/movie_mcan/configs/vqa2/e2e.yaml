@@ -1,0 +1,92 @@
+includes:
+- ./defaults.yaml
+
+model_config:
+  movie_mcan:
+    image_feature_encodings:
+      type: detectron2_resnet
+      params:
+        pretrained: true
+        pretrained_path: https://dl.fbaipublicfiles.com/mmf/data/models/detectron2/X-152pp.pth
+        in_dim: ${model_config.movie_mcan.image_feature_dim}
+        MODEL:
+          BACKBONE:
+            FREEZE_AT: 6
+          RESNETS:
+            DEPTH: 152
+            OUT_FEATURES: ["res5"]  # res4 for C4 backbone, res2..5 for FPN backbone
+
+            # Number of groups to use; 1 ==> ResNet; > 1 ==> ResNeXt
+            NUM_GROUPS: 32
+
+            # Options: FrozenBN, GN, "SyncBN", "BN"
+            NORM: FrozenBN
+
+            # Baseline width of each group.
+            # Scaling this parameters will scale the width of all bottleneck layers.
+            WIDTH_PER_GROUP: 8
+
+            # Place the stride 2 conv on the 1x1 filter
+            # Use True only for the original MSRA ResNet; use False for C2 and Torch models
+            STRIDE_IN_1X1: False  # this is a C2 model
+
+            # Apply dilation in stage "res5"
+            RES5_DILATION: 1
+
+            # Output width of res2. Scaling this parameters will scale the width of all 1x1 convs in ResNet
+            # For R18 and R34, this needs to be set to 64
+            RES2_OUT_CHANNELS: 256
+            STEM_OUT_CHANNELS: 64
+
+            # Apply Deformable Convolution in stages
+            # Specify if apply deform_conv on Res2, Res3, Res4, Res5
+            DEFORM_ON_PER_STAGE: [False, False, True,True]
+            # Use True to use modulated deform_conv (DeformableV2, https://arxiv.org/abs/1811.11168);
+            # Use False for DeformableV1.
+            DEFORM_MODULATED: False
+            # Number of groups in deformable conv.
+            DEFORM_NUM_GROUPS: 1
+
+
+dataset_config:
+  vqa2:
+    use_images: true
+    use_features: false
+    zoo_requirements:
+      - vqa2.defaults
+      - vqa2.grid_features
+    images:
+      train:
+      - coco/defaults/images
+      - coco/defaults/images
+      - coco/defaults/images
+      val:
+      - coco/defaults/images/val2014
+      test:
+      - coco/defaults/images
+    annotations:
+      train:
+      - vqa2/grid_features/annotations/imdb_train2014.npy
+      - vqa2/grid_features/annotations/imdb_val2014.npy
+      - vqa2/grid_features/annotations/imdb_visualgenome.npy
+      val:
+      - vqa2/grid_features/annotations/imdb_oneval2014.npy
+      test:
+      - vqa2/grid_features/annotations/imdb_test2015.npy
+    processors:
+      image_processor:
+        type: torchvision_transforms
+        params:
+          transforms:
+          - type: ResizeShortest
+            params:
+              min_size: 600
+              max_size: 1000
+          - ToTensor
+          - GrayScaleTo3Channels
+          - type: NormalizeBGR255
+            params:
+              mean: [103.530, 116.280, 123.675]
+              std: [1.0, 1.0, 1.0]
+              to_bgr255: true
+              pad_size: -1
