@@ -233,6 +233,9 @@
 <span></span><span class="c1"># Copyright (c) Facebook, Inc. and its affiliates.</span>
 
 <span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
@@ -314,6 +317,75 @@
         <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">x</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="ResizeShortest"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.image_processors.ResizeShortest">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;ResizeShortest&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ResizeShortest</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">min_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;min_size&quot;</span><span class="p">]</span>
+        <span class="n">max_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;max_size&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">min_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">min_size</span><span class="p">,)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span> <span class="o">=</span> <span class="n">min_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="n">max_size</span>
+
+    <span class="k">def</span> <span class="nf">get_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_size</span><span class="p">):</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">image_size</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_size</span><span class="p">)</span>
+        <span class="n">max_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span>
+        <span class="k">if</span> <span class="n">max_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">min_original_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">min</span><span class="p">((</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)))</span>
+            <span class="n">max_original_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">max</span><span class="p">((</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="n">max_original_size</span> <span class="o">/</span> <span class="n">min_original_size</span> <span class="o">*</span> <span class="n">size</span> <span class="o">&gt;</span> <span class="n">max_size</span><span class="p">:</span>
+                <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">max_size</span> <span class="o">*</span> <span class="n">min_original_size</span> <span class="o">/</span> <span class="n">max_original_size</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">w</span> <span class="o">&lt;=</span> <span class="n">h</span> <span class="ow">and</span> <span class="n">w</span> <span class="o">==</span> <span class="n">size</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">h</span> <span class="o">&lt;=</span> <span class="n">w</span> <span class="ow">and</span> <span class="n">h</span> <span class="o">==</span> <span class="n">size</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">w</span> <span class="o">&lt;</span> <span class="n">h</span><span class="p">:</span>
+            <span class="n">ow</span> <span class="o">=</span> <span class="n">size</span>
+            <span class="n">oh</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">size</span> <span class="o">*</span> <span class="n">h</span> <span class="o">/</span> <span class="n">w</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">oh</span> <span class="o">=</span> <span class="n">size</span>
+            <span class="n">ow</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">size</span> <span class="o">*</span> <span class="n">w</span> <span class="o">/</span> <span class="n">h</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">oh</span><span class="p">,</span> <span class="n">ow</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">):</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">image</span></div>
+
+
+<div class="viewcode-block" id="NormalizeBGR255"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.image_processors.NormalizeBGR255">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;NormalizeBGR255&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">NormalizeBGR255</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">std</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">to_bgr255</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;to_bgr255&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pad_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;pad_size&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;You are setting pad_size &gt; 0, tensor will be padded to a fix size of&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_size</span><span class="si">}</span><span class="s2">. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;The image_mask will cover the pad_size of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_size</span><span class="si">}</span><span class="s2"> instead of&quot;</span>
+                <span class="s2">&quot;the original size.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_bgr255</span><span class="p">:</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="p">[[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="mi">255</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">std</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pad_size</span> <span class="o">&gt;=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_size</span> <span class="o">&gt;=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;image size: </span><span class="si">{</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">padded_image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">new_zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_size</span><span class="p">)</span>
+            <span class="n">padded_image</span><span class="p">[:,</span> <span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+
+            <span class="k">return</span> <span class="n">padded_image</span>
+        <span class="k">return</span> <span class="n">image</span></div>
 </pre></div>
 
              </article>
