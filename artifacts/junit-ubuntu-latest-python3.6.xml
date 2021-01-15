@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="144" time="337.913" timestamp="2021-02-10T02:06:09.084974" hostname="devfair0152"><testcase classname="tests.common.test_batch_collator.TestBatchCollator" name="test_call" time="0.003" /><testcase classname="tests.common.test_sample.TestSample" name="test_sample_working" time="0.001" /><testcase classname="tests.common.test_sample.TestSampleList" name="test_pin_memory" time="1.880" /><testcase classname="tests.common.test_sample.TestSampleList" name="test_to_dict" time="0.002" /><testcase classname="tests.common.test_sample.TestFunctions" name="test_to_device" time="0.003" /><testcase classname="tests.configs.test_configs_for_keys.TestConfigsForKeys" name="test_dataset_configs_for_keys" time="6.182" /><testcase classname="tests.configs.test_configs_for_keys.TestConfigsForKeys" name="test_model_configs_for_keys" time="4.334" /><testcase classname="tests.configs.test_zoo_urls.TestConfigsForKeys" name="test_sha256sums" time="1.670" /><testcase classname="tests.configs.test_zoo_urls.TestConfigsForKeys" name="test_zoos" time="54.115" /><testcase classname="tests.datasets.test_base_dataset.TestBaseDataset" name="test_init_processors" time="0.248" /><testcase classname="tests.datasets.test_mmf_dataset_builder.TestMMFDatasetBuilder" name="test_train_split_alignment" time="0.012" /><testcase classname="tests.datasets.test_mmf_dataset_builder.TestMMFDatasetBuilder" name="test_train_split_len" time="0.006" /><testcase classname="tests.datasets.test_mmf_dataset_builder.TestMMFDatasetBuilder" name="test_train_split_non_overlap" time="0.011" /><testcase classname="tests.datasets.test_multi_dataset_loader.TestMultiDatasetLoader" name="test_equal_sampling" time="0.154" /><testcase classname="tests.datasets.test_multi_dataset_loader.TestMultiDatasetLoader" name="test_proportional_sampling" time="0.189" /><testcase classname="tests.datasets.test_prediction_processors.TestDatasetProcessors" name="test_argmax_prediction_processor" time="0.001" /><testcase classname="tests.datasets.test_processors.TestDatasetProcessors" name="test_caption_processor" time="0.018" /><testcase classname="tests.datasets.test_processors.TestDatasetProcessors" name="test_evalai_answer_processor" time="0.001" /><testcase classname="tests.datasets.test_processors.TestDatasetProcessors" name="test_multi_class_from_file" time="0.001" /><testcase classname="tests.datasets.test_processors.TestDatasetProcessors" name="test_multi_hot_answer_from_vocab_processor" time="0.014" /><testcase classname="tests.datasets.test_processors.TestDatasetProcessors" name="test_transformer_bbox_processor" time="0.001" /><testcase classname="tests.models.test_cnn_lstm.TestModelCNNLSTM" name="test_forward" time="0.272" /><testcase classname="tests.models.test_mmbt.TestMMBTTorchscript" name="test_finetune_model" time="11.382" /><testcase classname="tests.models.test_mmbt.TestMMBTTorchscript" name="test_load_save_finetune_model" time="12.813" /><testcase classname="tests.models.test_mmbt.TestMMBTTorchscript" name="test_modal_end_token" time="6.974" /><testcase classname="tests.models.test_mmbt.TestMMBTConfig" name="test_mmbt_directly_from_config" time="0.007" /><testcase classname="tests.models.test_mmbt.TestMMBTConfig" name="test_mmbt_from_params" time="0.010" /><testcase classname="tests.models.test_mmbt.TestMMBTConfig" name="test_mmbt_pretrained" time="0.028" /><testcase classname="tests.models.test_mmf_transformer.TestMMFTransformerTorchscript" name="test_finetune_bert_base" time="9.890" /><testcase classname="tests.models.test_mmf_transformer.TestMMFTransformerTorchscript" name="test_finetune_roberta_base" time="14.538" /><testcase classname="tests.models.test_mmf_transformer.TestMMFTransformerTorchscript" name="test_finetune_xlmr_base" time="19.453" /><testcase classname="tests.models.test_mmf_transformer.TestMMFTransformerTorchscript" name="test_load_save_finetune_model" time="11.784" /><testcase classname="tests.models.test_mmf_transformer.TestMMFTransformerConfig" name="test_mmf_from_params_encoder_factory" time="0.002"><failure message="omegaconf.errors.UnsupportedValueType: Value 'Config' is not a supported primitive type&#10;&#09;full_key: modalities[0]&#10;&#09;reference_type=List[BaseTransformerModalityConfig]&#10;&#09;object_type=list">self = &lt;tests.models.test_mmf_transformer.TestMMFTransformerConfig testMethod=test_mmf_from_params_encoder_factory&gt;
+
+    def test_mmf_from_params_encoder_factory(self):
+        modalities_config = [
+            MMFTransformerModalityConfig(
+                type="image",
+                key="image",
+                embedding_dim=256,
+                position_dim=1,
+                segment_id=0,
+                encoder=ImageEncoderFactory.Config(type=ImageEncoderTypes.identity),
+            ),
+            MMFTransformerModalityConfig(
+                type="text",
+                key="text",
+                embedding_dim=756,
+                position_dim=512,
+                segment_id=0,
+                encoder=TextEncoderFactory.Config(type=TextEncoderTypes.identity),
+            ),
+        ]
+&gt;       mmft = MMFTransformer.from_params(modalities=modalities_config, num_labels=2)
+
+tests/models/test_mmf_transformer.py:123:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+mmf/models/base_model.py:94: in from_params
+    return cls(OmegaConf.structured(cls.Config(**kwargs)))
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:133: in structured
+    return OmegaConf.create(obj, parent)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:170: in create
+    return OmegaConf._create_impl(obj=obj, parent=parent)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:238: in _create_impl
+    format_and_raise(node=None, key=None, value=None, msg=str(e), cause=e)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:522: in format_and_raise
+    raise_(ex, cause)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:515: in raise_
+    raise ex
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:214: in _create_impl
+    return DictConfig(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/dictconfig.py:74: in __init__
+    self._set_value(content)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/dictconfig.py:549: in _set_value
+    data = get_structured_config_data(value)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:233: in get_structured_config_data
+    return get_dataclass_data(obj)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:176: in get_dataclass_data
+    d[name] = _maybe_wrap(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:675: in _maybe_wrap
+    return _node_wrap(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:620: in _node_wrap
+    node = ListConfig(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:65: in __init__
+    format_and_raise(node=None, key=None, value=None, cause=ex, msg=str(ex))
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:522: in format_and_raise
+    raise_(ex, cause)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:515: in raise_
+    raise ex
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:63: in __init__
+    self._set_value(value=content)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:472: in _set_value
+    self.append(item)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:182: in append
+    self._format_and_raise(key=index, value=item, cause=e)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/base.py:95: in _format_and_raise
+    format_and_raise(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:590: in format_and_raise
+    raise_(ex, cause)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+ex = UnsupportedValueType("Value 'Config' is not a supported primitive type\n\tfull_key: modalities[0]\n\treference_type=List[BaseTransformerModalityConfig]\n\tobject_type=list\n")
+cause = UnsupportedValueType("Value 'Config' is not a supported primitive type")
+
+    def raise_(ex: Exception, cause: Exception) -&gt; None:
+        # Set the environment variable OC_CAUSE=1 to get a stacktrace that includes the
+        # causing exception.
+        full_backtrace = "OC_CAUSE" in os.environ and os.environ["OC_CAUSE"] == "1"
+        if full_backtrace:
+            ex.__cause__ = cause
+        else:
+            ex.__cause__ = None
+&gt;       raise ex
+E       omegaconf.errors.UnsupportedValueType: Value 'Config' is not a supported primitive type
+E       	full_key: modalities[0]
+E       	reference_type=List[BaseTransformerModalityConfig]
+E       	object_type=list
+
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:515: UnsupportedValueType</failure></testcase><testcase classname="tests.models.test_mmf_transformer.TestMMFTransformerConfig" name="test_mmft_from_build_model" time="0.002"><failure message="omegaconf.errors.UnsupportedValueType: Value 'Config' is not a supported primitive type&#10;&#09;full_key: modalities[0]&#10;&#09;reference_type=List[BaseTransformerModalityConfig]&#10;&#09;object_type=list">self = &lt;tests.models.test_mmf_transformer.TestMMFTransformerConfig testMethod=test_mmft_from_build_model&gt;
+
+    def test_mmft_from_build_model(self):
+        modalities_config = [
+            MMFTransformerModalityConfig(
+                type="image",
+                key="image",
+                embedding_dim=256,
+                position_dim=1,
+                segment_id=0,
+                encoder=ImageEncoderFactory.Config(
+                    type=ImageEncoderTypes.resnet152,
+                    params=ResNet152ImageEncoder.Config(pretrained=False),
+                ),
+            ),
+            MMFTransformerModalityConfig(
+                type="text",
+                key="text",
+                embedding_dim=756,
+                position_dim=512,
+                segment_id=1,
+                encoder=TextEncoderFactory.Config(type=TextEncoderTypes.identity),
+            ),
+        ]
+        config = MMFTransformer.Config(modalities=modalities_config, num_labels=2)
+&gt;       mmft = build_model(config)
+
+tests/models/test_mmf_transformer.py:159:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+mmf/utils/build.py:69: in build_model
+    config = OmegaConf.structured(config)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:133: in structured
+    return OmegaConf.create(obj, parent)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:170: in create
+    return OmegaConf._create_impl(obj=obj, parent=parent)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:238: in _create_impl
+    format_and_raise(node=None, key=None, value=None, msg=str(e), cause=e)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:522: in format_and_raise
+    raise_(ex, cause)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:515: in raise_
+    raise ex
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:214: in _create_impl
+    return DictConfig(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/dictconfig.py:74: in __init__
+    self._set_value(content)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/dictconfig.py:549: in _set_value
+    data = get_structured_config_data(value)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:233: in get_structured_config_data
+    return get_dataclass_data(obj)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:176: in get_dataclass_data
+    d[name] = _maybe_wrap(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:675: in _maybe_wrap
+    return _node_wrap(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:620: in _node_wrap
+    node = ListConfig(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:65: in __init__
+    format_and_raise(node=None, key=None, value=None, cause=ex, msg=str(ex))
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:522: in format_and_raise
+    raise_(ex, cause)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:515: in raise_
+    raise ex
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:63: in __init__
+    self._set_value(value=content)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:472: in _set_value
+    self.append(item)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:182: in append
+    self._format_and_raise(key=index, value=item, cause=e)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/base.py:95: in _format_and_raise
+    format_and_raise(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:590: in format_and_raise
+    raise_(ex, cause)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+ex = UnsupportedValueType("Value 'Config' is not a supported primitive type\n\tfull_key: modalities[0]\n\treference_type=List[BaseTransformerModalityConfig]\n\tobject_type=list\n")
+cause = UnsupportedValueType("Value 'Config' is not a supported primitive type")
+
+    def raise_(ex: Exception, cause: Exception) -&gt; None:
+        # Set the environment variable OC_CAUSE=1 to get a stacktrace that includes the
+        # causing exception.
+        full_backtrace = "OC_CAUSE" in os.environ and os.environ["OC_CAUSE"] == "1"
+        if full_backtrace:
+            ex.__cause__ = cause
+        else:
+            ex.__cause__ = None
+&gt;       raise ex
+E       omegaconf.errors.UnsupportedValueType: Value 'Config' is not a supported primitive type
+E       	full_key: modalities[0]
+E       	reference_type=List[BaseTransformerModalityConfig]
+E       	object_type=list
+
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:515: UnsupportedValueType</failure></testcase><testcase classname="tests.models.test_mmf_transformer.TestMMFTransformerConfig" name="test_mmft_from_params" time="0.002"><failure message="omegaconf.errors.UnsupportedValueType: Value 'Config' is not a supported primitive type&#10;&#09;full_key: modalities[0]&#10;&#09;reference_type=List[BaseTransformerModalityConfig]&#10;&#09;object_type=list">self = &lt;tests.models.test_mmf_transformer.TestMMFTransformerConfig testMethod=test_mmft_from_params&gt;
+
+    def test_mmft_from_params(self):
+        modalities_config = [
+            MMFTransformerModalityConfig(
+                type="image",
+                key="image",
+                embedding_dim=256,
+                position_dim=1,
+                segment_id=0,
+                encoder=IdentityEncoder.Config(),
+            ),
+            MMFTransformerModalityConfig(
+                type="text",
+                key="text",
+                embedding_dim=768,
+                position_dim=512,
+                segment_id=1,
+                encoder=IdentityEncoder.Config(),
+            ),
+        ]
+&gt;       mmft = MMFTransformer.from_params(modalities=modalities_config, num_labels=2)
+
+tests/models/test_mmf_transformer.py:95:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+mmf/models/base_model.py:94: in from_params
+    return cls(OmegaConf.structured(cls.Config(**kwargs)))
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:133: in structured
+    return OmegaConf.create(obj, parent)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:170: in create
+    return OmegaConf._create_impl(obj=obj, parent=parent)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:238: in _create_impl
+    format_and_raise(node=None, key=None, value=None, msg=str(e), cause=e)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:522: in format_and_raise
+    raise_(ex, cause)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:515: in raise_
+    raise ex
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:214: in _create_impl
+    return DictConfig(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/dictconfig.py:74: in __init__
+    self._set_value(content)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/dictconfig.py:549: in _set_value
+    data = get_structured_config_data(value)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:233: in get_structured_config_data
+    return get_dataclass_data(obj)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:176: in get_dataclass_data
+    d[name] = _maybe_wrap(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:675: in _maybe_wrap
+    return _node_wrap(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:620: in _node_wrap
+    node = ListConfig(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:65: in __init__
+    format_and_raise(node=None, key=None, value=None, cause=ex, msg=str(ex))
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:522: in format_and_raise
+    raise_(ex, cause)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:515: in raise_
+    raise ex
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:63: in __init__
+    self._set_value(value=content)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:472: in _set_value
+    self.append(item)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:182: in append
+    self._format_and_raise(key=index, value=item, cause=e)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/base.py:95: in _format_and_raise
+    format_and_raise(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:590: in format_and_raise
+    raise_(ex, cause)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+ex = UnsupportedValueType("Value 'Config' is not a supported primitive type\n\tfull_key: modalities[0]\n\treference_type=List[BaseTransformerModalityConfig]\n\tobject_type=list\n")
+cause = UnsupportedValueType("Value 'Config' is not a supported primitive type")
+
+    def raise_(ex: Exception, cause: Exception) -&gt; None:
+        # Set the environment variable OC_CAUSE=1 to get a stacktrace that includes the
+        # causing exception.
+        full_backtrace = "OC_CAUSE" in os.environ and os.environ["OC_CAUSE"] == "1"
+        if full_backtrace:
+            ex.__cause__ = cause
+        else:
+            ex.__cause__ = None
+&gt;       raise ex
+E       omegaconf.errors.UnsupportedValueType: Value 'Config' is not a supported primitive type
+E       	full_key: modalities[0]
+E       	reference_type=List[BaseTransformerModalityConfig]
+E       	object_type=list
+
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:515: UnsupportedValueType</failure></testcase><testcase classname="tests.models.test_mmf_transformer.TestMMFTransformerConfig" name="test_mmft_pretrained" time="0.002"><failure message="omegaconf.errors.UnsupportedValueType: Value 'Config' is not a supported primitive type&#10;&#09;full_key: modalities[0]&#10;&#09;reference_type=List[BaseTransformerModalityConfig]&#10;&#09;object_type=list">self = &lt;tests.models.test_mmf_transformer.TestMMFTransformerConfig testMethod=test_mmft_pretrained&gt;
+
+    def test_mmft_pretrained(self):
+&gt;       mmft = MMFTransformer.from_params(num_labels=2)
+
+tests/models/test_mmf_transformer.py:133:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+mmf/models/base_model.py:94: in from_params
+    return cls(OmegaConf.structured(cls.Config(**kwargs)))
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:133: in structured
+    return OmegaConf.create(obj, parent)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:170: in create
+    return OmegaConf._create_impl(obj=obj, parent=parent)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:238: in _create_impl
+    format_and_raise(node=None, key=None, value=None, msg=str(e), cause=e)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:522: in format_and_raise
+    raise_(ex, cause)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:515: in raise_
+    raise ex
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:214: in _create_impl
+    return DictConfig(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/dictconfig.py:74: in __init__
+    self._set_value(content)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/dictconfig.py:549: in _set_value
+    data = get_structured_config_data(value)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:233: in get_structured_config_data
+    return get_dataclass_data(obj)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:176: in get_dataclass_data
+    d[name] = _maybe_wrap(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:675: in _maybe_wrap
+    return _node_wrap(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/omegaconf.py:620: in _node_wrap
+    node = ListConfig(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:65: in __init__
+    format_and_raise(node=None, key=None, value=None, cause=ex, msg=str(ex))
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:522: in format_and_raise
+    raise_(ex, cause)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:515: in raise_
+    raise ex
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:63: in __init__
+    self._set_value(value=content)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:472: in _set_value
+    self.append(item)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/listconfig.py:182: in append
+    self._format_and_raise(key=index, value=item, cause=e)
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/base.py:95: in _format_and_raise
+    format_and_raise(
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:590: in format_and_raise
+    raise_(ex, cause)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+ex = UnsupportedValueType("Value 'Config' is not a supported primitive type\n\tfull_key: modalities[0]\n\treference_type=List[BaseTransformerModalityConfig]\n\tobject_type=list\n")
+cause = UnsupportedValueType("Value 'Config' is not a supported primitive type")
+
+    def raise_(ex: Exception, cause: Exception) -&gt; None:
+        # Set the environment variable OC_CAUSE=1 to get a stacktrace that includes the
+        # causing exception.
+        full_backtrace = "OC_CAUSE" in os.environ and os.environ["OC_CAUSE"] == "1"
+        if full_backtrace:
+            ex.__cause__ = cause
+        else:
+            ex.__cause__ = None
+&gt;       raise ex
+E       omegaconf.errors.UnsupportedValueType: Value 'Config' is not a supported primitive type
+E       	full_key: modalities[0]
+E       	reference_type=List[BaseTransformerModalityConfig]
+E       	object_type=list
+
+../../.conda/envs/mmf_4/lib/python3.8/site-packages/omegaconf/_utils.py:515: UnsupportedValueType</failure></testcase><testcase classname="tests.models.test_vilbert.TestViLBertTorchscript" name="test_finetune_model" time="9.613" /><testcase classname="tests.models.test_vilbert.TestViLBertTorchscript" name="test_load_save_finetune_model" time="17.534" /><testcase classname="tests.models.test_vilbert.TestViLBertTorchscript" name="test_load_save_pretrain_model" time="24.760" /><testcase classname="tests.models.test_vilbert.TestViLBertTorchscript" name="test_pretrained_model" time="9.146" /><testcase classname="tests.models.test_visual_bert.TestVisualBertTorchscript" name="test_finetune_model" time="4.006" /><testcase classname="tests.models.test_visual_bert.TestVisualBertTorchscript" name="test_load_save_finetune_model" time="7.488" /><testcase classname="tests.models.test_visual_bert.TestVisualBertPretraining" name="test_pretrained_model" time="6.798" /><testcase classname="tests.models.interfaces.test_interfaces.TestModelInterfaces" name="test_mmbt_hm_interface" time="39.070" /><testcase classname="tests.modules.test_encoders.TestEncoders" name="test_finetune_faster_rcnn_fpn_fc7" time="0.646" /><testcase classname="tests.modules.test_encoders.TestEncoders" name="test_identity" time="0.023" /><testcase classname="tests.modules.test_encoders.TestEncoders" name="test_multimodal_encoder_base" time="6.504" /><testcase classname="tests.modules.test_encoders.TestEncoders" name="test_resnet152_image_encoder" time="1.559" /><testcase classname="tests.modules.test_encoders.TestEncoders" name="test_text_embedding_encoder" time="0.027" /><testcase classname="tests.modules.test_encoders.TestEncoders" name="test_transformer_encoder" time="4.921" /><testcase classname="tests.modules.test_fusions.TestModuleFusions" name="test_BlockFusion" time="0.019" /><testcase classname="tests.modules.test_fusions.TestModuleFusions" name="test_BlockTucker" time="0.017" /><testcase classname="tests.modules.test_fusions.TestModuleFusions" name="test_ConcatMLP" time="0.002" /><testcase classname="tests.modules.test_fusions.TestModuleFusions" name="test_LinearSum" time="0.002" /><testcase classname="tests.modules.test_fusions.TestModuleFusions" name="test_MCB" time="0.005" /><testcase classname="tests.modules.test_fusions.TestModuleFusions" name="test_MFB" time="0.002" /><testcase classname="tests.modules.test_fusions.TestModuleFusions" name="test_MFH" time="0.002" /><testcase classname="tests.modules.test_fusions.TestModuleFusions" name="test_MLB" time="0.002" /><testcase classname="tests.modules.test_fusions.TestModuleFusions" name="test_Mutan" time="0.002" /><testcase classname="tests.modules.test_fusions.TestModuleFusions" name="test_Tucker" time="0.008" /><testcase classname="tests.modules.test_layers.TestModuleLayers" name="test_bert_classifier_head" time="0.007" /><testcase classname="tests.modules.test_layers.TestModuleLayers" name="test_conv_net" time="0.036" /><testcase classname="tests.modules.test_layers.TestModuleLayers" name="test_flatten" time="0.001" /><testcase classname="tests.modules.test_layers.TestModuleLayers" name="test_mlp" time="0.003" /><testcase classname="tests.modules.test_layers.TestModuleLayers" name="test_unflatten" time="0.001" /><testcase classname="tests.modules.test_losses.TestModuleLosses" name="test_caption_cross_entropy" time="0.006" /><testcase classname="tests.modules.test_losses.TestModuleLosses" name="test_mmf_loss" time="0.004" /><testcase classname="tests.modules.test_metrics.TestModuleMetrics" name="test_binary_ap" time="0.002" /><testcase classname="tests.modules.test_metrics.TestModuleMetrics" name="test_binary_f1" time="0.003" /><testcase classname="tests.modules.test_metrics.TestModuleMetrics" name="test_caption_bleu4" time="0.443" /><testcase classname="tests.modules.test_metrics.TestModuleMetrics" name="test_macro_ap" time="0.006" /><testcase classname="tests.modules.test_metrics.TestModuleMetrics" name="test_macro_f1" time="0.003" /><testcase classname="tests.modules.test_metrics.TestModuleMetrics" name="test_macro_roc_auc" time="0.007" /><testcase classname="tests.modules.test_metrics.TestModuleMetrics" name="test_micro_ap" time="0.003" /><testcase classname="tests.modules.test_metrics.TestModuleMetrics" name="test_micro_f1" time="0.003" /><testcase classname="tests.modules.test_metrics.TestModuleMetrics" name="test_micro_roc_auc" time="0.004" /><testcase classname="tests.modules.test_metrics.TestModuleMetrics" name="test_multilabel_macro_f1" time="0.003" /><testcase classname="tests.modules.test_metrics.TestModuleMetrics" name="test_multilabel_micro_f1" time="0.005" /><testcase classname="tests.modules.test_metrics.TestModuleMetrics" name="test_recall_at_1" time="0.022" /><testcase classname="tests.modules.test_metrics.TestModuleMetrics" name="test_recall_at_10" time="0.021" /><testcase classname="tests.modules.test_metrics.TestModuleMetrics" name="test_recall_at_5" time="0.022" /><testcase classname="tests.modules.test_metrics.TestModuleMetrics" name="test_recall_at_precision_k" time="0.003" /><testcase classname="tests.modules.test_optimizers.TestOptimizers" name="test_build_optimizer_custom_model" time="10.024" /><testcase classname="tests.modules.test_optimizers.TestOptimizers" name="test_build_optimizer_simple_model" time="0.002" /><testcase classname="tests.trainers.test_device.TestDevice" name="test_current_device" time="0.002" /><testcase classname="tests.trainers.test_fp16.TestFp16" name="test_fp16_values" time="0.200" /><testcase classname="tests.trainers.test_fp16.TestFp16" name="test_fp16_works" time="0.193" /><testcase classname="tests.trainers.test_training_loop.TestTrainingLoop" name="test_epoch_over_updates" time="0.192" /><testcase classname="tests.trainers.test_training_loop.TestTrainingLoop" name="test_fractional_epoch" time="0.179" /><testcase classname="tests.trainers.test_training_loop.TestTrainingLoop" name="test_update_frequency_correct_final_iteration" time="0.197" /><testcase classname="tests.trainers.test_training_loop.TestTrainingLoop" name="test_update_frequency_num_remaining_updates_greater_than_update_frequency" time="0.702" /><testcase classname="tests.trainers.test_training_loop.TestTrainingLoop" name="test_update_frequency_reporting" time="0.178" /><testcase classname="tests.trainers.test_training_loop.TestTrainingLoop" name="test_update_frequency_same_model_params" time="0.367" /><testcase classname="tests.trainers.test_training_loop.TestTrainingLoop" name="test_updates" time="0.189" /><testcase classname="tests.trainers.callbacks.test_logistics.TestLogisticsCallback" name="test_on_test_end" time="0.009" /><testcase classname="tests.trainers.callbacks.test_logistics.TestLogisticsCallback" name="test_on_train_start" time="0.005" /><testcase classname="tests.trainers.callbacks.test_logistics.TestLogisticsCallback" name="test_on_update_end" time="0.005" /><testcase classname="tests.trainers.callbacks.test_logistics.TestLogisticsCallback" name="test_on_validation_start" time="0.005" /><testcase classname="tests.trainers.callbacks.test_lr_scheduler.TestLogisticsCallback" name="test_on_update_end" time="0.004" /><testcase classname="tests.trainers.lightning.test_grad_accumulate.TestLightningTrainerGradAccumulate" name="test_grad_accumulate" time="0.539" /><testcase classname="tests.trainers.lightning.test_grad_clipping.TestLightningTrainerGradClipping" name="test_grad_clipping_and_parity_to_mmf" time="0.544" /><testcase classname="tests.trainers.lightning.test_logging.TestLightningTrainerLogging" name="test_tensorboard_logging_parity" time="1.823" /><testcase classname="tests.trainers.lightning.test_loop_conditions.TestLightningTrainer" name="test_epoch_over_updates" time="0.186" /><testcase classname="tests.trainers.lightning.test_loop_conditions.TestLightningTrainer" name="test_fractional_epoch" time="0.198" /><testcase classname="tests.trainers.lightning.test_loop_conditions.TestLightningTrainer" name="test_updates" time="0.188" /><testcase classname="tests.trainers.lightning.test_loss.TestLightningTrainerLoss" name="test_loss_computation_parity_with_mmf_trainer" time="0.534" /><testcase classname="tests.trainers.lightning.test_lr_schedule.TestLightningTrainerLRSchedule" name="test_lr_schedule" time="0.415" /><testcase classname="tests.trainers.lightning.test_lr_schedule.TestLightningTrainerLRSchedule" name="test_lr_schedule_compared_to_mmf_is_same" time="0.620" /><testcase classname="tests.trainers.lightning.test_validation.TestLightningTrainerValidation" name="test_validation" time="0.671" /><testcase classname="tests.trainers.lightning.test_validation.TestLightningTrainerValidation" name="test_validation_parity" time="1.115" /><testcase classname="tests.utils.test_checkpoint.TestUtilsCheckpoint" name="test_checkpoint_scaler_loading" time="0.058" /><testcase classname="tests.utils.test_checkpoint.TestUtilsCheckpoint" name="test_finalize_and_restore_from_it" time="0.045" /><testcase classname="tests.utils.test_checkpoint.TestUtilsCheckpoint" name="test_finalize_and_resume_file" time="0.020" /><testcase classname="tests.utils.test_checkpoint.TestUtilsCheckpoint" name="test_max_to_keep" time="0.072" /><testcase classname="tests.utils.test_checkpoint.TestUtilsCheckpoint" name="test_pretrained_load" time="0.031" /><testcase classname="tests.utils.test_checkpoint.TestUtilsCheckpoint" name="test_resets" time="0.064" /><testcase classname="tests.utils.test_checkpoint.TestUtilsCheckpoint" name="test_save_and_load_state_dict" time="0.059" /><testcase classname="tests.utils.test_checkpoint.TestUtilsCheckpoint" name="test_save_config" time="0.029" /><testcase classname="tests.utils.test_checkpoint.TestUtilsCheckpoint" name="test_zoo_load" time="0.022" /><testcase classname="tests.utils.test_configuration.TestUtilsConfiguration" name="test_config_overrides" time="0.488" /><testcase classname="tests.utils.test_configuration.TestUtilsConfiguration" name="test_get_zoo_config" time="5.667" /><testcase classname="tests.utils.test_distributed.TestUtilsDistributed" name="test_object_byte_tensor_conversion" time="0.001" /><testcase classname="tests.utils.test_download.TestUtilsDownload" name="test_built" time="0.001" /><testcase classname="tests.utils.test_download.TestUtilsDownload" name="test_download_file_class" time="8.840" /><testcase classname="tests.utils.test_download.TestUtilsDownload" name="test_mark_done" time="0.001" /><testcase classname="tests.utils.test_file_io.TestFileIO" name="test_file_io_copy" time="0.001" /><testcase classname="tests.utils.test_file_io.TestFileIO" name="test_file_io_exists" time="0.001" /><testcase classname="tests.utils.test_file_io.TestFileIO" name="test_file_io_mkdirs" time="0.001" /><testcase classname="tests.utils.test_file_io.TestFileIO" name="test_file_io_open" time="0.001" /><testcase classname="tests.utils.test_general.TestUtilsGeneral" name="test_dict_to_string" time="0.001" /><testcase classname="tests.utils.test_general.TestUtilsGeneral" name="test_get_overlap_score" time="0.001" /><testcase classname="tests.utils.test_logger.TestLogger" name="test_log_writer" time="0.179" /><testcase classname="tests.utils.test_logger.TestLogger" name="test_logger_files" time="0.001" /><testcase classname="tests.utils.test_quality_checks.TestQualityChecks" name="test_init_files_present" time="0.059" /><testcase classname="tests.utils.test_quality_checks.TestQualityChecks" name="test_no_empty_folders" time="0.034" /><testcase classname="tests.utils.test_text.TestUtilsText" name="test_generate_ngrams" time="0.278" /><testcase classname="tests.utils.test_text.TestUtilsText" name="test_generate_ngrams_range" time="0.274" /><testcase classname="tests.utils.test_text.TestUtilsText" name="test_nucleus_sampling" time="0.291" /><testcase classname="tests.utils.test_text.TestUtilsText" name="test_tokenize" time="0.283" /><testcase classname="tests.utils.test_text.TestUtilsText" name="test_vocab_from_text" time="0.378" /><testcase classname="tests.utils.test_text.TestUtilsTextBeamSearch" name="test_beam_search" time="0.493" /><testcase classname="tests.utils.test_timer.TestUtilsTimer" name="test_get_current" time="0.001" /><testcase classname="tests.utils.test_timer.TestUtilsTimer" name="test_get_time_since_start" time="2.003" /><testcase classname="tests.utils.test_timer.TestUtilsTimer" name="test_reset" time="2.003" /></testsuite></testsuites>

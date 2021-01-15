@@ -43,6 +43,7 @@ class TrainerEvaluationLoopMixin(ABC):
                     break
 
             combined_report.metrics = self.metrics(combined_report, combined_report)
+
             self.update_meter(combined_report, meter, eval_mode=True)
 
             # enable train mode again

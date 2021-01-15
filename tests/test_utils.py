@@ -124,7 +124,13 @@ class SimpleModel(torch.nn.Module):
         batch = prepared_batch[DATA_ITEM_KEY]
         output = self.linear(batch)
         loss = torch.nn.MSELoss()(-1 * output, batch)
-        return {"losses": {"loss": loss}, "logits": output, "input_batch": input_sample}
+        return {
+            "losses": {"loss": loss},
+            "logits": output,
+            "input_batch": input_sample,
+            "dataset_type": "dummpy_dataset_type",
+            "dataset_name": "dummpy_dataset_name",
+        }
 
 
 class SimpleLightningModel(pl.LightningModule):
@@ -137,6 +143,12 @@ class SimpleLightningModel(pl.LightningModule):
         return self.model(prepared_batch)
 
     def training_step(self, batch, batch_idx, *args, **kwargs):
+        return self._forward_step(batch, batch_idx, *args, **kwargs)
+
+    def validation_step(self, batch, batch_idx, *args, **kwargs):
+        return self._forward_step(batch, batch_idx, *args, **kwargs)
+
+    def _forward_step(self, batch, batch_idx, *args, **kwargs):
         output = self(batch)
         output["loss"] = output["losses"]["loss"]
         return output

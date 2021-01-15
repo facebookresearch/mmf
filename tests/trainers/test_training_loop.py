@@ -23,23 +23,45 @@ class TrainerTrainingLoopMock(MMFTrainer):
         update_frequency=1,
         batch_size=1,
         fp16=False,
-        on_update_end_fn=None,
         scheduler_config=None,
         grad_clipping_config=None,
+        mock_functions=True,
+        tensorboard=False,
     ):
         if config is None:
-            self.training_config = OmegaConf.create(
+            self.config = OmegaConf.create(
                 {
-                    "detect_anomaly": False,
-                    "evaluation_interval": 10000,
-                    "update_frequency": update_frequency,
-                    "fp16": fp16,
-                    "batch_size": batch_size,
+                    "training": {
+                        "detect_anomaly": False,
+                        "evaluation_interval": 10000,
+                        "update_frequency": update_frequency,
+                        "fp16": fp16,
+                        "batch_size": batch_size,
+                        "tensorboard": tensorboard,
+                    }
                 }
             )
+            self.training_config = self.config.training
         else:
             self.training_config = config.training
+            self.training_config.batch_size = batch_size
+            self.training_config.fp16 = fp16
+            self.training_config.update_frequency = update_frequency
+            self.training_config.tensorboard = tensorboard
             self.config = config
+
+        if mock_functions:
+            self.on_update_end = MagicMock(return_value=None)
+            self.on_batch_start = MagicMock(return_value=None)
+            self.on_update_start = MagicMock(return_value=None)
+            self.logistics_callback = MagicMock(return_value=None)
+            self.logistics_callback.log_interval = MagicMock(return_value=None)
+            self.after_training_loop = MagicMock(return_value=None)
+            self.on_validation_start = MagicMock(return_value=None)
+            self.evaluation_loop = MagicMock(return_value=(None, None))
+            self.on_validation_end = MagicMock(return_value=None)
+            self.metrics = MagicMock(return_value=None)
+            self.early_stop_callback = MagicMock(return_value=None)
 
         if max_updates is not None:
             self.training_config["max_updates"] = max_updates
@@ -68,11 +90,7 @@ class TrainerTrainingLoopMock(MMFTrainer):
             config.scheduler = scheduler_config
             self.lr_scheduler_callback = LRSchedulerCallback(config, self)
             self.callbacks.append(self.lr_scheduler_callback)
-            on_update_end_fn = (
-                on_update_end_fn
-                if on_update_end_fn
-                else self.lr_scheduler_callback.on_update_end
-            )
+            self.on_update_end = self.lr_scheduler_callback.on_update_end
 
         if grad_clipping_config:
             self.training_config.clip_gradients = True
@@ -81,32 +99,30 @@ class TrainerTrainingLoopMock(MMFTrainer):
             ]
             self.training_config.clip_norm_mode = grad_clipping_config["clip_norm_mode"]
 
-        dataset = NumbersDataset(num_train_data)
+        train_dataset = NumbersDataset(num_train_data)
+        val_dataset = NumbersDataset(num_train_data)
         self.train_loader = torch.utils.data.DataLoader(
-            dataset=dataset,
-            batch_size=batch_size,
+            dataset=train_dataset,
+            batch_size=self.training_config.batch_size,
             shuffle=False,
             num_workers=1,
             drop_last=False,
         )
-        self.train_loader.current_dataset = dataset
-        self.on_batch_start = MagicMock(return_value=None)
-        self.on_update_start = MagicMock(return_value=None)
-        self.logistics_callback = MagicMock(return_value=None)
-        self.logistics_callback.log_interval = MagicMock(return_value=None)
-        self.on_batch_end = MagicMock(return_value=None)
-        self.on_update_end = (
-            on_update_end_fn if on_update_end_fn else MagicMock(return_value=None)
+        self.train_loader.current_dataset = train_dataset
+        self.val_loader = torch.utils.data.DataLoader(
+            dataset=val_dataset,
+            batch_size=self.training_config.batch_size,
+            shuffle=False,
+            num_workers=1,
+            drop_last=False,
         )
+        self.val_loader.current_dataset = val_dataset
+        self.val_dataset = val_dataset
+
         self.meter = Meter()
-        self.after_training_loop = MagicMock(return_value=None)
-        self.on_validation_start = MagicMock(return_value=None)
-        self.evaluation_loop = MagicMock(return_value=(None, None))
         self.scaler = torch.cuda.amp.GradScaler(enabled=False)
-        self.val_loader = MagicMock(return_value=None)
-        self.early_stop_callback = MagicMock(return_value=None)
-        self.on_validation_end = MagicMock(return_value=None)
-        self.metrics = MagicMock(return_value=None)
+
+        self.run_type = self.config.get("run_type", "train")
 
 
 class TestTrainingLoop(unittest.TestCase):
@@ -195,8 +211,9 @@ class TestTrainingLoop(unittest.TestCase):
             optimizer=opt,
             update_frequency=update_frequency,
             batch_size=batch_size,
-            on_update_end_fn=on_update_end_fn,
         )
+        if on_update_end_fn:
+            trainer.on_update_end = on_update_end_fn
         model.to(trainer.device)
         trainer.model = model
         trainer.training_loop()
