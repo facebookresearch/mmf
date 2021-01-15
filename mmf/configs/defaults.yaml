@@ -4,6 +4,7 @@ config_version: 1.0
 # Configuration for training
 training:
     # Name of the trainer class used to define the training/evalution loop
+    # `mmf` for default trainer, `lightning` for Pytorch Lightning trainer
     trainer: mmf
     # Seed to be used for training. -1 means random seed between 1 and 100000.
     # Either pass fixed through your config or command line arguments

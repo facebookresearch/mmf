@@ -62,7 +62,7 @@ class Losses(nn.Module):
         mostly doesn't need to use this class.
 
     Attributes:
-        losses: List containing instanttions of each loss
+        losses: List containing instantiations of each loss
                                    passed in config
     """
 
@@ -322,8 +322,7 @@ class CaptionCrossEntropyLoss(nn.Module):
 
 @registry.register_loss("nll_loss")
 class NLLLoss(nn.Module):
-    """Negative log likelikehood loss.
-    """
+    """Negative log likelikehood loss."""
 
     def __init__(self):
         super().__init__()

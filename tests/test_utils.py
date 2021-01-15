@@ -9,6 +9,7 @@ import socket
 import tempfile
 import unittest
 
+import pytorch_lightning as pl
 import torch
 from mmf.common.sample import Sample, SampleList
 
@@ -78,8 +79,6 @@ def compare_state_dicts(a, b):
 
 
 def build_random_sample_list():
-    from mmf.common.sample import Sample, SampleList
-
     first = Sample()
     first.x = random.randint(0, 100)
     first.y = torch.rand((5, 4))
@@ -123,6 +122,31 @@ class SimpleModel(torch.nn.Module):
         batch = prepared_batch[DATA_ITEM_KEY]
         model_output = {"losses": {"loss": torch.sum(self.linear(batch))}}
         return model_output
+
+
+class SimpleLightningModel(pl.LightningModule):
+    def __init__(self, size, config=None):
+        super().__init__()
+        self.linear = torch.nn.Linear(size, 4)
+        self.config = config
+
+    def forward(self, prepared_batch):
+        batch = prepared_batch[DATA_ITEM_KEY]
+        return {"output": self.linear(batch)}
+
+    def training_step(self, batch, batch_idx, *args, **kwargs):
+        output = self(batch)
+        loss = torch.sum(output["output"])
+        output["loss"] = loss
+        return output
+
+    def configure_optimizers(self):
+        if self.config is None:
+            return torch.optim.Adam(self.parameters(), lr=0.01)
+        else:
+            from mmf.utils.build import build_optimizer
+
+            return build_optimizer(self, self.config)
 
 
 def assertModulesEqual(mod1, mod2):

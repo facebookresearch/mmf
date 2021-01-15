@@ -12,15 +12,21 @@ from tests.test_utils import NumbersDataset, SimpleModel
 
 
 class TrainerTrainingLoopMock(TrainerTrainingLoopMixin, TrainerProfilingMixin):
-    def __init__(self, num_train_data, max_updates, max_epochs):
-        self.training_config = OmegaConf.create(
-            {
-                "detect_anomaly": False,
-                "evaluation_interval": 10000,
-                "update_frequency": 1,
-                "fp16": True,
-            }
-        )
+    def __init__(
+        self, num_train_data, max_updates, max_epochs, config=None, optimizer=None
+    ):
+        if config is None:
+            self.training_config = OmegaConf.create(
+                {
+                    "detect_anomaly": False,
+                    "evaluation_interval": 10000,
+                    "update_frequency": 1,
+                    "fp16": True,
+                }
+            )
+        else:
+            self.training_config = config.training
+
         if max_updates is not None:
             self.training_config["max_updates"] = max_updates
         if max_epochs is not None:
@@ -29,13 +35,20 @@ class TrainerTrainingLoopMock(TrainerTrainingLoopMixin, TrainerProfilingMixin):
         self.model = SimpleModel(1)
         if torch.cuda.is_available():
             self.model = self.model.cuda()
+            self.device = "cuda"
+        else:
+            self.device = "cpu"
 
         self.dataset_loader = MagicMock()
         self.dataset_loader.seed_sampler = MagicMock(return_value=None)
         self.dataset_loader.prepare_batch = lambda x: SampleList(x)
-        self.optimizer = MagicMock()
-        self.optimizer.step = MagicMock(return_value=None)
-        self.optimizer.zero_grad = MagicMock(return_value=None)
+        if optimizer is None:
+            self.optimizer = MagicMock()
+            self.optimizer.step = MagicMock(return_value=None)
+            self.optimizer.zero_grad = MagicMock(return_value=None)
+        else:
+            self.optimizer = optimizer
+
         dataset = NumbersDataset(num_train_data)
         self.train_loader = torch.utils.data.DataLoader(
             dataset=dataset, batch_size=1, shuffle=False, num_workers=1, drop_last=False
@@ -48,12 +61,13 @@ class TrainerTrainingLoopMock(TrainerTrainingLoopMixin, TrainerProfilingMixin):
         self.on_batch_end = MagicMock(return_value=None)
         self.on_update_end = MagicMock(return_value=None)
         self.meter = MagicMock(return_value=None)
-        loss_mock = MagicMock()
-        loss_mock.backward = MagicMock()
         self.after_training_loop = MagicMock(return_value=None)
-        self.scaler = MagicMock()
-        self.scaler.scale = MagicMock(return_value=loss_mock)
-        self.scaler.step = MagicMock(return_value=None)
+        self.on_validation_start = MagicMock(return_value=None)
+        self.evaluation_loop = MagicMock(return_value=(None, None))
+        self.scaler = torch.cuda.amp.GradScaler(enabled=False)
+        self.val_loader = MagicMock(return_value=None)
+        self.early_stop_callback = MagicMock(return_value=None)
+        self.on_validation_end = MagicMock(return_value=None)
 
 
 class TestTrainingLoop(unittest.TestCase):
