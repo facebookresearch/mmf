@@ -16,7 +16,6 @@ from ..util.misc import (
     get_world_size,
     is_dist_avail_and_initialized,
 )
-
 from .backbone import build_backbone
 from .matcher import build_matcher
 from .transformer import build_transformer
@@ -491,7 +490,7 @@ def build(args):
 
     transformer = build_transformer(args)
 
-    model = DETR(backbone, transformer, num_queries=args.num_queries,)
+    model = DETR(backbone, transformer, num_queries=args.num_queries)
     if args.mask_model != "none":
         from .segmentation import DETRsegm
 

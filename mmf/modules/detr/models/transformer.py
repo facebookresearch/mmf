@@ -15,7 +15,7 @@ from typing import Optional
 
 import torch
 import torch.nn.functional as F
-from torch import nn, Tensor
+from torch import Tensor, nn
 
 
 class Transformer(nn.Module):

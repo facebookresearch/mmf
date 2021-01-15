@@ -1,13 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os
+
 import torch
 import torch.nn.functional as F
-from torch import nn
 import torchvision
-
 from mmf.common.sample import Sample
 from mmf.datasets.base_dataset import BaseDataset
 from mmf.modules.detr.datasets.coco import ConvertCocoPolysToMask, make_coco_transforms
+from torch import nn
 
 
 class DetectionCOCODataset(BaseDataset):

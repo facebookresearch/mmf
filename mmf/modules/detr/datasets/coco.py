@@ -7,6 +7,7 @@ from pathlib import Path
 import torch
 import torch.utils.data
 import torchvision
+
 from pycocotools import mask as coco_mask
 
 from . import transforms as T
@@ -165,7 +166,7 @@ def make_coco_transforms(image_set):
         )
 
     if image_set == "val":
-        return T.Compose([T.RandomResize([800], max_size=1333), normalize,])
+        return T.Compose([T.RandomResize([800], max_size=1333), normalize])
 
     raise ValueError(f"unknown {image_set}")
 

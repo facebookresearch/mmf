@@ -463,9 +463,8 @@ class FastTextProcessor(VocabProcessor):
             return model_file_path
 
         import requests
-        from tqdm import tqdm
-
         from mmf.common.constants import FASTTEXT_WIKI_URL
+        from tqdm import tqdm
 
         PathManager.mkdirs(os.path.dirname(model_file_path))
         response = requests.get(FASTTEXT_WIKI_URL, stream=True)

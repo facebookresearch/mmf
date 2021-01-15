@@ -6,18 +6,18 @@ import logging
 from copy import deepcopy
 
 import torch
-from torch import nn
-
-from transformers.modeling_bert import BertPredictionHeadTransform
 from mmf.common.registry import registry
 from mmf.models import BaseModel
-from mmf.modules.encoders import TransformerEncoder
 from mmf.modules.detr.models.detr import (
-    build as build_model,
-    build_detection_loss,
     MLP,
     AttributeHead,
+    build as build_model,
+    build_detection_loss,
 )
+from mmf.modules.encoders import TransformerEncoder
+from torch import nn
+from transformers.modeling_bert import BertPredictionHeadTransform
+
 
 logger = logging.getLogger(__name__)
 
@@ -142,7 +142,7 @@ class UniT(BaseModel):
         token_type_ids = sample_list.segment_ids
         device = input_ids.device
 
-        position_ids = torch.arange(input_ids.size(1), dtype=torch.long, device=device,)
+        position_ids = torch.arange(input_ids.size(1), dtype=torch.long, device=device)
 
         input_shape = input_ids.size()
 
