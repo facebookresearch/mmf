@@ -92,6 +92,7 @@ class Metrics:
         self.required_params = {"dataset_name", "dataset_type"}
         for metric in metric_list:
             params = {}
+            dataset_names = []
             if isinstance(metric, collections.abc.Mapping):
                 if "type" not in metric:
                     raise ValueError(
@@ -110,6 +111,10 @@ class Metrics:
                         f"Metric with type/key '{metric_type}' has been defined more "
                         + "than once in metric list."
                     )
+
+                # a custom list of dataset where this metric will be applied
+                if "datasets" in metric:
+                    dataset_names = metric.datasets
             else:
                 if not isinstance(metric, str):
                     raise TypeError(
@@ -126,6 +131,7 @@ class Metrics:
 
             metric_instance = metric_cls(**params)
             metric_instance.name = key
+            metric_instance.set_applicable_datasets(dataset_names)
 
             metrics[key] = metric_instance
             self.required_params.update(metrics[key].required_params)
@@ -140,6 +146,8 @@ class Metrics:
 
         with torch.no_grad():
             for metric_name, metric_object in self.metrics.items():
+                if not metric_object.is_dataset_applicable(dataset_name):
+                    continue
                 key = f"{dataset_type}/{dataset_name}/{metric_name}"
                 values[key] = metric_object._calculate_with_checks(
                     sample_list, model_output, *args, **kwargs
@@ -173,6 +181,9 @@ class BaseMetric:
     def __init__(self, name, *args, **kwargs):
         self.name = name
         self.required_params = ["scores", "targets"]
+        # the set of datasets where this metric will be applied
+        # an empty set means it will be applied on *all* datasets
+        self._dataset_names = set()
 
     @property
     def name(self):
@@ -206,6 +217,12 @@ class BaseMetric:
     def _calculate_with_checks(self, *args, **kwargs):
         value = self.calculate(*args, **kwargs)
         return value
+
+    def set_applicable_datasets(self, dataset_names):
+        self._dataset_names = set(dataset_names)
+
+    def is_dataset_applicable(self, dataset_name):
+        return len(self._dataset_names) == 0 or dataset_name in self._dataset_names
 
 
 @registry.register_metric("accuracy")
@@ -1022,3 +1039,76 @@ class RecallAtPrecisionK(BaseMetric):
             value = 0
 
         return expected.new_tensor(value, dtype=torch.float)
+
+
+@registry.register_metric("detection_mean_ap")
+class DetectionMeanAP(BaseMetric):
+    """Metric for calculating the detection mean average precision (mAP) using the COCO
+    evaluation toolkit, returning the default COCO-style mAP@IoU=0.50:0.95
+
+    **Key:** ``detection_mean_ap``
+    """
+
+    def __init__(self, dataset_json_files, *args, **kwargs):
+        """Initialization function detection mean AP (mAP)
+
+        Args:
+            dataset_json_files (Dict): paths to the dataset (instance) json files
+                for each dataset type and dataset name in the following format:
+                ``{'val/detection_coco': '/path/to/instances_val2017.json', ...}``
+
+        """
+        super().__init__("detection_mean_ap")
+        self.required_params = []
+        self.dataset_json_files = dataset_json_files
+
+    def calculate(self, sample_list, model_output, master_only=True, *args, **kwargs):
+        """Calculate detection mean AP (mAP) from the prediction list and the dataset
+        annotations. The function returns COCO-style mAP@IoU=0.50:0.95.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration.
+            model_output (Dict): Dict returned by model. This should contain
+                                "prediction_report" field, which is a list of
+                                detection predictions from the model.
+            master_only (bool): Whether to only run mAP evaluation on the master node
+                                over the gathered detection prediction (to avoid wasting
+                                computation and CPU OOM).
+                                Default: True (only run mAP evaluation on master).
+
+        Returns:
+            torch.FloatTensor: COCO-style mAP@IoU=0.50:0.95.
+
+        """
+        # as the detection mAP metric is run on the entire dataset-level predictions,
+        # which are *already* gathered from all notes, the evaluation should only happen
+        # in one node and broadcasted to other nodes (to avoid CPU OOM due to concurrent
+        # mAP evaluation)
+        from pycocotools.coco import COCO
+        from pycocotools.cocoeval import COCOeval
+        from mmf.utils.distributed import is_master, broadcast_tensor
+        from mmf.utils.general import get_current_device
+
+        device = get_current_device()
+        if master_only and not is_master():
+            # dummy mAP to be override in boardcasting
+            mAP = torch.tensor(-1, dtype=torch.float, device=device)
+        else:
+            predictions = model_output.prediction_report
+
+            cocoGt = COCO(
+                self.dataset_json_files[sample_list.dataset_name][
+                    sample_list.dataset_type
+                ]
+            )
+            cocoDt = cocoGt.loadRes(predictions)
+            cocoEval = COCOeval(cocoGt, cocoDt, "bbox")
+            cocoEval.evaluate()
+            cocoEval.accumulate()
+            cocoEval.summarize()
+            mAP = torch.tensor(cocoEval.stats[0], dtype=torch.float, device=device)
+
+        if master_only:
+            mAP = broadcast_tensor(mAP, src=0)
+        return mAP

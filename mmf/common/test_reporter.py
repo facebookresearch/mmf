@@ -8,7 +8,12 @@ from mmf.common.batch_collator import BatchCollator
 from mmf.common.registry import registry
 from mmf.utils.build import build_dataloader_and_sampler
 from mmf.utils.configuration import get_mmf_env
-from mmf.utils.distributed import gather_tensor, is_dist_initialized, is_master
+from mmf.utils.distributed import (
+    gather_tensor,
+    gather_tensor_along_batch,
+    is_dist_initialized,
+    is_master,
+)
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import (
     ckpt_name_from_core_args,
@@ -56,9 +61,12 @@ class TestReporter(Dataset):
 
         PathManager.mkdirs(self.report_folder)
 
-    def next_dataset(self):
+    def next_dataset(self, flush_report=True):
         if self.current_dataset_idx >= 0:
-            self.flush_report()
+            if flush_report:
+                self.flush_report()
+            else:
+                self.report = []
 
         self.current_dataset_idx += 1
 
@@ -95,6 +103,10 @@ class TestReporter(Dataset):
         logger.info(f"Wrote predictions for {name} to {os.path.abspath(filepath)}")
         self.report = []
 
+    def postprocess_dataset_report(self):
+        if hasattr(self.current_dataset, "on_prediction_end"):
+            self.report = self.current_dataset.on_prediction_end(self.report)
+
     def csv_dump(self, filepath):
         with PathManager.open(filepath, "w") as f:
             title = self.report[0].keys()
@@ -123,12 +135,18 @@ class TestReporter(Dataset):
     def __getitem__(self, idx):
         return self.current_dataset[idx]
 
-    def add_to_report(self, report, model):
+    def add_to_report(self, report, model, master_only=True):
         keys = ["id", "question_id", "image_id", "context_tokens", "captions", "scores"]
         for key in keys:
             report = self.reshape_and_gather(report, key)
 
-        if not is_master():
+        # gather detection output keys
+        if hasattr(report, "pred_boxes"):
+            report.pred_boxes = gather_tensor_along_batch(report.pred_boxes)
+            report.pred_logits = gather_tensor_along_batch(report.pred_logits)
+            report.orig_size = gather_tensor_along_batch(report.orig_size)
+
+        if master_only and not is_master():
             return
 
         results = self.current_dataset.format_for_prediction(report)
