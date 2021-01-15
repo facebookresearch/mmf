@@ -4,6 +4,8 @@ config_version: 1.0
 # Configuration for training
 training:
     # Name of the trainer class used to define the training/evalution loop
+    # `mmf` for default trainer, `lightning` for pytorch lightning trainer
+    # pytorch lightning trainer's params is at `trainer.params`
     trainer: mmf
     # Seed to be used for training. -1 means random seed between 1 and 100000.
     # Either pass fixed through your config or command line arguments
@@ -130,6 +132,31 @@ training:
     # Set to true to activate fp16 for faster performance with negligible
     # drop in results.
     fp16: false
+
+trainer:
+    # Name of the trainer class used to define the training/evalution loop
+    # `mmf` or `lightning` to specify the trainer to be used
+    # `mmf` for mmf trainer,
+    # for mmf trainer params, please see training params in the `training` config
+    # `lightning` for Pytorch Lightning trainer
+    # for lightning trainer params, please see lightning doc for details: ie.,
+    # https://pytorch-lightning.readthedocs.io/en/latest/trainer.html#trainer-class-api
+    type: lightning
+    params:
+        gpus: null
+        num_nodes: 1
+        precision: 32
+        deterministic: false
+        benchmark: false
+        max_steps: 22000
+        max_epochs: null
+        gradient_clip_val: 0.0
+        num_sanity_val_steps: 0
+        automatic_optimization: true # only True is supported for now
+        checkpoint_callback: false
+        accumulate_grad_batches: 1
+        val_check_interval: 1000
+        log_every_n_steps: 100
 
 # Configuration for evaluation
 evaluation:
