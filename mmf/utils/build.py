@@ -246,7 +246,6 @@ def build_optimizer(model, config):
         optimizer = optimizer_class(parameters, **params)
     return optimizer
 
-
 def build_lightning_optimizers(model, config):
     optimizer = build_optimizer(model, config)
 

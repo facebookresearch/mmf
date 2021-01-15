@@ -185,11 +185,7 @@ class BaseModel(pl.LightningModule):
         Returns:
             Dict: Dict containing loss.
         """
-        batch = self._ensure_sample_list(batch)
-        output = self(batch)
-        loss_dict = output["losses"]
-        output["loss"] = sum(loss.mean() for loss in loss_dict.values())
-        return output
+        return self._forward_lightning_step(batch, batch_idx)
 
     def validation_step(self, batch, batch_idx, *args, **kwargs):
         """Member function of PL modules. Used only when PL enabled.
@@ -203,9 +199,14 @@ class BaseModel(pl.LightningModule):
         Returns:
             Dict
         """
+        return self._forward_lightning_step(batch, batch_idx)
+
+    def _forward_lightning_step(self, batch, batch_idx):
         batch = self._ensure_sample_list(batch)
         output = self(batch)
-        # TODO: @sash Implementation coming soon! (next PR)
+        loss_dict = output["losses"]
+        output["loss"] = sum(loss.mean() for loss in loss_dict.values())
+        output["input_batch"] = batch
         return output
 
     def configure_optimizers(self):
