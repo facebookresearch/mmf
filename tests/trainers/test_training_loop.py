@@ -6,13 +6,13 @@ from unittest.mock import MagicMock
 import torch
 from mmf.common.meter import Meter
 from mmf.common.sample import SampleList
-from mmf.trainers.core.profiling import TrainerProfilingMixin
-from mmf.trainers.core.training_loop import TrainerTrainingLoopMixin
+from mmf.trainers.callbacks.lr_scheduler import LRSchedulerCallback
+from mmf.trainers.mmf_trainer import MMFTrainer
 from omegaconf import OmegaConf
 from tests.test_utils import NumbersDataset, SimpleModel
 
 
-class TrainerTrainingLoopMock(TrainerTrainingLoopMixin, TrainerProfilingMixin):
+class TrainerTrainingLoopMock(MMFTrainer):
     def __init__(
         self,
         num_train_data,
@@ -24,6 +24,8 @@ class TrainerTrainingLoopMock(TrainerTrainingLoopMixin, TrainerProfilingMixin):
         batch_size=1,
         fp16=False,
         on_update_end_fn=None,
+        scheduler_config=None,
+        grad_clipping_config=None,
     ):
         if config is None:
             self.training_config = OmegaConf.create(
@@ -37,6 +39,7 @@ class TrainerTrainingLoopMock(TrainerTrainingLoopMixin, TrainerProfilingMixin):
             )
         else:
             self.training_config = config.training
+            self.config = config
 
         if max_updates is not None:
             self.training_config["max_updates"] = max_updates
@@ -59,6 +62,24 @@ class TrainerTrainingLoopMock(TrainerTrainingLoopMixin, TrainerProfilingMixin):
             self.optimizer.zero_grad = MagicMock(return_value=None)
         else:
             self.optimizer = optimizer
+
+        if scheduler_config:
+            config.training.lr_scheduler = True
+            config.scheduler = scheduler_config
+            self.lr_scheduler_callback = LRSchedulerCallback(config, self)
+            self.callbacks.append(self.lr_scheduler_callback)
+            on_update_end_fn = (
+                on_update_end_fn
+                if on_update_end_fn
+                else self.lr_scheduler_callback.on_update_end
+            )
+
+        if grad_clipping_config:
+            self.training_config.clip_gradients = True
+            self.training_config.max_grad_l2_norm = grad_clipping_config[
+                "max_grad_l2_norm"
+            ]
+            self.training_config.clip_norm_mode = grad_clipping_config["clip_norm_mode"]
 
         dataset = NumbersDataset(num_train_data)
         self.train_loader = torch.utils.data.DataLoader(
@@ -113,9 +134,9 @@ class TestTrainingLoop(unittest.TestCase):
         def _on_update_end(report, meter, should_log):
             # the losses here should be the sum of two losses in
             # iteration 0 and iteration 1 (both constitute update 0).
-            # Here iter 1 loss: 0.2684, iter 2 loss: 2.4167
+            # Here iter 1 loss: 0.2599, iter 2 loss: 4.2090
             loss = report.losses["loss"].detach().cpu().item()
-            self.assertAlmostEqual(loss, 2.6852, 4)
+            self.assertAlmostEqual(loss, 4.4688, 4)
 
         self._train_with_condition(
             num_train_data=100,

@@ -70,7 +70,7 @@ class Losses(nn.Module):
         mostly doesn't need to use this class.
 
     Attributes:
-        losses: List containing instanttions of each loss
+        losses: List containing instantiations of each loss
                                    passed in config
     """
 

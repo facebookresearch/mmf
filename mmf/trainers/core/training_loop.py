@@ -2,8 +2,6 @@
 
 import gc
 import logging
-import math
-import warnings
 from abc import ABC
 from typing import Any, Dict
 
@@ -11,7 +9,7 @@ import torch
 from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.common.sample import to_device
-from mmf.utils.general import clip_gradients
+from mmf.utils.general import clip_gradients, get_max_updates
 from torch import Tensor
 
 
@@ -218,32 +216,13 @@ class TrainerTrainingLoopMixin(ABC):
         return loss
 
     def _calculate_max_updates(self):
-        max_updates = self.training_config.max_updates
-        max_epochs = self.training_config.max_epochs
-        if max_updates is None and max_epochs is None:
-            raise ValueError("Neither max_updates nor max_epochs is specified.")
-
-        if isinstance(
-            self.train_loader.current_dataset, torch.utils.data.IterableDataset
-        ):
-            warnings.warn(
-                "max_epochs not supported for Iterable datasets. Falling back "
-                + "to max_updates."
-            )
-            return max_updates
-
-        if max_updates is not None and max_epochs is not None:
-            warnings.warn(
-                "Both max_updates and max_epochs are specified. "
-                + f"Favoring max_epochs: {max_epochs}"
-            )
-
-        if max_epochs is not None:
-            max_updates = (
-                math.ceil(
-                    len(self.train_loader) / self.training_config.update_frequency
-                )
-                * max_epochs
-            )
+        config_max_updates = self.training_config.max_updates
+        config_max_epochs = self.training_config.max_epochs
+        max_updates, _ = get_max_updates(
+            config_max_updates,
+            config_max_epochs,
+            self.train_loader,
+            self.training_config.update_frequency,
+        )
 
         return max_updates

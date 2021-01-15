@@ -5,7 +5,7 @@ known_third_party = [
     "PIL", "cv2", "demjson", "fairscale", "h5py", "lib", "lmdb", "maskrcnn_benchmark", "mmf",
     "numpy", "omegaconf", "packaging", "pycocoevalcap", "pytorch_sphinx_theme",
     "recommonmark", "requests", "setuptools", "sklearn", "termcolor", "tests", "torch",
-    "torchtext", "torchvision", "tqdm", "transformers"
+    "torchtext", "torchvision", "tqdm", "transformers", "pytorch_lightning"
 ]
 skip_glob = "**/build/**,website/**"
 combine_as_imports = true
