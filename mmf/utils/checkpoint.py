@@ -99,11 +99,18 @@ def _load_pretrained_model(model_name_or_path, *args, **kwargs):
         config = ckpt["config"]
     else:
         config = load_yaml(configs[0])
-
     model_config = config.get("model_config", config)
     ckpt = ckpt.get("model", ckpt)
+
     # Also handle the case of model_name is path
-    model_config = model_config.get(model_name.split(os.path.sep)[-1].split(".")[0])
+    if PathManager.exists(model_name):
+        # This shouldn't happen
+        assert len(model_config.keys()) == 1, "Checkpoint contains more than one model?"
+        # Take first key
+        model_config = model_config[list(model_config.keys())[0]]
+    else:
+        model_config = model_config.get(model_name.split(os.path.sep)[-1].split(".")[0])
+
     return {"config": model_config, "checkpoint": ckpt, "full_config": config}
 
 

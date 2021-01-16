@@ -24,7 +24,9 @@ class MoVieMcan(BaseModel):
         super().__init__(config)
         self.config = config
         self._global_config = registry.get("config")
-        self._datasets = self._global_config.datasets.split(",")
+        self._datasets = self._global_config.datasets
+        if isinstance(self._datasets, str):
+            self._datasets = self._datasets.split(",")
 
     @classmethod
     def config_path(cls):
