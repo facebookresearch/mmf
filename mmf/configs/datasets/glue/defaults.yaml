@@ -1,0 +1,73 @@
+dataset_config:
+  glue_mnli_mismatched:
+    task: mnli_mismatched
+    data_dir: ${env.data_dir}/datasets
+    # dummy values to make sure this initializes
+    annotations:
+      train: x
+      val: x
+      test: x
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
+  glue_sst2:
+    task: sst2
+    data_dir: ${env.data_dir}/datasets
+    # dummy values to make sure this initializes
+    annotations:
+      train: x
+      val: x
+      test: x
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
+  glue_qqp:
+    task: qqp
+    data_dir: ${env.data_dir}/datasets
+    # dummy values to make sure this initializes
+    annotations:
+      train: x
+      val: x
+      test: x
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
+  glue_qnli:
+    task: qnli
+    data_dir: ${env.data_dir}/datasets
+    # dummy values to make sure this initializes
+    annotations:
+      train: x
+      val: x
+      test: x
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
