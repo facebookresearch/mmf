@@ -174,22 +174,43 @@ class MultiDatasetLoader:
             "dataset_size_proportional_sampling", True
         )
 
+        multitasking = self.config.get("multitasking", {})
+        multitasking_enabled = multitasking.get("enabled", False)
+
         assert (
             self._proportional_sampling is True
             or training.get("max_epochs", None) is None
         ), "Epoch based training can only be used with size proportional sampling"
 
-        if self._dataset_type != "train":
-            # If it is val or test, it needs to be all datasets need to be
-            # fully iterated as metrics will be calculated in eval mode
-            # over complete datasets
-            self._proportional_sampling = True
+        assert not (self._proportional_sampling and multitasking_enabled), (
+            "Multitasking (manually-specified) per-dataset ratios cannot be used "
+            "with size proportional sampling"
+        )
 
         if self._proportional_sampling is True and len(self._per_dataset_lengths) > 0:
             self._dataset_probabilities = self._per_dataset_lengths[:]
             self._dataset_probabilities = [
                 prob / self._total_length for prob in self._dataset_probabilities
             ]
+
+        if multitasking_enabled and self._dataset_type == "train":
+            sampling_ratios = multitasking.get("sampling_ratios", {})
+            probabilities = []
+            for dataset in self._given_datasets:
+                assert (
+                    dataset in sampling_ratios
+                ), f"{dataset} must be specified in multitasking.sampling_ratios"
+                probabilities.append(sampling_ratios[dataset])
+            # normalize the sampling ratios to sum up to 1
+            prob_sum = sum(probabilities)
+            assert all(prob >= 0 for prob in probabilities) and prob_sum > 0, (
+                "multitasking.sampling_ratios must be all non-negative and at least "
+                "one of them needs to be positive."
+            )
+            self._dataset_probabilities = [prob / prob_sum for prob in probabilities]
+            logger.info("Using per-dataset sampling probabilities:")
+            for dataset, prob in zip(self._given_datasets, self._dataset_probabilities):
+                logger.info(f"\t{dataset}: {prob}")
 
     def __len__(self):
         # Since, this is iterator, we need to return total length == number of batches
