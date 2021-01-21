@@ -445,7 +445,9 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_pretrained</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">model_name_or_path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">PathManager</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">model_name_or_path</span><span class="p">):</span>
+        <span class="c1"># Check if the path exists, if not it is pretrained, otherwise,</span>
+        <span class="c1"># we will try to load the checkpoint from the path</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">PathManager</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">model_name_or_path</span><span class="p">):</span>
             <span class="n">model_key</span> <span class="o">=</span> <span class="n">model_name_or_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">model_cls</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get_model_class</span><span class="p">(</span><span class="n">model_key</span><span class="p">)</span>
             <span class="k">assert</span> <span class="p">(</span>
@@ -453,7 +455,17 @@
             <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Incorrect pretrained model key </span><span class="si">{</span><span class="n">model_name_or_path</span><span class="si">}</span><span class="s2"> &quot;</span>
             <span class="s2">&quot;for class </span><span class="si">{cls.__name__}</span><span class="s2">&quot;</span>
         <span class="n">output</span> <span class="o">=</span> <span class="n">load_pretrained_model</span><span class="p">(</span><span class="n">model_name_or_path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">config</span><span class="p">,</span> <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;config&quot;</span><span class="p">],</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;checkpoint&quot;</span><span class="p">]</span>
+        <span class="n">config</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">full_config</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">output</span><span class="p">[</span><span class="s2">&quot;config&quot;</span><span class="p">],</span>
+            <span class="n">output</span><span class="p">[</span><span class="s2">&quot;checkpoint&quot;</span><span class="p">],</span>
+            <span class="n">output</span><span class="p">[</span><span class="s2">&quot;full_config&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Save original config for state reset later</span>
+        <span class="n">config_temp_holder</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">)</span>
+        <span class="c1"># Register full config from checkpoint when loading the model</span>
+        <span class="n">registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="n">full_config</span><span class="p">)</span>
+
         <span class="c1"># Some models need registry updates to be load pretrained model</span>
         <span class="c1"># If they have this method, call it so they can update accordingly</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;update_registry_for_pretrained&quot;</span><span class="p">):</span>
@@ -463,6 +475,9 @@
         <span class="n">instance</span><span class="o">.</span><span class="n">is_pretrained</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">instance</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
         <span class="n">incompatible_keys</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># The model has loaded, reset the state</span>
+        <span class="n">registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="n">config_temp_holder</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">incompatible_keys</span><span class="o">.</span><span class="n">missing_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
