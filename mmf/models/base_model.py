@@ -213,7 +213,9 @@ class BaseModel(nn.Module):
 
     @classmethod
     def from_pretrained(cls, model_name_or_path, *args, **kwargs):
-        if not PathManager.isfile(model_name_or_path):
+        # Check if the path exists, if not it is pretrained, otherwise,
+        # we will try to load the checkpoint from the path
+        if not PathManager.exists(model_name_or_path):
             model_key = model_name_or_path.split(".")[0]
             model_cls = registry.get_model_class(model_key)
             assert (
@@ -221,7 +223,17 @@ class BaseModel(nn.Module):
             ), f"Incorrect pretrained model key {model_name_or_path} "
             "for class {cls.__name__}"
         output = load_pretrained_model(model_name_or_path, *args, **kwargs)
-        config, checkpoint = output["config"], output["checkpoint"]
+        config, checkpoint, full_config = (
+            output["config"],
+            output["checkpoint"],
+            output["full_config"],
+        )
+
+        # Save original config for state reset later
+        config_temp_holder = registry.get("config")
+        # Register full config from checkpoint when loading the model
+        registry.register("config", full_config)
+
         # Some models need registry updates to be load pretrained model
         # If they have this method, call it so they can update accordingly
         if hasattr(cls, "update_registry_for_pretrained"):
@@ -231,6 +243,9 @@ class BaseModel(nn.Module):
         instance.is_pretrained = True
         instance.build()
         incompatible_keys = instance.load_state_dict(checkpoint, strict=False)
+
+        # The model has loaded, reset the state
+        registry.register("config", config_temp_holder)
 
         if len(incompatible_keys.missing_keys) != 0:
             logger.warning(
