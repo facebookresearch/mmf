@@ -45,6 +45,7 @@ Example config for above metric::
 """
 
 import collections
+import warnings
 
 import torch
 from mmf.common.registry import registry
@@ -459,6 +460,22 @@ class RecallAtK(BaseMetric):
             gt_ranks[i] = int(ranks[i, ans_ind[i].long()])
         return gt_ranks
 
+    def process_ranks(self, ranks):
+        num_opts = 100
+
+        # none of the values should be 0, there is gt in options
+        if torch.sum(ranks.le(0)) > 0:
+            num_zero = torch.sum(ranks.le(0))
+            warnings.warn(f"Some of ranks are zero: {num_zero}")
+            ranks = ranks[ranks.gt(0)]
+
+        # rank should not exceed the number of options
+        if torch.sum(ranks.ge(num_opts + 1)) > 0:
+            num_ge = torch.sum(ranks.ge(num_opts + 1))
+            warnings.warn(f"Some of ranks > 100: {num_ge}")
+            ranks = ranks[ranks.le(num_opts + 1)]
+        return ranks
+
     def get_ranks(self, sample_list, model_output, *args, **kwargs):
         output = model_output["scores"]
         expected = sample_list["targets"]
@@ -499,7 +516,7 @@ class RecallAt1(RecallAtK):
             torch.FloatTensor: Recall@1
 
         """
-        return self.calculate(sample_list, model_output, k=1)
+        return super().calculate(sample_list, model_output, k=1)
 
 
 @registry.register_metric("r@5")
@@ -526,7 +543,7 @@ class RecallAt5(RecallAtK):
             torch.FloatTensor: Recall@5
 
         """
-        return self.calculate(sample_list, model_output, k=5)
+        return super().calculate(sample_list, model_output, k=5)
 
 
 @registry.register_metric("r@10")
@@ -553,7 +570,7 @@ class RecallAt10(RecallAtK):
             torch.FloatTensor: Recall@10
 
         """
-        return self.calculate(sample_list, model_output, k=10)
+        return super().calculate(sample_list, model_output, k=10)
 
 
 @registry.register_metric("mean_r")

@@ -110,6 +110,31 @@ class TestModuleMetrics(unittest.TestCase):
         )
         self.assertAlmostEqual(metric.calculate(sample, predicted).item(), value, 4)
 
+    def _test_recall_at_k_metric(self, metric, value):
+        sample = Sample()
+        predicted = dict()
+
+        first_dimension = 10
+        second_dimension = 100  # second dim MUST be 100
+        sample.targets = torch.ones(first_dimension, second_dimension)
+        predicted["scores"] = torch.ones(first_dimension, second_dimension)
+
+        for i in range(first_dimension):
+            for j in range(second_dimension):
+                # sample = [[0, 1, 2, ..., 99], [0, 1, ..., 99], ...]
+                sample.targets[i][j] = j
+                if j == second_dimension - 1 and i != 0:
+                    # changes last value or 'chosen candidate'
+                    # to a lower rank as i increases
+                    # predicted = [[0, 2, 4, ..., 198], [0, 2, ..., 196, 191],
+                    # [0, ..., 196, 189], [0, ..., 196, 187], ...]
+                    predicted["scores"][i][j] = j * 2 - 1 - (i + 2) * 2
+                else:
+                    # predicted = [[0, 2, 4, ..., 198], [0, 2, ...], ...]
+                    predicted["scores"][i][j] = j * 2
+
+        self.assertAlmostEqual(metric.calculate(sample, predicted), value)
+
     def test_micro_f1(self):
         metric = metrics.MicroF1()
         self._test_binary_metric(metric, 0.5)
@@ -165,3 +190,15 @@ class TestModuleMetrics(unittest.TestCase):
         metric = metrics.MacroAP()
         self._test_binary_metric(metric, 0.6666666)
         self._test_multiclass_metric(metric, 0.3888888)
+
+    def test_recall_at_1(self):
+        metric = metrics.RecallAt1()
+        self._test_recall_at_k_metric(metric, 0.1)
+
+    def test_recall_at_5(self):
+        metric = metrics.RecallAt5()
+        self._test_recall_at_k_metric(metric, 0.3)
+
+    def test_recall_at_10(self):
+        metric = metrics.RecallAt10()
+        self._test_recall_at_k_metric(metric, 0.8)
