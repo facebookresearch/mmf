@@ -117,12 +117,13 @@ class NumbersDataset(torch.utils.data.Dataset):
 class SimpleModel(torch.nn.Module):
     def __init__(self, size):
         super().__init__()
-        self.linear = torch.nn.Linear(size, 4)
+        self.linear = torch.nn.Linear(size, 1)
 
     def forward(self, prepared_batch):
         batch = prepared_batch[DATA_ITEM_KEY]
-        model_output = {"losses": {"loss": torch.sum(self.linear(batch))}}
-        return model_output
+        output = self.linear(batch)
+        loss = torch.nn.MSELoss()(output, batch)
+        return {"losses": {"loss": loss}, "logits": output}
 
 
 def assertModulesEqual(mod1, mod2):
