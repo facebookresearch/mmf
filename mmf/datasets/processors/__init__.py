@@ -17,6 +17,7 @@ from mmf.datasets.processors.processors import (
     SoftCopyAnswerProcessor,
     VocabProcessor,
     VQAAnswerProcessor,
+    GraphVQAAnswerProcessor,
 )
 
 
@@ -27,6 +28,7 @@ __all__ = [
     "GloVeProcessor",
     "FastTextProcessor",
     "VQAAnswerProcessor",
+    "GraphVQAAnswerProcessor",
     "MultiHotAnswerFromVocabProcessor",
     "SoftCopyAnswerProcessor",
     "SimpleWordProcessor",

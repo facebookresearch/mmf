@@ -1,0 +1,51 @@
+model_config:
+  krisp:
+    visual_bert:
+      hidden_size: 768
+      hidden_dropout_prob: 0.1
+      training_head_type: classification
+      pooler_strategy: vqa
+      bert_model_name: bert-base-uncased
+      visual_embedding_dim: 2048
+      special_visual_initialize: true
+      embedding_strategy: plain
+      bypass_transformer: false
+      output_attentions: false
+      output_hidden_states: false
+      random_initialize: false
+      freeze_base: false
+      finetune_lr_multiplier: 1
+      num_hidden_layers: 12
+      num_attention_heads: 12
+      zerobias: true
+      load_from_pretrained: false
+      pretrained_file: ""
+    graph_module:
+      kg_path: ""
+      dataset_info_path: ""
+      node2vec_filename: ""
+      embedding_file: ""
+      add_w2v_multiword: False
+      vocab_file: ""
+      okvqa_v_mode: "v1.1"
+      prune_culdesacs: false
+      node_inputs:
+        question: 1
+        classifiers: 4
+        w2v: 300
+      use_w2v: true
+      use_conf: true
+      use_q: true
+      use_img: true
+      use_partial_img: false
+      partial_img_idx: 0
+      node_hid_dim: 128
+      num_gcn_conv: 2
+      use_batch_norm: false
+      use_dropout: false
+      dropout_p: 0
+      output_type: hidden
+      gcn_type: RGCN
+  output_combine: graph_pointer
+  losses:
+  - type: logit_bce

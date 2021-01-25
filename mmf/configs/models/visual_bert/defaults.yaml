@@ -14,3 +14,4 @@ model_config:
     # Default points to BERT pooler strategy which is to take
     # representation of CLS token after passing it through a dense layer
     pooler_strategy: default
+    zerobias: false     # Initialize last layer to predict closer to 0 on init for sigmoid outputs
