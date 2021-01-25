@@ -277,6 +277,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
@@ -691,6 +692,22 @@
             <span class="n">gt_ranks</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ranks</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">ans_ind</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">()])</span>
         <span class="k">return</span> <span class="n">gt_ranks</span>
 
+    <span class="k">def</span> <span class="nf">process_ranks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ranks</span><span class="p">):</span>
+        <span class="n">num_opts</span> <span class="o">=</span> <span class="mi">100</span>
+
+        <span class="c1"># none of the values should be 0, there is gt in options</span>
+        <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ranks</span><span class="o">.</span><span class="n">le</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">num_zero</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ranks</span><span class="o">.</span><span class="n">le</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Some of ranks are zero: </span><span class="si">{</span><span class="n">num_zero</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">ranks</span> <span class="o">=</span> <span class="n">ranks</span><span class="p">[</span><span class="n">ranks</span><span class="o">.</span><span class="n">gt</span><span class="p">(</span><span class="mi">0</span><span class="p">)]</span>
+
+        <span class="c1"># rank should not exceed the number of options</span>
+        <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ranks</span><span class="o">.</span><span class="n">ge</span><span class="p">(</span><span class="n">num_opts</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">num_ge</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ranks</span><span class="o">.</span><span class="n">ge</span><span class="p">(</span><span class="n">num_opts</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Some of ranks &gt; 100: </span><span class="si">{</span><span class="n">num_ge</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">ranks</span> <span class="o">=</span> <span class="n">ranks</span><span class="p">[</span><span class="n">ranks</span><span class="o">.</span><span class="n">le</span><span class="p">(</span><span class="n">num_opts</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">ranks</span>
+
     <span class="k">def</span> <span class="nf">get_ranks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">output</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span>
         <span class="n">expected</span> <span class="o">=</span> <span class="n">sample_list</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">]</span>
@@ -731,7 +748,7 @@
 <span class="sd">            torch.FloatTensor: Recall@1</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="RecallAt5"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAt5">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;r@5&quot;</span><span class="p">)</span>
@@ -758,7 +775,7 @@
 <span class="sd">            torch.FloatTensor: Recall@5</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="RecallAt10"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAt10">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;r@10&quot;</span><span class="p">)</span>
@@ -785,7 +802,7 @@
 <span class="sd">            torch.FloatTensor: Recall@10</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="MeanRank"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.MeanRank">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;mean_r&quot;</span><span class="p">)</span>
