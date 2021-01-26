@@ -7,12 +7,12 @@ model_config:
       num_labels: 3129
       pooler_strategy: vqa
     graph_module:
-      kg_path: okvqa/krisp/graphs/full_graph.pth.tar
-      dataset_info_path: okvqa/krisp/graph_vocab/vqa_dataset_info.pth.tar
-      embedding_file: okvqa/defaults/glove.840B.300d.txt
-      node2vec_filename: okvqa/krisp/node2vec/node2vec_vqa.pkl
+      kg_path: okvqa/defaults/annotations/annotations/full_graph.pth.tar
+      dataset_info_path: okvqa/defaults/annotations/annotations/graph_vocab/vqa_dataset_info.pth.tar
+      embedding_file: okvqa/defaults/annotations/annotations/glove.840B.300d.txt
+      node2vec_filename: okvqa/defaults/annotations/annotations/node2vec/node2vec_vqa.pkl
       vocab_file: vqa2/defaults/extras/vocabs/answers_vqa.txt
-      graph_vocab_file: okvqa/krisp/graph_vocab/graph_vocab_vqa.pth.tar
+      graph_vocab_file: okvqa/defaults/annotations/annotations/graph_vocab/graph_vocab_vqa.pth.tar
       prune_culdesacs: false
       node_inputs:
         question: 1
@@ -66,17 +66,17 @@ dataset_config:
           concat_scores: true
           num_answers: 10
           vocab_file: defaults/extras/vocabs/answers_vqa.txt
-          graph_vocab_file: okvqa/krisp/graph_vocab/graph_vocab_vqa.pth.tar
+          graph_vocab_file: okvqa/defaults/annotations/annotations/graph_vocab/graph_vocab_vqa.pth.tar
           preprocessor:
             type: simple_word
             params: {}
     features:
       train:
-      - okvqa/features/features_fc6/COCO_trainval2014.lmdb
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
       val:
-      - okvqa/features/features_fc6/COCO_trainval2014.lmdb
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
       test:
-      - okvqa/features/features_fc6/COCO_trainval2014.lmdb
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
     dump_output_dir: ${env.save_dir}
     dump_pred_info: false
 optimizer:

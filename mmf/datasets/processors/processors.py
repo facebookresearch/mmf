@@ -775,7 +775,11 @@ class GraphVQAAnswerProcessor(BaseProcessor):
             )
 
         # Load the graph answer vocab file
-        self.graph_vocab = sorted(list(torch.load(config.graph_vocab_file)))
+        if os.path.exists(config.graph_vocab_file):
+            graph_vocab_file = config.graph_vocab_file
+        else:
+            graph_vocab_file = os.path.join(os.getenv("MMF_DATA_DIR"), "datasets", config.graph_vocab_file)
+        self.graph_vocab = sorted(list(torch.load(graph_vocab_file)))
         self.ans2graphvocabidx = {}
         for graphvocabidx, graph_ans in enumerate(self.graph_vocab):
             # Right now, this does need to overlap with the regular vocab

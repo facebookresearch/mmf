@@ -23,11 +23,11 @@ dataset_config:
           max_seq_length: 128
     features:
       train:
-      - okvqa/features/features_fc6/COCO_trainval2014.lmdb
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
       val:
-      - okvqa/features/features_fc6/COCO_trainval2014.lmdb
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
       test:
-      - okvqa/features/features_fc6/COCO_trainval2014.lmdb
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
 
 optimizer:
   type: adam_w

@@ -5,9 +5,9 @@ dataset_config:
   okvqa:
     annotations:
       train:
-      - okvqa/defaults/annotations/imdb_trainval_v10.npy
+      - okvqa/defaults/annotations/annotations/imdb_trainval_v10.npy
       val:
-      - okvqa/defaults/annotations/imdb_test_v10.npy
+      - okvqa/defaults/annotations/annotations/imdb_test_v10.npy
       test:
-      - okvqa/defaults/annotations/imdb_test_v10.npy
+      - okvqa/defaults/annotations/annotations/imdb_test_v10.npy
 

@@ -25,7 +25,7 @@ dataset_config:
           max_seq_length: 128
       answer_processor:
         params:
-          vocab_file: okvqa/defaults/annotations/answer_vocab_count10.txt
+          vocab_file: okvqa/defaults/annotations/annotations/answer_vocab_count10.txt
 optimizer:
   type: adam_w
   params:

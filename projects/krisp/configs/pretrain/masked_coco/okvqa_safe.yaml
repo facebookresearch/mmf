@@ -15,11 +15,11 @@ dataset_config:
     return_features_info: true
     features:
       train:
-      - okvqa/features/features_fc6/COCO_trainval2014.lmdb
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
       val:
-      - okvqa/features/features_fc6/COCO_trainval2014.lmdb
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
       test:
-      - okvqa/features/features_fc6/COCO_trainval2014.lmdb
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
 
 training:
   find_unused_parameters: true

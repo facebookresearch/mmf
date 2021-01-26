@@ -16,18 +16,18 @@ dataset_config:
       - okvqa/defaults/images/
     features:
       train:
-      - /checkpoint/kdmarino/detectron/gridfeats/visual_genome_X152_fpn_okvqasafe/features_fc6/COCO_trainval2014.lmdb
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
       val:
-      - /checkpoint/kdmarino/detectron/gridfeats/visual_genome_X152_fpn_okvqasafe/features_fc6/COCO_trainval2014.lmdb
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
       test:
-      - /checkpoint/kdmarino/detectron/gridfeats/visual_genome_X152_fpn_okvqasafe/features_fc6/COCO_trainval2014.lmdb
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
     annotations:
       train:
-      - okvqa/defaults/annotations/imdb_train1.npy
+      - okvqa/defaults/annotations/annotations/imdb_train1.npy
       val:
-      - okvqa/defaults/annotations/imdb_val1.npy
+      - okvqa/defaults/annotations/annotations/imdb_val1.npy
       test:
-      - okvqa/defaults/annotations/imdb_test.npy
+      - okvqa/defaults/annotations/annotations/imdb_test.npy
     max_features: 100
     processors:
       text_processor:

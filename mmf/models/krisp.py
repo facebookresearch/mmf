@@ -627,10 +627,11 @@ class VisualBERTModule(nn.Module):
             "input_mask",
             "image_mask",
             "masked_lm_labels",
-            "position_embeddings_visual",
-            "visual_embeddings_type",
+            #"position_embeddings_visual",
+            #"visual_embeddings_type",
         ]
-        to_be_flattened_dim = ["image_text_alignment", "visual_embeddings"]
+        to_be_flattened_dim = [#"image_text_alignment", 
+            "visual_embeddings"]
 
         # We want to convert everything into: batch x sequence_length x (dim).
         flattened = self.flatten(sample_list, to_be_flattened, to_be_flattened_dim)
@@ -693,7 +694,8 @@ class VisualBERTModule(nn.Module):
             sample_list.image_mask = None
 
         sample_list.position_embeddings_visual = None
-
+        sample_list.visual_embeddings_type = None
+        sample_list.image_text_alignment = None
         return sample_list
 
     # Backward compatibility for code from original VisualBERT

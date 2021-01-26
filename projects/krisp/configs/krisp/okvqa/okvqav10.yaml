@@ -4,11 +4,11 @@ includes:
 model_config:
   krisp:
     graph_module:
-      vocab_file: okvqa/defaults/annotations/answer_vocab_v10_count10.txt
-      graph_vocab_file: okvqa/krisp/graph_vocab/graph_vocab_v10.pth.tar
+      vocab_file: okvqa/defaults/annotations/annotations/answer_vocab_v10_count10.txt
+      graph_vocab_file: okvqa/defaults/annotations/annotations/graph_vocab/graph_vocab_v10.pth.tar
       okvqa_v_mode: "v1.0-121"
-      old_graph_vocab_file: okvqa/krisp/graph_vocab/graph_vocab.pth.tar
-      ans_translation_file: okvqa/defaults/annotations/ans_vocab_tx.pth.tar
+      old_graph_vocab_file: okvqa/defaults/annotations/annotations/graph_vocab/graph_vocab.pth.tar
+      ans_translation_file: okvqa/defaults/annotations/annotations/ans_vocab_tx.pth.tar
       num_labels: 2253 
     num_labels: 2253
 dataset_config:
@@ -16,5 +16,5 @@ dataset_config:
     processors:
       answer_processor:
         params:
-          vocab_file: okvqa/defaults/annotations/answer_vocab_v10_count10.txt
-          graph_vocab_file: okvqa/krisp/graph_vocab/graph_vocab_v10.pth.tar
+          vocab_file: okvqa/defaults/annotations/annotations/answer_vocab_v10_count10.txt
+          graph_vocab_file: okvqa/defaults/annotations/annotations/graph_vocab/graph_vocab_v10.pth.tar

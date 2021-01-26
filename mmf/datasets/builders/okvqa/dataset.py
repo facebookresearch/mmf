@@ -21,12 +21,12 @@ class OKVQADataset(MMFDataset):
     ):
         super().__init__("okvqa", config, dataset_type, index, *args, **kwargs)
 
-    def build_annotation_db(self) -> Type[OKVQAAnnotationDatabase]:
+    '''def build_annotation_db(self) -> Type[OKVQAAnnotationDatabase]:
         annotation_path = self._get_path_based_on_index(
             self.config, "annotations", self._index
         )
         return OKVQAAnnotationDatabase(self.config, annotation_path)
-
+    '''
 
     def get_image_path(self, image_id: Union[str, int]) -> str:
         if self.dataset_type == "train":
@@ -37,7 +37,8 @@ class OKVQADataset(MMFDataset):
 
     def init_processors(self):
         super().init_processors()
-        self.image_db.transform = self.image_processor
+        if hasattr(self, 'image_db'):
+            self.image_db.transform = self.image_processor
 
     def __getitem__(self, idx: int) -> Type[Sample]:    
         sample_info = self.annotation_db[idx]
@@ -136,7 +137,7 @@ class OKVQADataset(MMFDataset):
         predictions = []
         answer_space_size = self.answer_processor.get_true_vocab_size()
 
-        for idx, question_id in enumerate(report.question_id):
+        for idx, question_id in enumerate(report.id):
             # Dictionary to append for prediction
             pred_dict = {}
             pred_dict["question_id"] = question_id.item()

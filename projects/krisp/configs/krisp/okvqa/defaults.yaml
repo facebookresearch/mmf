@@ -7,12 +7,12 @@ model_config:
       pooler_strategy: vqa
       zerobias: true
     graph_module:
-      kg_path: okvqa/krisp/graphs/full_graph.pth.tar
-      dataset_info_path: okvqa/krisp/graph_vocab/okvqa_dataset_info.pth.tar
-      embedding_file: okvqa/defaults/glove.840B.300d.txt
-      node2vec_filename: okvqa/krisp/node2vec/node2vec.pkl
-      vocab_file: okvqa/defaults/annotations/answer_vocab_count10.txt
-      graph_vocab_file: okvqa/krisp/graph_vocab/graph_vocab.pth.tar
+      kg_path: okvqa/defaults/annotations/annotations/graphs/full_graph.pth.tar
+      dataset_info_path: okvqa/defaults/annotations/annotations/graph_vocab/okvqa_dataset_info.pth.tar
+      embedding_file: okvqa/defaults/annotations/annotations/glove.840B.300d.txt
+      node2vec_filename: okvqa/defaults/annotations/annotations/node2vec/node2vec.pkl
+      vocab_file: okvqa/defaults/annotations/annotations/answer_vocab_count10.txt
+      graph_vocab_file: okvqa/defaults/annotations/annotations/graph_vocab/graph_vocab.pth.tar
       prune_culdesacs: false
       node_inputs:
         question: 1
@@ -52,6 +52,9 @@ dataset_config:
     use_images: false
     use_features: true
     return_features_info: true
+    zoo_requirements:
+    - okvqa.defaults
+    - okvqa
     processors:
       text_processor:
         type: bert_tokenizer
@@ -67,8 +70,8 @@ dataset_config:
         params:
           concat_scores: true
           num_answers: 10
-          vocab_file: okvqa/defaults/annotations/answer_vocab_count10.txt
-          graph_vocab_file: okvqa/krisp/graph_vocab/graph_vocab.pth.tar
+          vocab_file: okvqa/defaults/annotations/annotations/answer_vocab_count10.txt
+          graph_vocab_file: okvqa/defaults/annotations/annotations/graph_vocab/graph_vocab.pth.tar
           preprocessor:
             type: simple_word
             params: {}

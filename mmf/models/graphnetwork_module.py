@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
 # This is the generic module for Graph Network computations, which can be added as a component to any base network
 # Used some word2vec code from https://github.com/adithyamurali/TaskGrasp
 # Also used example code from https://github.com/rusty1s/pytorch_geometric
@@ -351,6 +353,14 @@ class GraphNetworkBare(BaseModel):
         # MMF will automatically calculate loss
         return output
 
+# Do indirect path stuff with mmf
+def mmf_indirect(path):
+    if os.path.exists(path):
+        return path
+    else:
+        path = os.path.join(os.getenv("MMF_DATA_DIR"), "datasets", path)
+        return path
+
 # Graph network module
 # Can be added as part of a larger network, or used alone using GraphNetworkBare 
 class GraphNetworkModule(nn.Module):
@@ -366,7 +376,7 @@ class GraphNetworkModule(nn.Module):
             self.config_extra = config_extra
 
         # Load the input graph
-        raw_graph = torch.load(config.kg_path)
+        raw_graph = torch.load(mmf_indirect(config.kg_path))
         self.graph, self.graph_idx, self.edge_index, self.edge_type = make_graph(raw_graph, config.prune_culdesacs)
 
         # Get all the useful graph attributes
@@ -385,10 +395,10 @@ class GraphNetworkModule(nn.Module):
         self.index_in_ans, self.index_in_node, self.graph_answers, self.graph_ans_node_idx = self.get_answer_info(config)
 
         # Save graph answers (to be used by data loader)
-        torch.save(self.graph_answers, config.graph_vocab_file)
+        torch.save(self.graph_answers, mmf_indirect(config.graph_vocab_file))
 
         # If features have w2v, initialize it here
-        node2vec_filename = config.node2vec_filename
+        node2vec_filename = mmf_indirect(config.node2vec_filename)
         node_names = list(self.name2node_idx.keys())
         valid_node2vec = False
         if os.path.exists(node2vec_filename):
@@ -401,7 +411,7 @@ class GraphNetworkModule(nn.Module):
 
         # Generate node2vec if not done already 
         if not valid_node2vec:
-            node2vec, node_names_dbg, no_match_nodes = prepare_embeddings(node_names, config.embedding_file, config.add_w2v_multiword)
+            node2vec, node_names_dbg, no_match_nodes = prepare_embeddings(node_names, mmf_indirect(config.embedding_file), config.add_w2v_multiword)
             print("Saving synonym2vec to pickle file:", node2vec_filename)
             pickle.dump((node2vec, node_names_dbg, no_match_nodes), open(node2vec_filename, "wb"))
         
@@ -516,7 +526,7 @@ class GraphNetworkModule(nn.Module):
 
     def get_dataset_info(self, config):
         # Load dataset info        
-        dataset_data = torch.load(config.dataset_info_path)
+        dataset_data = torch.load(mmf_indirect(config.dataset_info_path))
         
         # Go through and collect symbol names and confs from our pretrained classifiers
         # Hardcoded to the classifiers
@@ -626,15 +636,15 @@ class GraphNetworkModule(nn.Module):
     def get_answer_info(self, config):
         # Get answer info
         # Recreates mmf answer_vocab here essentially
-        answer_vocab = VocabDict(config.vocab_file)        
+        answer_vocab = VocabDict(mmf_indirect(config.vocab_file))     
         assert(len(answer_vocab) == config.num_labels)
 
         # If we're in okvqa v1.0, need to do this a bit differently
         if config.okvqa_v_mode in ["v1.0", "v1.0-121", "v1.0-121-mc"]:
             # Load the answer translation file (to go from raw strings to stemmed in v1.0 vocab)
-            tx_data = torch.load(config.ans_translation_file)
+            tx_data = torch.load(mmf_indirect(config.ans_translation_file))
             if config.okvqa_v_mode in ["v1.0-121", "v1.0-121-mc"]:
-                old_graph_vocab = torch.load(config.old_graph_vocab_file)
+                old_graph_vocab = torch.load(mmf_indirect(config.old_graph_vocab_file))
 
             # Get a list of answer node indices
             # Important if we want to index those out to (for instance) do node classification on them
@@ -832,7 +842,7 @@ class GraphNetworkModule(nn.Module):
     # Assume right now that it's just passed in exactly how I need it and I'll figure it out layer
     def forward(self, sample_list):
         # Get the batch size, qids, and device
-        qids = sample_list["question_id"]
+        qids = sample_list["id"]
         batch_size = qids.size(0)
         device = qids.device
 
