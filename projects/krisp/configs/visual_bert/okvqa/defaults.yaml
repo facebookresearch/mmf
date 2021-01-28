@@ -6,6 +6,7 @@ model_config:
     num_labels: 2250
     pooler_strategy: vqa
     zerobias: true
+    biasfill: -6.58
     losses:
     - type: logit_bce
 dataset_config:

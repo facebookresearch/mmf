@@ -334,7 +334,7 @@ class VisualBERTForClassification(nn.Module):
         if "losses" in self.config and self.config.zerobias:
             for loss in self.config.losses:
                 if 'bce' in loss['type']:
-                    self.classifier[1].bias.data.fill_(-6.58) # Makes mean prediction for sigmoid near 0 instead of near 0.5
+                    self.classifier[1].bias.data.fill_(self.config.biasfill)
 
     def forward(
         self,

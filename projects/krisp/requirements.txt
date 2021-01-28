@@ -1,0 +1,3 @@
+networkx
+torch_geometric
+gensim

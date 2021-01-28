@@ -85,25 +85,6 @@ class OKVQADataset(MMFDataset):
         return self.answer_processor.convert_idx_to_answer(idx)
 
     def format_for_prediction(self, report):
-        if "dump_pred_info" in self.config and self.config.dump_pred_info:
-            import os
-            os.system("mkdir -p %s/analysis_dump/qids/" % self.config.dump_output_dir)
-
-            if not os.path.exists("%s/analysis_dump/global_info.pth.tar" % self.config.dump_output_dir):
-                info = {}
-                info["graph"] = report.graph
-                info["graph_idx"] = report.graph_idx
-                info["node_acts"] = report.node_acts
-                info["index_in_ans"] = report.index_in_ans
-                info["index_in_node"] = report.index_in_node
-                info["graph_answers"] = report.graph_answers
-                info["graph_ans_node_idx"] = report.graph_ans_node_idx
-                info["answer_space_size"] = self.answer_processor.get_true_vocab_size()
-                info["ans2aid"] = self.answer_processor.processor.answer_vocab.word2idx_dict
-                info["aid2ans"] = self.answer_processor.processor.answer_vocab.word_list
-                info["ans2graphvocabidx"] = self.answer_processor.processor.ans2graphvocabidx
-                torch.save(info, "%s/analysis_dump/global_info.pth.tar" % self.config.dump_output_dir)
-
         # Check for case of scores coming from graph
         reg_vocab_sz = self.answer_processor.get_true_vocab_size()
         if report.scores.size(1) > reg_vocab_sz:
@@ -169,7 +150,6 @@ class OKVQADataset(MMFDataset):
                     answer = "unanswerable"
             else:
                 answer = self.answer_processor.idx2word(answer_id)
-            # actual_answer = report.answers[idx]
 
             answer = answer.replace(" 's", "'s")
             pred_dict["answer"] = answer
@@ -178,9 +158,6 @@ class OKVQADataset(MMFDataset):
             # Dump the info
             info = {}
             info["scores"] = report.scores[idx].cpu()
-            if "dump_pred_info" in self.config and self.config.dump_pred_info:
-                info["graph_hidden_act"] = report.graph_hidden_act[idx].cpu()
-                torch.save(info, "%s/analysis_dump/qids/%d_data.pth.tar" % (self.config.dump_output_dir, question_id))
 
         return predictions
 

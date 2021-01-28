@@ -12,11 +12,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from torch_geometric.nn import SAGEConv, BatchNorm, GCNConv, RGCNConv
-from torch_geometric.utils import k_hop_subgraph
-from networkx import convert_node_labels_to_integers
-from gensim.models import KeyedVectors
-from gensim.scripts.glove2word2vec import glove2word2vec
 from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.modules.embeddings import BertVisioLinguisticEmbeddings
@@ -40,7 +35,12 @@ from transformers.modeling_bert import (
     BertPreTrainedModel,
 )
 from transformers import BertConfig, BertModel
-from .graphnetwork_module import GraphNetworkModule
+# Import graph network module
+# Putting in try-catch to avoid adding dependencies to mmf
+try:
+    from projects.krisp.graphnetwork_module import GraphNetworkModule
+except:
+    print("Import error with KRISP dependencies. Fix dependencies if you want to use KRISP")
 import logging
 logger = logging.getLogger(__name__)
 
