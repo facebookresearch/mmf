@@ -5,10 +5,9 @@ import math
 import os
 import pickle
 from copy import deepcopy
-
-import networkx as nx
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.nn as nn
 import torch.nn.functional as F
 import yaml
@@ -24,7 +23,7 @@ from mmf.utils.transform import (
     transform_to_batch_sequence_dim,
 )
 from omegaconf import OmegaConf
-from torch import nn as nn
+from torch import nn as nn, nn as nn
 from tqdm import tqdm
 from transformers import BertConfig, BertModel
 from transformers.modeling_bert import (
