@@ -28,7 +28,7 @@ model_config:
       num_labels: 3129
       output_order: alpha
       output_special_node: false
-      add_ans_nodes: false 
+      add_ans_nodes: false
     num_labels: 3129
     output_combine: concat
     graph_logit_mode: mc4

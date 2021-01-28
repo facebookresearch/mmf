@@ -25,7 +25,7 @@ model_config:
       dropout_p: 0
       output_type: hidden_ans
       gcn_type: RGCN
-      num_labels: 2250     
+      num_labels: 2250
       output_order: alpha
       output_special_node: false
       add_ans_nodes: false

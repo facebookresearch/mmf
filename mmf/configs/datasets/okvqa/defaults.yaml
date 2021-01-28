@@ -83,4 +83,3 @@ dataset_config:
     use_ocr: false
     # Return spatial information of OCR tokens if present
     use_ocr_info: false
-

@@ -10,4 +10,3 @@ dataset_config:
       - okvqa/defaults/annotations/annotations/imdb_test.npy
       test:
       - okvqa/defaults/annotations/annotations/imdb_test.npy
-

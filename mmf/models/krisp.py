@@ -1,30 +1,32 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-import os
+import logging
 import math
-from copy import deepcopy
-import networkx as nx
-from omegaconf import OmegaConf
-from tqdm import tqdm
-import yaml
+import os
 import pickle
+from copy import deepcopy
+
+import networkx as nx
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
+import yaml
 from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.modules.embeddings import BertVisioLinguisticEmbeddings
 from mmf.utils.configuration import get_mmf_cache_dir
+from mmf.utils.file_io import PathManager
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
 from mmf.utils.text import VocabDict
-from mmf.utils.file_io import PathManager
 from mmf.utils.transform import (
     transform_to_batch_sequence,
     transform_to_batch_sequence_dim,
 )
 from omegaconf import OmegaConf
-from torch import nn
+from torch import nn as nn
+from tqdm import tqdm
+from transformers import BertConfig, BertModel
 from transformers.modeling_bert import (
     BertConfig,
     BertEncoder,
@@ -34,14 +36,16 @@ from transformers.modeling_bert import (
     BertPredictionHeadTransform,
     BertPreTrainedModel,
 )
-from transformers import BertConfig, BertModel
+
+
 # Import graph network module
 # Putting in try-catch to avoid adding dependencies to mmf
 try:
     from projects.krisp.graphnetwork_module import GraphNetworkModule
 except:
-    print("Import error with KRISP dependencies. Fix dependencies if you want to use KRISP")
-import logging
+    print(
+        "Import error with KRISP dependencies. Fix dependencies if you want to use KRISP"
+    )
 logger = logging.getLogger(__name__)
 
 # This model essentially wraps GraphNetworkModule and multi-modal models
@@ -62,7 +66,7 @@ class KRISP(BaseModel):
         extra_config = {}
         extra_config["vb_hid_sz"] = self.config.visual_bert.hidden_size
         extra_config["node_hid_dim"] = self.config.graph_module.node_hid_dim
-        
+
         # Also pass arguments to know if it needs to feed in something
         extra_config["feed_vb_to_graph"] = self.config.feed_vb_to_graph
         extra_config["feed_q_to_graph"] = self.config.feed_q_to_graph
@@ -74,54 +78,66 @@ class KRISP(BaseModel):
         extra_config["crossmodel_compress_dim"] = self.config.crossmodel_compress_dim
         extra_config["analysis_mode"] = self.config.analysis_mode
         extra_config["noback_vb"] = self.config.noback_vb_to_graph
-       
+
         # If feed q, make the question module here
         if self.config.feed_q_to_graph:
             # We can just make it a BERT model really easily
-            self.q_enc = BertModel.from_pretrained('bert-base-uncased')
+            self.q_enc = BertModel.from_pretrained("bert-base-uncased")
             extra_config["q_hid_sz"] = self.q_enc.config.hidden_size
 
-        # Builds the graph network module    
+        # Builds the graph network module
         self.graph_module = GraphNetworkModule(self.config.graph_module, extra_config)
 
         # Make VisualBERT module (without the final hidden logit layer)
         self.vb_module = VisualBERTModule(self.config.visual_bert, extra_config)
 
         # Final hidden layer for the vb module
-        self.vocab_fc = nn.Linear(self.vb_module.model.bert.config.hidden_size, self.config.num_labels)
+        self.vocab_fc = nn.Linear(
+            self.vb_module.model.bert.config.hidden_size, self.config.num_labels
+        )
 
         # There's whether to use the bilinear and then whether to add or concat features
         # These are not mutally exclusive really
         # If output combine is ptr net, make GraphPtr Net for combining outputs
-        if self.config.graph_logit_mode == 'mc4':
+        if self.config.graph_logit_mode == "mc4":
             # Bilinear network
-            self.graph_ptr_net = GraphPtrNet(self.vb_module.model.bert.config.hidden_size, self.config.graph_module.node_hid_dim)
-        elif self.config.graph_logit_mode == 'in_graph':
+            self.graph_ptr_net = GraphPtrNet(
+                self.vb_module.model.bert.config.hidden_size,
+                self.config.graph_module.node_hid_dim,
+            )
+        elif self.config.graph_logit_mode == "in_graph":
             # Logits is already computed
             pass
-        elif self.config.graph_logit_mode == 'logit_fc':
+        elif self.config.graph_logit_mode == "logit_fc":
             # Compute logits from single hidden layer
-            self.graph_logit_fc = nn.Linear(self.config.graph_module.node_hid_dim, self.config.num_labels)
+            self.graph_logit_fc = nn.Linear(
+                self.config.graph_module.node_hid_dim, self.config.num_labels
+            )
 
-        # Answer indices not in graph        
-        if self.config.output_combine == 'add':
+        # Answer indices not in graph
+        if self.config.output_combine == "add":
             self.missing_ans_inds = torch.LongTensor(self.config.num_labels).fill_(1)
-            self.missing_ans_inds[self.graph_module.index_in_ans] = 0 # Now any index stil set to 1 is missing from graph
+            self.missing_ans_inds[
+                self.graph_module.index_in_ans
+            ] = 0  # Now any index stil set to 1 is missing from graph
 
     # Each model in MMF gets a dict called sample_list which contains
     # all of the necessary information returned from the image
     def forward(self, sample_list):
-        # If we have different combine modes, may need to call in different order     
+        # If we have different combine modes, may need to call in different order
         if self.config.feed_graph_to_vb:
             # Can't be both (would create circular dep)
-            assert(not self.config.feed_vb_to_graph)            
+            assert not self.config.feed_vb_to_graph
 
             # Check mode
             # Can be feed_graph_hid_to_vb, where we pass in some vector rep of graph into vb
             # Or feed_top_node_to_vb which is similar, but it feeds in k node hidden states
-            assert(self.config.feed_mode in ["feed_graph_hid_to_vb", "feed_top_node_to_vb"])
+            assert self.config.feed_mode in [
+                "feed_graph_hid_to_vb",
+                "feed_top_node_to_vb",
+            ]
             if self.config.feed_mode == "feed_graph_hid_to_vb":
-                assert(self.graph_module.gn.output_special_node)
+                assert self.graph_module.gn.output_special_node
             else:
                 raise Exception("Unknown feed mode %s" % self.config.feed_mode)
 
@@ -136,13 +152,16 @@ class KRISP(BaseModel):
 
             # Get vocab logit preds
             vb_logits = self.vocab_fc(vb_hidden)
-     
+
         else:
             # Check mode
             if self.config.feed_vb_to_graph:
                 # Can be feed_vb_hid_to_graph where we feed final vb state into graph as a node input
                 # Or feed_vb_logit_to_graph where we feed vg_predicted logits into graph
-                assert(self.config.feed_mode in ["feed_vb_hid_to_graph", "feed_vb_logit_to_graph"])
+                assert self.config.feed_mode in [
+                    "feed_vb_hid_to_graph",
+                    "feed_vb_logit_to_graph",
+                ]
 
             # Forward through vb module
             vb_hidden = self.vb_module(sample_list)
@@ -157,41 +176,45 @@ class KRISP(BaseModel):
             if self.config.feed_q_to_graph:
                 # Now sample_list has all the processed inputs for us
                 attention_mask_q = (sample_list["input_ids"] != 0).float()
-                q_enc_out = self.q_enc(input_ids=sample_list["input_ids"], attention_mask=attention_mask_q, token_type_ids=sample_list["token_type_ids"])
-                sample_list["q_encoded"] = q_enc_out[1] # Get pooled output 
+                q_enc_out = self.q_enc(
+                    input_ids=sample_list["input_ids"],
+                    attention_mask=attention_mask_q,
+                    token_type_ids=sample_list["token_type_ids"],
+                )
+                sample_list["q_encoded"] = q_enc_out[1]  # Get pooled output
 
             # Forward through graph module
             graph_output = self.graph_module(sample_list)
-       
+
         # Compute graph logits
-        if self.config.graph_logit_mode == 'mc4':
+        if self.config.graph_logit_mode == "mc4":
             # Use bilinear network
             if self.config.noback_vb_to_blinear:
                 graph_logits = self.graph_ptr_net(vb_hidden.detach(), graph_output)
             else:
                 graph_logits = self.graph_ptr_net(vb_hidden, graph_output)
-          
-        elif self.config.graph_logit_mode == 'in_graph':
+
+        elif self.config.graph_logit_mode == "in_graph":
             # Logits is already computed
             graph_logits = graph_output
-            assert(self.config.graph_module.output_type == 'graph_prediction')
-        elif self.config.graph_logit_mode == 'logit_fc':
+            assert self.config.graph_module.output_type == "graph_prediction"
+        elif self.config.graph_logit_mode == "logit_fc":
             # Compute logits from single hidden layer
-            graph_logits = self.graph_logit_fc(graph_output)       
+            graph_logits = self.graph_logit_fc(graph_output)
 
         # Now combine outputs
-        if self.config.output_combine == 'concat':
+        if self.config.output_combine == "concat":
             # Output order should be alphabetical
-            assert(self.config.graph_module.output_order == 'alpha')
+            assert self.config.graph_module.output_order == "alpha"
 
             # Combine both logits
             logits = torch.cat([vb_logits, graph_logits], dim=1)
-        elif self.config.output_combine == 'add':
+        elif self.config.output_combine == "add":
             # Output order should be ans
-            assert(self.config.graph_module.output_order == 'ans')
+            assert self.config.graph_module.output_order == "ans"
 
             # Set invalid inds to zero here
-            assert(graph_logits.size(1) == vb_logits.size(1))
+            assert graph_logits.size(1) == vb_logits.size(1)
             graph_logits[:, self.missing_ans_inds] = 0
             logits = vb_logits + graph_logits
 
@@ -211,6 +234,7 @@ class KRISP(BaseModel):
         # MMF will automatically calculate loss
         return output
 
+
 class GraphPtrNet(nn.Module):
     def __init__(self, hidden_size, graph_hidden_size):
         super().__init__()
@@ -224,11 +248,11 @@ class GraphPtrNet(nn.Module):
     def forward(self, bl_hidden, graph_hidden):
         # Compute Eq. 4 from Iterative Answer Prediction with Pointer-Augmented Multimodal Transformers for TextVQA
         # bl_hidden is bs x hidden_size
-        # graph_hidden is bs x graph_hidden_size        
+        # graph_hidden is bs x graph_hidden_size
 
         # Compute BL half
         bl_hidden = self.bl_w(bl_hidden)
-        assert(bl_hidden.dim() == 2)
+        assert bl_hidden.dim() == 2
         bl_hidden = bl_hidden.unsqueeze(1)
 
         # Compute graph hidden half
@@ -243,7 +267,7 @@ class GraphPtrNet(nn.Module):
 
         # Normalize
         scores = scores / math.sqrt(self.hidden_size)
-        scores = scores.squeeze(1)        
+        scores = scores.squeeze(1)
 
         # Scores is now a bs x #nodes matrix
         return scores
@@ -291,7 +315,7 @@ class VisualBERTBase(BertPreTrainedModel):
         visual_embeddings_type=None,
         image_text_alignment=None,
         graph_input=None,
-    ):        
+    ):
         if attention_mask is None:
             attention_mask = torch.ones_like(input_ids)
         if token_type_ids is None:
@@ -315,11 +339,11 @@ class VisualBERTBase(BertPreTrainedModel):
         )  # fp16 compatibility
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
 
-        assert(position_embeddings_visual is None)
+        assert position_embeddings_visual is None
         embedding_output = self.embeddings(
             input_ids,
             token_type_ids,
-            visual_embeddings=visual_embeddings, 
+            visual_embeddings=visual_embeddings,
             visual_embeddings_type=visual_embeddings_type,
             image_text_alignment=image_text_alignment,
         )
@@ -355,15 +379,19 @@ class VisualBERTBase(BertPreTrainedModel):
             # Then concat to embedding_output
             # And concat onto the extended_attention_mask to inclode this too
             if graph_input is not None:
-                # Concat onto embeddings 
+                # Concat onto embeddings
                 embedding_output = torch.cat([embedding_output, graph_input], dim=1)
-                graph_att_mask = torch.zeros(graph_input.size(0), 1, 1, graph_input.size(1)).to(extended_attention_mask.device)
-                extended_attention_mask = torch.cat([extended_attention_mask, graph_att_mask], dim=3)
+                graph_att_mask = torch.zeros(
+                    graph_input.size(0), 1, 1, graph_input.size(1)
+                ).to(extended_attention_mask.device)
+                extended_attention_mask = torch.cat(
+                    [extended_attention_mask, graph_att_mask], dim=3
+                )
 
             encoded_layers = self.encoder(
                 embedding_output, extended_attention_mask, self.fixed_head_masks
             )
-            sequence_output = encoded_layers[0] 
+            sequence_output = encoded_layers[0]
             pooled_output = self.pooler(sequence_output)
             attn_data_list = []
 
@@ -371,6 +399,7 @@ class VisualBERTBase(BertPreTrainedModel):
                 attn_data_list = encoded_layers[1:]
 
             return sequence_output, pooled_output, attn_data_list
+
 
 class VisualBERTForClassification(nn.Module):
     def __init__(self, config, extra_config):
@@ -381,17 +410,17 @@ class VisualBERTForClassification(nn.Module):
         self.pooler_strategy = self.config.get("pooler_strategy", "default")
 
         # Graph input params
-        self.feed_graph_to_vb = extra_config["feed_graph_to_vb"] 
+        self.feed_graph_to_vb = extra_config["feed_graph_to_vb"]
         self.graph_node_hid_dim = extra_config["node_hid_dim"]
         self.graph_feed_mode = extra_config["feed_mode"]
         self.graph_topk = extra_config["topk_ans_feed"]
 
         # If doing graph, make a graph embedding layer
         if self.feed_graph_to_vb:
-            self.graph_embedding = nn.Sequential( 
+            self.graph_embedding = nn.Sequential(
                 nn.Linear(self.graph_node_hid_dim, config.hidden_size),
                 nn.LayerNorm(config.hidden_size, eps=1e-12),
-                nn.Dropout(config.hidden_dropout_prob) # hidden_dropout_prb
+                nn.Dropout(config.hidden_dropout_prob),  # hidden_dropout_prb
             )
 
         # If bert_model_name is not specified, you will need to specify
@@ -401,7 +430,7 @@ class VisualBERTForClassification(nn.Module):
         self.bert_config = BertConfig.from_dict(
             OmegaConf.to_container(self.config, resolve=True)
         )
-        if self.bert_model_name is None or self.bert_model_name == 'nopretrain':
+        if self.bert_model_name is None or self.bert_model_name == "nopretrain":
             self.bert = VisualBERTBase(
                 self.bert_config,
                 visual_embedding_dim=self.config.visual_embedding_dim,
@@ -428,9 +457,7 @@ class VisualBERTForClassification(nn.Module):
         self.dropout = nn.Dropout(self.bert.config.hidden_dropout_prob)
         if self.config.training_head_type == "nlvr2":
             self.bert.config.hidden_size *= 2
-        self.classifier = nn.Sequential(
-            BertPredictionHeadTransform(self.bert.config),
-        )
+        self.classifier = nn.Sequential(BertPredictionHeadTransform(self.bert.config))
 
         self.init_weights()
 
@@ -459,13 +486,22 @@ class VisualBERTForClassification(nn.Module):
         # If we have a graph input, do the embedding first
         if self.feed_graph_to_vb:
             # Sanity check sizes
-            if self.graph_feed_mode == "feed_graph_hid_to_vb": 
-                assert(graph_input.dim() == 2 and graph_input.size(0) == input_ids.size(0) and graph_input.size(1) == self.graph_node_hid_dim)
+            if self.graph_feed_mode == "feed_graph_hid_to_vb":
+                assert (
+                    graph_input.dim() == 2
+                    and graph_input.size(0) == input_ids.size(0)
+                    and graph_input.size(1) == self.graph_node_hid_dim
+                )
                 graph_input = graph_input.unsqueeze(1)  # Add extra dim
             elif self.graph_feed_mode == "feed_top_node_to_vb":
-                assert(graph_input.dim() == 3 and graph_input.size(0) == input_ids.size(0) and graph_input.size(1) == self.graph_topk and graph_input.size(1) == self.graph_node_hid_dim)
+                assert (
+                    graph_input.dim() == 3
+                    and graph_input.size(0) == input_ids.size(0)
+                    and graph_input.size(1) == self.graph_topk
+                    and graph_input.size(1) == self.graph_node_hid_dim
+                )
             # Do the graph embedding
-            graph_input = self.graph_embedding(graph_input)      
+            graph_input = self.graph_embedding(graph_input)
 
         sequence_output, pooled_output, attention_weights = self.bert(
             input_ids,
@@ -506,7 +542,8 @@ class VisualBERTForClassification(nn.Module):
 
         pooled_output = self.dropout(pooled_output)
         output = self.classifier(pooled_output).squeeze(1)
-        return output 
+        return output
+
 
 class VisualBERTModule(nn.Module):
     def __init__(self, config, extra_config=None):
@@ -519,7 +556,7 @@ class VisualBERTModule(nn.Module):
         self.build()
 
     def build(self):
-        assert(self.config.training_head_type != "pretraining")
+        assert self.config.training_head_type != "pretraining"
         self.model = VisualBERTForClassification(self.config, self.extra_config)
 
         if self.config.special_visual_initialize:
@@ -529,21 +566,21 @@ class VisualBERTModule(nn.Module):
         if self.config.load_from_pretrained:
             # Load the raw checkpoint
             pretrained_file = self.config.pretrained_file
-            with PathManager.open(pretrained_file, "rb") as f: 
+            with PathManager.open(pretrained_file, "rb") as f:
                 ckpt = torch.load(f, map_location=lambda storage, loc: storage)
-            model_ckpt = ckpt["model"] 
-            
+            model_ckpt = ckpt["model"]
+
             # Remove "model" in fron of keys
             model_ckpt_new = {}
             for key in model_ckpt:
-                if 'bert' not in key:
+                if "bert" not in key:
                     continue
                 model_ckpt_new[key.split("model.")[1]] = model_ckpt[key]
             model_ckpt = model_ckpt_new
-    
+
             # Load the checkpoint
             incompatible_keys = self.model.load_state_dict(model_ckpt, strict=False)
-            
+
             # Print any missing / wrong keys for debug
             if len(incompatible_keys.missing_keys) != 0:
                 logger.warning(
@@ -568,13 +605,13 @@ class VisualBERTModule(nn.Module):
                 p.requires_grad = False
 
         # Graph input params
-        self.feed_graph_to_vb = self.extra_config["feed_graph_to_vb"] 
+        self.feed_graph_to_vb = self.extra_config["feed_graph_to_vb"]
         self.graph_node_hid_dim = self.extra_config["node_hid_dim"]
         self.graph_feed_mode = self.extra_config["feed_mode"]
 
         # Not implemented for this model
         if self.feed_graph_to_vb and self.extra_config["compress_crossmodel"]:
-            assert(False)
+            assert False
 
     def flatten(self, sample_list, to_be_flattened=None, to_be_flattened_dim=None):
         if to_be_flattened is None:
@@ -627,11 +664,10 @@ class VisualBERTModule(nn.Module):
             "input_mask",
             "image_mask",
             "masked_lm_labels",
-            #"position_embeddings_visual",
-            #"visual_embeddings_type",
+            # "position_embeddings_visual",
+            # "visual_embeddings_type",
         ]
-        to_be_flattened_dim = [#"image_text_alignment", 
-            "visual_embeddings"]
+        to_be_flattened_dim = ["visual_embeddings"]  # "image_text_alignment",
 
         # We want to convert everything into: batch x sequence_length x (dim).
         flattened = self.flatten(sample_list, to_be_flattened, to_be_flattened_dim)
@@ -714,13 +750,12 @@ class VisualBERTModule(nn.Module):
 
         if self.feed_graph_to_vb:
             if self.graph_feed_mode == "feed_graph_hid_to_vb":
-                assert("graph_special_node_out" in sample_list)
+                assert "graph_special_node_out" in sample_list
                 graph_input = sample_list["graph_special_node_out"]
             else:
-                assert(False)
+                assert False
         else:
             graph_input = None
-
 
         output = self.model(
             sample_list.input_ids,

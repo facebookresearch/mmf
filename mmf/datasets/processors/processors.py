@@ -778,17 +778,18 @@ class GraphVQAAnswerProcessor(BaseProcessor):
         if os.path.exists(config.graph_vocab_file):
             graph_vocab_file = config.graph_vocab_file
         else:
-            graph_vocab_file = os.path.join(os.getenv("MMF_DATA_DIR"), "datasets", config.graph_vocab_file)
+            graph_vocab_file = os.path.join(
+                os.getenv("MMF_DATA_DIR"), "datasets", config.graph_vocab_file
+            )
         self.graph_vocab = sorted(list(torch.load(graph_vocab_file)))
         self.ans2graphvocabidx = {}
         for graphvocabidx, graph_ans in enumerate(self.graph_vocab):
             # Right now, this does need to overlap with the regular vocab
             self.ans2graphvocabidx[graph_ans] = graphvocabidx
-       
+
             # Make sure graph_ans actually in vocab
-            assert(graph_ans in self.answer_vocab.word2idx_dict)
-        
- 
+            assert graph_ans in self.answer_vocab.word2idx_dict
+
         self.config = config
 
     def __call__(self, item):
@@ -847,7 +848,7 @@ class GraphVQAAnswerProcessor(BaseProcessor):
                 # Get the original score
                 if answer != self.answer_vocab.UNK_INDEX:
                     score = answers_scores[answer]
-            
+
                     # Copy into graph scores (if it's in there)
                     ans_str = self.answer_vocab.idx2word(answer)
                     if ans_str in self.ans2graphvocabidx:

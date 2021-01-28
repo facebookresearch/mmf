@@ -13,4 +13,3 @@ dataset_config:
       answer_processor:
         params:
           graph_vocab_file: okvqa/defaults/annotations/annotations/graph_vocab/graph_vocab_hp.pth.tar
-

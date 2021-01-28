@@ -10,6 +10,7 @@ from mmf.datasets.processors.processors import (
     CaptionProcessor,
     FastTextProcessor,
     GloVeProcessor,
+    GraphVQAAnswerProcessor,
     MultiHotAnswerFromVocabProcessor,
     Processor,
     SimpleSentenceProcessor,
@@ -17,7 +18,6 @@ from mmf.datasets.processors.processors import (
     SoftCopyAnswerProcessor,
     VocabProcessor,
     VQAAnswerProcessor,
-    GraphVQAAnswerProcessor,
 )
 
 

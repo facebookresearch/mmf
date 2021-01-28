@@ -16,4 +16,3 @@ To make sure all data can be found, first run
   year={2020}
 }
 ```
-

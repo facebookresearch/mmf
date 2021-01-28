@@ -36,4 +36,3 @@ dataset_config:
           preprocessor:
             type: simple_word
             params: {}
-

@@ -9,7 +9,7 @@ model_config:
       okvqa_v_mode: "v1.0-121-mc"
       old_graph_vocab_file: okvqa/defaults/annotations/annotations/graph_vocab/graph_vocab.pth.tar
       ans_translation_file: okvqa/defaults/annotations/annotations/ans_vocab_tx.pth.tar
-      num_labels: 2253 
+      num_labels: 2253
     num_labels: 2253
 dataset_config:
   okvqa:
