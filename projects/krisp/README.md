@@ -26,10 +26,9 @@ To train the KRISP model on the OKVQAv1.1 dataset, run the following command
 mmf_run config=code/mmf_fork_pr/mmf/projects/krisp/configs/krisp/okvqa/train_val.yaml run_type=train_val dataset=okvqa model=krisp
 ```
 
-For the classic KRISP, we expect to get a OKVQA test accuracy of about 32.31. 
+For the classic KRISP, we expect to get a OKVQA test accuracy of about 32.31.
 There is non-trivial variance between runs, so run at least 3 trials for consistant results.
 
 ## Setup / Data
 To make sure all data can be found, first run
 > export MMF_DATA_DIR=~/.cache/torch/mmf/data
-
