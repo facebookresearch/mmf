@@ -20,7 +20,7 @@ training:
     # completed first. Default: null means epochs won't be used
     max_epochs: null
 
-    # After `log_interval` iterations, current iteration's training loss will be
+    # After `log_interval` updates, current update's training loss will be
     # reported. This will also report validation on a single batch from validation set
     # to provide an estimate on validation side
     log_interval: 100
@@ -56,11 +56,11 @@ training:
     # Whether to pin memory in dataloader
     pin_memory: false
 
-    # After `checkpoint_interval` iterations, MMF will make a snapshot
+    # After `checkpoint_interval` number of updates, MMF will make a snapshot
     # which will involve creating a checkpoint for current training scenarios
     checkpoint_interval: 1000
     # This will evaluate evaluation metrics on whole validation set after
-    # evaluation interval
+    # evaluation interval number of updates
     evaluation_interval: 1000
     # Whether gradients should be clipped
     clip_gradients: false
@@ -117,7 +117,7 @@ training:
     find_unused_parameters: false
 
     # By default metrics evaluation is turned off during training. Set this to true
-    # to enable evaluation every log_interval
+    # to enable evaluation every log_interval number of updates
     evaluate_metrics: false
 
     # This will enable anomaly detection mode in PyTorch. Use this for debugging

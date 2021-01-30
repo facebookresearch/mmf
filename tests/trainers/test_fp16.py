@@ -30,7 +30,7 @@ class MMFTrainerMock(TrainerTrainingLoopMock, MMFTrainer):
     def __init__(
         self, num_train_data, max_updates, max_epochs, device="cuda", fp16_model=False
     ):
-        super().__init__(num_train_data, max_updates, max_epochs)
+        super().__init__(num_train_data, max_updates, max_epochs, fp16=True)
         self.device = torch.device(device)
         if fp16_model:
             assert (

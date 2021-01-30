@@ -2,6 +2,7 @@
 
 import gc
 import logging
+import math
 import warnings
 from abc import ABC
 from typing import Any, Dict
@@ -70,29 +71,28 @@ class TrainerTrainingLoopMixin(ABC):
                 else len(self.train_loader)
             )
 
-            combined_report = None
-            num_batches_for_this_update = 1
+            should_start_update = True
             for idx, batch in enumerate(self.train_loader):
-
-                if (idx + 1) % self.training_config.update_frequency == 0:
+                if should_start_update:
                     combined_report = None
+                    self._start_update()
                     num_batches_for_this_update = min(
                         self.training_config.update_frequency, num_remaining_batches
                     )
+                    should_start_update = False
 
-                    self._start_update()
-
+                self.current_iteration += 1
                 # batch execution starts here
                 self.on_batch_start()
                 self.profile("Batch load time")
 
                 report = self.run_training_batch(batch, num_batches_for_this_update)
 
-                # accumulate necessary params for metric calculation
+                # accumulate necessary params (including loss) for metric calculation
                 if combined_report is None:
                     combined_report = report
                 else:
-                    combined_report.accumulate_tensor_fields(
+                    combined_report.accumulate_tensor_fields_and_loss(
                         report, self.metrics.required_params
                     )
                     combined_report.batch_size += report.batch_size
@@ -100,11 +100,15 @@ class TrainerTrainingLoopMixin(ABC):
                 # batch execution ends here
                 self.on_batch_end(report=combined_report, meter=self.meter)
 
-                # check if an update has finished, if no continue
-                if (idx + 1) % self.training_config.update_frequency:
+                # check if an update has finished or if it is the last, if no continue
+                if (
+                    (idx + 1) % self.training_config.update_frequency
+                    and num_remaining_batches != num_batches_for_this_update
+                ):
                     continue
 
                 self._finish_update()
+                should_start_update = True
 
                 should_log = False
                 if self.num_updates % self.logistics_callback.log_interval == 0:
@@ -155,14 +159,14 @@ class TrainerTrainingLoopMixin(ABC):
                     break
 
     def run_training_batch(self, batch: Tensor, loss_divisor: int) -> None:
-
         report = self._forward(batch)
-        loss = self._extract_loss(report)
         # Since losses are batch averaged in MMF, this makes sure the
         # scaling is right.
-        loss /= loss_divisor
+        for key, value in report.losses.items():
+            value = value.mean() / loss_divisor
+            report.losses[key] = value
+        loss = self._extract_loss(report)
         self._backward(loss)
-
         return report
 
     def _forward(self, batch: Tensor) -> Dict[str, Any]:
@@ -177,11 +181,9 @@ class TrainerTrainingLoopMixin(ABC):
             report = Report(prepared_batch, model_output)
 
         self.profile("Forward time")
-
         return report
 
     def _start_update(self):
-        self.current_iteration += 1
         logger.debug(self.num_updates + 1)
         self.on_update_start()
         self.optimizer.zero_grad()
@@ -202,7 +204,6 @@ class TrainerTrainingLoopMixin(ABC):
 
         self.scaler.step(self.optimizer)
         self.scaler.update()
-
         self.num_updates += 1
         self.profile("Finished update")
 
@@ -238,6 +239,11 @@ class TrainerTrainingLoopMixin(ABC):
             )
 
         if max_epochs is not None:
-            max_updates = len(self.train_loader) * max_epochs
+            max_updates = (
+                math.ceil(
+                    len(self.train_loader) / self.training_config.update_frequency
+                )
+                * max_epochs
+            )
 
         return max_updates
