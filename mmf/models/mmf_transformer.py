@@ -174,15 +174,18 @@ class MMFTransformer(BaseTransformer):
         # Position IDs
         position_ids: Dict[str, Tensor] = {}
         for modality in self.modality_keys:
+            end_idx = input_ids[modality].size(1)
+            # In case of dim=2, this is a direct feature, so there
+            # is only one element for this modality
+            if input_ids[modality].dim() == 2:
+                end_idx = 1
+
             position_ids[modality] = (
                 torch.arange(
-                    0,
-                    input_ids[modality].size(1),
-                    dtype=torch.long,
-                    device=input_ids[modality].device,
+                    0, end_idx, dtype=torch.long, device=input_ids[modality].device
                 )
                 .unsqueeze(0)
-                .expand(input_ids[modality].size()[:2])
+                .expand((input_ids[modality].size(0), end_idx))
             )
 
         # Segment IDs
@@ -196,11 +199,16 @@ class MMFTransformer(BaseTransformer):
                 else:
                     segment_ids[modality] = sample_list["segment_ids"]
             else:
-                segment_ids[modality] = torch.zeros(
-                    input_ids[modality].size()[:2],
+                segment_ids[modality] = torch.full(
+                    input_ids[modality].size()[:-1],
+                    fill_value=self.modality_segments[idx],
                     dtype=torch.long,
                     device=input_ids[modality].device,
-                ).fill_(self.modality_segments[idx])
+                )
+
+            # Should be B X L, if only B in case of direct features, make it B X 1
+            if segment_ids[modality].dim() == 1:
+                segment_ids[modality] = segment_ids[modality].unsqueeze(dim=1)
 
         # Masks
         masks: Dict[str, Tensor] = {}
@@ -220,6 +228,10 @@ class MMFTransformer(BaseTransformer):
                         dtype=torch.long,
                         device=input_ids[modality].device,
                     )
+
+            # Should be B X L, if only B in case of direct features, make it B X 1
+            if masks[modality].dim() == 1:
+                masks[modality] = masks[modality].unsqueeze(dim=1)
 
         return MMFTransformerInput(input_ids, position_ids, segment_ids, masks)
 
