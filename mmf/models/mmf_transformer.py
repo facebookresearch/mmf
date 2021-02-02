@@ -1,23 +1,85 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+from dataclasses import dataclass, field
 from typing import Dict, List
 
 import torch
 from mmf.common.registry import registry
 from mmf.models.transformers.base import (
     BaseTransformer,
-    BaseTransformerConfigType,
+    BaseTransformerBackendConfig,
     BaseTransformerInput,
+    BaseTransformerModalityConfig,
 )
+from mmf.modules.encoders import ResNet152ImageEncoder
 from mmf.utils.build import build_encoder
-from omegaconf import OmegaConf
+from omegaconf import MISSING, OmegaConf
 from torch import Tensor, nn
 from transformers.modeling_bert import BertPooler, BertPredictionHeadTransform
 
 
+@dataclass
+class MMFTransformerModalityConfig(BaseTransformerModalityConfig):
+    pass
+
+
+@dataclass
+class MMFTransformerBackendConfig(BaseTransformerBackendConfig):
+    pass
+
+
+class MMFTransformerInput(BaseTransformerInput):
+    pass
+
+
+# Can be used with mmft or mmf_transformer
+@registry.register_model("mmft")
 @registry.register_model("mmf_transformer")
 class MMFTransformer(BaseTransformer):
-    def __init__(self, config: BaseTransformerConfigType, *args, **kwargs):
+    @dataclass
+    class Config(BaseTransformer.Config):
+        model: str = "mmft"
+        transformer_base: str = "bert-base-uncased"
+        training_head_type: str = "classification"
+        num_labels: int = MISSING
+        initializer_range: float = 0.02
+        initializer_mean: float = 0.0
+        token_noise_std: float = 0.01
+        token_noise_mean: float = 0.0
+        layer_norm_weight_fill: float = 1.0
+        random_initialize: bool = False
+        freeze_transformer: bool = False
+        freeze_image_encoder: bool = False
+        finetune_lr_multiplier: float = 1
+        backend: BaseTransformerBackendConfig = MMFTransformerBackendConfig(
+            type="huggingface"
+        )
+        modalities: List[BaseTransformerModalityConfig] = field(
+            default_factory=lambda: [
+                MMFTransformerModalityConfig(
+                    type="text",
+                    key="text",
+                    position_dim=512,
+                    embedding_dim=768,
+                    segment_id=0,
+                ),
+                MMFTransformerModalityConfig(
+                    type="image",
+                    key="image",
+                    embedding_dim=2048,
+                    position_dim=1,
+                    segment_id=1,
+                    # NOTE: One can also specify encoder in factory mode as
+                    # encoder=ImageEncoderFactory.Config(
+                    #   type="resnet152",
+                    #   params=ResNet152ImageEncoder.Config()
+                    # )
+                    encoder=ResNet152ImageEncoder.Config(),
+                ),
+            ]
+        )
+
+    def __init__(self, config: BaseTransformer.Config, *args, **kwargs):
         super().__init__(config)
         self.num_labels = self.config.num_labels
         self.modality_keys: List = []
@@ -94,6 +156,10 @@ class MMFTransformer(BaseTransformer):
             elif self.modality_type[idx] == "image":
                 if "image" in sample_list:
                     input_ids[modality] = sample_list["image"]
+                # input_modal is originally used by MMBT, added for
+                # cross-compatibility of interops and datasets.
+                elif "input_modal" in sample_list:
+                    input_ids[modality] = sample_list["input_modal"]
                 else:
                     input_ids[modality] = sample_list["image_feature_0"]
             else:
@@ -155,7 +221,7 @@ class MMFTransformer(BaseTransformer):
                         device=input_ids[modality].device,
                     )
 
-        return BaseTransformerInput(input_ids, position_ids, segment_ids, masks)
+        return MMFTransformerInput(input_ids, position_ids, segment_ids, masks)
 
     def forward(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
         # Sample preprocess
