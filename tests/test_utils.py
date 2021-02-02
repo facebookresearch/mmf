@@ -11,6 +11,7 @@ import unittest
 
 import torch
 from mmf.common.sample import Sample, SampleList
+from mmf.utils.general import get_current_device
 
 
 def compare_tensors(a, b):
@@ -150,6 +151,9 @@ def compare_torchscript_transformer_models(model, vocab_size):
     test_sample.image_feature_0 = torch.rand((1, 100, 2048)).float()
     test_sample.image = torch.rand((3, 300, 300)).float()
     test_sample_list = SampleList([test_sample])
+
+    model = model.to(get_current_device())
+    test_sample_list = test_sample_list.to(get_current_device())
 
     with torch.no_grad():
         model_output = model(test_sample_list)

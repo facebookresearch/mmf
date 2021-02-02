@@ -45,14 +45,15 @@ import logging
 import warnings
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Union
+from typing import List, Optional, Union
 
 from mmf.common.registry import registry
 from mmf.common.sample import to_device
-from mmf.modules.losses import Losses
+from mmf.modules.losses import LossConfig, Losses
 from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
+from mmf.utils.general import get_current_device
 from omegaconf import MISSING, DictConfig, OmegaConf
 from torch import nn
 
@@ -75,6 +76,7 @@ class BaseModel(nn.Module):
     class Config:
         # Name of the model that is used in registry
         model: str = MISSING
+        losses: Optional[List[LossConfig]] = MISSING
 
     def __init__(self, config: Union[DictConfig, Config]):
         super().__init__()
@@ -165,8 +167,7 @@ class BaseModel(nn.Module):
 
     def __call__(self, sample_list, *args, **kwargs):
         # Move to proper device i.e. same as the model before passing
-        model_device = next(self.parameters()).device
-        sample_list = to_device(sample_list, model_device)
+        sample_list = to_device(sample_list, get_current_device())
 
         model_output = super().__call__(sample_list, *args, **kwargs)
 

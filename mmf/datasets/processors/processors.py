@@ -145,7 +145,7 @@ class Processor:
         processor_class = registry.get_processor_class(config.type)
 
         params = {}
-        if not hasattr(config, "params"):
+        if "params" not in config:
             logger.warning(
                 "Config doesn't have 'params' attribute to "
                 "specify parameters of the processor "

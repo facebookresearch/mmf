@@ -12,6 +12,7 @@ from mmf.common.sample import Sample, SampleList
 from mmf.models.base_model import BaseModel
 from mmf.utils.build import build_processors
 from mmf.utils.download import download
+from mmf.utils.general import get_current_device
 from PIL import Image
 from torch import nn
 
@@ -23,8 +24,7 @@ BaseModelType = Type[BaseModel]
 
 
 class MMBTGridHMInterface(nn.Module):
-    """Interface for MMBT Grid for Hateful Memes.
-    """
+    """Interface for MMBT Grid for Hateful Memes."""
 
     def __init__(self, model: BaseModelType, config: mmf_typings.DictConfig):
         super().__init__()
@@ -76,8 +76,7 @@ class MMBTGridHMInterface(nn.Module):
 
         sample.image = image
         sample_list = SampleList([sample])
-        device = next(self.model.parameters()).device
-        sample_list = sample_list.to(device)
+        sample_list = sample_list.to(get_current_device())
 
         output = self.model(sample_list)
         scores = nn.functional.softmax(output["scores"], dim=1)

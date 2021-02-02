@@ -27,14 +27,22 @@ in the following way:
 """
 import collections
 import warnings
-from typing import Dict
+from dataclasses import dataclass
+from typing import Any, Dict, List, Union
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from mmf.common.registry import registry
+from omegaconf import MISSING
 from torch import Tensor
 from torch.nn.utils.rnn import pack_padded_sequence
+
+
+@dataclass
+class LossConfig:
+    type: str = MISSING
+    params: Dict[str, Any] = MISSING
 
 
 class Losses(nn.Module):
@@ -66,7 +74,9 @@ class Losses(nn.Module):
                                    passed in config
     """
 
-    def __init__(self, loss_list):
+    # TODO: Union types are not supported in OmegaConf.
+    # Later investigate for a workaround.for
+    def __init__(self, loss_list: List[Union[str, LossConfig]]):
         super().__init__()
         self.losses = nn.ModuleList()
         config = registry.get("config")
@@ -322,8 +332,7 @@ class CaptionCrossEntropyLoss(nn.Module):
 
 @registry.register_loss("nll_loss")
 class NLLLoss(nn.Module):
-    """Negative log likelikehood loss.
-    """
+    """Negative log likelikehood loss."""
 
     def __init__(self):
         super().__init__()

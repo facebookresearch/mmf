@@ -4,11 +4,13 @@ MultiDatasetLoader class is used by DatasetLoader class to load multiple dataset
 and more granular
 """
 import logging
+import warnings
 
 import numpy as np
 from mmf.utils.build import build_dataloader_and_sampler, build_dataset
 from mmf.utils.distributed import broadcast_scalar, is_dist_initialized, is_master
 from mmf.utils.general import get_batch_size, get_current_device
+from omegaconf import OmegaConf
 
 
 logger = logging.getLogger(__name__)
@@ -121,9 +123,11 @@ class MultiDatasetLoader:
             if dataset in self.config.dataset_config:
                 dataset_config = self.config.dataset_config[dataset]
             else:
-                raise RuntimeError(
-                    f"Dataset {dataset} is missing from " "dataset_config in config."
+                warnings.warn(
+                    f"Dataset {dataset} is missing from dataset_config"
+                    + " in config. Proceeding with empty config."
                 )
+                dataset_config = OmegaConf.create()
 
             dataset_instance = build_dataset(dataset, dataset_config, self.dataset_type)
             if dataset_instance is None:

@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import logging
+import warnings
 
 import omegaconf
 import torch
@@ -20,6 +21,7 @@ from mmf.trainers.core.reporting import TrainerReportingMixin
 from mmf.trainers.core.training_loop import TrainerTrainingLoopMixin
 from mmf.utils.build import build_model, build_optimizer
 from mmf.utils.general import print_model_parameters
+from omegaconf import OmegaConf
 
 
 logger = logging.getLogger(__name__)
@@ -80,7 +82,14 @@ class MMFTrainer(
 
     def load_model(self):
         logger.info("Loading model")
-        attributes = self.config.model_config[self.config.model]
+        if self.config.model in self.config.model_config:
+            attributes = self.config.model_config[self.config.model]
+        else:
+            warnings.warn(
+                f"Model {self.config.model}'s config not present. "
+                + "Continuing with empty config"
+            )
+            attributes = OmegaConf.create()
         # Easy way to point to config for other model
         if isinstance(attributes, str):
             attributes = self.config.model_config[attributes]
