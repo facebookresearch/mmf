@@ -374,8 +374,13 @@ similar to some particular values.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt id="mmf.modules.losses.LossConfig">
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.losses.</code><code class="sig-name descname">LossConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">type</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'???'</span></em>, <em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">'???'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#LossConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.LossConfig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
 <dt id="mmf.modules.losses.Losses">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.losses.</code><code class="sig-name descname">Losses</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#Losses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.Losses" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">mmf.modules.losses.</code><code class="sig-name descname">Losses</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss_list</span><span class="p">:</span> <span class="n">List<span class="p">[</span>Union<span class="p">[</span>str<span class="p">, </span><a class="reference internal" href="#mmf.modules.losses.LossConfig" title="mmf.modules.losses.LossConfig">mmf.modules.losses.LossConfig</a><span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#Losses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.modules.losses.Losses" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">Losses</span></code> acts as an abstraction for instantiating and calculating
 losses. <code class="docutils literal notranslate"><span class="pre">BaseModel</span></code> instantiates this class based on the <cite>losses</cite>
 attribute in the model’s configuration <cite>model_config</cite>. <code class="docutils literal notranslate"><span class="pre">loss_list</span></code>

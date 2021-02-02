@@ -277,14 +277,15 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
 <span class="kn">from</span> <span class="nn">mmf.common.sample</span> <span class="kn">import</span> <span class="n">to_device</span>
-<span class="kn">from</span> <span class="nn">mmf.modules.losses</span> <span class="kn">import</span> <span class="n">Losses</span>
+<span class="kn">from</span> <span class="nn">mmf.modules.losses</span> <span class="kn">import</span> <span class="n">LossConfig</span><span class="p">,</span> <span class="n">Losses</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.checkpoint</span> <span class="kn">import</span> <span class="n">load_pretrained_model</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.download</span> <span class="kn">import</span> <span class="n">download_pretrained_model</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.file_io</span> <span class="kn">import</span> <span class="n">PathManager</span>
+<span class="kn">from</span> <span class="nn">mmf.utils.general</span> <span class="kn">import</span> <span class="n">get_current_device</span>
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span><span class="p">,</span> <span class="n">DictConfig</span><span class="p">,</span> <span class="n">OmegaConf</span>
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span>
 
@@ -306,7 +307,8 @@
 <div class="viewcode-block" id="BaseModel.Config"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.Config">[docs]</a>    <span class="nd">@dataclass</span>
     <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
         <span class="c1"># Name of the model that is used in registry</span>
-        <span class="n">model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">MISSING</span></div>
+        <span class="n">model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">MISSING</span>
+        <span class="n">losses</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">LossConfig</span><span class="p">]]</span> <span class="o">=</span> <span class="n">MISSING</span></div>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">DictConfig</span><span class="p">,</span> <span class="n">Config</span><span class="p">]):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -397,8 +399,7 @@
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># Move to proper device i.e. same as the model before passing</span>
-        <span class="n">model_device</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span><span class="o">.</span><span class="n">device</span>
-        <span class="n">sample_list</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_device</span><span class="p">)</span>
+        <span class="n">sample_list</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">get_current_device</span><span class="p">())</span>
 
         <span class="n">model_output</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
