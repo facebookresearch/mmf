@@ -3,9 +3,19 @@
 import unittest
 
 import tests.test_utils as test_utils
+from mmf.models.mmf_transformer import MMFTransformer, MMFTransformerModalityConfig
+from mmf.modules.encoders import (
+    IdentityEncoder,
+    ImageEncoderFactory,
+    ImageEncoderTypes,
+    ResNet152ImageEncoder,
+    TextEncoderFactory,
+    TextEncoderTypes,
+)
 from mmf.utils.build import build_model
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports
+from omegaconf import OmegaConf
 
 
 BERT_VOCAB_SIZE = 30255
@@ -57,3 +67,94 @@ class TestMMFTransformerTorchscript(unittest.TestCase):
                 model, vocab_size=XLM_ROBERTA_VOCAB_SIZE
             )
         )
+
+
+class TestMMFTransformerConfig(unittest.TestCase):
+    def setUp(self):
+        setup_imports()
+
+    def test_mmft_from_params(self):
+        modalities_config = [
+            MMFTransformerModalityConfig(
+                type="image",
+                key="image",
+                embedding_dim=256,
+                position_dim=1,
+                segment_id=0,
+                encoder=IdentityEncoder.Config(),
+            ),
+            MMFTransformerModalityConfig(
+                type="text",
+                key="text",
+                embedding_dim=768,
+                position_dim=512,
+                segment_id=1,
+                encoder=IdentityEncoder.Config(),
+            ),
+        ]
+        mmft = MMFTransformer.from_params(modalities=modalities_config, num_labels=2)
+        mmft.build()
+
+        config = OmegaConf.structured(
+            MMFTransformer.Config(modalities=modalities_config, num_labels=2)
+        )
+        self.assertIsNotNone(mmft)
+        self.assertEqual(mmft.config, config)
+
+    def test_mmf_from_params_encoder_factory(self):
+        modalities_config = [
+            MMFTransformerModalityConfig(
+                type="image",
+                key="image",
+                embedding_dim=256,
+                position_dim=1,
+                segment_id=0,
+                encoder=ImageEncoderFactory.Config(type=ImageEncoderTypes.identity),
+            ),
+            MMFTransformerModalityConfig(
+                type="text",
+                key="text",
+                embedding_dim=756,
+                position_dim=512,
+                segment_id=0,
+                encoder=TextEncoderFactory.Config(type=TextEncoderTypes.identity),
+            ),
+        ]
+        mmft = MMFTransformer.from_params(modalities=modalities_config, num_labels=2)
+        mmft.build()
+
+        config = OmegaConf.structured(
+            MMFTransformer.Config(modalities=modalities_config, num_labels=2)
+        )
+        self.assertIsNotNone(mmft)
+        self.assertEqual(mmft.config, config)
+
+    def test_mmft_pretrained(self):
+        mmft = MMFTransformer.from_params(num_labels=2)
+        self.assertIsNotNone(mmft)
+
+    def test_mmft_from_build_model(self):
+        modalities_config = [
+            MMFTransformerModalityConfig(
+                type="image",
+                key="image",
+                embedding_dim=256,
+                position_dim=1,
+                segment_id=0,
+                encoder=ImageEncoderFactory.Config(
+                    type=ImageEncoderTypes.resnet152,
+                    params=ResNet152ImageEncoder.Config(pretrained=False),
+                ),
+            ),
+            MMFTransformerModalityConfig(
+                type="text",
+                key="text",
+                embedding_dim=756,
+                position_dim=512,
+                segment_id=1,
+                encoder=TextEncoderFactory.Config(type=TextEncoderTypes.identity),
+            ),
+        ]
+        config = MMFTransformer.Config(modalities=modalities_config, num_labels=2)
+        mmft = build_model(config)
+        self.assertIsNotNone(mmft)
