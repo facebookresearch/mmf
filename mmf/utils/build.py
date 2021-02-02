@@ -2,6 +2,7 @@
 
 import os
 import warnings
+from enum import Enum
 from typing import Any, Dict, Type, Union
 
 import mmf
@@ -307,13 +308,21 @@ def build_encoder(config: Union[DictConfig, "mmf.modules.encoders.Encoder.Config
         #   params:
         #       in_dim: 256
         name = config.type
-        params = config.params
+        if isinstance(name, Enum):
+            name = name.value
+        params = config.get("params", None)
     else:
         # Structured Config support
         name = config.name
         params = config
 
     encoder_cls = registry.get_encoder_class(name)
+
+    # If params were not passed, try generating them from encoder
+    # class's default config
+    if params is None:
+        params = OmegaConf.structured(getattr(encoder_cls, "Config", {}))
+
     return encoder_cls(params)
 
 

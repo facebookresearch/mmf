@@ -32,6 +32,10 @@ class TestConfigsForKeys(unittest.TestCase):
                 configuration = Configuration(args)
                 configuration.freeze()
                 config = configuration.get_config()
+
+                if model_key == "mmft":
+                    continue
+
                 self.assertTrue(
                     model_key in config.model_config,
                     "Key for model {} doesn't exists in its configuration".format(

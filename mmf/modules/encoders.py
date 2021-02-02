@@ -6,7 +6,7 @@ from collections import OrderedDict
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict
+from typing import Any
 
 import torch
 import torchvision
@@ -170,7 +170,8 @@ class IdentityEncoder(Encoder):
     @dataclass
     class Config(Encoder.Config):
         name: str = "identity"
-        in_dim: int = MISSING
+        # Random in_dim if not specified
+        in_dim: int = 100
 
     def __init__(self, config: Config):
         super().__init__()
