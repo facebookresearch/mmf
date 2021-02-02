@@ -111,9 +111,21 @@ def build_dataset(
 
     # If config is not provided, we take it from default one
     if not config:
-        config = load_yaml_with_defaults(dataset_builder.config_path())
-        config = OmegaConf.select(config, f"dataset_config.{dataset_key}")
-        OmegaConf.set_struct(config, True)
+        config_path = dataset_builder.config_path()
+        if config_path is None:
+            # If config path wasn't defined, send an empty config path
+            # but don't force dataset to define a config
+            warnings.warn(
+                f"Config path not defined for {dataset_key}, "
+                + "continuing with empty config"
+            )
+            config = OmegaConf.create()
+        else:
+            config = load_yaml_with_defaults(config_path)
+            config = OmegaConf.select(config, f"dataset_config.{dataset_key}")
+            if config is None:
+                config = OmegaConf.create()
+            OmegaConf.set_struct(config, True)
 
     builder_instance: mmf_typings.DatasetBuilderType = dataset_builder()
     builder_instance.build_dataset(config, dataset_type)

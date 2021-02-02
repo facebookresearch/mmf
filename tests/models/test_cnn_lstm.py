@@ -8,7 +8,7 @@ from mmf.common.registry import registry
 from mmf.common.sample import Sample, SampleList
 from mmf.models.cnn_lstm import CNNLSTM
 from mmf.utils.configuration import Configuration
-from mmf.utils.general import get_mmf_root
+from mmf.utils.general import get_current_device, get_mmf_root
 from tests.test_utils import dummy_args
 
 
@@ -52,6 +52,10 @@ class TestModelCNNLSTM(unittest.TestCase):
         test_sample_list = SampleList([test_sample])
         test_sample_list.dataset_type = "train"
         test_sample_list.dataset_name = "clevr"
+
+        test_sample_list = test_sample_list.to(get_current_device())
+        cnn_lstm = cnn_lstm.to(get_current_device())
+
         output = cnn_lstm(test_sample_list)
 
         scores = output["scores"]

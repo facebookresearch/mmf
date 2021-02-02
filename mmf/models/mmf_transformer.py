@@ -149,10 +149,22 @@ class MMFTransformer(BaseTransformer):
         for idx, encoder in enumerate(self.encoders.values()):
             modality = self.modality_keys[idx]
             if self.modality_type[idx] == "text":
-                if sample_list["input_ids"].dim() > 2:
-                    input_ids[modality] = sample_list["input_ids"][:, idx]
+                # First, check if standard input_ids corresponds to text
+                # if not, check for modality key inside the sample list
+                if "input_ids" in sample_list:
+                    text_ids = sample_list["input_ids"]
+                elif modality in sample_list:
+                    text_ids = sample_list[modality]
                 else:
-                    input_ids[modality] = sample_list["input_ids"]
+                    raise TypeError(
+                        f"Modality {modality} is missing in SampleList. "
+                        + f"Expected to find 'input_ids' or {modality}."
+                    )
+
+                if text_ids.dim() > 2:
+                    input_ids[modality] = text_ids[:, idx]
+                else:
+                    input_ids[modality] = text_ids
             elif self.modality_type[idx] == "image":
                 if "image" in sample_list:
                     input_ids[modality] = sample_list["image"]
@@ -160,11 +172,23 @@ class MMFTransformer(BaseTransformer):
                 # cross-compatibility of interops and datasets.
                 elif "input_modal" in sample_list:
                     input_ids[modality] = sample_list["input_modal"]
-                else:
+                elif "image_feature_0" in sample_list:
                     input_ids[modality] = sample_list["image_feature_0"]
+                elif modality in sample_list:
+                    input_ids[modality] = sample_list[modality]
+                else:
+                    raise TypeError(
+                        f"Modality {modality} is missing in SampleList. "
+                        + "Expected to find 'image', 'input_modal', "
+                        + f"'image_feature_0' or {modality}."
+                    )
             else:
                 if modality in sample_list:
                     input_ids[modality] = sample_list[modality]
+                else:
+                    # TODO: Later deliberate if missing modalities should
+                    # be supported in MMFT.
+                    raise TypeError(f"Modality {modality} is missing in SampleList.")
 
             # In the other case feature will be skipped, as it is not present in
             # the sample list
@@ -213,7 +237,7 @@ class MMFTransformer(BaseTransformer):
         # Masks
         masks: Dict[str, Tensor] = {}
         for idx, modality in enumerate(self.modality_keys):
-            if self.modality_type[idx] == "text":
+            if self.modality_type[idx] == "text" and "input_mask" in sample_list:
                 if sample_list["input_mask"].dim() > 2:
                     masks[modality] = sample_list["input_mask"][:, idx]
                 else:

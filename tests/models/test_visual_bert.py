@@ -9,6 +9,7 @@ from mmf.modules.hf_layers import replace_with_jit
 from mmf.utils.build import build_model
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports
+from mmf.utils.general import get_current_device
 
 
 BERT_VOCAB_SIZE = 30255
@@ -69,6 +70,8 @@ class TestVisualBertPretraining(unittest.TestCase):
         )
 
         self.pretrain_model.eval()
+        self.pretrain_model = self.pretrain_model.to(get_current_device())
+        sample_list = sample_list.to(get_current_device())
 
         sample_list.dataset_name = "random"
         sample_list.dataset_type = "test"

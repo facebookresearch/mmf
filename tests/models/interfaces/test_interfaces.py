@@ -12,6 +12,7 @@ import torch
 from mmf.models.mmbt import MMBT
 from mmf.utils.configuration import get_mmf_env, load_yaml
 from mmf.utils.file_io import PathManager
+from mmf.utils.general import get_current_device
 
 
 class TestModelInterfaces(unittest.TestCase):
@@ -38,6 +39,7 @@ class TestModelInterfaces(unittest.TestCase):
             self._test_model_performance(model)
 
     def _test_model_performance(self, model):
+        model = model.to(get_current_device())
         result = model.classify(
             "https://i.imgur.com/tEcsk5q.jpg", "look how many people love you"
         )

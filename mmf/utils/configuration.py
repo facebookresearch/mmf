@@ -335,8 +335,8 @@ class Configuration:
 
             if default_dataset_config_path is None:
                 warning = (
-                    "Dataset {}'s builder class has no default configuration "
-                    + f"provided"
+                    f"Dataset {dataset}'s builder class has no default configuration "
+                    + "provided"
                 )
                 warnings.warn(warning)
                 continue
