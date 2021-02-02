@@ -5,7 +5,7 @@ import time
 import torch
 from mmf.trainers.callbacks.base import Callback
 from mmf.utils.configuration import get_mmf_env
-from mmf.utils.distributed import is_master
+from mmf.utils.distributed import is_master, is_xla
 from mmf.utils.logger import TensorboardLogger, log_progress, setup_output_folder
 from mmf.utils.timer import Timer
 
@@ -105,7 +105,7 @@ class LogisticsCallback(Callback):
     def _summarize_report(self, meter, should_print=True, extra=None):
         if extra is None:
             extra = {}
-        if not is_master():
+        if not is_master() and not is_xla():
             return
 
         if self.training_config.tensorboard:
