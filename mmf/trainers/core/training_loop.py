@@ -11,7 +11,6 @@ from mmf.common.report import Report
 from mmf.common.sample import to_device
 from mmf.utils.distributed import is_xla
 from mmf.utils.general import clip_gradients, get_max_updates
-from mmf.utils.distributed import is_xla
 from torch import Tensor
 
 

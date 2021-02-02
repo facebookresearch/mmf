@@ -9,7 +9,7 @@ import warnings
 from bisect import bisect
 
 import torch
-from mmf.utils.distributed import get_rank, get_world_size
+from mmf.utils.distributed import get_rank, get_world_size, is_xla
 from mmf.utils.file_io import PathManager
 from torch import nn
 
@@ -348,6 +348,10 @@ def assert_iterator_finished(iter):
 
 
 def get_current_device():
+    if is_xla():
+        import torch_xla.core.xla_model as xm
+
+        return xm.xla_device()
     if torch.cuda.is_available():
         return f"cuda:{torch.cuda.current_device()}"
     else:

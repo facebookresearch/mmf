@@ -397,8 +397,8 @@ def to_device(
         device = torch.device(device)
 
     # default value of device_type is cuda
-    # since other device types such as xla can be passed
-    # falling back to cpu should only happen when device_type
+    # Other device types such as xla can also be passed.
+    # Fall back to cpu only happens when device_type
     # is set to cuda but cuda is not available.
     if device.type == "cuda" and not torch.cuda.is_available():
         warnings.warn(

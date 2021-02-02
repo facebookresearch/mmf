@@ -187,13 +187,11 @@ def build_dataloader_and_sampler(
         other_args = _add_extra_args_for_dataloader(dataset_instance, other_args)
 
     if is_xla():
-        dataset_type = dataset_instance.dataset_type
-        shuffle = True
         other_args["sampler"] = torch.utils.data.DistributedSampler(
             dataset_instance,
             num_replicas=xm.xrt_world_size(),
             rank=xm.get_ordinal(),
-            shuffle=shuffle,
+            shuffle=other_args["shuffle"],
         )
         other_args.pop("shuffle")
 
