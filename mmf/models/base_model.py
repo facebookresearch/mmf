@@ -49,8 +49,16 @@ from typing import List, Optional, Union
 
 import pytorch_lightning as pl
 from mmf.common.registry import registry
+<<<<<<< HEAD
 from mmf.common.sample import SampleList, to_device
 from mmf.modules.losses import LossConfig, Losses
+||||||| merged common ancestors
+from mmf.common.sample import to_device
+from mmf.modules.losses import Losses
+=======
+from mmf.common.sample import to_device
+from mmf.modules.losses import LossConfig, Losses
+>>>>>>> [feat] Changes to support bento notebook tutorial (#761)
 from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
