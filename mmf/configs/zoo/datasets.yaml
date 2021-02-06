@@ -315,6 +315,13 @@ vqa2:
       - url: mmf://datasets/vqa2/grid/features/features.tar.gz
         file_name: features.tar.gz
         hashcode: 96f4290c6bcbc5767dea5efc44e802667a146769d615dad33944493e3ad638bb
+  split_by_coco_2017:
+    version: 1.0_2021_02_05
+    resources:
+      annotations:
+      - url: mmf://datasets/vqa2/split_by_coco_2017/annotations/annotations_split_by_coco_2017.tar.gz
+        file_name: annotations_split_by_coco_2017.tar.gz
+        hashcode: 51b90dfef9c295ca8d5c4c893b9d2e0ea3b3ff0d2f043c0c0480a1542ea48c62
 
 vizwiz:
   v2019:

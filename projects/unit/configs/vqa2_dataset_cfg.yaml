@@ -1,0 +1,57 @@
+dataset_config:
+  vqa2:
+    zoo_requirements:
+    - coco.defaults
+    - vqa2.defaults
+    - vqa2.split_by_coco_2017
+    return_features_info: true
+    use_features: false
+    use_images: true
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 25
+      image_processor:
+        type: torchvision_transforms
+        params:
+          transforms:
+            - type: ResizeShortest
+              params:
+                min_size: 800
+                max_size: 1333
+            - ToTensor
+            - type: Normalize
+              params:
+                mean: [0.485, 0.456, 0.406]
+                std: [0.229, 0.224, 0.225]
+    images:
+      train:
+      - coco/defaults/images/train2014
+      - coco/defaults/images/val2014
+      - coco/defaults/images/train2014
+      - coco/defaults/images/val2014
+      - coco/defaults/images/val2014
+      val:
+      - coco/defaults/images/val2014
+      test:
+      - coco/defaults/images/test2015
+    annotations:
+      # the train, val, test splits are built according to COCO train2017, val2017, and test2015 splits, which don't overlap
+      # - COCO train2017 contains the entire train2014 plus part of val2014, excluding those in val2017
+      # - COCO val2017 is a subset of COCO val2014
+      train:
+      - vqa2/split_by_coco_2017/annotations/imdb_train2017_in_train2014.npy
+      - vqa2/split_by_coco_2017/annotations/imdb_train2017_in_val2014.npy
+      - vqa2/split_by_coco_2017/annotations/imdb_vg_karpathytrain_in_train2014.npy
+      - vqa2/split_by_coco_2017/annotations/imdb_vg_karpathytrain_in_val2014_not_in_val2017.npy
+      - vqa2/split_by_coco_2017/annotations/imdb_vg_karpathytest_not_in_val2017.npy
+      val:
+      - vqa2/split_by_coco_2017/annotations/imdb_val2017.npy
+      test:
+      - vqa2/defaults/annotations/imdb_test2015.npy
