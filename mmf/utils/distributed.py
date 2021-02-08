@@ -201,10 +201,7 @@ def infer_init_method(config):
     if config.distributed.init_method is not None:
         return
 
-    if getattr(config.training, "device", "cuda") == "xla":
-        registry.register("is_xla", True)
-    else:
-        registry.register("is_xla", False)
+    registry.register("is_xla", config.training.get("device", "cuda") == "xla")
 
     # support torch.distributed.launch
     if all(
