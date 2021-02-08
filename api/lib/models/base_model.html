@@ -235,8 +235,8 @@
               
   <div class="section" id="module-mmf.models.base_model">
 <span id="models-base-model"></span><h1>models.base_model<a class="headerlink" href="#module-mmf.models.base_model" title="Permalink to this headline">¶</a></h1>
-<p>Models built on top of Pythia need to inherit <code class="docutils literal notranslate"><span class="pre">BaseModel</span></code> class and adhere to
-some format. To create a model for MMF, follow this quick cheatsheet.</p>
+<p>Models built in MMF need to inherit <code class="docutils literal notranslate"><span class="pre">BaseModel</span></code> class and adhere to
+a fixed format. To create a model for MMF, follow this quick cheatsheet.</p>
 <ol class="arabic simple">
 <li><p>Inherit <code class="docutils literal notranslate"><span class="pre">BaseModel</span></code> class, make sure to call <code class="docutils literal notranslate"><span class="pre">super().__init__()</span></code> in your
 class’s <code class="docutils literal notranslate"><span class="pre">__init__</span></code> function.</p></li>
@@ -294,6 +294,12 @@ dict as output and finally, register it using <code class="docutils literal notr
 <dd><p>Function to be implemented by the child class, in case they need to
 build their model separately than <code class="docutils literal notranslate"><span class="pre">__init__</span></code>. All model related
 downloads should also happen here.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="mmf.models.base_model.BaseModel.configure_optimizers">
+<code class="sig-name descname">configure_optimizers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/models/base_model.html#BaseModel.configure_optimizers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.models.base_model.BaseModel.configure_optimizers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Member function of PL modules. Used only when PL enabled.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -379,6 +385,47 @@ in <code class="xref py py-attr docutils literal notranslate"><span class="pre">
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">NamedTuple</span></code> with <code class="docutils literal notranslate"><span class="pre">missing_keys</span></code> and <code class="docutils literal notranslate"><span class="pre">unexpected_keys</span></code> fields</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="mmf.models.base_model.BaseModel.training_step">
+<code class="sig-name descname">training_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_idx</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/models/base_model.html#BaseModel.training_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.models.base_model.BaseModel.training_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Member function of PL modules. Used only when PL enabled.
+To be implemented by child class. Takes in a <code class="docutils literal notranslate"><span class="pre">SampleList</span></code>,
+batch_idx and returns back a dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList returned by the DataLoader for</p></li>
+<li><p><strong>iteration</strong> (<em>current</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dict containing loss.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="mmf.models.base_model.BaseModel.validation_step">
+<code class="sig-name descname">validation_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_idx</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/models/base_model.html#BaseModel.validation_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.models.base_model.BaseModel.validation_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Member function of PL modules. Used only when PL enabled.
+To be implemented by child class. Takes in a <code class="docutils literal notranslate"><span class="pre">SampleList</span></code>,
+batch_idx and returns back a dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList returned by the DataLoader for</p></li>
+<li><p><strong>iteration</strong> (<em>current</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dict</p>
 </dd>
 </dl>
 </dd></dl>

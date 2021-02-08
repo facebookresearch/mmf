@@ -297,7 +297,8 @@
 
 <div class="viewcode-block" id="BaseDataset.prepare_batch"><a class="viewcode-back" href="../../../lib/datasets/base_dataset.html#mmf.datasets.base_dataset.BaseDataset.prepare_batch">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Can be possibly overridden in your child class</span>
+<span class="sd">        Can be possibly overridden in your child class. Not supported w Lightning</span>
+<span class="sd">        trainer</span>
 
 <span class="sd">        Prepare batch for passing to model. Whatever returned from here will</span>
 <span class="sd">        be directly passed to model&#39;s forward function. Currently moves the batch to</span>

@@ -233,8 +233,8 @@
 <span></span><span class="c1"># Copyright (c) Facebook, Inc. and its affiliates.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Models built on top of Pythia need to inherit ``BaseModel`` class and adhere to</span>
-<span class="sd">some format. To create a model for MMF, follow this quick cheatsheet.</span>
+<span class="sd">Models built in MMF need to inherit ``BaseModel`` class and adhere to</span>
+<span class="sd">a fixed format. To create a model for MMF, follow this quick cheatsheet.</span>
 
 <span class="sd">1. Inherit ``BaseModel`` class, make sure to call ``super().__init__()`` in your</span>
 <span class="sd">   class&#39;s ``__init__`` function.</span>
@@ -279,21 +279,21 @@
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
+<span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
-<span class="kn">from</span> <span class="nn">mmf.common.sample</span> <span class="kn">import</span> <span class="n">to_device</span>
+<span class="kn">from</span> <span class="nn">mmf.common.sample</span> <span class="kn">import</span> <span class="n">SampleList</span><span class="p">,</span> <span class="n">to_device</span>
 <span class="kn">from</span> <span class="nn">mmf.modules.losses</span> <span class="kn">import</span> <span class="n">LossConfig</span><span class="p">,</span> <span class="n">Losses</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.checkpoint</span> <span class="kn">import</span> <span class="n">load_pretrained_model</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.download</span> <span class="kn">import</span> <span class="n">download_pretrained_model</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.file_io</span> <span class="kn">import</span> <span class="n">PathManager</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.general</span> <span class="kn">import</span> <span class="n">get_current_device</span>
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span><span class="p">,</span> <span class="n">DictConfig</span><span class="p">,</span> <span class="n">OmegaConf</span>
-<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span>
 
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="BaseModel"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel">[docs]</a><span class="k">class</span> <span class="nc">BaseModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseModel"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel">[docs]</a><span class="k">class</span> <span class="nc">BaseModel</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;For integration with MMF&#39;s trainer, datasets and other features,</span>
 <span class="sd">    models needs to inherit this class, call `super`, write a build function,</span>
 <span class="sd">    write a forward function taking a ``SampleList`` as input and returning a</span>
@@ -316,8 +316,10 @@
             <span class="n">config</span> <span class="o">=</span> <span class="n">OmegaConf</span><span class="o">.</span><span class="n">structured</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_logged_warning</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;losses_present&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_pretrained</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_pl_enabled</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_params</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -327,9 +329,17 @@
     <span class="k">def</span> <span class="nf">is_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_pretrained</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_pl_enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_pl_enabled</span>
+
     <span class="nd">@is_pretrained</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">is_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_pretrained</span> <span class="o">=</span> <span class="n">x</span>
+
+    <span class="nd">@is_pl_enabled</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">is_pl_enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_pl_enabled</span> <span class="o">=</span> <span class="n">x</span>
 
 <div class="viewcode-block" id="BaseModel.build"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Function to be implemented by the child class, in case they need to</span>
@@ -397,9 +407,63 @@
             <span class="s2">&quot;Forward of the child model class needs to be implemented.&quot;</span>
         <span class="p">)</span></div>
 
+<div class="viewcode-block" id="BaseModel.training_step"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.training_step">[docs]</a>    <span class="k">def</span> <span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Member function of PL modules. Used only when PL enabled.</span>
+<span class="sd">        To be implemented by child class. Takes in a ``SampleList``,</span>
+<span class="sd">        batch_idx and returns back a dict.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sample_list (SampleList): SampleList returned by the DataLoader for</span>
+<span class="sd">            current iteration</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict: Dict containing loss.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_sample_list</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+        <span class="n">loss_dict</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;losses&quot;</span><span class="p">]</span>
+        <span class="n">output</span><span class="p">[</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">for</span> <span class="n">loss</span> <span class="ow">in</span> <span class="n">loss_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">output</span></div>
+
+<div class="viewcode-block" id="BaseModel.validation_step"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.validation_step">[docs]</a>    <span class="k">def</span> <span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Member function of PL modules. Used only when PL enabled.</span>
+<span class="sd">        To be implemented by child class. Takes in a ``SampleList``,</span>
+<span class="sd">        batch_idx and returns back a dict.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sample_list (SampleList): SampleList returned by the DataLoader for</span>
+<span class="sd">            current iteration</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_sample_list</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+        <span class="c1"># TODO: @sash Implementation coming soon! (next PR)</span>
+        <span class="k">return</span> <span class="n">output</span></div>
+
+<div class="viewcode-block" id="BaseModel.configure_optimizers"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.configure_optimizers">[docs]</a>    <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Member function of PL modules. Used only when PL enabled.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_pl_enabled</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s2">&quot;configure_optimizers should be only used as a member &quot;</span>
+            <span class="s2">&quot;function of LightningModule when pytorch lightning is enabled.&quot;</span>
+        <span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">mmf.utils.build</span> <span class="kn">import</span> <span class="n">build_lightning_optimizers</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">build_lightning_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_ensure_sample_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">SampleList</span><span class="p">):</span>
+            <span class="c1"># Try converting to SampleList</span>
+            <span class="n">batch</span> <span class="o">=</span> <span class="n">SampleList</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">batch</span>
+
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="c1"># Move to proper device i.e. same as the model before passing</span>
-        <span class="n">sample_list</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">get_current_device</span><span class="p">())</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_pl_enabled</span><span class="p">:</span>
+            <span class="c1"># Move to proper device i.e. same as the model before passing</span>
+            <span class="n">sample_list</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">get_current_device</span><span class="p">())</span>
 
         <span class="n">model_output</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -407,7 +471,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_pretrained</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">model_output</span>
 
-        <span class="c1"># Make sure theat the output from the model is a Mapping</span>
+        <span class="c1"># Make sure that the output from the model is a Mapping</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
             <span class="n">model_output</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span>
         <span class="p">),</span> <span class="s2">&quot;A dict must be returned from the forward of the model.&quot;</span>

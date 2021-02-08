@@ -265,7 +265,8 @@ in text strings</p></li>
 <dl class="py method">
 <dt id="mmf.datasets.base_dataset.BaseDataset.prepare_batch">
 <code class="sig-name descname">prepare_batch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset.html#BaseDataset.prepare_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.base_dataset.BaseDataset.prepare_batch" title="Permalink to this definition">¶</a></dt>
-<dd><p>Can be possibly overridden in your child class</p>
+<dd><p>Can be possibly overridden in your child class. Not supported w Lightning
+trainer</p>
 <p>Prepare batch for passing to model. Whatever returned from here will
 be directly passed to model’s forward function. Currently moves the batch to
 proper device.</p>
