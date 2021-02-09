@@ -184,6 +184,7 @@ class MultiSentenceBertTokenizer(BertTokenizer):
     def __init__(self, config, *args, **kwargs):
         super().__init__(config, *args, **kwargs)
         self.fusion_strategy = config.get("fusion", "concat")
+        self._probability = config.get("mask_probability", 0)
         self.tokenizer = super().__call__
 
     def __call__(self, item):

@@ -17,6 +17,7 @@ class BaseTransformerInput(NamedTuple):
     position_ids: Dict[str, Tensor]  # dict of position ids for all modalities
     segment_ids: Dict[str, Tensor]  # dict of segment/token type ids for all modalities
     masks: Dict[str, Tensor]  # dict of masks for all modalities
+    mlm_labels_list: List[Tensor]  # list of text token masks for all modalities
 
 
 @dataclass
