@@ -30,6 +30,7 @@ module.exports = {
     Tutorials: [
       'tutorials/dataset',
       'tutorials/concat_bert_tutorial',
+      'tutorials/image_feature_extraction',
       'tutorials/checkpointing',
       'tutorials/processors',
       'tutorials/slurm',
