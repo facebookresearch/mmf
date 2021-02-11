@@ -155,8 +155,8 @@ class MMFTransformer(BaseTransformer):
         if self.config.training_head_type == "pretraining":
             self.ce_loss = nn.CrossEntropyLoss(ignore_index=-1)
 
-    def preprocess_sample(self, sample_list: Dict[str, Tensor]) -> BaseTransformerInput:
-        """Preprocess the sample list elements and form a BaseTransformerInput
+    def preprocess_sample(self, sample_list: Dict[str, Tensor]) -> MMFTransformerInput:
+        """Preprocess the sample list elements and form a MMFTransformerInput
         type object. This object standardizes how we represent multiple modalities.
         Check the definition of this dataclass in BaseTransformer.
         """
