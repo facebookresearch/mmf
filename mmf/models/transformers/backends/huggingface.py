@@ -142,10 +142,6 @@ class HuggingfaceEmbeddings(nn.Module):
         ):
             modality_name = self.modality_keys[idx]
             total_embedding = token_emb(tokens_ids[modality_name])
-            # In case of direct features, there might be only two dims, B X D
-            # Convert them B X 1 X D.
-            if total_embedding.dim() == 2:
-                total_embedding = total_embedding.unsqueeze(dim=1)
 
             if modality_name in position_ids:
                 total_embedding += pos_emb(position_ids[modality_name])

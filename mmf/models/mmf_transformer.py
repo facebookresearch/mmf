@@ -161,66 +161,89 @@ class MMFTransformer(BaseTransformer):
         Check the definition of this dataclass in BaseTransformer.
         """
 
+        input_ids = self._infer_input_ids(sample_list)
+        position_ids = self._infer_position_ids(input_ids)
+        masks = self._infer_masks(sample_list, input_ids)
+        segment_ids = self._infer_segment_ids(sample_list, input_ids)
+        mlm_labels_list = self._infer_mlm_labels(sample_list, input_ids)
+
+        return MMFTransformerInput(
+            input_ids, position_ids, segment_ids, masks, mlm_labels_list
+        )
+
+    def _infer_input_ids(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
         # Input IDs (or text tokens/image features)
         input_ids: Dict[str, Tensor] = {}
+        current_text_idx = 0
         for idx, encoder in enumerate(self.encoders.values()):
             modality = self.modality_keys[idx]
             if self.modality_type[idx] == "text":
                 # First, check if standard input_ids corresponds to text
                 # if not, check for modality key inside the sample list
-                if "input_ids" in sample_list:
-                    text_ids = sample_list["input_ids"]
-                elif modality in sample_list:
-                    text_ids = sample_list[modality]
-                else:
-                    raise TypeError(
-                        f"Modality {modality} is missing in SampleList. "
-                        + f"Expected to find 'input_ids' or {modality}."
-                    )
-
+                text_ids = self._check_keys_for_modality(
+                    sample_list, ("input_ids", modality)
+                )
+                # This handles the case of more than one text modalities
+                # with type text. The input_ids must be stacked in this case.
+                # For example, if there are two text modalities, input ids should
+                # look have shape: B X 2 X L where second dim points to stacked
+                # text ids. Furthermore, make sure that the sequence of modalities
+                # in config is same as the sequence in the stacked input ids.
                 if text_ids.dim() > 2:
-                    input_ids[modality] = text_ids[:, idx]
+                    input_ids[modality] = text_ids[:, current_text_idx]
+                    current_text_idx += 1
                 else:
                     input_ids[modality] = text_ids
             elif self.modality_type[idx] == "image":
-                if "image" in sample_list:
-                    input_ids[modality] = sample_list["image"]
                 # input_modal is originally used by MMBT, added for
                 # cross-compatibility of interops and datasets.
-                elif "input_modal" in sample_list:
-                    input_ids[modality] = sample_list["input_modal"]
-                elif "image_feature_0" in sample_list:
-                    input_ids[modality] = sample_list["image_feature_0"]
-                elif modality in sample_list:
-                    input_ids[modality] = sample_list[modality]
-                else:
-                    raise TypeError(
-                        f"Modality {modality} is missing in SampleList. "
-                        + "Expected to find 'image', 'input_modal', "
-                        + f"'image_feature_0' or {modality}."
-                    )
+                input_ids[modality] = self._check_keys_for_modality(
+                    sample_list, ("image", "input_modal", "image_feature_0", modality)
+                )
             else:
-                if modality in sample_list:
-                    input_ids[modality] = sample_list[modality]
-                else:
-                    # TODO: Later deliberate if missing modalities should
-                    # be supported in MMFT.
-                    raise TypeError(f"Modality {modality} is missing in SampleList.")
-
+                # TODO: Later deliberate if missing modalities should
+                # be supported in MMFT.
+                input_ids[modality] = self._check_keys_for_modality(
+                    sample_list, (modality,)
+                )
             # In the other case feature will be skipped, as it is not present in
             # the sample list
             if encoder is not None:
                 input_ids[modality] = encoder(input_ids[modality])
 
+            # For a feature which is of shape B X D and
+            # is not text (which is B X L converted later by embeddings to B X L X D)
+            # We convert it to B X 1 X D to signify single position dim.
+            if self.modality_type[idx] != "text" and input_ids[modality].dim() == 2:
+                input_ids[modality] = input_ids[modality].unsqueeze(1)
+
+        return input_ids
+
+    def _check_keys_for_modality(
+        self, sample_list: Dict[str, Tensor], keys: List[str]
+    ) -> Tensor:
+        assert len(keys) != 0
+
+        for key in keys:
+            if key in sample_list:
+                return sample_list[key]
+
+        # Reaching here means nothing was found.
+        # Easier to write code this way to keep torchscript happy
+        if len(keys) == 1:
+            expected_list = keys[0]
+        else:
+            expected_list: str = ", ".join(keys[:-1])
+            expected_list = f"{expected_list} or {keys[-1]}"
+        raise TypeError(
+            f"Missing modality in SampleList. Expected to find {expected_list}"
+        )
+
+    def _infer_position_ids(self, input_ids: Dict[str, Tensor]) -> Dict[str, Tensor]:
         # Position IDs
         position_ids: Dict[str, Tensor] = {}
         for modality in self.modality_keys:
             end_idx = input_ids[modality].size(1)
-            # In case of dim=2, this is a direct feature, so there
-            # is only one element for this modality
-            if input_ids[modality].dim() == 2:
-                end_idx = 1
-
             position_ids[modality] = (
                 torch.arange(
                     0, end_idx, dtype=torch.long, device=input_ids[modality].device
@@ -228,35 +251,18 @@ class MMFTransformer(BaseTransformer):
                 .unsqueeze(0)
                 .expand((input_ids[modality].size(0), end_idx))
             )
+        return position_ids
 
-        # Segment IDs
-        segment_ids: Dict[str, Tensor] = {}
-        for idx, modality in enumerate(self.modality_keys):
-            if self.modality_segments[idx] == -1:
-                continue
-            if self.modality_type[idx] == "text" and "segment_ids" in sample_list:
-                if sample_list["segment_ids"].dim() > 2:
-                    segment_ids[modality] = sample_list["segment_ids"][:, idx]
-                else:
-                    segment_ids[modality] = sample_list["segment_ids"]
-            else:
-                segment_ids[modality] = torch.full(
-                    input_ids[modality].size()[:-1],
-                    fill_value=self.modality_segments[idx],
-                    dtype=torch.long,
-                    device=input_ids[modality].device,
-                )
-
-            # Should be B X L, if only B in case of direct features, make it B X 1
-            if segment_ids[modality].dim() == 1:
-                segment_ids[modality] = segment_ids[modality].unsqueeze(dim=1)
-
-        # Masks
+    def _infer_masks(
+        self, sample_list: Dict[str, Tensor], input_ids: Dict[str, Tensor]
+    ) -> Dict[str, Tensor]:
         masks: Dict[str, Tensor] = {}
+        current_text_idx = 0
         for idx, modality in enumerate(self.modality_keys):
             if self.modality_type[idx] == "text" and "input_mask" in sample_list:
                 if sample_list["input_mask"].dim() > 2:
-                    masks[modality] = sample_list["input_mask"][:, idx]
+                    masks[modality] = sample_list["input_mask"][:, current_text_idx]
+                    current_text_idx += 1
                 else:
                     masks[modality] = sample_list["input_mask"]
             else:
@@ -265,26 +271,58 @@ class MMFTransformer(BaseTransformer):
                     masks[modality] = sample_list[mask_attribute]
                 else:
                     masks[modality] = torch.ones(
-                        input_ids[modality].size()[:-1],
+                        input_ids[modality].size()[:2],
                         dtype=torch.long,
                         device=input_ids[modality].device,
                     )
 
-            # Should be B X L, if only B in case of direct features, make it B X 1
-            if masks[modality].dim() == 1:
-                masks[modality] = masks[modality].unsqueeze(dim=1)
+        return masks
 
+    def _infer_segment_ids(
+        self, sample_list: Dict[str, Tensor], input_ids: Dict[str, Tensor]
+    ) -> Dict[str, Tensor]:
+        # Segment IDs
+        segment_ids: Dict[str, Tensor] = {}
+        current_text_idx = 0
+        for idx, modality in enumerate(self.modality_keys):
+            if self.modality_segments[idx] == -1:
+                continue
+            if self.modality_type[idx] == "text" and "segment_ids" in sample_list:
+                if sample_list["segment_ids"].dim() > 2:
+                    segment_ids[modality] = sample_list["segment_ids"][
+                        :, current_text_idx
+                    ]
+                    current_text_idx += 1
+                else:
+                    segment_ids[modality] = sample_list["segment_ids"]
+            else:
+                segment_ids[modality] = torch.full(
+                    input_ids[modality].size()[:2],
+                    fill_value=self.modality_segments[idx],
+                    dtype=torch.long,
+                    device=input_ids[modality].device,
+                )
+
+        return segment_ids
+
+    def _infer_mlm_labels(
+        self, sample_list: Dict[str, Tensor], input_ids: Dict[str, Tensor]
+    ) -> List[Tensor]:
         # MLM Labels
         mlm_labels: Dict[str, Tensor] = {}
+        current_text_idx = 0
         for idx, modality in enumerate(self.modality_keys):
             if self.modality_type[idx] == "text" and "lm_label_ids" in sample_list:
                 if sample_list["lm_label_ids"].dim() > 2:
-                    mlm_labels[modality] = sample_list["lm_label_ids"][:, idx]
+                    mlm_labels[modality] = sample_list["lm_label_ids"][
+                        :, current_text_idx
+                    ]
+                    current_text_idx += 1
                 else:
                     mlm_labels[modality] = sample_list["lm_label_ids"]
             else:
                 mlm_labels[modality] = torch.full(
-                    input_ids[modality].size()[:-1],
+                    input_ids[modality].size()[:2],
                     fill_value=-1,
                     dtype=torch.long,
                     device=input_ids[modality].device,
@@ -294,9 +332,7 @@ class MMFTransformer(BaseTransformer):
         for modality in self.modality_keys:
             mlm_labels_list.append(mlm_labels[modality])
 
-        return MMFTransformerInput(
-            input_ids, position_ids, segment_ids, masks, mlm_labels_list
-        )
+        return mlm_labels_list
 
     def forward(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
         # Sample preprocess
@@ -316,7 +352,6 @@ class MMFTransformer(BaseTransformer):
         )
 
         # Transformer Heads
-
         output_dict = {}
         if self.training_head_type == "classification":
             pooled_output = self.pooler(sequence_output)
@@ -330,7 +365,8 @@ class MMFTransformer(BaseTransformer):
                 )
             else:
                 raise AssertionError(
-                    "MMF Tranformer : Torchscript is not supported for pretraining mode."
+                    "MMF Tranformer : Torchscript is not supported for "
+                    + "pretraining mode."
                 )
 
         return output_dict
