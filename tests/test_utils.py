@@ -161,6 +161,7 @@ def setup_proxy():
         os.getenv("SANDCASTLE") == "1"
         or os.getenv("TW_JOB_USER") == "sandcastle"
         or socket.gethostname().startswith("dev")
+        or "fbinfra" in socket.gethostname()
     ):
         os.environ["HTTPS_PROXY"] = "http://fwdproxy:8080"
         os.environ["HTTP_PROXY"] = "http://fwdproxy:8080"
