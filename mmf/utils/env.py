@@ -10,7 +10,6 @@ from datetime import datetime
 
 import numpy as np
 import torch
-from mmf.utils.general import get_absolute_path
 
 
 def set_seed(seed):
@@ -39,6 +38,8 @@ def import_user_module(user_dir: str):
     Args:
         user_dir (str): directory which has to be imported
     """
+    from mmf.utils.general import get_absolute_path  # noqa
+
     logger = logging.getLogger(__name__)
     if user_dir:
         user_dir = get_absolute_path(user_dir)

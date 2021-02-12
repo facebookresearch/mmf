@@ -531,6 +531,10 @@ class Configuration:
                 lr = config.learning_rate
                 config.optimizer.params.lr = lr
 
+        # TODO: Correct the following issue
+        # This check is triggered before the config override from
+        # commandline is effective even after setting
+        # training.device = 'xla', it gets triggered.
         if not torch.cuda.is_available() and "cuda" in config.training.device:
             warnings.warn(
                 "Device specified is 'cuda' but cuda is not present. "

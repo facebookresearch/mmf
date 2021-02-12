@@ -8,7 +8,14 @@ import subprocess
 import warnings
 
 import torch
+from mmf.common.registry import registry
 from torch import distributed as dist
+
+
+try:
+    import torch_xla.core.xla_model as xm
+except ImportError:
+    xm = None
 
 
 MAX_SIZE_LIMIT = 65533
@@ -16,8 +23,10 @@ BYTE_SIZE = 256
 logger = logging.getLogger(__name__)
 
 
-def synchronize():
-    if not dist.is_available():
+def synchronize(message="sync-workers"):
+    if is_xla():
+        xm.rendezvous(message)
+    elif not dist.is_available():
         return
     if not dist.is_nccl_available():
         return
@@ -32,7 +41,13 @@ def synchronize():
     dist.barrier()
 
 
+def is_xla():
+    return registry.get("is_xla")
+
+
 def get_rank():
+    if is_xla():
+        return xm.get_ordinal()
     if not dist.is_available():
         return 0
     if not dist.is_nccl_available():
@@ -51,6 +66,8 @@ def is_dist_initialized():
 
 
 def get_world_size():
+    if is_xla():
+        return xm.xrt_world_size()
     if not dist.is_available():
         return 1
     if not dist.is_nccl_available():
@@ -66,7 +83,15 @@ def broadcast_tensor(tensor, src=0):
         return tensor
 
     with torch.no_grad():
-        dist.broadcast(tensor, src=0)
+        if is_xla():
+            tensor = xm.all_to_all(
+                tensor.repeat([world_size, 1]),
+                split_dimension=0,
+                concat_dimension=0,
+                split_count=world_size,
+            )[0]
+        else:
+            dist.broadcast(tensor, src=0)
 
     return tensor
 
@@ -105,7 +130,11 @@ def gather_tensor(tensor):
         for _ in range(world_size):
             tensor_list.append(torch.zeros_like(tensor))
 
-        dist.all_gather(tensor_list, tensor)
+        if is_xla():
+            tensor_list = xm.all_gather(tensor)
+            tensor_list = tensor_list.view(world_size, *tensor.size())
+        else:
+            dist.all_gather(tensor_list, tensor)
         tensor_list = torch.stack(tensor_list, dim=0)
     return tensor_list
 
@@ -122,12 +151,14 @@ def reduce_dict(dictionary):
         keys, values = zip(*sorted(dictionary.items()))
         values = torch.stack(values, dim=0)
 
-        dist.reduce(values, dst=0)
-
-        if dist.get_rank() == 0:
-            # only main process gets accumulated, so only divide by
-            # world_size in this case
-            values /= world_size
+        if is_xla():
+            values = xm.all_reduce("sum", [values], scale=1.0 / world_size)[0]
+        else:
+            dist.reduce(values, dst=0)
+            if dist.get_rank() == 0:
+                # only main process gets accumulated, so only divide by
+                # world_size in this case
+                values /= world_size
         reduced_dict = {k: v for k, v in zip(keys, values)}
     return reduced_dict
 
@@ -169,6 +200,9 @@ def byte_tensor_to_object(byte_tensor, max_size=4094):
 def infer_init_method(config):
     if config.distributed.init_method is not None:
         return
+
+    registry.register("is_xla", config.training.get("device", "cuda") == "xla")
+
     # support torch.distributed.launch
     if all(
         key in os.environ
@@ -221,9 +255,14 @@ def infer_init_method(config):
 def distributed_init(config):
     if config.distributed.world_size == 1:
         raise ValueError("Cannot initialize distributed with distributed_world_size=1")
+    logger.info(f"XLA Mode:{is_xla()}")
 
-    if dist.is_initialized():
+    if is_xla():
+        config.device_id = xm.get_local_ordinal()
+        config.distributed.rank = xm.get_ordinal()
+    elif dist.is_initialized():
         warnings.warn("Distributed is already initialized, cannot initialize twice!")
+        config.distributed.rank = dist.get_rank()
     else:
         logger.info(
             f"Distributed Init (Rank {config.distributed.rank}): "
@@ -244,8 +283,7 @@ def distributed_init(config):
         dist.all_reduce(torch.zeros(1).cuda())
 
         suppress_output(is_master())
-
-    config.distributed.rank = dist.get_rank()
+        config.distributed.rank = dist.get_rank()
     return config.distributed.rank
 
 

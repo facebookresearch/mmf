@@ -50,10 +50,6 @@ class TrainerReportingMixin(ABC):
             if torch.is_tensor(val):
                 if val.dim() == 1:
                     val = val.mean()
-
-            if hasattr(val, "item"):
-                val = val.item()
-
             meter_update_dict.update({key: val})
             total_val += val
 

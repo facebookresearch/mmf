@@ -9,6 +9,7 @@ import torch
 from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.common.sample import to_device
+from mmf.utils.distributed import is_xla
 from mmf.utils.general import clip_gradients, get_max_updates
 from torch import Tensor
 
@@ -170,7 +171,7 @@ class TrainerTrainingLoopMixin(ABC):
     def _forward(self, batch: Tensor) -> Dict[str, Any]:
         prepared_batch = self.dataset_loader.prepare_batch(batch)
         # Move the sample list to device if it isn't as of now.
-        prepared_batch = to_device(prepared_batch, torch.device("cuda"))
+        prepared_batch = to_device(prepared_batch, self.device)
         self.profile("Batch prepare time")
         # Arguments should be a dict at this point
 
@@ -199,6 +200,11 @@ class TrainerTrainingLoopMixin(ABC):
                 self.config,
                 scale=self.scaler.get_scale(),
             )
+        if is_xla():
+            import torch_xla.core.xla_model as xm
+
+            # Assumes no model parallel
+            xm.reduce_gradients(self.optimizer)
 
         self.scaler.step(self.optimizer)
         self.scaler.update()

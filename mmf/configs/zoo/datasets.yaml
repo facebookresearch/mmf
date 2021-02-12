@@ -503,4 +503,3 @@ localized_narratives:
         - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_test_localized_narratives.jsonl
           file_name: open_images_test_localized_narratives.jsonl
           compressed: false
-

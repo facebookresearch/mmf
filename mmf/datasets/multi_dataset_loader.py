@@ -8,7 +8,12 @@ import warnings
 
 import numpy as np
 from mmf.utils.build import build_dataloader_and_sampler, build_dataset
-from mmf.utils.distributed import broadcast_scalar, is_dist_initialized, is_master
+from mmf.utils.distributed import (
+    broadcast_scalar,
+    is_dist_initialized,
+    is_master,
+    is_xla,
+)
 from mmf.utils.general import get_batch_size, get_current_device
 from omegaconf import OmegaConf
 
@@ -189,9 +194,19 @@ class MultiDatasetLoader:
     def __len__(self):
         # Since, this is iterator, we need to return total length == number of batches
         batch_size = get_batch_size()
-        # This assumes drop_last=False for all loaders. See also
-        # build_dataloader_and_sampler().
-        return (self._total_length + batch_size - 1) // batch_size
+        # Changed the length to accomadate drop_last == True
+        # drop_last is required if the batch is split into multiple cores
+        # some of the cores may not have enough examples.
+        if is_xla():
+            logging.info(
+                "drop_last is set to True to avoid uneven dimension shapes "
+                "across cores."
+            )
+            return (self._total_length) // batch_size
+        else:
+            # This assumes drop_last=False for all loaders. See also
+            # build_dataloader_and_sampler().
+            return (self._total_length + batch_size - 1) // batch_size
 
     def __iter__(self):
         if self._num_datasets == 1:
