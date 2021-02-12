@@ -5,10 +5,11 @@ import logging
 import random
 import typing
 
+import hydra
 import torch
 from mmf.common.registry import registry
 from mmf.utils.build import build_config, build_trainer
-from mmf.utils.configuration import Configuration
+from mmf.utils.configuration import Configuration, register_resolvers
 from mmf.utils.distributed import distributed_init, get_rank, infer_init_method
 from mmf.utils.env import set_seed, setup_imports
 from mmf.utils.flags import flags
@@ -26,7 +27,7 @@ def main(configuration, init_distributed=False, predict=False):
     config = configuration.get_config()
 
     if torch.cuda.is_available():
-        torch.cuda.set_device(config.device_id)
+        torch.cuda.set_device(config.distributed.device_id)
         torch.cuda.init()
 
     if init_distributed:
@@ -58,10 +59,10 @@ def main(configuration, init_distributed=False, predict=False):
 
 def distributed_main(device_id, configuration, predict=False):
     config = configuration.get_config()
-    config.device_id = device_id
+    config.distributed.device_id = device_id
 
     if config.distributed.rank is None:
-        config.distributed.rank = config.start_rank + device_id
+        config.distributed.rank = config.distributed.start_rank + device_id
 
     main(configuration, init_distributed=True, predict=predict)
 
@@ -91,14 +92,18 @@ def run(opts: typing.Optional[typing.List[str]] = None, predict: bool = False):
     configuration = Configuration(args)
     # Do set runtime args which can be changed by MMF
     configuration.args = args
+    launch(configuration, predict)
+
+
+def launch(configuration, predict: bool = False):
     config = configuration.get_config()
-    config.start_rank = 0
+    config.distributed.start_rank = 0
     if config.distributed.init_method is None:
         infer_init_method(config)
 
     if config.distributed.init_method is not None:
         if torch.cuda.device_count() > 1 and not config.distributed.no_spawn:
-            config.start_rank = config.distributed.rank
+            config.distributed.start_rank = config.distributed.rank
             config.distributed.rank = None
             torch.multiprocessing.spawn(
                 fn=distributed_main,
@@ -118,9 +123,21 @@ def run(opts: typing.Optional[typing.List[str]] = None, predict: bool = False):
             nprocs=config.distributed.world_size,
         )
     else:
-        config.device_id = 0
+        config.distributed.device_id = 0
         main(configuration, predict=predict)
 
 
+@hydra.main(config_name="defaults", config_path="../mmf/configs")
+def hydra_run(config, predict=False):
+    register_resolvers()
+    from hydra.core.global_hydra import GlobalHydra
+
+    config_loader = GlobalHydra.instance().config_loader()
+    print(config_loader.get_group_options("dataset/textvqa"))
+    print(config)
+    configuration = Configuration.build_with_config(config)
+    launch(configuration, predict)
+
+
 if __name__ == "__main__":
-    run()
+    hydra_run()

@@ -1,5 +1,0 @@
-dataset_config:
-  conceptual_captions:
-    annotations:
-      train:
-      - cc/defaults/annotations/train_small.npy
