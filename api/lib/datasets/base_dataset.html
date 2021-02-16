@@ -237,7 +237,7 @@
 <span id="datasets-base-dataset"></span><h1>datasets.base_dataset<a class="headerlink" href="#module-mmf.datasets.base_dataset" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt id="mmf.datasets.base_dataset.BaseDataset">
-<em class="property">class </em><code class="sig-prename descclassname">mmf.datasets.base_dataset.</code><code class="sig-name descname">BaseDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset_name</span></em>, <em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">dataset_type</span><span class="o">=</span><span class="default_value">'train'</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset.html#BaseDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.base_dataset.BaseDataset" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.datasets.base_dataset.</span></code><code class="sig-name descname"><span class="pre">BaseDataset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset.html#BaseDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset.BaseDataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Base class for implementing a dataset. Inherits from PyTorch’s Dataset class
 but adds some custom functionality on top. Processors mentioned in the
 configuration are automatically initialized for the end user.</p>
@@ -253,7 +253,7 @@ in text strings</p></li>
 </dl>
 <dl class="py method">
 <dt id="mmf.datasets.base_dataset.BaseDataset.load_item">
-<code class="sig-name descname">load_item</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">idx</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset.html#BaseDataset.load_item"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.base_dataset.BaseDataset.load_item" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">load_item</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset.html#BaseDataset.load_item"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset.BaseDataset.load_item" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement if you need to separately load the item and cache it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -264,7 +264,7 @@ in text strings</p></li>
 
 <dl class="py method">
 <dt id="mmf.datasets.base_dataset.BaseDataset.prepare_batch">
-<code class="sig-name descname">prepare_batch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset.html#BaseDataset.prepare_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mmf.datasets.base_dataset.BaseDataset.prepare_batch" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">prepare_batch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset.html#BaseDataset.prepare_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset.BaseDataset.prepare_batch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Can be possibly overridden in your child class. Not supported w Lightning
 trainer</p>
 <p>Prepare batch for passing to model. Whatever returned from here will
