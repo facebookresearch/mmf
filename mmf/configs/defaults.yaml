@@ -41,9 +41,13 @@ training:
     # Tensorboard control, by default tensorboard is disabled
     tensorboard: false
 
-    # Size of each batch. If distributed or data_parallel
+    # Size of the batch globally. If distributed or data_parallel
     # is used, this will be divided equally among GPUs
     batch_size: 512
+    # Size of the batch per GPU. Use this if you want to specify batch size
+    # per GPU instead of global batch size.
+    # Mutually exclusive with training.batch_size.
+    batch_size_per_device: null
     # Run update_frequency=K batches with batch_size=N, accumulate gradients, then do
     # one update (one optimizer step). The effect is a large effective batch size of
     # KxN (without incurring the memory overhead of setting batch_size to KxN).

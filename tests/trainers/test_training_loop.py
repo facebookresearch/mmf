@@ -1,13 +1,15 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import torch
 from mmf.common.meter import Meter
+from mmf.common.registry import registry
 from mmf.common.sample import SampleList
 from mmf.trainers.callbacks.lr_scheduler import LRSchedulerCallback
 from mmf.trainers.mmf_trainer import MMFTrainer
+from mmf.utils.general import get_batch_size
 from omegaconf import OmegaConf
 from tests.test_utils import NumbersDataset, SimpleModel
 
@@ -22,24 +24,35 @@ class TrainerTrainingLoopMock(MMFTrainer):
         optimizer=None,
         update_frequency=1,
         batch_size=1,
+        batch_size_per_device=None,
         fp16=False,
         on_update_end_fn=None,
         scheduler_config=None,
         grad_clipping_config=None,
     ):
         if config is None:
-            self.training_config = OmegaConf.create(
+            self.config = OmegaConf.create(
                 {
-                    "detect_anomaly": False,
-                    "evaluation_interval": 10000,
-                    "update_frequency": update_frequency,
-                    "fp16": fp16,
-                    "batch_size": batch_size,
+                    "training": {
+                        "detect_anomaly": False,
+                        "evaluation_interval": 10000,
+                        "update_frequency": update_frequency,
+                        "fp16": fp16,
+                        "batch_size": batch_size,
+                        "batch_size_per_device": batch_size_per_device,
+                    }
                 }
             )
+            self.training_config = self.config.training
         else:
             self.training_config = config.training
             self.config = config
+
+        # Load batch size with custom config and cleanup
+        original_config = registry.get("config")
+        registry.register("config", self.config)
+        batch_size = get_batch_size()
+        registry.register("config", original_config)
 
         if max_updates is not None:
             self.training_config["max_updates"] = max_updates
@@ -222,6 +235,25 @@ class TestTrainingLoop(unittest.TestCase):
 
     def test_updates(self):
         trainer = TrainerTrainingLoopMock(100, 2, None)
+        max_updates = trainer._calculate_max_updates()
+        self.assertEqual(max_updates, 2)
+
+        self.check_values(trainer, 0, 0, 0)
+        trainer.training_loop()
+        self.check_values(trainer, 2, 1, 2)
+
+    def test_batch_size_per_device(self):
+        # Need to patch the mmf.utils.general's world size not mmf.utils.distributed
+        # as the first one is what will be used
+        with patch("mmf.utils.general.get_world_size", return_value=2):
+            trainer = TrainerTrainingLoopMock(100, 2, None, batch_size=4)
+            # Train loader has batch size per device, for global batch size 4
+            # with world size 2, batch size per device should 4 // 2 = 2
+            self.assertEqual(trainer.train_loader.batch_size, 2)
+            # This is per device, so should stay same
+            trainer = TrainerTrainingLoopMock(100, 2, None, batch_size_per_device=4)
+            self.assertEqual(trainer.train_loader.batch_size, 4)
+
         max_updates = trainer._calculate_max_updates()
         self.assertEqual(max_updates, 2)
 
