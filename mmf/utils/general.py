@@ -253,8 +253,18 @@ def get_batch_size():
     from mmf.utils.configuration import get_global_config
 
     batch_size = get_global_config("training.batch_size")
-
     world_size = get_world_size()
+
+    batch_size_per_device = get_global_config("training.batch_size_per_device")
+
+    if batch_size_per_device is not None:
+        logger.info(
+            f"training.batch_size_per_device has been used as {batch_size_per_device} "
+            + "This will override training.batch_size and set the global batch size to "
+            + f"{batch_size_per_device} x {world_size} = "
+            + f"{batch_size_per_device * world_size}"
+        )
+        batch_size = batch_size_per_device * world_size
 
     if batch_size % world_size != 0:
         raise RuntimeError(
