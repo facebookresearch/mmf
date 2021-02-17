@@ -42,7 +42,7 @@ def synchronize(message="sync-workers"):
 
 
 def is_xla():
-    return registry.get("is_xla")
+    return registry.get("is_xla", no_warning=True)
 
 
 def get_rank():
