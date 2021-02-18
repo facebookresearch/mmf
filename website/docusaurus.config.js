@@ -19,13 +19,15 @@ module.exports = {
   projectName: 'mmf',
   themeConfig: {
     image: 'img/logo.png',
-    // defaultDarkMode: false,
-    disableDarkMode: true,
     googleAnalytics: {
       trackingID: 'UA-135079836-3',
     },
     gtag: {
       trackingID: 'UA-135079836-3',
+    },
+    colorMode: {
+      defaultMode: 'light',
+      disableSwitch: true,
     },
     sidebarCollapsible: false,
     navbar: {
@@ -34,7 +36,7 @@ module.exports = {
         alt: 'MMF Logo',
         src: 'img/banner_logo.svg',
       },
-      links: [
+      items: [
         {
           to: 'docs',
           activeBasePath: 'docs',
@@ -103,7 +105,6 @@ module.exports = {
       {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          homePageId: 'getting_started/installation',
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
           editUrl:

@@ -6,7 +6,7 @@ sidebar_label: Pretrained Models
 
 **[Outdated]** A new version of this will be uploaded soon
 
-Performing inference using pretrained models in MMF is easy. Pickup a pretrained model from the table below and follow the steps to do inference or generate predictions for EvalAI evaluation. This section expects that you have already installed the required data as explained in [quickstart](./quickstart).
+Performing inference using pretrained models in MMF is easy. Pickup a pretrained model from the table below and follow the steps to do inference or generate predictions for EvalAI evaluation. This section expects that you have already installed the required data as explained in [quickstart](../getting_started/quickstart.md).
 
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
