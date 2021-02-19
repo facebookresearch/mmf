@@ -17,7 +17,6 @@ class BaseTransformerInput(NamedTuple):
     position_ids: Dict[str, Tensor]  # dict of position ids for all modalities
     segment_ids: Dict[str, Tensor]  # dict of segment/token type ids for all modalities
     masks: Dict[str, Tensor]  # dict of masks for all modalities
-    mlm_labels_list: List[Tensor]  # list of text token masks for all modalities
 
 
 @dataclass
@@ -184,22 +183,24 @@ class BaseTransformer(BaseModel):
         # Tie weights if required
         self.tie_weights()
 
-    def preprocess_sample(self, sample_list: Dict[str, Any]) -> BaseTransformerInput:
+    def preprocess_sample(
+        self, sample_list: Dict[str, Any]
+    ) -> Dict[str, Dict[str, Tensor]]:
         """Preprocess the sample_list and returns input ids, position ids, segment or
         token type ids and masks for different modalities.
 
         Returns:
-            BaseTransformerInput: BaseTransformerInput containing input_ids,
-                position_ids, segment_ids, masks
+            Dict[str, Dict[str, Tensor]]: containing input_ids, position_ids,
+                segment_ids, masks
         """
         return
 
     def forward(self, sample_list: Dict[str, Any]) -> Dict[str, Tensor]:
         r"""Forward pass of the model. The input sample_list can be preprocessed using
-        the preprocess_sample method which expects to return a BaseTransformerInput
-        object. BaseTransformerInput contains different properties of the input
-        modalities and the masks. These can be used to generate embeddings for each
-        modality and also create attention mask.
+        the preprocess_sample method which expects to return a
+        Dict[str, Dict[str, Tensor]] object. It contains different properties of the
+        input modalities and the masks. These can be used to generate embeddings for
+        each modality and also create attention mask.
 
         Flow of how the forward pass can be implemented using various modules in
         BaseTransformer:
