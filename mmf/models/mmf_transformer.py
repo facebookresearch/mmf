@@ -8,7 +8,6 @@ from mmf.common.registry import registry
 from mmf.models.transformers.base import (
     BaseTransformer,
     BaseTransformerBackendConfig,
-    BaseTransformerInput,
     BaseTransformerModalityConfig,
 )
 from mmf.modules.encoders import ResNet152ImageEncoder
@@ -30,14 +29,6 @@ class MMFTransformerModalityConfig(BaseTransformerModalityConfig):
 @dataclass
 class MMFTransformerBackendConfig(BaseTransformerBackendConfig):
     pass
-
-
-class MMFTransformerInput(BaseTransformerInput):
-    input_ids: Dict[str, Tensor]  # dict of input ids for all modalities
-    position_ids: Dict[str, Tensor]  # dict of position ids for all modalities
-    segment_ids: Dict[str, Tensor]  # dict of segment/token type ids for all modalities
-    masks: Dict[str, Tensor]  # dict of masks for all modalities
-    mlm_labels_list: List[Tensor]  # list of text token masks for all modalities
 
 
 # Can be used with mmft or mmf_transformer
@@ -155,21 +146,39 @@ class MMFTransformer(BaseTransformer):
         if self.config.training_head_type == "pretraining":
             self.ce_loss = nn.CrossEntropyLoss(ignore_index=-1)
 
-    def preprocess_sample(self, sample_list: Dict[str, Tensor]) -> BaseTransformerInput:
-        """Preprocess the sample list elements and form a BaseTransformerInput
-        type object. This object standardizes how we represent multiple modalities.
-        Check the definition of this dataclass in BaseTransformer.
+    def preprocess_sample(
+        self, sample_list: Dict[str, Tensor]
+    ) -> Dict[str, Dict[str, Tensor]]:
+        """Preprocess the sample list elements and return a Dict[str, Dict[str, Tensor]]
+        object. This object standardizes how we represent multiple modalities. Check
+        the definition of this in BaseTransformer.
+
+        Returns:
+            Dict[str, Dict[str, Tensor]]: containing input_ids, position_ids,
+                segment_ids, masks and mlm_labels
+
+                input_ids: dict of input ids for all modalities
+                position_ids: dict of position ids for all modalities
+                segment_ids: dict of segment/token type ids for all modalities
+                masks: dict of masks for all modalities
+                mlm_labels: dict of mlm labels for all modalities, also contains
+                    key `combined_labels` which is a concatenation of all labels
+                    in order of modalities
         """
 
         input_ids = self._infer_input_ids(sample_list)
         position_ids = self._infer_position_ids(input_ids)
         masks = self._infer_masks(sample_list, input_ids)
         segment_ids = self._infer_segment_ids(sample_list, input_ids)
-        mlm_labels_list = self._infer_mlm_labels(sample_list, input_ids)
+        mlm_labels = self._infer_mlm_labels(sample_list, input_ids)
 
-        return MMFTransformerInput(
-            input_ids, position_ids, segment_ids, masks, mlm_labels_list
-        )
+        return {
+            "input_ids": input_ids,
+            "position_ids": position_ids,
+            "segment_ids": segment_ids,
+            "masks": masks,
+            "mlm_labels": mlm_labels,
+        }
 
     def _infer_input_ids(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
         # Input IDs (or text tokens/image features)
@@ -307,7 +316,7 @@ class MMFTransformer(BaseTransformer):
 
     def _infer_mlm_labels(
         self, sample_list: Dict[str, Tensor], input_ids: Dict[str, Tensor]
-    ) -> List[Tensor]:
+    ) -> Dict[str, Tensor]:
         # MLM Labels
         mlm_labels: Dict[str, Tensor] = {}
         current_text_idx = 0
@@ -332,7 +341,9 @@ class MMFTransformer(BaseTransformer):
         for modality in self.modality_keys:
             mlm_labels_list.append(mlm_labels[modality])
 
-        return mlm_labels_list
+        mlm_labels["combined_labels"] = torch.cat(mlm_labels_list, dim=-1)
+
+        return mlm_labels
 
     def forward(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
         # Sample preprocess
@@ -341,13 +352,13 @@ class MMFTransformer(BaseTransformer):
         # Arrange masks in a list
         masks = []
         for modality in self.modality_keys:
-            masks.append(processed_sample_list.masks[modality])
+            masks.append(processed_sample_list["masks"][modality])
 
         # Call transformer backend
         sequence_output, encoded_layers = self.backend(
-            processed_sample_list.input_ids,
-            processed_sample_list.position_ids,
-            processed_sample_list.segment_ids,
+            processed_sample_list["input_ids"],
+            processed_sample_list["position_ids"],
+            processed_sample_list["segment_ids"],
             masks,
         )
 
@@ -372,7 +383,7 @@ class MMFTransformer(BaseTransformer):
         return output_dict
 
     def postprocess_output(
-        self, prediction: Tensor, processed_sample_list: MMFTransformerInput
+        self, prediction: Tensor, processed_sample_list: Dict[str, Dict[str, Tensor]]
     ) -> Dict[str, Tensor]:
         """Postprocess the output from the classifier head and reshape it.
         This will be used to calculate losses and metrics in mmf.
@@ -383,10 +394,11 @@ class MMFTransformer(BaseTransformer):
         elif self.training_head_type == "pretraining":
             if not torch.jit.is_scripting():
                 output_dict["logits"] = prediction
-                masked_labels = torch.cat(processed_sample_list.mlm_labels_list, dim=-1)
                 masked_lm_loss = self.ce_loss(
                     prediction.contiguous().view(-1, self.vocab_size),
-                    masked_labels.contiguous().view(-1),
+                    processed_sample_list["mlm_labels"]["combined_labels"]
+                    .contiguous()
+                    .view(-1),
                 )
                 output_dict["losses"] = {}
                 output_dict["losses"]["masked_lm_loss"] = masked_lm_loss

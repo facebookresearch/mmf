@@ -194,31 +194,31 @@ class TestMMFTransformer(unittest.TestCase):
         sample_list.text = torch.randint(0, 512, (2, 128))
 
         transformer_input = mmft.preprocess_sample(sample_list)
-        input_ids = transformer_input.input_ids
+        input_ids = transformer_input["input_ids"]
         self.assertEqual(input_ids["image"].dim(), 3)
         self.assertEqual(list(input_ids["image"].size()), [2, 1, 256])
 
         self.assertEqual(input_ids["text"].dim(), 2)
         self.assertEqual(list(input_ids["text"].size()), [2, 128])
 
-        position_ids = transformer_input.position_ids
+        position_ids = transformer_input["position_ids"]
         test_utils.compare_tensors(position_ids["image"], torch.tensor([[0], [0]]))
         test_utils.compare_tensors(
             position_ids["text"], torch.arange(0, 128).unsqueeze(0).expand((2, 128))
         )
 
-        masks = transformer_input.masks
+        masks = transformer_input["masks"]
         masks = mmft._infer_masks(sample_list, input_ids)
         test_utils.compare_tensors(masks["image"], torch.tensor([[1], [1]]))
         test_utils.compare_tensors(masks["text"], torch.ones((2, 128)).long())
 
-        segment_ids = transformer_input.segment_ids
+        segment_ids = transformer_input["segment_ids"]
         test_utils.compare_tensors(segment_ids["image"], torch.tensor([[0], [0]]))
         test_utils.compare_tensors(segment_ids["text"], torch.ones((2, 128)).long())
 
-        mlm_labels_list = transformer_input.mlm_labels_list
+        mlm_labels = transformer_input["mlm_labels"]
         test_utils.compare_tensors(
-            torch.cat(mlm_labels_list, dim=-1),
+            mlm_labels["combined_labels"],
             torch.full((2, 129), dtype=torch.long, fill_value=-1),
         )
 
@@ -281,7 +281,7 @@ class TestMMFTransformer(unittest.TestCase):
         self._compare_processed_for_multimodality(transformer_input, lm_labels_sum)
 
     def _compare_processed_for_multimodality(self, transformer_input, lm_labels_sum=0):
-        input_ids = transformer_input.input_ids
+        input_ids = transformer_input["input_ids"]
         self.assertEqual(input_ids["image"].dim(), 3)
         self.assertEqual(list(input_ids["image"].size()), [2, 1, 256])
 
@@ -295,7 +295,7 @@ class TestMMFTransformer(unittest.TestCase):
         # Test encoder with resnet
         # Test input_mask case, test modality_mask case
 
-        position_ids = transformer_input.position_ids
+        position_ids = transformer_input["position_ids"]
         test_utils.compare_tensors(position_ids["image"], torch.tensor([[0], [0]]))
         test_utils.compare_tensors(
             position_ids["body"], torch.arange(0, 128).unsqueeze(0).expand((2, 128))
@@ -304,12 +304,12 @@ class TestMMFTransformer(unittest.TestCase):
             position_ids["ocr"], torch.arange(0, 128).unsqueeze(0).expand((2, 128))
         )
 
-        masks = transformer_input.masks
+        masks = transformer_input["masks"]
         test_utils.compare_tensors(masks["image"], torch.tensor([[1], [1]]))
         test_utils.compare_tensors(masks["body"], torch.ones((2, 128)).long())
         test_utils.compare_tensors(masks["ocr"], torch.ones((2, 128)).long())
 
-        segment_ids = transformer_input.segment_ids
+        segment_ids = transformer_input["segment_ids"]
         test_utils.compare_tensors(segment_ids["image"], torch.tensor([[0], [0]]))
         test_utils.compare_tensors(segment_ids["body"], torch.ones((2, 128)).long())
         test_utils.compare_tensors(
@@ -317,12 +317,10 @@ class TestMMFTransformer(unittest.TestCase):
             torch.full((2, 128), dtype=torch.long, fill_value=2).long(),
         )
 
-        mlm_labels_list = transformer_input.mlm_labels_list
-        self.assertEqual(list(torch.cat(mlm_labels_list, dim=-1).size()), [2, 257])
+        mlm_labels = transformer_input["mlm_labels"]
+        self.assertEqual(list(mlm_labels["combined_labels"].size()), [2, 257])
         # -2 is for image negative labels
-        self.assertEqual(
-            torch.cat(mlm_labels_list, dim=-1).sum().item(), lm_labels_sum - 2
-        )
+        self.assertEqual(mlm_labels["combined_labels"].sum().item(), lm_labels_sum - 2)
 
     def test_custom_feature_and_mask_preprocessing(self):
         extra_modality = MMFTransformerModalityConfig(
@@ -352,7 +350,7 @@ class TestMMFTransformer(unittest.TestCase):
         sample_list.my_random_feature_mask[:, 3:] = 0
 
         transformer_input = mmft.preprocess_sample(sample_list)
-        input_ids = transformer_input.input_ids
+        input_ids = transformer_input["input_ids"]
         self.assertEqual(input_ids["image"].dim(), 3)
         self.assertEqual(list(input_ids["image"].size()), [2, 1, 256])
 
@@ -362,7 +360,7 @@ class TestMMFTransformer(unittest.TestCase):
         self.assertEqual(input_ids["my_random_feature"].dim(), 3)
         self.assertEqual(list(input_ids["my_random_feature"].size()), [2, 4, 128])
 
-        position_ids = transformer_input.position_ids
+        position_ids = transformer_input["position_ids"]
         test_utils.compare_tensors(position_ids["image"], torch.tensor([[0], [0]]))
         test_utils.compare_tensors(
             position_ids["text"], torch.arange(0, 128).unsqueeze(0).expand((2, 128))
@@ -372,12 +370,12 @@ class TestMMFTransformer(unittest.TestCase):
             torch.arange(0, 4).unsqueeze(0).expand((2, 4)),
         )
 
-        masks = transformer_input.masks
+        masks = transformer_input["masks"]
         test_utils.compare_tensors(masks["image"], torch.tensor([[1], [1]]))
         self.assertEqual(masks["text"].sum().item(), 140)
         self.assertEqual(masks["my_random_feature"].sum().item(), 6)
 
-        segment_ids = transformer_input.segment_ids
+        segment_ids = transformer_input["segment_ids"]
         test_utils.compare_tensors(segment_ids["image"], torch.tensor([[0], [0]]))
         test_utils.compare_tensors(segment_ids["text"], torch.ones((2, 128)).long())
         test_utils.compare_tensors(
@@ -407,23 +405,23 @@ class TestMMFTransformer(unittest.TestCase):
 
         transformer_input = mmft.preprocess_sample(sample_list)
 
-        input_ids = transformer_input.input_ids
+        input_ids = transformer_input["input_ids"]
         self.assertEqual(input_ids["image"].dim(), 3)
         self.assertEqual(list(input_ids["image"].size()), [2, 1, 2048])
 
         self.assertEqual(input_ids["text"].dim(), 2)
         self.assertEqual(list(input_ids["text"].size()), [2, 128])
 
-        position_ids = transformer_input.position_ids
+        position_ids = transformer_input["position_ids"]
         test_utils.compare_tensors(position_ids["image"], torch.tensor([[0], [0]]))
         test_utils.compare_tensors(
             position_ids["text"], torch.arange(0, 128).unsqueeze(0).expand((2, 128))
         )
 
-        masks = transformer_input.masks
+        masks = transformer_input["masks"]
         test_utils.compare_tensors(masks["image"], torch.tensor([[1], [1]]))
         test_utils.compare_tensors(masks["text"], torch.ones((2, 128)).long())
 
-        segment_ids = transformer_input.segment_ids
+        segment_ids = transformer_input["segment_ids"]
         test_utils.compare_tensors(segment_ids["image"], torch.tensor([[0], [0]]))
         test_utils.compare_tensors(segment_ids["text"], torch.ones((2, 128)).long())
