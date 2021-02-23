@@ -110,7 +110,7 @@ class VocabDict:
     UNK_INDEX = 3
 
     def __init__(self, vocab_file, data_dir=None):
-        if not os.path.isabs(vocab_file) and data_dir is not None:
+        if not PathManager.exists(vocab_file) and data_dir is not None:
             vocab_file = get_absolute_path(os.path.join(data_dir, vocab_file))
 
         if not PathManager.exists(vocab_file):
