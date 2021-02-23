@@ -9,7 +9,6 @@
 # index saved with key "objects" in info list will match the Visual Genome
 # category mapping.
 import argparse
-import glob
 import os
 
 import cv2
@@ -23,16 +22,24 @@ from maskrcnn_benchmark.utils.model_serialization import load_state_dict
 from mmf.utils.download import download
 from PIL import Image
 
+from tools.scripts.features.extraction_utils import chunks, get_image_files
+
 
 class FeatureExtractor:
+
     MODEL_URL = {
-        "X-101": "https://dl.fbaipublicfiles.com/pythia/detectron_model/detectron_model.pth",
-        "X-152": "https://dl.fbaipublicfiles.com/pythia/detectron_model/detectron_model_x152.pth",
+        "X-101": "https://dl.fbaipublicfiles.com/pythia/"
+        + "detectron_model/detectron_model.pth",
+        "X-152": "https://dl.fbaipublicfiles.com/pythia/"
+        + "detectron_model/detectron_model_x152.pth",
     }
     CONFIG_URL = {
-        "X-101": "https://dl.fbaipublicfiles.com/pythia/detectron_model/detectron_model.yaml",
-        "X-152": "https://dl.fbaipublicfiles.com/pythia/detectron_model/detectron_model_x152.yaml",
+        "X-101": "https://dl.fbaipublicfiles.com/pythia/"
+        + "detectron_model/detectron_model.yaml",
+        "X-152": "https://dl.fbaipublicfiles.com/pythia/"
+        + "detectron_model/detectron_model_x152.yaml",
     }
+
     MAX_SIZE = 1333
     MIN_SIZE = 800
 
@@ -244,10 +251,6 @@ class FeatureExtractor:
 
         return feat_list
 
-    def _chunks(self, array, chunk_size):
-        for i in range(0, len(array), chunk_size):
-            yield array[i : i + chunk_size]
-
     def _save_feature(self, file_name, feature, info):
         file_base_name = os.path.basename(file_name)
         file_base_name = file_base_name.split(".")[0]
@@ -265,44 +268,19 @@ class FeatureExtractor:
             features, infos = self.get_detectron_features([image_dir])
             self._save_feature(image_dir, features[0], infos[0])
         else:
-            files = glob.glob(os.path.join(image_dir, "*.png"))
-            files.extend(glob.glob(os.path.join(image_dir, "*.jpg")))
-            files.extend(glob.glob(os.path.join(image_dir, "*.jpeg")))
-            files = {f: 1 for f in files}
-            exclude = {}
 
-            if os.path.exists(self.args.exclude_list):
-                with open(self.args.exclude_list) as f:
-                    lines = f.readlines()
-                    for line in lines:
-                        exclude[
-                            line.strip("\n").split(os.path.sep)[-1].split(".")[0]
-                        ] = 1
-            output_files = glob.glob(os.path.join(self.args.output_folder, "*.npy"))
-            output_dict = {}
-            for f in output_files:
-                file_name = f.split(os.path.sep)[-1].split(".")[0]
-                output_dict[file_name] = 1
-
-            for f in list(files.keys()):
-                file_name = f.split(os.path.sep)[-1].split(".")[0]
-                if file_name in output_dict or file_name in exclude:
-                    files.pop(f)
-
-            files = list(files.keys())
+            files = get_image_files(
+                self.args.image_dir,
+                exclude_list=self.args.exclude_list,
+                start_index=self.args.start_index,
+                end_index=self.args.end_index,
+                output_folder=self.args.output_folder,
+            )
 
             finished = 0
+            total = len(files)
 
-            end_index = self.args.end_index
-            if end_index is None:
-                end_index = len(files)
-            start_index = self.args.start_index
-
-            total = len(files[start_index:end_index])
-
-            for chunk in self._chunks(
-                files[start_index:end_index], self.args.batch_size
-            ):
+            for chunk, begin_idx in chunks(files, self.args.batch_size):
                 features, infos = self.get_detectron_features(chunk)
                 for idx, file_name in enumerate(chunk):
                     self._save_feature(file_name, features[idx], infos[idx])
