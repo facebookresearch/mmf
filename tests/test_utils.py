@@ -60,6 +60,18 @@ def skip_if_macos(testfn, reason="Doesn't run on MacOS"):
     return unittest.skipIf("Darwin" in platform.system(), reason)(testfn)
 
 
+def skip_if_non_fb(testfn, reason="Doesn't run on non FB infra"):
+    return unittest.skipUnless(
+        (
+            os.getenv("SANDCASTLE") == "1"
+            or os.getenv("TW_JOB_USER") == "sandcastle"
+            or socket.gethostname().startswith("dev")
+            or "fbinfra" in socket.gethostname()
+        ),
+        reason,
+    )(testfn)
+
+
 def compare_state_dicts(a, b):
     same = True
     same = same and (list(a.keys()) == list(b.keys()))

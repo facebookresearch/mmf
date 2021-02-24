@@ -7,7 +7,7 @@ known_third_party = [
     "recommonmark", "requests", "setuptools", "sklearn", "termcolor", "tests", "torch",
     "torchtext", "torchvision", "tqdm", "transformers", "pytorch_lightning"
 ]
-skip_glob = "**/build/**,website/**"
+skip_glob = "**/build/**,website/**,**/fb/**"
 combine_as_imports = true
 force_grid_wrap = false
 include_trailing_comma = true
@@ -30,5 +30,6 @@ exclude = '''
   | build
   | dist
   | website
+  | .*\/fb\/.*
 )/
 '''
