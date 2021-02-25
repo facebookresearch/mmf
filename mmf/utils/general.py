@@ -26,15 +26,18 @@ def lr_lambda_update(i_iter, cfg):
         return pow(cfg.training.lr_ratio, idx)
 
 
-def clip_gradients(model, i_iter, writer, config, scale=1.0):
+def clip_gradients(model, optimizer, i_iter, writer, config, scale=1.0):
     max_grad_l2_norm = config.training.max_grad_l2_norm
     clip_norm_mode = config.training.clip_norm_mode
 
     if max_grad_l2_norm is not None:
         if clip_norm_mode == "all":
-            norm = nn.utils.clip_grad_norm_(
-                model.parameters(), max_grad_l2_norm * scale
-            )
+            if hasattr(optimizer, "clip_grad_norm"):
+                norm = optimizer.clip_grad_norm(max_grad_l2_norm * scale)
+            else:
+                norm = nn.utils.clip_grad_norm_(
+                    model.parameters(), max_grad_l2_norm * scale
+                )
             if writer is not None:
                 writer.add_scalars({"grad_norm": norm}, i_iter)
         else:
