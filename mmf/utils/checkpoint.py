@@ -431,7 +431,8 @@ class Checkpoint:
         # Backwards compatibility to Pythia
         _hack_imports()
 
-        with PathManager.open(file, "rb") as f:
+        local_path = PathManager.get_local_path(file)
+        with PathManager.open(local_path, "rb") as f:
             if "cuda" in str(self.device):
                 return torch.load(f, map_location=self.device)
             else:
