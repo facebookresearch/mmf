@@ -77,7 +77,7 @@ class TestShardedDDP(unittest.TestCase):
         if torch.distributed.is_initialized():
             torch.distributed.destroy_process_group()
         del self.trainer
-        registry.unregister("config")
+        registry.unregister("distributed")
 
     @skip_if_no_cuda
     @unittest.skipUnless(FAIRSCALE_AVAILABLE, "Tests for fairscale")
