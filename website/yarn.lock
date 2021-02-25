@@ -5022,12 +5022,12 @@ doctrine@^3.0.0:
   dependencies:
     esutils "^2.0.2"
 
-docusaurus-plugin-internaldocs-fb@^0.6.1:
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/docusaurus-plugin-internaldocs-fb/-/docusaurus-plugin-internaldocs-fb-0.6.1.tgz#aba5f5a4c28e4c1caad5451c18ed775db4dbf6c3"
-  integrity sha512-71pwIrHJ1uCo2oA4NIVGQO5FigjbC3YtdLqD40ouQaRRjORzSaWP6s5o3mBOC1uI8B38nR+A6LNAH9Mp/eYeow==
+docusaurus-plugin-internaldocs-fb@^0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/docusaurus-plugin-internaldocs-fb/-/docusaurus-plugin-internaldocs-fb-0.7.0.tgz#3eecd8a781eacaacb6a3d060d9bfab5110c14acb"
+  integrity sha512-Mi2uanibcdbq9U17VCMdwOGY1fcGyPnoOQVtwir7HMHa1hm//7vuWbcaR1qYs2MvprkgE0NgidRKL8ChnEjdBA==
   dependencies:
-    internaldocs-fb-helpers "^1.1.0"
+    internaldocs-fb-helpers "^1.4.0"
     remark-code-snippets "^0.1.4"
     remark-mdx-filter-imports "^0.1.2"
 
@@ -7032,11 +7032,6 @@ internal-slot@^1.0.2:
     es-abstract "^1.17.0-next.1"
     has "^1.0.3"
     side-channel "^1.0.2"
-
-internaldocs-fb-helpers@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/internaldocs-fb-helpers/-/internaldocs-fb-helpers-1.1.0.tgz#b2bbcfd06e7c902bd73d2d5e4208019db06935e4"
-  integrity sha512-KnVBhR88NNVklckj39wGu489i8wsUhlbLXXSsySas9lV5LWIZml6s/X0Zo1yzglAzzPxCv3OQw+pW7BGYwaMvw==
 
 internaldocs-fb-helpers@^1.4.0:
   version "1.4.0"
