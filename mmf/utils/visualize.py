@@ -5,7 +5,8 @@ from typing import Any, List, Optional, Tuple
 import numpy as np
 import torch
 import torchvision
-from mmf.utils.features.visualizing_image import SingleImageViz, img_tensorize
+from mmf.datasets.processors.frcnn_processor import img_tensorize
+from mmf.utils.features.visualizing_image import SingleImageViz
 from PIL import Image
 
 

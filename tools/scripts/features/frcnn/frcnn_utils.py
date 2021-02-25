@@ -22,18 +22,15 @@ import pickle as pkl
 import shutil
 import tarfile
 from collections import OrderedDict
-from io import BytesIO
 from pathlib import Path
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
-import cv2
 import numpy as np
 import requests
 from filelock import FileLock
 from mmf.utils.configuration import get_mmf_cache_dir
 from omegaconf import OmegaConf
-from PIL import Image
 
 
 mmf_cache_home = get_mmf_cache_dir()
@@ -315,22 +312,3 @@ def get_data(query, delim=","):
                 data = data.split("\n")
         req.close()
     return data
-
-
-def get_image_from_url(url):
-    response = requests.get(url)
-    img = np.array(Image.open(BytesIO(response.content)))
-    return img
-
-
-def img_tensorize(im, input_format="RGB"):
-    assert isinstance(im, str)
-    if os.path.isfile(im):
-        img = cv2.imread(im)
-    else:
-        img = get_image_from_url(im)
-        assert img is not None, f"could not connect to: {im}"
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    if input_format == "RGB":
-        img = img[:, :, ::-1]
-    return img
