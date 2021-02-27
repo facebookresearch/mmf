@@ -5,8 +5,10 @@ import gc
 import logging
 import math
 import os
+import time
 import warnings
 from bisect import bisect
+from typing import Any, Callable
 
 import torch
 from mmf.utils.distributed import get_rank, get_world_size, is_xla
@@ -366,3 +368,43 @@ def get_current_device():
         return f"cuda:{torch.cuda.current_device()}"
     else:
         return torch.device("cpu")
+
+
+def retry_n(n: int, fn: Callable, log_tries=False, *args, **kwargs) -> Any:
+    """Retries a function n times with increasing exponentionally
+    increasing sleep intervals in between. First argument is number of tries
+    if n==1, means function will be called at least twice, first is try, second
+    is retry. Second argument is the function itself, rest of the arguments and
+    keyword arguments are passed to the function directly. Returns the output
+    of the function directly. if failed after n retries, the exception will be
+    raised.
+
+    Args:
+        n (int): Number of tries to be made
+        fn (Callable): Function to be called
+        log_tries (bool): If the function should log the try iteration. Default: False
+
+    Returns:
+        Any: Output from fn
+    """
+    completed = False
+    count = 0
+    output = None
+
+    while not completed:
+        try:
+            output = fn(*args, **kwargs)
+            completed = True
+        except Exception:
+            if count < n:
+                if log_tries:
+                    logger.info(
+                        f"Try {count + 1}/{n} failed for {fn.__name__}. Will retry "
+                        f"after {2 ** count} second(s)."
+                    )
+                time.sleep(2 ** count)
+                count += 1
+            else:
+                raise
+
+    return output
