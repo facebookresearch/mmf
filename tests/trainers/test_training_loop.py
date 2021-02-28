@@ -65,6 +65,7 @@ class TrainerTrainingLoopMock(MMFTrainer):
             self.device = "cuda"
         else:
             self.device = "cpu"
+        self.distributed = False
 
         self.dataset_loader = MagicMock()
         self.dataset_loader.seed_sampler = MagicMock(return_value=None)

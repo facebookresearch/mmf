@@ -195,6 +195,7 @@ class TrainerTrainingLoopMixin(ABC):
         if self.training_config.clip_gradients:
             clip_gradients(
                 self.model,
+                self.optimizer,
                 self.num_updates,
                 self.logistics_callback.tb_writer,
                 self.config,

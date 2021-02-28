@@ -28,7 +28,11 @@ class TestLightningTrainerGradClipping(unittest.TestCase, Callback):
 
         def _finish_update():
             clip_gradients(
-                mmf_trainer.model, mmf_trainer.num_updates, None, mmf_trainer.config
+                mmf_trainer.model,
+                mmf_trainer.optimizer,
+                mmf_trainer.num_updates,
+                None,
+                mmf_trainer.config,
             )
             for param in mmf_trainer.model.parameters():
                 mmf_grad = torch.clone(param.grad).detach().item()
