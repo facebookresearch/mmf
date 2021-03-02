@@ -325,6 +325,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">required_params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;dataset_name&quot;</span><span class="p">,</span> <span class="s2">&quot;dataset_type&quot;</span><span class="p">}</span>
         <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">metric_list</span><span class="p">:</span>
             <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">dataset_names</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
                 <span class="k">if</span> <span class="s2">&quot;type&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metric</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -343,6 +344,10 @@
                         <span class="sa">f</span><span class="s2">&quot;Metric with type/key &#39;</span><span class="si">{</span><span class="n">metric_type</span><span class="si">}</span><span class="s2">&#39; has been defined more &quot;</span>
                         <span class="o">+</span> <span class="s2">&quot;than once in metric list.&quot;</span>
                     <span class="p">)</span>
+
+                <span class="c1"># a custom list of dataset where this metric will be applied</span>
+                <span class="k">if</span> <span class="s2">&quot;datasets&quot;</span> <span class="ow">in</span> <span class="n">metric</span><span class="p">:</span>
+                    <span class="n">dataset_names</span> <span class="o">=</span> <span class="n">metric</span><span class="o">.</span><span class="n">datasets</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
@@ -359,6 +364,7 @@
 
             <span class="n">metric_instance</span> <span class="o">=</span> <span class="n">metric_cls</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
             <span class="n">metric_instance</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">key</span>
+            <span class="n">metric_instance</span><span class="o">.</span><span class="n">set_applicable_datasets</span><span class="p">(</span><span class="n">dataset_names</span><span class="p">)</span>
 
             <span class="n">metrics</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">metric_instance</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">required_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">metrics</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">required_params</span><span class="p">)</span>
@@ -373,6 +379,8 @@
 
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric_object</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">metric_object</span><span class="o">.</span><span class="n">is_dataset_applicable</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">):</span>
+                    <span class="k">continue</span>
                 <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dataset_type</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">metric_object</span><span class="o">.</span><span class="n">_calculate_with_checks</span><span class="p">(</span>
                     <span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
@@ -406,6 +414,9 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">required_params</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;scores&quot;</span><span class="p">,</span> <span class="s2">&quot;targets&quot;</span><span class="p">]</span>
+        <span class="c1"># the set of datasets where this metric will be applied</span>
+        <span class="c1"># an empty set means it will be applied on *all* datasets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataset_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -438,7 +449,13 @@
 
     <span class="k">def</span> <span class="nf">_calculate_with_checks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">value</span></div>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">set_applicable_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_names</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataset_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">dataset_names</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">is_dataset_applicable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dataset_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">dataset_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset_names</span></div>
 
 
 <div class="viewcode-block" id="Accuracy"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.Accuracy">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;accuracy&quot;</span><span class="p">)</span>
