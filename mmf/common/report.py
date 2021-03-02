@@ -76,6 +76,8 @@ class Report(OrderedDict):
 
     def accumulate_tensor_fields_and_loss(self, report, field_list):
         for key in field_list:
+            if key == "__prediction_report__":
+                continue
             if key not in self.keys():
                 warnings.warn(
                     f"{key} not found in report. Metrics calculation "

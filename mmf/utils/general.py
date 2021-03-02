@@ -373,7 +373,7 @@ def get_current_device():
         return torch.device("cpu")
 
 
-def retry_n(n: int, fn: Callable, log_tries=False, *args, **kwargs) -> Any:
+def retry_n(n: int, fn: Callable, *args, log_tries=False, **kwargs) -> Any:
     """Retries a function n times with increasing exponentionally
     increasing sleep intervals in between. First argument is number of tries
     if n==1, means function will be called at least twice, first is try, second

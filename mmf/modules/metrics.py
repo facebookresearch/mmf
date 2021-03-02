@@ -93,6 +93,7 @@ class Metrics:
         self.required_params = {"dataset_name", "dataset_type"}
         for metric in metric_list:
             params = {}
+            dataset_names = []
             if isinstance(metric, collections.abc.Mapping):
                 if "type" not in metric:
                     raise ValueError(
@@ -111,6 +112,10 @@ class Metrics:
                         f"Metric with type/key '{metric_type}' has been defined more "
                         + "than once in metric list."
                     )
+
+                # a custom list of dataset where this metric will be applied
+                if "datasets" in metric:
+                    dataset_names = metric.datasets
             else:
                 if not isinstance(metric, str):
                     raise TypeError(
@@ -127,6 +132,7 @@ class Metrics:
 
             metric_instance = metric_cls(**params)
             metric_instance.name = key
+            metric_instance.set_applicable_datasets(dataset_names)
 
             metrics[key] = metric_instance
             self.required_params.update(metrics[key].required_params)
@@ -141,6 +147,8 @@ class Metrics:
 
         with torch.no_grad():
             for metric_name, metric_object in self.metrics.items():
+                if not metric_object.is_dataset_applicable(dataset_name):
+                    continue
                 key = f"{dataset_type}/{dataset_name}/{metric_name}"
                 values[key] = metric_object._calculate_with_checks(
                     sample_list, model_output, *args, **kwargs
@@ -174,6 +182,9 @@ class BaseMetric:
     def __init__(self, name, *args, **kwargs):
         self.name = name
         self.required_params = ["scores", "targets"]
+        # the set of datasets where this metric will be applied
+        # an empty set means it will be applied on *all* datasets
+        self._dataset_names = set()
 
     @property
     def name(self):
@@ -207,6 +218,12 @@ class BaseMetric:
     def _calculate_with_checks(self, *args, **kwargs):
         value = self.calculate(*args, **kwargs)
         return value
+
+    def set_applicable_datasets(self, dataset_names):
+        self._dataset_names = set(dataset_names)
+
+    def is_dataset_applicable(self, dataset_name):
+        return len(self._dataset_names) == 0 or dataset_name in self._dataset_names
 
 
 @registry.register_metric("accuracy")
