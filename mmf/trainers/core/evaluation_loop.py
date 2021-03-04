@@ -32,6 +32,7 @@ class TrainerEvaluationLoopMixin(ABC):
                 combined_report = None
                 for batch in tqdm.tqdm(dataloader, disable=disable_tqdm):
                     prepared_batch = reporter.prepare_batch(batch)
+                    prepared_batch = to_device(prepared_batch, self.device)
                     model_output = self.model(prepared_batch)
                     report = Report(prepared_batch, model_output)
 
