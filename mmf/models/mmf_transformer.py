@@ -146,6 +146,11 @@ class MMFTransformer(BaseTransformer):
         if self.config.training_head_type == "pretraining":
             self.ce_loss = nn.CrossEntropyLoss(ignore_index=-1)
 
+    def tie_weights(self):
+        self.cls.predictions.decoder.weight = self.backend.embeddings.token_embeddings[
+            0
+        ].weight
+
     def preprocess_sample(
         self, sample_list: Dict[str, Tensor]
     ) -> Dict[str, Dict[str, Tensor]]:
@@ -370,6 +375,21 @@ class MMFTransformer(BaseTransformer):
             output_dict = self.postprocess_output(prediction, processed_sample_list)
         elif not torch.jit.is_scripting() and self.training_head_type == "pretraining":
             if not torch.jit.is_scripting():
+                masked_labels = processed_sample_list["mlm_labels"]["combined_labels"]
+
+                masked_tokens = masked_labels.ne(-1)
+                masked_tokens = torch.where(
+                    masked_tokens.any(),
+                    masked_tokens,
+                    masked_tokens.new([True]),
+                )
+                processed_sample_list["mlm_labels"][
+                    "combined_labels"
+                ] = processed_sample_list["mlm_labels"]["combined_labels"][
+                    masked_tokens
+                ]
+
+                sequence_output = sequence_output[masked_tokens, :]
                 prediction_score = self.cls(sequence_output)
                 output_dict = self.postprocess_output(
                     prediction_score, processed_sample_list
@@ -394,11 +414,10 @@ class MMFTransformer(BaseTransformer):
         elif self.training_head_type == "pretraining":
             if not torch.jit.is_scripting():
                 output_dict["logits"] = prediction
+                masked_labels = processed_sample_list["mlm_labels"]["combined_labels"]
                 masked_lm_loss = self.ce_loss(
-                    prediction.contiguous().view(-1, self.vocab_size),
-                    processed_sample_list["mlm_labels"]["combined_labels"]
-                    .contiguous()
-                    .view(-1),
+                    prediction.contiguous().view(-1, prediction.size(-1)),
+                    masked_labels.contiguous().view(-1),
                 )
                 output_dict["losses"] = {}
                 output_dict["losses"]["masked_lm_loss"] = masked_lm_loss
