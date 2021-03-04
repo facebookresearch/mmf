@@ -1,0 +1,13 @@
+includes:
+- configs/models/mmf_transformer/defaults.yaml
+
+model_config:
+  mmf_transformer:
+    heads:
+      - type: mlm
+        freeze: false
+        lr_multiplier: 1.0
+        # default for bert base
+        hidden_size: 768
+        # default vocab size for bert base
+        vocab_size: 30522

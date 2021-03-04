@@ -1,15 +1,19 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, NamedTuple, Tuple, Type
+from dataclasses import asdict, dataclass, field
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type
 
 from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.modules.encoders import IdentityEncoder
-from mmf.utils.modeling import get_optimizer_parameters_for_bert
-from omegaconf import MISSING
+from mmf.utils.modeling import get_bert_configured_parameters
+from omegaconf import MISSING, OmegaConf
 from torch import Tensor, nn
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseTransformerInput(NamedTuple):
@@ -98,7 +102,33 @@ class BaseTransformer(BaseModel):
         self.init_weights()
 
     def get_optimizer_parameters(self, config):
-        return get_optimizer_parameters_for_bert(self, config)
+        lr = config.optimizer.params.lr
+
+        param_list = []
+        parameters = []
+        head_configs = self.config.get("heads", [])
+        for name, module in self.named_children():
+            # Heads can have different learning rates. This is handled here
+            if name == "heads":
+                # Parameters in the head which have a separate learning
+                # rate, are added as a separate param group
+                for head_config, head in zip(head_configs, self.heads):
+                    lr_multiplier = head_config.get("lr_multiplier", 1.0)
+                    if lr_multiplier != 1.0:
+                        parameters += get_bert_configured_parameters(
+                            head, lr * lr_multiplier
+                        )
+                    else:
+                        # Parameters for head modules with same learning rate as
+                        # trunk, add to same param group
+                        param_list += list(module.named_parameters())
+            else:
+                # For other modules in trunk, add to same param group
+                param_list += list(module.named_parameters())
+
+        parameters += get_bert_configured_parameters(self)
+
+        return parameters
 
     def build_encoders(self):
         """Build any encoders for different input modalities. Encoders are used while
@@ -130,22 +160,13 @@ class BaseTransformer(BaseModel):
     def build_heads(self):
         """Build the different heads for the model. It can be either the pretraining
         head or the classifier heads.
-
-        Example ::
-
-            # For pretraining
-            self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(self.transformer_config),
-                nn.Linear(self.transformer_config.hidden_size, self.config.num_labels),
-            )
-
-            # For classification
-            self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(self.transformer_config),
-                nn.Linear(self.transformer_config.hidden_size, self.config.num_labels),
-            )
         """
-        return
+        self.heads = nn.ModuleList()
+        head_configs = self.config.get("heads", [])
+        for head_config in head_configs:
+            head_type = head_config.get("type", "mlp")
+            head_class = registry.get_transformer_head_class(head_type)
+            self.heads.append(head_class(head_config))
 
     def build_losses(self):
         """Initialize the losses for pretraining. For example MLM, MIM etc.
@@ -321,3 +342,37 @@ class BaseTransformerBackend(nn.Module, ABC):
 
         # Output Tuple(sequence output, all encoded layers)
         return encoded_layers[-1], encoded_layers
+
+
+class BaseTransformerHead(nn.Module, ABC):
+    @dataclass
+    class Config:
+        type: str = MISSING
+        # Whether to freeze the head parameters
+        freeze: bool = False
+        # LR multiplier for the head, (head_lr = base_lr * lr_multiplier)
+        lr_multiplier: float = 1.0
+
+    def __init__(self, config: Config, *args, **kwargs):
+        super().__init__()
+        self.config = OmegaConf.create({**asdict(self.Config()), **config})
+
+    @classmethod
+    def from_params(cls, **kwargs):
+        config = OmegaConf.structured(cls.Config(**kwargs))
+        return cls(config)
+
+    def tie_weights(self, module: Optional[nn.Module] = None):
+        pass
+
+    @abstractmethod
+    def forward(
+        self,
+        sequence_output: Tensor,
+        encoded_layers: List[Tensor],
+        processed_sample_list: Dict[str, Dict[str, Tensor]],
+    ) -> Dict[str, Tensor]:
+        """Forward for the head module.
+
+        Warning: Empty shell for code to be implemented in other class.
+        """

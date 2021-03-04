@@ -16,7 +16,12 @@ ACT2FN = {
 
 
 def get_bert_configured_parameters(module, lr=None):
-    param_optimizer = list(module.named_parameters())
+    # module param can either be a nn.Module or in some cases can also be
+    # a list of named parameters for a nn.Module
+    if isinstance(module, nn.Module):
+        param_optimizer = list(module.named_parameters())
+    elif isinstance(module, list):
+        param_optimizer = module
 
     no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
     optimizer_grouped_parameters = [
