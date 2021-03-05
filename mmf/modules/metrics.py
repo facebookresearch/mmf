@@ -46,6 +46,7 @@ Example config for above metric::
 
 import collections
 import warnings
+from typing import Dict
 
 import torch
 from mmf.common.registry import registry
@@ -56,6 +57,7 @@ from sklearn.metrics import (
     precision_recall_curve,
     roc_auc_score,
 )
+from torch import Tensor
 
 
 def _convert_to_one_hot(expected, output):
@@ -1056,3 +1058,147 @@ class RecallAtPrecisionK(BaseMetric):
             value = 0
 
         return expected.new_tensor(value, dtype=torch.float)
+
+
+@registry.register_metric("r@k_retrieval")
+class RecallAtK_ret(BaseMetric):
+    def __init__(self, name="recall@k"):
+        super().__init__(name)
+
+    def _get_RatK_multi(
+        self, correlations: Tensor, labels: Tensor, k: int, factor: int
+    ):
+        _, top_k_ids = torch.topk(correlations, k, dim=1)
+        hits = (
+            torch.logical_and(
+                labels[:, None] <= top_k_ids, top_k_ids < labels[:, None] + factor
+            )
+            .long()
+            .max(dim=1)[0]
+        )
+        return hits
+
+    def calculate(
+        self,
+        sample_list: Dict[str, Tensor],
+        model_output: Dict[str, Tensor],
+        k: int,
+        flip=False,
+        *args,
+        **kwargs,
+    ):
+        # calculate image to text retrieval recalls
+        # correlations shape is either BxB or Bx(5B)
+        # when flip=True, calculate text to image
+        image_embeddings = model_output["scores"]
+        text_embeddings = model_output["targets"]
+
+        correlations = image_embeddings @ text_embeddings.t()  # B x B or Bx5B
+        assert correlations.shape[1] % correlations.shape[0] == 0
+        batch_size = correlations.shape[0]
+        factor = correlations.shape[1] // correlations.shape[0]
+        labels = torch.arange(batch_size, device=image_embeddings.device) * factor
+        if flip:
+            correlations = correlations.t()  # 5B x B
+            labels = torch.arange(batch_size, device=image_embeddings.device)
+            labels = labels[:, None].expand(-1, factor).flatten()
+            factor = 1
+        hits = self._get_RatK_multi(correlations, labels, k, factor)
+        ratk = hits.sum().float() / hits.shape[0]
+        return ratk
+
+
+@registry.register_metric("r@1_retrieval")
+class RecallAt1_ret(RecallAtK_ret):
+    def __init__(self):
+        super().__init__("r@1")
+
+    def calculate(
+        self,
+        sample_list: Dict[str, Tensor],
+        model_output: Dict[str, Tensor],
+        *args,
+        **kwargs,
+    ):
+        ratk = super().calculate(sample_list, model_output, 1)
+        return ratk
+
+
+@registry.register_metric("r@1_rev_retrieval")
+class RecallAt1_rev_ret(RecallAtK_ret):
+    def __init__(self):
+        super().__init__("r@1_rev")
+
+    def calculate(
+        self,
+        sample_list: Dict[str, Tensor],
+        model_output: Dict[str, Tensor],
+        *args,
+        **kwargs,
+    ):
+        ratk = super().calculate(sample_list, model_output, 1, flip=True)
+        return ratk
+
+
+@registry.register_metric("r@5_retrieval")
+class RecallAt5_ret(RecallAtK_ret):
+    def __init__(self):
+        super().__init__("r@5")
+
+    def calculate(
+        self,
+        sample_list: Dict[str, Tensor],
+        model_output: Dict[str, Tensor],
+        *args,
+        **kwargs,
+    ):
+        ratk = super().calculate(sample_list, model_output, 5)
+        return ratk
+
+
+@registry.register_metric("r@5_rev_retrieval")
+class RecallAt5_rev_ret(RecallAtK_ret):
+    def __init__(self):
+        super().__init__("r@5_rev")
+
+    def calculate(
+        self,
+        sample_list: Dict[str, Tensor],
+        model_output: Dict[str, Tensor],
+        *args,
+        **kwargs,
+    ):
+        ratk = super().calculate(sample_list, model_output, 5, flip=True)
+        return ratk
+
+
+@registry.register_metric("r@10_retrieval")
+class RecallAt10_ret(RecallAtK_ret):
+    def __init__(self):
+        super().__init__("r@10")
+
+    def calculate(
+        self,
+        sample_list: Dict[str, Tensor],
+        model_output: Dict[str, Tensor],
+        *args,
+        **kwargs,
+    ):
+        ratk = super().calculate(sample_list, model_output, 10)
+        return ratk
+
+
+@registry.register_metric("r@10_rev_retrieval")
+class RecallAt10_rev_ret(RecallAtK_ret):
+    def __init__(self):
+        super().__init__("r@10_rev")
+
+    def calculate(
+        self,
+        sample_list: Dict[str, Tensor],
+        model_output: Dict[str, Tensor],
+        *args,
+        **kwargs,
+    ):
+        ratk = super().calculate(sample_list, model_output, 10, flip=True)
+        return ratk

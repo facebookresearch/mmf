@@ -579,3 +579,61 @@ class CrossEntropyLoss(nn.Module):
 
     def forward(self, sample_list, model_output):
         return self.loss_fn(model_output["scores"], sample_list.targets)
+
+
+@registry.register_loss("in_batch_hinge")
+class InBatchHinge(nn.Module):
+    """
+    Based on the code from https://github.com/fartashf/vsepp/blob/master/model.py
+    """
+
+    def __init__(self, margin: float = 0.0, hard: bool = False):
+        super().__init__()
+        self.margin = margin
+        self.hard = hard
+
+    def _compute_loss(self, correlations: Tensor):
+        diagonal = correlations.diag()[:, None]
+        d1 = diagonal.expand_as(correlations)
+        d2 = diagonal.t().expand_as(correlations)
+
+        # compare every diagonal score to scores in its column
+        # caption retrieval
+        cost_s = (self.margin + correlations - d1).clamp(min=0)
+        # compare every diagonal score to scores in its row
+        # image retrieval
+        cost_im = (self.margin + correlations - d2).clamp(min=0)
+
+        # clear diagonals
+        mask = 1 - torch.eye(correlations.size(0), device=correlations.device)
+        cost_s = cost_s * mask
+        cost_im = cost_im * mask
+
+        if self.hard:
+            cost_s = cost_s.max(1)[0]
+            cost_im = cost_im.max(0)[0]
+
+        return cost_s.sum() + cost_im.sum()
+
+    def forward(self, sample_list: Dict[str, Tensor], model_output: Dict[str, Tensor]):
+        image_embeddings = model_output["scores"]
+        text_embeddings = model_output["targets"]
+
+        if image_embeddings.shape[0] == text_embeddings.shape[0]:
+            # Training/Single-GT loss
+            correlations = image_embeddings @ text_embeddings.t()
+            loss = self._compute_loss(correlations)
+        else:
+            # Evaluation/Multi-GT loss
+            assert text_embeddings.shape[0] % image_embeddings.shape[0] == 0
+
+            batch_size, dim_size = image_embeddings.shape
+            factor = text_embeddings.shape[0] // image_embeddings.shape[0]
+            text_embeddings = text_embeddings.reshape(batch_size, factor, dim_size)
+            correlations = image_embeddings @ text_embeddings.permute(1, 2, 0)  # FxBxB
+
+            loss = 0
+            for corr in correlations:
+                loss += self._compute_loss(corr)
+
+        return loss

@@ -1,0 +1,78 @@
+dataset_config:
+  retrieval:
+      data_dir: ${env.data_dir}/datasets
+      use_images: true
+      use_features: true
+      zoo_requirements:
+        - flickr30k.defaults
+        - flickr_coco_captions.defaults
+      annotations_parser: flickr
+      images:
+        train:
+        - flickr30k/defaults/images/flickr30k_images
+        val:
+        - flickr30k/defaults/images/flickr30k_images
+        test:
+        - flickr30k/defaults/images/flickr30k_images
+      features:
+        train:
+        - flickr30k/defaults/features/detectron.lmdb
+        val:
+        - flickr30k/defaults/features/detectron.lmdb
+        test:
+        - flickr30k/defaults/features/detectron.lmdb
+      annotations:
+        train:
+        - flickr_coco_captions/defaults/annotations/dataset_flickr30k.json
+        val:
+        - flickr_coco_captions/defaults/annotations/dataset_flickr30k.json
+        test:
+        - flickr_coco_captions/defaults/annotations/dataset_flickr30k.json
+      max_features: 100
+      processors:
+        text_processor:
+          type: vocab
+          params:
+            max_length: 50
+            vocab:
+              type: intersected
+              embedding_name: glove.6B.300d
+              vocab_file: flickr30k/defaults/extras/vocabs/vocabulary_100k.txt
+            preprocessor:
+              type: simple_sentence
+              params: {}
+        train_image_processor:
+          type: torchvision_transforms
+          params:
+            transforms:
+              - type: Resize
+                params:
+                  size: [256, 256]
+              - type: RandomCrop
+                params:
+                  size: [224, 224]
+              - ToTensor
+              - type: Normalize
+                params:
+                  mean: [0.46777044, 0.44531429, 0.40661017]
+                  std: [0.12221994, 0.12145835, 0.14380469]
+        eval_image_processor:
+          type: torchvision_transforms
+          params:
+            transforms:
+              - type: Resize
+                params:
+                  size: [256, 256]
+              - type: CenterCrop
+                params:
+                  size: [224, 224]
+              - ToTensor
+              - type: Normalize
+                params:
+                  mean: [0.46777044, 0.44531429, 0.40661017]
+                  std: [0.12221994, 0.12145835, 0.14380469]
+      return_features_info: false
+      # Return OCR information
+      use_ocr: false
+      # Return spatial information of OCR tokens if present
+      use_ocr_info: false

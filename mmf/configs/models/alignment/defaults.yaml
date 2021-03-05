@@ -1,0 +1,43 @@
+model_config:
+  cm_shared_transformer:
+    final_hidden_size: 512
+    norm_img_embeddings: false
+    norm_text_embeddings: true
+    direct_features_input: false
+
+    image_encoder:
+      type: resnet152
+      params:
+        name: resnet152
+        pretrained: true
+        pool_type: avg
+        num_output_features: -1
+
+
+    text_encoder:
+      type: transformer
+      params:
+        bert_model_name: bert-base-uncased
+        hidden_size: 768
+        num_hidden_layers: 12
+        num_attention_heads: 12
+        output_attentions: false
+        output_hidden_states: false
+
+    image_projection:
+      type: linear
+      params:
+        in_dim: 2048
+        out_dim: ${model_config.cm_shared_transformer.final_hidden_size}
+
+    text_projection:
+      type: linear
+      params:
+        in_dim: 768
+        out_dim: ${model_config.cm_shared_transformer.final_hidden_size}
+
+    losses:
+    - type: in_batch_hinge
+      params:
+        margin: 0.2
+        hard: true

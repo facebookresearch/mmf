@@ -241,6 +241,16 @@ flickr30k:
   defaults:
     version: 1.0_2020_05_29
     resources:
+      annotations:
+      - url: https://raw.githubusercontent.com/BryanPlummer/flickr30k_entities/master/train.txt
+        file_name: train.txt
+        compressed: false
+      - url: https://raw.githubusercontent.com/BryanPlummer/flickr30k_entities/master/val.txt
+        file_name: val.txt
+        compressed: false
+      - url: https://raw.githubusercontent.com/BryanPlummer/flickr30k_entities/master/test.txt
+        file_name: test.txt
+        compressed: false
       images:
       - url: https://drive.google.com/uc?export=download&id=0B_PL6p-5reUAZEM4MmRQQ2VVSlk
         file_name: flickr30_images.tar.gz
@@ -503,3 +513,11 @@ localized_narratives:
         - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_test_localized_narratives.jsonl
           file_name: open_images_test_localized_narratives.jsonl
           compressed: false
+
+flickr_coco_captions:
+  defaults:
+    version: 1.0_2020_07_16
+    resources:
+      annotations:
+      - url: https://cs.stanford.edu/people/karpathy/deepimagesent/caption_datasets.zip
+        file_name: annotations.zip
