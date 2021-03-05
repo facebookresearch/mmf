@@ -8,17 +8,14 @@ from mmf.common.registry import registry
 from mmf.models.transformers.base import (
     BaseTransformer,
     BaseTransformerBackendConfig,
+    BaseTransformerHead,
     BaseTransformerModalityConfig,
 )
+from mmf.models.transformers.heads.mlp import MLP
 from mmf.modules.encoders import ResNet152ImageEncoder
 from mmf.utils.build import build_encoder
 from omegaconf import MISSING, OmegaConf
 from torch import Tensor, nn
-from transformers.modeling_bert import (
-    BertOnlyMLMHead,
-    BertPooler,
-    BertPredictionHeadTransform,
-)
 
 
 @dataclass
@@ -39,7 +36,9 @@ class MMFTransformer(BaseTransformer):
     class Config(BaseTransformer.Config):
         model: str = "mmft"
         transformer_base: str = "bert-base-uncased"
-        training_head_type: str = "classification"
+        heads: List[BaseTransformerHead.Config] = field(
+            default_factory=lambda: [MLP.Config()]
+        )
         num_labels: int = MISSING
         initializer_range: float = 0.02
         initializer_mean: float = 0.0
@@ -80,8 +79,6 @@ class MMFTransformer(BaseTransformer):
 
     def __init__(self, config: BaseTransformer.Config, *args, **kwargs):
         super().__init__(config)
-        self.num_labels = self.config.num_labels
-        self.training_head_type = self.config.training_head_type
         self.modality_keys: List = []
         self.modality_type: List = []
         self.modality_segments: List = []
@@ -123,28 +120,14 @@ class MMFTransformer(BaseTransformer):
                 for param in encoder.parameters():
                     param.requires_grad = False
 
-    def build_heads(self):
-        """Initialize the classifier head. It takes the output of the
-        transformer encoder and passes it through a pooler (we use the pooler from BERT
-        model), then dropout, BertPredictionHeadTransform (which is a linear layer,
-        followed by activation and layer norm) and lastly a linear layer projecting the
-        hidden output to classification labels.
-        """
-        transformer_config = self.backend.get_config()
-        if self.config.training_head_type == "classification":
-            self.pooler = BertPooler(transformer_config)
-            self.classifier = nn.Sequential(
-                nn.Dropout(transformer_config.hidden_dropout_prob),
-                BertPredictionHeadTransform(transformer_config),
-                nn.Linear(transformer_config.hidden_size, self.config.num_labels),
-            )
-        elif self.config.training_head_type == "pretraining":
-            self.cls = BertOnlyMLMHead(transformer_config)
-            self.vocab_size = transformer_config.vocab_size
-
-    def build_losses(self):
-        if self.config.training_head_type == "pretraining":
-            self.ce_loss = nn.CrossEntropyLoss(ignore_index=-1)
+    def tie_weights(self):
+        """Tie some head weights with backend embeddings"""
+        text_embedding_idx = self.modality_type.index("text")
+        if text_embedding_idx >= 0:
+            for head in self.heads:
+                head.tie_weights(
+                    self.backend.embeddings.token_embeddings[text_embedding_idx]
+                )
 
     def preprocess_sample(
         self, sample_list: Dict[str, Tensor]
@@ -363,47 +346,23 @@ class MMFTransformer(BaseTransformer):
         )
 
         # Transformer Heads
-        output_dict = {}
-        if self.training_head_type == "classification":
-            pooled_output = self.pooler(sequence_output)
-            prediction = self.classifier(pooled_output)
-            output_dict = self.postprocess_output(prediction, processed_sample_list)
-        elif not torch.jit.is_scripting() and self.training_head_type == "pretraining":
-            if not torch.jit.is_scripting():
-                prediction_score = self.cls(sequence_output)
-                output_dict = self.postprocess_output(
-                    prediction_score, processed_sample_list
-                )
-            else:
-                raise AssertionError(
-                    "MMF Tranformer : Torchscript is not supported for "
-                    + "pretraining mode."
-                )
 
-        return output_dict
+        return self.postprocess_output(
+            sequence_output, encoded_layers, processed_sample_list
+        )
 
     def postprocess_output(
-        self, prediction: Tensor, processed_sample_list: Dict[str, Dict[str, Tensor]]
+        self,
+        sequence_output: Tensor,
+        encoded_layers: List[Tensor],
+        processed_sample_list: Dict[str, Dict[str, Tensor]],
     ) -> Dict[str, Tensor]:
-        """Postprocess the output from the classifier head and reshape it.
-        This will be used to calculate losses and metrics in mmf.
+        """Postprocess the output from the transformer encoder and forward
+        through the heads.
         """
         output_dict = {}
-        if self.training_head_type == "classification":
-            output_dict["scores"] = prediction.contiguous().view(-1, self.num_labels)
-        elif self.training_head_type == "pretraining":
-            if not torch.jit.is_scripting():
-                output_dict["logits"] = prediction
-                masked_lm_loss = self.ce_loss(
-                    prediction.contiguous().view(-1, self.vocab_size),
-                    processed_sample_list["mlm_labels"]["combined_labels"]
-                    .contiguous()
-                    .view(-1),
-                )
-                output_dict["losses"] = {}
-                output_dict["losses"]["masked_lm_loss"] = masked_lm_loss
-            else:
-                raise AssertionError(
-                    "MMF Transformer pretraining mode cannot be scripted"
-                )
+        for head in self.heads:
+            output_dict.update(
+                head(sequence_output, encoded_layers, processed_sample_list)
+            )
         return output_dict
