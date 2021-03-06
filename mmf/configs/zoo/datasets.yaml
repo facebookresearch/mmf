@@ -188,6 +188,22 @@ coco:
         file_name: annotations.tar.gz
         hashcode: 8861b854eff965d22dd38e331e43886aeab8ac1c99798abf80f935efdf621079
 
+  detection_2017:
+    version: 1.0_2021_02_05
+    resources:
+      images:
+      - url: http://images.cocodataset.org/zips/test2017.zip
+        file_name: test2017.zip
+      - url: http://images.cocodataset.org/zips/train2017.zip
+        file_name: train2017.zip
+      - url: http://images.cocodataset.org/zips/val2017.zip
+        file_name: val2017.zip
+      annotations:
+      - url: http://images.cocodataset.org/annotations/image_info_test2017.zip
+        file_name: image_info_test2017.zip
+      - url: http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+        file_name: annotations_trainval2017.zip
+
   resnet152:
     version: 1.0_2020_05_29
     resources:
@@ -521,3 +537,17 @@ flickr_coco_captions:
       annotations:
       - url: https://cs.stanford.edu/people/karpathy/deepimagesent/caption_datasets.zip
         file_name: annotations.zip
+
+visual_genome:
+  detection_split_by_coco_2017:
+    version: 1.0_2021_02_05
+    resources:
+      images:
+      - url: https://cs.stanford.edu/people/rak248/VG_100K_2/images.zip
+        file_name: images.zip
+      - url: https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip
+        file_name: images2.zip
+      annotations:
+      - url: mmf://datasets/visual_genome/detection_split_by_coco_2017/annotations/annotations_split_by_coco_2017.tar.gz
+        file_name: annotations_split_by_coco_2017.tar.gz
+        hashcode: 19129558ef8ba766c1009106ec6f46d62221ec3bb87af505c4157b7e9bcc8e66
