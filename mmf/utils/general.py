@@ -5,6 +5,7 @@ import gc
 import logging
 import math
 import os
+import sys
 import time
 import warnings
 from bisect import bisect
@@ -241,6 +242,32 @@ def print_cuda_usage():
     print("Max Memory Allocated:", torch.cuda.max_memory_allocated() / (1024 * 1024))
     print("Memory Cached:", torch.cuda.memory_cached() / (1024 * 1024))
     print("Max Memory Cached:", torch.cuda.max_memory_cached() / (1024 * 1024))
+
+
+def check_fft_version():
+    # Acquires and parses the PyTorch version
+    split_version = torch.__version__.split(".")
+    major_version = int(split_version[0])
+    minor_version = int(split_version[1])
+    if major_version > 1 or (major_version == 1 and minor_version >= 7):
+        if "torch.fft" not in sys.modules:
+            raise RuntimeError("torch.fft module available but not imported")
+
+
+def rfft(input_tensor, signal_ndim=1, n=None, dim=-1, norm=None) -> torch.Tensor:
+    check_fft_version()
+    if "torch.fft" not in sys.modules:
+        return torch.rfft(input_tensor, signal_ndim=signal_ndim)
+    else:
+        return torch.fft.rfft(input_tensor, n, dim, norm)
+
+
+def irfft(input_tensor, s=None, signal_ndim=1, dim=None, norm=None) -> torch.Tensor:
+    check_fft_version()
+    if "torch.fft" not in sys.modules:
+        return torch.irfft(input_tensor, signal_ndim=signal_ndim, signal_sizes=s)
+    else:
+        return torch.fft.irfftn(input_tensor, s, dim, norm)
 
 
 def get_current_tensors():
