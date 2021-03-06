@@ -278,6 +278,7 @@
 
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
@@ -288,6 +289,7 @@
     <span class="n">precision_recall_curve</span><span class="p">,</span>
     <span class="n">roc_auc_score</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">Tensor</span>
 
 
 <span class="k">def</span> <span class="nf">_convert_to_one_hot</span><span class="p">(</span><span class="n">expected</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
@@ -1288,6 +1290,150 @@
             <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="k">return</span> <span class="n">expected</span><span class="o">.</span><span class="n">new_tensor</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="RecallAtK_ret"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAtK_ret">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;r@k_retrieval&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">RecallAtK_ret</span><span class="p">(</span><span class="n">BaseMetric</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;recall@k&quot;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_RatK_multi</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">correlations</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">labels</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">factor</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">):</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">top_k_ids</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">correlations</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+                <span class="n">labels</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">top_k_ids</span><span class="p">,</span> <span class="n">top_k_ids</span> <span class="o">&lt;</span> <span class="n">labels</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">factor</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">long</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">hits</span>
+
+<div class="viewcode-block" id="RecallAtK_ret.calculate"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAtK_ret.calculate">[docs]</a>    <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sample_list</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="n">model_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">flip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="c1"># calculate image to text retrieval recalls</span>
+        <span class="c1"># correlations shape is either BxB or Bx(5B)</span>
+        <span class="c1"># when flip=True, calculate text to image</span>
+        <span class="n">image_embeddings</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span>
+        <span class="n">text_embeddings</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">]</span>
+
+        <span class="n">correlations</span> <span class="o">=</span> <span class="n">image_embeddings</span> <span class="o">@</span> <span class="n">text_embeddings</span><span class="o">.</span><span class="n">t</span><span class="p">()</span>  <span class="c1"># B x B or Bx5B</span>
+        <span class="k">assert</span> <span class="n">correlations</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="n">correlations</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">correlations</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">correlations</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="n">correlations</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">image_embeddings</span><span class="o">.</span><span class="n">device</span><span class="p">)</span> <span class="o">*</span> <span class="n">factor</span>
+        <span class="k">if</span> <span class="n">flip</span><span class="p">:</span>
+            <span class="n">correlations</span> <span class="o">=</span> <span class="n">correlations</span><span class="o">.</span><span class="n">t</span><span class="p">()</span>  <span class="c1"># 5B x B</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">image_embeddings</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">factor</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="n">factor</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_RatK_multi</span><span class="p">(</span><span class="n">correlations</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">factor</span><span class="p">)</span>
+        <span class="n">ratk</span> <span class="o">=</span> <span class="n">hits</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">float</span><span class="p">()</span> <span class="o">/</span> <span class="n">hits</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">ratk</span></div></div>
+
+
+<div class="viewcode-block" id="RecallAt1_ret"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAt1_ret">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;r@1_retrieval&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">RecallAt1_ret</span><span class="p">(</span><span class="n">RecallAtK_ret</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;r@1&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RecallAt1_ret.calculate"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAt1_ret.calculate">[docs]</a>    <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sample_list</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="n">model_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">ratk</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ratk</span></div></div>
+
+
+<div class="viewcode-block" id="RecallAt1_rev_ret"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAt1_rev_ret">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;r@1_rev_retrieval&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">RecallAt1_rev_ret</span><span class="p">(</span><span class="n">RecallAtK_ret</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;r@1_rev&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RecallAt1_rev_ret.calculate"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAt1_rev_ret.calculate">[docs]</a>    <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sample_list</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="n">model_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">ratk</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ratk</span></div></div>
+
+
+<div class="viewcode-block" id="RecallAt5_ret"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAt5_ret">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;r@5_retrieval&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">RecallAt5_ret</span><span class="p">(</span><span class="n">RecallAtK_ret</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;r@5&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RecallAt5_ret.calculate"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAt5_ret.calculate">[docs]</a>    <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sample_list</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="n">model_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">ratk</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ratk</span></div></div>
+
+
+<div class="viewcode-block" id="RecallAt5_rev_ret"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAt5_rev_ret">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;r@5_rev_retrieval&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">RecallAt5_rev_ret</span><span class="p">(</span><span class="n">RecallAtK_ret</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;r@5_rev&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RecallAt5_rev_ret.calculate"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAt5_rev_ret.calculate">[docs]</a>    <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sample_list</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="n">model_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">ratk</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ratk</span></div></div>
+
+
+<div class="viewcode-block" id="RecallAt10_ret"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAt10_ret">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;r@10_retrieval&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">RecallAt10_ret</span><span class="p">(</span><span class="n">RecallAtK_ret</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;r@10&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RecallAt10_ret.calculate"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAt10_ret.calculate">[docs]</a>    <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sample_list</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="n">model_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">ratk</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ratk</span></div></div>
+
+
+<div class="viewcode-block" id="RecallAt10_rev_ret"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAt10_rev_ret">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;r@10_rev_retrieval&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">RecallAt10_rev_ret</span><span class="p">(</span><span class="n">RecallAtK_ret</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;r@10_rev&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RecallAt10_rev_ret.calculate"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.RecallAt10_rev_ret.calculate">[docs]</a>    <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sample_list</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="n">model_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">ratk</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ratk</span></div></div>
 </pre></div>
 
              </article>

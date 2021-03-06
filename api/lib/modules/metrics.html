@@ -705,6 +705,122 @@ current iteration</p></li>
 </dd></dl>
 
 <dl class="py class">
+<dt id="mmf.modules.metrics.RecallAt10_ret">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></code><code class="sig-name descname"><span class="pre">RecallAt10_ret</span></code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt10_ret"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt10_ret" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="mmf.modules.metrics.RecallAt10_ret.calculate">
+<code class="sig-name descname"><span class="pre">calculate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt10_ret.calculate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt10_ret.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method to be implemented by the child class. Takes
+in a <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> and a dict returned by model as output and
+returns back a float tensor/number indicating value for this metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by the dataloader for the
+current iteration.</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Output dict from the model for the current
+SampleList</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Value of the metric.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.Tensor|float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.RecallAt10_rev_ret">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></code><code class="sig-name descname"><span class="pre">RecallAt10_rev_ret</span></code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt10_rev_ret"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt10_rev_ret" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="mmf.modules.metrics.RecallAt10_rev_ret.calculate">
+<code class="sig-name descname"><span class="pre">calculate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt10_rev_ret.calculate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt10_rev_ret.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method to be implemented by the child class. Takes
+in a <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> and a dict returned by model as output and
+returns back a float tensor/number indicating value for this metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by the dataloader for the
+current iteration.</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Output dict from the model for the current
+SampleList</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Value of the metric.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.Tensor|float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.RecallAt1_ret">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></code><code class="sig-name descname"><span class="pre">RecallAt1_ret</span></code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt1_ret"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt1_ret" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="mmf.modules.metrics.RecallAt1_ret.calculate">
+<code class="sig-name descname"><span class="pre">calculate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt1_ret.calculate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt1_ret.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method to be implemented by the child class. Takes
+in a <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> and a dict returned by model as output and
+returns back a float tensor/number indicating value for this metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by the dataloader for the
+current iteration.</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Output dict from the model for the current
+SampleList</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Value of the metric.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.Tensor|float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.RecallAt1_rev_ret">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></code><code class="sig-name descname"><span class="pre">RecallAt1_rev_ret</span></code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt1_rev_ret"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt1_rev_ret" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="mmf.modules.metrics.RecallAt1_rev_ret.calculate">
+<code class="sig-name descname"><span class="pre">calculate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt1_rev_ret.calculate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt1_rev_ret.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method to be implemented by the child class. Takes
+in a <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> and a dict returned by model as output and
+returns back a float tensor/number indicating value for this metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by the dataloader for the
+current iteration.</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Output dict from the model for the current
+SampleList</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Value of the metric.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.Tensor|float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt id="mmf.modules.metrics.RecallAt5">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></code><code class="sig-name descname"><span class="pre">RecallAt5</span></code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt5" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate Recall&#64;5 which specifies how many time the chosen candidate
@@ -734,11 +850,98 @@ current iteration</p></li>
 </dd></dl>
 
 <dl class="py class">
+<dt id="mmf.modules.metrics.RecallAt5_ret">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></code><code class="sig-name descname"><span class="pre">RecallAt5_ret</span></code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt5_ret"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt5_ret" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="mmf.modules.metrics.RecallAt5_ret.calculate">
+<code class="sig-name descname"><span class="pre">calculate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt5_ret.calculate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt5_ret.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method to be implemented by the child class. Takes
+in a <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> and a dict returned by model as output and
+returns back a float tensor/number indicating value for this metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by the dataloader for the
+current iteration.</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Output dict from the model for the current
+SampleList</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Value of the metric.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.Tensor|float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.RecallAt5_rev_ret">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></code><code class="sig-name descname"><span class="pre">RecallAt5_rev_ret</span></code><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt5_rev_ret"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt5_rev_ret" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="mmf.modules.metrics.RecallAt5_rev_ret.calculate">
+<code class="sig-name descname"><span class="pre">calculate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAt5_rev_ret.calculate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAt5_rev_ret.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method to be implemented by the child class. Takes
+in a <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> and a dict returned by model as output and
+returns back a float tensor/number indicating value for this metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by the dataloader for the
+current iteration.</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Output dict from the model for the current
+SampleList</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Value of the metric.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.Tensor|float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt id="mmf.modules.metrics.RecallAtK">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></code><code class="sig-name descname"><span class="pre">RecallAtK</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'recall&#64;k'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAtK"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAtK" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt id="mmf.modules.metrics.RecallAtK.calculate">
 <code class="sig-name descname"><span class="pre">calculate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAtK.calculate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAtK.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method to be implemented by the child class. Takes
+in a <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> and a dict returned by model as output and
+returns back a float tensor/number indicating value for this metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by the dataloader for the
+current iteration.</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Output dict from the model for the current
+SampleList</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Value of the metric.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.Tensor|float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.metrics.RecallAtK_ret">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></code><code class="sig-name descname"><span class="pre">RecallAtK_ret</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'recall&#64;k'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAtK_ret"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAtK_ret" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="mmf.modules.metrics.RecallAtK_ret.calculate">
+<code class="sig-name descname"><span class="pre">calculate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#RecallAtK_ret.calculate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.RecallAtK_ret.calculate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract method to be implemented by the child class. Takes
 in a <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> and a dict returned by model as output and
 returns back a float tensor/number indicating value for this metric.</p>

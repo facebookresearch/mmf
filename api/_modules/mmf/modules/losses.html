@@ -811,6 +811,64 @@
 
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;scores&quot;</span><span class="p">],</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">targets</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="InBatchHinge"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.InBatchHinge">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_loss</span><span class="p">(</span><span class="s2">&quot;in_batch_hinge&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">InBatchHinge</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Based on the code from https://github.com/fartashf/vsepp/blob/master/model.py</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">margin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">hard</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">margin</span> <span class="o">=</span> <span class="n">margin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hard</span> <span class="o">=</span> <span class="n">hard</span>
+
+    <span class="k">def</span> <span class="nf">_compute_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">correlations</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">):</span>
+        <span class="n">diagonal</span> <span class="o">=</span> <span class="n">correlations</span><span class="o">.</span><span class="n">diag</span><span class="p">()[:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">d1</span> <span class="o">=</span> <span class="n">diagonal</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">correlations</span><span class="p">)</span>
+        <span class="n">d2</span> <span class="o">=</span> <span class="n">diagonal</span><span class="o">.</span><span class="n">t</span><span class="p">()</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">correlations</span><span class="p">)</span>
+
+        <span class="c1"># compare every diagonal score to scores in its column</span>
+        <span class="c1"># caption retrieval</span>
+        <span class="n">cost_s</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">margin</span> <span class="o">+</span> <span class="n">correlations</span> <span class="o">-</span> <span class="n">d1</span><span class="p">)</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># compare every diagonal score to scores in its row</span>
+        <span class="c1"># image retrieval</span>
+        <span class="n">cost_im</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">margin</span> <span class="o">+</span> <span class="n">correlations</span> <span class="o">-</span> <span class="n">d2</span><span class="p">)</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># clear diagonals</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">correlations</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">device</span><span class="o">=</span><span class="n">correlations</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">cost_s</span> <span class="o">=</span> <span class="n">cost_s</span> <span class="o">*</span> <span class="n">mask</span>
+        <span class="n">cost_im</span> <span class="o">=</span> <span class="n">cost_im</span> <span class="o">*</span> <span class="n">mask</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hard</span><span class="p">:</span>
+            <span class="n">cost_s</span> <span class="o">=</span> <span class="n">cost_s</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">cost_im</span> <span class="o">=</span> <span class="n">cost_im</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">cost_s</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">+</span> <span class="n">cost_im</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span> <span class="n">model_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]):</span>
+        <span class="n">image_embeddings</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span>
+        <span class="n">text_embeddings</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">image_embeddings</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">text_embeddings</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="c1"># Training/Single-GT loss</span>
+            <span class="n">correlations</span> <span class="o">=</span> <span class="n">image_embeddings</span> <span class="o">@</span> <span class="n">text_embeddings</span><span class="o">.</span><span class="n">t</span><span class="p">()</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_loss</span><span class="p">(</span><span class="n">correlations</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Evaluation/Multi-GT loss</span>
+            <span class="k">assert</span> <span class="n">text_embeddings</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">%</span> <span class="n">image_embeddings</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+
+            <span class="n">batch_size</span><span class="p">,</span> <span class="n">dim_size</span> <span class="o">=</span> <span class="n">image_embeddings</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">factor</span> <span class="o">=</span> <span class="n">text_embeddings</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">image_embeddings</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">text_embeddings</span> <span class="o">=</span> <span class="n">text_embeddings</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">factor</span><span class="p">,</span> <span class="n">dim_size</span><span class="p">)</span>
+            <span class="n">correlations</span> <span class="o">=</span> <span class="n">image_embeddings</span> <span class="o">@</span> <span class="n">text_embeddings</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># FxBxB</span>
+
+            <span class="n">loss</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">corr</span> <span class="ow">in</span> <span class="n">correlations</span><span class="p">:</span>
+                <span class="n">loss</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_loss</span><span class="p">(</span><span class="n">corr</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">loss</span></div>
 </pre></div>
 
              </article>
