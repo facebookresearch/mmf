@@ -88,3 +88,23 @@ class TestModuleLosses(unittest.TestCase):
         predicted["scores"] = torch.rand((5, 10, 9491))
 
         self.assertAlmostEqual(caption_ce_loss(expected, predicted).item(), 9.2507, 4)
+
+    def test_in_batch_hinge(self):
+        in_batch_hinge_loss = losses.InBatchHinge(0.2, True)
+
+        sample_list_input = dict()
+        predicted = dict()
+
+        # Test when the image and text have the same embeddings
+        predicted["targets"] = torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        predicted["scores"] = predicted["targets"]
+        self.assertEqual(in_batch_hinge_loss(sample_list_input, predicted).item(), 0.0)
+
+        # Test random initialized
+        torch.manual_seed(1234)
+        predicted["targets"] = torch.rand((5, 10))
+        predicted["scores"] = torch.rand((5, 10))
+
+        self.assertAlmostEqual(
+            in_batch_hinge_loss(sample_list_input, predicted).item(), 6.5529985, 4
+        )

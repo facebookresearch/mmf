@@ -137,8 +137,10 @@ class TestReporter(Dataset):
 
         if execute_on_master_only and not is_master():
             return
+        results = []
 
-        results = self.current_dataset.format_for_prediction(report)
+        if hasattr(self.current_dataset, "format_for_prediction"):
+            results = self.current_dataset.format_for_prediction(report)
 
         if hasattr(model, "format_for_prediction"):
             results = model.format_for_prediction(results, report)

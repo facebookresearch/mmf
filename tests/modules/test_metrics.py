@@ -135,6 +135,16 @@ class TestModuleMetrics(unittest.TestCase):
 
         self.assertAlmostEqual(metric.calculate(sample, predicted), value)
 
+    def _test_retrieval_recall_at_k_metric(self, metric, value):
+        sample = Sample()
+        predicted = dict()
+
+        torch.manual_seed(1234)
+        predicted["targets"] = torch.rand((10, 4))
+        predicted["scores"] = torch.rand((10, 4))
+
+        self.assertAlmostEqual(float(metric.calculate(sample, predicted)), value)
+
     def test_micro_f1(self):
         metric = metrics.MicroF1()
         self._test_binary_metric(metric, 0.5)
@@ -202,3 +212,15 @@ class TestModuleMetrics(unittest.TestCase):
     def test_recall_at_10(self):
         metric = metrics.RecallAt10()
         self._test_recall_at_k_metric(metric, 0.8)
+
+    def test_retrieval_recall_at_1(self):
+        metric = metrics.RecallAt1_ret()
+        self._test_retrieval_recall_at_k_metric(metric, 0.1)
+
+    def test_retrieval_recall_at_5(self):
+        metric = metrics.RecallAt5_ret()
+        self._test_retrieval_recall_at_k_metric(metric, 0.4)
+
+    def test_retrieval_recall_at_10(self):
+        metric = metrics.RecallAt10_ret()
+        self._test_retrieval_recall_at_k_metric(metric, 1.0)
