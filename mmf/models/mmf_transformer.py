@@ -7,24 +7,20 @@ import torch
 from mmf.common.registry import registry
 from mmf.models.transformers.base import (
     BaseTransformer,
-    BaseTransformerBackendConfig,
+    BaseTransformerBackend,
+    BaseTransformerBackendFactory,
     BaseTransformerHead,
     BaseTransformerModalityConfig,
 )
 from mmf.models.transformers.heads.mlp import MLP
 from mmf.modules.encoders import ResNet152ImageEncoder
 from mmf.utils.build import build_encoder
-from omegaconf import MISSING, OmegaConf
+from omegaconf import II, MISSING, OmegaConf
 from torch import Tensor, nn
 
 
 @dataclass
 class MMFTransformerModalityConfig(BaseTransformerModalityConfig):
-    pass
-
-
-@dataclass
-class MMFTransformerBackendConfig(BaseTransformerBackendConfig):
     pass
 
 
@@ -49,8 +45,15 @@ class MMFTransformer(BaseTransformer):
         freeze_transformer: bool = False
         freeze_image_encoder: bool = False
         finetune_lr_multiplier: float = 1
-        backend: BaseTransformerBackendConfig = MMFTransformerBackendConfig(
-            type="huggingface"
+        backend: BaseTransformerBackendFactory.Config = (
+            BaseTransformerBackendFactory.Config(
+                type="huggingface",
+                params=BaseTransformerBackend.Config(
+                    name="huggingface",
+                    modalities=II("modalities"),
+                    transformer_params={"transformer_base": "bert-base-uncased"},
+                ),
+            )
         )
         modalities: List[BaseTransformerModalityConfig] = field(
             default_factory=lambda: [

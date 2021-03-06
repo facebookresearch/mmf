@@ -1,167 +1,45 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-from copy import deepcopy
-from typing import Any, Dict, List, Type
+from dataclasses import dataclass, field
+from typing import Any, Dict, List
 
 import torch
 from mmf.common.registry import registry
-from mmf.models.transformers.base import BaseTransformer, BaseTransformerBackend
+from mmf.models.transformers.backends.base import BackendEmbeddings
+from mmf.models.transformers.base import BaseTransformerBackend
 from mmf.modules.hf_layers import BertModelJit, replace_with_jit
 from omegaconf import OmegaConf
-from torch import Tensor, nn
+from torch import Tensor
 from transformers import AutoConfig, AutoModel
 
 
-class HuggingfaceEmbeddings(nn.Module):
-    """Embedding class that can take any number of image or text modalities, each can
-    have their input id, position id and segment id. We generate embeddings of
-    dimension config.hidden_size for each and then first add the three embeddings
-    for each modality to have a modality specific embedding. We then concat the
-    modality specific embeddings to have a joint embedding.
-    """
-
-    def __init__(
-        self,
-        model_config: BaseTransformer.Config,
-        transformer_config: Dict[str, Any],
-        transformer: Type[nn.Module],
-        *args,
-        **kwargs,
-    ):
-        super().__init__()
-        self.model_config = model_config
-        self.transformer_config = transformer_config
-
-        self.token_embeddings = nn.ModuleList()
-        self.pos_embeddings = nn.ModuleList()
-        self.layer_norms = nn.ModuleList()
-        self.dropouts = nn.ModuleList()
-        self.modality_keys: List = []
-
+class HuggingfaceEmbeddings(BackendEmbeddings):
+    def build(self, transformer, transformer_config):
         # Build layers for each modality and initialize
-        self.build_layers()
-        self.init_weights(transformer)
-
-        assert (
-            len(self.token_embeddings)
-            == len(self.pos_embeddings)
-            == len(self.layer_norms)
-            == len(self.dropouts)
-            == len(self.model_config.modalities)
+        self.build_layers(
+            transformer_config["hidden_size"],
+            transformer_config["vocab_size"],
+            transformer_config["max_position_embeddings"],
+            transformer_config["layer_norm_eps"],
+            transformer_config["hidden_dropout_prob"],
+            transformer_config["pad_token_id"],
         )
-
-    def build_layers(self):
-
-        for modality in self.model_config.modalities:
-            self.modality_keys.append(modality.key)
-            layer_norm_eps = modality.get(
-                "layer_norm_eps", self.transformer_config.layer_norm_eps
-            )
-            position_dim = modality.get(
-                "position_dim", self.transformer_config.max_position_embeddings
-            )
-            hidden_dropout_prob = modality.get(
-                "hidden_dropout_prob", self.transformer_config.hidden_dropout_prob
-            )
-            if modality.type == "text":
-                self.token_embeddings.append(
-                    nn.Embedding(
-                        self.transformer_config.vocab_size,
-                        self.transformer_config.hidden_size,
-                        padding_idx=self.transformer_config.pad_token_id,
-                    )
-                )
-            else:
-                self.token_embeddings.append(
-                    nn.Sequential(
-                        nn.Linear(
-                            modality.embedding_dim, self.transformer_config.hidden_size
-                        ),
-                        torch.nn.LayerNorm(
-                            self.transformer_config.hidden_size, eps=layer_norm_eps
-                        ),
-                    )
-                )
-
-            self.pos_embeddings.append(
-                nn.Embedding(position_dim, self.transformer_config.hidden_size)
-            )
-            self.layer_norms.append(
-                torch.nn.LayerNorm(
-                    self.transformer_config.hidden_size, eps=layer_norm_eps
-                )
-            )
-            self.dropouts.append(nn.Dropout(hidden_dropout_prob))
-
-        self.token_type_embeddings = nn.Embedding(
-            len(self.model_config.modalities), self.transformer_config.hidden_size
-        )
-
-    def init_weights(self, transformer: Type[nn.Module]):
-        for idx, modality in enumerate(self.model_config.modalities):
-            if modality.type == "text":
-                self.token_embeddings[idx] = transformer.embeddings.word_embeddings
-                self.layer_norms[idx] = transformer.embeddings.LayerNorm
-
-            self.pos_embeddings[idx].weight = nn.Parameter(
-                deepcopy(transformer.embeddings.position_embeddings.weight.data),
-                requires_grad=True,
-            )
-
-        # Token Type or Segment Embeddings
-        if hasattr(transformer.embeddings, "token_type_embeddings"):
-            token_vocab_size = self.transformer_config.type_vocab_size
-            self.token_type_embeddings.weight.data[:token_vocab_size].copy_(
-                transformer.embeddings.token_type_embeddings.weight
-            )
-            for idx in range(token_vocab_size, len(self.model_config.modalities)):
-                self.token_type_embeddings.weight.data[idx].copy_(
-                    transformer.embeddings.token_type_embeddings.weight.data.mean(dim=0)
-                )
-                # Add random normal noise
-                self.token_type_embeddings.weight.data[idx] += torch.normal(
-                    self.model_config.token_noise_mean,
-                    self.model_config.token_noise_std,
-                    size=self.token_type_embeddings.weight.data[idx].size(),
-                )
-
-    def forward(
-        self,
-        tokens_ids: Dict[str, Tensor],
-        position_ids: Dict[str, Tensor],
-        segment_ids: Dict[str, Tensor],
-    ) -> Tensor:
-        list_embeddings = []
-        for idx, (token_emb, pos_emb, layer_norm, dropout) in enumerate(
-            zip(
-                self.token_embeddings,
-                self.pos_embeddings,
-                self.layer_norms,
-                self.dropouts,
-            )
-        ):
-            modality_name = self.modality_keys[idx]
-            total_embedding = token_emb(tokens_ids[modality_name])
-
-            if modality_name in position_ids:
-                total_embedding += pos_emb(position_ids[modality_name])
-
-            if modality_name in segment_ids:
-                total_embedding += self.token_type_embeddings(
-                    segment_ids[modality_name]
-                )
-
-            list_embeddings.append(dropout(layer_norm(total_embedding)))
-
-        return torch.cat(list_embeddings, dim=1)
+        self.init_weights(transformer, transformer_config["type_vocab_size"])
 
 
 @registry.register_transformer_backend("huggingface")
 class HuggingfaceBackend(BaseTransformerBackend):
     """Transformer backend wih Huggingface transformer models"""
 
-    def __init__(self, config: BaseTransformer.Config, *args, **kwargs):
-        super().__init__(config)
+    @dataclass
+    class Config(BaseTransformerBackend.Config):
+        name: str = "huggingface"
+        transformer_params: Dict[str, Any] = field(
+            default_factory=lambda: {"transformer_base": "bert-base-uncased"}
+        )
+
+    def __init__(self, config: Config, *args, **kwargs):
+        super().__init__(config, *args, **kwargs)
 
         # Replace transformer layers with scriptable JIT layers
         replace_with_jit()
@@ -169,7 +47,8 @@ class HuggingfaceBackend(BaseTransformerBackend):
     def build_transformer_config(self):
         """Build the transformer base model config."""
         self.transformer_config = AutoConfig.from_pretrained(
-            self.config.transformer_base, **OmegaConf.to_container(self.config)
+            self.config.transformer_params.transformer_base,
+            **OmegaConf.to_container(self.config.transformer_params)
         )
 
     def build_transformer_base(self):
@@ -177,26 +56,26 @@ class HuggingfaceBackend(BaseTransformerBackend):
         hf_params = {"config": self.transformer_config}
 
         # For BERT models, initialize using Jit version
-        if self.config.transformer_base.startswith("bert-"):
+        if self.config.transformer_params.transformer_base.startswith("bert-"):
             self.transformer = BertModelJit.from_pretrained(
-                self.config.transformer_base, **hf_params
+                self.config.transformer_params.transformer_base, **hf_params
             )
         else:
             self.transformer = AutoModel.from_pretrained(
-                self.config.transformer_base, **hf_params
+                self.config.transformer_params.transformer_base, **hf_params
             )
 
     def build_embeddings(self):
         """Build the multimodal embeddings using the transformer base
         embeddings.
         """
+        configuration = {
+            **self.transformer_config.to_dict(),
+            **self.config.transformer_params,
+        }
         self.embeddings = HuggingfaceEmbeddings(
-            self.config, self.transformer_config, self.transformer
+            self.modalities, configuration, self.transformer
         )
-
-    def get_config(self):
-        """Return the transformer configuration."""
-        return self.transformer_config
 
     def generate_embeddings(
         self,
