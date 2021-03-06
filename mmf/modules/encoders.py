@@ -278,6 +278,7 @@ class TorchvisionResNetImageEncoder(Encoder):
         name: str = "resnet50"
         pretrained: bool = False
         zero_init_residual: bool = True
+        use_avgpool: bool = True
 
     def __init__(self, config: Config, *args, **kwargs):
         super().__init__()
@@ -287,7 +288,8 @@ class TorchvisionResNetImageEncoder(Encoder):
             pretrained=config.pretrained, zero_init_residual=config.zero_init_residual
         )
         # Set avgpool and fc layers in torchvision to Identity.
-        model.avgpool = Identity()
+        if not config.get("use_avgpool", False):
+            model.avgpool = Identity()
         model.fc = Identity()
 
         self.model = model
