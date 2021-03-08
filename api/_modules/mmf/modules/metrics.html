@@ -1434,6 +1434,81 @@
     <span class="p">):</span>
         <span class="n">ratk</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ratk</span></div></div>
+
+
+<div class="viewcode-block" id="DetectionMeanAP"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.DetectionMeanAP">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;detection_mean_ap&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DetectionMeanAP</span><span class="p">(</span><span class="n">BaseMetric</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Metric for calculating the detection mean average precision (mAP) using the COCO</span>
+<span class="sd">    evaluation toolkit, returning the default COCO-style mAP@IoU=0.50:0.95</span>
+
+<span class="sd">    **Key:** ``detection_mean_ap``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_json_files</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialization function detection mean AP (mAP)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dataset_json_files (Dict): paths to the dataset (instance) json files</span>
+<span class="sd">                for each dataset type and dataset name in the following format:</span>
+<span class="sd">                ``{&#39;val/detection_coco&#39;: &#39;/path/to/instances_val2017.json&#39;, ...}``</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;detection_mean_ap&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_params</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__prediction_report__&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_json_files</span> <span class="o">=</span> <span class="n">dataset_json_files</span>
+
+<div class="viewcode-block" id="DetectionMeanAP.calculate"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.DetectionMeanAP.calculate">[docs]</a>    <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="n">execute_on_master_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate detection mean AP (mAP) from the prediction list and the dataset</span>
+<span class="sd">        annotations. The function returns COCO-style mAP@IoU=0.50:0.95.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sample_list (SampleList): SampleList provided by DataLoader for</span>
+<span class="sd">                                current iteration.</span>
+<span class="sd">            model_output (Dict): Dict returned by model. This should contain</span>
+<span class="sd">                                &quot;prediction_report&quot; field, which is a list of</span>
+<span class="sd">                                detection predictions from the model.</span>
+<span class="sd">            execute_on_master_only (bool): Whether to only run mAP evaluation on the</span>
+<span class="sd">                                master node over the gathered detection prediction</span>
+<span class="sd">                                (to avoid wasting computation and CPU OOM).</span>
+<span class="sd">                                Default: True (only run mAP evaluation on master).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.FloatTensor: COCO-style mAP@IoU=0.50:0.95.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># as the detection mAP metric is run on the entire dataset-level predictions,</span>
+        <span class="c1"># which are *already* gathered from all notes, the evaluation should only happen</span>
+        <span class="c1"># in one node and broadcasted to other nodes (to avoid CPU OOM due to concurrent</span>
+        <span class="c1"># mAP evaluation)</span>
+        <span class="kn">from</span> <span class="nn">pycocotools.coco</span> <span class="kn">import</span> <span class="n">COCO</span>
+        <span class="kn">from</span> <span class="nn">pycocotools.cocoeval</span> <span class="kn">import</span> <span class="n">COCOeval</span>
+        <span class="kn">from</span> <span class="nn">mmf.utils.distributed</span> <span class="kn">import</span> <span class="n">is_master</span><span class="p">,</span> <span class="n">broadcast_tensor</span>
+        <span class="kn">from</span> <span class="nn">mmf.utils.general</span> <span class="kn">import</span> <span class="n">get_current_device</span>
+
+        <span class="n">device</span> <span class="o">=</span> <span class="n">get_current_device</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">execute_on_master_only</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_master</span><span class="p">():</span>
+            <span class="c1"># dummy mAP to be override in boardcasting</span>
+            <span class="n">mAP</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">predictions</span> <span class="o">=</span> <span class="n">model_output</span><span class="o">.</span><span class="n">prediction_report</span>
+
+            <span class="n">cocoGt</span> <span class="o">=</span> <span class="n">COCO</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dataset_json_files</span><span class="p">[</span><span class="n">sample_list</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">][</span>
+                    <span class="n">sample_list</span><span class="o">.</span><span class="n">dataset_type</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">cocoDt</span> <span class="o">=</span> <span class="n">cocoGt</span><span class="o">.</span><span class="n">loadRes</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span>
+            <span class="n">cocoEval</span> <span class="o">=</span> <span class="n">COCOeval</span><span class="p">(</span><span class="n">cocoGt</span><span class="p">,</span> <span class="n">cocoDt</span><span class="p">,</span> <span class="s2">&quot;bbox&quot;</span><span class="p">)</span>
+            <span class="n">cocoEval</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+            <span class="n">cocoEval</span><span class="o">.</span><span class="n">accumulate</span><span class="p">()</span>
+            <span class="n">cocoEval</span><span class="o">.</span><span class="n">summarize</span><span class="p">()</span>
+            <span class="n">mAP</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">cocoEval</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">execute_on_master_only</span><span class="p">:</span>
+            <span class="n">mAP</span> <span class="o">=</span> <span class="n">broadcast_tensor</span><span class="p">(</span><span class="n">mAP</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mAP</span></div></div>
 </pre></div>
 
              </article>

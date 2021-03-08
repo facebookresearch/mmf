@@ -441,6 +441,42 @@ current iteration</p></li>
 </dd></dl>
 
 <dl class="py class">
+<dt id="mmf.modules.metrics.DetectionMeanAP">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></code><code class="sig-name descname"><span class="pre">DetectionMeanAP</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_json_files</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#DetectionMeanAP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.DetectionMeanAP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating the detection mean average precision (mAP) using the COCO
+evaluation toolkit, returning the default COCO-style <a class="reference external" href="mailto:mAP&#37;&#52;&#48;IoU=0&#46;50">mAP<span>&#64;</span>IoU=0<span>&#46;</span>50</a>:0.95</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">detection_mean_ap</span></code></p>
+<dl class="py method">
+<dt id="mmf.modules.metrics.DetectionMeanAP.calculate">
+<code class="sig-name descname"><span class="pre">calculate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execute_on_master_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#DetectionMeanAP.calculate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.DetectionMeanAP.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate detection mean AP (mAP) from the prediction list and the dataset
+annotations. The function returns COCO-style <a class="reference external" href="mailto:mAP&#37;&#52;&#48;IoU=0&#46;50">mAP<span>&#64;</span>IoU=0<span>&#46;</span>50</a>:0.95.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration.</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model. This should contain
+“prediction_report” field, which is a list of
+detection predictions from the model.</p></li>
+<li><p><strong>execute_on_master_only</strong> (<em>bool</em>) – Whether to only run mAP evaluation on the
+master node over the gathered detection prediction
+(to avoid wasting computation and CPU OOM).
+Default: True (only run mAP evaluation on master).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>COCO-style <a class="reference external" href="mailto:mAP&#37;&#52;&#48;IoU=0&#46;50">mAP<span>&#64;</span>IoU=0<span>&#46;</span>50</a>:0.95.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt id="mmf.modules.metrics.F1">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></code><code class="sig-name descname"><span class="pre">F1</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#F1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.F1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Metric for calculating F1. Can be used with type and params

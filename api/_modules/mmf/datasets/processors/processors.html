@@ -1725,6 +1725,59 @@
         <span class="k">assert</span> <span class="n">class_index</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> is not present in vocab file&quot;</span>
 
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;class_index&quot;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">class_index</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)}</span></div>
+
+
+<div class="viewcode-block" id="DETRImageAndTargetProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.DETRImageAndTargetProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;detr_image_and_target&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DETRImageAndTargetProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Process a detection image and target in consistent with DETR. At training time,</span>
+<span class="sd">    random crop is done. At test time, an image is deterministically resized with short</span>
+<span class="sd">    side equal to `image_size` (while ensuring its long side no larger than `max_size`)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">mmf.datasets.processors</span> <span class="kn">import</span> <span class="n">detection_transforms</span> <span class="k">as</span> <span class="n">T</span>
+
+        <span class="n">train_image_sizes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">train_image_sizes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">training_transform</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">T</span><span class="o">.</span><span class="n">RandomHorizontalFlip</span><span class="p">(),</span>
+                <span class="n">T</span><span class="o">.</span><span class="n">RandomSelect</span><span class="p">(</span>
+                    <span class="n">T</span><span class="o">.</span><span class="n">RandomResize</span><span class="p">(</span><span class="n">train_image_sizes</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">max_size</span><span class="p">),</span>
+                    <span class="n">T</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
+                        <span class="p">[</span>
+                            <span class="n">T</span><span class="o">.</span><span class="n">RandomResize</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">train_resize_random_sizes</span><span class="p">)),</span>
+                            <span class="n">T</span><span class="o">.</span><span class="n">RandomSizeCrop</span><span class="p">(</span><span class="o">*</span><span class="n">config</span><span class="o">.</span><span class="n">train_crop_size</span><span class="p">),</span>
+                            <span class="n">T</span><span class="o">.</span><span class="n">RandomResize</span><span class="p">(</span><span class="n">train_image_sizes</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">max_size</span><span class="p">),</span>
+                        <span class="p">]</span>
+                    <span class="p">),</span>
+                <span class="p">),</span>
+                <span class="n">T</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                <span class="n">T</span><span class="o">.</span><span class="n">Normalize</span><span class="p">([</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">]),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inference_transform</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">T</span><span class="o">.</span><span class="n">RandomResize</span><span class="p">([</span><span class="n">config</span><span class="o">.</span><span class="n">test_image_size</span><span class="p">],</span> <span class="n">max_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">max_size</span><span class="p">),</span>
+                <span class="n">T</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                <span class="n">T</span><span class="o">.</span><span class="n">Normalize</span><span class="p">([</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">]),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="n">dataset_type</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;dataset_type&quot;</span><span class="p">]</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;img&quot;</span><span class="p">]</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;target&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">dataset_type</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
+            <span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_transform</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">dataset_type</span> <span class="o">==</span> <span class="s2">&quot;val&quot;</span> <span class="ow">or</span> <span class="n">dataset_type</span> <span class="o">==</span> <span class="s2">&quot;test&quot;</span><span class="p">:</span>
+            <span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inference_transform</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown dataset_type: </span><span class="si">{</span><span class="n">dataset_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;img&quot;</span><span class="p">:</span> <span class="n">img</span><span class="p">,</span> <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="n">target</span><span class="p">}</span></div>
 </pre></div>
 
              </article>

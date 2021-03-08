@@ -380,6 +380,14 @@ of any type.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt id="mmf.datasets.processors.processors.DETRImageAndTargetProcessor">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.datasets.processors.processors.</span></code><code class="sig-name descname"><span class="pre">DETRImageAndTargetProcessor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#DETRImageAndTargetProcessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.processors.processors.DETRImageAndTargetProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a detection image and target in consistent with DETR. At training time,
+random crop is done. At test time, an image is deterministically resized with short
+side equal to <cite>image_size</cite> (while ensuring its long side no larger than <cite>max_size</cite>)</p>
+</dd></dl>
+
+<dl class="py class">
 <dt id="mmf.datasets.processors.processors.EvalAIAnswerProcessor">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.datasets.processors.processors.</span></code><code class="sig-name descname"><span class="pre">EvalAIAnswerProcessor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#EvalAIAnswerProcessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.processors.processors.EvalAIAnswerProcessor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Processes an answer similar to Eval AI</p>
