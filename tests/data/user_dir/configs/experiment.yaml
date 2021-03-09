@@ -1,0 +1,22 @@
+model_config:
+  simple:
+    losses:
+    - type: cross_entropy
+
+optimizer:
+  type: SGD
+  params:
+    lr: 1e-3
+
+evaluation:
+    metrics:
+    - accuracy
+
+training:
+  batch_size: 8
+  lr_scheduler: false
+  max_updates: 50
+  early_stop:
+    criteria: always_one/accuracy
+    minimize: false
+  log_format: json

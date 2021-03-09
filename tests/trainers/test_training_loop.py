@@ -59,7 +59,8 @@ class TrainerTrainingLoopMock(MMFTrainer):
         if max_epochs is not None:
             self.training_config["max_epochs"] = max_epochs
 
-        self.model = SimpleModel(1)
+        self.model = SimpleModel({"in_dim": 1})
+        self.model.build()
         if torch.cuda.is_available():
             self.model = self.model.cuda()
             self.device = "cuda"
@@ -200,7 +201,8 @@ class TestTrainingLoop(unittest.TestCase):
         on_update_end_fn=None,
     ):
         torch.random.manual_seed(2)
-        model = SimpleModel(1)
+        model = SimpleModel({"in_dim": 1})
+        model.build()
         opt = torch.optim.SGD(model.parameters(), lr=0.01)
         trainer = TrainerTrainingLoopMock(
             num_train_data,

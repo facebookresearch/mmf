@@ -69,7 +69,10 @@ def get_lightning_trainer(
         gradient_clip_val=gradient_clip_val,
         precision=precision,
     )
-    trainer.model = SimpleLightningModel(model_size, config=trainer.config)
+    trainer.model = SimpleLightningModel(
+        {"in_dim": model_size}, trainer_config=trainer.config
+    )
+    trainer.model.build()
     trainer.model.train()
     prepare_lightning_trainer(trainer)
     return trainer
@@ -86,7 +89,8 @@ def get_mmf_trainer(
     grad_clipping_config=None,
 ):
     torch.random.manual_seed(2)
-    model = SimpleModel(model_size)
+    model = SimpleModel({"in_dim": model_size})
+    model.build()
     model.train()
     trainer_config = get_trainer_config()
     optimizer = build_optimizer(model, trainer_config)
