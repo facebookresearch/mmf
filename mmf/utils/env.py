@@ -123,6 +123,8 @@ def setup_imports():
     datasets_pattern = os.path.join(datasets_folder, "**", "*.py")
     model_folder = os.path.join(root_folder, "models")
     model_pattern = os.path.join(model_folder, "**", "*.py")
+    module_folder = os.path.join(root_folder, "modules")
+    module_pattern = os.path.join(module_folder, "**", "*.py")
 
     importlib.import_module("mmf.common.meter")
 
@@ -130,6 +132,7 @@ def setup_imports():
         glob.glob(datasets_pattern, recursive=True)
         + glob.glob(model_pattern, recursive=True)
         + glob.glob(trainer_pattern, recursive=True)
+        + glob.glob(module_pattern, recursive=True)
     )
 
     for f in files:

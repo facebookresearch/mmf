@@ -235,8 +235,10 @@ class Accuracy(BaseMetric):
     **Key:** ``accuracy``
     """
 
-    def __init__(self):
+    def __init__(self, score_key="scores"):
         super().__init__("accuracy")
+        self.score_key = score_key
+        self.required_params = [score_key, "targets"]
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
         """Calculate accuracy and return it back.
@@ -250,7 +252,7 @@ class Accuracy(BaseMetric):
             torch.FloatTensor: accuracy.
 
         """
-        output = model_output["scores"]
+        output = model_output[self.score_key]
         expected = sample_list["targets"]
 
         assert (
