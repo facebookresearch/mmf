@@ -90,6 +90,15 @@ class MMFTransformer(BaseTransformer):
             else:
                 self.modality_segments.append(-1)
 
+    # Backward compatibility for code for old mmft checkpoints
+    @classmethod
+    def format_state_key(cls, key):
+        if key.startswith("pooler.") or key.startswith("classifier."):
+            return key.replace("pooler.", "heads.0.pooler.").replace(
+                "classifier.", "heads.0.classifier."
+            )
+        return key
+
     @classmethod
     def config_path(cls) -> str:
         return "configs/models/mmf_transformer/defaults.yaml"
