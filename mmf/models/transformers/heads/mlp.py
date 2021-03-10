@@ -32,6 +32,7 @@ class MLP(BaseTransformerHead):
             nn.Linear(self.config.hidden_size, self.config.num_labels),
         )
         self.num_labels = self.config.num_labels
+        self.hidden_size = self.config.hidden_size
 
     def forward(
         self,
@@ -39,6 +40,9 @@ class MLP(BaseTransformerHead):
         encoded_layers: List[torch.Tensor],
         processed_sample_list: Dict[str, Dict[str, torch.Tensor]],
     ):
+        assert (
+            sequence_output.size()[-1] == self.hidden_size
+        ), "Mismatch between MLP head hidden_size and sequence_output last dim."
         output_dict = {}
         pooled_output = self.pooler(sequence_output)
         prediction = self.classifier(pooled_output)
