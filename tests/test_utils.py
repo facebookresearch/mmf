@@ -50,6 +50,15 @@ NETWORK_AVAILABLE = is_network_reachable()
 CUDA_AVAILBLE = torch.cuda.is_available()
 
 
+def is_fb():
+    return (
+        os.getenv("SANDCASTLE") == "1"
+        or os.getenv("TW_JOB_USER") == "sandcastle"
+        or socket.gethostname().startswith("dev")
+        or "fbinfra" in socket.gethostname()
+    )
+
+
 def skip_if_no_network(testfn, reason="Network is not available"):
     return unittest.skipUnless(NETWORK_AVAILABLE, reason)(testfn)
 
@@ -67,15 +76,7 @@ def skip_if_macos(testfn, reason="Doesn't run on MacOS"):
 
 
 def skip_if_non_fb(testfn, reason="Doesn't run on non FB infra"):
-    return unittest.skipUnless(
-        (
-            os.getenv("SANDCASTLE") == "1"
-            or os.getenv("TW_JOB_USER") == "sandcastle"
-            or socket.gethostname().startswith("dev")
-            or "fbinfra" in socket.gethostname()
-        ),
-        reason,
-    )(testfn)
+    return unittest.skipUnless(is_fb(), reason)(testfn)
 
 
 def compare_state_dicts(a, b):
