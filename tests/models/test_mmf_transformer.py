@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import gc
 import unittest
 
 import tests.test_utils as test_utils
@@ -35,13 +36,18 @@ class TestMMFTransformerTorchscript(unittest.TestCase):
         configuration = Configuration(args)
         self.config = configuration.get_config()
         self.config.model_config[self.model_name].model = self.model_name
-        self.finetune_model = build_model(self.config.model_config[self.model_name])
+
+    def tearDown(self):
+        del self.config
+        gc.collect()
 
     def test_load_save_finetune_model(self):
-        self.assertTrue(test_utils.verify_torchscript_models(self.finetune_model))
+        model = build_model(self.config.model_config[self.model_name])
+        self.assertTrue(test_utils.verify_torchscript_models(model))
 
     def test_finetune_bert_base(self):
-        model = self.finetune_model.eval()
+        model = build_model(self.config.model_config[self.model_name])
+        model.eval()
         self.assertTrue(
             test_utils.compare_torchscript_transformer_models(
                 model, vocab_size=BERT_VOCAB_SIZE

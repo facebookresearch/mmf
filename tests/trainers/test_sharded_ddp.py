@@ -35,7 +35,8 @@ class MMFTrainerMock(TrainerTrainingLoopMock, MMFTrainer):
         super().__init__(num_train_data, max_updates, max_epochs, fp16=True)
         self.device = torch.device(device)
         self.config = config
-        self.model = SimpleModel(1)
+        self.model = SimpleModel({"in_dim": 1})
+        self.model.build()
         self.model = self.model.cuda()
         self.optimizer = build_optimizer(self.model, self.config)
         self.distributed = True

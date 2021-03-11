@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import gc
 import unittest
 
 import tests.test_utils as test_utils
@@ -29,24 +30,29 @@ class TestViLBertTorchscript(unittest.TestCase):
         model_config["v_target_size"] = self.vision_target_size
         model_config["dynamic_attention"] = False
         model_config.model = model_name
-        self.pretrain_model = build_model(model_config)
 
         model_config["training_head_type"] = "classification"
         model_config["num_labels"] = 2
-        self.finetune_model = build_model(model_config)
+        self.model_config = model_config
 
-    # TODO: fix windows unit test with python version of 3.6 and 3.8
-    @test_utils.skip_if_windows
+    def tearDown(self):
+        del self.model_config
+        gc.collect()
+
     def test_load_save_pretrain_model(self):
-        self.assertTrue(test_utils.verify_torchscript_models(self.pretrain_model.model))
+        self.model_config["training_head_type"] = "pretraining"
+        pretrain_model = build_model(self.model_config)
+        self.assertTrue(test_utils.verify_torchscript_models(pretrain_model.model))
 
-    # TODO: fix windows unit test with python version of 3.6 and 3.8
-    @test_utils.skip_if_windows
     def test_load_save_finetune_model(self):
-        self.assertTrue(test_utils.verify_torchscript_models(self.finetune_model.model))
+        self.model_config["training_head_type"] = "classification"
+        finetune_model = build_model(self.model_config)
+        self.assertTrue(test_utils.verify_torchscript_models(finetune_model.model))
 
     def test_pretrained_model(self):
-        self.pretrain_model.model.eval()
+        self.model_config["training_head_type"] = "pretraining"
+        pretrain_model = build_model(self.model_config)
+        pretrain_model.model.eval()
         num_bbox_per_image = 10
         input_ids = torch.randint(low=0, high=BERT_VOCAB_SIZE, size=(1, 128)).long()
         attention_mask = torch.ones((1, 128)).long()
@@ -59,10 +65,10 @@ class TestViLBertTorchscript(unittest.TestCase):
         masked_lm_labels = torch.zeros((1, 128), dtype=torch.long).fill_(-1)
         image_target = torch.zeros(1, num_bbox_per_image, self.vision_target_size)
         image_label = torch.ones(1, num_bbox_per_image).fill_(-1)
-        self.pretrain_model.eval()
+        pretrain_model.eval()
 
         with torch.no_grad():
-            model_output = self.pretrain_model.model(
+            model_output = pretrain_model.model(
                 input_ids=input_ids,
                 image_feature=visual_embeddings,
                 image_location=visual_locations,
@@ -73,7 +79,7 @@ class TestViLBertTorchscript(unittest.TestCase):
                 image_label=image_label,
                 image_target=image_target,
             )
-        script_model = torch.jit.script(self.pretrain_model.model)
+        script_model = torch.jit.script(pretrain_model.model)
         with torch.no_grad():
             script_output = script_model(
                 input_ids=input_ids,
@@ -91,7 +97,9 @@ class TestViLBertTorchscript(unittest.TestCase):
         )
 
     def test_finetune_model(self):
-        self.finetune_model.model.eval()
+        self.model_config["training_head_type"] = "classification"
+        finetune_model = build_model(self.model_config)
+        finetune_model.model.eval()
         num_bbox_per_image = 10
         input_ids = torch.randint(low=0, high=BERT_VOCAB_SIZE, size=(1, 128)).long()
         attention_mask = torch.ones((1, 128)).long()
@@ -101,10 +109,10 @@ class TestViLBertTorchscript(unittest.TestCase):
         ).float()
         image_attention_mask = torch.zeros((1, num_bbox_per_image)).long()
         visual_locations = torch.rand((1, num_bbox_per_image, 5)).float()
-        self.finetune_model.eval()
+        finetune_model.eval()
 
         with torch.no_grad():
-            model_output = self.finetune_model.model(
+            model_output = finetune_model.model(
                 input_ids=input_ids,
                 image_feature=visual_embeddings,
                 image_location=visual_locations,
@@ -112,7 +120,7 @@ class TestViLBertTorchscript(unittest.TestCase):
                 attention_mask=attention_mask,
                 image_attention_mask=image_attention_mask,
             )
-        script_model = torch.jit.script(self.finetune_model.model)
+        script_model = torch.jit.script(finetune_model.model)
         with torch.no_grad():
             script_output = script_model(
                 input_ids=input_ids,

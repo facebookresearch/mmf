@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import gc
 import unittest
 
 import tests.test_utils as test_utils
@@ -31,13 +32,19 @@ class TestMMBTTorchscript(unittest.TestCase):
         model_config["training_head_type"] = "classification"
         model_config["num_labels"] = 2
         model_config.model = model_name
-        self.finetune_model = build_model(model_config)
+        self.model_config = model_config
+
+    def tearDown(self):
+        del self.model_config
+        gc.collect()
 
     def test_load_save_finetune_model(self):
-        self.assertTrue(test_utils.verify_torchscript_models(self.finetune_model))
+        finetune_model = build_model(self.model_config)
+        self.assertTrue(test_utils.verify_torchscript_models(finetune_model))
 
     def test_finetune_model(self):
-        self.finetune_model.eval()
+        finetune_model = build_model(self.model_config)
+        finetune_model.eval()
         test_sample = Sample()
         test_sample.input_ids = torch.randint(low=0, high=30255, size=(128,)).long()
         test_sample.input_mask = torch.ones(128).long()
@@ -46,17 +53,18 @@ class TestMMBTTorchscript(unittest.TestCase):
         test_sample_list = SampleList([test_sample.copy()])
 
         with torch.no_grad():
-            model_output = self.finetune_model.model(test_sample_list)
+            model_output = finetune_model.model(test_sample_list)
 
         test_sample_list = SampleList([test_sample])
-        script_model = torch.jit.script(self.finetune_model.model)
+        script_model = torch.jit.script(finetune_model.model)
         with torch.no_grad():
             script_output = script_model(test_sample_list)
 
         self.assertTrue(torch.equal(model_output["scores"], script_output["scores"]))
 
     def test_modal_end_token(self):
-        self.finetune_model.eval()
+        finetune_model = build_model(self.model_config)
+        finetune_model.eval()
 
         # Suppose 0 for <cls>, 1 for <pad> 2 for <sep>
         CLS = 0
@@ -80,7 +88,7 @@ class TestMMBTTorchscript(unittest.TestCase):
         test_sample.image = torch.rand((3, 300, 300)).float()
         test_sample_list = SampleList([test_sample])
 
-        mmbt_base = self.finetune_model.model.bert
+        mmbt_base = finetune_model.model.bert
         with torch.no_grad():
             actual_modal_end_token = mmbt_base.extract_modal_end_token(test_sample_list)
 
