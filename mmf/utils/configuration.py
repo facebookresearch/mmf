@@ -401,9 +401,11 @@ class Configuration:
 
         # Support equal e.g. model=visual_bert for better future hydra support
         has_equal = opts[0].find("=") != -1
-
         if has_equal:
-            opt_values = [opt.split("=") for opt in opts]
+            opt_values = [opt.split("=", maxsplit=1) for opt in opts]
+            if not all(len(opt) == 2 for opt in opt_values):
+                for opt in opt_values:
+                    assert len(opt) == 2, "{} has no value".format(opt)
         else:
             assert len(opts) % 2 == 0, "Number of opts should be multiple of 2"
             opt_values = zip(opts[0::2], opts[1::2])
