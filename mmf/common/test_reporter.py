@@ -16,8 +16,18 @@ from mmf.utils.general import (
     get_batch_size,
 )
 from mmf.utils.timer import Timer
+import torch
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.distributed import DistributedSampler
+
+from collections import OrderedDict
+from torch.fb.vision.data.writers import hive_table_util
+from pytorch.data.fb.hive_writer.hive_writer import (
+    HiveWriter,
+    Params as HiveWriterParams,
+)
+import koski.dataframes as kd
+
 
 
 logger = logging.getLogger(__name__)
@@ -56,6 +66,23 @@ class TestReporter(Dataset):
 
         PathManager.mkdirs(self.report_folder)
 
+        self.namespace = "si"
+        self.table = "tmp_debug_postray_embedding_dump"
+        self.retention_days = 14
+        self.oncall = "aml_integrity_solutions"
+
+        self.run_id = os.environ.get("WORKFLOW_RUN_ID")
+        if self.run_id:
+            self.run_id = int(self.run_id)
+        else:
+            self.run_id = 0  # testing
+        logger.info("Workflow Run Id {}".format(self.run_id))
+        self.batch_number = 0
+        self.flush_every = 1000
+        logger.info("Flushing writer every {}".format(self.flush_every))
+        self.table_created = False
+
+
     def next_dataset(self, flush_report=True):
         if self.current_dataset_idx >= 0:
             if flush_report:
@@ -88,6 +115,11 @@ class TestReporter(Dataset):
         filename += self.task_type + "_"
         filename += time
 
+        # import pdb; pdb.set_trace()
+        self.hive_dump()
+        logger.info(f"Wrote predictions {self.namespace}.{self.table}")
+
+
         if self.config.evaluation.predict_file_format == "csv":
             filepath = os.path.join(self.report_folder, filename + ".csv")
             self.csv_dump(filepath)
@@ -96,6 +128,7 @@ class TestReporter(Dataset):
             self.json_dump(filepath)
 
         logger.info(f"Wrote predictions for {name} to {os.path.abspath(filepath)}")
+
         self.report = []
 
     def postprocess_dataset_report(self):
@@ -113,6 +146,46 @@ class TestReporter(Dataset):
         with PathManager.open(filepath, "w") as f:
             json.dump(self.report, f)
 
+    def hive_dump(self):
+        if not self.table_created:
+            self.setup_table()
+            self.table_created = True
+        writer = HiveWriter(HiveWriterParams(
+            namespace=self.namespace,
+            table=self.table,
+            ctx=kd.create_test_ctx(),
+            partition={"run_id": self.run_id, "shard": self.batch_number, "dataset_name": self.task_type},
+            num_threads=8,
+            batch_size=128,
+            qps_report_interval=1024
+        ))
+        for i in range(len(self.report)):
+            writer.add_row(
+                [
+                    # 1
+                    self.report[i]['post_id'],
+                    f"{json.dumps(self.report[i])}"
+                ]
+            )
+
+        writer.flush()
+
+    def setup_table(self):
+        # delete_table_query = hive_table_util.delete_hive_table_query(self.table)
+        # hive_table_util.run_query(self.namespace, delete_table_query)
+        columns_with_type = OrderedDict(
+            [
+                ("id", "BIGINT"),
+                ("payload", "VARCHAR"),
+            ]
+        )
+        partition_columns_with_type = OrderedDict([("run_id", "BIGINT"), ("shard", "INTEGER"), ("dataset_name", "VARCHAR")])
+        create_table_query = hive_table_util.create_hive_table_query(
+            self.table, columns_with_type, partition_columns_with_type, self.retention_days, self.oncall
+        )
+        hive_table_util.run_query(self.namespace, create_table_query)
+
+
     def get_dataloader(self):
         dataloader, _ = build_dataloader_and_sampler(
             self.current_dataset, self.training_config
@@ -120,6 +193,9 @@ class TestReporter(Dataset):
         return dataloader
 
     def prepare_batch(self, batch):
+        self.batch_number += 1
+        if self.batch_number % self.flush_every == 0:
+           self.flush_report()
         if hasattr(self.current_dataset, "prepare_batch"):
             batch = self.current_dataset.prepare_batch(batch)
         return batch
@@ -131,7 +207,7 @@ class TestReporter(Dataset):
         return self.current_dataset[idx]
 
     def add_to_report(self, report, model, execute_on_master_only=True):
-        keys = ["id", "question_id", "image_id", "context_tokens", "captions", "scores"]
+        keys = ["id", "question_id", "image_id", "context_tokens", "captions", "scores", "embedding"]
         for key in keys:
             report = self.reshape_and_gather(report, key)
 
