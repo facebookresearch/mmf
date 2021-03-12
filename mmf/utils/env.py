@@ -10,6 +10,7 @@ from datetime import datetime
 
 import numpy as np
 import torch
+from omegaconf import OmegaConf, open_dict
 
 
 def set_seed(seed):
@@ -38,26 +39,62 @@ def import_user_module(user_dir: str):
     Args:
         user_dir (str): directory which has to be imported
     """
+    from mmf.common.registry import registry
     from mmf.utils.general import get_absolute_path  # noqa
 
     logger = logging.getLogger(__name__)
     if user_dir:
-        user_dir = get_absolute_path(user_dir)
-        module_parent, module_name = os.path.split(user_dir)
+        if registry.get("__mmf_user_dir_imported__", no_warning=True):
+            logger.info(f"User dir {user_dir} already imported. Skipping.")
+            return
 
-        if module_name in sys.modules:
-            module_bak = sys.modules[module_name]
-            del sys.modules[module_name]
+        # Allow loading of files as user source
+        if user_dir.endswith(".py"):
+            user_dir = user_dir[:-3]
+
+        dot_path = ".".join(user_dir.split(os.path.sep))
+        # In case of abspath which start from "/" the first char
+        # will be "." which turns it into relative module which
+        # find_spec doesn't like
+        if os.path.isabs(user_dir):
+            dot_path = dot_path[1:]
+
+        try:
+            dot_spec = importlib.util.find_spec(dot_path)
+        except ModuleNotFoundError:
+            dot_spec = None
+        abs_user_dir = get_absolute_path(user_dir)
+        module_parent, module_name = os.path.split(abs_user_dir)
+
+        # If dot path is found in sys.modules, or path can be directly
+        # be imported, we don't need to play jugglery with actual path
+        if dot_path in sys.modules or dot_spec is not None:
+            module_name = dot_path
         else:
-            module_bak = None
+            user_dir = abs_user_dir
 
         logger.info(f"Importing from {user_dir}")
-        sys.path.insert(0, module_parent)
-        importlib.import_module(module_name)
+        if module_name != dot_path:
+            # Since dot path hasn't been found or can't be imported,
+            # we can try importing the module by changing sys path
+            # to the parent
+            sys.path.insert(0, module_parent)
 
+        importlib.import_module(module_name)
         sys.modules["mmf_user_dir"] = sys.modules[module_name]
-        if module_bak is not None and module_name != "mmf_user_dir":
-            sys.modules[module_name] = module_bak
+
+        # Register config for user's model and dataset config
+        # relative path resolution
+        config = registry.get("config")
+        if config is None:
+            registry.register(
+                "config", OmegaConf.create({"env": {"user_dir": user_dir}})
+            )
+        else:
+            with open_dict(config):
+                config.env.user_dir = user_dir
+
+        registry.register("__mmf_user_dir_imported__", True)
 
 
 def import_files(file_path: str, module_name: str = None):
