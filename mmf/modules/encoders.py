@@ -19,7 +19,7 @@ from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path
 from omegaconf import MISSING, OmegaConf
-from torch import nn
+from torch import Tensor, nn
 from transformers.configuration_auto import AutoConfig
 from transformers.modeling_auto import AutoModel
 
@@ -459,12 +459,13 @@ class TransformerEncoder(Encoder):
 
     def _build_encoder_config(self, config: Config):
         return AutoConfig.from_pretrained(
-            self.config.bert_model_name, **OmegaConf.to_container(self.config)
+            config.bert_model_name, **OmegaConf.to_container(config)
         )
 
-    def forward(self, *args, **kwargs):
+    def forward(self, *args, return_sequence=False, **kwargs) -> Tensor:
         # Only return pooled output
-        return self.module(*args, **kwargs)[1]
+        output = self.module(*args, **kwargs)
+        return output[0] if return_sequence else output[1]
 
 
 class MultiModalEncoderBase(Encoder):
