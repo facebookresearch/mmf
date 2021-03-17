@@ -11,6 +11,8 @@ import subprocess
 from collections import OrderedDict
 from glob import glob
 
+from mmf.utils.general import get_mmf_root
+
 
 def main(get_grid, postprocess_hyperparams, args):
     if args.local:
@@ -139,7 +141,11 @@ def launch_train(args, config):
         return
 
     # generate train command
-    train_cmd = ["python", "-u", os.path.join(destination, "mmf_cli/run.py")]
+    train_cmd = [
+        "python",
+        "-u",
+        os.path.join(get_mmf_root(), "..", "mmf_cli", "run.py"),
+    ]
     train_cmd.extend(["distributed.world_size", str(args.num_nodes * args.num_gpus)])
     if args.num_nodes > 1:
         train_cmd.extend(["distributed.port", str(get_random_port())])
