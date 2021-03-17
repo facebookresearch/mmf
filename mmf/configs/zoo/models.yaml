@@ -470,3 +470,22 @@ butd:
     - url: mmf://models/butd/butd.coco.tar.gz
       file_name: butd.coco.tar.gz
       hashcode: 55e57d791e6e5c785b96d8254ef48f3d9b5b107ff1152560b09d868f88c3598f
+
+unit:
+  defaults: ${unit.all_8_datasets.shared_dec_with_coco_init}
+  all_8_datasets:
+    shared_dec_with_coco_init:
+      # Model from project : projects/unit
+      # - val/detection_coco/detection_mean_ap: 0.3899,
+      # - val/detection_visual_genome/detection_mean_ap: 0.0329,
+      # - val/vqa2/vqa_accuracy: 0.6696,
+      # - val/visual_entailment/accuracy: 0.7316,
+      # - val/glue_qnli/accuracy: 0.8790,
+      # - val/glue_sst2/accuracy: 0.8922,
+      # - val/glue_mnli_mismatched/accuracy: 0.8090,
+      # - val/glue_qqp/accuracy: 0.9065
+      version: 1.0_2021_02_25
+      resources:
+      - url: mmf://models/unit.all_8_datasets.shared_dec_with_coco_init/unit.all_8_datasets.shared_dec_with_coco_init.tar.gz
+        file_name: unit.all_8_datasets.shared_dec_with_coco_init.tar.gz
+        hashcode: b85796246601c477d354d6ad315b55a200b4c7ba6bf7e263ef82bca74bdcab1c
