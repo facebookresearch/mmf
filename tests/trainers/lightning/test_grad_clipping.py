@@ -63,4 +63,4 @@ class TestLightningTrainerGradClipping(unittest.TestCase, Callback):
 
     def on_train_end(self, trainer, pl_module):
         for lightning_grad, mmf_grad in zip(self.lightning_grads, self.mmf_grads):
-            self.assertEqual(lightning_grad, mmf_grad)
+            self.assertAlmostEqual(lightning_grad, mmf_grad, places=6)
