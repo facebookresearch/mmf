@@ -3,6 +3,7 @@
 import tempfile
 import unittest
 
+import torch
 from mmf.modules import encoders
 from tests.test_utils import setup_proxy
 from torch import nn
@@ -46,3 +47,20 @@ class TestEncoders(unittest.TestCase):
 
     def test_identity(self):
         self._test_init(encoders.IdentityEncoder, in_dim=256)
+
+    def test_transformer_encoder_forward(self):
+        encoder = encoders.TransformerEncoder.from_params()
+        self.assertEqual(encoder.embeddings.word_embeddings.weight.size(1), 768)
+        self.assertEqual(encoder.embeddings.word_embeddings.weight.size(0), 30522)
+        text_ids = torch.randint(
+            encoder.embeddings.word_embeddings.weight.size(0), (2, 16)
+        )
+        text_embeddings = encoder(text_ids)
+
+        text_embeddings_cls = encoder(text_ids)
+        self.assertEqual(text_embeddings_cls.dim(), 2)
+        self.assertEqual(list(text_embeddings_cls.size()), [2, 768])
+
+        text_embeddings = encoder(text_ids, return_sequence=True)
+        self.assertEqual(text_embeddings.dim(), 3)
+        self.assertEqual(list(text_embeddings.size()), [2, 16, 768])
