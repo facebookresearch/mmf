@@ -4,7 +4,6 @@ import warnings
 
 import omegaconf
 import torch
-from mmf.common import typings as mmf_typings
 from mmf.common.dataset_loader import DatasetLoader
 from mmf.common.registry import registry
 from mmf.modules.metrics import Metrics
@@ -21,7 +20,7 @@ from mmf.trainers.core.reporting import TrainerReportingMixin
 from mmf.trainers.core.training_loop import TrainerTrainingLoopMixin
 from mmf.utils.build import build_model, build_optimizer
 from mmf.utils.general import print_model_parameters
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 
 
 logger = logging.getLogger(__name__)
@@ -37,7 +36,7 @@ class MMFTrainer(
     TrainerProfilingMixin,
     BaseTrainer,
 ):
-    def __init__(self, config: mmf_typings.DictConfig):
+    def __init__(self, config: DictConfig):
         super().__init__(config)
 
     def load(self):

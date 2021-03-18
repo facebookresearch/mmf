@@ -3,7 +3,6 @@ import logging
 import math
 
 import omegaconf
-from mmf.common import typings as mmf_typings
 from mmf.common.registry import registry
 from mmf.datasets.lightning_datamodule import LightningDataModule
 from mmf.modules.metrics import Metrics
@@ -11,7 +10,7 @@ from mmf.trainers.base_trainer import BaseTrainer
 from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
 from mmf.utils.build import build_model
 from mmf.utils.general import get_max_updates, print_model_parameters
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Trainer, seed_everything
 
 
@@ -20,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 @registry.register_trainer("lightning")
 class LightningTrainer(BaseTrainer):
-    def __init__(self, config: mmf_typings.DictConfig):
+    def __init__(self, config: DictConfig):
         super().__init__(config)
         self.trainer = None
 

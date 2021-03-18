@@ -2,13 +2,13 @@
 
 from abc import ABC, abstractmethod
 
-from mmf.common import typings as mmf_typings
 from mmf.common.registry import registry
+from omegaconf import DictConfig
 
 
 @registry.register_trainer("base")
 class BaseTrainer(ABC):
-    def __init__(self, config: mmf_typings.DictConfig):
+    def __init__(self, config: DictConfig):
         self.config = config
         self.training_config = self.config.training
 

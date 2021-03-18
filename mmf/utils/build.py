@@ -3,11 +3,10 @@
 import os
 import warnings
 from enum import Enum
-from typing import Any, Dict, Type, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import mmf
 import torch
-from mmf.common import typings as mmf_typings
 from mmf.common.registry import registry
 from mmf.datasets.processors.processors import Processor
 from mmf.utils.configuration import Configuration
@@ -22,13 +21,10 @@ try:
 except ImportError:
     xm = None
 
-ProcessorType = Type[Processor]
-ProcessorDict = Dict[str, ProcessorType]
+ProcessorDict = Dict[str, Processor]
 
 
-def build_config(
-    configuration: Type[Configuration], *args, **kwargs
-) -> mmf_typings.DictConfig:
+def build_config(configuration: Configuration, *args, **kwargs) -> DictConfig:
     """Builder function for config. Freezes the configuration and registers
     configuration object and config DictConfig object to registry.
 
@@ -37,7 +33,7 @@ def build_config(
             used to create the config.
 
     Returns:
-        (DictConfig): A config which is of type Omegaconf.DictConfig
+        (DictConfig): A config which is of type omegaconf.DictConfig
     """
     configuration.freeze()
     config = configuration.get_config()
@@ -47,7 +43,7 @@ def build_config(
     return config
 
 
-def build_trainer(config: mmf_typings.DictConfig) -> Any:
+def build_trainer(config: DictConfig) -> Any:
     """Builder function for creating a trainer class. Trainer class name
     is picked from the config.
 
@@ -106,7 +102,7 @@ def build_model(
 
 def build_dataset(
     dataset_key: str, config=None, dataset_type="train"
-) -> mmf_typings.DatasetType:
+) -> torch.utils.data.Dataset:
     """Builder function for creating a dataset. If dataset_key is passed
     the dataset is created from default config of the dataset and thus is
     disable config even if it is passed. Otherwise, we use MultiDatasetLoader to
@@ -121,8 +117,9 @@ def build_dataset(
             Defaults to "train".
 
     Returns:
-        (DatasetType): A dataset instance of type BaseDataset
+        (torch.utils.data.Dataset): A dataset instance of type torch Dataset
     """
+    from mmf.datasets.base_dataset_builder import BaseDatasetBuilder
     from mmf.utils.configuration import load_yaml_with_defaults
 
     dataset_builder = registry.get_builder_class(dataset_key)
@@ -148,7 +145,7 @@ def build_dataset(
                 config = OmegaConf.create()
             OmegaConf.set_struct(config, True)
 
-    builder_instance: mmf_typings.DatasetBuilderType = dataset_builder()
+    builder_instance: BaseDatasetBuilder = dataset_builder()
     builder_instance.build_dataset(config, dataset_type)
     dataset = builder_instance.load_dataset(config, dataset_type)
     if hasattr(builder_instance, "update_registry_for_model"):
@@ -158,18 +155,19 @@ def build_dataset(
 
 
 def build_dataloader_and_sampler(
-    dataset_instance: mmf_typings.DatasetType, training_config: mmf_typings.DictConfig
-) -> mmf_typings.DataLoaderAndSampler:
+    dataset_instance: torch.utils.data.Dataset, training_config: DictConfig
+) -> Tuple[torch.utils.data.DataLoader, Optional[torch.utils.data.Sampler]]:
     """Builds and returns a dataloader along with its sample
 
     Args:
-        dataset_instance (mmf_typings.DatasetType): Instance of dataset for which
+        dataset_instance (torch.utils.data.Dataset): Instance of dataset for which
             dataloader has to be created
-        training_config (mmf_typings.DictConfig): Training configuration; required
+        training_config (DictConfig): Training configuration; required
             for infering params for dataloader
 
     Returns:
-        mmf_typings.DataLoaderAndSampler: Tuple of Dataloader and Sampler instance
+        Tuple[torch.utils.data.DataLoader, Optional[torch.utils.data.Sampler]]:
+            Tuple of Dataloader and Sampler instance
     """
     from mmf.common.batch_collator import BatchCollator
 
@@ -220,9 +218,9 @@ def build_dataloader_and_sampler(
 
 
 def _add_extra_args_for_dataloader(
-    dataset_instance: mmf_typings.DatasetType,
-    other_args: mmf_typings.DataLoaderArgsType = None,
-) -> mmf_typings.DataLoaderArgsType:
+    dataset_instance: torch.utils.data.Dataset,
+    other_args: Optional[Dict[str, Any]] = None,
+) -> Optional[Dict[str, Any]]:
     from mmf.utils.general import get_batch_size
 
     if other_args is None:
@@ -386,13 +384,13 @@ def build_encoder(config: Union[DictConfig, "mmf.modules.encoders.Encoder.Config
 
 
 def build_processors(
-    processors_config: mmf_typings.DictConfig, registry_key: str = None, *args, **kwargs
+    processors_config: DictConfig, registry_key: str = None, *args, **kwargs
 ) -> ProcessorDict:
     """Given a processor config, builds the processors present and returns back
     a dict containing processors mapped to keys as per the config
 
     Args:
-        processors_config (mmf_typings.DictConfig): OmegaConf DictConfig describing
+        processors_config (omegaconf.DictConfig): OmegaConf DictConfig describing
             the parameters and type of each processor passed here
 
         registry_key (str, optional): If passed, function would look into registry for

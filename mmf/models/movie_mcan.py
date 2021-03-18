@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Optional, Tuple
 import omegaconf
 import torch
 from mmf.common.registry import registry
-from mmf.common.typings import DictConfig
 from mmf.models.base_model import BaseModel
 from mmf.modules.embeddings import (
     PreExtractedEmbedding,
@@ -16,6 +15,7 @@ from mmf.modules.embeddings import (
 from mmf.modules.layers import BranchCombineLayer, ClassifierLayer
 from mmf.utils.build import build_image_encoder
 from mmf.utils.general import filter_grads
+from omegaconf import DictConfig
 
 
 @registry.register_model("movie_mcan")
