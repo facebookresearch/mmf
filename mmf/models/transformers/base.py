@@ -369,8 +369,8 @@ class BaseTransformerHead(nn.Module, ABC):
     def forward(
         self,
         sequence_output: Tensor,
-        encoded_layers: List[Tensor],
-        processed_sample_list: Dict[str, Dict[str, Tensor]],
+        encoded_layers: Optional[List[Tensor]] = None,
+        processed_sample_list: Optional[Dict[str, Dict[str, Tensor]]] = None,
     ) -> Dict[str, Tensor]:
         """Forward for the head module.
 

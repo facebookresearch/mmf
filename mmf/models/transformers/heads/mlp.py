@@ -1,7 +1,7 @@
-# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+# Copyright (c) Facebook, Inc. and its affiliates.
 
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import torch
 from mmf.common.registry import registry
@@ -37,8 +37,8 @@ class MLP(BaseTransformerHead):
     def forward(
         self,
         sequence_output: torch.Tensor,
-        encoded_layers: List[torch.Tensor],
-        processed_sample_list: Dict[str, Dict[str, torch.Tensor]],
+        encoded_layers: Optional[List[torch.Tensor]] = None,
+        processed_sample_list: Optional[Dict[str, Dict[str, torch.Tensor]]] = None,
     ):
         assert (
             sequence_output.size()[-1] == self.hidden_size
