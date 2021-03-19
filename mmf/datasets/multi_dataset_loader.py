@@ -10,6 +10,7 @@ import numpy as np
 from mmf.utils.build import build_dataloader_and_sampler, build_dataset
 from mmf.utils.distributed import (
     broadcast_scalar,
+    get_world_size,
     is_dist_initialized,
     is_master,
     is_xla,
@@ -214,7 +215,9 @@ class MultiDatasetLoader:
 
     def __len__(self):
         # Since, this is iterator, we need to return total length == number of batches
-        batch_size = get_batch_size()
+        # and as get_batch_size returns per GPU batch size, it needs to be multiplied
+        # by world size
+        batch_size = get_batch_size() * get_world_size()
         # Changed the length to accomadate drop_last == True
         # drop_last is required if the batch is split into multiple cores
         # some of the cores may not have enough examples.
