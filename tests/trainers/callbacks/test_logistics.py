@@ -76,7 +76,7 @@ class TestLogisticsCallback(unittest.TestCase):
         self.report.dataset_type = "test"
 
         self.trainer.model = SimpleModule()
-        self.trainer.val_dataset = NumbersDataset()
+        self.trainer.val_loader = NumbersDataset()
 
         self.trainer.optimizer = torch.optim.Adam(
             self.trainer.model.parameters(), lr=1e-01

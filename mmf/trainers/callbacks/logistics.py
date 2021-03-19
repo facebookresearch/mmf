@@ -32,8 +32,8 @@ class LogisticsCallback(Callback):
         self.checkpoint_interval = self.training_config.checkpoint_interval
 
         # Total iterations for snapshot
-        self.snapshot_iterations = len(self.trainer.val_dataset)
-        self.snapshot_iterations //= self.training_config.batch_size
+        # len would be number of batches per GPU == max updates
+        self.snapshot_iterations = len(self.trainer.val_loader)
 
         self.tb_writer = None
 
