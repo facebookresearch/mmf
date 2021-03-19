@@ -54,7 +54,10 @@ def is_fb():
     return (
         os.getenv("SANDCASTLE") == "1"
         or os.getenv("TW_JOB_USER") == "sandcastle"
-        or socket.gethostname().startswith("dev")
+        or (
+            socket.gethostname().startswith("dev")
+            and not socket.gethostname().startswith("devfair")
+        )
         or "fbinfra" in socket.gethostname()
     )
 
