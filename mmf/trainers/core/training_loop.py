@@ -39,6 +39,7 @@ class TrainerTrainingLoopMixin(ABC):
         # be a repeat
         if (
             "train" in self.run_type
+            and "val" in self.run_type
             and self.num_updates % self.training_config.evaluation_interval != 0
         ):
             # Create a new meter for this case
