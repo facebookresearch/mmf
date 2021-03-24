@@ -26,7 +26,7 @@ import numpy as np
 import requests
 import torch
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-from mmf.utils.download import get_image_from_url
+from mmf.datasets.processors.frcnn_processor import img_tensorize
 from PIL import Image
 
 
@@ -51,16 +51,6 @@ def get_data(query: str, delim: str = ","):
                 data = data.split("\n")
         req.close()
     return data
-
-
-def img_tensorize(im: str):
-    assert isinstance(im, str)
-    if os.path.isfile(im):
-        img = np.array(Image.open(im))
-    else:
-        img = get_image_from_url(im)
-        assert img is not None, f"could not connect to: {im}"
-    return img
 
 
 class SingleImageViz:

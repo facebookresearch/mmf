@@ -14,62 +14,11 @@
  See the License for the specific language governing permissions and
  limitations under the License.import copy
  """
-import sys
 from typing import Tuple
 
-import numpy as np
 import torch
 import torch.nn.functional as F
-from PIL import Image
-
-from tools.scripts.features.frcnn.frcnn_utils import img_tensorize
-
-
-class ResizeShortestEdge:
-    def __init__(self, short_edge_length, max_size=sys.maxsize):
-        """
-        Args:
-            short_edge_length (list[min, max])
-            max_size (int): maximum allowed longest edge length.
-        """
-        self.interp_method = "bilinear"
-        self.max_size = max_size
-        self.short_edge_length = short_edge_length
-
-    def __call__(self, imgs):
-        img_augs = []
-        for img in imgs:
-            h, w = img.shape[:2]
-            # later: provide list and randomly choose index for resize
-            size = np.random.randint(
-                self.short_edge_length[0], self.short_edge_length[1] + 1
-            )
-            if size == 0:
-                return img
-            scale = size * 1.0 / min(h, w)
-            if h < w:
-                newh, neww = size, scale * w
-            else:
-                newh, neww = scale * h, size
-            if max(newh, neww) > self.max_size:
-                scale = self.max_size * 1.0 / max(newh, neww)
-                newh = newh * scale
-                neww = neww * scale
-            neww = int(neww + 0.5)
-            newh = int(newh + 0.5)
-
-            if img.dtype == np.uint8:
-                pil_image = Image.fromarray(img)
-                pil_image = pil_image.resize((neww, newh), Image.BILINEAR)
-                img = np.asarray(pil_image)
-            else:
-                img = img.permute(2, 0, 1).unsqueeze(0)  # 3, 0, 1)  # hw(c) -> nchw
-                img = F.interpolate(
-                    img, (newh, neww), mode=self.interp_method, align_corners=False
-                ).squeeze(0)
-            img_augs.append(img)
-
-        return img_augs
+from mmf.datasets.processors.frcnn_processor import ResizeShortestEdge, img_tensorize
 
 
 class Preprocess:
