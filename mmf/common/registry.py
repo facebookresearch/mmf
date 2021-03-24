@@ -24,6 +24,7 @@ Various decorators for registry different kind of classes with unique keys
 - Register a decoder: ``@registry.register_decoder``
 - Register a transformer backend: ``@registry.register_transformer_backend``
 - Register a transformer head: ``@registry.register_transformer_head``
+- Register a test reporter: ``@registry.register_test_reporter``
 """
 from mmf.utils.env import setup_imports
 
@@ -53,6 +54,7 @@ class Registry:
         "decoder_name_mapping": {},
         "transformer_backend_name_mapping": {},
         "transformer_head_name_mapping": {},
+        "test_reporter_mapping": {},
         "state": {},
     }
 
@@ -288,6 +290,14 @@ class Registry:
         return wrap
 
     @classmethod
+    def register_test_reporter(cls, name):
+        def wrap(func):
+            cls.mapping["test_reporter_mapping"][name] = func
+            return func
+
+        return wrap
+
+    @classmethod
     def register_decoder(cls, name):
         r"""Register a decoder to registry with key 'name'
 
@@ -417,6 +427,10 @@ class Registry:
     @classmethod
     def get_transformer_head_class(cls, name):
         return cls.mapping["transformer_head_name_mapping"].get(name, None)
+
+    @classmethod
+    def get_test_rerporter_class(cls, name):
+        return cls.mapping["test_reporter_mapping"].get(name, None)
 
     @classmethod
     def get(cls, name, default=None, no_warning=False):

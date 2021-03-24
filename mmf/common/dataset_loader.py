@@ -1,8 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 from mmf.common.sample import SampleList
-from mmf.common.test_reporter import TestReporter
 from mmf.datasets.multi_dataset_loader import MultiDatasetLoader
+from mmf.utils.build import build_test_reporter
 
 
 class DatasetLoader:
@@ -45,7 +45,17 @@ class DatasetLoader:
 
     def get_test_reporter(self, dataset_type):
         dataset = getattr(self, f"{dataset_type}_dataset")
-        return TestReporter(dataset)
+        dataset_name = list(self.config.dataset_config.keys())[0]
+        return build_test_reporter(
+            dataset,
+            (
+                self.config.dataset_config.get(dataset_name).get(
+                    "test_reporter_config", None
+                )
+                if (getattr(self.config.dataset_config.get(dataset_name), "get", None))
+                else None
+            ),
+        )
 
     def prepare_batch(self, batch, *args, **kwargs):
         batch = SampleList(batch)

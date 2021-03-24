@@ -3,28 +3,51 @@ import csv
 import json
 import logging
 import os
+from dataclasses import dataclass
+from typing import List
 
-from mmf.common.batch_collator import BatchCollator
 from mmf.common.registry import registry
 from mmf.utils.build import build_dataloader_and_sampler
 from mmf.utils.configuration import get_mmf_env
-from mmf.utils.distributed import gather_tensor, is_dist_initialized, is_master
+from mmf.utils.distributed import gather_tensor, is_master
 from mmf.utils.file_io import PathManager
-from mmf.utils.general import (
-    ckpt_name_from_core_args,
-    foldername_from_config_override,
-    get_batch_size,
-)
+from mmf.utils.general import ckpt_name_from_core_args, foldername_from_config_override
 from mmf.utils.timer import Timer
-from torch.utils.data import DataLoader, Dataset
-from torch.utils.data.distributed import DistributedSampler
+from omegaconf import MISSING
+from torch.utils.data import Dataset
 
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_CANDIDATE_FIELDS = [
+    "id",
+    "question_id",
+    "image_id",
+    "context_tokens",
+    "captions",
+    "scores",
+]
 
+
+@registry.register_test_reporter("file")
+@registry.register_test_reporter("default")
 class TestReporter(Dataset):
-    def __init__(self, multi_task_instance):
+    @dataclass
+    class TestReporterConfigType:
+        # A set of fields to be *considered* for exporting by the reporter
+        # Note that `format_for_prediction` is what ultimtly detemrimes the
+        # exported fields
+        candidate_fields: List[str] = MISSING
+        # csv or json
+        predict_file_format: str = MISSING
+
+    def __init__(
+        self, multi_task_instance, test_reporter_config: TestReporterConfigType = None
+    ):
+        if not isinstance(test_reporter_config, TestReporter.TestReporterConfigType):
+            test_reporter_config = TestReporter.TestReporterConfigType(
+                **test_reporter_config
+            )
         self.test_task = multi_task_instance
         self.task_type = multi_task_instance.dataset_type
         self.config = registry.get("config")
@@ -35,6 +58,7 @@ class TestReporter(Dataset):
         self.batch_size = self.training_config.batch_size
         self.report_folder_arg = get_mmf_env(key="report_dir")
         self.experiment_name = self.training_config.experiment_name
+        self.test_reporter_config = test_reporter_config
 
         self.datasets = []
 
@@ -53,6 +77,11 @@ class TestReporter(Dataset):
 
         if self.report_folder_arg:
             self.report_folder = self.report_folder_arg
+
+        self.candidate_fields = DEFAULT_CANDIDATE_FIELDS
+
+        if not test_reporter_config.candidate_fields == MISSING:
+            self.candidate_fields = test_reporter_config.candidate_fields
 
         PathManager.mkdirs(self.report_folder)
 
@@ -88,7 +117,12 @@ class TestReporter(Dataset):
         filename += self.task_type + "_"
         filename += time
 
-        if self.config.evaluation.predict_file_format == "csv":
+        use_csv_writer = (
+            self.config.evaluation.predict_file_format == "csv"
+            or self.test_reporter_config.predict_file_format == "csv"
+        )
+
+        if use_csv_writer:
             filepath = os.path.join(self.report_folder, filename + ".csv")
             self.csv_dump(filepath)
         else:
@@ -131,8 +165,7 @@ class TestReporter(Dataset):
         return self.current_dataset[idx]
 
     def add_to_report(self, report, model, execute_on_master_only=True):
-        keys = ["id", "question_id", "image_id", "context_tokens", "captions", "scores"]
-        for key in keys:
+        for key in self.candidate_fields:
             report = self.reshape_and_gather(report, key)
 
         if execute_on_master_only and not is_master():

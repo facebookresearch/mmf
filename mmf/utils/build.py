@@ -217,6 +217,27 @@ def build_dataloader_and_sampler(
     return loader, other_args.get("sampler", None)
 
 
+def build_test_reporter(dataset, config=None):
+    test_reporter_key = "default"
+    if config:
+        test_reporter_key = config.get("type", "default")
+    test_reporter_class = registry.get_test_rerporter_class(test_reporter_key)
+    assert test_reporter_class, (
+        f"Key {test_reporter_key} doesn't have a registered " + "test_reporter class"
+    )
+
+    if not config:
+        warnings.warn(
+            f"Config not provided for {test_reporter_key}, test_reporter"
+            + "continuing with empty config"
+        )
+        params_config = OmegaConf.create()
+    else:
+        params_config = config.params
+
+    return test_reporter_class(dataset, params_config)
+
+
 def _add_extra_args_for_dataloader(
     dataset_instance: torch.utils.data.Dataset,
     other_args: Optional[Dict[str, Any]] = None,
