@@ -1,0 +1,8 @@
+includes:
+- ./shared_dec.yaml
+
+model_config:
+  unit:
+    base_args:
+      use_task_embedding_in_img_encoder: false
+      use_task_embedding_in_lang_encoder: false
