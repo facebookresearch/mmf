@@ -151,6 +151,23 @@ visual_bert:
           file_name: visual_bert.finetuned.hateful_memes_from_coco.tar.gz
           hashcode: 462d34eb35d7d00f50f14b8e06577b9f89074313761f3f94fd5161dc67b28525
       defaults: ${visual_bert.finetuned.hateful_memes.from_coco}
+    hateful_memes_fine_grained:
+      hateful:
+        version: 1.0_2021_03_01
+        resources:
+        - url: mmf://models/visual_bert/hateful_memes_fine_grained/hateful.tar.gz
+          file_name: hateful.tar.gz
+      protected_groups:
+        version: 1.0_2021_03_01
+        resources:
+        - url: mmf://models/visual_bert/hateful_memes_fine_grained/protected_groups.tar.gz
+          file_name: protected_groups.tar.gz
+      attack_vectors:
+        version: 1.0_2021_03_01
+        resources:
+        - url: mmf://models/visual_bert/hateful_memes_fine_grained/attack_vectors.tar.gz
+          file_name: attack_vectors.tar.gz
+      defaults: ${visual_bert.finetuned.hateful_memes_fine_grained.hateful}
     vqa2:
       from_coco_train:
         version: 1.0_2020_05_21
