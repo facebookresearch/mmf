@@ -74,6 +74,7 @@ def get_lightning_trainer(
     )
     trainer.model.build()
     trainer.model.train()
+    trainer.model.is_pl_enabled = True
     prepare_lightning_trainer(trainer)
     return trainer
 
