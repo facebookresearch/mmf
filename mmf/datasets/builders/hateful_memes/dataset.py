@@ -19,6 +19,7 @@ class HatefulMemesFeaturesDataset(MMFDataset):
         assert (
             self._use_features
         ), "config's 'use_images' must be true to use image dataset"
+        self.is_multilabel = self.config.get("is_multilabel", False)
 
     def preprocess_sample_info(self, sample_info):
         image_path = sample_info["img"]
@@ -50,15 +51,50 @@ class HatefulMemesFeaturesDataset(MMFDataset):
             )
         current_sample.update(features)
 
-        if "label" in sample_info:
-            current_sample.targets = torch.tensor(
-                sample_info["label"], dtype=torch.long
+        fg_dataset_type = self.config.get("fg_dataset_type", None)
+        if fg_dataset_type:
+            current_sample = self.process_fg_labels(
+                fg_dataset_type=fg_dataset_type,
+                sample_info=sample_info,
+                current_sample=current_sample,
             )
+        else:
+            if "label" in sample_info:
+                current_sample.targets = torch.tensor(
+                    sample_info["label"], dtype=torch.long
+                )
+
+        return current_sample
+
+    def process_fg_labels(self, fg_dataset_type, sample_info, current_sample):
+        """
+        If fg_dataset_type is present, it means we are using
+        the Hateful Memes Fine Grained datasets. It is the same
+        hateful memes datasets but have additional labels for
+        protected groups and attack vectors. More details see:
+        https://github.com/facebookresearch/fine_grained_hateful_memes
+        """
+        ds_type_to_label = {
+            "attack": sample_info["top_attacks"],
+            "pc": sample_info["top_protectedcats"],
+            "pc_attack": sample_info["top_protectedcats"] + sample_info["top_attacks"],
+            "hateful_pc_attack": sample_info["top_protectedcats"]
+            + sample_info["top_attacks"]
+            + ["hateful" if int(sample_info["label"]) == 1 else "not_hateful"],
+        }
+        processed = self.answer_processor(
+            {"answers": ds_type_to_label[fg_dataset_type]}
+        )
+        current_sample.answers = processed["answers"]
+        current_sample.targets = processed["answers_scores"]
 
         return current_sample
 
     def format_for_prediction(self, report):
-        return generate_prediction(report)
+        if self.is_multilabel:
+            return generate_multilabel_prediction(report)
+        else:
+            return generate_binary_prediction(report)
 
 
 class HatefulMemesImageDataset(MMFDataset):
@@ -67,6 +103,7 @@ class HatefulMemesImageDataset(MMFDataset):
         assert (
             self._use_images
         ), "config's 'use_images' must be true to use image dataset"
+        self.is_multilabel = self.config.get("is_multilabel", False)
 
     def init_processors(self):
         super().init_processors()
@@ -95,7 +132,10 @@ class HatefulMemesImageDataset(MMFDataset):
         return current_sample
 
     def format_for_prediction(self, report):
-        return generate_prediction(report)
+        if self.is_multilabel:
+            return generate_multilabel_prediction(report)
+        else:
+            return generate_binary_prediction(report)
 
     def visualize(self, num_samples=1, use_transforms=False, *args, **kwargs):
         image_paths = []
@@ -108,7 +148,7 @@ class HatefulMemesImageDataset(MMFDataset):
         visualize_images(images["images"], *args, **kwargs)
 
 
-def generate_prediction(report):
+def generate_binary_prediction(report):
     scores = torch.nn.functional.softmax(report.scores, dim=1)
     _, labels = torch.max(scores, 1)
     # Probability that the meme is hateful, (1)
@@ -121,3 +161,11 @@ def generate_prediction(report):
         label = labels[idx].item()
         predictions.append({"id": image_id.item(), "proba": proba, "label": label})
     return predictions
+
+
+def generate_multilabel_prediction(report):
+    scores = torch.sigmoid(report.scores)
+    return [
+        {"id": image_id.item(), "scores": scores[idx].tolist()}
+        for idx, image_id in enumerate(report.id)
+    ]

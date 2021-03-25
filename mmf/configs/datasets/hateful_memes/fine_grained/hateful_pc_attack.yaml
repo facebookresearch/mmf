@@ -1,0 +1,16 @@
+includes:
+- ./with_features.yaml
+
+dataset_config:
+  hateful_memes:
+    fg_dataset_type: hateful_pc_attack
+    is_multilabel: true
+    processors:
+        answer_processor:
+          type: multi_hot_answer_from_vocab
+          params:
+              num_answers: 1
+              vocab_file: hateful_memes/fine_grained/labels/hateful_pc_attack_vocab.txt
+              preprocessor:
+                  type: simple_word
+                  params: {}

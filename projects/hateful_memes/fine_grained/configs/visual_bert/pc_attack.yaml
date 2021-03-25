@@ -1,0 +1,7 @@
+includes:
+- ./multilabel.yaml
+- configs/datasets/hateful_memes/fine_grained/pc_attack.yaml
+
+model_config:
+  visual_bert:
+    num_labels: 15
