@@ -246,7 +246,7 @@
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
 
@@ -618,13 +618,47 @@
         <span class="k">return</span> <span class="n">sample_dict</span></div></div>
 
 
+<span class="k">def</span> <span class="nf">convert_batch_to_sample_list</span><span class="p">(</span>
+    <span class="n">batch</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">SampleList</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SampleList</span><span class="p">:</span>
+    <span class="c1"># Create and return sample list with proper name</span>
+    <span class="c1"># and type set if it is already not a sample list</span>
+    <span class="c1"># (case of batched iterators)</span>
+    <span class="n">sample_list</span> <span class="o">=</span> <span class="n">batch</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="c1"># Check if batch is a list before checking batch[0]</span>
+        <span class="c1"># or len as sometimes batch is already SampleList</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">SampleList</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="n">sample_list</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">SampleList</span><span class="p">):</span>
+        <span class="n">sample_list</span> <span class="o">=</span> <span class="n">SampleList</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">_get_tensor_field</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sample_list</span> <span class="o">=</span> <span class="n">SampleList</span><span class="p">(</span><span class="n">sample_list</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="n">sample_list</span>
+
+
 <span class="n">device_type</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">]</span>
-<span class="n">sample_list_type</span> <span class="o">=</span> <span class="n">Type</span><span class="p">[</span><span class="n">SampleList</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">to_device</span><span class="p">(</span>
-    <span class="n">sample_list</span><span class="p">:</span> <span class="n">sample_list_type</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">device_type</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sample_list_type</span><span class="p">:</span>
+    <span class="n">sample_list</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">SampleList</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">device</span><span class="p">:</span> <span class="n">device_type</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SampleList</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+        <span class="n">sample_list</span> <span class="o">=</span> <span class="n">convert_batch_to_sample_list</span><span class="p">(</span><span class="n">sample_list</span><span class="p">)</span>
+    <span class="c1"># to_device is specifically for SampleList</span>
+    <span class="c1"># if user is passing something custom built</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">SampleList</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;You are not returning SampleList/Sample from your dataset. &quot;</span>
+            <span class="s2">&quot;MMF expects you to move your tensors to cuda yourself.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">sample_list</span>
+
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
@@ -634,17 +668,9 @@
     <span class="c1"># is set to cuda but cuda is not available.</span>
     <span class="k">if</span> <span class="n">device</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;cuda&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s2">&quot;Selected device is cuda, but it is NOT available!!!&quot;</span> <span class="s2">&quot;Falling back on cpu.&quot;</span>
+            <span class="s2">&quot;Selected device is cuda, but it is NOT available!!! Falling back on cpu.&quot;</span>
         <span class="p">)</span>
         <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-    <span class="c1"># to_device is specifically for SampleList</span>
-    <span class="c1"># if user is passing something custom built</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">SampleList</span><span class="p">):</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s2">&quot;You are not returning SampleList/Sample from your dataset. &quot;</span>
-            <span class="s2">&quot;MMF expects you to move your tensors to cuda yourself.&quot;</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="n">sample_list</span>
 
     <span class="k">if</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">get_device</span><span class="p">()</span> <span class="o">!=</span> <span class="n">device</span><span class="p">:</span>
         <span class="n">sample_list</span> <span class="o">=</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
