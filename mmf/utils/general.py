@@ -103,11 +103,13 @@ def get_absolute_path(paths):
         # Now, try relative to user_dir if it exists
         from mmf.utils.configuration import get_mmf_env
 
+        mmf_root = get_mmf_root()
         user_dir = get_mmf_env(key="user_dir")
         if user_dir:
             possible_paths.append(os.path.join(user_dir, paths))
+            # check in relative to mmf relative user dir
+            possible_paths.append(os.path.join(mmf_root, "..", user_dir, paths))
 
-        mmf_root = get_mmf_root()
         # Relative to root folder of mmf install
         possible_paths.append(os.path.join(mmf_root, "..", paths))
         # Relative to mmf root
