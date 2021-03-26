@@ -427,7 +427,7 @@
 
 
 <div class="viewcode-block" id="MultiSentenceBertTokenizer"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.MultiSentenceBertTokenizer">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;multi_sentence_bert_tokenizer&quot;</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">MultiSentenceBertTokenizer</span><span class="p">(</span><span class="n">BertTokenizer</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">MultiSentenceBertTokenizer</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Extension of BertTokenizer which supports multiple sentences.</span>
 <span class="sd">    Separate from normal usecase, each sentence will be passed through</span>
 <span class="sd">    bert tokenizer separately and indices will be reshaped as single</span>
@@ -438,7 +438,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fusion_strategy</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fusion&quot;</span><span class="p">,</span> <span class="s2">&quot;concat&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_probability</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mask_probability&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">BertTokenizer</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
         <span class="n">texts</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>
