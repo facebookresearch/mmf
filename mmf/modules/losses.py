@@ -581,6 +581,105 @@ class CrossEntropyLoss(nn.Module):
         return self.loss_fn(model_output["scores"], sample_list["targets"])
 
 
+@registry.register_loss("soft_label_cross_entropy")
+class SoftLabelCrossEntropyLoss(nn.Module):
+    def __init__(self, ignore_index=-100, reduction="mean", normalize_targets=True):
+        assert reduction in (
+            "mean",
+            "sum",
+        ), "Argument `reduction` only supports `mean` and `sum`"
+
+        super().__init__()
+
+        self.ignore_index = ignore_index
+        self.reduction = reduction
+        self.normalize_targets = normalize_targets
+        self.eps = torch.finfo(torch.float32).eps
+
+    @staticmethod
+    def convert_to_one_hot(targets, n_classes):
+        one_hot_targets = torch.zeros(
+            (targets.size(0), n_classes), dtype=torch.long, device=targets.device
+        )
+        one_hot_targets.scatter_(1, targets.long().view(-1, 1), 1)
+        return one_hot_targets
+
+    def compute_loss(self, targets, scores):
+        """for N examples and C classes
+        - output: N x C these are raw outputs (without softmax/sigmoid)
+        - target: N x C or N corresponding targets
+
+        Target elements set to ignore_index contribute 0 loss.
+
+        Samples where all entries are ignore_index do not contribute to the loss
+        reduction.
+        """
+
+        assert targets.size(0) == scores.size(
+            0
+        ), "`targets` and `scores` should have the same batch size"
+
+        if targets.dim() == 1:
+            targets = targets.unsqueeze(1)
+        mask = targets != self.ignore_index
+
+        if targets.size(1) == 1:
+            targets = self.convert_to_one_hot(targets, scores.size(1))
+        targets = targets.float() * mask.float()
+
+        if self.normalize_targets:
+            targets /= self.eps + targets.sum(dim=1, keepdim=True)
+
+        per_sample_per_target_loss = -targets * F.log_softmax(scores, dim=-1)
+        per_sample_loss = torch.sum(per_sample_per_target_loss, -1)
+        loss = per_sample_loss.sum()
+        # perform reduction
+        if self.reduction == "mean":
+            # normalize based on the number of samples with > 0 non-ignored targets
+            loss /= torch.sum((torch.sum(mask, -1) > 0)).clamp(min=1)
+        return loss
+
+    def forward(self, sample_list, model_output):
+        return self.compute_loss(sample_list["targets"], model_output["scores"])
+
+
+@registry.register_loss("label_smoothing_cross_entropy")
+class LabelSmoothingCrossEntropyLoss(SoftLabelCrossEntropyLoss):
+    """Cross-entropy loss with label smoothing. If `label_smoothing` = 0, then
+    it's canonical cross entropy.
+    The smoothed one-hot encoding is 1 - label_smoothing for true label and
+    label_smoothing / (num_classes - 1) for the rest.
+
+    Reference: https://stackoverflow.com/questions/55681502/label-smoothing-in-pytorch
+    """
+
+    def __init__(self, label_smoothing=0.1, reduction="mean", ignore_index=-100):
+        assert (
+            0 <= label_smoothing < 1
+        ), "value of argument `label_smoothing` must be in range [0, 1)."
+
+        super().__init__(ignore_index, reduction, False)
+        self.label_smoothing = label_smoothing
+
+    def smooth_targets(self, targets, n_classes):
+        if targets.dim() == 1:
+            targets = targets.unsqueeze(1)
+        mask = targets != self.ignore_index
+
+        smoothing_value = self.label_smoothing / (n_classes - 1)
+        one_hot = torch.full(
+            (n_classes,), smoothing_value, device=targets.device
+        ).repeat(targets.size(0), 1)
+        one_hot.scatter_(1, targets, 1 - self.label_smoothing)
+        return one_hot * mask.float()
+
+    def forward(self, sample_list, model_output):
+        scores = model_output["scores"]
+        one_hot = self.smooth_targets(sample_list["targets"], scores.size(1))
+        loss = self.compute_loss(one_hot, scores)
+        return loss
+
+
 @registry.register_loss("in_batch_hinge")
 class InBatchHinge(nn.Module):
     """
