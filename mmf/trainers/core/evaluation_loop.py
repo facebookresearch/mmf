@@ -28,9 +28,12 @@ class TrainerEvaluationLoopMixin(ABC):
 
             while reporter.next_dataset(flush_report=False):
                 dataloader = reporter.get_dataloader()
-
                 combined_report = None
-                for batch in tqdm.tqdm(dataloader, disable=disable_tqdm):
+
+                if self._can_use_tqdm(dataloader):
+                    dataloader = tqdm.tqdm(dataloader, disable=disable_tqdm)
+
+                for batch in dataloader:
                     prepared_batch = reporter.prepare_batch(batch)
                     prepared_batch = to_device(prepared_batch, self.device)
                     model_output = self.model(prepared_batch)
@@ -82,8 +85,10 @@ class TrainerEvaluationLoopMixin(ABC):
 
             while reporter.next_dataset():
                 dataloader = reporter.get_dataloader()
+                if self._can_use_tqdm(dataloader):
+                    dataloader = tqdm.tqdm(dataloader)
 
-                for batch in tqdm.tqdm(dataloader):
+                for batch in dataloader:
                     prepared_batch = reporter.prepare_batch(batch)
                     prepared_batch = to_device(prepared_batch, self.device)
                     with torch.cuda.amp.autocast(enabled=self.training_config.fp16):
@@ -95,3 +100,17 @@ class TrainerEvaluationLoopMixin(ABC):
 
             logger.info("Finished predicting")
             self.model.train()
+
+    def _can_use_tqdm(self, dataloader: torch.utils.data.DataLoader):
+        """
+        Checks whether tqdm can be gracefully used with a dataloader
+        1) should have `__len__` property defined
+        2) calling len(x) should not throw errors.
+        """
+        use_tqdm = hasattr(dataloader, "__len__")
+
+        try:
+            _ = len(dataloader)
+        except (AttributeError, TypeError, NotImplementedError):
+            use_tqdm = False
+        return use_tqdm

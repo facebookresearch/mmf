@@ -296,6 +296,21 @@ def distributed_init(config):
             f"{config.distributed.rank}"
         )
 
+        if "MASTER_ADDR" not in os.environ or "MASTER_PORT" not in os.environ:
+            # Set for onboxdataloader support
+            split = config.distributed.init_method.split("//")
+            assert len(split) == 2, (
+                "host url for distributed should be split by '//' "
+                + "into exactly two elements"
+            )
+
+            split = split[1].split(":")
+            assert (
+                len(split) == 2
+            ), "host url should be of the form <host_url>:<host_port>"
+            os.environ["MASTER_ADDR"] = split[0]
+            os.environ["MASTER_PORT"] = split[1]
+
         # perform a dummy all-reduce to initialize the NCCL communicator
         dist.all_reduce(torch.zeros(1).cuda())
 
