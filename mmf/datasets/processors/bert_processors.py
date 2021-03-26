@@ -195,7 +195,7 @@ class BertTokenizer(MaskedTokenProcessor):
 
 
 @registry.register_processor("multi_sentence_bert_tokenizer")
-class MultiSentenceBertTokenizer(BertTokenizer):
+class MultiSentenceBertTokenizer(BaseProcessor):
     """Extension of BertTokenizer which supports multiple sentences.
     Separate from normal usecase, each sentence will be passed through
     bert tokenizer separately and indices will be reshaped as single
@@ -206,7 +206,7 @@ class MultiSentenceBertTokenizer(BertTokenizer):
         super().__init__(config, *args, **kwargs)
         self.fusion_strategy = config.get("fusion", "concat")
         self._probability = config.get("mask_probability", 0)
-        self.tokenizer = super().__call__
+        self.tokenizer = BertTokenizer(config)
 
     def __call__(self, item: Dict[str, Any]):
         texts = item["text"]

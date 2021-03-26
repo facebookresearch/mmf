@@ -578,7 +578,7 @@ class CrossEntropyLoss(nn.Module):
         self.loss_fn = nn.CrossEntropyLoss(**params)
 
     def forward(self, sample_list, model_output):
-        return self.loss_fn(model_output["scores"], sample_list.targets)
+        return self.loss_fn(model_output["scores"], sample_list["targets"])
 
 
 @registry.register_loss("in_batch_hinge")
