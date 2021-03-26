@@ -350,6 +350,16 @@ similar to some particular values.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt id="mmf.modules.losses.LabelSmoothingCrossEntropyLoss">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">LabelSmoothingCrossEntropyLoss</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label_smoothing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#LabelSmoothingCrossEntropyLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.LabelSmoothingCrossEntropyLoss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cross-entropy loss with label smoothing. If <cite>label_smoothing</cite> = 0, then
+it’s canonical cross entropy.
+The smoothed one-hot encoding is 1 - label_smoothing for true label and
+label_smoothing / (num_classes - 1) for the rest.</p>
+<p>Reference: <a class="reference external" href="https://stackoverflow.com/questions/55681502/label-smoothing-in-pytorch">https://stackoverflow.com/questions/55681502/label-smoothing-in-pytorch</a></p>
+</dd></dl>
+
+<dl class="py class">
 <dt id="mmf.modules.losses.LogitBinaryCrossEntropy">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">LogitBinaryCrossEntropy</span></code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#LogitBinaryCrossEntropy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.LogitBinaryCrossEntropy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns Binary Cross Entropy for logits.</p>
@@ -537,6 +547,22 @@ attribute.</p></li>
 <dd class="field-odd"><p>torch.FloatTensor</p>
 </dd>
 </dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="mmf.modules.losses.SoftLabelCrossEntropyLoss">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">SoftLabelCrossEntropyLoss</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ignore_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_targets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#SoftLabelCrossEntropyLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.SoftLabelCrossEntropyLoss" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="mmf.modules.losses.SoftLabelCrossEntropyLoss.compute_loss">
+<code class="sig-name descname"><span class="pre">compute_loss</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scores</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#SoftLabelCrossEntropyLoss.compute_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.SoftLabelCrossEntropyLoss.compute_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>for N examples and C classes
+- output: N x C these are raw outputs (without softmax/sigmoid)
+- target: N x C or N corresponding targets</p>
+<p>Target elements set to ignore_index contribute 0 loss.</p>
+<p>Samples where all entries are ignore_index do not contribute to the loss
+reduction.</p>
 </dd></dl>
 
 </dd></dl>
