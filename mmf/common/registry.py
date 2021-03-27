@@ -25,6 +25,7 @@ Various decorators for registry different kind of classes with unique keys
 - Register a transformer backend: ``@registry.register_transformer_backend``
 - Register a transformer head: ``@registry.register_transformer_head``
 - Register a test reporter: ``@registry.register_test_reporter``
+- Register a pl datamodule: ``@registry.register_datamodule``
 """
 from mmf.utils.env import setup_imports
 
@@ -354,6 +355,36 @@ class Registry:
             ), "All encoders must inherit Encoder class"
             cls.mapping["encoder_name_mapping"][name] = encoder_cls
             return encoder_cls
+
+        return wrap
+
+    @classmethod
+    def register_datamodule(cls, name):
+        r"""Register a datamodule to registry with key 'name'
+
+        Args:
+            name: Key with which the datamodule will be registered.
+
+        Usage::
+
+            from mmf.common.registry import registry
+            import pytorch_lightning as pl
+
+
+            @registry.register_datamodule("my_datamodule")
+            class MyDataModule(pl.LightningDataModule):
+                ...
+
+        """
+
+        def wrap(datamodule_cls):
+            import pytorch_lightning as pl
+
+            assert issubclass(
+                datamodule_cls, pl.LightningDataModule
+            ), "All datamodules must inherit PyTorch Lightning DataModule class"
+            cls.mapping["builder_name_mapping"][name] = datamodule_cls
+            return datamodule_cls
 
         return wrap
 

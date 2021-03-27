@@ -4,7 +4,9 @@ from collections import Counter
 
 import numpy as np
 import torch
+from mmf.common.registry import registry
 from mmf.datasets.multi_dataset_loader import MultiDatasetLoader
+from omegaconf import OmegaConf
 from torch.utils.data import DataLoader
 
 from ..test_utils import NumbersDataset
@@ -20,22 +22,30 @@ class TestMultiDatasetLoader(unittest.TestCase):
         numbers_dataset_a = NumbersDataset(4, "a")
         numbers_dataset_b = NumbersDataset(40, "b")
         numbers_dataset_c = NumbersDataset(4000, "c")
-        self.multi_dataset._datasets = [
-            numbers_dataset_a,
-            numbers_dataset_b,
-            numbers_dataset_c,
-        ]
-        self.multi_dataset._loaders = [
-            self._get_dataloader(numbers_dataset_a),
-            self._get_dataloader(numbers_dataset_b),
-            self._get_dataloader(numbers_dataset_c),
-        ]
-        self.multi_dataset.current_loader = self.multi_dataset.loaders[0]
-        self.multi_dataset.config = {
-            "training": {"dataset_size_proportional_sampling": True, "max_epochs": None}
+        self.multi_dataset.dataset_list = ["a", "b", "c"]
+        self.multi_dataset._loaders = {
+            "a": self._get_dataloader(numbers_dataset_a),
+            "b": self._get_dataloader(numbers_dataset_b),
+            "c": self._get_dataloader(numbers_dataset_c),
         }
+        self.original_config = registry.get("config")
+        registry.register(
+            "config",
+            OmegaConf.create(
+                {
+                    "training": {
+                        "dataset_size_proportional_sampling": True,
+                        "max_epochs": None,
+                    }
+                }
+            ),
+        )
         self.multi_dataset._per_dataset_lengths = [4, 40, 4000]
+        self.multi_dataset._total_length = 4044
         self.multi_dataset._total_length = sum(self.multi_dataset._per_dataset_lengths)
+
+    def tearDown(self):
+        registry.register("config", self.original_config)
 
     def _get_dataloader(self, dataset):
         return DataLoader(dataset=dataset, batch_size=4, num_workers=0)
@@ -72,11 +82,8 @@ class TestMultiDatasetLoader(unittest.TestCase):
         self.assertEqual(counter, Counter({"a": 1, "b": 10, "c": 1000}))
 
     def test_equal_sampling(self):
-        self.multi_dataset.config["training"][
-            "dataset_size_proportional_sampling"
-        ] = False
+        registry.get("config").training.dataset_size_proportional_sampling = False
         self.multi_dataset._infer_dataset_probabilities()
-
         count = 0
         count_c = 0
         for batch in self.multi_dataset:

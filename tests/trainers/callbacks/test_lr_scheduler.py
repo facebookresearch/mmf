@@ -60,7 +60,9 @@ class TestLogisticsCallback(unittest.TestCase):
         registry.register("config", self.trainer.config)
 
         self.trainer.model = SimpleModule()
-        self.trainer.val_dataset = NumbersDataset()
+        self.trainer.val_loader = torch.utils.data.DataLoader(
+            NumbersDataset(), batch_size=self.config.training.batch_size
+        )
 
         self.trainer.optimizer = torch.optim.Adam(
             self.trainer.model.parameters(), lr=1e-01

@@ -1,2 +1,2 @@
 dataset_config:
-  always_one: x
+  always_one: {}

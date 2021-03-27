@@ -1,8 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import warnings
+from typing import List
 
 import torch
 from mmf.common.sample import Sample
+from omegaconf import DictConfig
 
 
 def build_bbox_tensors(infos, max_length):
@@ -61,3 +63,16 @@ def build_dataset_from_multiple_imdbs(config, dataset_cls, dataset_type):
     dataset = MMFConcatDataset(datasets)
 
     return dataset
+
+
+def dataset_list_from_config(config: DictConfig) -> List[str]:
+    if "datasets" not in config:
+        warnings.warn("No datasets attribute present. Setting default to vqa2.")
+        datasets = "vqa2"
+    else:
+        datasets = config.datasets
+
+    if type(datasets) == str:
+        datasets = list(map(lambda x: x.strip(), datasets.split(",")))
+
+    return datasets

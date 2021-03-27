@@ -3,17 +3,18 @@ import csv
 import json
 import logging
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 
+import pytorch_lightning as pl
 from mmf.common.registry import registry
-from mmf.utils.build import build_dataloader_and_sampler
+from mmf.common.sample import convert_batch_to_sample_list
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import gather_tensor, is_master
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import ckpt_name_from_core_args, foldername_from_config_override
 from mmf.utils.timer import Timer
-from omegaconf import MISSING
+from omegaconf import OmegaConf
 from torch.utils.data import Dataset
 
 
@@ -33,23 +34,27 @@ DEFAULT_CANDIDATE_FIELDS = [
 @registry.register_test_reporter("default")
 class TestReporter(Dataset):
     @dataclass
-    class TestReporterConfigType:
+    class Config:
         # A set of fields to be *considered* for exporting by the reporter
         # Note that `format_for_prediction` is what ultimtly detemrimes the
         # exported fields
-        candidate_fields: List[str] = MISSING
+        candidate_fields: List[str] = field(
+            default_factory=lambda: DEFAULT_CANDIDATE_FIELDS
+        )
         # csv or json
-        predict_file_format: str = MISSING
+        predict_file_format: str = "json"
 
     def __init__(
-        self, multi_task_instance, test_reporter_config: TestReporterConfigType = None
+        self,
+        datamodules: List[pl.LightningDataModule],
+        config: Config = None,
+        dataset_type: str = "train",
     ):
-        if not isinstance(test_reporter_config, TestReporter.TestReporterConfigType):
-            test_reporter_config = TestReporter.TestReporterConfigType(
-                **test_reporter_config
-            )
-        self.test_task = multi_task_instance
-        self.task_type = multi_task_instance.dataset_type
+        self.test_reporter_config = OmegaConf.merge(
+            OmegaConf.structured(self.Config), config
+        )
+        self.datamodules = datamodules
+        self.dataset_type = dataset_type
         self.config = registry.get("config")
         self.report = []
         self.timer = Timer()
@@ -58,15 +63,13 @@ class TestReporter(Dataset):
         self.batch_size = self.training_config.batch_size
         self.report_folder_arg = get_mmf_env(key="report_dir")
         self.experiment_name = self.training_config.experiment_name
-        self.test_reporter_config = test_reporter_config
 
-        self.datasets = []
-
-        for dataset in self.test_task.get_datasets():
-            self.datasets.append(dataset)
-
-        self.current_dataset_idx = -1
-        self.current_dataset = self.datasets[self.current_dataset_idx]
+        self.current_datamodule_idx = -1
+        self.dataset_names = list(self.datamodules.keys())
+        self.current_datamodule = self.datamodules[
+            self.dataset_names[self.current_datamodule_idx]
+        ]
+        self.current_dataloader = None
 
         self.save_dir = get_mmf_env(key="save_dir")
         self.report_folder = ckpt_name_from_core_args(self.config)
@@ -78,34 +81,40 @@ class TestReporter(Dataset):
         if self.report_folder_arg:
             self.report_folder = self.report_folder_arg
 
-        self.candidate_fields = DEFAULT_CANDIDATE_FIELDS
-
-        if not test_reporter_config.candidate_fields == MISSING:
-            self.candidate_fields = test_reporter_config.candidate_fields
+        self.candidate_fields = self.test_reporter_config.candidate_fields
 
         PathManager.mkdirs(self.report_folder)
 
+    @property
+    def current_dataset(self):
+        self._check_current_dataloader()
+        return self.current_dataloader.dataset
+
     def next_dataset(self, flush_report=True):
-        if self.current_dataset_idx >= 0:
+        if self.current_datamodule_idx >= 0:
             if flush_report:
                 self.flush_report()
             else:
                 self.report = []
 
-        self.current_dataset_idx += 1
+        self.current_datamodule_idx += 1
 
-        if self.current_dataset_idx == len(self.datasets):
+        if self.current_datamodule_idx == len(self.datamodules):
             return False
         else:
-            self.current_dataset = self.datasets[self.current_dataset_idx]
-            logger.info(f"Predicting for {self.current_dataset.dataset_name}")
+            self.current_datamodule = self.datamodules[
+                self.dataset_names[self.current_datamodule_idx]
+            ]
+            logger.info(
+                f"Predicting for {self.dataset_names[self.current_datamodule_idx]}"
+            )
             return True
 
     def flush_report(self):
         if not is_master():
             return
 
-        name = self.current_dataset.dataset_name
+        name = self.current_datamodule.dataset_name
         time_format = "%Y-%m-%dT%H:%M:%S"
         time = self.timer.get_time_hhmmss(None, format=time_format)
 
@@ -114,7 +123,7 @@ class TestReporter(Dataset):
         if len(self.experiment_name) > 0:
             filename += self.experiment_name + "_"
 
-        filename += self.task_type + "_"
+        filename += self.dataset_type + "_"
         filename += time
 
         use_csv_writer = (
@@ -133,6 +142,7 @@ class TestReporter(Dataset):
         self.report = []
 
     def postprocess_dataset_report(self):
+        self._check_current_dataloader()
         if hasattr(self.current_dataset, "on_prediction_end"):
             self.report = self.current_dataset.on_prediction_end(self.report)
 
@@ -148,23 +158,39 @@ class TestReporter(Dataset):
             json.dump(self.report, f)
 
     def get_dataloader(self):
-        dataloader, _ = build_dataloader_and_sampler(
-            self.current_dataset, self.training_config
-        )
-        return dataloader
+        self.current_dataloader = getattr(
+            self.current_datamodule, f"{self.dataset_type}_dataloader"
+        )()
+        # Make sure to assign dataset to dataloader object as
+        # required by MMF
+        if not hasattr(self.current_dataloader, "dataset"):
+            self.current_dataloader.dataset = getattr(
+                self.current_datamodule, f"{self.dataset_type}_dataset"
+            )
+        return self.current_dataloader
 
     def prepare_batch(self, batch):
+        self._check_current_dataloader()
         if hasattr(self.current_dataset, "prepare_batch"):
             batch = self.current_dataset.prepare_batch(batch)
+
+        batch = convert_batch_to_sample_list(batch)
+        batch.dataset_name = self.current_dataset.dataset_name
+        batch.dataset_type = self.dataset_type
         return batch
 
     def __len__(self):
-        return len(self.current_dataset)
+        self._check_current_dataloader()
+        return len(self.current_dataloader)
 
-    def __getitem__(self, idx):
-        return self.current_dataset[idx]
+    def _check_current_dataloader(self):
+        assert self.current_dataloader is not None, (
+            "Please call `get_dataloader` before accessing any "
+            + "'current_dataloader' based function"
+        )
 
     def add_to_report(self, report, model, execute_on_master_only=True):
+        self._check_current_dataloader()
         for key in self.candidate_fields:
             report = self.reshape_and_gather(report, key)
 

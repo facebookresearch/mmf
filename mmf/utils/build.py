@@ -3,9 +3,10 @@
 import os
 import warnings
 from enum import Enum
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import mmf
+import pytorch_lightning as pl
 import torch
 from mmf.common.registry import registry
 from mmf.datasets.processors.processors import Processor
@@ -17,7 +18,7 @@ from omegaconf import DictConfig, OmegaConf
 
 try:
     import torch_xla.core.xla_model as xm  # noqa
-    import torch_xla.distributed.parallel_loader as pl  # noqa
+    import torch_xla.distributed.parallel_loader as xla_pl  # noqa
 except ImportError:
     xm = None
 
@@ -122,14 +123,10 @@ def build_dataset(
     from mmf.datasets.base_dataset_builder import BaseDatasetBuilder
     from mmf.utils.configuration import load_yaml_with_defaults
 
-    dataset_builder = registry.get_builder_class(dataset_key)
-    assert dataset_builder, (
-        f"Key {dataset_key} doesn't have a registered " + "dataset builder"
-    )
-
+    datamodule_instance = build_datamodule(dataset_key)
     # If config is not provided, we take it from default one
     if not config:
-        config_path = dataset_builder.config_path()
+        config_path = datamodule_instance.config_path()
         if config_path is None:
             # If config path wasn't defined, send an empty config path
             # but don't force dataset to define a config
@@ -144,25 +141,79 @@ def build_dataset(
             if config is None:
                 config = OmegaConf.create()
             OmegaConf.set_struct(config, True)
+    elif dataset_key in config:
+        # Handle Global config
+        config = config[dataset_key]
 
-    builder_instance: BaseDatasetBuilder = dataset_builder()
-    builder_instance.build_dataset(config, dataset_type)
-    dataset = builder_instance.load_dataset(config, dataset_type)
-    if hasattr(builder_instance, "update_registry_for_model"):
-        builder_instance.update_registry_for_model(config)
+    datamodule_instance.build_dataset(config)
+    dataset = datamodule_instance.load_dataset(config, dataset_type)
+    if hasattr(datamodule_instance, "update_registry_for_model"):
+        datamodule_instance.update_registry_for_model(config)
 
     return dataset
 
 
+# TODO: move dataset_type enum to typings
+def build_datasets(
+    dataset_list: List[str], dataset_config: DictConfig, dataset_type="train"
+) -> List[torch.utils.data.Dataset]:
+    datasets = []
+    for dataset in dataset_list:
+        if dataset in dataset_config:
+            dataset_config = dataset_config[dataset]
+        else:
+            warnings.warn(
+                f"Dataset {dataset} is missing from dataset_config"
+                + " in config. Proceeding with empty config."
+            )
+            dataset_config = OmegaConf.create()
+
+        dataset_instance = build_dataset(dataset, dataset_config, dataset_type)
+        if dataset_instance is None:
+            continue
+        datasets.append(dataset_instance)
+
+    return datasets
+
+
+def build_datamodule(dataset_key) -> pl.LightningDataModule:
+    dataset_builder = registry.get_builder_class(dataset_key)
+    assert dataset_builder, (
+        f"Key {dataset_key} doesn't have a registered " + "dataset builder"
+    )
+    builder_instance: pl.LightningDataModule = dataset_builder()
+    return builder_instance
+
+
+def build_multiple_datamodules(
+    dataset_list: List[str], all_dataset_config: DictConfig
+) -> Dict[str, pl.LightningDataModule]:
+    datamodules: Dict[str, pl.LightningDataModule] = {}
+    for dataset in dataset_list:
+        datamodule_instance = build_datamodule(dataset)
+        if dataset in all_dataset_config:
+            dataset_config = all_dataset_config[dataset]
+        else:
+            warnings.warn(
+                f"Dataset {dataset} is missing from dataset_config"
+                + " in config. Proceeding with empty config."
+            )
+            dataset_config = OmegaConf.create()
+        datamodule_instance.prepare_data(dataset_config)
+        datamodule_instance.setup()
+        datamodules[dataset] = datamodule_instance
+    return datamodules
+
+
 def build_dataloader_and_sampler(
-    dataset_instance: torch.utils.data.Dataset, training_config: DictConfig
+    dataset_instance: torch.utils.data.Dataset, datamodule_config: DictConfig
 ) -> Tuple[torch.utils.data.DataLoader, Optional[torch.utils.data.Sampler]]:
     """Builds and returns a dataloader along with its sample
 
     Args:
         dataset_instance (torch.utils.data.Dataset): Instance of dataset for which
             dataloader has to be created
-        training_config (DictConfig): Training configuration; required
+        datamodule_config (omegaconf.DictConfig): Datamodule configuration; required
             for infering params for dataloader
 
     Returns:
@@ -171,10 +222,13 @@ def build_dataloader_and_sampler(
     """
     from mmf.common.batch_collator import BatchCollator
 
-    num_workers = training_config.num_workers
-    pin_memory = training_config.pin_memory
-
-    other_args = {}
+    # Support params coming in from dataloader params
+    other_args = {
+        "num_workers": datamodule_config.get("num_workers", 4),
+        "pin_memory": datamodule_config.get("pin_memory", False),
+        "shuffle": datamodule_config.get("shuffle", None),
+        "batch_size": datamodule_config.get("batch_size", None),
+    }
 
     # IterableDataset returns batches directly, so no need to add Sampler
     # or batch size as user is expected to control those. This is a fine
@@ -183,32 +237,23 @@ def build_dataloader_and_sampler(
     # to the codebase
     if not isinstance(dataset_instance, torch.utils.data.IterableDataset):
         other_args = _add_extra_args_for_dataloader(dataset_instance, other_args)
-
-    if is_xla():
-        other_args["sampler"] = torch.utils.data.DistributedSampler(
-            dataset_instance,
-            num_replicas=xm.xrt_world_size(),
-            rank=xm.get_ordinal(),
-            shuffle=other_args["shuffle"],
-        )
+    else:
         other_args.pop("shuffle")
 
     loader = torch.utils.data.DataLoader(
         dataset=dataset_instance,
-        pin_memory=pin_memory,
         collate_fn=BatchCollator(
             dataset_instance.dataset_name, dataset_instance.dataset_type
         ),
-        num_workers=num_workers,
         drop_last=False,  # see also MultiDatasetLoader.__len__
         **other_args,
     )
 
     if is_xla():
         device = xm.xla_device()
-        loader = pl.MpDeviceLoader(loader, device)
+        loader = xla_pl.MpDeviceLoader(loader, device)
 
-    if num_workers >= 0:
+    if other_args["num_workers"] >= 0:
         # Suppress leaking semaphore warning
         os.environ["PYTHONWARNINGS"] = "ignore:semaphore_tracker:UserWarning"
 
@@ -217,14 +262,18 @@ def build_dataloader_and_sampler(
     return loader, other_args.get("sampler", None)
 
 
-def build_test_reporter(dataset, config=None):
+def build_test_reporter(
+    datamodules: List[pl.LightningDataModule],
+    config: DictConfig = None,
+    dataset_type: str = "train",
+):
     test_reporter_key = "default"
     if config:
         test_reporter_key = config.get("type", "default")
     test_reporter_class = registry.get_test_rerporter_class(test_reporter_key)
-    assert test_reporter_class, (
-        f"Key {test_reporter_key} doesn't have a registered " + "test_reporter class"
-    )
+    assert (
+        test_reporter_class
+    ), f"Key {test_reporter_key} doesn't have a registered test_reporter class"
 
     if not config:
         warnings.warn(
@@ -235,22 +284,20 @@ def build_test_reporter(dataset, config=None):
     else:
         params_config = config.params
 
-    return test_reporter_class(dataset, params_config)
+    return test_reporter_class(datamodules, params_config, dataset_type)
 
 
 def _add_extra_args_for_dataloader(
-    dataset_instance: torch.utils.data.Dataset,
-    other_args: Optional[Dict[str, Any]] = None,
-) -> Optional[Dict[str, Any]]:
+    dataset_instance: torch.utils.data.Dataset, other_args: Dict[str, Any] = None
+) -> Dict[str, Any]:
     from mmf.utils.general import get_batch_size
 
-    if other_args is None:
-        other_args = {}
     dataset_type = dataset_instance.dataset_type
 
-    other_args["shuffle"] = False
-    if dataset_type != "test":
-        other_args["shuffle"] = True
+    if other_args["shuffle"] is None:
+        other_args["shuffle"] = False
+        if dataset_type != "test":
+            other_args["shuffle"] = True
 
     # In distributed mode, we use DistributedSampler from PyTorch
     if is_dist_initialized():
@@ -261,7 +308,17 @@ def _add_extra_args_for_dataloader(
         # take care of shuffle and pop from main args
         other_args.pop("shuffle")
 
-    other_args["batch_size"] = get_batch_size()
+    if is_xla():
+        other_args["sampler"] = torch.utils.data.DistributedSampler(
+            dataset_instance,
+            num_replicas=xm.xrt_world_size(),
+            rank=xm.get_ordinal(),
+            shuffle=other_args["shuffle"],
+        )
+        other_args.pop("shuffle")
+
+    if other_args["batch_size"] is None:
+        other_args["batch_size"] = get_batch_size()
 
     return other_args
 
