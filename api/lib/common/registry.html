@@ -257,6 +257,7 @@ register different kind of classes.</p>
 <li><p>Register a transformer backend: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_transformer_backend</span></code></p></li>
 <li><p>Register a transformer head: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_transformer_head</span></code></p></li>
 <li><p>Register a test reporter: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_test_reporter</span></code></p></li>
+<li><p>Register a pl datamodule: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_datamodule</span></code></p></li>
 </ul>
 <dl class="py class">
 <dt id="mmf.common.registry.Registry">
@@ -320,6 +321,27 @@ internal operations. Default: False</p></li>
 
 <span class="nd">@registry</span><span class="o">.</span><span class="n">register_builder</span><span class="p">(</span><span class="s2">&quot;vqa2&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">VQA2Builder</span><span class="p">(</span><span class="n">BaseDatasetBuilder</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="mmf.common.registry.Registry.register_datamodule">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">register_datamodule</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_datamodule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_datamodule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a datamodule to registry with key ‘name’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> – Key with which the datamodule will be registered.</p>
+</dd>
+</dl>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
+<span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
+
+
+<span class="nd">@registry</span><span class="o">.</span><span class="n">register_datamodule</span><span class="p">(</span><span class="s2">&quot;my_datamodule&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MyDataModule</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningDataModule</span><span class="p">):</span>
     <span class="o">...</span>
 </pre></div>
 </div>
