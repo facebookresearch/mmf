@@ -353,11 +353,17 @@ def get_max_updates(config_max_updates, config_max_epochs, train_loader, update_
         )
 
     if config_max_epochs is not None:
+        assert (
+            hasattr(train_loader, "__len__") and len(train_loader) != 0
+        ), "max_epochs can't be used with IterableDatasets"
         max_updates = math.ceil(len(train_loader) / update_freq) * config_max_epochs
         max_epochs = config_max_epochs
     else:
         max_updates = config_max_updates
-        max_epochs = max_updates / len(train_loader)
+        if hasattr(train_loader, "__len__") and len(train_loader) != 0:
+            max_epochs = max_updates / len(train_loader)
+        else:
+            max_epochs = math.inf
 
     return max_updates, max_epochs
 

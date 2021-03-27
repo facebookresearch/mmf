@@ -4,7 +4,7 @@ import math
 
 import omegaconf
 from mmf.common.registry import registry
-from mmf.datasets.lightning_datamodule import LightningDataModule
+from mmf.datasets.multi_datamodule import MultiDataModule
 from mmf.modules.metrics import Metrics
 from mmf.trainers.base_trainer import BaseTrainer
 from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
@@ -53,7 +53,7 @@ class LightningTrainer(BaseTrainer):
 
     def load_datasets(self) -> None:
         logger.info("Loading datasets")
-        data_module = LightningDataModule(self.config)
+        data_module = MultiDataModule(self.config)
         self.data_module = data_module
 
     def load_model(self) -> None:

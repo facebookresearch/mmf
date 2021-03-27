@@ -158,7 +158,7 @@ class TrainerTrainingLoopMixin(ABC):
                 if should_break:
                     break
 
-    def run_training_batch(self, batch: Tensor, loss_divisor: int) -> None:
+    def run_training_batch(self, batch: Dict[str, Tensor], loss_divisor: int) -> None:
         report = self._forward(batch)
         # Since losses are batch averaged in MMF, this makes sure the
         # scaling is right.
@@ -169,10 +169,9 @@ class TrainerTrainingLoopMixin(ABC):
         self._backward(loss)
         return report
 
-    def _forward(self, batch: Tensor) -> Dict[str, Any]:
-        prepared_batch = self.dataset_loader.prepare_batch(batch)
+    def _forward(self, batch: Dict[str, Tensor]) -> Dict[str, Any]:
         # Move the sample list to device if it isn't as of now.
-        prepared_batch = to_device(prepared_batch, self.device)
+        prepared_batch = to_device(batch, self.device)
         self.profile("Batch prepare time")
         # Arguments should be a dict at this point
 

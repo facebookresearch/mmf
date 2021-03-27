@@ -139,10 +139,13 @@ class NumbersDataset(torch.utils.data.Dataset):
         num_examples: int,
         data_item_key: str = DATA_ITEM_KEY,
         always_one: bool = False,
+        dataset_type: str = "train",
     ):
         self.num_examples = num_examples
         self.data_item_key = data_item_key
         self.always_one = always_one
+        self.dataset_name = "numbers"
+        self.dataset_type = dataset_type
 
     def __getitem__(self, idx: int) -> Sample:
         sample = Sample()

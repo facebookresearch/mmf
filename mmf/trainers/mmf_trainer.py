@@ -4,8 +4,8 @@ import warnings
 
 import omegaconf
 import torch
-from mmf.common.dataset_loader import DatasetLoader
 from mmf.common.registry import registry
+from mmf.datasets.multi_datamodule import MultiDataModule
 from mmf.modules.metrics import Metrics
 from mmf.trainers.base_trainer import BaseTrainer
 from mmf.trainers.callbacks.checkpoint import CheckpointCallback
@@ -68,16 +68,11 @@ class MMFTrainer(
 
     def load_datasets(self):
         logger.info("Loading datasets")
-        self.dataset_loader = DatasetLoader(self.config)
-        self.dataset_loader.load_datasets()
+        self.dataset_loader = MultiDataModule(self.config)
 
-        self.train_dataset = self.dataset_loader.train_dataset
-        self.val_dataset = self.dataset_loader.val_dataset
-        self.test_dataset = self.dataset_loader.test_dataset
-
-        self.train_loader = self.dataset_loader.train_loader
-        self.val_loader = self.dataset_loader.val_loader
-        self.test_loader = self.dataset_loader.test_loader
+        self.train_loader = self.dataset_loader.train_dataloader()
+        self.val_loader = self.dataset_loader.val_dataloader()
+        self.test_loader = self.dataset_loader.test_dataloader()
 
     def load_model(self):
         logger.info("Loading model")
