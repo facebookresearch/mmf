@@ -31,7 +31,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from mmf.common.registry import registry
-from mmf.utils.general import get_chunks, get_sizes_list
+from mmf.utils.general import get_chunks, get_sizes_list, irfft, rfft
 
 
 class CompactBilinearPooling(nn.Module):
@@ -70,15 +70,11 @@ class CompactBilinearPooling(nn.Module):
     def forward(self, x1, x2):
         assert len(x1.shape) == len(x2.shape)
         if len(x1.shape) == 4 and len(x2.shape) == 4:
-            fft1 = torch.rfft(
-                x1.permute(0, 2, 3, 1).matmul(self.sketch1), signal_ndim=1
-            )
-            fft2 = torch.rfft(
-                x2.permute(0, 2, 3, 1).matmul(self.sketch2), signal_ndim=1
-            )
+            fft1 = rfft(x1.permute(0, 2, 3, 1).matmul(self.sketch1), signal_ndim=1)
+            fft2 = rfft(x2.permute(0, 2, 3, 1).matmul(self.sketch2), signal_ndim=1)
         else:
-            fft1 = torch.rfft(x1.matmul(self.sketch1), signal_ndim=1)
-            fft2 = torch.rfft(x2.matmul(self.sketch2), signal_ndim=1)
+            fft1 = rfft(x1.matmul(self.sketch1), signal_ndim=1)
+            fft2 = rfft(x2.matmul(self.sketch2), signal_ndim=1)
         fft_product = torch.stack(
             [
                 fft1[..., 0] * fft2[..., 0] - fft1[..., 1] * fft2[..., 1],
@@ -87,7 +83,7 @@ class CompactBilinearPooling(nn.Module):
             dim=-1,
         )
         cbp = (
-            torch.irfft(fft_product, signal_ndim=1, signal_sizes=(self.output_dim,))
+            irfft(fft_product, signal_ndim=1, dim=-1, s=(self.output_dim,))
             * self.output_dim
         )
         if len(x1.shape) == 4 and len(x2.shape) == 4:

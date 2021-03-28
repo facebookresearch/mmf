@@ -2,8 +2,12 @@
 
 from typing import Any, List, Optional, Tuple
 
+import numpy as np
 import torch
 import torchvision
+from mmf.datasets.processors.frcnn_processor import img_tensorize
+from mmf.utils.features.visualizing_image import SingleImageViz
+from PIL import Image
 
 
 def visualize_images(
@@ -45,3 +49,29 @@ def visualize_images(
 
     plt.axis("off")
     plt.imshow(grid.permute(1, 2, 0))
+
+
+def visualize_frcnn_features(
+    image_path: str, features_path: str, objids: List[str], attrids: List[str]
+):
+    img = img_tensorize(image_path)
+
+    output_dict = np.load(features_path, allow_pickle=True).item()
+
+    frcnn_visualizer = SingleImageViz(img, id2obj=objids, id2attr=attrids)
+    frcnn_visualizer.draw_boxes(
+        output_dict.get("boxes"),
+        output_dict.pop("obj_ids"),
+        output_dict.pop("obj_probs"),
+        output_dict.pop("attr_ids"),
+        output_dict.pop("attr_probs"),
+    )
+
+    height, width, channels = img.shape
+
+    buffer = frcnn_visualizer._get_buffer()
+    array = np.uint8(np.clip(buffer, 0, 255))
+
+    image = Image.fromarray(array)
+
+    visualize_images([image], (height, width))

@@ -1,11 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import logging
+import warnings
 
 import omegaconf
 import torch
-from mmf.common import typings as mmf_typings
-from mmf.common.dataset_loader import DatasetLoader
 from mmf.common.registry import registry
+from mmf.datasets.multi_datamodule import MultiDataModule
 from mmf.modules.metrics import Metrics
 from mmf.trainers.base_trainer import BaseTrainer
 from mmf.trainers.callbacks.checkpoint import CheckpointCallback
@@ -20,6 +20,7 @@ from mmf.trainers.core.reporting import TrainerReportingMixin
 from mmf.trainers.core.training_loop import TrainerTrainingLoopMixin
 from mmf.utils.build import build_model, build_optimizer
 from mmf.utils.general import print_model_parameters
+from omegaconf import DictConfig, OmegaConf
 
 
 logger = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ class MMFTrainer(
     TrainerProfilingMixin,
     BaseTrainer,
 ):
-    def __init__(self, config: mmf_typings.DictConfig):
+    def __init__(self, config: DictConfig):
         super().__init__(config)
 
     def load(self):
@@ -67,20 +68,22 @@ class MMFTrainer(
 
     def load_datasets(self):
         logger.info("Loading datasets")
-        self.dataset_loader = DatasetLoader(self.config)
-        self.dataset_loader.load_datasets()
+        self.dataset_loader = MultiDataModule(self.config)
 
-        self.train_dataset = self.dataset_loader.train_dataset
-        self.val_dataset = self.dataset_loader.val_dataset
-        self.test_dataset = self.dataset_loader.test_dataset
-
-        self.train_loader = self.dataset_loader.train_loader
-        self.val_loader = self.dataset_loader.val_loader
-        self.test_loader = self.dataset_loader.test_loader
+        self.train_loader = self.dataset_loader.train_dataloader()
+        self.val_loader = self.dataset_loader.val_dataloader()
+        self.test_loader = self.dataset_loader.test_dataloader()
 
     def load_model(self):
         logger.info("Loading model")
-        attributes = self.config.model_config[self.config.model]
+        if self.config.model in self.config.model_config:
+            attributes = self.config.model_config[self.config.model]
+        else:
+            warnings.warn(
+                f"Model {self.config.model}'s config not present. "
+                + "Continuing with empty config"
+            )
+            attributes = OmegaConf.create()
         # Easy way to point to config for other model
         if isinstance(attributes, str):
             attributes = self.config.model_config[attributes]
@@ -108,7 +111,21 @@ class MMFTrainer(
             ), "Using fp16 requires torch version >- 1.6"
             assert self.device != torch.device("cpu"), "fp16 cannot be used on cpu"
 
-        self.scaler = torch.cuda.amp.GradScaler(enabled=self.training_config.fp16)
+        set_torch_grad_scaler = True
+        if self.training_config.fp16 and self.distributed:
+            try:
+                from fairscale.optim.oss import OSS
+                from fairscale.optim.grad_scaler import ShardedGradScaler
+
+                if isinstance(self.optimizer, OSS):
+                    self.scaler = ShardedGradScaler()
+                    set_torch_grad_scaler = False
+                    logger.info("Using FairScale ShardedGradScaler")
+            except ImportError:
+                logger.info("Using Pytorch AMP GradScaler")
+
+        if set_torch_grad_scaler:
+            self.scaler = torch.cuda.amp.GradScaler(enabled=self.training_config.fp16)
 
     def train(self):
         logger.info("===== Model =====")
@@ -140,7 +157,5 @@ class MMFTrainer(
             else:
                 self.on_test_start()
                 logger.info(f"Starting inference on {dataset} set")
-                report, meter = self.evaluation_loop(
-                    getattr(self, f"{dataset}_loader"), use_tqdm=True
-                )
+                report, meter = self.evaluation_loop(dataset, use_tqdm=True)
                 self.on_test_end(report=report, meter=meter)

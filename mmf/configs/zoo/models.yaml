@@ -22,8 +22,8 @@ visual_bert:
         # Model from project :  projects/pretrain_vl_right
         version: 1.0_2020_05_19
         resources:
-        - url: mmf://models/visual_bert/visual_bert.pretrained.coco.tar.gz
-          file_name: visual_bert.pretrained.coco.tar.gz
+        - url: mmf://models/visual_bert/visual_bert.pretrained.coco_ten_pc.tar.gz
+          file_name: visual_bert.pretrained.coco_ten_pc.tar.gz
           hashcode: 3b4d30768180b375a7d71a74568232a40f780a0774f9c624032081b083793727
       full_train_val:
         # COCO Train+Val 100%
@@ -151,6 +151,23 @@ visual_bert:
           file_name: visual_bert.finetuned.hateful_memes_from_coco.tar.gz
           hashcode: 462d34eb35d7d00f50f14b8e06577b9f89074313761f3f94fd5161dc67b28525
       defaults: ${visual_bert.finetuned.hateful_memes.from_coco}
+    hateful_memes_fine_grained:
+      hateful:
+        version: 1.0_2021_03_01
+        resources:
+        - url: mmf://models/visual_bert/hateful_memes_fine_grained/hateful.tar.gz
+          file_name: hateful.tar.gz
+      protected_groups:
+        version: 1.0_2021_03_01
+        resources:
+        - url: mmf://models/visual_bert/hateful_memes_fine_grained/protected_groups.tar.gz
+          file_name: protected_groups.tar.gz
+      attack_vectors:
+        version: 1.0_2021_03_01
+        resources:
+        - url: mmf://models/visual_bert/hateful_memes_fine_grained/attack_vectors.tar.gz
+          file_name: attack_vectors.tar.gz
+      defaults: ${visual_bert.finetuned.hateful_memes_fine_grained.hateful}
     vqa2:
       from_coco_train:
         version: 1.0_2020_05_21
@@ -470,3 +487,22 @@ butd:
     - url: mmf://models/butd/butd.coco.tar.gz
       file_name: butd.coco.tar.gz
       hashcode: 55e57d791e6e5c785b96d8254ef48f3d9b5b107ff1152560b09d868f88c3598f
+
+unit:
+  defaults: ${unit.all_8_datasets.shared_dec_with_coco_init}
+  all_8_datasets:
+    shared_dec_with_coco_init:
+      # Model from project : projects/unit
+      # - val/detection_coco/detection_mean_ap: 0.3899,
+      # - val/detection_visual_genome/detection_mean_ap: 0.0329,
+      # - val/vqa2/vqa_accuracy: 0.6696,
+      # - val/visual_entailment/accuracy: 0.7316,
+      # - val/glue_qnli/accuracy: 0.8790,
+      # - val/glue_sst2/accuracy: 0.8922,
+      # - val/glue_mnli_mismatched/accuracy: 0.8090,
+      # - val/glue_qqp/accuracy: 0.9065
+      version: 1.0_2021_02_25
+      resources:
+      - url: mmf://models/unit.all_8_datasets.shared_dec_with_coco_init/unit.all_8_datasets.shared_dec_with_coco_init.tar.gz
+        file_name: unit.all_8_datasets.shared_dec_with_coco_init.tar.gz
+        hashcode: b85796246601c477d354d6ad315b55a200b4c7ba6bf7e263ef82bca74bdcab1c

@@ -188,6 +188,22 @@ coco:
         file_name: annotations.tar.gz
         hashcode: 8861b854eff965d22dd38e331e43886aeab8ac1c99798abf80f935efdf621079
 
+  detection_2017:
+    version: 1.0_2021_02_05
+    resources:
+      images:
+      - url: http://images.cocodataset.org/zips/test2017.zip
+        file_name: test2017.zip
+      - url: http://images.cocodataset.org/zips/train2017.zip
+        file_name: train2017.zip
+      - url: http://images.cocodataset.org/zips/val2017.zip
+        file_name: val2017.zip
+      annotations:
+      - url: http://images.cocodataset.org/annotations/image_info_test2017.zip
+        file_name: image_info_test2017.zip
+      - url: http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+        file_name: annotations_trainval2017.zip
+
   resnet152:
     version: 1.0_2020_05_29
     resources:
@@ -236,11 +252,28 @@ hateful_memes:
       - url: mmf://datasets/hateful_memes/defaults/extras.tar.gz
         file_name: extras.tar.gz
         hashcode: 1bd88fa36b5c565234cd0bbc20189c85b51a283337bee574db91521be0364739
+  fine_grained:
+    labels:
+    - url: mmf://datasets/hateful_memes/fine_grained/label_vocabs.tar.gz
+      file_name: label_vocabs.tar.gz
+    annotations:
+    - url: mmf://datasets/hateful_memes/fine_grained/annotations.tar.gz
+      file_name: annotations.tar.gz
 
 flickr30k:
   defaults:
     version: 1.0_2020_05_29
     resources:
+      annotations:
+      - url: https://raw.githubusercontent.com/BryanPlummer/flickr30k_entities/master/train.txt
+        file_name: train.txt
+        compressed: false
+      - url: https://raw.githubusercontent.com/BryanPlummer/flickr30k_entities/master/val.txt
+        file_name: val.txt
+        compressed: false
+      - url: https://raw.githubusercontent.com/BryanPlummer/flickr30k_entities/master/test.txt
+        file_name: test.txt
+        compressed: false
       images:
       - url: https://drive.google.com/uc?export=download&id=0B_PL6p-5reUAZEM4MmRQQ2VVSlk
         file_name: flickr30_images.tar.gz
@@ -289,6 +322,13 @@ vqa2:
       - url: mmf://datasets/vqa2/grid/features/features.tar.gz
         file_name: features.tar.gz
         hashcode: 96f4290c6bcbc5767dea5efc44e802667a146769d615dad33944493e3ad638bb
+  split_by_coco_2017:
+    version: 1.0_2021_02_05
+    resources:
+      annotations:
+      - url: mmf://datasets/vqa2/split_by_coco_2017/annotations/annotations_split_by_coco_2017.tar.gz
+        file_name: annotations_split_by_coco_2017.tar.gz
+        hashcode: 51b90dfef9c295ca8d5c4c893b9d2e0ea3b3ff0d2f043c0c0480a1542ea48c62
 
 vizwiz:
   v2019:
@@ -504,3 +544,24 @@ localized_narratives:
           file_name: open_images_test_localized_narratives.jsonl
           compressed: false
 
+flickr_coco_captions:
+  defaults:
+    version: 1.0_2020_07_16
+    resources:
+      annotations:
+      - url: https://cs.stanford.edu/people/karpathy/deepimagesent/caption_datasets.zip
+        file_name: annotations.zip
+
+visual_genome:
+  detection_split_by_coco_2017:
+    version: 1.0_2021_02_05
+    resources:
+      images:
+      - url: https://cs.stanford.edu/people/rak248/VG_100K_2/images.zip
+        file_name: images.zip
+      - url: https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip
+        file_name: images2.zip
+      annotations:
+      - url: mmf://datasets/visual_genome/detection_split_by_coco_2017/annotations/annotations_split_by_coco_2017.tar.gz
+        file_name: annotations_split_by_coco_2017.tar.gz
+        hashcode: 19129558ef8ba766c1009106ec6f46d62221ec3bb87af505c4157b7e9bcc8e66

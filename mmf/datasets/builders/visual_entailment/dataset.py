@@ -41,8 +41,14 @@ class VisualEntailmentDataset(VQA2Dataset):
                     features["image_info_0"]
                 )
             current_sample.update(features)
+        else:
+            image_path = sample_info["Flikr30kID"]
+            current_sample.image = self.image_db.from_path(image_path)["images"][0]
 
         label = LABEL_TO_INT_MAPPING[sample_info["gold_label"]]
         current_sample.targets = torch.tensor(label, dtype=torch.long)
 
         return current_sample
+
+    def format_for_prediction(self, report):
+        return []

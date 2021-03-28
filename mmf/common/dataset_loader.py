@@ -1,12 +1,20 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import warnings
 
 from mmf.common.sample import SampleList
-from mmf.common.test_reporter import TestReporter
 from mmf.datasets.multi_dataset_loader import MultiDatasetLoader
+from mmf.utils.build import build_multiple_datamodules, build_test_reporter
 
 
 class DatasetLoader:
     def __init__(self, config):
+        # TODO: Remove in next version
+        warnings.warn(
+            "DatasetLoader has been deprecated and will be removed in future versions. "
+            "Please use mmf.datasets.multi_datamodule.MultiDataModule instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.config = config
 
     def load_datasets(self):
@@ -45,7 +53,19 @@ class DatasetLoader:
 
     def get_test_reporter(self, dataset_type):
         dataset = getattr(self, f"{dataset_type}_dataset")
-        return TestReporter(dataset)
+        datamodules = build_multiple_datamodules(
+            dataset.dataset_list, self.config.dataset_config
+        )
+        test_reporter_config = self._get_test_reporter_config()
+        return build_test_reporter(datamodules, test_reporter_config, dataset_type)
+
+    def _get_test_reporter_config(self):
+        dataset_name = list(self.config.dataset_config.keys())[0]
+        dataset_config = self.config.dataset_config.get(dataset_name)
+        if hasattr(dataset_config, "get"):
+            return dataset_config.get("test_reporter_config", None)
+        else:
+            return None
 
     def prepare_batch(self, batch, *args, **kwargs):
         batch = SampleList(batch)

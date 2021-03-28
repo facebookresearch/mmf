@@ -3,7 +3,6 @@
 import unittest
 
 import torch
-from mmf.trainers.mmf_trainer import MMFTrainer
 from tests.test_utils import SimpleModel, skip_if_no_cuda
 from tests.trainers.test_training_loop import TrainerTrainingLoopMock
 
@@ -13,7 +12,7 @@ class SimpleModelWithFp16Assert(SimpleModel):
         batch_tensor = sample_list[list(sample_list.keys())[0]]
         # Start should be fp32
         assert batch_tensor.dtype == torch.float32
-        batch_tensor = self.linear(batch_tensor)
+        batch_tensor = self.classifier(batch_tensor)
 
         # In between operation should be fp16
         assert batch_tensor.dtype == torch.float16
@@ -26,17 +25,18 @@ class SimpleModelWithFp16Assert(SimpleModel):
         return model_output
 
 
-class MMFTrainerMock(TrainerTrainingLoopMock, MMFTrainer):
+class MMFTrainerMock(TrainerTrainingLoopMock):
     def __init__(
         self, num_train_data, max_updates, max_epochs, device="cuda", fp16_model=False
     ):
-        super().__init__(num_train_data, max_updates, max_epochs)
+        super().__init__(num_train_data, max_updates, max_epochs, fp16=True)
         self.device = torch.device(device)
         if fp16_model:
             assert (
                 torch.cuda.is_available()
             ), "MMFTrainerMock fp16 requires cuda enabled"
-            self.model = SimpleModelWithFp16Assert(1)
+            self.model = SimpleModelWithFp16Assert({"in_dim": 1})
+            self.model.build()
             self.model = self.model.cuda()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-3)
 

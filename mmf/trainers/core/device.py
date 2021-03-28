@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import logging
+import warnings
 from abc import ABC
 
 import torch
@@ -19,10 +20,20 @@ class TrainerDeviceMixin(ABC):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
+    # TODO: Review self.device assignment and then override
     def configure_device(self) -> None:
-        self.local_rank = self.config.device_id
-        self.device = self.local_rank
-        self.distributed = False
+        if self.config.training.get("device", "cuda") == "xla":
+            import torch_xla.core.xla_model as xm
+
+            self.device = xm.xla_device()
+            self.distributed = True
+            self.local_rank = xm.get_local_ordinal()
+            is_xla = True
+        else:
+            is_xla = False
+            self.local_rank = self.config.device_id
+            self.device = self.local_rank
+            self.distributed = False
 
         # Will be updated later based on distributed setup
         registry.register("global_device", self.device)
@@ -34,7 +45,7 @@ class TrainerDeviceMixin(ABC):
         elif torch.cuda.is_available():
             self.device = torch.device("cuda")
             torch.cuda.set_device(0)
-        else:
+        elif not is_xla:
             self.device = torch.device("cpu")
 
         registry.register("global_device", self.config.distributed.rank)
@@ -52,10 +63,27 @@ class TrainerDeviceMixin(ABC):
 
         if "cuda" in str(self.device) and self.distributed:
             registry.register("distributed", True)
-            self.model = torch.nn.parallel.DistributedDataParallel(
-                self.model,
-                device_ids=[self.local_rank],
-                output_device=self.local_rank,
-                check_reduction=True,
-                find_unused_parameters=self.config.training.find_unused_parameters,
-            )
+            set_torch_ddp = True
+            try:
+                from fairscale.optim.oss import OSS
+                from fairscale.nn.data_parallel import ShardedDataParallel
+
+                if isinstance(self.optimizer, OSS):
+                    self.model = ShardedDataParallel(self.model, self.optimizer)
+                    set_torch_ddp = False
+                    logger.info("Using FairScale ShardedDataParallel")
+            except ImportError:
+                logger.info("Using PyTorch DistributedDataParallel")
+                warnings.warn(
+                    "You can enable ZeRO and Sharded DDP, by installing fairscale "
+                    + "and setting optimizer.enable_state_sharding=True."
+                )
+
+            if set_torch_ddp:
+                self.model = torch.nn.parallel.DistributedDataParallel(
+                    self.model,
+                    device_ids=[self.local_rank],
+                    output_device=self.local_rank,
+                    check_reduction=True,
+                    find_unused_parameters=self.config.training.find_unused_parameters,
+                )

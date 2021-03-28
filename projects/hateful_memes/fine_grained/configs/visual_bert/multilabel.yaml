@@ -1,0 +1,21 @@
+includes:
+- ./defaults.yaml
+
+model_config:
+  visual_bert:
+    training_head_type: classification
+    num_labels: 9
+    losses:
+    - type: logit_bce
+
+evaluation:
+  metrics:
+  - accuracy
+  - multilabel_macro_f1
+  - multilabel_micro_f1
+
+training:
+  find_unused_parameters: false
+  early_stop:
+    criteria: hateful_memes/multilabel_micro_f1
+    minimize: false

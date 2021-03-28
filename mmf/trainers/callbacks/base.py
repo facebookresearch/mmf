@@ -2,8 +2,8 @@
 
 from typing import Type
 
-from mmf.common import typings as mmf_typings
 from mmf.trainers.base_trainer import BaseTrainer
+from omegaconf import DictConfig
 
 
 class Callback:
@@ -11,13 +11,11 @@ class Callback:
     Base class for callbacks that can be registered with type :class:`BaseTrainer`
 
     Attr:
-        config(mmf_typings.DictConfig): Config for the callback
+        config(omegaconf.DictConfig): Config for the callback
         trainer(Type[BaseTrainer]): Trainer object
     """
 
-    def __init__(
-        self, config: mmf_typings.DictConfig, trainer: Type[BaseTrainer]
-    ) -> None:
+    def __init__(self, config: DictConfig, trainer: Type[BaseTrainer]) -> None:
         self.config = config
         self.trainer = trainer
         self.training_config = self.config.training

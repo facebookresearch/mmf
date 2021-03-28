@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Optional, Tuple
 import omegaconf
 import torch
 from mmf.common.registry import registry
-from mmf.common.typings import DictConfig
 from mmf.models.base_model import BaseModel
 from mmf.modules.embeddings import (
     PreExtractedEmbedding,
@@ -16,6 +15,7 @@ from mmf.modules.embeddings import (
 from mmf.modules.layers import BranchCombineLayer, ClassifierLayer
 from mmf.utils.build import build_image_encoder
 from mmf.utils.general import filter_grads
+from omegaconf import DictConfig
 
 
 @registry.register_model("movie_mcan")
@@ -24,7 +24,9 @@ class MoVieMcan(BaseModel):
         super().__init__(config)
         self.config = config
         self._global_config = registry.get("config")
-        self._datasets = self._global_config.datasets.split(",")
+        self._datasets = self._global_config.datasets
+        if isinstance(self._datasets, str):
+            self._datasets = self._datasets.split(",")
 
     @classmethod
     def config_path(cls):

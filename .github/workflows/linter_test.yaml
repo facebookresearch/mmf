@@ -53,7 +53,7 @@ jobs:
       run: |
         conda activate mmf
         isort --version
-        isort -c -sp .
+        isort -c -df -sp .
 
     - name: Run linter
       shell: bash -l {0}

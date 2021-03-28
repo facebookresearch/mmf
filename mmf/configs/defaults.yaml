@@ -4,6 +4,8 @@ config_version: 1.0
 # Configuration for training
 training:
     # Name of the trainer class used to define the training/evalution loop
+    # `mmf` for default trainer, `lightning` for pytorch lightning trainer
+    # pytorch lightning trainer's params is at `trainer.params`
     trainer: mmf
     # Seed to be used for training. -1 means random seed between 1 and 100000.
     # Either pass fixed through your config or command line arguments
@@ -20,7 +22,7 @@ training:
     # completed first. Default: null means epochs won't be used
     max_epochs: null
 
-    # After `log_interval` iterations, current iteration's training loss will be
+    # After `log_interval` updates, current update's training loss will be
     # reported. This will also report validation on a single batch from validation set
     # to provide an estimate on validation side
     log_interval: 100
@@ -39,9 +41,13 @@ training:
     # Tensorboard control, by default tensorboard is disabled
     tensorboard: false
 
-    # Size of each batch. If distributed or data_parallel
+    # Size of the batch globally. If distributed or data_parallel
     # is used, this will be divided equally among GPUs
     batch_size: 512
+    # Size of the batch per GPU. Use this if you want to specify batch size
+    # per GPU instead of global batch size.
+    # Mutually exclusive with training.batch_size.
+    batch_size_per_device: null
     # Run update_frequency=K batches with batch_size=N, accumulate gradients, then do
     # one update (one optimizer step). The effect is a large effective batch size of
     # KxN (without incurring the memory overhead of setting batch_size to KxN).
@@ -56,11 +62,11 @@ training:
     # Whether to pin memory in dataloader
     pin_memory: false
 
-    # After `checkpoint_interval` iterations, MMF will make a snapshot
+    # After `checkpoint_interval` number of updates, MMF will make a snapshot
     # which will involve creating a checkpoint for current training scenarios
     checkpoint_interval: 1000
     # This will evaluate evaluation metrics on whole validation set after
-    # evaluation interval
+    # evaluation interval number of updates
     evaluation_interval: 1000
     # Whether gradients should be clipped
     clip_gradients: false
@@ -117,7 +123,7 @@ training:
     find_unused_parameters: false
 
     # By default metrics evaluation is turned off during training. Set this to true
-    # to enable evaluation every log_interval
+    # to enable evaluation every log_interval number of updates
     evaluate_metrics: false
 
     # This will enable anomaly detection mode in PyTorch. Use this for debugging
@@ -130,6 +136,32 @@ training:
     # Set to true to activate fp16 for faster performance with negligible
     # drop in results.
     fp16: false
+
+trainer:
+    # Name of the trainer class used to define the training/evalution loop
+    # `mmf` or `lightning` to specify the trainer to be used
+    # `mmf` for mmf trainer,
+    # for mmf trainer params, please see training params in the `training` config
+    # `lightning` for Pytorch Lightning trainer
+    # for lightning trainer params, please see lightning doc for details: ie.,
+    # https://pytorch-lightning.readthedocs.io/en/latest/trainer.html#trainer-class-api
+    type: lightning
+    params:
+        gpus: null
+        num_nodes: 1
+        precision: 32
+        deterministic: false
+        benchmark: false
+        max_steps: 22000
+        max_epochs: null
+        gradient_clip_val: 0.0
+        num_sanity_val_steps: 0
+        automatic_optimization: true # only True is supported for now
+        checkpoint_callback: false
+        accumulate_grad_batches: 1
+        val_check_interval: 1000
+        log_every_n_steps: 100
+        limit_val_batches: 5
 
 # Configuration for evaluation
 evaluation:

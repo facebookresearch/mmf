@@ -5,7 +5,7 @@ import time
 import torch
 from mmf.trainers.callbacks.base import Callback
 from mmf.utils.configuration import get_mmf_env
-from mmf.utils.distributed import is_master
+from mmf.utils.distributed import is_master, is_xla
 from mmf.utils.logger import TensorboardLogger, log_progress, setup_output_folder
 from mmf.utils.timer import Timer
 
@@ -32,8 +32,8 @@ class LogisticsCallback(Callback):
         self.checkpoint_interval = self.training_config.checkpoint_interval
 
         # Total iterations for snapshot
-        self.snapshot_iterations = len(self.trainer.val_dataset)
-        self.snapshot_iterations //= self.training_config.batch_size
+        # len would be number of batches per GPU == max updates
+        self.snapshot_iterations = len(self.trainer.val_loader)
 
         self.tb_writer = None
 
@@ -105,7 +105,7 @@ class LogisticsCallback(Callback):
     def _summarize_report(self, meter, should_print=True, extra=None):
         if extra is None:
             extra = {}
-        if not is_master():
+        if not is_master() and not is_xla():
             return
 
         if self.training_config.tensorboard:

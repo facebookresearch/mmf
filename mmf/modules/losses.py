@@ -27,14 +27,22 @@ in the following way:
 """
 import collections
 import warnings
-from typing import Dict
+from dataclasses import dataclass
+from typing import Any, Dict, List, Union
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from mmf.common.registry import registry
+from omegaconf import MISSING
 from torch import Tensor
 from torch.nn.utils.rnn import pack_padded_sequence
+
+
+@dataclass
+class LossConfig:
+    type: str = MISSING
+    params: Dict[str, Any] = MISSING
 
 
 class Losses(nn.Module):
@@ -62,11 +70,13 @@ class Losses(nn.Module):
         mostly doesn't need to use this class.
 
     Attributes:
-        losses: List containing instanttions of each loss
+        losses: List containing instantiations of each loss
                                    passed in config
     """
 
-    def __init__(self, loss_list):
+    # TODO: Union types are not supported in OmegaConf.
+    # Later investigate for a workaround.for
+    def __init__(self, loss_list: List[Union[str, LossConfig]]):
         super().__init__()
         self.losses = nn.ModuleList()
         config = registry.get("config")
@@ -322,8 +332,7 @@ class CaptionCrossEntropyLoss(nn.Module):
 
 @registry.register_loss("nll_loss")
 class NLLLoss(nn.Module):
-    """Negative log likelikehood loss.
-    """
+    """Negative log likelikehood loss."""
 
     def __init__(self):
         super().__init__()
@@ -569,4 +578,161 @@ class CrossEntropyLoss(nn.Module):
         self.loss_fn = nn.CrossEntropyLoss(**params)
 
     def forward(self, sample_list, model_output):
-        return self.loss_fn(model_output["scores"], sample_list.targets)
+        return self.loss_fn(model_output["scores"], sample_list["targets"])
+
+
+@registry.register_loss("soft_label_cross_entropy")
+class SoftLabelCrossEntropyLoss(nn.Module):
+    def __init__(self, ignore_index=-100, reduction="mean", normalize_targets=True):
+        assert reduction in (
+            "mean",
+            "sum",
+        ), "Argument `reduction` only supports `mean` and `sum`"
+
+        super().__init__()
+
+        self.ignore_index = ignore_index
+        self.reduction = reduction
+        self.normalize_targets = normalize_targets
+        self.eps = torch.finfo(torch.float32).eps
+
+    @staticmethod
+    def convert_to_one_hot(targets, n_classes):
+        one_hot_targets = torch.zeros(
+            (targets.size(0), n_classes), dtype=torch.long, device=targets.device
+        )
+        one_hot_targets.scatter_(1, targets.long().view(-1, 1), 1)
+        return one_hot_targets
+
+    def compute_loss(self, targets, scores):
+        """for N examples and C classes
+        - output: N x C these are raw outputs (without softmax/sigmoid)
+        - target: N x C or N corresponding targets
+
+        Target elements set to ignore_index contribute 0 loss.
+
+        Samples where all entries are ignore_index do not contribute to the loss
+        reduction.
+        """
+
+        assert targets.size(0) == scores.size(
+            0
+        ), "`targets` and `scores` should have the same batch size"
+
+        if targets.dim() == 1:
+            targets = targets.unsqueeze(1)
+        mask = targets != self.ignore_index
+
+        if targets.size(1) == 1:
+            targets = self.convert_to_one_hot(targets, scores.size(1))
+        targets = targets.float() * mask.float()
+
+        if self.normalize_targets:
+            targets /= self.eps + targets.sum(dim=1, keepdim=True)
+
+        per_sample_per_target_loss = -targets * F.log_softmax(scores, dim=-1)
+        per_sample_loss = torch.sum(per_sample_per_target_loss, -1)
+        loss = per_sample_loss.sum()
+        # perform reduction
+        if self.reduction == "mean":
+            # normalize based on the number of samples with > 0 non-ignored targets
+            loss /= torch.sum((torch.sum(mask, -1) > 0)).clamp(min=1)
+        return loss
+
+    def forward(self, sample_list, model_output):
+        return self.compute_loss(sample_list["targets"], model_output["scores"])
+
+
+@registry.register_loss("label_smoothing_cross_entropy")
+class LabelSmoothingCrossEntropyLoss(SoftLabelCrossEntropyLoss):
+    """Cross-entropy loss with label smoothing. If `label_smoothing` = 0, then
+    it's canonical cross entropy.
+    The smoothed one-hot encoding is 1 - label_smoothing for true label and
+    label_smoothing / (num_classes - 1) for the rest.
+
+    Reference: https://stackoverflow.com/questions/55681502/label-smoothing-in-pytorch
+    """
+
+    def __init__(self, label_smoothing=0.1, reduction="mean", ignore_index=-100):
+        assert (
+            0 <= label_smoothing < 1
+        ), "value of argument `label_smoothing` must be in range [0, 1)."
+
+        super().__init__(ignore_index, reduction, False)
+        self.label_smoothing = label_smoothing
+
+    def smooth_targets(self, targets, n_classes):
+        if targets.dim() == 1:
+            targets = targets.unsqueeze(1)
+        mask = targets != self.ignore_index
+
+        smoothing_value = self.label_smoothing / (n_classes - 1)
+        one_hot = torch.full(
+            (n_classes,), smoothing_value, device=targets.device
+        ).repeat(targets.size(0), 1)
+        one_hot.scatter_(1, targets, 1 - self.label_smoothing)
+        return one_hot * mask.float()
+
+    def forward(self, sample_list, model_output):
+        scores = model_output["scores"]
+        one_hot = self.smooth_targets(sample_list["targets"], scores.size(1))
+        loss = self.compute_loss(one_hot, scores)
+        return loss
+
+
+@registry.register_loss("in_batch_hinge")
+class InBatchHinge(nn.Module):
+    """
+    Based on the code from https://github.com/fartashf/vsepp/blob/master/model.py
+    """
+
+    def __init__(self, margin: float = 0.0, hard: bool = False):
+        super().__init__()
+        self.margin = margin
+        self.hard = hard
+
+    def _compute_loss(self, correlations: Tensor):
+        diagonal = correlations.diag()[:, None]
+        d1 = diagonal.expand_as(correlations)
+        d2 = diagonal.t().expand_as(correlations)
+
+        # compare every diagonal score to scores in its column
+        # caption retrieval
+        cost_s = (self.margin + correlations - d1).clamp(min=0)
+        # compare every diagonal score to scores in its row
+        # image retrieval
+        cost_im = (self.margin + correlations - d2).clamp(min=0)
+
+        # clear diagonals
+        mask = 1 - torch.eye(correlations.size(0), device=correlations.device)
+        cost_s = cost_s * mask
+        cost_im = cost_im * mask
+
+        if self.hard:
+            cost_s = cost_s.max(1)[0]
+            cost_im = cost_im.max(0)[0]
+
+        return cost_s.sum() + cost_im.sum()
+
+    def forward(self, sample_list: Dict[str, Tensor], model_output: Dict[str, Tensor]):
+        image_embeddings = model_output["scores"]
+        text_embeddings = model_output["targets"]
+
+        if image_embeddings.shape[0] == text_embeddings.shape[0]:
+            # Training/Single-GT loss
+            correlations = image_embeddings @ text_embeddings.t()
+            loss = self._compute_loss(correlations)
+        else:
+            # Evaluation/Multi-GT loss
+            assert text_embeddings.shape[0] % image_embeddings.shape[0] == 0
+
+            batch_size, dim_size = image_embeddings.shape
+            factor = text_embeddings.shape[0] // image_embeddings.shape[0]
+            text_embeddings = text_embeddings.reshape(batch_size, factor, dim_size)
+            correlations = image_embeddings @ text_embeddings.permute(1, 2, 0)  # FxBxB
+
+            loss = 0
+            for corr in correlations:
+                loss += self._compute_loss(corr)
+
+        return loss

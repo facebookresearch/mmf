@@ -32,6 +32,12 @@ def get_args():
         default=1,
         help="number of nodes for distributed training",
     )
+    parser.add_argument(
+        "--capabilities",
+        type=str,
+        default="GPU_V100_HOST",
+        help="hardware capabilities",
+    )
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument(
         "--config", type=str, default=None, help="configuration for model"

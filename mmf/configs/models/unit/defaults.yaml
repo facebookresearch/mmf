@@ -1,0 +1,95 @@
+model_config:
+  unit:
+    base_ckpt_path: ''  # the initial DETR parameters to start from (this should be a checkpoint file trained w/ DETR package)
+    base_ckpt_load_backbone_only: false
+    detection_loss_weight: 1.
+
+    keep_only_bert_cls:
+      # whether to keep only the [CLS] token's hidden states in transformer
+      vl:
+        vqa2: false
+        hateful_memes: true
+        visual_entailment: true
+      glue:
+        glue_qnli: true
+        glue_sst2: true
+        glue_mnli_mismatched: true
+        glue_qqp: true
+    loss_on_all_hs: false
+
+    base_args:
+      lr_backbone: 1e-5
+      backbone: resnet50
+      dilation: false
+      position_embedding: sine
+      enc_layers: 6
+      dec_layers: 6
+      dim_feedforward: 2048
+      encoder_hidden_dim: 256
+      dropout: 0.1
+      nheads: 8
+      # Override the config
+      pre_norm: false
+      pass_pos_and_query: true
+      # detection losses
+      aux_loss: true
+      use_bcl: false
+      set_cost_class: 1.
+      set_cost_bbox: 5.
+      set_cost_giou: 2.
+      mask_loss_coef: 1.
+      dice_loss_coef: 1.
+      bbox_loss_coef: 5.
+      giou_loss_coef: 2.
+      attr_loss_coef: 1.
+      eos_coef: 0.1
+      # separate dimensionality for decoder
+      decoder_hidden_dim: 256
+      num_queries: {}
+      share_decoders: false
+      residual_in_encoder: true
+      use_task_embedding_in_img_encoder: false
+      use_task_embedding_in_lang_encoder: false
+      # Visual Genome attribute data properties
+      attribute_class_num: 401
+      max_attribute_num: 16
+      bert_config:
+        bert_model_name: bert-base-uncased
+
+    heads:
+      detection:
+        detection_coco:
+          task_idx: 0
+          num_classes: 91
+          use_attr: false
+        detection_visual_genome:
+          task_idx: 1
+          num_classes: 1601
+          use_attr: true
+      vl:
+        vqa2:
+          task_idx: 3
+          num_labels: 3129
+          loss_type: binary_cross_entropy_with_logits
+        visual_entailment:
+          task_idx: 9
+          num_labels: 3
+          loss_type: cross_entropy
+      glue:
+        glue_qnli:
+          task_idx: 5
+          num_labels: 2
+          loss_type: cross_entropy
+        glue_mnli_mismatched:
+          task_idx: 6
+          num_labels: 3
+          loss_type: cross_entropy
+        glue_sst2:
+          task_idx: 7
+          num_labels: 2
+          loss_type: cross_entropy
+        glue_qqp:
+          task_idx: 8
+          num_labels: 2
+          loss_type: cross_entropy
+    max_task_num: 256

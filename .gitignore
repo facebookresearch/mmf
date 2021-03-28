@@ -28,3 +28,4 @@ eggs/
 .vscode/*
 *.so
 *-checkpoint.ipynb
+!tests/data

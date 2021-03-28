@@ -74,8 +74,10 @@ class Report(OrderedDict):
     def fields(self):
         return list(self.keys())
 
-    def accumulate_tensor_fields(self, report, field_list):
+    def accumulate_tensor_fields_and_loss(self, report, field_list):
         for key in field_list:
+            if key == "__prediction_report__":
+                continue
             if key not in self.keys():
                 warnings.warn(
                     f"{key} not found in report. Metrics calculation "
@@ -84,3 +86,16 @@ class Report(OrderedDict):
                 continue
             if isinstance(self[key], torch.Tensor):
                 self[key] = torch.cat((self[key], report[key]), dim=0)
+
+        self._accumulate_loss(report)
+
+    def _accumulate_loss(self, report):
+        for key, value in report.losses.items():
+            if key not in self.losses.keys():
+                warnings.warn(
+                    f"{key} not found in report. Loss calculation "
+                    + "might not work as expected."
+                )
+                continue
+            if isinstance(self.losses[key], torch.Tensor):
+                self.losses[key] += value

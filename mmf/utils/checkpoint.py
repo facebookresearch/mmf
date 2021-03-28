@@ -10,7 +10,7 @@ import warnings
 import torch
 from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env, load_yaml
-from mmf.utils.distributed import is_master, synchronize
+from mmf.utils.distributed import is_master, is_xla, synchronize
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_current_device, updir
@@ -21,6 +21,11 @@ try:
     import git
 except ImportError:
     git = None
+
+try:
+    import torch_xla.core.xla_model as xm
+except ImportError:
+    xm = None
 
 logger = logging.getLogger(__name__)
 ALLOWED_CHECKPOINT_EXTS = [".ckpt", ".pth", ".pt"]
@@ -99,11 +104,18 @@ def _load_pretrained_model(model_name_or_path, *args, **kwargs):
         config = ckpt["config"]
     else:
         config = load_yaml(configs[0])
-
     model_config = config.get("model_config", config)
     ckpt = ckpt.get("model", ckpt)
+
     # Also handle the case of model_name is path
-    model_config = model_config.get(model_name.split(os.path.sep)[-1].split(".")[0])
+    if PathManager.exists(model_name):
+        # This shouldn't happen
+        assert len(model_config.keys()) == 1, "Checkpoint contains more than one model?"
+        # Take first key
+        model_config = model_config[list(model_config.keys())[0]]
+    else:
+        model_config = model_config.get(model_name.split(os.path.sep)[-1].split(".")[0])
+
     return {"config": model_config, "checkpoint": ckpt, "full_config": config}
 
 
@@ -419,7 +431,9 @@ class Checkpoint:
         # Backwards compatibility to Pythia
         _hack_imports()
 
-        with PathManager.open(file, "rb") as f:
+        # Force get_local_path to always redownload checkpoints
+        local_path = PathManager.get_local_path(file, force=True)
+        with PathManager.open(local_path, "rb") as f:
             if "cuda" in str(self.device):
                 return torch.load(f, map_location=self.device)
             else:
@@ -428,15 +442,15 @@ class Checkpoint:
     def _get_vcs_fields(self):
         """Returns a dict with git fields of the current repository
 
-           To reproduce an experiment directly from a checkpoint
+        To reproduce an experiment directly from a checkpoint
 
-           1) Export `config` key as a yaml
-           2) Clone repository and checkout at given commit on given branch
-           3) Any local change (diff) while running the experiment is stored
-              in the value with key `git/diff`, output the diff to a `path.diff`
-              file and apply the patch to the current state by simply
+        1) Export `config` key as a yaml
+        2) Clone repository and checkout at given commit on given branch
+        3) Any local change (diff) while running the experiment is stored
+           in the value with key `git/diff`, output the diff to a `path.diff`
+           file and apply the patch to the current state by simply
 
-                           `patch -p0 < path.diff`
+                        `patch -p0 < path.diff`
         """
 
         return {
@@ -447,11 +461,19 @@ class Checkpoint:
             "git/diff": self.git_repo.git.diff("--no-prefix"),
         }
 
+    def save_func(self, *args):
+        return xm.save(*args) if is_xla() else torch.save(*args)
+
     def save(self, update, iteration=None, update_best=False):
         # Only save in main process
-        if not is_master():
+        # For xla we use xm.save method
+        # Which ensures that actual checkpoint saving happens
+        # only for the master node.
+        # The method also takes care of all the necessary synchronization
+        if not is_master() and not is_xla():
             return
 
+        logger.info("Checkpoint save operation started!")
         if not iteration:
             iteration = update
 
@@ -506,21 +528,26 @@ class Checkpoint:
             ckpt.update(git_metadata_dict)
 
         with PathManager.open(ckpt_filepath, "wb") as f:
-            torch.save(ckpt, f)
+            self.save_func(ckpt, f)
 
         if update_best:
+            logger.info("Saving best checkpoint")
             with PathManager.open(best_ckpt_filepath, "wb") as f:
-                torch.save(ckpt, f)
+                self.save_func(ckpt, f)
 
         # Save current always
+
+        logger.info("Saving current checkpoint")
         with PathManager.open(current_ckpt_filepath, "wb") as f:
-            torch.save(ckpt, f)
+            self.save_func(ckpt, f)
 
         # Remove old checkpoints if max_to_keep is set
         if self.max_to_keep > 0:
             if len(self.saved_iterations) == self.max_to_keep:
                 self.remove(self.saved_iterations.pop(0))
             self.saved_iterations.append(update)
+
+        logger.info("Checkpoint save operation finished!")
 
     def remove(self, update):
         ckpt_filepath = os.path.join(self.models_foldername, "model_%d.ckpt" % update)
@@ -536,6 +563,6 @@ class Checkpoint:
             self._load(best_path, force=True)
 
     def finalize(self):
-        if is_master():
+        if is_master() or is_xla():
             with PathManager.open(self.pth_filepath, "wb") as f:
-                torch.save(self.trainer.model.state_dict(), f)
+                self.save_func(self.trainer.model.state_dict(), f)

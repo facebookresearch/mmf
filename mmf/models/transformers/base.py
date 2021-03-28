@@ -1,13 +1,19 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Any, Dict, List, NamedTuple, Tuple, Type
+from dataclasses import asdict, dataclass, field
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type
 
 from mmf.common.registry import registry
 from mmf.models import BaseModel
-from mmf.utils.modeling import get_optimizer_parameters_for_bert
+from mmf.modules.encoders import IdentityEncoder
+from mmf.utils.modeling import get_bert_configured_parameters
+from omegaconf import MISSING, OmegaConf
 from torch import Tensor, nn
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseTransformerInput(NamedTuple):
@@ -18,35 +24,241 @@ class BaseTransformerInput(NamedTuple):
 
 
 @dataclass
-class BaseModalityConfigType:
-    type: str  # type of modality, text, image, video, audio etc
-    key: str  # name of modality
+class BaseTransformerModalityConfig:
+    type: str = MISSING  # type of modality, text, image, video, audio etc
+    key: str = MISSING  # name of modality
     # segment id to be used for modality. Each modality sould have different segment ids
-    segment_id: int
-    embedding_dim: int  # input dimension for modality embedding
-    position_dim: int  # input dimension for position embedding
+    segment_id: int = MISSING
+    embedding_dim: int = MISSING  # input dimension for modality embedding
+    position_dim: int = MISSING  # input dimension for position embedding
     # eps for layer norm, default is base transformer layer_norm_eps
-    layer_norm_eps: float
+    layer_norm_eps: float = 1e-12
     # dropout probability, default is base transformer hidden_dropout_prob
-    hidden_dropout_prob: float
+    hidden_dropout_prob: float = 0.1
+    # Encoder to be used to encode this particular modality
+    # This is actually: Union[EncoderFactory.Config, Encoder.Config]
+    # NOTE: Waiting on https://github.com/omry/omegaconf/issues/144
+    encoder: Any = IdentityEncoder.Config()
 
 
 @dataclass
-class BaseTransformerConfigType:
-    transformer_base: str  # name of transformer base model
-    training_head_type: str  # training head type used for initializing head
-    modalities: List[BaseModalityConfigType]  # list of modalities for the model input
-    initializer_range: float  # std dev of the normal distribution to initialize layers
-    initializer_mean: float  # mean of the normal distribution to initialize layers
-    token_noise_std: float  # mean of normal noise for token embeddings
-    token_noise_mean: float  # stddev of normal noise for token embeddings
-    layer_norm_weight_fill: float  # layer norm weight initialization
-    random_initialize: bool  # random initialize whole network
-    finetune_lr_multiplier: float  # finetune lr multiplier for base transformer
+class BaseTransformerBackendConfig:
+    # Type of the backend, e.g. huggingface
+    type: str = MISSING
+    # Whether to freeze the backend parameters
+    freeze: bool = False
+    # Parameters for the backend
+    params: Dict[str, Any] = field(default_factory=lambda: {})
+
+
+class BaseTransformer(BaseModel):
+    # NOTE: Please define the values for the config parameters
+    # in your inherited class
+    @dataclass
+    class Config(BaseModel.Config):
+        # registry key of the model
+        model: str = MISSING
+        # name of transformer base model
+        transformer_base: str = MISSING
+        # training head type used for initializing head
+        training_head_type: str = MISSING
+        # backend of the transformer
+        backend: BaseTransformerBackendConfig = MISSING
+        # list of modalities for the model input
+        modalities: List[BaseTransformerModalityConfig] = MISSING
+        # std dev of the normal distribution to initialize layers
+        initializer_range: float = MISSING
+        # mean of the normal distribution to initialize layers
+        initializer_mean: float = MISSING
+        # mean of normal noise for token embeddings
+        token_noise_std: float = MISSING
+        # stddev of normal noise for token embeddings
+        token_noise_mean: float = MISSING
+        # layer norm weight initialization
+        layer_norm_weight_fill: float = MISSING
+        # random initialize whole network
+        random_initialize: bool = MISSING
+        # freeze the base transformer
+        freeze_transformer: bool = MISSING
+        # finetune lr multiplier for base transformer
+        finetune_lr_multiplier: float = MISSING
+
+    def __init__(self, config: Config):
+        """Initialize the config which is the model configuration and transformer_config
+        which is the config for the `transformer` base model.
+        """
+        super().__init__(config)
+        self.config = config
+
+    def build(self):
+        """Build the different parts of the multimodal transformer model and
+        initializes weights.
+        """
+        self.build_backend()
+        self.build_encoders()
+        self.build_heads()
+        self.build_losses()
+
+        self.init_weights()
+
+    def get_optimizer_parameters(self, config):
+        lr = config.optimizer.params.lr
+
+        param_list = []
+        parameters = []
+        head_configs = self.config.get("heads", [])
+        for name, module in self.named_children():
+            # Heads can have different learning rates. This is handled here
+            if name == "heads":
+                # Parameters in the head which have a separate learning
+                # rate, are added as a separate param group
+                for head_config, head in zip(head_configs, self.heads):
+                    lr_multiplier = head_config.get("lr_multiplier", 1.0)
+                    if lr_multiplier != 1.0:
+                        parameters += get_bert_configured_parameters(
+                            head, lr * lr_multiplier
+                        )
+                    else:
+                        # Parameters for head modules with same learning rate as
+                        # trunk, add to same param group
+                        param_list += list(module.named_parameters())
+            else:
+                # For other modules in trunk, add to same param group
+                param_list += list(module.named_parameters())
+
+        parameters += get_bert_configured_parameters(self)
+
+        return parameters
+
+    def build_encoders(self):
+        """Build any encoders for different input modalities. Encoders are used while
+        preprocessing a sample. We the visual_encoder by default for raw image input.
+
+        Example ::
+
+            # For image
+            self.image_encoder = ImageEncoder(self.config)
+
+        """
+        return
+
+    def build_backend(self):
+        """Build the transformer backend. Use the `BaseTransformerBackend` base class
+        to inherit from when building a new backend. All the layers in the transformer
+        backend model will be available (encoder, embeddings etc.) for use. Adjust
+        your derived class based on the transformer backend you want to use.
+        """
+        backend_config = self.config.get("backend", {})
+        backend_type = getattr(backend_config, "type", "huggingface")
+        backend_class = registry.get_transformer_backend_class(backend_type)
+        self.backend = backend_class(self.config)
+
+        if backend_config.get("freeze", False):
+            for param in self.backend.parameters():
+                param.requires_grad = False
+
+    def build_heads(self):
+        """Build the different heads for the model. It can be either the pretraining
+        head or the classifier heads.
+        """
+        self.heads = nn.ModuleList()
+        head_configs = self.config.get("heads", [])
+        for head_config in head_configs:
+            head_type = head_config.get("type", "mlp")
+            head_class = registry.get_transformer_head_class(head_type)
+            self.heads.append(head_class(head_config))
+
+    def build_losses(self):
+        """Initialize the losses for pretraining. For example MLM, MIM etc.
+
+        Example ::
+
+            self.mlm_loss = CrossEntropyLoss(ignore_index=-1)
+        """
+        return
+
+    def _init_weights(self, module: Type[nn.Module]):
+        """Initialize the weights for different layers."""
+        if isinstance(module, (nn.Linear, nn.Embedding)):
+            module.weight.data.normal_(
+                mean=self.config.initializer_mean, std=self.config.initializer_range
+            )
+        elif isinstance(module, nn.LayerNorm):
+            module.bias.data.zero_()
+            module.weight.data.fill_(self.config.layer_norm_weight_fill)
+        if isinstance(module, nn.Linear) and module.bias is not None:
+            module.bias.data.zero_()
+
+    def tie_weights(self):
+        """Tie the weights between the input embeddings and the output embeddings
+        if required.
+        """
+        return
+
+    def init_weights(self):
+        if self.config.random_initialize is False:
+            if self.config.transformer_base is None:
+                # No pretrained model, init weights
+                self.apply(self._init_weights)
+
+        # Tie weights if required
+        self.tie_weights()
+
+    def preprocess_sample(
+        self, sample_list: Dict[str, Any]
+    ) -> Dict[str, Dict[str, Tensor]]:
+        """Preprocess the sample_list and returns input ids, position ids, segment or
+        token type ids and masks for different modalities.
+
+        Returns:
+            Dict[str, Dict[str, Tensor]]: containing input_ids, position_ids,
+                segment_ids, masks
+        """
+        return
+
+    def forward(self, sample_list: Dict[str, Any]) -> Dict[str, Tensor]:
+        r"""Forward pass of the model. The input sample_list can be preprocessed using
+        the preprocess_sample method which expects to return a
+        Dict[str, Dict[str, Tensor]] object. It contains different properties of the
+        input modalities and the masks. These can be used to generate embeddings for
+        each modality and also create attention mask.
+
+        Flow of how the forward pass can be implemented using various modules in
+        BaseTransformer:
+
+                    preprocess_sample                          ||
+                            |                                  ||
+                   generate embeddings                         ||
+                            |                                  ||
+                 generate attention masks                      ||     MODEL
+                            |                                  ||
+                 transformer encoder pass                      ||     FLOW
+                            |                                  ||
+                   different head pass                         ||   DIRECTION
+                            |                                  ||
+                   postprocess_output                          ||
+                            |                                  ||
+                 Dict[str, Tensor] output                      \/
+
+        Returns:
+            Dict[str, Tensor]: Dict containing scores or losses
+        """
+        return
+
+    def postprocess_output(self, output: List[Tensor]) -> Dict[str, Tensor]:
+        """Postprocessing the output from the transformer head, for pretraining
+        it's the output of the pretrain head and for classification its the output
+        of the classsification head. Calculate lossses on pretraining output or
+        model output scores.
+
+        Returns:
+            Dict[str, Tensor]: Dict containing scores or losses
+        """
+        return output
 
 
 class BaseTransformerBackend(nn.Module, ABC):
-    def __init__(self, config: BaseTransformerConfigType, *args, **kwargs):
+    def __init__(self, config: BaseTransformer.Config, *args, **kwargs):
         super().__init__()
         self.config = config
         self.build_transformer_config()
@@ -132,157 +344,35 @@ class BaseTransformerBackend(nn.Module, ABC):
         return encoded_layers[-1], encoded_layers
 
 
-class BaseTransformer(BaseModel):
-    def __init__(self, config: BaseTransformerConfigType):
-        """Initialize the config which is the model configuration and transformer_config
-        which is the config for the `transformer` base model.
+class BaseTransformerHead(nn.Module, ABC):
+    @dataclass
+    class Config:
+        type: str = MISSING
+        # Whether to freeze the head parameters
+        freeze: bool = False
+        # LR multiplier for the head, (head_lr = base_lr * lr_multiplier)
+        lr_multiplier: float = 1.0
+
+    def __init__(self, config: Config, *args, **kwargs):
+        super().__init__()
+        self.config = OmegaConf.create({**asdict(self.Config()), **config})
+
+    @classmethod
+    def from_params(cls, **kwargs):
+        config = OmegaConf.structured(cls.Config(**kwargs))
+        return cls(config)
+
+    def tie_weights(self, module: Optional[nn.Module] = None):
+        pass
+
+    @abstractmethod
+    def forward(
+        self,
+        sequence_output: Tensor,
+        encoded_layers: Optional[List[Tensor]] = None,
+        processed_sample_list: Optional[Dict[str, Dict[str, Tensor]]] = None,
+    ) -> Dict[str, Tensor]:
+        """Forward for the head module.
+
+        Warning: Empty shell for code to be implemented in other class.
         """
-        super().__init__(config)
-        self.config = config
-
-    def build(self):
-        """Build the different parts of the multimodal transformer model and
-        initializes weights.
-        """
-        self.build_backend()
-        self.build_encoders()
-        self.build_heads()
-        self.build_losses()
-
-        self.init_weights()
-
-    def get_optimizer_parameters(self, config: BaseTransformerConfigType):
-        return get_optimizer_parameters_for_bert(self, config)
-
-    def build_encoders(self):
-        """Build any encoders for different input modalities. Encoders are used while
-        preprocessing a sample. We the visual_encoder by default for raw image input.
-
-        Example ::
-
-            # For image
-            self.image_encoder = ImageEncoder(self.config)
-
-        """
-        return
-
-    def build_backend(self):
-        """Build the transformer backend. Use the `BaseTransformerBackend` base class
-        to inherit from when building a new backend. All the layers in the transformer
-        backend model will be available (encoder, embeddings etc.) for use. Adjust
-        your derived class based on the transformer backend you want to use.
-        """
-        backend_config = self.config.get("backend", {})
-        backend_type = getattr(backend_config, "type", "huggingface")
-        backend_class = registry.get_transformer_backend_class(backend_type)
-        self.backend = backend_class(self.config)
-
-        if backend_config.get("freeze", False):
-            for param in self.backend.parameters():
-                param.requires_grad = False
-
-    def build_heads(self):
-        """Build the different heads for the model. It can be either the pretraining
-        head or the classifier heads.
-
-        Example ::
-
-            # For pretraining
-            self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(self.transformer_config),
-                nn.Linear(self.transformer_config.hidden_size, self.config.num_labels),
-            )
-
-            # For classification
-            self.classifier = nn.Sequential(
-                BertPredictionHeadTransform(self.transformer_config),
-                nn.Linear(self.transformer_config.hidden_size, self.config.num_labels),
-            )
-        """
-        return
-
-    def build_losses(self):
-        """Initialize the losses for pretraining. For example MLM, MIM etc.
-
-        Example ::
-
-            self.mlm_loss = CrossEntropyLoss(ignore_index=-1)
-        """
-        return
-
-    def _init_weights(self, module: Type[nn.Module]):
-        """Initialize the weights for different layers."""
-        if isinstance(module, (nn.Linear, nn.Embedding)):
-            module.weight.data.normal_(
-                mean=self.config.initializer_mean, std=self.config.initializer_range
-            )
-        elif isinstance(module, nn.LayerNorm):
-            module.bias.data.zero_()
-            module.weight.data.fill_(self.config.layer_norm_weight_fill)
-        if isinstance(module, nn.Linear) and module.bias is not None:
-            module.bias.data.zero_()
-
-    def tie_weights(self):
-        """Tie the weights between the input embeddings and the output embeddings
-        if required.
-        """
-        return
-
-    def init_weights(self):
-        if self.config.random_initialize is False:
-            if self.config.transformer_base is None:
-                # No pretrained model, init weights
-                self.apply(self._init_weights)
-
-        # Tie weights if required
-        self.tie_weights()
-
-    def preprocess_sample(self, sample_list: Dict[str, Any]) -> BaseTransformerInput:
-        """Preprocess the sample_list and returns input ids, position ids, segment or
-        token type ids and masks for different modalities.
-
-        Returns:
-            BaseTransformerInput: BaseTransformerInput containing input_ids,
-                position_ids, segment_ids, masks
-        """
-        return
-
-    def forward(self, sample_list: Dict[str, Any]) -> Dict[str, Tensor]:
-        r"""Forward pass of the model. The input sample_list can be preprocessed using
-        the preprocess_sample method which expects to return a BaseTransformerInput
-        object. BaseTransformerInput contains different properties of the input
-        modalities and the masks. These can be used to generate embeddings for each
-        modality and also create attention mask.
-
-        Flow of how the forward pass can be implemented using various modules in
-        BaseTransformer:
-
-                    preprocess_sample                          ||
-                            |                                  ||
-                   generate embeddings                         ||
-                            |                                  ||
-                 generate attention masks                      ||     MODEL
-                            |                                  ||
-                 transformer encoder pass                      ||     FLOW
-                            |                                  ||
-                   different head pass                         ||   DIRECTION
-                            |                                  ||
-                   postprocess_output                          ||
-                            |                                  ||
-                 Dict[str, Tensor] output                      \/
-
-        Returns:
-            Dict[str, Tensor]: Dict containing scores or losses
-        """
-        return
-
-    def postprocess_output(self, output: List[Tensor]) -> Dict[str, Tensor]:
-        """Postprocessing the output from the transformer head, for pretraining
-        it's the output of the pretrain head and for classification its the output
-        of the classsification head. Calculate lossses on pretraining output or
-        model output scores.
-
-        Returns:
-            Dict[str, Tensor]: Dict containing scores or losses
-        """
-        return output

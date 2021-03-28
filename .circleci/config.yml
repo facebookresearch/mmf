@@ -22,10 +22,12 @@ install_dep: &install_dep
       command: |
         source activate mmf
         pip install --upgrade setuptools
+        pip install --upgrade torch torchvision
         pip install --progress-bar off flake8==3.7.9
         pip install --progress-bar off black==19.3b0
         pip install --progress-bar off isort==4.3.21
         pip install --progress-bar off pytest
+        pip install --progress-bar off fairscale==0.1.7
         python setup.py clean --all
         python setup.py install
         python -c 'import torch; print("Torch version:", torch.__version__)'

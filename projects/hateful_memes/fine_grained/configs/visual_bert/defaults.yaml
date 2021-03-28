@@ -1,0 +1,8 @@
+includes:
+- ../../../configs/visual_bert/defaults.yaml
+- configs/datasets/hateful_memes/fine_grained/with_features.yaml
+
+training:
+  find_unused_parameters: false
+  batch_size: 128
+  max_updates: 10000

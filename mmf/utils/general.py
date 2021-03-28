@@ -3,11 +3,16 @@
 import collections
 import gc
 import logging
+import math
 import os
+import sys
+import time
+import warnings
 from bisect import bisect
+from typing import Any, Callable
 
 import torch
-from mmf.utils.distributed import get_rank, get_world_size
+from mmf.utils.distributed import get_rank, get_world_size, is_xla
 from mmf.utils.file_io import PathManager
 from torch import nn
 
@@ -24,15 +29,18 @@ def lr_lambda_update(i_iter, cfg):
         return pow(cfg.training.lr_ratio, idx)
 
 
-def clip_gradients(model, i_iter, writer, config, scale=1.0):
+def clip_gradients(model, optimizer, i_iter, writer, config, scale=1.0):
     max_grad_l2_norm = config.training.max_grad_l2_norm
     clip_norm_mode = config.training.clip_norm_mode
 
     if max_grad_l2_norm is not None:
         if clip_norm_mode == "all":
-            norm = nn.utils.clip_grad_norm_(
-                model.parameters(), max_grad_l2_norm * scale
-            )
+            if hasattr(optimizer, "clip_grad_norm"):
+                norm = optimizer.clip_grad_norm(max_grad_l2_norm * scale)
+            else:
+                norm = nn.utils.clip_grad_norm_(
+                    model.parameters(), max_grad_l2_norm * scale
+                )
             if writer is not None:
                 writer.add_scalars({"grad_norm": norm}, i_iter)
         else:
@@ -95,11 +103,13 @@ def get_absolute_path(paths):
         # Now, try relative to user_dir if it exists
         from mmf.utils.configuration import get_mmf_env
 
+        mmf_root = get_mmf_root()
         user_dir = get_mmf_env(key="user_dir")
         if user_dir:
             possible_paths.append(os.path.join(user_dir, paths))
+            # check in relative to mmf relative user dir
+            possible_paths.append(os.path.join(mmf_root, "..", user_dir, paths))
 
-        mmf_root = get_mmf_root()
         # Relative to root folder of mmf install
         possible_paths.append(os.path.join(mmf_root, "..", paths))
         # Relative to mmf root
@@ -236,6 +246,32 @@ def print_cuda_usage():
     print("Max Memory Cached:", torch.cuda.max_memory_cached() / (1024 * 1024))
 
 
+def check_fft_version():
+    # Acquires and parses the PyTorch version
+    split_version = torch.__version__.split(".")
+    major_version = int(split_version[0])
+    minor_version = int(split_version[1])
+    if major_version > 1 or (major_version == 1 and minor_version >= 7):
+        if "torch.fft" not in sys.modules:
+            raise RuntimeError("torch.fft module available but not imported")
+
+
+def rfft(input_tensor, signal_ndim=1, n=None, dim=-1, norm=None) -> torch.Tensor:
+    check_fft_version()
+    if "torch.fft" not in sys.modules:
+        return torch.rfft(input_tensor, signal_ndim=signal_ndim)
+    else:
+        return torch.fft.rfft(input_tensor, n, dim, norm)
+
+
+def irfft(input_tensor, s=None, signal_ndim=1, dim=None, norm=None) -> torch.Tensor:
+    check_fft_version()
+    if "torch.fft" not in sys.modules:
+        return torch.irfft(input_tensor, signal_ndim=signal_ndim, signal_sizes=s)
+    else:
+        return torch.fft.irfftn(input_tensor, s, dim, norm)
+
+
 def get_current_tensors():
     for obj in gc.get_objects():
         try:
@@ -251,8 +287,18 @@ def get_batch_size():
     from mmf.utils.configuration import get_global_config
 
     batch_size = get_global_config("training.batch_size")
-
     world_size = get_world_size()
+
+    batch_size_per_device = get_global_config("training.batch_size_per_device")
+
+    if batch_size_per_device is not None:
+        logger.info(
+            f"training.batch_size_per_device has been used as {batch_size_per_device} "
+            + "This will override training.batch_size and set the global batch size to "
+            + f"{batch_size_per_device} x {world_size} = "
+            + f"{batch_size_per_device * world_size}"
+        )
+        batch_size = batch_size_per_device * world_size
 
     if batch_size % world_size != 0:
         raise RuntimeError(
@@ -289,6 +335,39 @@ def get_sizes_list(dim, chunks):
     return sizes_list
 
 
+def get_max_updates(config_max_updates, config_max_epochs, train_loader, update_freq):
+    if config_max_updates is None and config_max_epochs is None:
+        raise ValueError("Neither max_updates nor max_epochs is specified.")
+
+    if isinstance(train_loader.current_dataset, torch.utils.data.IterableDataset):
+        warnings.warn(
+            "max_epochs not supported for Iterable datasets. Falling back "
+            + "to max_updates."
+        )
+        return config_max_updates, config_max_epochs
+
+    if config_max_updates is not None and config_max_epochs is not None:
+        warnings.warn(
+            "Both max_updates and max_epochs are specified. "
+            + f"Favoring max_epochs: {config_max_epochs}"
+        )
+
+    if config_max_epochs is not None:
+        assert (
+            hasattr(train_loader, "__len__") and len(train_loader) != 0
+        ), "max_epochs can't be used with IterableDatasets"
+        max_updates = math.ceil(len(train_loader) / update_freq) * config_max_epochs
+        max_epochs = config_max_epochs
+    else:
+        max_updates = config_max_updates
+        if hasattr(train_loader, "__len__") and len(train_loader) != 0:
+            max_epochs = max_updates / len(train_loader)
+        else:
+            max_epochs = math.inf
+
+    return max_updates, max_epochs
+
+
 def get_chunks(x, sizes):
     out = []
     begin = 0
@@ -319,7 +398,51 @@ def assert_iterator_finished(iter):
 
 
 def get_current_device():
+    if is_xla():
+        import torch_xla.core.xla_model as xm
+
+        return xm.xla_device()
     if torch.cuda.is_available():
         return f"cuda:{torch.cuda.current_device()}"
     else:
         return torch.device("cpu")
+
+
+def retry_n(n: int, fn: Callable, *args, log_tries=False, **kwargs) -> Any:
+    """Retries a function n times with increasing exponentionally
+    increasing sleep intervals in between. First argument is number of tries
+    if n==1, means function will be called at least twice, first is try, second
+    is retry. Second argument is the function itself, rest of the arguments and
+    keyword arguments are passed to the function directly. Returns the output
+    of the function directly. if failed after n retries, the exception will be
+    raised.
+
+    Args:
+        n (int): Number of tries to be made
+        fn (Callable): Function to be called
+        log_tries (bool): If the function should log the try iteration. Default: False
+
+    Returns:
+        Any: Output from fn
+    """
+    completed = False
+    count = 0
+    output = None
+
+    while not completed:
+        try:
+            output = fn(*args, **kwargs)
+            completed = True
+        except Exception:
+            if count < n:
+                if log_tries:
+                    logger.info(
+                        f"Try {count + 1}/{n} failed for {fn.__name__}. Will retry "
+                        f"after {2 ** count} second(s)."
+                    )
+                time.sleep(2 ** count)
+                count += 1
+            else:
+                raise
+
+    return output

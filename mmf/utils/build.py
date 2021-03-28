@@ -2,26 +2,30 @@
 
 import os
 import warnings
-from typing import Any, Dict, Type, Union
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import mmf
+import pytorch_lightning as pl
 import torch
-from mmf.common import typings as mmf_typings
 from mmf.common.registry import registry
 from mmf.datasets.processors.processors import Processor
 from mmf.utils.configuration import Configuration
-from mmf.utils.distributed import is_dist_initialized
+from mmf.utils.distributed import is_dist_initialized, is_master, is_xla, synchronize
 from mmf.utils.general import get_optimizer_parameters
 from omegaconf import DictConfig, OmegaConf
 
 
-ProcessorType = Type[Processor]
-ProcessorDict = Dict[str, ProcessorType]
+try:
+    import torch_xla.core.xla_model as xm  # noqa
+    import torch_xla.distributed.parallel_loader as xla_pl  # noqa
+except ImportError:
+    xm = None
+
+ProcessorDict = Dict[str, Processor]
 
 
-def build_config(
-    configuration: Type[Configuration], *args, **kwargs
-) -> mmf_typings.DictConfig:
+def build_config(configuration: Configuration, *args, **kwargs) -> DictConfig:
     """Builder function for config. Freezes the configuration and registers
     configuration object and config DictConfig object to registry.
 
@@ -30,7 +34,7 @@ def build_config(
             used to create the config.
 
     Returns:
-        (DictConfig): A config which is of type Omegaconf.DictConfig
+        (DictConfig): A config which is of type omegaconf.DictConfig
     """
     configuration.freeze()
     config = configuration.get_config()
@@ -40,7 +44,7 @@ def build_config(
     return config
 
 
-def build_trainer(config: mmf_typings.DictConfig) -> Any:
+def build_trainer(config: DictConfig) -> Any:
     """Builder function for creating a trainer class. Trainer class name
     is picked from the config.
 
@@ -76,7 +80,22 @@ def build_model(
 
     if hasattr(model, "build"):
         model.load_requirements()
-        model.build()
+        """ Model build involves checkpoint loading
+        If the checkpoint is not available the underlying
+        methods try to download it.
+        Let master build the model (download the checkpoints) while
+        other ranks wait for the sync message
+        Once the master has downloaded the checkpoint and built the
+        model it sends the sync message, completing the synchronization
+        now other cores can proceed to build the model
+        using already downloaded checkpoint.
+        """
+        if is_master():
+            model.build()
+            synchronize()
+        else:
+            synchronize()
+            model.build()
         model.init_losses()
 
     return model
@@ -84,7 +103,7 @@ def build_model(
 
 def build_dataset(
     dataset_key: str, config=None, dataset_type="train"
-) -> mmf_typings.DatasetType:
+) -> torch.utils.data.Dataset:
     """Builder function for creating a dataset. If dataset_key is passed
     the dataset is created from default config of the dataset and thus is
     disable config even if it is passed. Otherwise, we use MultiDatasetLoader to
@@ -99,50 +118,117 @@ def build_dataset(
             Defaults to "train".
 
     Returns:
-        (DatasetType): A dataset instance of type BaseDataset
+        (torch.utils.data.Dataset): A dataset instance of type torch Dataset
     """
+    from mmf.datasets.base_dataset_builder import BaseDatasetBuilder
     from mmf.utils.configuration import load_yaml_with_defaults
 
-    dataset_builder = registry.get_builder_class(dataset_key)
-    assert dataset_builder, (
-        f"Key {dataset_key} doesn't have a registered " + "dataset builder"
-    )
-
+    datamodule_instance = build_datamodule(dataset_key)
     # If config is not provided, we take it from default one
     if not config:
-        config = load_yaml_with_defaults(dataset_builder.config_path())
-        config = OmegaConf.select(config, f"dataset_config.{dataset_key}")
-        OmegaConf.set_struct(config, True)
+        config_path = datamodule_instance.config_path()
+        if config_path is None:
+            # If config path wasn't defined, send an empty config path
+            # but don't force dataset to define a config
+            warnings.warn(
+                f"Config path not defined for {dataset_key}, "
+                + "continuing with empty config"
+            )
+            config = OmegaConf.create()
+        else:
+            config = load_yaml_with_defaults(config_path)
+            config = OmegaConf.select(config, f"dataset_config.{dataset_key}")
+            if config is None:
+                config = OmegaConf.create()
+            OmegaConf.set_struct(config, True)
+    elif dataset_key in config:
+        # Handle Global config
+        config = config[dataset_key]
 
-    builder_instance: mmf_typings.DatasetBuilderType = dataset_builder()
-    builder_instance.build_dataset(config, dataset_type)
-    dataset = builder_instance.load_dataset(config, dataset_type)
-    if hasattr(builder_instance, "update_registry_for_model"):
-        builder_instance.update_registry_for_model(config)
+    datamodule_instance.build_dataset(config)
+    dataset = datamodule_instance.load_dataset(config, dataset_type)
+    if hasattr(datamodule_instance, "update_registry_for_model"):
+        datamodule_instance.update_registry_for_model(config)
 
     return dataset
 
 
+# TODO: move dataset_type enum to typings
+def build_datasets(
+    dataset_list: List[str], dataset_config: DictConfig, dataset_type="train"
+) -> List[torch.utils.data.Dataset]:
+    datasets = []
+    for dataset in dataset_list:
+        if dataset in dataset_config:
+            dataset_config = dataset_config[dataset]
+        else:
+            warnings.warn(
+                f"Dataset {dataset} is missing from dataset_config"
+                + " in config. Proceeding with empty config."
+            )
+            dataset_config = OmegaConf.create()
+
+        dataset_instance = build_dataset(dataset, dataset_config, dataset_type)
+        if dataset_instance is None:
+            continue
+        datasets.append(dataset_instance)
+
+    return datasets
+
+
+def build_datamodule(dataset_key) -> pl.LightningDataModule:
+    dataset_builder = registry.get_builder_class(dataset_key)
+    assert dataset_builder, (
+        f"Key {dataset_key} doesn't have a registered " + "dataset builder"
+    )
+    builder_instance: pl.LightningDataModule = dataset_builder()
+    return builder_instance
+
+
+def build_multiple_datamodules(
+    dataset_list: List[str], all_dataset_config: DictConfig
+) -> Dict[str, pl.LightningDataModule]:
+    datamodules: Dict[str, pl.LightningDataModule] = {}
+    for dataset in dataset_list:
+        datamodule_instance = build_datamodule(dataset)
+        if dataset in all_dataset_config:
+            dataset_config = all_dataset_config[dataset]
+        else:
+            warnings.warn(
+                f"Dataset {dataset} is missing from dataset_config"
+                + " in config. Proceeding with empty config."
+            )
+            dataset_config = OmegaConf.create()
+        datamodule_instance.prepare_data(dataset_config)
+        datamodule_instance.setup()
+        datamodules[dataset] = datamodule_instance
+    return datamodules
+
+
 def build_dataloader_and_sampler(
-    dataset_instance: mmf_typings.DatasetType, training_config: mmf_typings.DictConfig
-) -> mmf_typings.DataLoaderAndSampler:
+    dataset_instance: torch.utils.data.Dataset, datamodule_config: DictConfig
+) -> Tuple[torch.utils.data.DataLoader, Optional[torch.utils.data.Sampler]]:
     """Builds and returns a dataloader along with its sample
 
     Args:
-        dataset_instance (mmf_typings.DatasetType): Instance of dataset for which
+        dataset_instance (torch.utils.data.Dataset): Instance of dataset for which
             dataloader has to be created
-        training_config (mmf_typings.DictConfig): Training configuration; required
+        datamodule_config (omegaconf.DictConfig): Datamodule configuration; required
             for infering params for dataloader
 
     Returns:
-        mmf_typings.DataLoaderAndSampler: Tuple of Dataloader and Sampler instance
+        Tuple[torch.utils.data.DataLoader, Optional[torch.utils.data.Sampler]]:
+            Tuple of Dataloader and Sampler instance
     """
     from mmf.common.batch_collator import BatchCollator
 
-    num_workers = training_config.num_workers
-    pin_memory = training_config.pin_memory
-
-    other_args = {}
+    # Support params coming in from dataloader params
+    other_args = {
+        "num_workers": datamodule_config.get("num_workers", 4),
+        "pin_memory": datamodule_config.get("pin_memory", False),
+        "shuffle": datamodule_config.get("shuffle", None),
+        "batch_size": datamodule_config.get("batch_size", None),
+    }
 
     # IterableDataset returns batches directly, so no need to add Sampler
     # or batch size as user is expected to control those. This is a fine
@@ -151,19 +237,23 @@ def build_dataloader_and_sampler(
     # to the codebase
     if not isinstance(dataset_instance, torch.utils.data.IterableDataset):
         other_args = _add_extra_args_for_dataloader(dataset_instance, other_args)
+    else:
+        other_args.pop("shuffle")
 
     loader = torch.utils.data.DataLoader(
         dataset=dataset_instance,
-        pin_memory=pin_memory,
         collate_fn=BatchCollator(
             dataset_instance.dataset_name, dataset_instance.dataset_type
         ),
-        num_workers=num_workers,
         drop_last=False,  # see also MultiDatasetLoader.__len__
         **other_args,
     )
 
-    if num_workers >= 0:
+    if is_xla():
+        device = xm.xla_device()
+        loader = xla_pl.MpDeviceLoader(loader, device)
+
+    if other_args["num_workers"] >= 0:
         # Suppress leaking semaphore warning
         os.environ["PYTHONWARNINGS"] = "ignore:semaphore_tracker:UserWarning"
 
@@ -172,19 +262,42 @@ def build_dataloader_and_sampler(
     return loader, other_args.get("sampler", None)
 
 
+def build_test_reporter(
+    datamodules: List[pl.LightningDataModule],
+    config: DictConfig = None,
+    dataset_type: str = "train",
+):
+    test_reporter_key = "default"
+    if config:
+        test_reporter_key = config.get("type", "default")
+    test_reporter_class = registry.get_test_rerporter_class(test_reporter_key)
+    assert (
+        test_reporter_class
+    ), f"Key {test_reporter_key} doesn't have a registered test_reporter class"
+
+    if not config:
+        warnings.warn(
+            f"Config not provided for {test_reporter_key}, test_reporter"
+            + "continuing with empty config"
+        )
+        params_config = OmegaConf.create()
+    else:
+        params_config = config.params
+
+    return test_reporter_class(datamodules, params_config, dataset_type)
+
+
 def _add_extra_args_for_dataloader(
-    dataset_instance: mmf_typings.DatasetType,
-    other_args: mmf_typings.DataLoaderArgsType = None,
-) -> mmf_typings.DataLoaderArgsType:
+    dataset_instance: torch.utils.data.Dataset, other_args: Dict[str, Any] = None
+) -> Dict[str, Any]:
     from mmf.utils.general import get_batch_size
 
-    if other_args is None:
-        other_args = {}
     dataset_type = dataset_instance.dataset_type
 
-    other_args["shuffle"] = False
-    if dataset_type != "test":
-        other_args["shuffle"] = True
+    if other_args["shuffle"] is None:
+        other_args["shuffle"] = False
+        if dataset_type != "test":
+            other_args["shuffle"] = True
 
     # In distributed mode, we use DistributedSampler from PyTorch
     if is_dist_initialized():
@@ -195,7 +308,17 @@ def _add_extra_args_for_dataloader(
         # take care of shuffle and pop from main args
         other_args.pop("shuffle")
 
-    other_args["batch_size"] = get_batch_size()
+    if is_xla():
+        other_args["sampler"] = torch.utils.data.DistributedSampler(
+            dataset_instance,
+            num_replicas=xm.xrt_world_size(),
+            rank=xm.get_ordinal(),
+            shuffle=other_args["shuffle"],
+        )
+        other_args.pop("shuffle")
+
+    if other_args["batch_size"] is None:
+        other_args["batch_size"] = get_batch_size()
 
     return other_args
 
@@ -245,6 +368,19 @@ def build_optimizer(model, config):
     else:
         optimizer = optimizer_class(parameters, **params)
     return optimizer
+
+
+def build_lightning_optimizers(model, config):
+    optimizer = build_optimizer(model, config)
+
+    if config.training.lr_scheduler:
+        lr_scheduler = build_scheduler(optimizer, config)
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {"scheduler": lr_scheduler, "interval": "step"},
+        }
+    else:
+        return optimizer
 
 
 def build_scheduler(optimizer, config):
@@ -307,24 +443,32 @@ def build_encoder(config: Union[DictConfig, "mmf.modules.encoders.Encoder.Config
         #   params:
         #       in_dim: 256
         name = config.type
-        params = config.params
+        if isinstance(name, Enum):
+            name = name.value
+        params = config.get("params", None)
     else:
         # Structured Config support
         name = config.name
         params = config
 
     encoder_cls = registry.get_encoder_class(name)
+
+    # If params were not passed, try generating them from encoder
+    # class's default config
+    if params is None:
+        params = OmegaConf.structured(getattr(encoder_cls, "Config", {}))
+
     return encoder_cls(params)
 
 
 def build_processors(
-    processors_config: mmf_typings.DictConfig, registry_key: str = None, *args, **kwargs
+    processors_config: DictConfig, registry_key: str = None, *args, **kwargs
 ) -> ProcessorDict:
     """Given a processor config, builds the processors present and returns back
     a dict containing processors mapped to keys as per the config
 
     Args:
-        processors_config (mmf_typings.DictConfig): OmegaConf DictConfig describing
+        processors_config (omegaconf.DictConfig): OmegaConf DictConfig describing
             the parameters and type of each processor passed here
 
         registry_key (str, optional): If passed, function would look into registry for

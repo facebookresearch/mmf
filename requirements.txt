@@ -1,7 +1,7 @@
 torch==1.6.0
 torchvision==0.7.0
 numpy>=1.16.6
-tqdm>=4.43.0
+tqdm>=4.43.0,<4.50.0
 demjson==2.2.4
 torchtext==0.5.0
 GitPython==3.1.0
@@ -11,6 +11,11 @@ nltk==3.4.5
 editdistance==0.5.3
 transformers==3.4.0
 sklearn==0.0
-omegaconf==2.0.1rc4
+omegaconf==2.0.6
 lmdb==0.98
 termcolor==1.1.0
+iopath==0.1.7
+pytorch_lightning==1.1.6
+datasets==1.2.1
+matplotlib==3.3.4
+pycocotools==2.0.2

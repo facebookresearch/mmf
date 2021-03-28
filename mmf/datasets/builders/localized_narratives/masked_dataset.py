@@ -34,6 +34,16 @@ class MaskedLocalizedNarrativesDatasetMixin(ABC):
                 image_info_0["feature_path"] = image_info_0["image_id"]
                 image_info_0.pop("image_id")
             current_sample.update(features)
+        elif self._use_images:
+            image_id = sample_info["image_id"]
+            dataset = sample_info["dataset_id"]
+            if "mscoco" in dataset:
+                image_id = image_id.rjust(12, "0")
+
+            assert (
+                len(self.image_db.from_path(image_id)["images"]) != 0
+            ), f"image id: {image_id} not found"
+            current_sample.image = self.image_db.from_path(image_id)["images"][0]
 
         return current_sample
 
@@ -52,3 +62,8 @@ class MaskedLocalizedNarrativesDataset(
         super().__init__(
             "masked_localized_narratives", config, dataset_type, index, *args, **kwargs
         )
+
+    def init_processors(self):
+        super().init_processors()
+        if self._use_images:
+            self.image_db.transform = self.image_processor

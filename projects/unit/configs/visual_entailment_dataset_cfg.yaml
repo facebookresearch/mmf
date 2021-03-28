@@ -1,0 +1,30 @@
+dataset_config:
+  visual_entailment:
+    zoo_requirements:
+    - visual_entailment.defaults
+    - flickr30k.defaults
+    use_features: false
+    use_images: true
+    processors:
+      image_processor:
+        type: torchvision_transforms
+        params:
+          transforms:
+            - type: ResizeShortest
+              params:
+                min_size: 800
+                max_size: 1333
+            - ToTensor
+            - type: Normalize
+              params:
+                mean: [0.485, 0.456, 0.406]
+                std: [0.229, 0.224, 0.225]
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 25

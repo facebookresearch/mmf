@@ -9,7 +9,7 @@ import torch
 from mmf.common.registry import registry
 from mmf.utils.build import build_config, build_trainer
 from mmf.utils.configuration import Configuration
-from mmf.utils.distributed import distributed_init, get_rank, infer_init_method
+from mmf.utils.distributed import distributed_init, get_rank, infer_init_method, is_xla
 from mmf.utils.env import set_seed, setup_imports
 from mmf.utils.flags import flags
 from mmf.utils.general import log_device_names
@@ -108,15 +108,26 @@ def run(opts: typing.Optional[typing.List[str]] = None, predict: bool = False):
         else:
             distributed_main(0, configuration, predict)
     elif config.distributed.world_size > 1:
-        assert config.distributed.world_size <= torch.cuda.device_count()
-        port = random.randint(10000, 20000)
-        config.distributed.init_method = f"tcp://localhost:{port}"
-        config.distributed.rank = None
-        torch.multiprocessing.spawn(
-            fn=distributed_main,
-            args=(configuration, predict),
-            nprocs=config.distributed.world_size,
-        )
+        if is_xla():
+            import torch_xla.distributed.xla_multiprocessing as xmp
+
+            torch.multiprocessing.set_sharing_strategy("file_system")
+            xmp.spawn(
+                fn=distributed_main,
+                args=(configuration, predict),
+                nprocs=8,  # use all 8 TPU cores
+                start_method="fork",
+            )
+        else:
+            assert config.distributed.world_size <= torch.cuda.device_count()
+            port = random.randint(10000, 20000)
+            config.distributed.init_method = f"tcp://localhost:{port}"
+            config.distributed.rank = None
+            torch.multiprocessing.spawn(
+                fn=distributed_main,
+                args=(configuration, predict),
+                nprocs=config.distributed.world_size,
+            )
     else:
         config.device_id = 0
         main(configuration, predict=predict)
