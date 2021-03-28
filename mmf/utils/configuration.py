@@ -201,7 +201,7 @@ def resolve_dir(env_variable, default="data"):
 
 
 class Configuration:
-    def __init__(self, args=None, default_only=False):
+    def __init__(self, args=None, default_only=False, load_dataset=True):
         self.config = {}
 
         if not args:
@@ -227,7 +227,7 @@ class Configuration:
         if default_only:
             other_configs = {}
         else:
-            other_configs = self._build_other_configs()
+            other_configs = self._build_other_configs(load_dataset=load_dataset)
 
         self.config = OmegaConf.merge(self._default_config, other_configs)
 
@@ -248,7 +248,7 @@ class Configuration:
         default_config = load_yaml(self.default_config_path)
         return default_config
 
-    def _build_other_configs(self):
+    def _build_other_configs(self, load_dataset=True):
         opts_config = self._build_opt_list(self.args.opts)
         user_config = self._build_user_config(opts_config)
 
@@ -256,13 +256,19 @@ class Configuration:
         self._user_config = user_config
 
         self.import_user_dir()
-
         model_config = self._build_model_config(opts_config)
-        dataset_config = self._build_dataset_config(opts_config)
         args_overrides = self._build_demjson_config(self.args.config_override)
-        other_configs = OmegaConf.merge(
-            model_config, dataset_config, user_config, args_overrides
-        )
+        other_configs = None
+        if load_dataset:
+            dataset_config = self._build_dataset_config(opts_config)
+            other_configs = OmegaConf.merge(
+                model_config, dataset_config, user_config, args_overrides
+            )
+        else:
+            other_configs = OmegaConf.merge(
+                model_config, user_config, args_overrides
+            )
+
 
         return other_configs
 
