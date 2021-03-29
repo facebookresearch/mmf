@@ -87,6 +87,8 @@ class LightningTrainer(BaseTrainer):
 
         logger.info("Starting training...")
         self.trainer.fit(self.model, self.data_module)
+        # TODO: Look for a better way to hook this
+        self.data_module.teardown()
 
     def inference(self) -> None:
         logger.info("Starting inference...")

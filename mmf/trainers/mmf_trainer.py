@@ -141,6 +141,7 @@ class MMFTrainer(
         self.on_train_end()
 
         self.inference()
+        self.dataset_loader.teardown()
 
     def inference(self):
         dataset_type = []

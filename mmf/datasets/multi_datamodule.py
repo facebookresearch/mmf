@@ -52,6 +52,11 @@ class MultiDataModule(pl.LightningDataModule):
         loader = MultiDataLoader(loader_args)
         return loader
 
+    def teardown(self, *args, **kwargs):
+        for datamodule in self.datamodules:
+            if hasattr(datamodule, "teardown"):
+                datamodule.teardown()
+
     ############################################################
     ######## Functions below are required for MMFTrainer #######
     ########      and not used by the PL Trainer         #######

@@ -200,3 +200,6 @@ class BaseDatasetBuilder(pl.LightningDataModule):
 
     def test_dataloader(self, *args, **kwargs):
         return self.build_dataloader(self.test_dataset, "test")
+
+    def teardown(self, *args, **kwargs) -> None:
+        pass
