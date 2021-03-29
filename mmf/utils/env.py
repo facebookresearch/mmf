@@ -186,3 +186,11 @@ def setup_imports():
             importlib.import_module(module)
 
     registry.register("imports_setup", True)
+
+
+def teardown_imports():
+    from mmf.common.registry import registry
+
+    registry.unregister("pythia_path")
+    registry.unregister("mmf_path")
+    registry.unregister("imports_setup")

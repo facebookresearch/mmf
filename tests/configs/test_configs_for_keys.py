@@ -1,18 +1,23 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import contextlib
+import gc
 import unittest
 import warnings
 from io import StringIO
 
 from mmf.common.registry import registry
 from mmf.utils.configuration import Configuration
-from mmf.utils.env import setup_imports
+from mmf.utils.env import setup_imports, teardown_imports
 from tests.test_utils import dummy_args
 
 
 class TestConfigsForKeys(unittest.TestCase):
     def setUp(self):
         setup_imports()
+
+    def tearDown(self):
+        teardown_imports()
+        gc.collect()
 
     def test_model_configs_for_keys(self):
         models_mapping = registry.mapping["model_name_mapping"]
