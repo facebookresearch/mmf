@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import unittest
+from unittest.mock import MagicMock
 
 import torch
 from mmf.utils.general import clip_gradients
@@ -25,6 +26,7 @@ class TestLightningTrainerGradClipping(unittest.TestCase, Callback):
             max_epochs=None,
             grad_clipping_config=self.grad_clipping_config,
         )
+        mmf_trainer.evaluation_loop = MagicMock(return_value=(None, None))
 
         def _finish_update():
             clip_gradients(
