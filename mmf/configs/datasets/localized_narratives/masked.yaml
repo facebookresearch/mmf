@@ -5,6 +5,7 @@ dataset_config:
     use_features: True
     zoo_requirements:
     - localized_narratives.defaults
+    - localized_narratives.only_captions
     - ade20k.defaults
     - coco.defaults
     - flickr30k.defaults
@@ -13,18 +14,6 @@ dataset_config:
       - flickr30k/defaults/features/detectron.lmdb
       - ade20k/defaults/features/ade20k_train.lmdb
       - coco/defaults/features/coco_train2017.lmdb
-      - coco/defaults/features/coco_train2017.lmdb
-      - coco/defaults/features/coco_train2017.lmdb
-      - coco/defaults/features/coco_train2017.lmdb
-      - localized_narratives/defaults/features/ln_open_images_train.lmdb
-      - localized_narratives/defaults/features/ln_open_images_train.lmdb
-      - localized_narratives/defaults/features/ln_open_images_train.lmdb
-      - localized_narratives/defaults/features/ln_open_images_train.lmdb
-      - localized_narratives/defaults/features/ln_open_images_train.lmdb
-      - localized_narratives/defaults/features/ln_open_images_train.lmdb
-      - localized_narratives/defaults/features/ln_open_images_train.lmdb
-      - localized_narratives/defaults/features/ln_open_images_train.lmdb
-      - localized_narratives/defaults/features/ln_open_images_train.lmdb
       - localized_narratives/defaults/features/ln_open_images_train.lmdb
       val:
       - flickr30k/defaults/features/detectron.lmdb
@@ -36,30 +25,18 @@ dataset_config:
       - localized_narratives/defaults/features/open_images_test.lmdb
     annotations:
       train:
-      - localized_narratives/defaults/annotations/flickr30k_train_localized_narratives.jsonl
-      - localized_narratives/defaults/annotations/ade20k_train_localized_narratives.jsonl
-      - localized_narratives/defaults/annotations/coco_train_localized_narratives-00000-of-00004.jsonl
-      - localized_narratives/defaults/annotations/coco_train_localized_narratives-00001-of-00004.jsonl
-      - localized_narratives/defaults/annotations/coco_train_localized_narratives-00002-of-00004.jsonl
-      - localized_narratives/defaults/annotations/coco_train_localized_narratives-00003-of-00004.jsonl
-      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00000-of-00010.jsonl
-      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00001-of-00010.jsonl
-      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00002-of-00010.jsonl
-      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00003-of-00010.jsonl
-      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00004-of-00010.jsonl
-      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00005-of-00010.jsonl
-      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00006-of-00010.jsonl
-      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00007-of-00010.jsonl
-      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00008-of-00010.jsonl
-      - localized_narratives/defaults/annotations/open_images_train_v6_localized_narratives-00009-of-00010.jsonl
+      - localized_narratives/defaults/annotations/flickr30k_train_captions.jsonl
+      - localized_narratives/defaults/annotations/ade20k_train_captions.jsonl
+      - localized_narratives/defaults/annotations/coco_train_captions.jsonl
+      - localized_narratives/defaults/annotations/open_images_train_v6_captions.jsonl
       val:
-      - localized_narratives/defaults/annotations/flickr30k_val_localized_narratives.jsonl
-      - localized_narratives/defaults/annotations/ade20k_validation_localized_narratives.jsonl
-      - localized_narratives/defaults/annotations/open_images_validation_localized_narratives.jsonl
-      - localized_narratives/defaults/annotations/coco_val_localized_narratives.jsonl
+      - localized_narratives/defaults/annotations/flickr30k_val_captions.jsonl
+      - localized_narratives/defaults/annotations/ade20k_validation_captions.jsonl
+      - localized_narratives/defaults/annotations/open_images_validation_captions.jsonl
+      - localized_narratives/defaults/annotations/coco_val_captions.jsonl
       test:
-      - localized_narratives/defaults/annotations/flickr30k_test_localized_narratives.jsonl
-      - localized_narratives/defaults/annotations/open_images_test_localized_narratives.jsonl
+      - localized_narratives/defaults/annotations/flickr30k_test_captions.jsonl
+      - localized_narratives/defaults/annotations/open_images_test_captions.jsonl
     processors:
       masked_token_processor:
         type: masked_token
@@ -70,3 +47,19 @@ dataset_config:
               do_lower_case: True
           mask_probability: 0.15
           max_seq_length: 64
+      image_processor:
+        type: torchvision_transforms
+        params:
+          transforms:
+          - type: Resize
+            params:
+                size: [256, 256]
+          - type: CenterCrop
+            params:
+              size: [224, 224]
+          - ToTensor
+          - GrayScaleTo3Channels
+          - type: Normalize
+            params:
+              mean: [0.485, 0.456, 0.406]
+              std: [0.229, 0.224, 0.225]
