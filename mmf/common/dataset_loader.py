@@ -60,12 +60,9 @@ class DatasetLoader:
         return build_test_reporter(datamodules, test_reporter_config, dataset_type)
 
     def _get_test_reporter_config(self):
-        dataset_name = list(self.config.dataset_config.keys())[0]
-        dataset_config = self.config.dataset_config.get(dataset_name)
-        if hasattr(dataset_config, "get"):
-            return dataset_config.get("test_reporter_config", None)
-        else:
-            return None
+        from mmf.utils.configuration import get_global_config
+
+        return get_global_config("evaluation.reporter")
 
     def prepare_batch(self, batch, *args, **kwargs):
         batch = SampleList(batch)
