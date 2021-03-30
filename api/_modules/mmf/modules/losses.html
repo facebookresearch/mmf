@@ -968,6 +968,30 @@
                 <span class="n">loss</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_loss</span><span class="p">(</span><span class="n">corr</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">loss</span></div>
+
+
+<div class="viewcode-block" id="ContrastiveLoss"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.ContrastiveLoss">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_loss</span><span class="p">(</span><span class="s2">&quot;contrastive_loss&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ContrastiveLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is a generic contrastive loss typically used for pretraining. No modality</span>
+<span class="sd">    assumptions are made here.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span> <span class="n">model_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]):</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="s2">&quot;embedding_1&quot;</span> <span class="ow">in</span> <span class="n">model_output</span> <span class="ow">and</span> <span class="s2">&quot;embedding_2&quot;</span> <span class="ow">in</span> <span class="n">model_output</span>
+        <span class="p">),</span> <span class="s2">&quot;Embedding names must be available before loss calculation&quot;</span>
+        <span class="n">embedding_1</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;embedding_1&quot;</span><span class="p">]</span>
+        <span class="n">embedding_2</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;embedding_2&quot;</span><span class="p">]</span>
+
+        <span class="n">mma</span> <span class="o">=</span> <span class="n">embedding_1</span> <span class="o">@</span> <span class="n">embedding_2</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">mma</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">device</span><span class="o">=</span><span class="n">mma</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">loss1</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">mma</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+        <span class="n">loss2</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">mma</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">loss1</span> <span class="o">+</span> <span class="n">loss2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span></div>
 </pre></div>
 
              </article>
