@@ -410,6 +410,32 @@ internal operations. Default: False</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt id="mmf.common.registry.Registry.register_iteration_strategy">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">register_iteration_strategy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_iteration_strategy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_iteration_strategy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register an iteration_strategy to registry with key ‘name’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> – Key with which the iteration_strategy will be registered.</p>
+</dd>
+</dl>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
+<span class="kn">from</span> <span class="nn">mmf.datasets.iterators</span> <span class="kn">import</span> <span class="n">IterationStrategy</span>
+
+
+<span class="nd">@registry</span><span class="o">.</span><span class="n">register_iteration_strategy</span><span class="p">(</span><span class="s2">&quot;my_iteration_strategy&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MyStrategy</span><span class="p">(</span><span class="n">IterationStrategy</span><span class="p">):</span>
+    <span class="nd">@dataclass</span>
+    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;my_strategy&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">dataloader</span><span class="p">):</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
 <dt id="mmf.common.registry.Registry.register_loss">
 <em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">register_loss</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a loss to registry with key ‘name’</p>
