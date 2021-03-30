@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import copy
 import json
-
+import os
 import torch
 from mmf.common.sample import Sample, SampleList
 from mmf.datasets.builders.vqa2 import VQA2Dataset
@@ -50,7 +50,10 @@ class VisualGenomeDataset(VQA2Dataset):
         current_sample = self._load_scene_graph(idx, current_sample)
 
         return current_sample
-
+    
+    def _get_absolute_path(self, scene_graph_file):
+        return os.path.abspath(scene_graph_file)
+    
     def _get_image_id(self, idx):
         return self.annotation_db[idx][_CONSTANTS["image_id_key"]]
 
