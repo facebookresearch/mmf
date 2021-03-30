@@ -10,6 +10,7 @@ from typing import Dict, Iterator
 import numpy as np
 import torch
 from mmf.common.sample import SampleList, convert_batch_to_sample_list
+from mmf.datasets import iteration_strategies
 from mmf.utils.build import build_dataloader_and_sampler, build_dataset
 from mmf.utils.dataset import dataset_list_from_config
 from mmf.utils.distributed import (
@@ -28,12 +29,23 @@ logger = logging.getLogger(__name__)
 
 
 class MultiDataLoader:
-    def __init__(self, loaders: Dict[str, DataLoader]):
-        if loaders is not None and len(loaders) != 0:
+    def __init__(
+        self,
+        loaders: Dict[str, DataLoader],
+        iteration_strategy: iteration_strategies.IterationStrategy = None,
+    ):
+        if loaders is None or len(loaders) == 0:
             warnings.warn(
                 "Empty loaders passed into MultiDataLoader. This can have "
                 "unintended consequences."
             )
+
+        if iteration_strategy is None:
+            iteration_strategy = iteration_strategies.RoundRobinIterationStrategy(
+                OmegaConf.create(), loaders
+            )
+
+        self._iteration_strategy = iteration_strategy
         self._loaders = loaders
         self._is_master = is_master()
         self._num_datasets = len(self.loaders)
@@ -44,10 +56,8 @@ class MultiDataLoader:
         self.current_index = 0
         self.set_lengths()
         self.set_samplers()
-        self._infer_dataset_probabilities()
 
     def set_lengths(self):
-        self._per_dataset_lengths = []
         self._total_length = 0
         for loader in self.loaders.values():
             # Some loaders might not have dataset attribute
@@ -61,7 +71,6 @@ class MultiDataLoader:
             if hasattr(dataset_instance, "__len__"):
                 dataset_instance_length = len(dataset_instance)
                 assert dataset_instance_length, f"dataset: {self.dataset_type} is empty"
-                self._per_dataset_lengths.append(dataset_instance_length)
                 self._total_length += dataset_instance_length
 
     def set_samplers(self):
@@ -102,6 +111,10 @@ class MultiDataLoader:
         return self.loaders[self.current_dataset_name]
 
     @property
+    def iteration_strategy(self) -> iteration_strategies.IterationStrategy:
+        return self._iteration_strategy
+
+    @property
     def current_iterator(self) -> DataLoader:
         return self.iterators[self.current_dataset_name]
 
@@ -119,67 +132,6 @@ class MultiDataLoader:
     @property
     def first_loader(self) -> DataLoader:
         return list(self.loaders.values())[0]
-
-    def _infer_dataset_probabilities(self):
-        from mmf.utils.configuration import get_global_config
-
-        training = get_global_config("training")
-
-        self._dataset_probabilities = [
-            1 / self._num_datasets for _ in range(self.num_datasets)
-        ]
-
-        self._proportional_sampling = training.get(
-            "dataset_size_proportional_sampling", True
-        )
-
-        multitasking = get_global_config("multitasking")
-        if multitasking is None:
-            multitasking = {}
-        multitasking_enabled = multitasking.get("enabled", False)
-
-        assert (
-            self._proportional_sampling is True
-            or training.get("max_epochs", None) is None
-        ), "Epoch based training can only be used with size proportional sampling"
-
-        assert not (self._proportional_sampling and multitasking_enabled), (
-            "Multitasking (manually-specified) per-dataset ratios cannot be used "
-            "with size proportional sampling"
-        )
-        if (
-            len(self.loaders) > 0
-            and self.current_loader.dataset.dataset_type != "train"
-        ):
-            # If it is val or test, it needs to be all datasets need to be
-            # fully iterated as metrics will be calculated in eval mode
-            # over complete datasets
-            self._proportional_sampling = True
-
-        if self._proportional_sampling is True and len(self._per_dataset_lengths) > 0:
-            self._dataset_probabilities = self._per_dataset_lengths[:]
-            self._dataset_probabilities = [
-                prob / self._total_length for prob in self._dataset_probabilities
-            ]
-
-        if multitasking_enabled and self._dataset_type == "train":
-            sampling_ratios = multitasking.get("sampling_ratios", {})
-            probabilities = []
-            for dataset in self.dataset_list:
-                assert (
-                    dataset in sampling_ratios
-                ), f"{dataset} must be specified in multitasking.sampling_ratios"
-                probabilities.append(sampling_ratios[dataset])
-            # normalize the sampling ratios to sum up to 1
-            prob_sum = sum(probabilities)
-            assert all(prob >= 0 for prob in probabilities) and prob_sum > 0, (
-                "multitasking.sampling_ratios must be all non-negative and at least "
-                "one of them needs to be positive."
-            )
-            self._dataset_probabilities = [prob / prob_sum for prob in probabilities]
-            logger.info("Using per-dataset sampling probabilities:")
-            for dataset, prob in zip(self.dataset_list, self._dataset_probabilities):
-                logger.info(f"\t{dataset}: {prob}")
 
     def __len__(self) -> int:
         # Since, this is iterator, we need to return total length == number of batches
@@ -215,27 +167,29 @@ class MultiDataLoader:
     def __next__(self) -> SampleList:
         """Calculation of next batch is performed using following logic.
 
-        Current chosen iterator is selected based on the dataset probabilities
-        set in the change_dataloader function which is called everytime prepare_batch
-        is called.
+        Current chosen iterator is set in the change_dataloader function
+        based on the chosen iteration strategy which is called everytime
+        prepare_batch is called.
 
         If we get the next batch from iterator without any StopIteration exception,
         we return it as it is. Otherwise, we have two cases:
 
-        1. In proportional sampling, since each dataset will have same number of epochs
-        at any given time, we need to yield StopIteration exception when all iterators
-        are finished. In turn, this will yield to __iter__ all reignite all
-        of the iterators. The code will not reach __iter__ until unless all iterators
-        are exhausted.
+        1. In some iteration strategies (example size proportional), each dataset
+        needs to same number of epochs at any given time, we need to yield
+        StopIteration exception when all iterators are finished. In turn, this
+        will yield to __iter__ all reignite all of the iterators. The code will
+        not reach __iter__ until unless all iterators are exhausted. An iteration
+        strategy should specify this behavior through `should_exhaust_all_iterators`
+        property
 
-        2. In the case of non-proportional (equal) sampling, epochs don't make sense.
-        Think of a case of equal proportion sampling for dataset x and y where x
-        is half the size of y. When x will complete its 2 epochs, y will have only
-        1 epoch completed. **So please don't use max_epochs or epoch based training
-        in this case as it won't be honored**. If an iterator is finished, we
-        just reignite it in this case and finished iterators variable isn't used.
-        This means that this case will never reach the __iter__ function ever
-        again.
+        2. In other cases of iteration strategies, epochs don't make sense.
+        Think of a case of random (equal) proportional sampling for dataset x and y
+        where x is half the size of y. When x will complete its 2 epochs, y will
+        have only 1 epoch completed. **So please don't use max_epochs or epoch
+        based training in this case as it won't be honored**. If an iterator is
+        finished, we just reignite it in this case and finished iterators
+        variable isn't used. This means that this case will never reach the
+        __iter__ function ever again.
 
 
         Returns:
@@ -244,7 +198,7 @@ class MultiDataLoader:
         try:
             next_batch = next(self.current_iterator)
         except StopIteration:
-            if self._proportional_sampling is True:
+            if self.iteration_strategy.should_exhaust_all_iterators:
                 self._finished_iterators[self.current_dataset_name] = 1
 
                 if len(self._finished_iterators) == self.num_datasets:
@@ -257,10 +211,16 @@ class MultiDataLoader:
                 self.iterators[self.current_dataset_name] = iterator
                 next_batch = next(self.current_iterator)
 
+        # Save dataset name and dataset type beforehand as
+        # prepare_data will change the current index
+        current_dataset_name = self.current_dataset_name
+        current_dataset_type = self.current_dataset.dataset_type
+
         next_batch = self.prepare_batch(next_batch)
         next_batch = convert_batch_to_sample_list(next_batch)
-        next_batch.dataset_name = self.current_dataset_name
-        next_batch.dataset_type = self.current_dataset.dataset_type
+
+        next_batch.dataset_name = current_dataset_name
+        next_batch.dataset_type = current_dataset_type
         return next_batch
 
     def change_dataloader(self):
@@ -271,16 +231,12 @@ class MultiDataLoader:
             return
 
         if self._is_master:
-            choice = np.random.choice(
-                self.num_datasets, 1, p=self._dataset_probabilities
-            )[0]
+            choice = self.iteration_strategy()
 
             # self._finished_iterators will always be empty in case of
             # non-proportional (equal) sampling
             while self.dataset_list[choice] in self._finished_iterators:
-                choice = np.random.choice(
-                    self.num_datasets, 1, p=self._dataset_probabilities
-                )[0]
+                choice = self.iteration_strategy()
 
         choice = broadcast_scalar(choice, 0, device=get_current_device())
         self.current_index = choice
@@ -299,6 +255,7 @@ class MultiDataLoader:
                     sampler.set_epoch(epoch)
 
 
+# TODO: Deprecate in favor of MultiDataModule
 class MultiDatasetLoader(MultiDataLoader):
     """
     MultiDatasetLoader class that is used for training on multiple datasets together.
@@ -320,6 +277,7 @@ class MultiDatasetLoader(MultiDataLoader):
     def load(self, config):
         self.build_datasets(config)
         self.build_dataloaders()
+        self.set_lengths()
 
     def build_datasets(self, config):
         self._datasets = []
@@ -342,12 +300,6 @@ class MultiDatasetLoader(MultiDataLoader):
             self.datasets.append(dataset_instance)
             self.dataset_list.append(dataset)
 
-            if hasattr(dataset_instance, "__len__"):
-                dataset_instance_length = len(dataset_instance)
-                assert dataset_instance_length, f"dataset: {self.dataset_type} is empty"
-                self._per_dataset_lengths.append(dataset_instance_length)
-                self._total_length += dataset_instance_length
-
         self._num_datasets = len(self.datasets)
         self.current_index = 0
 
@@ -368,3 +320,50 @@ class MultiDatasetLoader(MultiDataLoader):
 
     def verbose_dump(self, *args, **kwargs):
         self._chosen_dataset.verbose_dump(*args, **kwargs)
+
+    # Kept for backwards compatibility for now
+    # TODO: Remove in future.
+    def _infer_dataset_probabilities(self):
+        from mmf.utils.configuration import get_global_config
+
+        training = get_global_config("training")
+
+        proportional_sampling = training.get("dataset_size_proportional_sampling", True)
+
+        if proportional_sampling is True:
+            strategy = iteration_strategies.SizeProportionalIterationStrategy
+            self._iteration_strategy = strategy(OmegaConf.create(), self.loaders)
+        else:
+            self._iteration_strategy = iteration_strategies.RandomIterationStrategy(
+                OmegaConf.create(), self.loaders
+            )
+
+        multitasking = get_global_config("multitasking")
+        multitasking_enabled = multitasking.get("enabled", False)
+
+        assert (
+            proportional_sampling is True or training.get("max_epochs", None) is None
+        ), "Epoch based training can only be used with size proportional sampling"
+
+        assert not (proportional_sampling and multitasking_enabled), (
+            "Multitasking (manually-specified) per-dataset ratios cannot be used "
+            "with size proportional sampling"
+        )
+
+        if multitasking_enabled and "sampling_ratios" in multitasking:
+            self._iteration_strategy = iteration_strategies.RatiosIterationStrategy(
+                OmegaConf.create(
+                    {
+                        "sampling_ratios": multitasking.sampling_ratios,
+                        "datasets": self._given_datasets,
+                    }
+                ),
+                self._loaders,
+            )
+        elif proportional_sampling is True:
+            strategy = iteration_strategies.SizeProportionalIterationStrategy
+            self._iteration_strategy = strategy(OmegaConf.create(), self.loaders)
+        else:
+            self._iteration_strategy = iteration_strategies.RandomIterationStrategy(
+                OmegaConf.create(), self.loaders
+            )

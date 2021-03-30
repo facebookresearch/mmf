@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import logging
 import os
 import warnings
 from enum import Enum
@@ -9,6 +10,11 @@ import mmf
 import pytorch_lightning as pl
 import torch
 from mmf.common.registry import registry
+from mmf.datasets.iteration_strategies import (
+    ConstantIterationStrategy,
+    IterationStrategy,
+    SizeProportionalIterationStrategy,
+)
 from mmf.datasets.processors.processors import Processor
 from mmf.utils.configuration import Configuration
 from mmf.utils.distributed import is_dist_initialized, is_master, is_xla, synchronize
@@ -23,6 +29,7 @@ except ImportError:
     xm = None
 
 ProcessorDict = Dict[str, Processor]
+logger = logging.getLogger(__name__)
 
 
 def build_config(configuration: Configuration, *args, **kwargs) -> DictConfig:
@@ -500,3 +507,31 @@ def build_processors(
         processor_dict[processor_key] = processor_instance
 
     return processor_dict
+
+
+def build_iteration_strategy(
+    config: DictConfig,
+    dataloaders: Dict[str, torch.utils.data.DataLoader],
+    *args,
+    **kwargs,
+) -> IterationStrategy:
+    if not config.get("enabled", True):
+        return ConstantIterationStrategy.from_params(dataloaders, *args, **kwargs)
+    else:
+        assert (
+            "type" in config
+        ), "multitasking config must define 'type' attribute if enabled"
+        # This assumes all dataloaders will have same dataset type
+        iteration_strategy_class = registry.get_iteration_strategy_class(config.type)
+        config = config.get("params", {})
+        dataset_type = dataloaders[list(dataloaders.keys())[0]].dataset.dataset_type
+        if dataset_type != "train":
+            logger.info(
+                f"{iteration_strategy_class.__name__} updated to size "
+                + f"proportional for {dataset_type}"
+            )
+            return SizeProportionalIterationStrategy.from_params(
+                dataloaders, *args, **kwargs
+            )
+        else:
+            return iteration_strategy_class(config, dataloaders, *args, **kwargs)
