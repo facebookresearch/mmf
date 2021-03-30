@@ -36,7 +36,8 @@ class TestMultiDatasetLoader(unittest.TestCase):
                     "training": {
                         "dataset_size_proportional_sampling": True,
                         "max_epochs": None,
-                    }
+                    },
+                    "multitasking": {"enabled": False},
                 }
             ),
         )

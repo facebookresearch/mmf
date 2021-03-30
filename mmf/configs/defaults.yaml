@@ -326,3 +326,9 @@ checkpoint:
         counts: false
         # If fp16 scaler should be reset or not
         fp16_scaler: false
+
+
+multitasking:
+    enabled: true
+    type: size_proportional
+    params: {}
