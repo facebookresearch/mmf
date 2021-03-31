@@ -14,6 +14,8 @@ from transformers.tokenization_auto import AutoTokenizer
 class MaskedTokenProcessor(BaseProcessor):
     _CLS_TOKEN = "[CLS]"
     _SEP_TOKEN = "[SEP]"
+    _MASK_TOKEN = "[MASK]"
+    _PAD_TOKEN_ID = 0
 
     def __init__(self, config, *args, **kwargs):
         tokenizer_config = config.tokenizer_config
@@ -52,7 +54,7 @@ class MaskedTokenProcessor(BaseProcessor):
 
                 # 80% randomly change token to mask token
                 if prob < 0.8:
-                    tokens[idx] = "[MASK]"
+                    tokens[idx] = self._MASK_TOKEN
                 # 10% randomly change token to random token
                 elif prob < 0.9:
                     tokens[idx] = self._convert_ids_to_tokens(
@@ -119,7 +121,7 @@ class MaskedTokenProcessor(BaseProcessor):
 
         # Zero-pad up to the sequence length.
         while len(input_ids) < self._max_seq_length:
-            input_ids.append(0)
+            input_ids.append(self._PAD_TOKEN_ID)
             input_mask.append(0)
             segment_ids.append(0)
             lm_label_ids.append(-1)
@@ -192,6 +194,18 @@ class BertTokenizer(MaskedTokenProcessor):
         )
         output["text"] = output["tokens"]
         return output
+
+
+@registry.register_processor("roberta_tokenizer")
+class RoBERTaTokenizer(BertTokenizer):
+    def __init__(self, config, *args, **kwargs):
+        super().__init__(config, *args, **kwargs)
+        # https://huggingface.co/transformers/model_doc/xlmroberta.html
+        # roberta is with different tokenization of above default (bert)
+        self._CLS_TOKEN = "<s>"
+        self._SEP_TOKEN = "</s>"
+        self._MASK_TOKEN = "<mask>"
+        self._PAD_TOKEN_ID = 1  # roberta's pad_token_id == 1
 
 
 @registry.register_processor("multi_sentence_bert_tokenizer")
