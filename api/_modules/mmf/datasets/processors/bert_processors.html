@@ -246,6 +246,8 @@
 <span class="k">class</span> <span class="nc">MaskedTokenProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
     <span class="n">_CLS_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;[CLS]&quot;</span>
     <span class="n">_SEP_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;[SEP]&quot;</span>
+    <span class="n">_MASK_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;[MASK]&quot;</span>
+    <span class="n">_PAD_TOKEN_ID</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">tokenizer_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">tokenizer_config</span>
@@ -284,7 +286,7 @@
 
                 <span class="c1"># 80% randomly change token to mask token</span>
                 <span class="k">if</span> <span class="n">prob</span> <span class="o">&lt;</span> <span class="mf">0.8</span><span class="p">:</span>
-                    <span class="n">tokens</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;[MASK]&quot;</span>
+                    <span class="n">tokens</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MASK_TOKEN</span>
                 <span class="c1"># 10% randomly change token to random token</span>
                 <span class="k">elif</span> <span class="n">prob</span> <span class="o">&lt;</span> <span class="mf">0.9</span><span class="p">:</span>
                     <span class="n">tokens</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_ids_to_tokens</span><span class="p">(</span>
@@ -351,7 +353,7 @@
 
         <span class="c1"># Zero-pad up to the sequence length.</span>
         <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span><span class="p">:</span>
-            <span class="n">input_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">input_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_PAD_TOKEN_ID</span><span class="p">)</span>
             <span class="n">input_mask</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">segment_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">lm_label_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -424,6 +426,18 @@
         <span class="p">)</span>
         <span class="n">output</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;tokens&quot;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="RoBERTaTokenizer"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.RoBERTaTokenizer">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;roberta_tokenizer&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">RoBERTaTokenizer</span><span class="p">(</span><span class="n">BertTokenizer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># https://huggingface.co/transformers/model_doc/xlmroberta.html</span>
+        <span class="c1"># roberta is with different tokenization of above default (bert)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_CLS_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;&lt;s&gt;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_SEP_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;&lt;/s&gt;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_MASK_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;&lt;mask&gt;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_PAD_TOKEN_ID</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># roberta&#39;s pad_token_id == 1</span></div>
 
 
 <div class="viewcode-block" id="MultiSentenceBertTokenizer"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.MultiSentenceBertTokenizer">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;multi_sentence_bert_tokenizer&quot;</span><span class="p">)</span>
