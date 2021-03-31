@@ -39,7 +39,7 @@ class TrainerEvaluationLoopMixin(ABC):
                     model_output = self.model(prepared_batch)
                     report = Report(prepared_batch, model_output)
 
-                    self.update_meter(report, meter)
+                    meter.update_from_report(report)
 
                     # accumulate necessary params for metric calculation
                     if combined_report is None:
@@ -52,8 +52,8 @@ class TrainerEvaluationLoopMixin(ABC):
                         )
                         combined_report.batch_size += report.batch_size
 
-                    # Each node generates a separate copy of predict JSON from the report,
-                    # which will be used to evaluate dataset-level metrics
+                    # Each node generates a separate copy of predict JSON from the
+                    # report, which will be used to evaluate dataset-level metrics
                     # (such as mAP in object detection or CIDEr in image captioning)
                     # Since `reporter.add_to_report` changes report keys (e.g. scores),
                     # do this after `combined_report.accumulate_tensor_fields_and_loss`
@@ -73,7 +73,7 @@ class TrainerEvaluationLoopMixin(ABC):
                 combined_report.prediction_report = reporter.report
 
                 combined_report.metrics = self.metrics(combined_report, combined_report)
-                self.update_meter(combined_report, meter, eval_mode=True)
+                meter.update_from_report(combined_report, should_update_loss=False)
 
             # enable train mode again
             self.model.train()

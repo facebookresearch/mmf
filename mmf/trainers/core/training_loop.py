@@ -6,6 +6,7 @@ from abc import ABC
 from typing import Any, Dict
 
 import torch
+from mmf.common.meter import Meter
 from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.common.sample import to_device
@@ -21,6 +22,7 @@ class TrainerTrainingLoopMixin(ABC):
     current_epoch: int = 0
     current_iteration: int = 0
     num_updates: int = 0
+    meter: Meter = Meter()
 
     def training_loop(self) -> None:
         self.max_updates = self._calculate_max_updates()
@@ -118,7 +120,7 @@ class TrainerTrainingLoopMixin(ABC):
                         combined_report.metrics = self.metrics(
                             combined_report, combined_report
                         )
-                    self.update_meter(combined_report, self.meter)
+                    self.meter.update_from_report(combined_report)
 
                 self.on_update_end(
                     report=combined_report, meter=self.meter, should_log=should_log

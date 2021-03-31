@@ -9,12 +9,12 @@ import sys
 import time
 import warnings
 from bisect import bisect
-from typing import Any, Callable
+from typing import Any, Callable, Dict
 
 import torch
 from mmf.utils.distributed import get_rank, get_world_size, is_xla
 from mmf.utils.file_io import PathManager
-from torch import nn
+from torch import Tensor, nn
 
 
 logger = logging.getLogger(__name__)
@@ -446,3 +446,20 @@ def retry_n(n: int, fn: Callable, *args, log_tries=False, **kwargs) -> Any:
                 raise
 
     return output
+
+
+def scalarize_dict_values(dict_with_tensors: Dict[str, Tensor]):
+    """
+    this method returns a new dict where the values of
+    `dict_with_tensors` would be a scalar
+
+    Returns:
+        Dict: a new dict with scalarized values
+    """
+    dict_with_scalar_tensors = {}
+    for key, val in dict_with_tensors.items():
+        if torch.is_tensor(val):
+            if val.dim() != 0:
+                val = val.mean()
+        dict_with_scalar_tensors[key] = val
+    return dict_with_scalar_tensors

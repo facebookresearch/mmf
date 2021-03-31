@@ -3,6 +3,9 @@
 from collections import defaultdict, deque
 
 import torch
+from mmf.common.registry import registry
+from mmf.utils.distributed import reduce_dict
+from mmf.utils.general import scalarize_dict_values
 
 
 class SmoothedValue:
@@ -55,11 +58,47 @@ class Meter:
         self.meters = defaultdict(SmoothedValue)
         self.delimiter = delimiter
 
-    def update(self, update_dict, batch_size):
-        for k, v in update_dict.items():
-            if isinstance(v, torch.Tensor):
-                if v.dim() != 0:
-                    v = v.mean()
+    def update_from_report(self, report, should_update_loss=True):
+        """
+        this method updates the provided meter with report info.
+        this method by default handles reducing metrics.
+
+        Args:
+            report (Report): report object which content is used to populate
+            the current meter
+
+        Usage::
+
+        >>> meter = Meter()
+        >>> report = Report(prepared_batch, model_output)
+        >>> meter.update_from_report(report)
+        """
+        if hasattr(report, "metrics"):
+            metrics_dict = report.metrics
+            reduced_metrics_dict = reduce_dict(metrics_dict)
+
+        if should_update_loss:
+            loss_dict = report.losses
+            reduced_loss_dict = reduce_dict(loss_dict)
+
+        with torch.no_grad():
+            meter_update_dict = {}
+            if should_update_loss:
+                meter_update_dict = scalarize_dict_values(reduced_loss_dict)
+                total_loss_key = report.dataset_type + "/total_loss"
+                total_loss = sum(meter_update_dict.values())
+                registry.register(total_loss_key, total_loss)
+                meter_update_dict.update({total_loss_key: total_loss})
+
+            if hasattr(report, "metrics"):
+                metrics_dict = scalarize_dict_values(reduced_metrics_dict)
+                meter_update_dict.update(**metrics_dict)
+
+            self._update(meter_update_dict, report.batch_size)
+
+    def _update(self, update_dict, batch_size):
+        scalarized = scalarize_dict_values(update_dict)
+        for k, v in scalarized.items():
             # Skipping .item() call
             # __format__() for tensor has .item
             # Therefore it will implicitly get called when needed
