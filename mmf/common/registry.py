@@ -56,6 +56,7 @@ class Registry:
         "transformer_backend_name_mapping": {},
         "transformer_head_name_mapping": {},
         "test_reporter_mapping": {},
+        "iteration_strategy_name_mapping": {},
         "state": {},
     }
 
@@ -389,6 +390,42 @@ class Registry:
         return wrap
 
     @classmethod
+    def register_iteration_strategy(cls, name):
+        r"""Register an iteration_strategy to registry with key 'name'
+
+        Args:
+            name: Key with which the iteration_strategy will be registered.
+
+        Usage::
+
+            from dataclasses import dataclass
+            from mmf.common.registry import registry
+            from mmf.datasets.iterators import IterationStrategy
+
+
+            @registry.register_iteration_strategy("my_iteration_strategy")
+            class MyStrategy(IterationStrategy):
+                @dataclass
+                class Config:
+                    name: str = "my_strategy"
+                def __init__(self, config, dataloader):
+                    ...
+        """
+
+        def wrap(iteration_strategy_cls):
+            from mmf.datasets.iteration_strategies import IterationStrategy
+
+            assert issubclass(
+                iteration_strategy_cls, IterationStrategy
+            ), "All datamodules must inherit IterationStrategy class"
+            cls.mapping["iteration_strategy_name_mapping"][
+                name
+            ] = iteration_strategy_cls
+            return iteration_strategy_cls
+
+        return wrap
+
+    @classmethod
     def register(cls, name, obj):
         r"""Register an item to registry with key 'name'
 
@@ -450,6 +487,10 @@ class Registry:
     @classmethod
     def get_encoder_class(cls, name):
         return cls.mapping["encoder_name_mapping"].get(name, None)
+
+    @classmethod
+    def get_iteration_strategy_class(cls, name):
+        return cls.mapping["iteration_strategy_name_mapping"].get(name, None)
 
     @classmethod
     def get_transformer_backend_class(cls, name):

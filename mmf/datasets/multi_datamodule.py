@@ -1,15 +1,22 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import logging
-from typing import List, Optional
+import warnings
+from typing import Dict, List, Optional
 
 import pytorch_lightning as pl
 from mmf.common.sample import SampleList
 from mmf.common.test_reporter import TestReporter
+from mmf.datasets.iteration_strategies import IterationStrategy
 from mmf.datasets.multi_dataset_loader import MultiDataLoader
-from mmf.utils.build import build_multiple_datamodules, build_test_reporter
+from mmf.utils.build import (
+    build_iteration_strategy,
+    build_multiple_datamodules,
+    build_test_reporter,
+)
 from mmf.utils.dataset import dataset_list_from_config
 from mmf.utils.general import get_batch_size
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
+from torch.utils.data import DataLoader
 
 
 logger = logging.getLogger(__name__)
@@ -41,6 +48,24 @@ class MultiDataModule(pl.LightningDataModule):
         self.test_loader = self._build_multi_dataloader("test")
         return self.test_loader
 
+    def _build_iteration_strategy(
+        self, config: DictConfig, dataloaders: Dict[str, DataLoader]
+    ) -> IterationStrategy:
+        disabled = OmegaConf.create({"enabled": False})
+
+        if len(self.dataset_list) == 1:
+            logger.info("Multitasking disabled by default for single dataset training")
+            multitasking_config = disabled
+        elif "multitasking" in self.config:
+            multitasking_config = self.config.multitasking
+        else:
+            warnings.warn(
+                "'multitasking' config not defined. Disabling any form of multitasking"
+            )
+            multitasking_config = disabled
+
+        return build_iteration_strategy(multitasking_config, dataloaders)
+
     def _build_multi_dataloader(self, dataset_type: "str" = "train") -> MultiDataLoader:
         loader_args = {}
         for key, datamodule in self.datamodules.items():
@@ -49,7 +74,8 @@ class MultiDataModule(pl.LightningDataModule):
                 loader_args[key].dataset = getattr(
                     datamodule, f"{dataset_type}_dataset"
                 )
-        loader = MultiDataLoader(loader_args)
+        iteration_strategy = self._build_iteration_strategy(self.config, loader_args)
+        loader = MultiDataLoader(loader_args, iteration_strategy)
         return loader
 
     def teardown(self, *args, **kwargs):
@@ -66,12 +92,9 @@ class MultiDataModule(pl.LightningDataModule):
         return build_test_reporter(self.datamodules, test_reporter_config, dataset_type)
 
     def _get_test_reporter_config(self):
-        dataset_name = list(self.config.dataset_config.keys())[0]
-        dataset_config = self.config.dataset_config.get(dataset_name)
-        if hasattr(dataset_config, "get"):
-            return dataset_config.get("test_reporter_config", None)
-        else:
-            return None
+        from mmf.utils.configuration import get_global_config
+
+        return get_global_config("evaluation.reporter")
 
     def prepare_batch(self, batch, *args, **kwargs):
         batch = SampleList(batch)

@@ -171,6 +171,10 @@ evaluation:
     predict: false
     # Prediction file format (csv|json), default is json
     predict_file_format: json
+    # Test reporter params. Defaults to type: file
+    reporter:
+        type: file
+        params: {}
 
 # Configuration for models, default configuration files for various models
 # included in MMF can be found under configs directory in root folder
@@ -326,3 +330,9 @@ checkpoint:
         counts: false
         # If fp16 scaler should be reset or not
         fp16_scaler: false
+
+
+multitasking:
+    enabled: true
+    type: size_proportional
+    params: {}
