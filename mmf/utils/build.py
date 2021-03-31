@@ -16,7 +16,7 @@ from mmf.datasets.iteration_strategies import (
     SizeProportionalIterationStrategy,
 )
 from mmf.datasets.processors.processors import Processor
-from mmf.utils.configuration import Configuration
+from mmf.utils.configuration import Configuration, get_global_config
 from mmf.utils.distributed import is_dist_initialized, is_master, is_xla, synchronize
 from mmf.utils.general import get_optimizer_parameters
 from omegaconf import DictConfig, OmegaConf
@@ -229,10 +229,15 @@ def build_dataloader_and_sampler(
     """
     from mmf.common.batch_collator import BatchCollator
 
+    training_config = get_global_config("training")
     # Support params coming in from dataloader params
     other_args = {
-        "num_workers": datamodule_config.get("num_workers", 4),
-        "pin_memory": datamodule_config.get("pin_memory", False),
+        "num_workers": datamodule_config.get(
+            "num_workers", training_config.get("num_workers", 4)
+        ),
+        "pin_memory": datamodule_config.get(
+            "pin_memory", training_config.get("pin_memory", False)
+        ),
         "shuffle": datamodule_config.get("shuffle", None),
         "batch_size": datamodule_config.get("batch_size", None),
     }
