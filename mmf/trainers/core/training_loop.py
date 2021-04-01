@@ -89,6 +89,7 @@ class TrainerTrainingLoopMixin(ABC):
                 self.profile("Batch load time")
 
                 report = self.run_training_batch(batch, num_batches_for_this_update)
+                report = report.detach()
 
                 # accumulate necessary params (including loss) for metric calculation
                 if combined_report is None:

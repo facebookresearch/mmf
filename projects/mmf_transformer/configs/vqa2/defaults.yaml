@@ -1,3 +1,6 @@
+includes:
+- ../../../../mmf/configs/datasets/vqa2/with_raw_images.yaml
+
 model_config:
   mmf_transformer:
     training_head_type: classification
@@ -7,6 +10,7 @@ model_config:
 
 dataset_config:
   vqa2:
+    use_images: true
     return_features_info: true
     processors:
       text_processor:
@@ -33,14 +37,14 @@ scheduler:
 
 evaluation:
   metrics:
-  - vqa_accuracy
+  - accuracy
 
 training:
   batch_size: 480
   lr_scheduler: true
   max_updates: 11000
   early_stop:
-    criteria: vqa2/vqa_accuracy
+    criteria: vqa2/accuracy
     minimize: false
 
 checkpoint:

@@ -84,7 +84,8 @@ class TrainerTrainingLoopMock(MMFTrainer):
                         "batch_size_per_device": batch_size_per_device,
                         "tensorboard": tensorboard,
                         "run_type": "train",
-                    }
+                    },
+                    "evaluation": {"use_cpu": False},
                 }
             )
             self.training_config = self.config.training

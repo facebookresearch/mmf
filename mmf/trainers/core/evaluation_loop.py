@@ -21,6 +21,7 @@ class TrainerEvaluationLoopMixin(ABC):
     ) -> Tuple[Dict[str, Any], Type[Meter]]:
         meter = Meter()
         reporter = self.dataset_loader.get_test_reporter(dataset_type)
+        use_cpu = self.config.evaluation.get("use_cpu", False)
 
         with torch.no_grad():
             self.model.eval()
@@ -38,19 +39,27 @@ class TrainerEvaluationLoopMixin(ABC):
                     prepared_batch = to_device(prepared_batch, self.device)
                     model_output = self.model(prepared_batch)
                     report = Report(prepared_batch, model_output)
+                    report = report.detach()
 
                     meter.update_from_report(report)
+
+                    moved_report = report
+                    # Move to CPU for metrics calculation later if needed
+                    # Explicitly use `non_blocking=False` as this can cause
+                    # race conditions in next accumulate
+                    if use_cpu:
+                        moved_report = report.copy().to("cpu", non_blocking=False)
 
                     # accumulate necessary params for metric calculation
                     if combined_report is None:
                         # make a copy of report since `reporter.add_to_report` will
                         # change some of the report keys later
-                        combined_report = Report(report)
+                        combined_report = moved_report.copy()
                     else:
                         combined_report.accumulate_tensor_fields_and_loss(
-                            report, self.metrics.required_params
+                            moved_report, self.metrics.required_params
                         )
-                        combined_report.batch_size += report.batch_size
+                        combined_report.batch_size += moved_report.batch_size
 
                     # Each node generates a separate copy of predict JSON from the
                     # report, which will be used to evaluate dataset-level metrics
@@ -58,6 +67,8 @@ class TrainerEvaluationLoopMixin(ABC):
                     # Since `reporter.add_to_report` changes report keys (e.g. scores),
                     # do this after `combined_report.accumulate_tensor_fields_and_loss`
                     if "__prediction_report__" in self.metrics.required_params:
+                        # Still need to use original report here on GPU/TPU since
+                        # it will be gathered
                         reporter.add_to_report(
                             report, self.model, execute_on_master_only=False
                         )
@@ -73,6 +84,17 @@ class TrainerEvaluationLoopMixin(ABC):
                 combined_report.prediction_report = reporter.report
 
                 combined_report.metrics = self.metrics(combined_report, combined_report)
+
+                # Since update_meter will reduce the metrics over GPUs, we need to
+                # move them back to GPU but we will only move metrics and losses
+                # which are needed by update_meter to avoid OOM
+                # Furthermore, do it in a non_blocking way to avoid any issues
+                # in device to host or host to device transfer
+                if use_cpu:
+                    combined_report = combined_report.to(
+                        self.device, fields=["metrics", "losses"], non_blocking=False
+                    )
+
                 meter.update_from_report(combined_report, should_update_loss=False)
 
             # enable train mode again

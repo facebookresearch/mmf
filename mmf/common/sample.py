@@ -366,6 +366,14 @@ class SampleList(OrderedDict):
 
         return self
 
+    def detach(self):
+        fields = self.keys()
+
+        for field in fields:
+            self[field] = detach_tensor(self[field])
+
+        return self
+
     def to_dict(self) -> Dict[str, Any]:
         """Converts a sample list to dict, this is useful for TorchScript and for
         other internal API unification efforts.
@@ -443,3 +451,18 @@ def to_device(
     if sample_list.get_device() != device:
         sample_list = sample_list.to(device)
     return sample_list
+
+
+def detach_tensor(tensor: Any) -> Any:
+    """Detaches any element passed which has a `.detach` function defined.
+    Currently, in MMF can be SampleList, Report or a tensor.
+
+    Args:
+        tensor (Any): Item to be detached
+
+    Returns:
+        Any: Detached element
+    """
+    if hasattr(tensor, "detach"):
+        tensor = tensor.detach()
+    return tensor

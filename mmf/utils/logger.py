@@ -16,7 +16,6 @@ from mmf.utils.timer import Timer
 from termcolor import colored
 
 
-@functools.lru_cache()
 def setup_output_folder(folder_only: bool = False):
     """Sets up and returns the output file where the logs will be placed
     based on the configuration passed. Usually "save_dir/logs/log_<timestamp>.txt".
@@ -52,8 +51,6 @@ def setup_output_folder(folder_only: bool = False):
     return log_filename
 
 
-# so that calling setup_logger multiple times won't add many handlers
-@functools.lru_cache()
 def setup_logger(
     output: str = None,
     color: bool = True,

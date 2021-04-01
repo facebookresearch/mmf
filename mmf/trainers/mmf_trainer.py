@@ -56,6 +56,9 @@ class MMFTrainer(
         self.logistics_callback = LogisticsCallback(self.config, self)
         self.lr_scheduler_callback = LRSchedulerCallback(self.config, self)
 
+        # Reset callbacks as they are class variables and would be shared between
+        # multiple interactive shell calls to `run`
+        self.callbacks = []
         # Add callbacks for execution during events
         self.callbacks.append(self.lr_scheduler_callback)
         # checkpoint_callback needs to be called after lr_scheduler_callback so that

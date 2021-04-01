@@ -23,6 +23,7 @@ def get_trainer_config():
                 "lr_scheduler": False,
                 "batch_size": 1,
             },
+            "evaluation": {"use_cpu": False},
             "optimizer": {"type": "adam_w", "params": {"lr": 5e-5, "eps": 1e-8}},
             "scheduler": {
                 "type": "warmup_linear",
