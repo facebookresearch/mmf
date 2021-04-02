@@ -144,9 +144,7 @@ class FRCNNPreprocess(BaseProcessor):
                 elif not isinstance(images[i], torch.Tensor):
                     images.insert(
                         i,
-                        torch.as_tensor(
-                            img_tensorize(images.pop(i), input_format=self.input_format)
-                        )
+                        torch.as_tensor(img_tensorize(images.pop(i)))
                         .to(self.device)
                         .float(),
                     )
@@ -179,7 +177,7 @@ class FRCNNPreprocess(BaseProcessor):
 def img_tensorize(im: str):
     assert isinstance(im, str)
     if os.path.isfile(im):
-        img = np.array(Image.open(im))
+        img = np.array(Image.open(im).convert("RGB"))
     else:
         img = get_image_from_url(im)
         assert img is not None, f"could not connect to: {im}"
