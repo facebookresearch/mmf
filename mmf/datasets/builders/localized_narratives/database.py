@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import json
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Optional
 
 from mmf.datasets.databases.annotation_database import AnnotationDatabase
 
@@ -22,9 +22,9 @@ class LocalizedNarrative(NamedTuple):
     image_id: str
     annotator_id: int
     caption: str
-    timed_caption: List[TimedUtterance]
-    traces: List[List[TimedPoint]]
-    voice_recording: str
+    timed_caption: Optional[List[TimedUtterance]] = None
+    traces: Optional[List[List[TimedPoint]]] = None
+    voice_recording: Optional[str] = None
 
     def __repr__(self):
         truncated_caption = (

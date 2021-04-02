@@ -543,6 +543,40 @@ localized_narratives:
         - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_test_localized_narratives.jsonl
           file_name: open_images_test_localized_narratives.jsonl
           compressed: false
+  only_captions:
+    version: 1.0_2021_04_01
+    resources:
+      annotations:
+        - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_train_v6_captions.jsonl
+          file_name: open_images_train_v6_captions.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_validation_captions.jsonl
+          file_name: open_images_validation_captions.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/open_images_test_captions.jsonl
+          file_name: open_images_test_captions.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/coco_train_captions.jsonl
+          file_name: coco_train_captions.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/coco_val_captions.jsonl
+          file_name: coco_val_captions.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/flickr30k_train_captions.jsonl
+          file_name: flickr30k_train_captions.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/flickr30k_val_captions.jsonl
+          file_name: flickr30k_val_captions.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/flickr30k_test_captions.jsonl
+          file_name: flickr30k_test_captions.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/ade20k_train_captions.jsonl
+          file_name: ade20k_train_captions.jsonl
+          compressed: false
+        - url: https://storage.googleapis.com/localized-narratives/annotations/ade20k_validation_captions.jsonl
+          file_name: ade20k_validation_captions.jsonl
+          compressed: false
 
 flickr_coco_captions:
   defaults:
