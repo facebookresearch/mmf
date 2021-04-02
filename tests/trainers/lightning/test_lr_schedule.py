@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import unittest
+from unittest.mock import MagicMock
 
 import torch
 from tests.trainers.lightning.test_utils import (
@@ -28,6 +29,7 @@ class TestLightningTrainerLRSchedule(unittest.TestCase):
         mmf_trainer = get_mmf_trainer(
             max_updates=8, max_epochs=None, scheduler_config=trainer_config.scheduler
         )
+        mmf_trainer.evaluation_loop = MagicMock(return_value=(None, None))
         mmf_trainer.training_loop()
 
         trainer = get_lightning_trainer(max_steps=8, lr_scheduler=True)
