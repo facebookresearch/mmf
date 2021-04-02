@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import gc
 import os
 import unittest
 
@@ -34,6 +35,13 @@ class TestModelCNNLSTM(unittest.TestCase):
         configuration.freeze()
         self.config = configuration.config
         registry.register("config", self.config)
+
+    def tearDown(self):
+        registry.unregister("clevr_text_vocab_size")
+        registry.unregister("clevr_num_final_outputs")
+        registry.unregister("config")
+        del self.config
+        gc.collect()
 
     def test_forward(self):
         model_config = self.config.model_config.cnn_lstm

@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import gc
 import unittest
 
 import tests.test_utils as test_utils
@@ -8,7 +9,7 @@ from mmf.common.sample import SampleList
 from mmf.modules.hf_layers import replace_with_jit
 from mmf.utils.build import build_model
 from mmf.utils.configuration import Configuration
-from mmf.utils.env import setup_imports
+from mmf.utils.env import setup_imports, teardown_imports
 from mmf.utils.general import get_current_device
 
 
@@ -29,6 +30,11 @@ class TestVisualBertTorchscript(unittest.TestCase):
         model_config["num_labels"] = 2
         model_config.model = model_name
         self.finetune_model = build_model(model_config)
+
+    def tearDown(self):
+        teardown_imports()
+        del self.finetune_model
+        gc.collect()
 
     def test_load_save_finetune_model(self):
         self.assertTrue(test_utils.verify_torchscript_models(self.finetune_model))
@@ -54,6 +60,11 @@ class TestVisualBertPretraining(unittest.TestCase):
         model_config = config.model_config[model_name]
         model_config.model = model_name
         self.pretrain_model = build_model(model_config)
+
+    def tearDown(self):
+        teardown_imports()
+        del self.pretrain_model
+        gc.collect()
 
     def test_pretrained_model(self):
         sample_list = SampleList()
