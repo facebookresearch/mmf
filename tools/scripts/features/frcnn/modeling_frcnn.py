@@ -32,12 +32,7 @@ from torch.nn.modules.batchnorm import BatchNorm2d
 from torchvision.ops import RoIPool
 from torchvision.ops.boxes import batched_nms, nms
 
-from tools.scripts.features.frcnn.frcnn_utils import (
-    WEIGHTS_NAME,
-    Config,
-    cached_path,
-    load_checkpoint,
-)
+from tools.scripts.features.frcnn.frcnn_utils import WEIGHTS_NAME, Config, cached_path, hf_bucket_url, is_remote_url, load_checkpoint
 
 
 # other:
@@ -1793,6 +1788,7 @@ class GeneralizedRCNN(nn.Module):
         resume_download = kwargs.pop("resume_download", False)
         proxies = kwargs.pop("proxies", None)
         local_files_only = kwargs.pop("local_files_only", False)
+        use_cdn = kwargs.pop("use_cdn", True)
 
         # Load config if we don't provide a configuration
         if not isinstance(config, Config):
@@ -1825,7 +1821,7 @@ class GeneralizedRCNN(nn.Module):
                             WEIGHTS_NAME, pretrained_model_name_or_path
                         )
                     )
-            elif os.path.isfile(pretrained_model_name_or_path):
+            elif os.path.isfile(pretrained_model_name_or_path) or is_remote_url(pretrained_model_name_or_path):
                 archive_file = pretrained_model_name_or_path
             elif os.path.isfile(pretrained_model_name_or_path + ".index"):
                 assert (
@@ -1835,6 +1831,12 @@ class GeneralizedRCNN(nn.Module):
                     pretrained_model_name_or_path + ".index"
                 )
                 archive_file = pretrained_model_name_or_path + ".index"
+            else:
+                archive_file = hf_bucket_url(
+                    pretrained_model_name_or_path,
+                    filename=WEIGHTS_NAME,
+                    use_cdn=use_cdn,
+                )
 
             try:
                 # Load from URL or cache if already cached

@@ -107,7 +107,7 @@ DEPENDENCY_LINKS = []
 REQUIREMENTS = (fetch_requirements(),)
 # Need to exclude folders in tests as well so as they don't create an extra package
 # If something from tools is regularly used consider converting it into a cli command
-EXCLUDES = ("data", "docs", "tests", "tests.*", "tools", "tools.*")
+EXCLUDES = ("data", "docs", "tests", "tests.*")
 CMD_CLASS = {"build_ext": build_ext}
 EXT_MODULES = [
     Extension(

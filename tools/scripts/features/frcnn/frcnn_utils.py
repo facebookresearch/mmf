@@ -20,7 +20,8 @@ import json
 import os
 import pickle as pkl
 import shutil
-import tarfile
+import sys
+import tempfile
 from collections import OrderedDict
 from pathlib import Path
 from urllib.parse import urlparse
@@ -31,6 +32,9 @@ import requests
 from filelock import FileLock
 from mmf.utils.configuration import get_mmf_cache_dir
 from omegaconf import OmegaConf
+from hashlib import sha256
+from tqdm.auto import tqdm
+from functools import partial
 
 
 mmf_cache_home = get_mmf_cache_dir()
@@ -45,7 +49,8 @@ except ImportError:
 
 
 default_cache_path = os.path.join(mmf_cache_home, "transformers")
-
+CLOUDFRONT_DISTRIB_PREFIX = "https://cdn.huggingface.co"
+S3_BUCKET_PREFIX = "https://s3.amazonaws.com/models.huggingface.co/bert"
 PATH = "/".join(str(Path(__file__).resolve()).split("/")[:-1])
 CONFIG = os.path.join(PATH, "config.yaml")
 ATTRIBUTES = os.path.join(PATH, "attributes.txt")
@@ -174,8 +179,11 @@ class Config:
 
         if os.path.isdir(pretrained_model_name_or_path):
             config_file = os.path.join(pretrained_model_name_or_path, CONFIG_NAME)
-        else:
+        elif os.path.isfile(pretrained_model_name_or_path) or is_remote_url(pretrained_model_name_or_path):
             config_file = pretrained_model_name_or_path
+        else:
+            config_file = hf_bucket_url(
+                pretrained_model_name_or_path, filename=CONFIG_NAME, use_cdn=False)
 
         try:
             # Load from URL or cache if already cached
@@ -222,6 +230,189 @@ def compare(in_tensor):
     # Hugging face functions below
 
 
+def is_remote_url(url_or_filename):
+    parsed = urlparse(url_or_filename)
+    return parsed.scheme in ("http", "https")
+    
+
+def hf_bucket_url(model_id: str, filename: str, use_cdn=True) -> str:
+    endpoint = CLOUDFRONT_DISTRIB_PREFIX if use_cdn else S3_BUCKET_PREFIX
+    legacy_format = "/" not in model_id
+    if legacy_format:
+        return f"{endpoint}/{model_id}-{filename}"
+    else:
+        return f"{endpoint}/{model_id}/{filename}"
+
+
+def http_get(
+    url,
+    temp_file,
+    proxies=None,
+    resume_size=0,
+    user_agent=None,
+):
+    ua = "python/{}".format(sys.version.split()[0])
+    if _torch_available:
+        ua += "; torch/{}".format(torch.__version__)
+    if isinstance(user_agent, dict):
+        ua += "; " + "; ".join("{}/{}".format(k, v) for k, v in user_agent.items())
+    elif isinstance(user_agent, str):
+        ua += "; " + user_agent
+    headers = {"user-agent": ua}
+    if resume_size > 0:
+        headers["Range"] = "bytes=%d-" % (resume_size,)
+    response = requests.get(url, stream=True, proxies=proxies, headers=headers)
+    if response.status_code == 416:  # Range not satisfiable
+        return
+    content_length = response.headers.get("Content-Length")
+    total = resume_size + int(content_length) if content_length is not None else None
+    progress = tqdm(
+        unit="B",
+        unit_scale=True,
+        total=total,
+        initial=resume_size,
+        desc="Downloading",
+    )
+    for chunk in response.iter_content(chunk_size=1024):
+        if chunk:  # filter out keep-alive new chunks
+            progress.update(len(chunk))
+            temp_file.write(chunk)
+    progress.close()
+    
+
+def get_from_cache(
+    url,
+    cache_dir=None,
+    force_download=False,
+    proxies=None,
+    etag_timeout=10,
+    resume_download=False,
+    user_agent=None,
+    local_files_only=False,
+):
+
+    if cache_dir is None:
+        cache_dir = TRANSFORMERS_CACHE
+    if isinstance(cache_dir, Path):
+        cache_dir = str(cache_dir)
+
+    os.makedirs(cache_dir, exist_ok=True)
+
+    etag = None
+    if not local_files_only:
+        try:
+            response = requests.head(url, allow_redirects=True,
+                                     proxies=proxies, timeout=etag_timeout)
+            if response.status_code == 200:
+                etag = response.headers.get("ETag")
+        except (EnvironmentError, requests.exceptions.Timeout):
+            # etag is already None
+            pass
+
+    filename = url_to_filename(url, etag)
+
+    # get cache path to put the file
+    cache_path = os.path.join(cache_dir, filename)
+
+    # etag is None = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
+    # try to get the last downloaded one
+    if etag is None:
+        if os.path.exists(cache_path):
+            return cache_path
+        else:
+            matching_files = [
+                file
+                for file in fnmatch.filter(os.listdir(cache_dir), filename + ".*")
+                if not file.endswith(".json") and not file.endswith(".lock")
+            ]
+            if len(matching_files) > 0:
+                return os.path.join(cache_dir, matching_files[-1])
+            else:
+                # If files cannot be found and local_files_only=True,
+                # the models might've been found if local_files_only=False
+                # Notify the user about that
+                if local_files_only:
+                    raise ValueError(
+                        "Cannot find the requested files in the cached path and outgoing traffic has been"
+                        " disabled. To enable model look-ups and downloads online, set 'local_files_only'"
+                        " to False."
+                    )
+                return None
+
+    # From now on, etag is not None.
+    if os.path.exists(cache_path) and not force_download:
+        return cache_path
+
+    # Prevent parallel downloads of the same file with a lock.
+    lock_path = cache_path + ".lock"
+    with FileLock(lock_path):
+
+        # If the download just completed while the lock was activated.
+        if os.path.exists(cache_path) and not force_download:
+            # Even if returning early like here, the lock will be released.
+            return cache_path
+
+        if resume_download:
+            incomplete_path = cache_path + ".incomplete"
+
+            @contextmanager
+            def _resumable_file_manager():
+                with open(incomplete_path, "a+b") as f:
+                    yield f
+
+            temp_file_manager = _resumable_file_manager
+            if os.path.exists(incomplete_path):
+                resume_size = os.stat(incomplete_path).st_size
+            else:
+                resume_size = 0
+        else:
+            temp_file_manager = partial(
+                tempfile.NamedTemporaryFile, dir=cache_dir, delete=False)
+            resume_size = 0
+
+        # Download to temporary file, then copy to cache dir once finished.
+        # Otherwise you get corrupt cache entries if the download gets interrupted.
+        with temp_file_manager() as temp_file:
+            print(
+                "%s not found in cache or force_download set to True, downloading to %s",
+                url,
+                temp_file.name,
+            )
+
+            http_get(
+                url,
+                temp_file,
+                proxies=proxies,
+                resume_size=resume_size,
+                user_agent=user_agent,
+            )
+
+        os.replace(temp_file.name, cache_path)
+
+        meta = {"url": url, "etag": etag}
+        meta_path = cache_path + ".json"
+        with open(meta_path, "w") as meta_file:
+            json.dump(meta, meta_file)
+
+    return cache_path
+
+
+def url_to_filename(url, etag=None):
+
+    url_bytes = url.encode("utf-8")
+    url_hash = sha256(url_bytes)
+    filename = url_hash.hexdigest()
+
+    if etag:
+        etag_bytes = etag.encode("utf-8")
+        etag_hash = sha256(etag_bytes)
+        filename += "." + etag_hash.hexdigest()
+
+    if url.endswith(".h5"):
+        filename += ".h5"
+
+    return filename
+
 # TODO use mmf's download functionality
 def cached_path(
     url_or_filename,
@@ -240,8 +431,20 @@ def cached_path(
         url_or_filename = str(url_or_filename)
     if isinstance(cache_dir, Path):
         cache_dir = str(cache_dir)
-
-    if os.path.exists(url_or_filename):
+        
+    if is_remote_url(url_or_filename):
+        # URL, so get it from the cache (downloading if necessary)
+        output_path = get_from_cache(
+            url_or_filename,
+            cache_dir=cache_dir,
+            force_download=force_download,
+            proxies=proxies,
+            resume_download=resume_download,
+            user_agent=user_agent,
+            local_files_only=local_files_only,
+        )
+        
+    elif os.path.exists(url_or_filename):
         # File, and it exists.
         output_path = url_or_filename
     elif urlparse(url_or_filename).scheme == "":

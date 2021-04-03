@@ -11,6 +11,7 @@ import argparse
 import copy
 import logging
 import os
+import typing
 
 import numpy as np
 import torch
@@ -19,14 +20,20 @@ from tools.scripts.features.extraction_utils import chunks, get_image_files
 from tools.scripts.features.frcnn.frcnn_utils import Config
 from tools.scripts.features.frcnn.modeling_frcnn import GeneralizedRCNN
 from tools.scripts.features.frcnn.processing_image import Preprocess
-
+from PIL import Image
 
 class FeatureExtractor:
 
     MODEL_URL = {"LXMERT": "unc-nlp/frcnn-vg-finetuned"}
-
-    def __init__(self):
-        self.args = self.get_parser().parse_args()
+    # Pass in the arguments like ["--config_file=xyz.yaml", "--model_name=LXMERT"]
+    def __init__(self, args: typing.Optional[typing.List[str]] = None):
+        if args is None:
+            self.args = self.get_parser().parse_args()
+        else:
+            args_formatted = []
+            for arg in args:
+                args_formatted.extend(arg.split("="))
+            self.args = self.get_parser().parse_args(args=args_formatted)
         self.frcnn, self.frcnn_cfg = self._build_detection_model()
 
     def get_parser(self):
@@ -129,7 +136,6 @@ class FeatureExtractor:
                 self.MODEL_URL.get(self.args.model_name, self.args.model_name),
                 config=frcnn_cfg,
             )
-
         return frcnn, frcnn_cfg
 
     def get_frcnn_features(self, image_paths):
@@ -154,6 +160,8 @@ class FeatureExtractor:
         full_feature_base_name = file_base_name + "_full.npy"
         feat_list_base_name = file_base_name + ".npy"
         info_list_base_name = file_base_name + "_info.npy"
+        # before saving, ensure the output dir is created
+        os.makedirs(self.args.output_folder, exist_ok=True)
         if self.args.visualize:
             np.save(
                 os.path.join(self.args.output_folder, full_feature_base_name),
@@ -258,16 +266,19 @@ class FeatureExtractor:
 
         return single_features, feat_list, info_list
 
-    def extract_features(self):
-        image_dir = self.args.image_dir
-
-        if os.path.isfile(image_dir):
+    def extract_features(self, image_dir=None, save_single=True):
+        image_dir = image_dir if image_dir else self.args.image_dir
+        if isinstance(image_dir, Image.Image) or os.path.isfile(image_dir):
             features = self.get_frcnn_features([image_dir])
-            self._save_feature(image_dir, features[0])
+            full_features, feat_list, info_list = self._process_features(features, 0)
+            if save_single:
+                self._save_feature(image_dir, full_features, feat_list, info_list)
+            else:
+                return features, full_features, feat_list, info_list
         else:
 
             files = get_image_files(
-                self.args.image_dir,
+                image_dir,
                 exclude_list=self.args.exclude_list,
                 partition=self.args.partition,
                 max_partition=self.args.max_partition,

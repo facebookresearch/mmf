@@ -208,8 +208,6 @@ def build_multiple_datamodules(
             dataset_config = OmegaConf.create()
         datamodule_instance.prepare_data(dataset_config)
         datamodule_instance.setup()
-        if hasattr(datamodule_instance, "update_registry_for_model"):
-            datamodule_instance.update_registry_for_model(dataset_config)
         datamodules[dataset] = datamodule_instance
     return datamodules
 

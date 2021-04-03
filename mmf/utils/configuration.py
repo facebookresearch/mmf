@@ -268,7 +268,7 @@ class Configuration:
             other_configs = OmegaConf.merge(
                 model_config, user_config, args_overrides
             )
-
+            
 
         return other_configs
 
