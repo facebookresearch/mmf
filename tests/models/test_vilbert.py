@@ -7,7 +7,7 @@ import tests.test_utils as test_utils
 import torch
 from mmf.utils.build import build_model
 from mmf.utils.configuration import Configuration
-from mmf.utils.env import setup_imports
+from mmf.utils.env import setup_imports, teardown_imports
 
 
 BERT_VOCAB_SIZE = 30255
@@ -36,6 +36,7 @@ class TestViLBertTorchscript(unittest.TestCase):
         self.model_config = model_config
 
     def tearDown(self):
+        teardown_imports()
         del self.model_config
         gc.collect()
 

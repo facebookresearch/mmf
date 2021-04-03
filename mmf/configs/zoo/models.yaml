@@ -490,6 +490,23 @@ butd:
 
 unit:
   defaults: ${unit.all_8_datasets.shared_dec_with_coco_init}
+  coco:
+    single_task:
+      # Model from project : projects/unit
+      # - val/detection_coco/detection_mean_ap: 0.4054
+      version: 1.0_2021_03_25
+      resources:
+      - url: mmf://models/unit_models/unit.coco.single_task.tar.gz
+        file_name: unit.coco.single_task.tar.gz
+        hashcode: e425909ce0ff10921a88175e98e2616d556a268753183beeeba1f63d5f56128c
+    single_task_without_task_embedding:
+      # Model from project : projects/unit
+      # - val/detection_coco/detection_mean_ap: 0.4015
+      version: 1.0_2021_03_25
+      resources:
+      - url: mmf://models/unit_models/unit.coco.single_task_without_task_embedding.tar.gz
+        file_name: unit.coco.single_task_without_task_embedding.tar.gz
+        hashcode: 05c693d92ffbf17c36964a69f560c77a8b7fea6c30f1bd67d2dcc28c89ea59e9
   all_8_datasets:
     shared_dec_with_coco_init:
       # Model from project : projects/unit
@@ -503,6 +520,21 @@ unit:
       # - val/glue_qqp/accuracy: 0.9065
       version: 1.0_2021_02_25
       resources:
-      - url: mmf://models/unit.all_8_datasets.shared_dec_with_coco_init/unit.all_8_datasets.shared_dec_with_coco_init.tar.gz
+      - url: mmf://models/unit_models/unit.all_8_datasets.shared_dec_with_coco_init.tar.gz
         file_name: unit.all_8_datasets.shared_dec_with_coco_init.tar.gz
         hashcode: b85796246601c477d354d6ad315b55a200b4c7ba6bf7e263ef82bca74bdcab1c
+    shared_dec_with_coco_init_without_task_embedding:
+      # Model from project : projects/unit
+      # - val/detection_coco/detection_mean_ap: 0.3847,
+      # - val/detection_visual_genome/detection_mean_ap: 0.0331,
+      # - val/vqa2/vqa_accuracy: 0.6825,
+      # - val/visual_entailment/accuracy: 0.7407,
+      # - val/glue_qnli/accuracy: 0.8815,
+      # - val/glue_sst2/accuracy: 0.8850,
+      # - val/glue_mnli_mismatched/accuracy: 0.8061,
+      # - val/glue_qqp/accuracy: 0.9061
+      version: 1.0_2021_03_25
+      resources:
+      - url: mmf://models/unit_models/unit.all_8_datasets.shared_dec_with_coco_init_without_task_embedding.tar.gz
+        file_name: unit.all_8_datasets.shared_dec_with_coco_init_without_task_embedding.tar.gz
+        hashcode: 4a9e0dbd4b73152c7b514cd1695f28068157e1c31e4c49ad0e9edec27a987c59

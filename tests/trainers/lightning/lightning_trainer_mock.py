@@ -37,7 +37,7 @@ class LightningTrainerMock(LightningTrainer):
             num_workers=1,
             drop_last=False,
         )
-        self.data_module.train_loader.current_dataset = MagicMock(return_value=dataset)
+        self.data_module.train_loader.current_dataset = MagicMock(spec=dataset)
 
         # settings
         trainer_config = self.config.trainer.params

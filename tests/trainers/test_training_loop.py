@@ -35,7 +35,7 @@ class TrainerTrainingLoopMock(MMFTrainer):
                 {
                     "training": {
                         "detect_anomaly": False,
-                        "evaluation_interval": 10000,
+                        "evaluation_interval": 1000,
                         "update_frequency": update_frequency,
                         "fp16": fp16,
                         "batch_size": batch_size,
@@ -116,12 +116,11 @@ class TrainerTrainingLoopMock(MMFTrainer):
         self.meter = Meter()
         self.after_training_loop = MagicMock(return_value=None)
         self.on_validation_start = MagicMock(return_value=None)
-        self.evaluation_loop = MagicMock(return_value=(None, None))
         self.scaler = torch.cuda.amp.GradScaler(enabled=False)
         self.val_loader = MagicMock(return_value=None)
         self.early_stop_callback = MagicMock(return_value=None)
         self.on_validation_end = MagicMock(return_value=None)
-        self.metrics = MagicMock(return_value=None)
+        self.metrics = MagicMock(return_value={})
 
 
 class TestTrainingLoop(unittest.TestCase):

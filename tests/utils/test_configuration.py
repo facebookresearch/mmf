@@ -1,9 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import gc
 import os
 import unittest
 
 from mmf.utils.configuration import Configuration, get_zoo_config
-from mmf.utils.env import setup_imports
+from mmf.utils.env import setup_imports, teardown_imports
 from mmf.utils.general import get_mmf_root
 from tests.test_utils import dummy_args
 
@@ -11,6 +12,10 @@ from tests.test_utils import dummy_args
 class TestUtilsConfiguration(unittest.TestCase):
     def setUp(self):
         setup_imports()
+
+    def tearDown(self):
+        teardown_imports()
+        gc.collect()
 
     def test_get_zoo_config(self):
         # Test direct key

@@ -1,0 +1,19 @@
+includes:
+- configs/datasets/localized_narratives/masked.yaml
+- configs/models/mmf_transformer/pretrain.yaml
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 1000
+    num_training_steps: 11000
+training:
+  batch_size: 2
+  lr_scheduler: true
+  # Don't forget to update schedule_attributes if you update this
+  max_updates: 11000

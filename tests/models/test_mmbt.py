@@ -16,7 +16,7 @@ from mmf.modules.encoders import (
 )
 from mmf.utils.build import build_model
 from mmf.utils.configuration import Configuration
-from mmf.utils.env import setup_imports
+from mmf.utils.env import setup_imports, teardown_imports
 from omegaconf import OmegaConf
 
 
@@ -35,6 +35,7 @@ class TestMMBTTorchscript(unittest.TestCase):
         self.model_config = model_config
 
     def tearDown(self):
+        teardown_imports()
         del self.model_config
         gc.collect()
 
@@ -101,6 +102,9 @@ class TestMMBTTorchscript(unittest.TestCase):
 
 
 class TestMMBTConfig(unittest.TestCase):
+    def tearDown(self):
+        gc.collect()
+
     def test_mmbt_from_params(self):
         # default init
         mmbt = MMBT.from_params(

@@ -18,7 +18,7 @@ from mmf.modules.encoders import (
 )
 from mmf.utils.build import build_model
 from mmf.utils.configuration import Configuration
-from mmf.utils.env import setup_imports
+from mmf.utils.env import setup_imports, teardown_imports
 from omegaconf import OmegaConf
 
 
@@ -38,7 +38,9 @@ class TestMMFTransformerTorchscript(unittest.TestCase):
         self.config.model_config[self.model_name].model = self.model_name
 
     def tearDown(self):
+        teardown_imports()
         del self.config
+        del self.model_name
         gc.collect()
 
     def test_load_save_finetune_model(self):
@@ -81,6 +83,9 @@ class TestMMFTransformerTorchscript(unittest.TestCase):
 class TestMMFTransformerConfig(unittest.TestCase):
     def setUp(self):
         setup_imports()
+
+    def tearDown(self):
+        teardown_imports()
 
     def test_mmft_from_params(self):
         modalities_config = [
@@ -189,6 +194,12 @@ class TestMMFTransformer(unittest.TestCase):
             segment_id=1,
             encoder=TextEncoderFactory.Config(type=TextEncoderTypes.identity),
         )
+
+    def tearDown(self):
+        teardown_imports()
+        del self._image_modality_config
+        del self._text_modality_config
+        gc.collect()
 
     def test_one_dim_feature_preprocessing(self):
         modalities_config = [self._image_modality_config, self._text_modality_config]

@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import logging
 import os
 import warnings
 from enum import Enum
@@ -9,8 +10,13 @@ import mmf
 import pytorch_lightning as pl
 import torch
 from mmf.common.registry import registry
+from mmf.datasets.iteration_strategies import (
+    ConstantIterationStrategy,
+    IterationStrategy,
+    SizeProportionalIterationStrategy,
+)
 from mmf.datasets.processors.processors import Processor
-from mmf.utils.configuration import Configuration
+from mmf.utils.configuration import Configuration, get_global_config
 from mmf.utils.distributed import is_dist_initialized, is_master, is_xla, synchronize
 from mmf.utils.general import get_optimizer_parameters
 from omegaconf import DictConfig, OmegaConf
@@ -23,6 +29,7 @@ except ImportError:
     xm = None
 
 ProcessorDict = Dict[str, Processor]
+logger = logging.getLogger(__name__)
 
 
 def build_config(configuration: Configuration, *args, **kwargs) -> DictConfig:
@@ -201,6 +208,8 @@ def build_multiple_datamodules(
             dataset_config = OmegaConf.create()
         datamodule_instance.prepare_data(dataset_config)
         datamodule_instance.setup()
+        if hasattr(datamodule_instance, "update_registry_for_model"):
+            datamodule_instance.update_registry_for_model(dataset_config)
         datamodules[dataset] = datamodule_instance
     return datamodules
 
@@ -222,10 +231,15 @@ def build_dataloader_and_sampler(
     """
     from mmf.common.batch_collator import BatchCollator
 
+    training_config = get_global_config("training")
     # Support params coming in from dataloader params
     other_args = {
-        "num_workers": datamodule_config.get("num_workers", 4),
-        "pin_memory": datamodule_config.get("pin_memory", False),
+        "num_workers": datamodule_config.get(
+            "num_workers", training_config.get("num_workers", 4)
+        ),
+        "pin_memory": datamodule_config.get(
+            "pin_memory", training_config.get("pin_memory", False)
+        ),
         "shuffle": datamodule_config.get("shuffle", None),
         "batch_size": datamodule_config.get("batch_size", None),
     }
@@ -500,3 +514,31 @@ def build_processors(
         processor_dict[processor_key] = processor_instance
 
     return processor_dict
+
+
+def build_iteration_strategy(
+    config: DictConfig,
+    dataloaders: Dict[str, torch.utils.data.DataLoader],
+    *args,
+    **kwargs,
+) -> IterationStrategy:
+    if not config.get("enabled", True):
+        return ConstantIterationStrategy.from_params(dataloaders, *args, **kwargs)
+    else:
+        assert (
+            "type" in config
+        ), "multitasking config must define 'type' attribute if enabled"
+        # This assumes all dataloaders will have same dataset type
+        iteration_strategy_class = registry.get_iteration_strategy_class(config.type)
+        config = config.get("params", {})
+        dataset_type = dataloaders[list(dataloaders.keys())[0]].dataset.dataset_type
+        if dataset_type != "train":
+            logger.info(
+                f"{iteration_strategy_class.__name__} updated to size "
+                + f"proportional for {dataset_type}"
+            )
+            return SizeProportionalIterationStrategy.from_params(
+                dataloaders, *args, **kwargs
+            )
+        else:
+            return iteration_strategy_class(config, dataloaders, *args, **kwargs)

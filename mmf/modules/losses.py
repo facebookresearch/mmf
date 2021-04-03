@@ -736,3 +736,27 @@ class InBatchHinge(nn.Module):
                 loss += self._compute_loss(corr)
 
         return loss
+
+
+@registry.register_loss("contrastive_loss")
+class ContrastiveLoss(nn.Module):
+    """
+    This is a generic contrastive loss typically used for pretraining. No modality
+    assumptions are made here.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, sample_list: Dict[str, Tensor], model_output: Dict[str, Tensor]):
+        assert (
+            "embedding_1" in model_output and "embedding_2" in model_output
+        ), "Embedding names must be available before loss calculation"
+        embedding_1 = model_output["embedding_1"]
+        embedding_2 = model_output["embedding_2"]
+
+        mma = embedding_1 @ embedding_2.T
+        labels = torch.arange(mma.shape[0], device=mma.device)
+        loss1 = F.cross_entropy(mma, labels)
+        loss2 = F.cross_entropy(mma.T, labels)
+        return (loss1 + loss2) / 2

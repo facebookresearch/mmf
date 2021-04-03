@@ -4,21 +4,29 @@ import os
 import unittest
 from unittest.mock import MagicMock
 
+import torch
 from mmf.datasets.base_dataset import BaseDataset
 from mmf.datasets.mmf_dataset_builder import MMFDatasetBuilder
+from mmf.utils.general import get_current_device
 from omegaconf import OmegaConf
 
 
 class SimpleMMFDataset(BaseDataset):
     def __init__(
-        self, dataset_name, config, dataset_type, *args, num_examples, **kwargs
+        self, dataset_name, config, dataset_type, num_examples, *args, **kwargs
     ):
         self.num_examples = num_examples
-        self.features = [x for x in range(self.num_examples)]
-        self.annotations = [x for x in range(self.num_examples)]
+        self.features = [float(x) for x in range(self.num_examples)]
+        self.annotations = [float(x) for x in range(self.num_examples)]
+        self._device = get_current_device()
+        self._dataset_name = dataset_name
 
     def __getitem__(self, idx):
-        return self.features[idx], self.annotations[idx]
+        return {
+            "feature": torch.tensor(self.features[idx]),
+            "annotation": torch.tensor(self.annotations[idx]),
+            "test": torch.tensor(self.features[idx]),
+        }
 
     def __len__(self):
         return self.num_examples
@@ -63,8 +71,8 @@ class TestMMFDatasetBuilder(unittest.TestCase):
         return dataset_builder.load(self.config, dataset_type)
 
     def _samples_set(self, dataset):
-        return set(x for x, _ in dataset)
+        return set(dataset.features)
 
     def _test_alignment_in_dataset(self, dataset):
-        for feature, annotation in dataset:
+        for feature, annotation in zip(dataset.features, dataset.annotations):
             self.assertEqual(feature, annotation)

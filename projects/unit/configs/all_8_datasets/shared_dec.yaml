@@ -89,15 +89,17 @@ training:
 
 multitasking:
   enabled: true
-  sampling_ratios:
-    detection_coco: 0.2
-    detection_visual_genome: 0.07
-    visual_entailment: 0.12
-    vqa2: 0.26
-    glue_qnli: 0.1
-    glue_mnli_mismatched: 0.1
-    glue_qqp: 0.1
-    glue_sst2: 0.05
+  type: ratios
+  params:
+    sampling_ratios:
+      detection_coco: 0.2
+      detection_visual_genome: 0.07
+      visual_entailment: 0.12
+      vqa2: 0.26
+      glue_qnli: 0.1
+      glue_mnli_mismatched: 0.1
+      glue_qqp: 0.1
+      glue_sst2: 0.05
 
 checkpoint:
   max_to_keep: 5
