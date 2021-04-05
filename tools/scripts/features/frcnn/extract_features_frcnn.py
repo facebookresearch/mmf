@@ -263,7 +263,8 @@ class FeatureExtractor:
 
         if os.path.isfile(image_dir):
             features = self.get_frcnn_features([image_dir])
-            self._save_feature(image_dir, features[0])
+            full_features, feat_list, info_list = self._process_features(features, 0)
+            self._save_feature(image_dir, full_features, feat_list, info_list)
         else:
 
             files = get_image_files(
