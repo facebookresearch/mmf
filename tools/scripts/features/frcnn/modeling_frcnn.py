@@ -36,6 +36,7 @@ from tools.scripts.features.frcnn.frcnn_utils import (
     WEIGHTS_NAME,
     Config,
     cached_path,
+    is_remote_url,
     load_checkpoint,
 )
 
@@ -1825,7 +1826,9 @@ class GeneralizedRCNN(nn.Module):
                             WEIGHTS_NAME, pretrained_model_name_or_path
                         )
                     )
-            elif os.path.isfile(pretrained_model_name_or_path):
+            elif os.path.isfile(pretrained_model_name_or_path) or is_remote_url(
+                pretrained_model_name_or_path
+            ):
                 archive_file = pretrained_model_name_or_path
             elif os.path.isfile(pretrained_model_name_or_path + ".index"):
                 assert (
