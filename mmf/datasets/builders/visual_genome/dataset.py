@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import copy
 import json
+import os
 
 import torch
 from mmf.common.sample import Sample, SampleList
