@@ -16,7 +16,6 @@ from mmf.trainers.core.callback_hook import TrainerCallbackHookMixin
 from mmf.trainers.core.device import TrainerDeviceMixin
 from mmf.trainers.core.evaluation_loop import TrainerEvaluationLoopMixin
 from mmf.trainers.core.profiling import TrainerProfilingMixin
-from mmf.trainers.core.reporting import TrainerReportingMixin
 from mmf.trainers.core.training_loop import TrainerTrainingLoopMixin
 from mmf.utils.build import build_model, build_optimizer
 from mmf.utils.general import print_model_parameters
@@ -32,7 +31,6 @@ class MMFTrainer(
     TrainerTrainingLoopMixin,
     TrainerDeviceMixin,
     TrainerEvaluationLoopMixin,
-    TrainerReportingMixin,
     TrainerProfilingMixin,
     BaseTrainer,
 ):
