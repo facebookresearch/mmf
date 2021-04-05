@@ -1,13 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import copy
 import json
-import os
-
 import torch
+
 from mmf.common.sample import Sample, SampleList
 from mmf.datasets.builders.vqa2 import VQA2Dataset
 from mmf.datasets.databases.scene_graph_database import SceneGraphDatabase
-
+from mmf.utils.configuration import get_mmf_env
+from mmf.utils.general import get_absolute_path
 
 _CONSTANTS = {"image_id_key": "image_id"}
 
@@ -53,7 +53,11 @@ class VisualGenomeDataset(VQA2Dataset):
         return current_sample
 
     def _get_absolute_path(self, scene_graph_file):
-        return os.path.abspath(scene_graph_file)
+        data_dir = get_mmf_env(key="data_dir")
+        absolute_scene_graph_file = get_absolute_path(
+            os.path.join(data_dir, scene_graph_file)
+        )
+        return absolute_scene_graph_file
 
     def _get_image_id(self, idx):
         return self.annotation_db[idx][_CONSTANTS["image_id_key"]]
