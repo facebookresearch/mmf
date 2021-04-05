@@ -156,6 +156,7 @@ if __name__ == "__main__":
                 "mmf_run = mmf_cli.run:run",
                 "mmf_predict = mmf_cli.predict:predict",
                 "mmf_convert_hm = mmf_cli.hm_convert:main",
+                "mmf_interactive = mmf_cli.interactive:interactive",
             ]
         },
     )

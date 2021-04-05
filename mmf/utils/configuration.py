@@ -163,6 +163,116 @@ def get_mmf_env(key=None):
         return config.env
 
 
+def _merge_with_dotlist(
+    config: DictConfig,
+    opts: List[str],
+    skip_missing: bool = False,
+    log_info: bool = True,
+):
+    # TODO: To remove technical debt, a possible solution is to use
+    # struct mode to update with dotlist OmegaConf node. Look into this
+    # in next iteration
+    # TODO: Simplify this function
+    if opts is None:
+        opts = []
+
+    if len(opts) == 0:
+        return config
+
+    # Support equal e.g. model=visual_bert for better future hydra support
+    has_equal = opts[0].find("=") != -1
+    if has_equal:
+        opt_values = [opt.split("=", maxsplit=1) for opt in opts]
+        if not all(len(opt) == 2 for opt in opt_values):
+            for opt in opt_values:
+                assert len(opt) == 2, f"{opt} has no value"
+    else:
+        assert len(opts) % 2 == 0, "Number of opts should be multiple of 2"
+        opt_values = zip(opts[0::2], opts[1::2])
+
+    for opt, value in opt_values:
+        if opt == "dataset":
+            opt = "datasets"
+
+        splits = opt.split(".")
+        current = config
+        for idx, field in enumerate(splits):
+            array_index = -1
+            if field.find("[") != -1 and field.find("]") != -1:
+                stripped_field = field[: field.find("[")]
+                array_index = int(field[field.find("[") + 1 : field.find("]")])
+            else:
+                stripped_field = field
+            if stripped_field not in current:
+                if skip_missing is True:
+                    break
+                raise AttributeError(
+                    "While updating configuration"
+                    " option {} is missing from"
+                    " configuration at field {}".format(opt, stripped_field)
+                )
+            if isinstance(current[stripped_field], collections.abc.Mapping):
+                current = current[stripped_field]
+            elif (
+                isinstance(current[stripped_field], collections.abc.Sequence)
+                and array_index != -1
+            ):
+                try:
+                    current_value = current[stripped_field][array_index]
+                except OCErrors.ConfigIndexError:
+                    if skip_missing:
+                        break
+                    raise
+
+                # Case where array element to be updated is last element
+                if (
+                    not isinstance(
+                        current_value,
+                        (collections.abc.Mapping, collections.abc.Sequence),
+                    )
+                    or idx == len(splits) - 1
+                ):
+                    if log_info:
+                        logger.info(f"Overriding option {opt} to {value}")
+                    current[stripped_field][array_index] = _decode_value(value)
+                else:
+                    # Otherwise move on down the chain
+                    current = current_value
+            else:
+                if idx == len(splits) - 1:
+                    if log_info:
+                        logger.info(f"Overriding option {opt} to {value}")
+                    current[stripped_field] = _decode_value(value)
+                else:
+                    if skip_missing:
+                        break
+
+                    raise AttributeError(
+                        "While updating configuration",
+                        "option {} is not present "
+                        "after field {}".format(opt, stripped_field),
+                    )
+
+    return config
+
+
+def _decode_value(value):
+    # https://github.com/rbgirshick/yacs/blob/master/yacs/config.py#L400
+    if not isinstance(value, str):
+        return value
+
+    if value == "None":
+        value = None
+
+    try:
+        value = literal_eval(value)
+    except ValueError:
+        pass
+    except SyntaxError:
+        pass
+    return value
+
+
 def resolve_cache_dir(env_variable="MMF_CACHE_DIR", default="mmf"):
     # Some of this follow what "transformers" does for there cache resolving
     try:
@@ -217,7 +327,7 @@ class Configuration:
 
         # Initially, silently add opts so that some of the overrides for the defaults
         # from command line required for setup can be honored
-        self._default_config = self._merge_with_dotlist(
+        self._default_config = _merge_with_dotlist(
             self._default_config, args.opts, skip_missing=True, log_info=False
         )
         # Register the config and configuration for setup
@@ -231,7 +341,7 @@ class Configuration:
 
         self.config = OmegaConf.merge(self._default_config, other_configs)
 
-        self.config = self._merge_with_dotlist(self.config, args.opts)
+        self.config = _merge_with_dotlist(self.config, args.opts)
         self._update_specific(self.config)
         self.upgrade(self.config)
         # Resolve the config here itself after full creation so that spawned workers
@@ -381,115 +491,6 @@ class Configuration:
         OmegaConf.register_resolver("device_count", lambda: device_count)
         OmegaConf.register_resolver("resolve_cache_dir", resolve_cache_dir)
         OmegaConf.register_resolver("resolve_dir", resolve_dir)
-
-    def _merge_with_dotlist(
-        self,
-        config: DictConfig,
-        opts: List[str],
-        skip_missing: bool = False,
-        log_info: bool = True,
-    ):
-        # TODO: To remove technical debt, a possible solution is to use
-        # struct mode to update with dotlist OmegaConf node. Look into this
-        # in next iteration
-        # TODO: Simplify this function
-        if opts is None:
-            opts = []
-
-        if len(opts) == 0:
-            return config
-
-        # Support equal e.g. model=visual_bert for better future hydra support
-        has_equal = opts[0].find("=") != -1
-        if has_equal:
-            opt_values = [opt.split("=", maxsplit=1) for opt in opts]
-            if not all(len(opt) == 2 for opt in opt_values):
-                for opt in opt_values:
-                    assert len(opt) == 2, "{} has no value".format(opt)
-        else:
-            assert len(opts) % 2 == 0, "Number of opts should be multiple of 2"
-            opt_values = zip(opts[0::2], opts[1::2])
-
-        for opt, value in opt_values:
-            if opt == "dataset":
-                opt = "datasets"
-
-            splits = opt.split(".")
-            current = config
-            for idx, field in enumerate(splits):
-                array_index = -1
-                if field.find("[") != -1 and field.find("]") != -1:
-                    stripped_field = field[: field.find("[")]
-                    array_index = int(field[field.find("[") + 1 : field.find("]")])
-                else:
-                    stripped_field = field
-                if stripped_field not in current:
-                    if skip_missing is True:
-                        break
-                    raise AttributeError(
-                        "While updating configuration"
-                        " option {} is missing from"
-                        " configuration at field {}".format(opt, stripped_field)
-                    )
-                if isinstance(current[stripped_field], collections.abc.Mapping):
-                    current = current[stripped_field]
-                elif (
-                    isinstance(current[stripped_field], collections.abc.Sequence)
-                    and array_index != -1
-                ):
-                    try:
-                        current_value = current[stripped_field][array_index]
-                    except OCErrors.ConfigIndexError:
-                        if skip_missing:
-                            break
-                        raise
-
-                    # Case where array element to be updated is last element
-                    if (
-                        not isinstance(
-                            current_value,
-                            (collections.abc.Mapping, collections.abc.Sequence),
-                        )
-                        or idx == len(splits) - 1
-                    ):
-                        if log_info:
-                            logger.info(f"Overriding option {opt} to {value}")
-                        current[stripped_field][array_index] = self._decode_value(value)
-                    else:
-                        # Otherwise move on down the chain
-                        current = current_value
-                else:
-                    if idx == len(splits) - 1:
-                        if log_info:
-                            logger.info(f"Overriding option {opt} to {value}")
-                        current[stripped_field] = self._decode_value(value)
-                    else:
-                        if skip_missing:
-                            break
-
-                        raise AttributeError(
-                            "While updating configuration",
-                            "option {} is not present "
-                            "after field {}".format(opt, stripped_field),
-                        )
-
-        return config
-
-    def _decode_value(self, value):
-        # https://github.com/rbgirshick/yacs/blob/master/yacs/config.py#L400
-        if not isinstance(value, str):
-            return value
-
-        if value == "None":
-            value = None
-
-        try:
-            value = literal_eval(value)
-        except ValueError:
-            pass
-        except SyntaxError:
-            pass
-        return value
 
     def freeze(self):
         OmegaConf.set_struct(self.config, True)
