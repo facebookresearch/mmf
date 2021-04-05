@@ -108,6 +108,10 @@ class ConstantIterationStrategy(IterationStrategy):
         super().__init__(config, dataloaders, *args, **kwargs)
         self._idx = self.config.idx
 
+    @property
+    def should_exhaust_all_iterators(self) -> bool:
+        return True
+
     def __call__(self, *args, **kwargs):
         return self._idx
 

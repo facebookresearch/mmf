@@ -106,6 +106,7 @@ def get_mmf_trainer(
         scheduler_config=scheduler_config,
         grad_clipping_config=grad_clipping_config,
     )
+    trainer.load_datasets()
     model.to(trainer.device)
     trainer.model = model
     return trainer
