@@ -23,7 +23,15 @@ from tools.scripts.features.frcnn.processing_image import Preprocess
 
 class FeatureExtractor:
 
-    MODEL_URL = {"LXMERT": "unc-nlp/frcnn-vg-finetuned"}
+    MODEL_URL = {
+        "FRCNN": "https://s3.amazonaws.com/models.huggingface.co/bert/unc-nlp/"
+        + "frcnn-vg-finetuned/pytorch_model.bin"
+    }
+
+    CONFIG_URL = {
+        "FRCNN": "https://s3.amazonaws.com/models.huggingface.co/bert/unc-nlp/"
+        + "frcnn-vg-finetuned/config.yaml"
+    }
 
     def __init__(self):
         self.args = self.get_parser().parse_args()
@@ -32,16 +40,19 @@ class FeatureExtractor:
     def get_parser(self):
         parser = argparse.ArgumentParser()
         parser.add_argument(
-            "--model_name",
-            default="LXMERT",
-            type=str,
-            help="Model to use for detection",
+            "--model_name", default="FRCNN", type=str, help="Model to use for detection"
         )
         parser.add_argument(
             "--model_file",
             default=None,
             type=str,
             help="Huggingface model file. This overrides the model_name param.",
+        )
+        parser.add_argument(
+            "--config_name",
+            default="FRCNN",
+            type=str,
+            help="Config to use for detection",
         )
         parser.add_argument(
             "--config_file", default=None, type=str, help="Huggingface config file"
@@ -118,7 +129,7 @@ class FeatureExtractor:
             frcnn_cfg = Config.from_pretrained(self.args.config_file)
         else:
             frcnn_cfg = Config.from_pretrained(
-                self.MODEL_URL.get(self.args.model_name, self.args.model_name)
+                self.CONFIG_URL.get(self.args.config_name, self.args.config_name)
             )
         if self.args.model_file:
             frcnn = GeneralizedRCNN.from_pretrained(

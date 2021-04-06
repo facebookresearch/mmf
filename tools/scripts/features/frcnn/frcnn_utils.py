@@ -22,6 +22,7 @@ import pickle as pkl
 import shutil
 import tarfile
 from collections import OrderedDict
+from hashlib import sha256
 from pathlib import Path
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
@@ -30,6 +31,7 @@ import numpy as np
 import requests
 from filelock import FileLock
 from mmf.utils.configuration import get_mmf_cache_dir
+from mmf.utils.download import download
 from omegaconf import OmegaConf
 
 
@@ -241,7 +243,14 @@ def cached_path(
     if isinstance(cache_dir, Path):
         cache_dir = str(cache_dir)
 
-    if os.path.exists(url_or_filename):
+    if is_remote_url(url_or_filename):
+        filename = url_to_filename(url_or_filename)
+        output_path = os.path.join(cache_dir, filename)
+        if not os.path.isfile(output_path):
+            assert download(
+                url_or_filename, cache_dir, filename
+            ), f"failed to download {url_or_filename}"
+    elif os.path.exists(url_or_filename):
         # File, and it exists.
         output_path = url_or_filename
     elif urlparse(url_or_filename).scheme == "":
@@ -292,6 +301,32 @@ def cached_path(
         return output_path_extracted
 
     return output_path
+
+
+def is_remote_url(url_or_filename):
+    parsed = urlparse(url_or_filename)
+    return parsed.scheme in ("http", "https")
+
+
+def url_to_filename(url, etag=None):
+
+    url_bytes = url.encode("utf-8")
+    url_hash = sha256(url_bytes)
+    filename = url_hash.hexdigest()
+
+    if etag:
+        etag_bytes = etag.encode("utf-8")
+        etag_hash = sha256(etag_bytes)
+        filename += "." + etag_hash.hexdigest()
+
+    if url.endswith(".h5"):
+        filename += ".h5"
+    elif url.endswith(".yaml"):
+        filename += ".yaml"
+    elif url.endswith(".bin"):
+        filename += ".bin"
+
+    return filename
 
 
 def get_data(query, delim=","):
