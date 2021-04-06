@@ -45,6 +45,7 @@ class TestFp16(unittest.TestCase):
     @skip_if_no_cuda
     def test_fp16_works(self):
         trainer = MMFTrainerMock(100, 2, 0.04)
+        trainer.load_datasets()
         trainer.load_fp16_scaler()
         self.assertTrue(isinstance(trainer.scaler, torch.cuda.amp.GradScaler))
         self.assertEqual(trainer.current_iteration, 0)
@@ -54,5 +55,6 @@ class TestFp16(unittest.TestCase):
     @skip_if_no_cuda
     def test_fp16_values(self):
         trainer = MMFTrainerMock(100, 2, 0.04, fp16_model=True)
+        trainer.load_datasets()
         trainer.load_fp16_scaler()
         trainer.training_loop()

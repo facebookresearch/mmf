@@ -84,6 +84,7 @@ class TestShardedDDP(unittest.TestCase):
     @unittest.skipUnless(FAIRSCALE_AVAILABLE, "Tests for fairscale")
     def test_no_sharding(self):
         self.trainer = MMFTrainerMock(self.config_no_oss, 100, 2, 0.04)
+        self.trainer.load_datasets()
 
         self.assertFalse(isinstance(self.trainer.optimizer, OSS))
 
