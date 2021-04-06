@@ -424,6 +424,7 @@ def build_classifier_layer(config, *args, **kwargs):
 
 
 def build_text_encoder(config, *args, **kwargs):
+    """Deprecated, please do not use"""
     try:
         from mmf.modules.fb.encoders import TextEncoderFactory
     except ImportError:
@@ -434,6 +435,7 @@ def build_text_encoder(config, *args, **kwargs):
 
 
 def build_image_encoder(config, direct_features=False, **kwargs):
+    """Deprecated, please do not use"""
     from mmf.modules.encoders import ImageEncoderFactory, ImageFeatureEncoderFactory
 
     if direct_features:

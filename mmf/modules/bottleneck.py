@@ -1,10 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+from collections import OrderedDict
 from typing import Optional, Tuple, Type
 
 import torch
 import torch.nn as nn
-from torchvision.models.resnet import conv1x1, conv3x3
+from torchvision.models.resnet import Bottleneck, conv1x1, conv3x3
 from torchvision.ops.misc import FrozenBatchNorm2d
 
 
@@ -162,3 +163,50 @@ class MovieBottleneck(nn.Module):
         out = self.relu(out)
 
         return out, cond
+
+
+class AvgPoolBottleneck(Bottleneck):
+    expansion = 4
+
+    def __init__(self, inplanes: int, planes: int, stride: int = 1):
+        # setting stride to 1 bc we use average pooling to downsample
+        super().__init__(inplanes=inplanes, planes=planes, stride=1)
+
+        if stride > 1 or inplanes != planes * AvgPoolBottleneck.expansion:
+            # downsampling layer is prepended with an avgpool, and the
+            # subsequent convolution has stride 1
+            self.downsample = nn.Sequential(
+                OrderedDict(
+                    [
+                        ("-1", nn.AvgPool2d(stride)),
+                        (
+                            "0",
+                            nn.Conv2d(
+                                inplanes,
+                                planes * AvgPoolBottleneck.expansion,
+                                1,
+                                stride=1,
+                                bias=False,
+                            ),
+                        ),
+                        ("1", nn.BatchNorm2d(planes * AvgPoolBottleneck.expansion)),
+                    ]
+                )
+            )
+
+        self.avgpool = nn.AvgPool2d(stride) if stride > 1 else nn.Identity()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        identity = x
+
+        out = self.relu(self.bn1(self.conv1(x)))
+        out = self.relu(self.bn2(self.conv2(out)))
+        out = self.avgpool(out)
+        out = self.bn3(self.conv3(out))
+
+        if self.downsample is not None:
+            identity = self.downsample(x)
+
+        out += identity
+        out = self.relu(out)
+        return out

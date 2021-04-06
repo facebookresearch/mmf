@@ -636,7 +636,7 @@ class SoftLabelCrossEntropyLoss(nn.Module):
         # perform reduction
         if self.reduction == "mean":
             # normalize based on the number of samples with > 0 non-ignored targets
-            loss /= torch.sum((torch.sum(mask, -1) > 0)).clamp(min=1)
+            loss /= torch.sum(torch.sum(mask, -1) > 0).clamp(min=1)
         return loss
 
     def forward(self, sample_list, model_output):
