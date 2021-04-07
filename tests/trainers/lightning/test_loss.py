@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 from mmf.common.report import Report
 from pytorch_lightning.callbacks.base import Callback
-from tests.trainers.lightning.test_utils import get_lightning_trainer, get_mmf_trainer
+from tests.trainers.test_utils import get_lightning_trainer, get_mmf_trainer
 
 
 class TestLightningTrainerLoss(unittest.TestCase, Callback):

@@ -3,7 +3,7 @@
 import unittest
 
 import torch
-from tests.trainers.lightning.test_utils import get_lightning_trainer
+from tests.trainers.test_utils import get_lightning_trainer
 
 
 class TestLightningTrainerGradAccumulate(unittest.TestCase):
