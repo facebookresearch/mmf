@@ -2,7 +2,7 @@
 
 import unittest
 
-from tests.trainers.lightning.test_utils import get_lightning_trainer
+from tests.trainers.test_utils import get_lightning_trainer
 
 
 class TestLightningTrainer(unittest.TestCase):

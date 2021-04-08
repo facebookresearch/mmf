@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import MagicMock
 
 import torch
-from tests.trainers.lightning.test_utils import (
+from tests.trainers.test_utils import (
     get_lightning_trainer,
     get_mmf_trainer,
     get_trainer_config,

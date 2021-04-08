@@ -5,7 +5,7 @@ from mmf.utils.build import build_optimizer
 from omegaconf import OmegaConf
 from tests.test_utils import SimpleLightningModel, SimpleModel
 from tests.trainers.lightning.lightning_trainer_mock import LightningTrainerMock
-from tests.trainers.test_training_loop import TrainerTrainingLoopMock
+from tests.trainers.test_trainer_mocks import TrainerTrainingLoopMock
 
 
 def get_trainer_config():
@@ -37,7 +37,7 @@ def get_trainer_config():
                     "deterministic": True,
                     "benchmark": False,
                     "gradient_clip_val": 0.0,
-                    "val_check_interval": 4,
+                    "val_check_interval": 1,
                     "log_every_n_steps": 2,
                     "checkpoint_callback": False,
                 },
