@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from mmf.common.report import Report
 from pytorch_lightning.callbacks.base import Callback
@@ -25,8 +25,9 @@ class TestLightningTrainerLoss(unittest.TestCase, Callback):
         mmf_trainer.training_loop()
 
         # compute lightning_trainer training losses
-        trainer = get_lightning_trainer(callback=self, max_steps=5)
-        trainer.trainer.fit(trainer.model, trainer.data_module.train_loader)
+        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=None):
+            trainer = get_lightning_trainer(callback=self, max_steps=5)
+            trainer.trainer.fit(trainer.model, trainer.data_module.train_loader)
 
     def on_train_batch_end(
         self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx

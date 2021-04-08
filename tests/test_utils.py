@@ -180,7 +180,13 @@ class SimpleModel(BaseModel):
         batch = prepared_batch[self.data_item_key]
         output = self.classifier(batch)
         loss = torch.nn.MSELoss()(-1 * output, batch)
-        return {"losses": {"loss": loss}, "logits": output, "input_batch": input_sample}
+        return {
+            "losses": {"loss": loss},
+            "logits": output,
+            "input_batch": input_sample,
+            "dataset_type": "dummy_dataset_type",
+            "dataset_name": "dummy_dataset_name",
+        }
 
 
 class SimpleLightningModel(SimpleModel):
@@ -188,7 +194,18 @@ class SimpleLightningModel(SimpleModel):
         super().__init__(config)
         self.trainer_config = trainer_config
 
+    def build_meters(self, run_type):
+        from mmf.utils.build import build_meters
+
+        self.train_meter, self.val_meter, self.test_meter = build_meters(run_type)
+
     def training_step(self, batch, batch_idx, *args, **kwargs):
+        return self._forward_step(batch, batch_idx, *args, **kwargs)
+
+    def validation_step(self, batch, batch_idx, *args, **kwargs):
+        return self._forward_step(batch, batch_idx, *args, **kwargs)
+
+    def _forward_step(self, batch, batch_idx, *args, **kwargs):
         output = self(batch)
         output["loss"] = output["losses"]["loss"]
         return output

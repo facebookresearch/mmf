@@ -147,7 +147,7 @@ trainer:
     # https://pytorch-lightning.readthedocs.io/en/latest/trainer.html#trainer-class-api
     type: lightning
     params:
-        gpus: null
+        gpus: 1
         num_nodes: 1
         precision: 32
         deterministic: false
@@ -156,12 +156,14 @@ trainer:
         max_epochs: null
         gradient_clip_val: 0.0
         num_sanity_val_steps: 0
-        automatic_optimization: true # only True is supported for now
         checkpoint_callback: false
         accumulate_grad_batches: 1
         val_check_interval: 1000
         log_every_n_steps: 100
-        limit_val_batches: 5
+        logger: false
+        limit_val_batches: 1.0
+        # progress bar is turned off if want same logging format as `mmf_trainer`
+        progress_bar_refresh_rate: 0
 
 # Configuration for evaluation
 evaluation:

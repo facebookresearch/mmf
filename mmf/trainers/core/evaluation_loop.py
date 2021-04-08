@@ -27,7 +27,6 @@ class TrainerEvaluationLoopMixin(ABC):
         with torch.no_grad():
             self.model.eval()
             disable_tqdm = not use_tqdm or not is_master()
-
             while reporter.next_dataset(flush_report=False):
                 dataloader = reporter.get_dataloader()
                 combined_report = None
