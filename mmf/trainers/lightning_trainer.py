@@ -56,6 +56,10 @@ class LightningTrainer(BaseTrainer):
         data_module = MultiDataModule(self.config)
         self.data_module = data_module
 
+        self.train_loader = data_module.train_dataloader()
+        self.val_loader = data_module.val_dataloader()
+        self.test_loader = data_module.test_dataloader()
+
     def load_model(self) -> None:
         logger.info("Loading models")
 
@@ -101,11 +105,10 @@ class LightningTrainer(BaseTrainer):
         if self._max_updates is None and self._max_epochs is None:
             raise ValueError("Neither max_updates nor max_epochs is specified.")
 
-        train_loader = self.data_module.train_loader
         self._max_updates, max_epochs = get_max_updates(
             self._max_updates,
             self._max_epochs,
-            train_loader,
+            self.train_loader,
             self.trainer_config.accumulate_grad_batches,
         )
         self._max_epochs = math.ceil(max_epochs)
