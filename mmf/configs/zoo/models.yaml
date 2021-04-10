@@ -476,6 +476,14 @@ movie_mcan:
       - url: mmf://models/movie_mcan/movie_mcan.grid.vqa2_vg.tar.gz
         file_name: movie_mcan.grid.vqa2_vg.tar.gz
         hashcode: eb155846799d12c0b989490595ce57aa934cd7c71fc9956235e4d9e06cbe8985
+    e2e:
+      # Model for config : projects/movie_mcan/configs/vqa2/e2e.yaml
+      # E2E model with detectron2 encoder
+      version: 1.0_2021_04_10
+      resources:
+      - url: mmf://models/movie_mcan/movie_mcan.grid.e2e.tar.gz
+        file_name: movie_mcan.grid.e2e.tar.gz
+        hashcode: bc525d03a728653ea8b27bb9374fc8b030d8c44bdc8a1d490cc85f18233a7276
     defaults: ${movie_mcan.grid.vqa2_vg}
 
 butd:
