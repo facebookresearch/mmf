@@ -19,3 +19,4 @@ pytorch_lightning==1.2.7
 datasets==1.2.1
 matplotlib==3.3.4
 pycocotools==2.0.2
+ftfy==5.8

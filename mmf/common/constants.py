@@ -26,4 +26,8 @@ VISUAL_DIALOG_CONSTS = {
     "vocabs": "https://dl.fbaipublicfiles.com/pythia/data/vocab.tar.gz",
 }
 
+CLIP_VOCAB_DOWNLOAD_URL = (
+    "https://dl.fbaipublicfiles.com/mmf/clip/bpe_simple_vocab_16e6.txt.gz"
+)
+
 DOWNLOAD_CHUNK_SIZE = 1024 * 1024
