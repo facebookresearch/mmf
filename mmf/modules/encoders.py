@@ -301,7 +301,12 @@ class TorchvisionResNetImageEncoder(Encoder):
     def forward(self, x):
         # B x 3 x 224 x 224 -> B x 2048 x 7 x 7
         out = self.model(x)
-        return out
+        # print("-------------")
+        # print(out.shape)
+        # print("-------------")
+        # out = torch.flatten(out, start_dim=2)
+        # out = out.transpose(1, 2).contiguous()
+        return out  # BxNx2048
 
 
 @registry.register_encoder("detectron2_resnet")

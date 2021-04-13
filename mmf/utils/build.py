@@ -21,6 +21,7 @@ from mmf.utils.distributed import is_dist_initialized, is_master, is_xla, synchr
 from mmf.utils.general import get_optimizer_parameters
 from omegaconf import DictConfig, OmegaConf
 
+logger = logging.getLogger(__name__)
 
 try:
     import torch_xla.core.xla_model as xm  # noqa
@@ -197,15 +198,21 @@ def build_multiple_datamodules(
 ) -> Dict[str, pl.LightningDataModule]:
     datamodules: Dict[str, pl.LightningDataModule] = {}
     for dataset in dataset_list:
+        logger.info("++++++++++ for dataset in dataset_list")
+        logger.info(dataset)
         datamodule_instance = build_datamodule(dataset)
         if dataset in all_dataset_config:
             dataset_config = all_dataset_config[dataset]
+            logger.info("++++++++++ if dataset in all_dataset_config:")
+            logger.info(dataset_config)
         else:
             warnings.warn(
                 f"Dataset {dataset} is missing from dataset_config"
                 + " in config. Proceeding with empty config."
             )
             dataset_config = OmegaConf.create()
+            logger.info("else")
+            logger.info(dataset_config)
         datamodule_instance.prepare_data(dataset_config)
         datamodule_instance.setup()
         if hasattr(datamodule_instance, "update_registry_for_model"):
@@ -243,6 +250,9 @@ def build_dataloader_and_sampler(
         "shuffle": datamodule_config.get("shuffle", None),
         "batch_size": datamodule_config.get("batch_size", None),
     }
+    logger.info("=--=-=-== datamodule_config")
+    logger.info(datamodule_config)
+    logger.info(other_args)
 
     # IterableDataset returns batches directly, so no need to add Sampler
     # or batch size as user is expected to control those. This is a fine

@@ -29,6 +29,8 @@ class MultiDataModule(pl.LightningDataModule):
         self.batch_size = get_batch_size()
 
         self.dataset_list: List[str] = dataset_list_from_config(self.config)
+        # logger.info("++++++++++ dataset_list")
+        # logger.info(self.dataset_list)
         self.datamodules: List[pl.LightningDataModule] = build_multiple_datamodules(
             self.dataset_list, self.config.dataset_config
         )

@@ -16,7 +16,10 @@ from mmf.modules.encoders import ResNet152ImageEncoder
 from mmf.utils.build import build_encoder
 from omegaconf import MISSING, OmegaConf
 from torch import Tensor, nn
+import logging
+from mmf.utils.distributed import get_rank
 
+logger = logging.getLogger(__name__)
 
 @dataclass
 class MMFTransformerModalityConfig(BaseTransformerModalityConfig):
@@ -89,6 +92,7 @@ class MMFTransformer(BaseTransformer):
                 self.modality_segments.append(modality.segment_id)
             else:
                 self.modality_segments.append(-1)
+        self.print_idx = 0
 
     # Backward compatibility for code for old mmft checkpoints
     @classmethod
@@ -211,12 +215,19 @@ class MMFTransformer(BaseTransformer):
             # the sample list
             if encoder is not None:
                 input_ids[modality] = encoder(input_ids[modality])
+                # if self.print_idx < 30:
+                #     print(f"======== {modality} encoder output size")
+                #     print(input_ids[modality].shape)
+                #     self.print_idx += 1
 
             # For a feature which is of shape B X D and
             # is not text (which is B X L converted later by embeddings to B X L X D)
             # We convert it to B X 1 X D to signify single position dim.
             if self.modality_type[idx] != "text" and input_ids[modality].dim() == 2:
                 input_ids[modality] = input_ids[modality].unsqueeze(1)
+                # if self.print_idx < 10:
+                #     print("======== image encoder output size after unsqueeze")
+                #     print(input_ids[modality].shape)
 
         return input_ids
 
@@ -340,6 +351,11 @@ class MMFTransformer(BaseTransformer):
     def forward(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
         # Sample preprocess
         processed_sample_list = self.preprocess_sample(sample_list)
+        if self.print_idx < 50:
+            print(f"============= sample_list RANK {get_rank()}", force=True)
+            print(sample_list["id"], force=True)
+            # logger.info(sample_list["id"])
+            self.print_idx += 1
 
         # Arrange masks in a list
         masks = []
@@ -353,6 +369,12 @@ class MMFTransformer(BaseTransformer):
             processed_sample_list["segment_ids"],
             masks,
         )
+
+        # if self.print_idx < 10:
+        #     print("======== encoded_layers length")
+        #     print(len(encoded_layers))
+        #     print("======== encoded_layers[3] shape")
+        #     print(encoded_layers[3].shape)
 
         # Transformer Heads
 

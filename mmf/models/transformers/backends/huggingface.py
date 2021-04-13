@@ -37,6 +37,7 @@ class HuggingfaceEmbeddings(nn.Module):
         self.layer_norms = nn.ModuleList()
         self.dropouts = nn.ModuleList()
         self.modality_keys: List = []
+        self.print_idx = 0
 
         # Build layers for each modality and initialize
         self.build_layers()
@@ -141,17 +142,27 @@ class HuggingfaceEmbeddings(nn.Module):
             )
         ):
             modality_name = self.modality_keys[idx]
+            if self.print_idx < 10:
+                # print(f"================ tokens_ids_{modality_name} ")
+                # print(tokens_ids[modality_name])
+                # print(tokens_ids[modality_name].shape)
+                self.print_idx += 1
+
             total_embedding = token_emb(tokens_ids[modality_name])
 
             if modality_name in position_ids:
                 total_embedding += pos_emb(position_ids[modality_name])
 
             if modality_name in segment_ids:
+                # print("************* token_type_embeddings")
+                # print(segment_ids[modality_name])
                 total_embedding += self.token_type_embeddings(
                     segment_ids[modality_name]
                 )
 
             list_embeddings.append(dropout(layer_norm(total_embedding)))
+            if self.print_idx < 10:
+                print(f"finish {modality_name}")
 
         return torch.cat(list_embeddings, dim=1)
 

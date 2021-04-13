@@ -13,7 +13,7 @@ from mmf.common.sample import to_device
 from mmf.utils.distributed import is_xla
 from mmf.utils.general import clip_gradients, get_max_updates
 from torch import Tensor
-
+from mmf.utils.distributed import get_rank
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +75,10 @@ class TrainerTrainingLoopMixin(ABC):
 
             should_start_update = True
             for idx, batch in enumerate(self.train_loader):
+
+                # print(f"Duplicate batch check - rank {get_rank()}")
+                # print(batch)
+
                 if should_start_update:
                     combined_report = None
                     self._start_update()

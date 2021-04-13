@@ -336,6 +336,8 @@ class BaseTransformerBackend(nn.Module, ABC):
         embedding = self.generate_embeddings(
             tokens_ids, position_ids, segment_ids, attention_mask
         )
+        # print("--- concated inputs")
+        # print(embedding.shape)
 
         # Encoder
         encoded_layers = self.generate_encoded_layers(embedding, attention_mask)
