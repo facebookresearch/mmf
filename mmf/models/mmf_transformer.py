@@ -51,6 +51,7 @@ class MMFTransformer(BaseTransformer):
         random_initialize: bool = False
         freeze_transformer: bool = False
         freeze_image_encoder: bool = False
+        tie_weight_to_text_encoder: bool = False
         finetune_lr_multiplier: float = 1
         backend: BaseTransformerBackendConfig = MMFTransformerBackendConfig(
             type="huggingface"
@@ -138,9 +139,19 @@ class MMFTransformer(BaseTransformer):
         text_embedding_idx = self.modality_type.index("text")
         if text_embedding_idx >= 0:
             for head in self.heads:
-                head.tie_weights(
-                    self.backend.embeddings.token_embeddings[text_embedding_idx]
-                )
+                if getattr(self.config, "tie_weight_to_text_encoder", False):
+                    assert "text" in self.encoders, (
+                        "MMFT needs to have a text encoder to tie weights to "
+                        + "its token embeddings."
+                    )
+                    logger.info("Tie weights to text_encoder input embeddings")
+                    head.tie_weights(
+                        self.encoders["text"].transformer.transformer.token_embedding
+                    )
+                else:
+                    head.tie_weights(
+                        self.backend.embeddings.token_embeddings[text_embedding_idx]
+                    )
 
     def preprocess_sample(
         self, sample_list: Dict[str, Tensor]
