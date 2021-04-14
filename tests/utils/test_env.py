@@ -23,7 +23,7 @@ class TestUtilsEnvE2E(unittest.TestCase):
     def _sanitize_registry(self):
         registry.mapping["builder_name_mapping"].pop("always_one", None)
         registry.mapping["model_name_mapping"].pop("simple", None)
-        registry.unregister("__mmf_user_dir_imported__")
+        registry.mapping["state"] = {}
 
     def _get_user_dir(self, abs_path=True):
         if abs_path:
@@ -40,7 +40,10 @@ class TestUtilsEnvE2E(unittest.TestCase):
         self._delete_dirty_modules()
         self._sanitize_registry()
 
-    def test_user_import_e2e(self):
+    def _test_user_import_e2e(self, extra_opts=None):
+        if extra_opts is None:
+            extra_opts = []
+
         MAX_UPDATES = 50
         user_dir = self._get_user_dir()
         with make_temp_dir() as temp_dir:
@@ -55,6 +58,7 @@ class TestUtilsEnvE2E(unittest.TestCase):
                 f"training.max_updates={MAX_UPDATES}",
                 f"env.save_dir={temp_dir}",
             ]
+            opts = opts + extra_opts
             out = io.StringIO()
             with contextlib.redirect_stdout(out):
                 run(opts)
@@ -76,6 +80,12 @@ class TestUtilsEnvE2E(unittest.TestCase):
                 ],
             )
             self.assertEqual(float(log_line["test/always_one/accuracy"]), 1)
+
+    def test_user_import_e2e(self):
+        self._test_user_import_e2e()
+
+    def test_cpu_evaluation_e2e(self):
+        self._test_user_import_e2e(extra_opts=["evaluation.use_cpu=True"])
 
     def test_import_user_module_from_directory_absolute(self, abs_path=True):
         # Make sure the modules are not available first

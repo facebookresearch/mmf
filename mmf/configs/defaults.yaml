@@ -167,6 +167,9 @@ trainer:
 evaluation:
     # Metrics for evaluation
     metrics: []
+    # Use CPU for metrics and other calculations, you can use this option if
+    # you see OOM in validation as in metrics are calculated globally
+    use_cpu: false
     # Generate predictions in a file
     predict: false
     # Prediction file format (csv|json), default is json

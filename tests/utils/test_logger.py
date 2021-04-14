@@ -11,7 +11,7 @@ from typing import Optional
 from mmf.common.registry import registry
 from mmf.utils.configuration import Configuration
 from mmf.utils.file_io import PathManager
-from mmf.utils.logger import setup_logger, setup_output_folder
+from mmf.utils.logger import setup_logger
 
 
 class TestLogger(unittest.TestCase):
@@ -29,8 +29,6 @@ class TestLogger(unittest.TestCase):
         configuration.freeze()
         cls.config = configuration.get_config()
         registry.register("config", cls.config)
-        setup_output_folder.cache_clear()
-        setup_logger.cache_clear()
         cls.writer = setup_logger()
 
     @classmethod
