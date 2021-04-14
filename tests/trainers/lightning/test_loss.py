@@ -31,8 +31,7 @@ class TestLightningTrainerLoss(unittest.TestCase, Callback):
     def on_train_batch_end(
         self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
     ):
-        output = outputs[0][0]["extra"]
-        report = Report(output["input_batch"], output)
+        report = Report(outputs["input_batch"], outputs)
         self.lightning_losses.append(report["losses"]["loss"].item())
 
     def on_train_end(self, trainer, pl_module):
