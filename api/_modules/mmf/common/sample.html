@@ -598,6 +598,14 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
+    <span class="k">def</span> <span class="nf">detach</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">detach_tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span>
+
 <div class="viewcode-block" id="SampleList.to_dict"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.SampleList.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Converts a sample list to dict, this is useful for TorchScript and for</span>
 <span class="sd">        other internal API unification efforts.</span>
@@ -675,6 +683,21 @@
     <span class="k">if</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">get_device</span><span class="p">()</span> <span class="o">!=</span> <span class="n">device</span><span class="p">:</span>
         <span class="n">sample_list</span> <span class="o">=</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">sample_list</span>
+
+
+<div class="viewcode-block" id="detach_tensor"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.detach_tensor">[docs]</a><span class="k">def</span> <span class="nf">detach_tensor</span><span class="p">(</span><span class="n">tensor</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Detaches any element passed which has a `.detach` function defined.</span>
+<span class="sd">    Currently, in MMF can be SampleList, Report or a tensor.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tensor (Any): Item to be detached</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Any: Detached element</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="s2">&quot;detach&quot;</span><span class="p">):</span>
+        <span class="n">tensor</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">tensor</span></div>
 </pre></div>
 
              </article>

@@ -448,6 +448,24 @@ other internal API unification efforts.</p>
 
 </dd></dl>
 
+<dl class="py function">
+<dt id="mmf.common.sample.detach_tensor">
+<code class="sig-prename descclassname"><span class="pre">mmf.common.sample.</span></code><code class="sig-name descname"><span class="pre">detach_tensor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Any</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#detach_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.sample.detach_tensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detaches any element passed which has a <cite>.detach</cite> function defined.
+Currently, in MMF can be SampleList, Report or a tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tensor</strong> (<em>Any</em>) – Item to be detached</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Detached element</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 
