@@ -419,7 +419,7 @@ class MultiLoss(nn.Module):
         loss = 0
         for idx, loss_fn in enumerate(self.losses):
             value = loss_fn(sample_list, model_output, *args, **kwargs)
-            loss += self.losses_weights[idx] * value
+            loss += self.losses_weights[idx] * list(value.values())[0]
         return loss
 
 
@@ -571,10 +571,8 @@ class M4CDecodingBCEWithMaskLoss(nn.Module):
 
 @registry.register_loss("cross_entropy")
 class CrossEntropyLoss(nn.Module):
-    def __init__(self, params=None):
+    def __init__(self, **params):
         super().__init__()
-        if params is None:
-            params = {}
         self.loss_fn = nn.CrossEntropyLoss(**params)
 
     def forward(self, sample_list, model_output):
