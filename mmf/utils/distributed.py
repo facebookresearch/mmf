@@ -135,7 +135,7 @@ def gather_tensor(tensor):
             tensor_list = tensor_list.view(world_size, *tensor.size())
         else:
             dist.all_gather(tensor_list, tensor)
-        tensor_list = torch.stack(tensor_list, dim=0)
+            tensor_list = torch.stack(tensor_list, dim=0)
     return tensor_list
 
 
