@@ -368,6 +368,11 @@ class MMFTransformer(BaseTransformer):
             masks,
         )
 
+        # if self.print_idx < 10:
+        #     print("======== encoded_layers length")
+        #     print(len(encoded_layers))
+        #     print("======== encoded_layers[3] shape")
+        #     print(encoded_layers[3].shape)
         # Transformer Heads
 
         return self.postprocess_output(

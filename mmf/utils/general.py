@@ -33,6 +33,22 @@ def clip_gradients(model, optimizer, i_iter, writer, config, scale=1.0):
     max_grad_l2_norm = config.training.max_grad_l2_norm
     clip_norm_mode = config.training.clip_norm_mode
 
+    # Monitoring grad_norm of certain layer
+    # ie_tt_gn = nn.utils.clip_grad_norm_(
+    #     model.encoders["image"].parameters(), 1e10, error_if_nonfinite=False
+    # )
+    # print(f"image_encoder_total_gn = {ie_tt_gn}")
+    # print(list(model.encoders["image"].named_parameters())[-3][0])
+    # ie_ll_gn = nn.utils.clip_grad_norm_(
+    #     list(model.encoders["image"].named_parameters())[-3][1],
+    #     1e10,
+    #     error_if_nonfinite=False,
+    # )
+    # print(f"image_encoder_last_layer_gn = {ie_ll_gn}")
+    # if writer is not None:
+    #     writer.add_scalars({"image_encoder_total_gn": ie_tt_gn}, i_iter)
+    #     writer.add_scalars({"image_encoder_last_layer_gn": ie_ll_gn}, i_iter)
+
     if max_grad_l2_norm is not None:
         if clip_norm_mode == "all":
             if hasattr(optimizer, "clip_grad_norm"):
