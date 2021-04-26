@@ -282,8 +282,18 @@ class MMFTransformer(BaseTransformer):
                     masks[modality] = sample_list["input_mask"]
             else:
                 mask_attribute = f"{modality}_mask"
+                mask_attribute_guide = f"{modality}_mask_guide"
                 if mask_attribute in sample_list:
                     masks[modality] = sample_list[mask_attribute]
+                elif mask_attribute_guide in sample_list:
+                    assert (
+                        len(sample_list[mask_attribute_guide].shape) == 1
+                    ), "mask_attribute_guide can only have a single dim equals to bsz"
+                    masks[modality] = (
+                        sample_list[mask_attribute_guide]
+                        .unsqueeze(1)
+                        .repeat(1, input_ids[modality].shape[1])
+                    )
                 else:
                     masks[modality] = torch.ones(
                         input_ids[modality].size()[:2],
