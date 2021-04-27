@@ -65,8 +65,8 @@ class TrainerDeviceMixin(ABC):
             registry.register("distributed", True)
             set_torch_ddp = True
             try:
-                from fairscale.optim.oss import OSS
                 from fairscale.nn.data_parallel import ShardedDataParallel
+                from fairscale.optim.oss import OSS
 
                 if isinstance(self.optimizer, OSS):
                     self.model = ShardedDataParallel(self.model, self.optimizer)

@@ -215,9 +215,9 @@ class VisualBERTForPretraining(nn.Module):
             self.tie_weights()
 
     def tie_weights(self):
-        """ Make sure we are sharing the input and output embeddings.
-            Export to TorchScript can't handle parameter sharing so we are cloning them
-            instead.
+        """Make sure we are sharing the input and output embeddings.
+        Export to TorchScript can't handle parameter sharing so we are cloning them
+        instead.
         """
         self.bert._tie_or_clone_weights(
             self.cls.predictions.decoder, self.bert.embeddings.word_embeddings

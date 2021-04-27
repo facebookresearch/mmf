@@ -1246,14 +1246,15 @@ class DetectionMeanAP(BaseMetric):
             torch.FloatTensor: COCO-style mAP@IoU=0.50:0.95.
 
         """
+        from mmf.utils.distributed import is_master, broadcast_tensor
+        from mmf.utils.general import get_current_device
+
         # as the detection mAP metric is run on the entire dataset-level predictions,
         # which are *already* gathered from all notes, the evaluation should only happen
         # in one node and broadcasted to other nodes (to avoid CPU OOM due to concurrent
         # mAP evaluation)
         from pycocotools.coco import COCO
         from pycocotools.cocoeval import COCOeval
-        from mmf.utils.distributed import is_master, broadcast_tensor
-        from mmf.utils.general import get_current_device
 
         device = get_current_device()
         if execute_on_master_only and not is_master():

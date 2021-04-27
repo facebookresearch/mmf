@@ -1,9 +1,8 @@
 import json
 
+import pandas as pd
 import torch
 from mmf.utils.file_io import PathManager
-
-import pandas as pd
 
 
 class CaptionsDatabase(torch.utils.data.Dataset):

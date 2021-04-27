@@ -115,8 +115,8 @@ class MMFTrainer(
         set_torch_grad_scaler = True
         if self.training_config.fp16 and self.distributed:
             try:
-                from fairscale.optim.oss import OSS
                 from fairscale.optim.grad_scaler import ShardedGradScaler
+                from fairscale.optim.oss import OSS
 
                 if isinstance(self.optimizer, OSS):
                     self.scaler = ShardedGradScaler()
