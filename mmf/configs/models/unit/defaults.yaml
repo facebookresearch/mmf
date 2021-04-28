@@ -93,3 +93,4 @@ model_config:
           num_labels: 2
           loss_type: cross_entropy
     max_task_num: 256
+    predict_attributes: false

@@ -262,6 +262,15 @@ class UniT(BaseModel):
             }
             detr_outputs["losses"] = losses
 
+        if (
+            self.config.heads["detection"][sample_list.dataset_name]["use_attr"]
+            and self.config.predict_attributes
+        ):
+            hs_for_attr = detr_outputs["hs_for_attr"]
+            top_obj_class = detr_outputs["pred_logits"][..., :-1].argmax(dim=-1)
+            attr_head = self.det_losses[sample_list.dataset_name].attribute_head
+            detr_outputs["attr_logits"] = attr_head(hs_for_attr, top_obj_class)
+
         return detr_outputs
 
     def classifier_loss_calculation(self, detr_outputs: Dict[str, Tensor], sample_list):

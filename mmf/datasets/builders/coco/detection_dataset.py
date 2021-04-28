@@ -66,6 +66,10 @@ class DetectionCOCODataset(BaseDataset):
         orig_size = gather_tensor_along_batch(report.orig_size)
 
         outputs = {"pred_logits": pred_logits, "pred_boxes": pred_boxes}
+        if hasattr(report, "attr_logits"):
+            attr_logits = gather_tensor_along_batch(report.attr_logits)
+            outputs["attr_logits"] = attr_logits
+
         image_ids = report.image_id.tolist()
         results = self.postprocessors["bbox"](outputs, orig_size)
 
@@ -94,6 +98,12 @@ class DetectionCOCODataset(BaseDataset):
                     ],
                 )
             )
+            if "attr_scores" in r:
+                attr_scores = r["attr_scores"].tolist()
+                attr_labels = r["attr_labels"].tolist()
+                for k in range(len(boxes_xywh)):
+                    predictions[-1][1][k]["attr_score"] = attr_scores[k]
+                    predictions[-1][1][k]["attr_label"] = attr_labels[k]
 
         return predictions
 
@@ -184,5 +194,12 @@ class PostProcess(nn.Module):
             {"scores": s, "labels": l, "boxes": b}
             for s, l, b in zip(scores, labels, boxes)
         ]
+
+        if "attr_logits" in outputs:
+            assert len(outputs["attr_logits"]) == len(results)
+            attr_scores, attr_labels = outputs["attr_logits"].max(-1)
+            for idx, r in enumerate(results):
+                r["attr_scores"] = attr_scores[idx]
+                r["attr_labels"] = attr_labels[idx]
 
         return results
