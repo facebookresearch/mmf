@@ -2,7 +2,7 @@
 # This is required to make sorting same as fbcode as all absolute imports
 # are considered third party there
 known_third_party = [
-    "PIL", "cv2", "demjson", "fairscale", "filelock", "h5py", "lib", "lmdb", "maskrcnn_benchmark", "matplotlib",
+    "PIL", "caffe2", "cv2", "demjson", "fairscale", "filelock", "h5py", "lib", "lmdb", "maskrcnn_benchmark", "matplotlib",
     "mmf", "mmf_cli", "numpy", "omegaconf", "packaging", "pycocoevalcap", "pytorch_sphinx_theme",
     "recommonmark", "requests", "setuptools", "sklearn", "termcolor", "tests", "torch",
     "torchtext", "torchvision", "tqdm", "transformers", "pytorch_lightning"
