@@ -565,3 +565,101 @@ class MultiModalEncoderBase(Encoder):
         return build_image_encoder(
             config, direct_features=self._is_direct_features_input
         )
+
+
+class PooledEncoder(Encoder):
+    """
+    Standard pooled encoder class which takes in an input, encodes it with an encoder
+    implemented and returned from `self.build_encoder` function, pools it based
+    `pool_type` and `num_output_features` specified, flattens it and returns it
+    back as a tensor.
+    """
+
+    @dataclass
+    class Config(Encoder.Config):
+        num_output_features: int = 1  # How many output features need to be returned.
+        pool_type: str = "avg"  # type of pooling to apply "avg" | "adaptive"
+        out_dim: int = MISSING  # size of out dim expected
+        three_d: bool = False  # if input requires 3D pooling (for video)
+
+    def __init__(self, config: Config, *args, **kwargs):
+        super().__init__()
+        self.encoder = self.build_encoder(config)
+        pool_func = (
+            nn.AdaptiveAvgPool2d if config.pool_type == "avg" else nn.AdaptiveMaxPool2d
+        )
+        params = (config.num_output_features, 1)
+        if config.three_d:
+            pool_func = (
+                nn.AdaptiveAvgPool3d
+                if config.pool_type == "avg"
+                else nn.AdaptiveMaxPool3d
+            )
+            params = (config.num_output_features, 1, 1)
+        # -1 will keep the original feature size
+        if config.num_output_features == -1:
+            self.pool = nn.Identity()
+        else:
+            self.pool = pool_func(params)
+        self.out_dim = config.out_dim
+
+    def build_encoder(self, config: Config, *args, **kwargs):
+        """Build an encoder on whose output the pooling will be applied.
+
+        Args:
+            config (Config): Config parameter required to build the encoder.
+
+        Raises:
+            NotImplementedError: Not implemented by default.
+        """
+        raise NotImplementedError()
+
+    def forward(self, x: Tensor) -> Tensor:
+        out = self.encoder(x)
+        out = self.pool(out)
+        out = torch.flatten(out, start_dim=2)
+        out = out.transpose(1, 2).contiguous()
+        return out
+
+
+@registry.register_encoder("r2plus1d_18")
+class R2Plus1D18VideoEncoder(PooledEncoder):
+    """
+    R2Plus1D based video encoder. Returns back a tensor of dim 2048.
+    By default, pretrained version is used.
+    See https://arxiv.org/abs/1711.11248.
+    """
+
+    @dataclass
+    class Config(PooledEncoder.Config):
+        name: str = "r2plus1d_18"
+        out_dim: int = 512  # out dim
+        pretrained: bool = True  # if should use pretrained version or not
+        three_d: bool = True
+
+    def build_encoder(self, config: Config, *args, **kwargs):
+        model = torchvision.models.video.r2plus1d_18(
+            pretrained=config.get("pretrained", True)
+        )
+        modules = list(model.children())[:-2]
+        return nn.Sequential(*modules)
+
+
+@registry.register_encoder("resnet18_audio")
+class ResNet18AudioEncoder(PooledEncoder):
+    """
+    Audio encoder based on ResNet18 used in various audio classification paper
+    as a baseline. By default, not pretrained version is used.
+    """
+
+    @dataclass
+    class Config(PooledEncoder.Config):
+        name: str = "resnet18_audio"
+        out_dim: int = 512
+        pretrained: bool = False
+
+    def build_encoder(self, config: Config, *args, **kwargs):
+        model = torchvision.models.resnet18(pretrained=config.get("pretrained", False))
+        model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        modules = list(model.children())[:-2]
+        return nn.Sequential(*modules)

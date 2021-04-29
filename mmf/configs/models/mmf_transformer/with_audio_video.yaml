@@ -1,0 +1,49 @@
+model_config:
+  mmf_transformer:
+    transformer_base: bert-base-uncased
+    modalities:
+      - type: text
+        key: text
+        segment_id: 0
+      - type: video
+        key: video
+        embedding_dim: 512
+        segment_id: 1
+        encoder:
+          type: r2plus1d_18
+          params:
+            num_output_features: 1
+            pool_type: avg
+            out_dim: 2048
+            three_d: true
+      - type: audio
+        key: audio
+        embedding_dim: 512
+        segment_id: 2
+        encoder:
+          type: resnet18_audio
+          params:
+            num_output_features: 1
+            pool_type: avg
+            out_dim: 2048
+            three_d: false
+    initializer_range: 0.02
+    initializer_mean: 0.0
+    layer_norm_weight_fill: 1.0
+    random_initialize: false
+    freeze_base: false
+    token_noise_std: 0.01
+    token_noise_mean: 0.0
+    finetune_lr_multiplier: 1
+    image_encoder:
+      type: resnet152
+      params:
+        pretrained: true
+        pool_type: avg
+        num_output_features: 1
+    freeze_encoder: false
+    heads:
+      - type: mlp
+        num_labels: ???
+    losses:
+    - type: logit_bce
