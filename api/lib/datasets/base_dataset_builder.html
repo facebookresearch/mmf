@@ -404,6 +404,47 @@ since this is NOT called on every GPU in DDP/TPU</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup">
+<code class="sig-name descname"><span class="pre">setup</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stage</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called at the beginning of fit (train + validate), validate, test, predict, or tune.
+This is a good hook when you need to build models dynamically or adjust something about them.
+This hook is called on every process when using DDP.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>stage</strong> – either <code class="docutils literal notranslate"><span class="pre">'fit'</span></code>, <code class="docutils literal notranslate"><span class="pre">'validate'</span></code>, <code class="docutils literal notranslate"><span class="pre">'test'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'predict'</span></code></p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">LitModel</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">l1</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">download_data</span><span class="p">()</span>
+        <span class="n">tokenize</span><span class="p">()</span>
+
+        <span class="c1"># don&#39;t do this</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">something</span> <span class="o">=</span> <span class="k">else</span>
+
+    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="n">stage</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">Load_data</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">l1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">28</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">num_classes</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.teardown">
+<code class="sig-name descname"><span class="pre">teardown</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.teardown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.teardown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called at the end of fit (train + validate), validate, test, predict, or tune.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>stage</strong> – either <code class="docutils literal notranslate"><span class="pre">'fit'</span></code>, <code class="docutils literal notranslate"><span class="pre">'validate'</span></code>, <code class="docutils literal notranslate"><span class="pre">'test'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'predict'</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.test_dataloader">
 <code class="sig-name descname"><span class="pre">test_dataloader</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.test_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.test_dataloader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement one or multiple PyTorch DataLoaders for testing.</p>
@@ -413,7 +454,7 @@ since this is NOT called on every GPU in DDP/TPU</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>download in <a class="reference internal" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data" title="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a></p></li>
-<li><p>process and split in <code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></p></li>
+<li><p>process and split in <a class="reference internal" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup" title="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></a></p></li>
 </ul>
 </div></blockquote>
 <p>However, the above are only necessary for distributed processing.</p>
@@ -425,7 +466,7 @@ since this is NOT called on every GPU in DDP/TPU</p>
 <li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></p></li>
 <li><p>…</p></li>
 <li><p><a class="reference internal" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data" title="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a></p></li>
-<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></p></li>
+<li><p><a class="reference internal" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup" title="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.train_dataloader" title="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.val_dataloader" title="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.val_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">val_dataloader()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.test_dataloader" title="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.test_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_dataloader()</span></code></a></p></li>
@@ -488,7 +529,7 @@ this <span class="xref std std-ref">page</span></p>
 <blockquote>
 <div><ul class="simple">
 <li><p>download in <a class="reference internal" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data" title="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a></p></li>
-<li><p>process and split in <code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></p></li>
+<li><p>process and split in <a class="reference internal" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup" title="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></a></p></li>
 </ul>
 </div></blockquote>
 <p>However, the above are only necessary for distributed processing.</p>
@@ -500,7 +541,7 @@ this <span class="xref std std-ref">page</span></p>
 <li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></p></li>
 <li><p>…</p></li>
 <li><p><a class="reference internal" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data" title="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a></p></li>
-<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></p></li>
+<li><p><a class="reference internal" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup" title="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.train_dataloader" title="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
 </ul>
 <div class="admonition note">

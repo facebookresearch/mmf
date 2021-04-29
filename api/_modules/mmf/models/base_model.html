@@ -281,6 +281,7 @@
 
 <span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
+<span class="kn">from</span> <span class="nn">mmf.common.report</span> <span class="kn">import</span> <span class="n">Report</span>
 <span class="kn">from</span> <span class="nn">mmf.common.sample</span> <span class="kn">import</span> <span class="n">SampleList</span><span class="p">,</span> <span class="n">to_device</span>
 <span class="kn">from</span> <span class="nn">mmf.modules.losses</span> <span class="kn">import</span> <span class="n">LossConfig</span><span class="p">,</span> <span class="n">Losses</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.checkpoint</span> <span class="kn">import</span> <span class="n">load_pretrained_model</span>
@@ -350,6 +351,12 @@
             <span class="s2">&quot;Build method not implemented in the child model class.&quot;</span>
         <span class="p">)</span></div>
 
+    <span class="k">def</span> <span class="nf">build_meters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_type</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">mmf.utils.build</span> <span class="kn">import</span> <span class="n">build_meters</span>
+
+        <span class="sd">&quot;&quot;&quot;Function only used in lightning setting&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_meter</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_meter</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_meter</span> <span class="o">=</span> <span class="n">build_meters</span><span class="p">(</span><span class="n">run_type</span><span class="p">)</span>
+
 <div class="viewcode-block" id="BaseModel.init_losses"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.init_losses">[docs]</a>    <span class="k">def</span> <span class="nf">init_losses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initializes loss for the model based ``losses`` key. Automatically called by</span>
 <span class="sd">        MMF internally after building the model.</span>
@@ -407,7 +414,7 @@
             <span class="s2">&quot;Forward of the child model class needs to be implemented.&quot;</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="BaseModel.training_step"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.training_step">[docs]</a>    <span class="k">def</span> <span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseModel.training_step"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.training_step">[docs]</a>    <span class="k">def</span> <span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">SampleList</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Member function of PL modules. Used only when PL enabled.</span>
 <span class="sd">        To be implemented by child class. Takes in a ``SampleList``,</span>
 <span class="sd">        batch_idx and returns back a dict.</span>
@@ -419,13 +426,12 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict: Dict containing loss.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_sample_list</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
-        <span class="n">loss_dict</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;losses&quot;</span><span class="p">]</span>
-        <span class="n">output</span><span class="p">[</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">for</span> <span class="n">loss</span> <span class="ow">in</span> <span class="n">loss_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forward_lightning_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">)</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="n">Report</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_meter</span><span class="o">.</span><span class="n">update_from_report</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">output</span></div>
 
-<div class="viewcode-block" id="BaseModel.validation_step"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.validation_step">[docs]</a>    <span class="k">def</span> <span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseModel.validation_step"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.validation_step">[docs]</a>    <span class="k">def</span> <span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">SampleList</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Member function of PL modules. Used only when PL enabled.</span>
 <span class="sd">        To be implemented by child class. Takes in a ``SampleList``,</span>
 <span class="sd">        batch_idx and returns back a dict.</span>
@@ -437,10 +443,32 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            Dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forward_lightning_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">)</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="n">Report</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_meter</span><span class="o">.</span><span class="n">update_from_report</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output</span></div>
+
+<div class="viewcode-block" id="BaseModel.test_step"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.test_step">[docs]</a>    <span class="k">def</span> <span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">SampleList</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Member function of PL modules. Used only when PL enabled.</span>
+<span class="sd">        To be implemented by child class. Takes in a ``SampleList``,</span>
+<span class="sd">        batch_idx and returns back a dict.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sample_list (SampleList): SampleList returned by the DataLoader for</span>
+<span class="sd">            current iteration</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forward_lightning_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_forward_lightning_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
         <span class="n">batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_sample_list</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
-        <span class="c1"># TODO: @sash Implementation coming soon! (next PR)</span>
-        <span class="k">return</span> <span class="n">output</span></div>
+        <span class="n">loss_dict</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;losses&quot;</span><span class="p">]</span>
+        <span class="n">output</span><span class="p">[</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">for</span> <span class="n">loss</span> <span class="ow">in</span> <span class="n">loss_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">output</span>
 
 <div class="viewcode-block" id="BaseModel.configure_optimizers"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.configure_optimizers">[docs]</a>    <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Member function of PL modules. Used only when PL enabled.&quot;&quot;&quot;</span>
