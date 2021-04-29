@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import mmf
 import pytorch_lightning as pl
 import torch
+from mmf.common.meter import Meter
 from mmf.common.registry import registry
 from mmf.datasets.iteration_strategies import (
     ConstantIterationStrategy,
@@ -544,3 +545,18 @@ def build_iteration_strategy(
             )
         else:
             return iteration_strategy_class(config, dataloaders, *args, **kwargs)
+
+
+def build_meters(run_type: str) -> List[Meter]:
+    train_meter, val_meter, test_meter = None, None, None
+    if "train" in run_type:
+        train_meter = Meter()
+        # val_meter used for validation after training loop
+        val_meter = Meter()
+    elif "val" in run_type or "inference" in run_type:
+        val_meter = Meter()
+
+    if "test" in run_type:
+        test_meter = Meter()
+
+    return train_meter, val_meter, test_meter

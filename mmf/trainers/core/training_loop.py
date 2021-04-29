@@ -11,7 +11,7 @@ from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.common.sample import to_device
 from mmf.utils.distributed import is_xla
-from mmf.utils.general import clip_gradients, get_max_updates
+from mmf.utils.general import clip_gradients, extract_loss, get_max_updates
 from torch import Tensor
 
 
@@ -155,6 +155,7 @@ class TrainerTrainingLoopMixin(ABC):
                     if stop is True:
                         logger.info("Early stopping activated")
                         should_break = True
+
                 if self.num_updates >= self.max_updates:
                     should_break = True
 
@@ -163,12 +164,7 @@ class TrainerTrainingLoopMixin(ABC):
 
     def run_training_batch(self, batch: Dict[str, Tensor], loss_divisor: int) -> None:
         report = self._forward(batch)
-        # Since losses are batch averaged in MMF, this makes sure the
-        # scaling is right.
-        for key, value in report.losses.items():
-            value = value.mean() / loss_divisor
-            report.losses[key] = value
-        loss = self._extract_loss(report)
+        loss = extract_loss(report, loss_divisor)
         self._backward(loss)
         return report
 
@@ -214,16 +210,6 @@ class TrainerTrainingLoopMixin(ABC):
         self.scaler.update()
         self.num_updates += 1
         self.profile("Finished update")
-
-    def _extract_loss(self, report: Dict[str, Any]) -> Tensor:
-        loss_dict = report.losses
-        assert len(loss_dict) != 0, (
-            "Model returned an empty loss dict. "
-            "Did you forget to (i) define losses in your model configuration or"
-            "(ii) return losses dict from your model?"
-        )
-        loss = sum([loss.mean() for loss in loss_dict.values()])
-        return loss
 
     def _calculate_max_updates(self):
         config_max_updates = self.training_config.max_updates

@@ -368,6 +368,24 @@ def get_max_updates(config_max_updates, config_max_epochs, train_loader, update_
     return max_updates, max_epochs
 
 
+def extract_loss(report: Dict[str, Any], loss_divisor: int) -> torch.Tensor:
+    loss_dict = report.losses
+    assert len(loss_dict) != 0, (
+        "Model returned an empty loss dict. "
+        "Did you forget to (i) define losses in your model configuration or"
+        "(ii) return losses dict from your model?"
+    )
+
+    # Since losses are batch averaged in MMF, this makes sure the
+    # scaling is right.
+    for key, value in loss_dict.items():
+        value = value.mean() / loss_divisor
+        report.losses[key] = value
+
+    loss = sum(loss.mean() for loss in loss_dict.values())
+    return loss
+
+
 def get_chunks(x, sizes):
     out = []
     begin = 0

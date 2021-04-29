@@ -145,3 +145,7 @@ class Meter:
                 loss_str.append(f"{name}: {meter.global_avg:.4f}")
 
         return self.delimiter.join(loss_str)
+
+    def reset(self):
+        del self.meters
+        self.meters = defaultdict(SmoothedValue)

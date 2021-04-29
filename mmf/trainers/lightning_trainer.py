@@ -9,7 +9,9 @@ from mmf.modules.metrics import Metrics
 from mmf.trainers.base_trainer import BaseTrainer
 from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
 from mmf.utils.build import build_model
+from mmf.utils.configuration import get_mmf_env
 from mmf.utils.general import get_max_updates, print_model_parameters
+from mmf.utils.logger import TensorboardLogger, setup_output_folder
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Trainer, seed_everything
 
@@ -22,11 +24,13 @@ class LightningTrainer(BaseTrainer):
     def __init__(self, config: DictConfig):
         super().__init__(config)
         self.trainer = None
+        self.trainer_config = self.config.trainer.params
+        self.data_module = None
 
     def load(self):
         super().load()
-        self.trainer_config = self.config.trainer.params
         self._calculate_max_updates()
+        self._load_loggers()
         self._load_trainer()
 
     def _load_trainer(self):
@@ -38,9 +42,9 @@ class LightningTrainer(BaseTrainer):
 
         lightning_params_dict = OmegaConf.to_container(lightning_params, resolve=True)
         self.trainer = Trainer(
-            logger=False,
             callbacks=self._callbacks,
             max_steps=self._max_updates,
+            default_root_dir=get_mmf_env(key="log_dir"),
             **lightning_params_dict
         )
 
@@ -50,6 +54,17 @@ class LightningTrainer(BaseTrainer):
     def configure_seed(self) -> None:
         seed = self.config.training.seed
         seed_everything(seed)
+
+    def _load_loggers(self) -> None:
+        self.tb_writer = None
+        if self.training_config.tensorboard:
+            # TODO: @sash PL logger upgrade
+            log_dir = setup_output_folder(folder_only=True)
+            env_tb_logdir = get_mmf_env(key="tensorboard_logdir")
+            if env_tb_logdir:
+                log_dir = env_tb_logdir
+
+            self.tb_writer = TensorboardLogger(log_dir)
 
     def load_datasets(self) -> None:
         logger.info("Loading datasets")
@@ -71,6 +86,7 @@ class LightningTrainer(BaseTrainer):
 
         self.model = build_model(attributes)
         self.model.is_pl_enabled = True
+        self.model.build_meters(self.run_type)
 
     def load_optimizer(self) -> None:
         logger.info("Loading optimizer: noop for lightning")
@@ -78,8 +94,8 @@ class LightningTrainer(BaseTrainer):
     def load_metrics(self) -> None:
         logger.info("Loading metrics")
         metrics = self.config.evaluation.get("metrics", [])
-        self.metrics = Metrics(metrics)
-        self.metrics_params = self.metrics.required_params
+        # moved metrics into the model object
+        self.model.metrics = Metrics(metrics)
 
     def configure_callbacks(self) -> None:
         self._callbacks = [LightningLoopCallback(self)]
@@ -90,6 +106,11 @@ class LightningTrainer(BaseTrainer):
         print_model_parameters(self.model)
 
         logger.info("Starting training...")
+
+        if "train" not in self.run_type:
+            self.inference()
+            return
+
         self.trainer.fit(self.model, self.data_module)
         # TODO: Look for a better way to hook this
         self.data_module.teardown()

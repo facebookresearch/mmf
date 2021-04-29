@@ -1,0 +1,116 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
+import gc
+import unittest
+from typing import Any, Dict
+from unittest.mock import MagicMock, patch
+
+from mmf.common.meter import Meter
+from mmf.trainers.callbacks.logistics import LogisticsCallback
+from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
+from mmf.utils.logger import TensorboardLogger
+from mmf.utils.timer import Timer
+from tests.trainers.test_utils import (
+    get_lightning_trainer,
+    get_mmf_trainer,
+    run_lightning_trainer_with_callback,
+)
+
+
+class TestLightningTrainerValidation(unittest.TestCase):
+    def setUp(self):
+        self.ground_truths = [
+            {
+                "current_iteration": 3,
+                "num_updates": 3,
+                "max_updates": 8,
+                "avg_loss": 9705.2953125,
+            },
+            {
+                "current_iteration": 6,
+                "num_updates": 6,
+                "max_updates": 8,
+                "avg_loss": 9703.29765625,
+            },
+            # TODO: @sash, add one last validation when training is done
+        ]
+
+    def teardown(self):
+        del self.ground_truths
+        gc.collect()
+
+    @patch("mmf.common.test_reporter.PathManager.mkdirs")
+    @patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value="")
+    def test_validation(self, log_dir, mkdirs):
+        trainer = get_lightning_trainer(
+            max_steps=8,
+            batch_size=2,
+            prepare_trainer=False,
+            val_check_interval=3,
+            log_every_n_steps=9,  # turn it off
+            limit_val_batches=1.0,
+        )
+        callback = LightningLoopCallback(trainer)
+        lightning_values = []
+
+        def log_values(
+            current_iteration: int,
+            num_updates: int,
+            max_updates: int,
+            meter: Meter,
+            extra: Dict[str, Any],
+            tb_writer: TensorboardLogger,
+        ):
+            lightning_values.append(
+                {
+                    "current_iteration": current_iteration,
+                    "num_updates": num_updates,
+                    "max_updates": max_updates,
+                    "avg_loss": meter.loss.avg,
+                }
+            )
+
+        with patch(
+            "mmf.trainers.lightning_core.loop_callback.summarize_report",
+            side_effect=log_values,
+        ):
+            run_lightning_trainer_with_callback(trainer, callback)
+
+        self.assertEqual(len(self.ground_truths), len(lightning_values))
+        for gt, lv in zip(self.ground_truths, lightning_values):
+            keys = list(gt.keys())
+            self.assertListEqual(keys, list(lv.keys()))
+            for key in keys:
+                self.assertAlmostEqual(gt[key], lv[key], 1)
+
+    @patch("mmf.common.test_reporter.PathManager.mkdirs")
+    @patch("torch.utils.tensorboard.SummaryWriter")
+    @patch("mmf.common.test_reporter.get_mmf_env", return_value="")
+    @patch("mmf.trainers.callbacks.logistics.summarize_report")
+    def test_validation_parity(self, summarize_report_fn, test_reporter, sw, mkdirs):
+        mmf_trainer = get_mmf_trainer(
+            max_updates=8, batch_size=2, max_epochs=None, evaluation_interval=3
+        )
+        mmf_trainer.load_metrics()
+        logistics_callback = LogisticsCallback(mmf_trainer.config, mmf_trainer)
+        logistics_callback.snapshot_timer = Timer()
+        logistics_callback.train_timer = Timer()
+        mmf_trainer.logistics_callback = logistics_callback
+        mmf_trainer.callbacks.append(logistics_callback)
+        mmf_trainer.early_stop_callback = MagicMock(return_value=None)
+        mmf_trainer.on_validation_end = logistics_callback.on_validation_end
+        mmf_trainer.training_loop()
+
+        calls = summarize_report_fn.call_args_list
+        self.assertEqual(3, len(calls))
+        calls = calls[:2]
+        self.assertEqual(len(self.ground_truths), len(calls))
+        self._check_values(calls)
+
+    def _check_values(self, calls):
+        for (_, kwargs), gt in zip(calls, self.ground_truths):
+            for key, value in gt.items():
+                if key == "avg_loss":
+                    self.assertAlmostEqual(kwargs["meter"].loss.avg, value, 1)
+                else:
+                    self.assertAlmostEqual(kwargs[key], value, 1)
