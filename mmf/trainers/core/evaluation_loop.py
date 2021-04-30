@@ -23,6 +23,8 @@ class TrainerEvaluationLoopMixin(ABC):
         meter = Meter()
         reporter = self.dataset_loader.get_test_reporter(dataset_type)
         use_cpu = self.config.evaluation.get("use_cpu", False)
+        loaded_batches = 0
+        skipped_batches = 0
 
         with torch.no_grad():
             self.model.eval()
@@ -33,13 +35,16 @@ class TrainerEvaluationLoopMixin(ABC):
 
                 if self._can_use_tqdm(dataloader):
                     dataloader = tqdm.tqdm(dataloader, disable=disable_tqdm)
-
                 for batch in dataloader:
-                    with CompleteInTimeOrDie(600):
+                    # Do not timeout quickly on first batch, as workers might start at
+                    # very different times.
+                    with CompleteInTimeOrDie(600 if loaded_batches else 3600 * 24):
+                        loaded_batches += 1
                         prepared_batch = reporter.prepare_batch(batch)
                         prepared_batch = to_device(prepared_batch, self.device)
                         if not validate_batch_sizes(prepared_batch.get_batch_size()):
                             logger.info("Skip batch due to uneven batch sizes.")
+                            skipped_batches += 1
                             continue
                         model_output = self.model(prepared_batch)
                         report = Report(prepared_batch, model_output)
@@ -81,6 +86,9 @@ class TrainerEvaluationLoopMixin(ABC):
                         if single_batch is True:
                             break
 
+                logger.info(f"Finished training. Loaded {loaded_batches}")
+                logger.info(f" -- skipped {skipped_batches} batches.")
+
                 reporter.postprocess_dataset_report()
                 assert (
                     combined_report is not None
@@ -120,7 +128,9 @@ class TrainerEvaluationLoopMixin(ABC):
                 if self._can_use_tqdm(dataloader):
                     dataloader = tqdm.tqdm(dataloader)
                 for batch in dataloader:
-                    with CompleteInTimeOrDie(600):
+                    # Do not timeout quickly on first batch, as workers might start at
+                    # very different times.
+                    with CompleteInTimeOrDie(600 if loaded_batches else 3600 * 24):
                         prepared_batch = reporter.prepare_batch(batch)
                         prepared_batch = to_device(prepared_batch, self.device)
                         loaded_batches += 1
