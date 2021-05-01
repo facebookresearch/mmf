@@ -506,7 +506,7 @@ unit:
       resources:
       - url: mmf://models/unit_models/unit.coco.single_task.tar.gz
         file_name: unit.coco.single_task.tar.gz
-        hashcode: e425909ce0ff10921a88175e98e2616d556a268753183beeeba1f63d5f56128c
+        hashcode: d235fe2d27b47d8f19ce82bea2b1bc6d33151b7c6c1a5558c2a501911b9f4880
     single_task_without_task_embedding:
       # Model from project : projects/unit
       # - val/detection_coco/detection_mean_ap: 0.4015
@@ -514,7 +514,7 @@ unit:
       resources:
       - url: mmf://models/unit_models/unit.coco.single_task_without_task_embedding.tar.gz
         file_name: unit.coco.single_task_without_task_embedding.tar.gz
-        hashcode: 05c693d92ffbf17c36964a69f560c77a8b7fea6c30f1bd67d2dcc28c89ea59e9
+        hashcode: ded272f84b6fb27e3aaca3de4d494f8bbfdb1b6a870a43069b43aed6d94bd7d3
   all_8_datasets:
     shared_dec_with_coco_init:
       # Model from project : projects/unit
@@ -530,7 +530,7 @@ unit:
       resources:
       - url: mmf://models/unit_models/unit.all_8_datasets.shared_dec_with_coco_init.tar.gz
         file_name: unit.all_8_datasets.shared_dec_with_coco_init.tar.gz
-        hashcode: b85796246601c477d354d6ad315b55a200b4c7ba6bf7e263ef82bca74bdcab1c
+        hashcode: 63cd3a5cfd6728b6e529714d5dcdc5cb3d9b7d1038dbbb2351264d145e5852d4
     shared_dec_with_coco_init_without_task_embedding:
       # Model from project : projects/unit
       # - val/detection_coco/detection_mean_ap: 0.3847,
@@ -545,4 +545,4 @@ unit:
       resources:
       - url: mmf://models/unit_models/unit.all_8_datasets.shared_dec_with_coco_init_without_task_embedding.tar.gz
         file_name: unit.all_8_datasets.shared_dec_with_coco_init_without_task_embedding.tar.gz
-        hashcode: 4a9e0dbd4b73152c7b514cd1695f28068157e1c31e4c49ad0e9edec27a987c59
+        hashcode: c4a3c1072f07e605de76402ff7c0e2bc8d4514561c52dc94b3d28b3d4d7f698e
