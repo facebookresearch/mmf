@@ -79,9 +79,7 @@ class TrainerEvaluationLoopMixin(ABC):
                         if "__prediction_report__" in self.metrics.required_params:
                             # Still need to use original report here on GPU/TPU since
                             # it will be gathered
-                            reporter.add_to_report(
-                                report, self.model, execute_on_master_only=False
-                            )
+                            reporter.add_to_report(report, self.model)
 
                         if single_batch is True:
                             break

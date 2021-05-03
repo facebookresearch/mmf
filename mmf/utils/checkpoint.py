@@ -177,7 +177,7 @@ class Checkpoint:
     def save_config(self):
         cfg_file = os.path.join(self.ckpt_foldername, "config.yaml")
         with PathManager.open(cfg_file, "w") as f:
-            f.write(self.config.pretty(resolve=True))
+            f.write(OmegaConf.to_yaml(self.config, resolve=True))
 
     def load_state_dict(self):
         ckpt_config = self.config.checkpoint

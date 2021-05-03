@@ -42,7 +42,8 @@ def synchronize(message="sync-workers"):
 
 
 def is_xla():
-    return registry.get("is_xla", no_warning=True)
+    # Cover none case as well
+    return not (not registry.get("is_xla", no_warning=True))
 
 
 def get_rank():
