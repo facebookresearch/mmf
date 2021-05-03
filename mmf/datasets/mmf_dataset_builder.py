@@ -61,6 +61,7 @@ class MMFDatasetBuilder(BaseDatasetBuilder):
         self.dataset_class = dataset_cls
 
     def build(self, config, dataset_type="train", *args, **kwargs):
+        self.config = config
         requirements = config.get("zoo_requirements", [])
 
         if len(requirements) == 0:
