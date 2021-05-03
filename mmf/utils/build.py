@@ -87,7 +87,6 @@ def build_model(
     model = model_class(config)
 
     if hasattr(model, "build"):
-        model.load_requirements()
         """ Model build involves checkpoint loading
         If the checkpoint is not available the underlying
         methods try to download it.
@@ -99,6 +98,7 @@ def build_model(
         using already downloaded checkpoint.
         """
         if is_master():
+            model.load_requirements()
             model.build()
             synchronize()
         else:
@@ -207,8 +207,12 @@ def build_multiple_datamodules(
                 + " in config. Proceeding with empty config."
             )
             dataset_config = OmegaConf.create()
-        datamodule_instance.prepare_data(dataset_config)
-        datamodule_instance.setup()
+
+        if is_master():
+            datamodule_instance.prepare_data(dataset_config)
+
+        synchronize()
+        datamodule_instance.setup(config=dataset_config)
         if hasattr(datamodule_instance, "update_registry_for_model"):
             datamodule_instance.update_registry_for_model(dataset_config)
         datamodules[dataset] = datamodule_instance
