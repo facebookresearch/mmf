@@ -272,23 +272,27 @@ class BaseModel(pl.LightningModule):
             model_output, collections.abc.Mapping
         ), "A dict must be returned from the forward of the model."
 
-        if "losses" in model_output:
-            if not self._logged_warning["losses_present"]:
-                warnings.warn(
-                    "'losses' already present in model output. "
-                    "No calculation will be done in base model."
-                )
-                self._logged_warning["losses_present"] = True
+        final_output = {"losses": {}}
+        final_output.update(model_output)
 
+        if "losses" in model_output:
             assert isinstance(
                 model_output["losses"], collections.abc.Mapping
-            ), "'losses' must be a dict."
-        elif hasattr(self, "losses"):
-            model_output["losses"] = self.losses(sample_list, model_output)
-        else:
-            model_output["losses"] = {}
+            ), "'losses' returned from the model must be a dict."
 
-        return model_output
+        if hasattr(self, "losses"):
+            if "losses" in model_output and not self._logged_warning["losses_present"]:
+                warnings.warn(
+                    "'losses' already present in model output and 'loss' key "
+                    "was specified. Results from the two will be merged. "
+                    "If this is not expected, either (i) assign unique keys to "
+                    "losses returned from your model (ii) remove 'loss' key from "
+                    "your model output"
+                )
+                self._logged_warning["losses_present"] = True
+            final_output["losses"].update(self.losses(sample_list, model_output))
+
+        return final_output
 
     def load_requirements(self, *args, **kwargs):
         requirements = self.config.get("zoo_requirements", [])
