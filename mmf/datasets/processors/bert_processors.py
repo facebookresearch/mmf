@@ -18,6 +18,7 @@ class MaskedTokenProcessor(BaseProcessor):
     _PAD_TOKEN_ID = 0
 
     def __init__(self, config, *args, **kwargs):
+
         tokenizer_config = config.tokenizer_config
         self._tokenizer = AutoTokenizer.from_pretrained(
             tokenizer_config.type, **tokenizer_config.params
@@ -80,13 +81,14 @@ class MaskedTokenProcessor(BaseProcessor):
         # that's truncated likely contains more information than a longer sequence.
         if tokens_b is None:
             tokens_b = []
+            max_length -= 2
         else:
             # _convert_to_indices does [CLS] tokens_a [SEP] tokens_b [SEP]
-            max_length -= 1
-            assert max_length >= 0, (
-                "Max length should be minimum 2 in case of single sentence"
-                + " and 3 in case of two sentences."
-            )
+            max_length -= 3
+        assert max_length >= 0, (
+            "Max length should be minimum 2 in case of single sentence"
+            + " and 3 in case of two sentences."
+        )
 
         while True:
             total_length = len(tokens_a) + len(tokens_b)
@@ -103,6 +105,11 @@ class MaskedTokenProcessor(BaseProcessor):
         tokens_b: Optional[List[str]] = None,
         probability: float = 0.15,
     ) -> Dict[str, torch.Tensor]:
+        """
+        BERT encodes
+        - single sequence: ``[CLS] X [SEP]``
+        - pair of sequences: ``[CLS] A [SEP] B [SEP]``
+        """
         tokens_a, label_a = self._random_word(tokens_a, probability=probability)
         tokens = [self._CLS_TOKEN] + tokens_a + [self._SEP_TOKEN]
         segment_ids = [0] + [0] * len(tokens_a) + [0]
@@ -153,7 +160,7 @@ class MaskedTokenProcessor(BaseProcessor):
         if text_b:
             tokens_b = self.tokenize(text_b)
 
-        self._truncate_seq_pair(tokens_a, tokens_b, self._max_seq_length - 2)
+        self._truncate_seq_pair(tokens_a, tokens_b, self._max_seq_length)
         output = self._convert_to_indices(
             tokens_a, tokens_b, probability=self._probability
         )
@@ -188,24 +195,12 @@ class BertTokenizer(MaskedTokenProcessor):
             if text_b:
                 tokens_b = self.tokenize(text_b)
 
-        self._truncate_seq_pair(tokens_a, tokens_b, self._max_seq_length - 2)
+        self._truncate_seq_pair(tokens_a, tokens_b, self._max_seq_length)
         output = self._convert_to_indices(
             tokens_a, tokens_b, probability=self._probability
         )
         output["text"] = output["tokens"]
         return output
-
-
-@registry.register_processor("roberta_tokenizer")
-class RoBERTaTokenizer(BertTokenizer):
-    def __init__(self, config, *args, **kwargs):
-        super().__init__(config, *args, **kwargs)
-        # https://huggingface.co/transformers/model_doc/xlmroberta.html
-        # roberta is with different tokenization of above default (bert)
-        self._CLS_TOKEN = "<s>"
-        self._SEP_TOKEN = "</s>"
-        self._MASK_TOKEN = "<mask>"
-        self._PAD_TOKEN_ID = 1  # roberta's pad_token_id == 1
 
 
 @registry.register_processor("multi_sentence_bert_tokenizer")
@@ -242,3 +237,117 @@ class MultiSentenceBertTokenizer(BaseProcessor):
             processed.segment_ids = processed.segment_ids.view(-1)
             processed.lm_label_ids = processed.lm_label_ids.view(-1)
         return processed.to_dict()
+
+
+@registry.register_processor("masked_roberta_tokenizer")
+class MaskedRobertaTokenizer(MaskedTokenProcessor):
+    def __init__(self, config, *args, **kwargs):
+        # https://huggingface.co/transformers/model_doc/xlmroberta.html
+        # roberta is with different tokenization of above default (bert)
+        tokenizer_config = config.tokenizer_config
+        self._tokenizer = AutoTokenizer.from_pretrained(
+            tokenizer_config.type, **tokenizer_config.params
+        )
+
+        self._CLS_TOKEN = self._tokenizer.bos_token  # <s>
+        self._SEP_TOKEN = self._tokenizer.sep_token  # </s>
+        self._MASK_TOKEN = self._tokenizer.mask_token  # <mask>
+        self._PAD_TOKEN_ID = self._tokenizer.pad_token_id  # 1
+
+        self._max_seq_length = config.max_seq_length
+        self._probability = getattr(config, "mask_probability", 0.15)
+
+    def _truncate_seq_pair(
+        self, tokens_a: List[str], tokens_b: List[str], max_length: int
+    ):
+        """Truncates a sequence pair in place to the maximum length."""
+        if tokens_b is None:
+            tokens_b = []
+            max_length -= 2
+        else:
+            # _convert_to_indices does <s> tokens_a </s> </s> tokens_b </s>
+            max_length -= 4
+        assert max_length >= 0, (
+            "Max length should be minimum 2 in case of single sentence"
+            + " and 4 in case of two sentences."
+        )
+
+        while True:
+            total_length = len(tokens_a) + len(tokens_b)
+            if total_length <= max_length:
+                break
+            if len(tokens_a) > len(tokens_b):
+                tokens_a.pop()
+            else:
+                tokens_b.pop()
+
+    def _convert_to_indices(
+        self,
+        tokens_a: List[str],
+        tokens_b: Optional[List[str]] = None,
+        probability: float = 0.15,
+    ) -> Dict[str, torch.Tensor]:
+        """
+        Roberta encodes
+        - single sequence: ``<s> X </s>``
+        - pair of sequences: ``<s> A </s> </s> B </s>``
+        """
+        tokens_a, label_a = self._random_word(tokens_a, probability=probability)
+        tokens = [self._CLS_TOKEN] + tokens_a + [self._SEP_TOKEN]
+        segment_ids = [0] + [0] * len(tokens_a) + [0]
+        lm_label_ids = [-1] + label_a + [-1]
+
+        if tokens_b:
+            tokens_b, label_b = self._random_word(tokens_b, probability=probability)
+            assert len(tokens_b) > 0
+            # ``<s> A </s> </s> B </s>``
+            tokens += [self._SEP_TOKEN] + tokens_b + [self._SEP_TOKEN]
+            # RoBERTA and XLM-R don't use segment_ids, segment_ids are all 0's
+            segment_ids += [0] + [0] * len(tokens_b) + [0]
+            lm_label_ids += [-1] + label_b + [-1]
+
+        input_ids = self._convert_tokens_to_ids(tokens)
+        input_mask = [1] * len(input_ids)
+
+        # Zero-pad up to the sequence length.
+        while len(input_ids) < self._max_seq_length:
+            input_ids.append(self._PAD_TOKEN_ID)
+            input_mask.append(0)
+            segment_ids.append(0)
+            lm_label_ids.append(-1)
+
+        assert len(input_ids) == self._max_seq_length
+        assert len(input_mask) == self._max_seq_length
+        assert len(segment_ids) == self._max_seq_length
+        assert len(lm_label_ids) == self._max_seq_length
+
+        input_ids = torch.tensor(input_ids, dtype=torch.long)
+        input_mask = torch.tensor(input_mask, dtype=torch.long)
+        segment_ids = torch.tensor(segment_ids, dtype=torch.long)
+        lm_label_ids = torch.tensor(lm_label_ids, dtype=torch.long)
+        return {
+            "input_ids": input_ids,
+            "input_mask": input_mask,
+            "segment_ids": segment_ids,
+            "lm_label_ids": lm_label_ids,
+            "tokens": tokens,
+        }
+
+
+@registry.register_processor("roberta_tokenizer")
+class RobertaTokenizer(BertTokenizer, MaskedRobertaTokenizer):
+    def __init__(self, config, *args, **kwargs):
+        super().__init__(config, *args, **kwargs)
+        self._probability = config.get("mask_probability", 0)
+
+
+@registry.register_processor("multi_sentence_roberta_tokenizer")
+class MultiSentenceRobertaTokenizer(MultiSentenceBertTokenizer):
+    """Extension of SPMTokenizer which supports multiple sentences.
+    Similar to MultiSentenceBertTokenizer.
+    """
+
+    def __init__(self, config, *args, **kwargs):
+        self.fusion_strategy = config.get("fusion", "concat")
+        self.tokenizer = RobertaTokenizer(config, *args, **kwargs)
+        self._probability = config.get("mask_probability", 0)
