@@ -240,6 +240,9 @@ def calculate_time_left(
     log_interval,
     eval_interval,
 ):
+    if num_updates is None or max_updates is None:
+        return "Unknown"
+
     time_taken_for_log = time.time() * 1000 - timer.start
     iterations_left = max_updates - num_updates
     num_logs_left = iterations_left / log_interval
