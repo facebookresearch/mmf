@@ -90,6 +90,8 @@ class BaseDatasetBuilder(pl.LightningDataModule):
     def setup(self, stage: Optional[str] = None, config: Optional[DictConfig] = None):
         if config is None:
             config = self.config
+
+        self.config = config
         self.train_dataset = self.load_dataset(config, "train")
         self.val_dataset = self.load_dataset(config, "val")
         self.test_dataset = self.load_dataset(config, "test")
