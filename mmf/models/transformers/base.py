@@ -126,7 +126,7 @@ class BaseTransformer(BaseModel):
                 # For other modules in trunk, add to same param group
                 param_list += list(module.named_parameters())
 
-        parameters += get_bert_configured_parameters(self)
+        parameters += get_bert_configured_parameters(param_list)
 
         return parameters
 
