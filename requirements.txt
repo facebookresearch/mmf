@@ -20,3 +20,4 @@ matplotlib==3.3.4
 pycocotools==2.0.2
 ftfy==5.8
 pytorch-lightning @ git+https://github.com/PyTorchLightning/pytorch-lightning@7a48db5
+torchaudio>=0.6.0, <=0.8.1

@@ -599,3 +599,12 @@ visual_genome:
       - url: mmf://datasets/visual_genome/detection_split_by_coco_2017/annotations/annotations_split_by_coco_2017.tar.gz
         file_name: annotations_split_by_coco_2017.tar.gz
         hashcode: 19129558ef8ba766c1009106ec6f46d62221ec3bb87af505c4157b7e9bcc8e66
+
+charades:
+  defaults:
+    version: 1.0_2020_09_02
+    resources:
+    - url: https://ai2-public-datasets.s3-us-west-2.amazonaws.com/charades/Charades.zip
+      file_name: Charades.zip
+    - url: https://ai2-public-datasets.s3-us-west-2.amazonaws.com/charades/Charades_v1_480.zip
+      file_name: Charades_v1_480.zip
