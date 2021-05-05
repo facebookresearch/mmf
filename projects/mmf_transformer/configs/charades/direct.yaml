@@ -1,0 +1,34 @@
+includes:
+- configs/models/mmf_transformer/with_audio_video.yaml
+
+model_config:
+  mmf_transformer:
+    heads:
+    - type: mlp
+      num_labels: 157
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+
+scheduler:
+  type: warmup_cosine
+  params:
+    num_warmup_steps: 2000
+    num_training_steps: 60000
+
+evaluation:
+  metrics:
+  - multilabel_micro_f1
+
+training:
+  batch_size: 8
+  lr_scheduler: true
+  # Don't forget to update schedule_attributes if you update this
+  max_updates: 60000
+  find_unused_parameters: true
+  early_stop:
+    criteria: charades/multilabel_micro_f1
+    minimize: false

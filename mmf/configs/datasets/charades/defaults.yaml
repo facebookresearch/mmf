@@ -1,0 +1,75 @@
+dataset_config:
+  charades:
+    data_dir: ${env.data_dir}/datasets
+    zoo_requirements:
+    - charades.defaults
+    prediction_threshold: 0.5
+    annotations:
+      train:
+      - charades/defaults/Charades/Charades_v1_train.csv
+      val:
+      - charades/defaults/Charades/Charades_v1_test.csv
+      test:
+      - charades/defaults/Charades/Charades_v1_test.csv
+    videos:
+      train:
+      - charades/defaults/Charades_v1_480
+      val:
+      - charades/defaults/Charades_v1_480
+      test:
+      - charades/defaults/Charades_v1_480
+    classes_file: charades/defaults/Charades/Charades_v1_classes.txt
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
+      audio_processor:
+        type: torchvision_transforms
+        params:
+          transforms:
+            - type: truncate_or_pad
+              params:
+                output_size: 1000
+            - MelSpectrogram
+            - ToPILImage
+            - type: Resize
+              params:
+                size: [224, 224]
+            - ToTensor
+      video_train_processor:
+        type: torchvision_transforms
+        params:
+          transforms:
+            - video_to_tensor
+            - type: video_resize
+              params:
+                size: [128, 171]
+            - video_random_horizontal_flip
+            - type: video_normalize
+              params:
+                mean: [0.43216, 0.394666, 0.37645]
+                std: [0.22803, 0.22145, 0.216989]
+            - type: video_random_crop
+              params:
+                size: [112, 112]
+      video_test_processor:
+        type: torchvision_transforms
+        params:
+          transforms:
+            - video_to_tensor
+            - type: video_resize
+              params:
+                size: [128, 171]
+            - type: video_normalize
+              params:
+                mean: [0.43216, 0.394666, 0.37645]
+                std: [0.22803, 0.22145, 0.216989]
+            - type: video_random_crop
+              params:
+                size: [112, 112]

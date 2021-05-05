@@ -9,9 +9,8 @@ from typing import Dict, List
 
 import torch
 from mmf.utils.box_ops import box_cxcywh_to_xyxy, generalized_box_iou
-from torch import Tensor, nn
-
 from scipy.optimize import linear_sum_assignment
+from torch import Tensor, nn
 
 
 class HungarianMatcher(nn.Module):

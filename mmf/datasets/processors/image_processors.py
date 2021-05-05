@@ -9,6 +9,7 @@ import torch
 from mmf.common.registry import registry
 from mmf.datasets.processors.processors import BaseProcessor
 from omegaconf import OmegaConf
+from torchaudio import transforms as torchaudio_transforms
 from torchvision import transforms
 
 
@@ -38,13 +39,16 @@ class TorchvisionTransforms(BaseProcessor):
                 transform_param = OmegaConf.create([])
 
             transform = getattr(transforms, transform_type, None)
-            # If torchvision doesn't contain this, check our registry if we
-            # implemented a custom transform as processor
+            if transform is None:
+                transform = getattr(torchaudio_transforms, transform_type, None)
+            # If torchvision or torchaudiodoesn't contain this, check our registry
+            # if we implemented a custom transform as processor
             if transform is None:
                 transform = registry.get_processor_class(transform_type)
-            assert (
-                transform is not None
-            ), f"torchvision.transforms has no transform {transform_type}"
+            assert transform is not None, (
+                f"transform {transform_type} is not present in torchvision, "
+                + "torchaudio or processor registry"
+            )
 
             # https://github.com/omry/omegaconf/issues/248
             transform_param = OmegaConf.to_container(transform_param)

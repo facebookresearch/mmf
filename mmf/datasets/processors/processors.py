@@ -75,7 +75,7 @@ import re
 import warnings
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 
 import numpy as np
 import torch
@@ -86,6 +86,7 @@ from mmf.utils.distributed import is_master, synchronize
 from mmf.utils.file_io import PathManager
 from mmf.utils.text import VocabDict
 from mmf.utils.vocab import Vocab, WordToVectorDict
+from omegaconf import DictConfig
 
 
 logger = logging.getLogger(__name__)
@@ -106,7 +107,7 @@ class BaseProcessor:
 
     """
 
-    def __init__(self, config: Dict[str, Any], *args, **kwargs):
+    def __init__(self, *args, config: Optional[DictConfig] = None, **kwargs):
         return
 
     def __call__(self, item: Any, *args, **kwargs) -> Any:
