@@ -241,6 +241,7 @@
 <span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
 <span class="kn">from</span> <span class="nn">mmf.datasets.processors.processors</span> <span class="kn">import</span> <span class="n">BaseProcessor</span>
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">OmegaConf</span>
+<span class="kn">from</span> <span class="nn">torchaudio</span> <span class="kn">import</span> <span class="n">transforms</span> <span class="k">as</span> <span class="n">torchaudio_transforms</span>
 <span class="kn">from</span> <span class="nn">torchvision</span> <span class="kn">import</span> <span class="n">transforms</span>
 
 
@@ -270,13 +271,16 @@
                 <span class="n">transform_param</span> <span class="o">=</span> <span class="n">OmegaConf</span><span class="o">.</span><span class="n">create</span><span class="p">([])</span>
 
             <span class="n">transform</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">transforms</span><span class="p">,</span> <span class="n">transform_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="c1"># If torchvision doesn&#39;t contain this, check our registry if we</span>
-            <span class="c1"># implemented a custom transform as processor</span>
+            <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">transform</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torchaudio_transforms</span><span class="p">,</span> <span class="n">transform_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="c1"># If torchvision or torchaudiodoesn&#39;t contain this, check our registry</span>
+            <span class="c1"># if we implemented a custom transform as processor</span>
             <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">transform</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get_processor_class</span><span class="p">(</span><span class="n">transform_type</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="p">(</span>
-                <span class="n">transform</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;torchvision.transforms has no transform </span><span class="si">{</span><span class="n">transform_type</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">assert</span> <span class="n">transform</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;transform </span><span class="si">{</span><span class="n">transform_type</span><span class="si">}</span><span class="s2"> is not present in torchvision, &quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;torchaudio or processor registry&quot;</span>
+            <span class="p">)</span>
 
             <span class="c1"># https://github.com/omry/omegaconf/issues/248</span>
             <span class="n">transform_param</span> <span class="o">=</span> <span class="n">OmegaConf</span><span class="o">.</span><span class="n">to_container</span><span class="p">(</span><span class="n">transform_param</span><span class="p">)</span>
