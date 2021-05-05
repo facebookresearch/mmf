@@ -84,6 +84,5 @@ class TrainerDeviceMixin(ABC):
                     self.model,
                     device_ids=[self.local_rank],
                     output_device=self.local_rank,
-                    check_reduction=True,
                     find_unused_parameters=self.config.training.find_unused_parameters,
                 )
