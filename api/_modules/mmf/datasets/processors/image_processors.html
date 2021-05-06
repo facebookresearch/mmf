@@ -241,7 +241,6 @@
 <span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
 <span class="kn">from</span> <span class="nn">mmf.datasets.processors.processors</span> <span class="kn">import</span> <span class="n">BaseProcessor</span>
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">OmegaConf</span>
-<span class="kn">from</span> <span class="nn">torchaudio</span> <span class="kn">import</span> <span class="n">transforms</span> <span class="k">as</span> <span class="n">torchaudio_transforms</span>
 <span class="kn">from</span> <span class="nn">torchvision</span> <span class="kn">import</span> <span class="n">transforms</span>
 
 
@@ -272,6 +271,11 @@
 
             <span class="n">transform</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">transforms</span><span class="p">,</span> <span class="n">transform_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">mmf.utils.env</span> <span class="kn">import</span> <span class="n">setup_torchaudio</span>
+
+                <span class="n">setup_torchaudio</span><span class="p">()</span>
+                <span class="kn">from</span> <span class="nn">torchaudio</span> <span class="kn">import</span> <span class="n">transforms</span> <span class="k">as</span> <span class="n">torchaudio_transforms</span>
+
                 <span class="n">transform</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torchaudio_transforms</span><span class="p">,</span> <span class="n">transform_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="c1"># If torchvision or torchaudiodoesn&#39;t contain this, check our registry</span>
             <span class="c1"># if we implemented a custom transform as processor</span>
