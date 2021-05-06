@@ -13,9 +13,7 @@ class TestBERTProcessors(unittest.TestCase):
             {
                 "tokenizer_config": {
                     "type": "bert-base-uncased",
-                    "params": {
-                        "do_lower_case": True,
-                    },
+                    "params": {"do_lower_case": True},
                 },
                 "mask_probability": 0,
                 "max_seq_length": 128,
