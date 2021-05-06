@@ -191,6 +191,16 @@ def setup_imports():
     registry.register("imports_setup", True)
 
 
+def setup_torchaudio():
+    # required for soundfile
+    try:
+        import libfb.py.ctypesmonkeypatch
+
+        libfb.py.ctypesmonkeypatch.install()
+    except ImportError:
+        pass
+
+
 def teardown_imports():
     from mmf.common.registry import registry
 

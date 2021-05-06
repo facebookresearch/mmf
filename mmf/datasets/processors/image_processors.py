@@ -9,7 +9,6 @@ import torch
 from mmf.common.registry import registry
 from mmf.datasets.processors.processors import BaseProcessor
 from omegaconf import OmegaConf
-from torchaudio import transforms as torchaudio_transforms
 from torchvision import transforms
 
 
@@ -40,7 +39,12 @@ class TorchvisionTransforms(BaseProcessor):
 
             transform = getattr(transforms, transform_type, None)
             if transform is None:
-                transform = getattr(torchaudio_transforms, transform_type, None)
+                from mmf.utils.env import setup_torchaudio
+
+                setup_torchaudio()
+                from torchaudio import transforms as torchaudio_transforms
+
+                transform = registry.get_processor_class(transform_type)
             # If torchvision or torchaudiodoesn't contain this, check our registry
             # if we implemented a custom transform as processor
             if transform is None:
