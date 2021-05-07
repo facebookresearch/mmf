@@ -63,12 +63,14 @@ class LogisticsCallback(Callback):
         if self.training_config.experiment_name:
             extra["experiment"] = self.training_config.experiment_name
 
+        max_updates = getattr(self.trainer, "max_updates", None)
+        num_updates = getattr(self.trainer, "num_updates", None)
         extra.update(
             {
                 "epoch": self.trainer.current_epoch,
-                "num_updates": self.trainer.num_updates,
+                "num_updates": num_updates,
                 "iterations": self.trainer.current_iteration,
-                "max_updates": self.trainer.max_updates,
+                "max_updates": max_updates,
                 "lr": "{:.5f}".format(
                     self.trainer.optimizer.param_groups[0]["lr"]
                 ).rstrip("0"),
@@ -78,8 +80,8 @@ class LogisticsCallback(Callback):
                 "time": self.train_timer.get_time_since_start(),
                 "time_since_start": self.total_timer.get_time_since_start(),
                 "eta": calculate_time_left(
-                    max_updates=self.trainer.max_updates,
-                    num_updates=self.trainer.num_updates,
+                    max_updates=max_updates,
+                    num_updates=num_updates,
                     timer=self.train_timer,
                     num_snapshot_iterations=self.snapshot_iterations,
                     log_interval=self.log_interval,
@@ -90,8 +92,8 @@ class LogisticsCallback(Callback):
         self.train_timer.reset()
         summarize_report(
             current_iteration=self.trainer.current_iteration,
-            num_updates=self.trainer.num_updates,
-            max_updates=self.trainer.max_updates,
+            num_updates=num_updates,
+            max_updates=max_updates,
             meter=kwargs["meter"],
             extra=extra,
             tb_writer=self.tb_writer,
@@ -101,19 +103,21 @@ class LogisticsCallback(Callback):
         self.snapshot_timer.reset()
 
     def on_validation_end(self, **kwargs):
+        max_updates = getattr(self.trainer, "max_updates", None)
+        num_updates = getattr(self.trainer, "num_updates", None)
         extra = {
-            "num_updates": self.trainer.num_updates,
+            "num_updates": num_updates,
             "epoch": self.trainer.current_epoch,
             "iterations": self.trainer.current_iteration,
-            "max_updates": self.trainer.max_updates,
+            "max_updates": max_updates,
             "val_time": self.snapshot_timer.get_time_since_start(),
         }
         extra.update(self.trainer.early_stop_callback.early_stopping.get_info())
         self.train_timer.reset()
         summarize_report(
             current_iteration=self.trainer.current_iteration,
-            num_updates=self.trainer.num_updates,
-            max_updates=self.trainer.max_updates,
+            num_updates=num_updates,
+            max_updates=max_updates,
             meter=kwargs["meter"],
             extra=extra,
             tb_writer=self.tb_writer,
@@ -125,8 +129,8 @@ class LogisticsCallback(Callback):
         )
         summarize_report(
             current_iteration=self.trainer.current_iteration,
-            num_updates=self.trainer.num_updates,
-            max_updates=self.trainer.max_updates,
+            num_updates=getattr(self.trainer, "num_updates", None),
+            max_updates=getattr(self.trainer, "max_updates", None),
             meter=kwargs["meter"],
             should_print=prefix,
             tb_writer=self.tb_writer,
