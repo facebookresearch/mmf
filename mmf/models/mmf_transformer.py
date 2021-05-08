@@ -199,7 +199,7 @@ class MMFTransformer(BaseTransformer):
                 # input_modal is originally used by MMBT, added for
                 # cross-compatibility of interops and datasets.
                 input_ids[modality] = self._check_keys_for_modality(
-                    sample_list, ("image", "input_modal", "image_feature_0", modality)
+                    sample_list, (modality, "image", "input_modal", "image_feature_0")
                 )
             else:
                 # TODO: Later deliberate if missing modalities should
