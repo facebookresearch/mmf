@@ -1,7 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import logging
 from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import torch
 from mmf.common.registry import registry
@@ -16,6 +17,8 @@ from mmf.modules.encoders import ResNet152ImageEncoder
 from mmf.utils.build import build_encoder
 from omegaconf import MISSING, OmegaConf
 from torch import Tensor, nn
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -48,6 +51,7 @@ class MMFTransformer(BaseTransformer):
         random_initialize: bool = False
         freeze_transformer: bool = False
         freeze_image_encoder: bool = False
+        tie_weight_to_encoder: Optional[str] = None
         finetune_lr_multiplier: float = 1
         backend: BaseTransformerBackendConfig = MMFTransformerBackendConfig(
             type="huggingface"
@@ -123,8 +127,8 @@ class MMFTransformer(BaseTransformer):
             encoder = build_encoder(encoder_config)
             self.encoders[modality.key] = encoder
 
-            if modality.type == "image" and getattr(
-                self.config, "freeze_image_encoder", False
+            if modality.type == "image" and self.config.get(
+                "freeze_image_encoder", False
             ):
                 for param in encoder.parameters():
                     param.requires_grad = False
@@ -134,9 +138,31 @@ class MMFTransformer(BaseTransformer):
         text_embedding_idx = self.modality_type.index("text")
         if text_embedding_idx >= 0:
             for head in self.heads:
-                head.tie_weights(
-                    self.backend.embeddings.token_embeddings[text_embedding_idx]
-                )
+                if self.config.get("tie_weight_to_encoder", None):
+                    encoder_key = self._find_unique_encoder_key(
+                        self.config.tie_weight_to_encoder
+                    )
+                    logger.info(
+                        f"Tie head weights to {encoder_key} encoder token embeddings"
+                    )
+                    if hasattr(self.encoders[encoder_key], "transformer"):
+                        head.tie_weights(
+                            self.encoders[
+                                encoder_key
+                            ].transformer.transformer.token_embedding
+                        )
+                    elif hasattr(self.encoders[encoder_key], "embeddings"):
+                        head.tie_weights(
+                            self.encoders[encoder_key].embeddings.word_embeddings
+                        )
+                    else:
+                        raise NotImplementedError(
+                            "Current encoder module arch not supported."
+                        )
+                else:
+                    head.tie_weights(
+                        self.backend.embeddings.token_embeddings[text_embedding_idx]
+                    )
 
     def preprocess_sample(
         self, sample_list: Dict[str, Tensor]
@@ -375,3 +401,18 @@ class MMFTransformer(BaseTransformer):
                 head(sequence_output, encoded_layers, processed_sample_list)
             )
         return output_dict
+
+    # encoder_key = self.config.tie_weight_to_encoder
+    def _find_unique_encoder_key(self, key):
+        assert key in self.encoders, f"MMFT doesn't have {key} encoder."
+        for modality in self.config.modalities:
+            if modality.key == key:
+                assert (
+                    len([m for m in self.config.modalities if m.key == modality.key])
+                    == 1
+                ), f"MMFT has multiple modalities with the same key {key}."
+                assert (
+                    len([m for m in self.config.modalities if m.type == modality.type])
+                    == 1
+                ), f"Encoder {key} should be the only encoder for {modality.type}."
+                return key

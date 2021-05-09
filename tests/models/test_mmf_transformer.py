@@ -7,6 +7,7 @@ import tests.test_utils as test_utils
 import torch
 from mmf.common.sample import SampleList
 from mmf.models.mmf_transformer import MMFTransformer, MMFTransformerModalityConfig
+from mmf.models.transformers.heads.mlm import MLM
 from mmf.modules.encoders import (
     EncoderFactory,
     IdentityEncoder,
@@ -20,7 +21,6 @@ from mmf.utils.build import build_model
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports, teardown_imports
 from omegaconf import OmegaConf
-
 
 BERT_VOCAB_SIZE = 30255
 ROBERTA_VOCAB_SIZE = 50265
@@ -442,3 +442,27 @@ class TestMMFTransformer(unittest.TestCase):
         segment_ids = transformer_input["segment_ids"]
         test_utils.compare_tensors(segment_ids["image"], torch.tensor([[0], [0]]))
         test_utils.compare_tensors(segment_ids["text"], torch.ones((2, 128)).long())
+
+    def test_tie_mlm_head_weight_to_encoder(self):
+        self._text_modality_config = MMFTransformerModalityConfig(
+            type="text",
+            key="text",
+            embedding_dim=768,
+            position_dim=128,
+            segment_id=0,
+            encoder=TextEncoderFactory.Config(type=TextEncoderTypes.transformer),
+        )
+        heads = [MLM.Config()]
+        modalities_config = [self._image_modality_config, self._text_modality_config]
+        config = MMFTransformer.Config(
+            heads=heads,
+            modalities=modalities_config,
+            num_labels=2,
+            tie_weight_to_encoder="text",
+        )
+        mmft = build_model(config)
+
+        test_utils.compare_tensors(
+            mmft.heads[0].cls.predictions.decoder.weight,
+            mmft.encoders["text"].embeddings.word_embeddings.weight,
+        )

@@ -39,4 +39,5 @@ model_config:
     layer_norm_weight_fill: 1.0
     random_initialize: false
     freeze_image_encoder: false
+    tie_weight_to_encoder: null
     num_labels: 2
