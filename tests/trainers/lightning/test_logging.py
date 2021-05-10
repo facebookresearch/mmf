@@ -43,6 +43,7 @@ class TestLightningTrainerLogging(unittest.TestCase):
             batch_size=2,
             max_epochs=None,
             log_interval=3,
+            evaluation_interval=9,
             tensorboard=True,
         )
 
@@ -55,6 +56,7 @@ class TestLightningTrainerLogging(unittest.TestCase):
         logistics_callback.train_timer = Timer()
         logistics_callback.tb_writer.add_scalars = _add_scalars_mmf
         mmf_trainer.logistics_callback = logistics_callback
+        mmf_trainer.on_validation_end = logistics_callback.on_validation_end
         mmf_trainer.callbacks = [logistics_callback]
         mmf_trainer.early_stop_callback = MagicMock(return_value=None)
         mmf_trainer.on_update_end = logistics_callback.on_update_end
@@ -83,6 +85,7 @@ class TestLightningTrainerLogging(unittest.TestCase):
         self.assertEqual(
             len(self.mmf_tensorboard_logs), len(self.lightning_tensorboard_logs)
         )
+
         for mmf, lightning in zip(
             self.mmf_tensorboard_logs, self.lightning_tensorboard_logs
         ):
