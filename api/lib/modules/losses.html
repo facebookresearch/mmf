@@ -6,7 +6,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>modules.losses | MMF 1.0.0rc12 documentation</title>
@@ -38,6 +39,8 @@
 
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!-- <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/css/customize.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -233,7 +236,7 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
-  <div class="section" id="module-mmf.modules.losses">
+  <section id="module-mmf.modules.losses">
 <span id="modules-losses"></span><h1>modules.losses<a class="headerlink" href="#module-mmf.modules.losses" title="Permalink to this headline">¶</a></h1>
 <p>Losses module contains implementations for various losses used generally
 in vision and language space. One can register custom losses to be detected by
@@ -257,13 +260,13 @@ in the following way:</p>
 </pre></div>
 </div>
 <dl class="py class">
-<dt id="mmf.modules.losses.AttentionSupervisionLoss">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">AttentionSupervisionLoss</span></code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#AttentionSupervisionLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.AttentionSupervisionLoss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.AttentionSupervisionLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">AttentionSupervisionLoss</span></span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#AttentionSupervisionLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.AttentionSupervisionLoss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loss for attention supervision. Used in case you want to make attentions
 similar to some particular values.</p>
 <dl class="py method">
-<dt id="mmf.modules.losses.AttentionSupervisionLoss.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#AttentionSupervisionLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.AttentionSupervisionLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.AttentionSupervisionLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#AttentionSupervisionLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.AttentionSupervisionLoss.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates and returns the multi loss.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -284,11 +287,11 @@ similar to some particular values.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.BinaryCrossEntropyLoss">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">BinaryCrossEntropyLoss</span></code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#BinaryCrossEntropyLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.BinaryCrossEntropyLoss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.BinaryCrossEntropyLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">BinaryCrossEntropyLoss</span></span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#BinaryCrossEntropyLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.BinaryCrossEntropyLoss" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
-<dt id="mmf.modules.losses.BinaryCrossEntropyLoss.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#BinaryCrossEntropyLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.BinaryCrossEntropyLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.BinaryCrossEntropyLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#BinaryCrossEntropyLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.BinaryCrossEntropyLoss.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates and returns the binary cross entropy.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -309,11 +312,11 @@ similar to some particular values.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.CaptionCrossEntropyLoss">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">CaptionCrossEntropyLoss</span></code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CaptionCrossEntropyLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.CaptionCrossEntropyLoss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.CaptionCrossEntropyLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">CaptionCrossEntropyLoss</span></span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CaptionCrossEntropyLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.CaptionCrossEntropyLoss" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
-<dt id="mmf.modules.losses.CaptionCrossEntropyLoss.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CaptionCrossEntropyLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.CaptionCrossEntropyLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.CaptionCrossEntropyLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CaptionCrossEntropyLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.CaptionCrossEntropyLoss.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates and returns the cross entropy loss for captions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -334,11 +337,11 @@ similar to some particular values.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.CombinedLoss">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">CombinedLoss</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weight_softmax</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CombinedLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.CombinedLoss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.CombinedLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">CombinedLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weight_softmax</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CombinedLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.CombinedLoss" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
-<dt id="mmf.modules.losses.CombinedLoss.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CombinedLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.CombinedLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.CombinedLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CombinedLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.CombinedLoss.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -353,13 +356,13 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.ContrastiveLoss">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">ContrastiveLoss</span></code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#ContrastiveLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.ContrastiveLoss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.ContrastiveLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">ContrastiveLoss</span></span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#ContrastiveLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.ContrastiveLoss" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is a generic contrastive loss typically used for pretraining. No modality
 assumptions are made here.</p>
 <dl class="py method">
-<dt id="mmf.modules.losses.ContrastiveLoss.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#ContrastiveLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.ContrastiveLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.ContrastiveLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#ContrastiveLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.ContrastiveLoss.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -374,11 +377,11 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.CrossEntropyLoss">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">CrossEntropyLoss</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CrossEntropyLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.CrossEntropyLoss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.CrossEntropyLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">CrossEntropyLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CrossEntropyLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.CrossEntropyLoss" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
-<dt id="mmf.modules.losses.CrossEntropyLoss.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CrossEntropyLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.CrossEntropyLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.CrossEntropyLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#CrossEntropyLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.CrossEntropyLoss.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -393,12 +396,12 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.InBatchHinge">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">InBatchHinge</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hard</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#InBatchHinge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.InBatchHinge" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.InBatchHinge">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">InBatchHinge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hard</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#InBatchHinge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.InBatchHinge" title="Permalink to this definition">¶</a></dt>
 <dd><p>Based on the code from <a class="reference external" href="https://github.com/fartashf/vsepp/blob/master/model.py">https://github.com/fartashf/vsepp/blob/master/model.py</a></p>
 <dl class="py method">
-<dt id="mmf.modules.losses.InBatchHinge.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#InBatchHinge.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.InBatchHinge.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.InBatchHinge.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#InBatchHinge.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.InBatchHinge.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -413,16 +416,16 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.LabelSmoothingCrossEntropyLoss">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">LabelSmoothingCrossEntropyLoss</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label_smoothing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#LabelSmoothingCrossEntropyLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.LabelSmoothingCrossEntropyLoss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.LabelSmoothingCrossEntropyLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">LabelSmoothingCrossEntropyLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label_smoothing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#LabelSmoothingCrossEntropyLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.LabelSmoothingCrossEntropyLoss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Cross-entropy loss with label smoothing. If <cite>label_smoothing</cite> = 0, then
 it’s canonical cross entropy.
 The smoothed one-hot encoding is 1 - label_smoothing for true label and
 label_smoothing / (num_classes - 1) for the rest.</p>
 <p>Reference: <a class="reference external" href="https://stackoverflow.com/questions/55681502/label-smoothing-in-pytorch">https://stackoverflow.com/questions/55681502/label-smoothing-in-pytorch</a></p>
 <dl class="py method">
-<dt id="mmf.modules.losses.LabelSmoothingCrossEntropyLoss.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#LabelSmoothingCrossEntropyLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.LabelSmoothingCrossEntropyLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.LabelSmoothingCrossEntropyLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#LabelSmoothingCrossEntropyLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.LabelSmoothingCrossEntropyLoss.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -437,16 +440,16 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.LogitBinaryCrossEntropy">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">LogitBinaryCrossEntropy</span></code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#LogitBinaryCrossEntropy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.LogitBinaryCrossEntropy" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.LogitBinaryCrossEntropy">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">LogitBinaryCrossEntropy</span></span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#LogitBinaryCrossEntropy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.LogitBinaryCrossEntropy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns Binary Cross Entropy for logits.</p>
 <div class="admonition attention">
 <p class="admonition-title">Attention</p>
 <p><cite>Key</cite>: logit_bce</p>
 </div>
 <dl class="py method">
-<dt id="mmf.modules.losses.LogitBinaryCrossEntropy.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#LogitBinaryCrossEntropy.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.LogitBinaryCrossEntropy.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.LogitBinaryCrossEntropy.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#LogitBinaryCrossEntropy.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.LogitBinaryCrossEntropy.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates and returns the binary cross entropy for logits</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -467,13 +470,13 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.LossConfig">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">LossConfig</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'???'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'???'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#LossConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.LossConfig" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.LossConfig">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">LossConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'???'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'???'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#LossConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.LossConfig" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.Losses">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">Losses</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#mmf.modules.losses.LossConfig" title="mmf.modules.losses.LossConfig"><span class="pre">mmf.modules.losses.LossConfig</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#Losses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.Losses" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.Losses">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">Losses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#mmf.modules.losses.LossConfig" title="mmf.modules.losses.LossConfig"><span class="pre">mmf.modules.losses.LossConfig</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#Losses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.Losses" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">Losses</span></code> acts as an abstraction for instantiating and calculating
 losses. <code class="docutils literal notranslate"><span class="pre">BaseModel</span></code> instantiates this class based on the <cite>losses</cite>
 attribute in the model’s configuration <cite>model_config</cite>. <code class="docutils literal notranslate"><span class="pre">loss_list</span></code>
@@ -499,15 +502,15 @@ attributes.</p>
 mostly doesn’t need to use this class.</p>
 </div>
 <dl class="py attribute">
-<dt id="mmf.modules.losses.Losses.losses">
-<code class="sig-name descname"><span class="pre">losses</span></code><a class="headerlink" href="#mmf.modules.losses.Losses.losses" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.Losses.losses">
+<span class="sig-name descname"><span class="pre">losses</span></span><a class="headerlink" href="#mmf.modules.losses.Losses.losses" title="Permalink to this definition">¶</a></dt>
 <dd><p>List containing instantiations of each loss
 passed in config</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.modules.losses.Losses.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#Losses.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.Losses.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.Losses.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#Losses.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.Losses.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Takes in the original <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> returned from DataLoader
 and <cite>model_output</cite> returned from the model and returned a Dict containing
 loss for each of the losses in <cite>losses</cite>.</p>
@@ -530,11 +533,11 @@ loss for each of the losses in <cite>losses</cite>.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.M4CDecodingBCEWithMaskLoss">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">M4CDecodingBCEWithMaskLoss</span></code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#M4CDecodingBCEWithMaskLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.M4CDecodingBCEWithMaskLoss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.M4CDecodingBCEWithMaskLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">M4CDecodingBCEWithMaskLoss</span></span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#M4CDecodingBCEWithMaskLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.M4CDecodingBCEWithMaskLoss" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
-<dt id="mmf.modules.losses.M4CDecodingBCEWithMaskLoss.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#M4CDecodingBCEWithMaskLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.M4CDecodingBCEWithMaskLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.M4CDecodingBCEWithMaskLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#M4CDecodingBCEWithMaskLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.M4CDecodingBCEWithMaskLoss.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -549,8 +552,8 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.MMFLoss">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">MMFLoss</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#MMFLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.MMFLoss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.MMFLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">MMFLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#MMFLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.MMFLoss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Internal MMF helper and wrapper class for all Loss classes.
 It makes sure that the value returned from a Loss class is a dict and
 contain proper dataset type in keys, so that it is easy to figure out
@@ -568,8 +571,8 @@ which one is the val loss and which one is train loss.</p>
 doesn’t need to worry about it.</p>
 </div>
 <dl class="py method">
-<dt id="mmf.modules.losses.MMFLoss.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#MMFLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.MMFLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.MMFLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#MMFLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.MMFLoss.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -584,8 +587,8 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.MultiLoss">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">MultiLoss</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#MultiLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.MultiLoss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.MultiLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">MultiLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#MultiLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.MultiLoss" title="Permalink to this definition">¶</a></dt>
 <dd><p>A loss for combining multiple losses with weights.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -608,8 +611,8 @@ and their weights.</p>
 </pre></div>
 </div>
 <dl class="py method">
-<dt id="mmf.modules.losses.MultiLoss.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#MultiLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.MultiLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.MultiLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#MultiLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.MultiLoss.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates and returns the multi loss.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -631,12 +634,12 @@ attribute.</p></li>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.NLLLoss">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">NLLLoss</span></code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#NLLLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.NLLLoss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.NLLLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">NLLLoss</span></span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#NLLLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.NLLLoss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Negative log likelikehood loss.</p>
 <dl class="py method">
-<dt id="mmf.modules.losses.NLLLoss.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#NLLLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.NLLLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.NLLLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#NLLLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.NLLLoss.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates and returns the negative log likelihood.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -657,11 +660,11 @@ attribute.</p></li>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.SoftLabelCrossEntropyLoss">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">SoftLabelCrossEntropyLoss</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ignore_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_targets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#SoftLabelCrossEntropyLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.SoftLabelCrossEntropyLoss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.SoftLabelCrossEntropyLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">SoftLabelCrossEntropyLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ignore_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_targets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#SoftLabelCrossEntropyLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.SoftLabelCrossEntropyLoss" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
-<dt id="mmf.modules.losses.SoftLabelCrossEntropyLoss.compute_loss">
-<code class="sig-name descname"><span class="pre">compute_loss</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scores</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#SoftLabelCrossEntropyLoss.compute_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.SoftLabelCrossEntropyLoss.compute_loss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.SoftLabelCrossEntropyLoss.compute_loss">
+<span class="sig-name descname"><span class="pre">compute_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scores</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#SoftLabelCrossEntropyLoss.compute_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.SoftLabelCrossEntropyLoss.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>for N examples and C classes
 - output: N x C these are raw outputs (without softmax/sigmoid)
 - target: N x C or N corresponding targets</p>
@@ -671,8 +674,8 @@ reduction.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.modules.losses.SoftLabelCrossEntropyLoss.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#SoftLabelCrossEntropyLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.SoftLabelCrossEntropyLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.SoftLabelCrossEntropyLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#SoftLabelCrossEntropyLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.SoftLabelCrossEntropyLoss.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -687,11 +690,11 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.SoftmaxKlDivLoss">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">SoftmaxKlDivLoss</span></code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#SoftmaxKlDivLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.SoftmaxKlDivLoss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.SoftmaxKlDivLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">SoftmaxKlDivLoss</span></span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#SoftmaxKlDivLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.SoftmaxKlDivLoss" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
-<dt id="mmf.modules.losses.SoftmaxKlDivLoss.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#SoftmaxKlDivLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.SoftmaxKlDivLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.SoftmaxKlDivLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#SoftmaxKlDivLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.SoftmaxKlDivLoss.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -706,13 +709,13 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.TripleLogitBinaryCrossEntropy">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">TripleLogitBinaryCrossEntropy</span></code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#TripleLogitBinaryCrossEntropy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.TripleLogitBinaryCrossEntropy" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.TripleLogitBinaryCrossEntropy">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">TripleLogitBinaryCrossEntropy</span></span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#TripleLogitBinaryCrossEntropy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.TripleLogitBinaryCrossEntropy" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is used for Three-branch fusion only. We predict scores and compute
 cross entropy loss for each of branches.</p>
 <dl class="py method">
-<dt id="mmf.modules.losses.TripleLogitBinaryCrossEntropy.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#TripleLogitBinaryCrossEntropy.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.TripleLogitBinaryCrossEntropy.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.TripleLogitBinaryCrossEntropy.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#TripleLogitBinaryCrossEntropy.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.TripleLogitBinaryCrossEntropy.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates and returns the binary cross entropy for logits
 :param sample_list: SampleList containing <cite>targets</cite> attribute.
 :type sample_list: SampleList
@@ -731,11 +734,11 @@ cross entropy loss for each of branches.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.WeightedSoftmaxLoss">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">WeightedSoftmaxLoss</span></code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#WeightedSoftmaxLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.WeightedSoftmaxLoss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.WeightedSoftmaxLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">WeightedSoftmaxLoss</span></span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#WeightedSoftmaxLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.WeightedSoftmaxLoss" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
-<dt id="mmf.modules.losses.WeightedSoftmaxLoss.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#WeightedSoftmaxLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.WeightedSoftmaxLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.WeightedSoftmaxLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#WeightedSoftmaxLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.WeightedSoftmaxLoss.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -750,11 +753,11 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="mmf.modules.losses.WrongLoss">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></code><code class="sig-name descname"><span class="pre">WrongLoss</span></code><a class="reference internal" href="../../_modules/mmf/modules/losses.html#WrongLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.WrongLoss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.WrongLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.losses.</span></span><span class="sig-name descname"><span class="pre">WrongLoss</span></span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#WrongLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.WrongLoss" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
-<dt id="mmf.modules.losses.WrongLoss.forward">
-<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#WrongLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.WrongLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.modules.losses.WrongLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#WrongLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.WrongLoss.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -768,7 +771,7 @@ registered hooks while the latter silently ignores them.</p>
 
 </dd></dl>
 
-</div>
+</section>
 
 
              </article>
@@ -829,6 +832,7 @@ registered hooks while the latter silently ignores them.</p>
 
      
        <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
          <script src="../../_static/jquery.js"></script>
          <script src="../../_static/underscore.js"></script>
          <script src="../../_static/doctools.js"></script>

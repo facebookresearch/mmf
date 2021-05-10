@@ -6,7 +6,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>common.registry | MMF 1.0.0rc12 documentation</title>
@@ -38,6 +39,8 @@
 
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!-- <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/css/customize.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -233,7 +236,7 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
-  <div class="section" id="module-mmf.common.registry">
+  <section id="module-mmf.common.registry">
 <span id="common-registry"></span><h1>common.registry<a class="headerlink" href="#module-mmf.common.registry" title="Permalink to this headline">¶</a></h1>
 <p>Registry is central source of truth in MMF. Inspired from Redux’s
 concept of global store, Registry maintains mappings of various information
@@ -260,13 +263,13 @@ register different kind of classes.</p>
 <li><p>Register a pl datamodule: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_datamodule</span></code></p></li>
 </ul>
 <dl class="py class">
-<dt id="mmf.common.registry.Registry">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.common.registry.</span></code><code class="sig-name descname"><span class="pre">Registry</span></code><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.common.registry.Registry">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.common.registry.</span></span><span class="sig-name descname"><span class="pre">Registry</span></span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for registry object which acts as central source of truth
 for MMF</p>
 <dl class="py method">
-<dt id="mmf.common.registry.Registry.get">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">get</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_warning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.get" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.common.registry.Registry.get">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_warning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get an item from registry with key ‘name’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -289,8 +292,8 @@ internal operations. Default: False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.common.registry.Registry.register">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">register</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.common.registry.Registry.register">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register an item to registry with key ‘name’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -306,8 +309,8 @@ internal operations. Default: False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.common.registry.Registry.register_builder">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">register_builder</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_builder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_builder" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.common.registry.Registry.register_builder">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">register_builder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_builder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_builder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a dataset builder to registry with key ‘name’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -327,8 +330,8 @@ internal operations. Default: False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.common.registry.Registry.register_datamodule">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">register_datamodule</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_datamodule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_datamodule" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.common.registry.Registry.register_datamodule">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">register_datamodule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_datamodule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_datamodule" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a datamodule to registry with key ‘name’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -348,8 +351,8 @@ internal operations. Default: False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.common.registry.Registry.register_decoder">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">register_decoder</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_decoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_decoder" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.common.registry.Registry.register_decoder">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">register_decoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_decoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_decoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a decoder to registry with key ‘name’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -369,8 +372,8 @@ internal operations. Default: False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.common.registry.Registry.register_encoder">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">register_encoder</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_encoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_encoder" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.common.registry.Registry.register_encoder">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">register_encoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_encoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_encoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a encoder to registry with key ‘name’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -390,8 +393,8 @@ internal operations. Default: False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.common.registry.Registry.register_fusion">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">register_fusion</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_fusion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_fusion" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.common.registry.Registry.register_fusion">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">register_fusion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_fusion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_fusion" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a fusion technique to registry with key ‘name’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -410,8 +413,8 @@ internal operations. Default: False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.common.registry.Registry.register_iteration_strategy">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">register_iteration_strategy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_iteration_strategy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_iteration_strategy" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.common.registry.Registry.register_iteration_strategy">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">register_iteration_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_iteration_strategy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_iteration_strategy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register an iteration_strategy to registry with key ‘name’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -436,8 +439,8 @@ internal operations. Default: False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.common.registry.Registry.register_loss">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">register_loss</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_loss" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.common.registry.Registry.register_loss">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">register_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a loss to registry with key ‘name’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -456,8 +459,8 @@ internal operations. Default: False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.common.registry.Registry.register_metric">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">register_metric</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_metric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_metric" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.common.registry.Registry.register_metric">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">register_metric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_metric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_metric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a metric to registry with key ‘name’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -477,8 +480,8 @@ internal operations. Default: False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.common.registry.Registry.register_model">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">register_model</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_model" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.common.registry.Registry.register_model">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">register_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a model to registry with key ‘name’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -497,8 +500,8 @@ internal operations. Default: False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.common.registry.Registry.register_processor">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">register_processor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_processor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_processor" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.common.registry.Registry.register_processor">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">register_processor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_processor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_processor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a processor to registry with key ‘name’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -517,8 +520,8 @@ internal operations. Default: False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.common.registry.Registry.register_trainer">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">register_trainer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_trainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_trainer" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.common.registry.Registry.register_trainer">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">register_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_trainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_trainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a trainer to registry with key ‘name’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -538,8 +541,8 @@ internal operations. Default: False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.common.registry.Registry.unregister">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">unregister</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.unregister"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.unregister" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.common.registry.Registry.unregister">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">unregister</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.unregister"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.unregister" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove an item from registry with key ‘name’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -556,7 +559,7 @@ internal operations. Default: False</p></li>
 
 </dd></dl>
 
-</div>
+</section>
 
 
              </article>
@@ -617,6 +620,7 @@ internal operations. Default: False</p></li>
 
      
        <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
          <script src="../../_static/jquery.js"></script>
          <script src="../../_static/underscore.js"></script>
          <script src="../../_static/doctools.js"></script>

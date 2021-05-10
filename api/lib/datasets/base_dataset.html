@@ -6,7 +6,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>datasets.base_dataset | MMF 1.0.0rc12 documentation</title>
@@ -38,6 +39,8 @@
 
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!-- <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/css/customize.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -233,11 +236,11 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
-  <div class="section" id="module-mmf.datasets.base_dataset">
+  <section id="module-mmf.datasets.base_dataset">
 <span id="datasets-base-dataset"></span><h1>datasets.base_dataset<a class="headerlink" href="#module-mmf.datasets.base_dataset" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
-<dt id="mmf.datasets.base_dataset.BaseDataset">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.datasets.base_dataset.</span></code><code class="sig-name descname"><span class="pre">BaseDataset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset.html#BaseDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset.BaseDataset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.datasets.base_dataset.BaseDataset">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.datasets.base_dataset.</span></span><span class="sig-name descname"><span class="pre">BaseDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset.html#BaseDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset.BaseDataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Base class for implementing a dataset. Inherits from PyTorch’s Dataset class
 but adds some custom functionality on top. Processors mentioned in the
 configuration are automatically initialized for the end user.</p>
@@ -252,8 +255,8 @@ in text strings</p></li>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="mmf.datasets.base_dataset.BaseDataset.load_item">
-<code class="sig-name descname"><span class="pre">load_item</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset.html#BaseDataset.load_item"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset.BaseDataset.load_item" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.datasets.base_dataset.BaseDataset.load_item">
+<span class="sig-name descname"><span class="pre">load_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset.html#BaseDataset.load_item"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset.BaseDataset.load_item" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement if you need to separately load the item and cache it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -263,8 +266,8 @@ in text strings</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.datasets.base_dataset.BaseDataset.prepare_batch">
-<code class="sig-name descname"><span class="pre">prepare_batch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset.html#BaseDataset.prepare_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset.BaseDataset.prepare_batch" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.datasets.base_dataset.BaseDataset.prepare_batch">
+<span class="sig-name descname"><span class="pre">prepare_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset.html#BaseDataset.prepare_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset.BaseDataset.prepare_batch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Can be possibly overridden in your child class. Not supported w Lightning
 trainer</p>
 <p>Prepare batch for passing to model. Whatever returned from here will
@@ -289,7 +292,7 @@ proper device.</p>
 
 </dd></dl>
 
-</div>
+</section>
 
 
              </article>
@@ -350,6 +353,7 @@ proper device.</p>
 
      
        <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
          <script src="../../_static/jquery.js"></script>
          <script src="../../_static/underscore.js"></script>
          <script src="../../_static/doctools.js"></script>

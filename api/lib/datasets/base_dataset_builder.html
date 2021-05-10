@@ -6,7 +6,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>datasets.base_dataset_builder | MMF 1.0.0rc12 documentation</title>
@@ -38,6 +39,8 @@
 
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!-- <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/css/customize.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -233,7 +236,7 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
-  <div class="section" id="module-mmf.datasets.base_dataset_builder">
+  <section id="module-mmf.datasets.base_dataset_builder">
 <span id="datasets-base-dataset-builder"></span><h1>datasets.base_dataset_builder<a class="headerlink" href="#module-mmf.datasets.base_dataset_builder" title="Permalink to this headline">¶</a></h1>
 <p>In MMF, for adding new datasets, dataset builder for datasets need to be
 added. A new dataset builder must inherit <code class="docutils literal notranslate"><span class="pre">BaseDatasetBuilder</span></code> class and
@@ -264,8 +267,8 @@ an instance of subclass of <code class="docutils literal notranslate"><span clas
 </pre></div>
 </div>
 <dl class="py class">
-<dt id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mmf.datasets.base_dataset_builder.</span></code><code class="sig-name descname"><span class="pre">BaseDatasetBuilder</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.datasets.base_dataset_builder.</span></span><span class="sig-name descname"><span class="pre">BaseDatasetBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Base class for implementing dataset builders. See more information
 on top. Child class needs to implement <code class="docutils literal notranslate"><span class="pre">build</span></code> and <code class="docutils literal notranslate"><span class="pre">load</span></code>.</p>
 <dl class="field-list simple">
@@ -274,8 +277,8 @@ on top. Child class needs to implement <code class="docutils literal notranslate
 </dd>
 </dl>
 <dl class="py method">
-<dt id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.build">
-<code class="sig-name descname"><span class="pre">build</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.build"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.build" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.build">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.build"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.build" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is used to build a dataset first time.
 Implement this method in your child dataset builder class.</p>
 <dl class="field-list simple">
@@ -290,8 +293,8 @@ config.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.build_dataset">
-<code class="sig-name descname"><span class="pre">build_dataset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.build_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.build_dataset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.build_dataset">
+<span class="sig-name descname"><span class="pre">build_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.build_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.build_dataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Similar to load function, used by MMF to build a dataset for first
 time when it is not available. This internally calls ‘build’ function.
 Override that function in your child class.</p>
@@ -315,8 +318,8 @@ config.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.load">
-<code class="sig-name descname"><span class="pre">load</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.load" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.load" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is used to prepare the dataset and load it from a path.
 Override this method in your child dataset builder class.</p>
 <dl class="field-list simple">
@@ -336,8 +339,8 @@ Override this method in your child dataset builder class.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.load_dataset">
-<code class="sig-name descname"><span class="pre">load_dataset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.load_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.load_dataset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.load_dataset">
+<span class="sig-name descname"><span class="pre">load_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.load_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.load_dataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main load function use by MMF. This will internally call <code class="docutils literal notranslate"><span class="pre">load</span></code>
 function. Calls <code class="docutils literal notranslate"><span class="pre">init_processors</span></code> and <code class="docutils literal notranslate"><span class="pre">try_fast_read</span></code> on the
 dataset returned from <code class="docutils literal notranslate"><span class="pre">load</span></code></p>
@@ -362,8 +365,8 @@ dataset returned from <code class="docutils literal notranslate"><span class="pr
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data">
-<code class="sig-name descname"><span class="pre">prepare_data</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.prepare_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data">
+<span class="sig-name descname"><span class="pre">prepare_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.prepare_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>NOTE: The caller to this function should only call this on master process
 in a distributed settings so that downloads and build only happen
 on master process and others can just load it. Make sure to call
@@ -375,8 +378,8 @@ with extra checks on our sides as well.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup">
-<code class="sig-name descname"><span class="pre">setup</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stage</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">omegaconf.dictconfig.DictConfig</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup">
+<span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stage</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">omegaconf.dictconfig.DictConfig</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called at the beginning of fit (train + validate), validate, test, predict, or tune.
 This is a good hook when you need to build models dynamically or adjust something about them.
 This hook is called on every process when using DDP.</p>
@@ -405,8 +408,8 @@ This hook is called on every process when using DDP.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.teardown">
-<code class="sig-name descname"><span class="pre">teardown</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.teardown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.teardown" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.teardown">
+<span class="sig-name descname"><span class="pre">teardown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.teardown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.teardown" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called at the end of fit (train + validate), validate, test, predict, or tune.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -416,8 +419,8 @@ This hook is called on every process when using DDP.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.test_dataloader">
-<code class="sig-name descname"><span class="pre">test_dataloader</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.test_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.test_dataloader" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.test_dataloader">
+<span class="sig-name descname"><span class="pre">test_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.test_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.test_dataloader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement one or multiple PyTorch DataLoaders for testing.</p>
 <p>The dataloader you return will not be called every epoch unless you set
 <a href="#id1"><span class="problematic" id="id2">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_epoch`</span></a> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
@@ -484,8 +487,8 @@ will have an argument <code class="docutils literal notranslate"><span class="pr
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.train_dataloader">
-<code class="sig-name descname"><span class="pre">train_dataloader</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.train_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.train_dataloader" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.train_dataloader">
+<span class="sig-name descname"><span class="pre">train_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.train_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.train_dataloader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement one or more PyTorch DataLoaders for training.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -564,8 +567,8 @@ There is no need to set it yourself.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.val_dataloader">
-<code class="sig-name descname"><span class="pre">val_dataloader</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.val_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.val_dataloader" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.val_dataloader">
+<span class="sig-name descname"><span class="pre">val_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.val_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.val_dataloader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement one or multiple PyTorch DataLoaders for validation.</p>
 <p>The dataloader you return will not be called every epoch unless you set
 <a href="#id5"><span class="problematic" id="id6">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_epoch`</span></a> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
@@ -621,7 +624,7 @@ will have an argument <code class="docutils literal notranslate"><span class="pr
 
 </dd></dl>
 
-</div>
+</section>
 
 
              </article>
@@ -682,6 +685,7 @@ will have an argument <code class="docutils literal notranslate"><span class="pr
 
      
        <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
          <script src="../../_static/jquery.js"></script>
          <script src="../../_static/underscore.js"></script>
          <script src="../../_static/doctools.js"></script>
