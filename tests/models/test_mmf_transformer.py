@@ -22,6 +22,7 @@ from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports, teardown_imports
 from omegaconf import OmegaConf
 
+
 BERT_VOCAB_SIZE = 30255
 ROBERTA_VOCAB_SIZE = 50265
 XLM_ROBERTA_VOCAB_SIZE = 250002
