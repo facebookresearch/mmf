@@ -18,6 +18,7 @@ from mmf.utils.build import build_encoder
 from omegaconf import MISSING, OmegaConf
 from torch import Tensor, nn
 
+
 logger = logging.getLogger(__name__)
 
 
