@@ -383,7 +383,9 @@ def build_optimizer(model, config):
         assert (
             is_dist_initialized()
         ), "Optimizer state sharding can only be used in distributed mode."
-        optimizer = OSS(params=parameters, optim=optimizer_class, **params)
+        optimizer = OSS(
+            params=parameters, optim=optimizer_class, broadcast_fp16=True, **params
+        )
     else:
         optimizer = optimizer_class(parameters, **params)
     return optimizer
