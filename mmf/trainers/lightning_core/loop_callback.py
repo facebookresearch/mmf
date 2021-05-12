@@ -175,7 +175,7 @@ class LightningLoopCallback(Callback):
         return trainer.current_epoch + 1
 
     def _get_iterations_for_logging(self, trainer: Trainer):
-        return trainer.batch_idx + 1
+        return trainer.train_loop.batch_idx + 1
 
     def _get_num_updates_for_logging(self, trainer: Trainer):
         return trainer.global_step + 1
