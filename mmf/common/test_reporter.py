@@ -113,6 +113,8 @@ class TestReporter(Dataset):
 
     def flush_report(self):
         if not is_master():
+            # Empty report in all processes to avoid any leaks
+            self.report = []
             return
 
         name = self.current_datamodule.dataset_name
