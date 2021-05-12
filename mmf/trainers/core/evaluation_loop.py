@@ -140,6 +140,7 @@ class TrainerEvaluationLoopMixin(ABC):
                             model_output = self.model(prepared_batch)
                         report = Report(prepared_batch, model_output)
                         reporter.add_to_report(report, self.model)
+                        report.detach()
 
                 reporter.postprocess_dataset_report()
 
