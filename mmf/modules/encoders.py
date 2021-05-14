@@ -19,6 +19,7 @@ from mmf.utils.build import build_image_encoder, build_text_encoder
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path
+from mmf.utils.logger import log_class_usage
 from omegaconf import MISSING, OmegaConf
 from torch import Tensor, nn
 from transformers.configuration_auto import AutoConfig
@@ -35,6 +36,10 @@ class Encoder(nn.Module):
     @dataclass
     class Config:
         name: str = MISSING
+
+    def __init__(self):
+        super().__init__()
+        log_class_usage("Encoder", self.__class__)
 
     @classmethod
     def from_params(cls, **kwargs):

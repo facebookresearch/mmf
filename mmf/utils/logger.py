@@ -9,6 +9,7 @@ import sys
 import time
 from typing import Any, Dict, Union
 
+import torch
 from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import get_rank, is_master, is_xla
@@ -284,6 +285,14 @@ def log_progress(info: Union[Dict, Any], log_format="simple"):
         output = str(info)
 
     logger.info(output)
+
+
+def log_class_usage(component_type, klass):
+    """This function is used to log the usage of different MMF components."""
+    identifier = "MMF"
+    if klass and hasattr(klass, "__name__"):
+        identifier += f".{component_type}.{klass.__name__}"
+    torch._C._log_api_usage_once(identifier)
 
 
 # ColorfulFormatter is adopted from Detectron2 and adapted for MMF
