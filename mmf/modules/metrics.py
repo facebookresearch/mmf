@@ -51,6 +51,7 @@ from typing import Dict
 import torch
 from mmf.common.registry import registry
 from mmf.datasets.processors.processors import EvalAIAnswerProcessor
+from mmf.utils.logger import log_class_usage
 from sklearn.metrics import (
     average_precision_score,
     f1_score,
@@ -187,6 +188,7 @@ class BaseMetric:
         # the set of datasets where this metric will be applied
         # an empty set means it will be applied on *all* datasets
         self._dataset_names = set()
+        log_class_usage("Metric", self.__class__)
 
     @property
     def name(self):
@@ -1246,6 +1248,7 @@ class DetectionMeanAP(BaseMetric):
             torch.FloatTensor: COCO-style mAP@IoU=0.50:0.95.
 
         """
+
         # as the detection mAP metric is run on the entire dataset-level predictions,
         # which are *already* gathered from all notes, the evaluation should only happen
         # in one node and broadcasted to other nodes (to avoid CPU OOM due to concurrent
