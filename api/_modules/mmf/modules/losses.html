@@ -268,6 +268,7 @@
 <span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
 <span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
 <span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
+<span class="kn">from</span> <span class="nn">mmf.utils.logger</span> <span class="kn">import</span> <span class="n">log_class_usage</span>
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">Tensor</span>
 <span class="kn">from</span> <span class="nn">torch.nn.utils.rnn</span> <span class="kn">import</span> <span class="n">pack_padded_sequence</span>
@@ -401,6 +402,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">loss_name</span>
 
         <span class="n">loss_class</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get_loss_class</span><span class="p">(</span><span class="n">loss_name</span><span class="p">)</span>
+
+        <span class="n">log_class_usage</span><span class="p">(</span><span class="s2">&quot;Loss&quot;</span><span class="p">,</span> <span class="n">loss_class</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">loss_class</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No loss named </span><span class="si">{</span><span class="n">loss_name</span><span class="si">}</span><span class="s2"> is registered to registry&quot;</span><span class="p">)</span>

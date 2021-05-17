@@ -285,6 +285,7 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
 <span class="kn">from</span> <span class="nn">mmf.datasets.processors.processors</span> <span class="kn">import</span> <span class="n">EvalAIAnswerProcessor</span>
+<span class="kn">from</span> <span class="nn">mmf.utils.logger</span> <span class="kn">import</span> <span class="n">log_class_usage</span>
 <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">average_precision_score</span><span class="p">,</span>
     <span class="n">f1_score</span><span class="p">,</span>
@@ -421,6 +422,7 @@
         <span class="c1"># the set of datasets where this metric will be applied</span>
         <span class="c1"># an empty set means it will be applied on *all* datasets</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dataset_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">log_class_usage</span><span class="p">(</span><span class="s2">&quot;Metric&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1480,6 +1482,7 @@
 <span class="sd">            torch.FloatTensor: COCO-style mAP@IoU=0.50:0.95.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="c1"># as the detection mAP metric is run on the entire dataset-level predictions,</span>
         <span class="c1"># which are *already* gathered from all notes, the evaluation should only happen</span>
         <span class="c1"># in one node and broadcasted to other nodes (to avoid CPU OOM due to concurrent</span>
