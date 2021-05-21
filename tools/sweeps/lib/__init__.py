@@ -7,7 +7,8 @@ import os
 import socket
 
 
-def get_args():
+# if argv is None, we will read from sys.argv (invoke params)
+def get_args(argv=None):
     parser = argparse.ArgumentParser("Script for launching hyperparameter sweeps")
     parser.add_argument(
         "-p",
@@ -168,7 +169,8 @@ def get_args():
         help="enable tensorboard logging by passing --tensorboard 1",
     )
 
-    args = parser.parse_args()
+    # Will read sys.argv if argv is None
+    args = parser.parse_args(argv)
     return args
 
 
