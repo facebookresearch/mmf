@@ -666,8 +666,8 @@ attribute.</p></li>
 <dt class="sig sig-object py" id="mmf.modules.losses.SoftLabelCrossEntropyLoss.compute_loss">
 <span class="sig-name descname"><span class="pre">compute_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scores</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/losses.html#SoftLabelCrossEntropyLoss.compute_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.losses.SoftLabelCrossEntropyLoss.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>for N examples and C classes
-- output: N x C these are raw outputs (without softmax/sigmoid)
-- target: N x C or N corresponding targets</p>
+- scores: N x C these are raw outputs (without softmax/sigmoid)
+- targets: N x C or N corresponding targets</p>
 <p>Target elements set to ignore_index contribute 0 loss.</p>
 <p>Samples where all entries are ignore_index do not contribute to the loss
 reduction.</p>

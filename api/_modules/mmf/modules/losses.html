@@ -841,8 +841,8 @@
 
 <div class="viewcode-block" id="SoftLabelCrossEntropyLoss.compute_loss"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.SoftLabelCrossEntropyLoss.compute_loss">[docs]</a>    <span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">scores</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;for N examples and C classes</span>
-<span class="sd">        - output: N x C these are raw outputs (without softmax/sigmoid)</span>
-<span class="sd">        - target: N x C or N corresponding targets</span>
+<span class="sd">        - scores: N x C these are raw outputs (without softmax/sigmoid)</span>
+<span class="sd">        - targets: N x C or N corresponding targets</span>
 
 <span class="sd">        Target elements set to ignore_index contribute 0 loss.</span>
 
@@ -856,11 +856,13 @@
 
         <span class="k">if</span> <span class="n">targets</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">targets</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">targets</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_index</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">ne</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ignore_index</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>  <span class="c1"># mask out `ignore_index`</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">ne</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>  <span class="c1"># mask out zero rows</span>
 
         <span class="k">if</span> <span class="n">targets</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_one_hot</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="n">scores</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-        <span class="n">targets</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">float</span><span class="p">()</span> <span class="o">*</span> <span class="n">mask</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">float</span><span class="p">()</span> <span class="o">*</span> <span class="n">mask</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize_targets</span><span class="p">:</span>
             <span class="n">targets</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">+</span> <span class="n">targets</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -899,13 +901,14 @@
     <span class="k">def</span> <span class="nf">smooth_targets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">targets</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">targets</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">targets</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_index</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">ne</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ignore_index</span><span class="p">)</span>
 
         <span class="n">smoothing_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_smoothing</span> <span class="o">/</span> <span class="p">(</span><span class="n">n_classes</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">one_hot</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">full</span><span class="p">(</span>
             <span class="p">(</span><span class="n">n_classes</span><span class="p">,),</span> <span class="n">smoothing_value</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">targets</span><span class="o">.</span><span class="n">device</span>
         <span class="p">)</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">targets</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">one_hot</span><span class="o">.</span><span class="n">scatter_</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_smoothing</span><span class="p">)</span>
+        <span class="c1"># mask out target with `ignore_index` to avoid error `index out of bounds`</span>
+        <span class="n">one_hot</span><span class="o">.</span><span class="n">scatter_</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">targets</span> <span class="o">*</span> <span class="n">mask</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_smoothing</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">one_hot</span> <span class="o">*</span> <span class="n">mask</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
 
 <div class="viewcode-block" id="LabelSmoothingCrossEntropyLoss.forward"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.LabelSmoothingCrossEntropyLoss.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">):</span>
