@@ -14,6 +14,7 @@ from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import gather_tensor, is_master
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import ckpt_name_from_core_args, foldername_from_config_override
+from mmf.utils.logger import log_class_usage
 from mmf.utils.timer import Timer
 from omegaconf import OmegaConf
 from torch.utils.data import Dataset
@@ -85,6 +86,8 @@ class TestReporter(Dataset):
         self.candidate_fields = self.test_reporter_config.candidate_fields
 
         PathManager.mkdirs(self.report_folder)
+
+        log_class_usage("TestReporter", self.__class__)
 
     @property
     def current_dataset(self):

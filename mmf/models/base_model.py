@@ -56,6 +56,7 @@ from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_current_device
+from mmf.utils.logger import log_class_usage
 from omegaconf import MISSING, DictConfig, OmegaConf
 
 
@@ -89,6 +90,8 @@ class BaseModel(pl.LightningModule):
         self._logged_warning = {"losses_present": False}
         self._is_pretrained = False
         self._is_pl_enabled = False
+
+        log_class_usage("Model", self.__class__)
 
     @classmethod
     def from_params(cls, **kwargs):

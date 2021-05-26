@@ -40,6 +40,7 @@ from typing import Optional
 import pytorch_lightning as pl
 from mmf.utils.build import build_dataloader_and_sampler
 from mmf.utils.distributed import is_master, synchronize
+from mmf.utils.logger import log_class_usage
 from omegaconf import DictConfig
 from torch.utils.data import Dataset
 
@@ -63,6 +64,8 @@ class BaseDatasetBuilder(pl.LightningDataModule):
         self._train_dataset = None
         self._val_dataset = None
         self._test_dataset = None
+
+        log_class_usage("DatasetBuilder", self.__class__)
 
     @property
     def dataset_name(self):

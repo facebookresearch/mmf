@@ -84,6 +84,7 @@ from mmf.common.typings import ProcessorConfigType
 from mmf.utils.configuration import get_mmf_cache_dir, get_mmf_env
 from mmf.utils.distributed import is_master, synchronize
 from mmf.utils.file_io import PathManager
+from mmf.utils.logger import log_class_usage
 from mmf.utils.text import VocabDict
 from mmf.utils.vocab import Vocab, WordToVectorDict
 from omegaconf import DictConfig
@@ -108,6 +109,8 @@ class BaseProcessor:
     """
 
     def __init__(self, *args, config: Optional[DictConfig] = None, **kwargs):
+
+        log_class_usage("Processor", self.__class__)
         return
 
     def __call__(self, item: Any, *args, **kwargs) -> Any:

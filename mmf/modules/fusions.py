@@ -32,6 +32,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from mmf.common.registry import registry
 from mmf.utils.general import get_chunks, get_sizes_list, irfft, rfft
+from mmf.utils.logger import log_class_usage
 
 
 class CompactBilinearPooling(nn.Module):
@@ -160,6 +161,8 @@ class Block(nn.Module):
         self.linear_out = nn.Linear(mm_dim, output_dim)
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
 
+        log_class_usage("Fusion", self.__class__)
+
     def forward(self, x):
         x0 = self.linear0(x[0])
         x1 = self.linear1(x[1])
@@ -235,6 +238,8 @@ class BlockTucker(nn.Module):
         self.linear_out = nn.Linear(self.mm_dim, self.output_dim)
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
 
+        log_class_usage("Fusion", self.__class__)
+
     def forward(self, x):
         x0 = self.linear0(x[0])
         x1 = self.linear1(x[1])
@@ -301,6 +306,8 @@ class Mutan(nn.Module):
         self.linear_out = nn.Linear(mm_dim, output_dim)
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
 
+        log_class_usage("Fusion", self.__class__)
+
     def forward(self, x):
         x0 = self.linear0(x[0])
         x1 = self.linear1(x[1])
@@ -361,6 +368,8 @@ class Tucker(nn.Module):
         self.linear_out = nn.Linear(mm_dim, output_dim)
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
 
+        log_class_usage("Fusion", self.__class__)
+
     def forward(self, x):
         x0 = self.linear0(x[0])
         x1 = self.linear1(x[1])
@@ -414,6 +423,8 @@ class MLB(nn.Module):
         self.linear1 = nn.Linear(input_dims[1], mm_dim)
         self.linear_out = nn.Linear(mm_dim, output_dim)
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
+
+        log_class_usage("Fusion", self.__class__)
 
     def forward(self, x):
         x0 = self.linear0(x[0])
@@ -477,6 +488,8 @@ class MFB(nn.Module):
         self.linear1 = nn.Linear(input_dims[1], mm_dim * factor)
         self.linear_out = nn.Linear(mm_dim, output_dim)
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
+
+        log_class_usage("Fusion", self.__class__)
 
     def forward(self, x):
         x0 = self.linear0(x[0])
@@ -545,6 +558,8 @@ class MFH(nn.Module):
         self.linear1_1 = nn.Linear(input_dims[1], mm_dim * factor)
         self.linear_out = nn.Linear(mm_dim * 2, output_dim)
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
+
+        log_class_usage("Fusion", self.__class__)
 
     def forward(self, x):
         x0 = self.linear0_0(x[0])
@@ -630,6 +645,8 @@ class MCB(nn.Module):
         self.linear_out = nn.Linear(mm_dim, output_dim)
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
 
+        log_class_usage("Fusion", self.__class__)
+
     def forward(self, x):
         z = self.mcb(x[0], x[1])
         z = self.linear_out(z)
@@ -669,6 +686,8 @@ class LinearSum(nn.Module):
         self.linear1 = nn.Linear(input_dims[1], mm_dim)
         self.linear_out = nn.Linear(mm_dim, output_dim)
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
+
+        log_class_usage("Fusion", self.__class__)
 
     def forward(self, x):
         x0 = self.linear0(x[0])
@@ -718,6 +737,8 @@ class ConcatMLP(nn.Module):
         # Modules
         self.mlp = MLP(self.input_dim, self.dimensions, self.activation, self.dropout)
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
+
+        log_class_usage("Fusion", self.__class__)
 
     def forward(self, x):
         if x[0].dim() == 3 and x[1].dim() == 2:

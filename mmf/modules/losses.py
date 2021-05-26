@@ -34,6 +34,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from mmf.common.registry import registry
+from mmf.utils.logger import log_class_usage
 from omegaconf import MISSING
 from torch import Tensor
 from torch.nn.utils.rnn import pack_padded_sequence
@@ -167,6 +168,8 @@ class MMFLoss(nn.Module):
         self.name = loss_name
 
         loss_class = registry.get_loss_class(loss_name)
+
+        log_class_usage("Loss", loss_class)
 
         if loss_class is None:
             raise ValueError(f"No loss named {loss_name} is registered to registry")
@@ -604,8 +607,8 @@ class SoftLabelCrossEntropyLoss(nn.Module):
 
     def compute_loss(self, targets, scores):
         """for N examples and C classes
-        - output: N x C these are raw outputs (without softmax/sigmoid)
-        - target: N x C or N corresponding targets
+        - scores: N x C these are raw outputs (without softmax/sigmoid)
+        - targets: N x C or N corresponding targets
 
         Target elements set to ignore_index contribute 0 loss.
 
@@ -619,11 +622,13 @@ class SoftLabelCrossEntropyLoss(nn.Module):
 
         if targets.dim() == 1:
             targets = targets.unsqueeze(1)
-        mask = targets != self.ignore_index
+            mask = targets.ne(self.ignore_index).float()  # mask out `ignore_index`
+        else:
+            mask = targets.sum(-1, keepdim=True).ne(0).float()  # mask out zero rows
 
         if targets.size(1) == 1:
             targets = self.convert_to_one_hot(targets, scores.size(1))
-        targets = targets.float() * mask.float()
+        targets = targets.float() * mask
 
         if self.normalize_targets:
             targets /= self.eps + targets.sum(dim=1, keepdim=True)
@@ -662,13 +667,14 @@ class LabelSmoothingCrossEntropyLoss(SoftLabelCrossEntropyLoss):
     def smooth_targets(self, targets, n_classes):
         if targets.dim() == 1:
             targets = targets.unsqueeze(1)
-        mask = targets != self.ignore_index
+        mask = targets.ne(self.ignore_index)
 
         smoothing_value = self.label_smoothing / (n_classes - 1)
         one_hot = torch.full(
             (n_classes,), smoothing_value, device=targets.device
         ).repeat(targets.size(0), 1)
-        one_hot.scatter_(1, targets, 1 - self.label_smoothing)
+        # mask out target with `ignore_index` to avoid error `index out of bounds`
+        one_hot.scatter_(1, targets * mask.long(), 1 - self.label_smoothing)
         return one_hot * mask.float()
 
     def forward(self, sample_list, model_output):
