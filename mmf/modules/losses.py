@@ -764,3 +764,34 @@ class ContrastiveLoss(nn.Module):
         loss1 = F.cross_entropy(mma, labels)
         loss2 = F.cross_entropy(mma.T, labels)
         return (loss1 + loss2) / 2
+
+
+@registry.register_loss("mse")
+class MSELoss(nn.Module):
+    """Mean Squared Error loss
+    """
+    def __init__(self):
+        super().__init__()
+        self.loss_fn = nn.MSELoss()
+
+    def forward(self, sample_list, model_output):
+        targets = sample_list["targets"]
+        scores = model_output["scores"]
+        loss = self.loss_fn(scores, targets)
+        return loss
+
+
+@registry.register_loss("cos_emb_loss")
+class CosineEmbeddingLoss(nn.Module):
+    """Cosine embedding loss
+    """
+    def __init__(self):
+        super().__init__()
+        self.loss_fn = nn.CosineEmbeddingLoss()
+
+    def forward(self, sample_list, model_output):
+        targets = sample_list["targets"]
+        scores = model_output["scores"]
+        y = torch.ones(targets.size(0)).to(targets.device)
+        loss = self.loss_fn(scores, targets, y)
+        return loss

@@ -108,3 +108,23 @@ class TestModuleLosses(unittest.TestCase):
         self.assertAlmostEqual(
             in_batch_hinge_loss(sample_list_input, predicted).item(), 6.5529985, 4
         )
+
+    def test_mse_loss(self):
+        mse_loss = losses.MSELoss()
+
+        # Test random tensor but the same targets and scores
+        torch.manual_seed(1234)
+        random_tensor = torch.rand((1, 768))
+        sample_list = {"targets": random_tensor}
+        model_output = {"scores": random_tensor}
+        self.assertEqual(mse_loss(sample_list, model_output).item(), 0.0)
+
+    def test_cosine_embedding_loss(self):
+        cos_emb_loss = losses.CosineEmbeddingLoss()
+
+        # Test random tensor but the same targets and scores
+        torch.manual_seed(1234)
+        random_tensor = torch.rand((1, 768))
+        sample_list = {"targets": random_tensor}
+        model_output = {"scores": random_tensor}
+        self.assertEqual(cos_emb_loss(sample_list, model_output).item(), 0.0)
