@@ -382,7 +382,6 @@ class MMFTransformer(BaseTransformer):
         )
 
         # Transformer Heads
-
         return self.postprocess_output(
             sequence_output, encoded_layers, processed_sample_list
         )
@@ -403,7 +402,6 @@ class MMFTransformer(BaseTransformer):
             )
         return output_dict
 
-    # encoder_key = self.config.tie_weight_to_encoder
     def _find_unique_encoder_key(self, key):
         assert key in self.encoders, f"MMFT doesn't have {key} encoder."
         for modality in self.config.modalities:

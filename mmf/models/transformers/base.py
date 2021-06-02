@@ -113,15 +113,27 @@ class BaseTransformer(BaseModel):
                 # Parameters in the head which have a separate learning
                 # rate, are added as a separate param group
                 for head_config, head in zip(head_configs, self.heads):
-                    lr_multiplier = head_config.get("lr_multiplier", 1.0)
-                    if lr_multiplier != 1.0:
-                        parameters += get_bert_configured_parameters(
-                            head, lr * lr_multiplier
-                        )
-                    else:
-                        # Parameters for head modules with same learning rate as
-                        # trunk, add to same param group
-                        param_list += list(module.named_parameters())
+                    parameters, param_list = self.set_lr_for_parameters(
+                        config=head_config,
+                        module_name="{} head".format(head_config.get("type", "MLP")),
+                        base_lr=lr,
+                        module=head,
+                        parameters=parameters,
+                        param_list=param_list,
+                    )
+            elif name == "encoders":
+                for key in module:
+                    for modality in self.config.modalities:
+                        if key == modality.key:
+                            modality_config = modality
+                    parameters, param_list = self.set_lr_for_parameters(
+                        config=modality_config,
+                        module_name=f"{key} encoder",
+                        base_lr=lr,
+                        module=module[key],
+                        parameters=parameters,
+                        param_list=param_list,
+                    )
             else:
                 # For other modules in trunk, add to same param group
                 param_list += list(module.named_parameters())
@@ -129,6 +141,23 @@ class BaseTransformer(BaseModel):
         parameters += get_bert_configured_parameters(param_list)
 
         return parameters
+
+    def set_lr_for_parameters(
+        self, config, module_name, base_lr, module, parameters, param_list
+    ):
+        lr_multiplier = config.get("lr_multiplier", 1.0)
+        if lr_multiplier != 1.0:
+            logger.info(
+                f"Setting learning rate of {module_name} to be {base_lr} * {lr_multiplier}."
+            )  # noqa
+            parameters += get_bert_configured_parameters(
+                module, base_lr * lr_multiplier
+            )
+        else:
+            # Parameters for the modules with same learning rate as
+            # trunk, add to same param group
+            param_list += list(module.named_parameters())
+        return parameters, param_list
 
     def build_encoders(self):
         """Build any encoders for different input modalities. Encoders are used while
