@@ -382,8 +382,26 @@ class Checkpoint:
                         and own_attr.replace(key, "")
                         == formatted_attr.replace(value, "")
                     ):
-                        logger.info("Copying " + own_attr + " from " + attr)
-                        own_state[own_attr].copy_(ckpt[attr])
+                        if own_state[own_attr].shape != ckpt[
+                            attr
+                        ].shape and self.config.checkpoint.get(
+                            "bypass_shape_mismatch", False
+                        ):
+                            logger.warning(
+                                "bypass_shape_mismatch in config.checkpoint"
+                                + " is set to be True"
+                            )
+                            logger.warning(
+                                f"""
+                                Modules {own_attr} and {attr} don't have the same shape:
+                                own_attr has shape {own_state[own_attr].shape} while
+                                attr has shape {ckpt[attr].shape} - so skipping copy.
+                                """
+                            )
+                            pass
+                        else:
+                            logger.info("Copying " + own_attr + " from " + attr)
+                            own_state[own_attr].copy_(ckpt[attr])
         logger.info("Pretrained model loaded")
 
     def upgrade_state_dict(self, state_dict):
