@@ -197,6 +197,7 @@ class MMFTransformer(BaseTransformer):
             "segment_ids": segment_ids,
             "masks": masks,
             "mlm_labels": mlm_labels,
+            "is_correct": sample_list.is_correct,
         }
 
     def _infer_input_ids(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
