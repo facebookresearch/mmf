@@ -752,7 +752,7 @@ class AttnPool1d(nn.Module):
         b = query.size(0)
         score = self.linear(query).transpose(-2, -1)
         if mask is not None:
-            score.data.masked_fill_(mask.unsqueeze(1), -1e9)
+            score.data.masked_fill_(mask.unsqueeze(1), -10000.0)
         self.p_attn = nn.functional.softmax(score, dim=-1)
 
         return torch.matmul(self.p_attn, value).view(b, self.num_attn, -1)
