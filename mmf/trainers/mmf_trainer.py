@@ -96,6 +96,13 @@ class MMFTrainer(
         self.model = build_model(attributes)
         self.model = self.model.to(self.device)
 
+
+        from fairscale.nn.data_parallel import FullyShardedDataParallel as FSDP
+        from fairscale.nn import default_auto_wrap_policy, enable_wrap, auto_wrap
+        # fsdp_params = dict(wrapper_cls=FSDP, mixed_precision=self.training_config.fp16, flatten_parameters=True)
+        self.model = auto_wrap(self.model)
+        self.model = FSDP(self.model, mixed_precision=self.training_config.fp16, flatten_parameters=True)
+
     def load_optimizer(self):
         logger.info("Loading optimizer")
         self.optimizer = build_optimizer(self.model, self.config)
@@ -118,8 +125,9 @@ class MMFTrainer(
             try:
                 from fairscale.optim.oss import OSS
                 from fairscale.optim.grad_scaler import ShardedGradScaler
+                from fairscale.nn.data_parallel import FullyShardedDataParallel
 
-                if isinstance(self.optimizer, OSS):
+                if isinstance(self.optimizer, OSS) or isinstance(self.model, FullyShardedDataParallel):
                     self.scaler = ShardedGradScaler()
                     set_torch_grad_scaler = False
                     logger.info("Using FairScale ShardedGradScaler")

@@ -134,18 +134,19 @@ def get_absolute_path(paths):
 
 
 def get_optimizer_parameters(model, config):
+    # from fairscale.nn.data_parallel import FullyShardedDataParallel
     parameters = model.parameters()
 
-    has_custom = hasattr(model, "get_optimizer_parameters")
-    if has_custom:
-        parameters = model.get_optimizer_parameters(config)
+    # has_custom = hasattr(model, "get_optimizer_parameters")
+    # if has_custom:
+    #     parameters = model.get_optimizer_parameters(config)
 
-    is_parallel = isinstance(model, nn.DataParallel) or isinstance(
-        model, nn.parallel.DistributedDataParallel
-    )
+    # is_parallel = isinstance(model, nn.DataParallel) or isinstance(
+    #     model, nn.parallel.DistributedDataParallel
+    # ) or isinstance(model, FullyShardedDataParallel)
 
-    if is_parallel and hasattr(model.module, "get_optimizer_parameters"):
-        parameters = model.module.get_optimizer_parameters(config)
+    # if is_parallel and hasattr(model.module, "get_optimizer_parameters"):
+    #     parameters = model.module.get_optimizer_parameters(config)
 
     # If parameters are a generator, convert to a list first
     parameters = list(parameters)

@@ -487,6 +487,7 @@ class Checkpoint:
         # For xla we use xm.save method
         # Which ensures that actual checkpoint saving happens
         # only for the master node.
+        model_state_dict = self.trainer.model.state_dict()
         # The method also takes care of all the necessary synchronization
         if not is_master() and not is_xla():
             return
@@ -524,7 +525,7 @@ class Checkpoint:
             model = model.module
 
         ckpt = {
-            "model": model.state_dict(),
+            "model": model_state_dict,
             "optimizer": self.trainer.optimizer.state_dict(),
             "best_iteration": best_iteration,
             "current_iteration": iteration,

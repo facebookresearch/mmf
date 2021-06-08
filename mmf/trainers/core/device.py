@@ -67,6 +67,12 @@ class TrainerDeviceMixin(ABC):
             try:
                 from fairscale.optim.oss import OSS
                 from fairscale.nn.data_parallel import ShardedDataParallel
+                from fairscale.nn.data_parallel import FullyShardedDataParallel
+
+                if isinstance(self.model, FullyShardedDataParallel):
+                    self.model.zero_grad(set_to_none=True)
+                    set_torch_ddp = False
+                    logger.info("Using FairScale FullyShardedDataParallel")
 
                 if isinstance(self.optimizer, OSS):
                     self.model = ShardedDataParallel(self.model, self.optimizer)
