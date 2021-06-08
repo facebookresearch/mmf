@@ -87,7 +87,7 @@ def build_model(
     model = model_class(config)
 
     if hasattr(model, "build"):
-        """ Model build involves checkpoint loading
+        """Model build involves checkpoint loading
         If the checkpoint is not available the underlying
         methods try to download it.
         Let master build the model (download the checkpoints) while
@@ -383,7 +383,11 @@ def build_optimizer(model, config):
         assert (
             is_dist_initialized()
         ), "Optimizer state sharding can only be used in distributed mode."
-        optimizer = OSS(params=parameters, optim=optimizer_class, **params)
+
+        is_fp16 = config.get("training", {}).get("fp16", False)
+        optimizer = OSS(
+            params=parameters, optim=optimizer_class, broadcast_fp16=is_fp16, **params
+        )
     else:
         optimizer = optimizer_class(parameters, **params)
     return optimizer

@@ -185,6 +185,8 @@ def launch_train(args, config):
         if args.num_nodes > 1:
             env["NCCL_SOCKET_IFNAME"] = "^docker0,lo"
             env["NCCL_DEBUG"] = "INFO"
+        else:
+            env["NCCL_SOCKET_IFNAME"] = ""
 
         srun_cmd = [
             "srun",

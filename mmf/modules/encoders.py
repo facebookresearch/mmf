@@ -470,21 +470,30 @@ class TransformerEncoder(Encoder):
         num_attention_heads: int = 12
         output_attentions: bool = False
         output_hidden_states: bool = False
+        random_init: bool = False
 
     def __init__(self, config: Config, *args, **kwargs):
         super().__init__()
         self.config = config
         hf_params = {"config": self._build_encoder_config(config)}
+        should_random_init = self.config.get("random_init", False)
 
         # For BERT models, initialize using Jit version
         if self.config.bert_model_name.startswith("bert-"):
-            self.module = BertModelJit.from_pretrained(
-                self.config.bert_model_name, **hf_params
-            )
+            if should_random_init:
+                self.module = BertModelJit(**hf_params)
+            else:
+                self.module = BertModelJit.from_pretrained(
+                    self.config.bert_model_name, **hf_params
+                )
         else:
-            self.module = AutoModel.from_pretrained(
-                self.config.bert_model_name, **hf_params
-            )
+            if should_random_init:
+                self.module = AutoModel.from_config(**hf_params)
+            else:
+                self.module = AutoModel.from_pretrained(
+                    self.config.bert_model_name, **hf_params
+                )
+
         self.embeddings = self.module.embeddings
         self.original_config = self.config
         self.config = self.module.config

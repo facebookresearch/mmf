@@ -102,6 +102,10 @@ class BaseDataset(Dataset):
     def dataset_name(self, name):
         self._dataset_name = name
 
+    @dataset_type.setter
+    def dataset_type(self, dataset_type):
+        self._dataset_type = dataset_type
+
     def format_for_prediction(self, report):
         return []
 

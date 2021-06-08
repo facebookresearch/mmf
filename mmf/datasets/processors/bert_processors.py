@@ -164,7 +164,9 @@ class MaskedTokenProcessor(BaseProcessor):
         output = self._convert_to_indices(
             tokens_a, tokens_b, probability=self._probability
         )
-        output["is_correct"] = torch.tensor(item["is_correct"], dtype=torch.long)
+        output["is_correct"] = torch.tensor(
+            item.get("is_correct", True), dtype=torch.long
+        )
 
         return output
 
