@@ -398,7 +398,9 @@
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_to_indices</span><span class="p">(</span>
             <span class="n">tokens_a</span><span class="p">,</span> <span class="n">tokens_b</span><span class="p">,</span> <span class="n">probability</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_probability</span>
         <span class="p">)</span>
-        <span class="n">output</span><span class="p">[</span><span class="s2">&quot;is_correct&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;is_correct&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+        <span class="n">output</span><span class="p">[</span><span class="s2">&quot;is_correct&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;is_correct&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span>
+        <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">output</span></div>
 
