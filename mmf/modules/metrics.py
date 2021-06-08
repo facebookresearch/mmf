@@ -237,8 +237,11 @@ class Accuracy(BaseMetric):
     **Key:** ``accuracy``
     """
 
-    def __init__(self):
+    def __init__(self, score_key="scores", target_key="targets", topk=1):
         super().__init__("accuracy")
+        self.score_key = score_key
+        self.target_key = target_key
+        self.topk = topk
 
     def calculate(self, sample_list, model_output, *args, **kwargs):
         """Calculate accuracy and return it back.
@@ -252,8 +255,9 @@ class Accuracy(BaseMetric):
             torch.FloatTensor: accuracy.
 
         """
-        output = model_output["scores"]
-        expected = sample_list["targets"]
+        output = model_output[self.score_key]
+        batch_size = output.shape[0]
+        expected = sample_list[self.target_key]
 
         assert (
             output.dim() <= 2
@@ -263,18 +267,21 @@ class Accuracy(BaseMetric):
         ), "Expected target shouldn't have more than dim 2 for accuracy"
 
         if output.dim() == 2:
-            output = torch.max(output, 1)[1]
+            output = output.topk(self.topk, 1, True, True)[1].t().squeeze()
 
         # If more than 1
         # If last dim is 1, we directly have class indices
         if expected.dim() == 2 and expected.size(-1) != 1:
-            expected = torch.max(expected, 1)[1]
+            expected = expected.topk(self.topk, 1, True, True)[1].t().squeeze()
 
         correct = (expected == output.squeeze()).sum().float()
-        total = len(expected)
+        return correct / batch_size
 
-        value = correct / total
-        return value
+
+@registry.register_metric("topk_accuracy")
+class TopKAccuracy(Accuracy):
+    def __init__(self, score_key: str, k: int):
+        super().__init__(score_key=score_key, topk=k)
 
 
 @registry.register_metric("caption_bleu4")

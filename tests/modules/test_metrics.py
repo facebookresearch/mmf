@@ -224,3 +224,68 @@ class TestModuleMetrics(unittest.TestCase):
     def test_retrieval_recall_at_10(self):
         metric = metrics.RecallAt10_ret()
         self._test_retrieval_recall_at_k_metric(metric, 1.0)
+
+    def test_accuracy_base(self):
+        metric = metrics.Accuracy()
+
+        torch.manual_seed(2)
+        targets = torch.rand((25, 10))
+        scores = torch.rand((25, 10))
+
+        acc = metric.calculate({"targets": targets}, {"scores": scores})
+        self.assertAlmostEqual(0.04, acc.item())
+
+    def test_accuracy_base2(self):
+        metric = metrics.Accuracy()
+
+        torch.manual_seed(2)
+        targets = torch.rand((25, 10))
+        scores = torch.rand((25, 10))
+        scores = torch.max(scores, 1)[1]
+
+        acc = metric.calculate({"targets": targets}, {"scores": scores})
+        self.assertAlmostEqual(0.04, acc.item())
+
+    def test_accuracy_base3(self):
+        metric = metrics.Accuracy()
+
+        torch.manual_seed(2)
+        targets = torch.rand((25, 10))
+        targets = torch.max(targets, 1)[1]
+        scores = torch.rand((25, 10))
+
+        acc = metric.calculate({"targets": targets}, {"scores": scores})
+        self.assertAlmostEqual(0.04, acc.item())
+
+    def test_accuracy_top1(self):
+        metric = metrics.TopKAccuracy(score_key="scores", k=1)
+
+        torch.manual_seed(2)
+        targets = torch.rand((25, 10))
+        scores = torch.rand((25, 10))
+        targets = targets.topk(1, 1, True, True)[1].t().squeeze()
+
+        acc = metric.calculate({"targets": targets}, {"scores": scores})
+        self.assertAlmostEqual(0.04, acc.item(), 1)
+
+    def test_accuracy_top1_with_max(self):
+        metric = metrics.TopKAccuracy(score_key="scores", k=1)
+
+        torch.manual_seed(2)
+        targets = torch.rand((25, 10))
+        targets = torch.max(targets, 1)[1]
+        scores = torch.rand((25, 10))
+
+        acc = metric.calculate({"targets": targets}, {"scores": scores})
+        self.assertAlmostEqual(0.04, acc.item(), 1)
+
+    def test_accuracy_top5(self):
+        metric = metrics.TopKAccuracy(score_key="scores", k=5)
+
+        torch.manual_seed(2)
+        targets = torch.rand((25, 10))
+        targets = torch.max(targets, 1)[1]
+        scores = torch.rand((25, 10))
+
+        acc = metric.calculate({"targets": targets}, {"scores": scores})
+        self.assertAlmostEqual(0.48, acc.item(), 1)
