@@ -98,10 +98,11 @@ def setup_logger(
     distributed_rank = get_rank()
     handlers = []
 
+    logging_level = registry.get("config").training.logger_level.upper()
     if distributed_rank == 0:
-        logger.setLevel(logging.INFO)
+        logger.setLevel(logging_level)
         ch = logging.StreamHandler(stream=sys.stdout)
-        ch.setLevel(logging.INFO)
+        ch.setLevel(logging_level)
         if color:
             formatter = ColorfulFormatter(
                 colored("%(asctime)s | %(name)s: ", "green") + "%(message)s",
@@ -128,7 +129,7 @@ def setup_logger(
         PathManager.mkdirs(os.path.dirname(filename))
 
         fh = logging.StreamHandler(_cached_log_stream(filename))
-        fh.setLevel(logging.INFO)
+        fh.setLevel(logging_level)
         fh.setFormatter(plain_formatter)
         logger.addHandler(fh)
         warnings_logger.addHandler(fh)
@@ -139,7 +140,7 @@ def setup_logger(
             save_dir = get_mmf_env(key="save_dir")
             filename = os.path.join(save_dir, "train.log")
             sh = logging.StreamHandler(_cached_log_stream(filename))
-            sh.setLevel(logging.INFO)
+            sh.setLevel(logging_level)
             sh.setFormatter(plain_formatter)
             logger.addHandler(sh)
             warnings_logger.addHandler(sh)
@@ -152,7 +153,7 @@ def setup_logger(
         for handler in logging.root.handlers[:]:
             logging.root.removeHandler(handler)
     # Now, add our handlers.
-    logging.basicConfig(level=logging.INFO, handlers=handlers)
+    logging.basicConfig(level=logging_level, handlers=handlers)
 
     registry.register("writer", logger)
 
