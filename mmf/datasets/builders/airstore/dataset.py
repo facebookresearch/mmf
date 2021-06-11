@@ -41,7 +41,7 @@ class AirstoreDataset(BaseDataset):
         self._iterator = None
 
     def set_epoch(self, epoch: int):
-        #TODO : Currently sets the same seed every epoch, set this from MultiDataLoader
+        # TODO : Currently sets the same seed every epoch, set this from MultiDataLoader
         logger.info(f"set epoch to {epoch} in airstore dataset")
         self.epoch = epoch
 
