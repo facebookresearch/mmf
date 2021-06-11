@@ -1,0 +1,46 @@
+dataset_config:
+  airstore:
+    data_dir: ${env.data_dir}
+    enable_shuffle: true
+    shuffle_window: 128
+    data_limit: -1
+    data_offset: 0
+    num_of_threads: 2
+    prefetch: 1
+    max_holding_bundles: 5
+    bundle_download_timeout_ms: 30000
+    max_retries: 5
+    env: OSS
+    annotations:
+      train:
+      - airstore://coco_caption_train_flashblade
+      val:
+      - airstore://coco_caption_val_flashblade
+      test:
+      - airstore://coco_caption_val_flashblade
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
+      image_processor:
+        type: torchvision_transforms
+        params:
+          transforms:
+            - type: Resize
+              params:
+                size: [256, 256]
+            - type: CenterCrop
+              params:
+                size: [224, 224]
+            - ToTensor
+            - GrayScaleTo3Channels
+            - type: Normalize
+              params:
+                mean: [0.46777044, 0.44531429, 0.40661017]
+                std: [0.12221994, 0.12145835, 0.14380469]
