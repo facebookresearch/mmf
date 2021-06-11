@@ -1,0 +1,72 @@
+includes:
+- configs/models/mmf_transformer/pretrain.yaml
+
+model_config:
+  mmf_transformer:
+    modalities:
+    - type: text
+      key: text
+      segment_id: 0
+    - type: image
+      key: image
+      embedding_dim: 2048
+      position_dim: 49
+      segment_id: 1
+      encoder:
+          type: resnet152
+          params:
+              pretrained: true
+              pool_type: avg
+              num_output_features: 9
+
+dataset_config:
+  airstore:
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0.15
+          max_seq_length: 128
+      image_processor:
+        type: torchvision_transforms
+        params:
+          transforms:
+            - type: Resize
+              params:
+                size: [256, 256]
+            - type: CenterCrop
+              params:
+                size: [224, 224]
+            - ToTensor
+            - GrayScaleTo3Channels
+            - type: Normalize
+              params:
+                mean: [0.46777044, 0.44531429, 0.40661017]
+                std: [0.12221994, 0.12145835, 0.14380469]
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 2000
+    num_training_steps: ${training.max_updates}
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 1e-5
+    eps: 1e-8
+
+training:
+  batch_size: 32
+  lr_scheduler: true
+  max_updates: 22000
+
+checkpoint:
+  pretrained_state_mapping:
+    pooler: pooler
+    backend.transformer: backend.transformer
+    backend.embeddings: backend.embeddings
