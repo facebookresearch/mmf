@@ -41,14 +41,107 @@ class BaseTransformerModalityConfig:
     encoder: Any = IdentityEncoder.Config()
 
 
-@dataclass
-class BaseTransformerBackendConfig:
-    # Type of the backend, e.g. huggingface
-    type: str = MISSING
-    # Whether to freeze the backend parameters
-    freeze: bool = False
-    # Parameters for the backend
-    params: Dict[str, Any] = field(default_factory=lambda: {})
+class BaseTransformerBackend(nn.Module, ABC):
+    @dataclass
+    class Config:
+        # Type of the backend, e.g. huggingface
+        name: str = MISSING
+        # Whether to freeze the backend parameters
+        freeze: bool = False
+        # list of modalities for the model input
+        modalities: List[BaseTransformerModalityConfig] = MISSING
+        # Parameters for the backend
+        transformer_params: Dict[str, Any] = field(default_factory=lambda: {})
+
+    def __init__(
+        self,
+        config: Config,
+        *args,
+        **kwargs,
+    ):
+        super().__init__()
+        self.config = config
+        self.modalities = config.modalities
+        self.build_transformer_config()
+        self.build_transformer_base()
+        self.build_embeddings()
+
+    @abstractmethod
+    def build_transformer_config(self):
+        """Build the transformer base model config.
+
+        Warning: Empty shell for code to be implemented in other class.
+        """
+
+    @abstractmethod
+    def build_transformer_base(self):
+        """Build the transformer base model.
+
+        Warning: Empty shell for code to be implemented in other class.
+        """
+
+    @abstractmethod
+    def build_embeddings(self, modalities):
+        """Build the multimodal embeddings using the transformer base
+        embeddings.
+
+        Warning: Empty shell for code to be implemented in other class.
+        """
+
+    @abstractmethod
+    def generate_embeddings(
+        self,
+        tokens_ids: Dict[str, Tensor],
+        position_ids: Dict[str, Tensor],
+        segment_ids: Dict[str, Tensor],
+        attention_mask: Tensor,
+    ) -> Tensor:
+        """Generate the multimodal embeddings.
+
+        Warning: Empty shell for code to be implemented in other class.
+        """
+
+    @abstractmethod
+    def generate_attention_mask(self, masks: List[Tensor]) -> Tensor:
+        """Generate attention mask.
+
+        Warning: Empty shell for code to be implemented in other class.
+        """
+
+    @abstractmethod
+    def generate_encoded_layers(self, embedding, attention_mask) -> List[Tensor]:
+        """Generate the output from transformer layers. Return the encoded layers.
+
+        Warning: Empty shell for code to be implemented in other class.
+        """
+
+    def forward(
+        self,
+        tokens_ids: Dict[str, Tensor],
+        position_ids: Dict[str, Tensor],
+        segment_ids: Dict[str, Tensor],
+        masks: List[Tensor],
+    ) -> Tuple[Tensor, List[Tensor]]:
+        # Attention mask
+        attention_mask = self.generate_attention_mask(masks)
+
+        # Multimodal Embeddings
+        embedding = self.generate_embeddings(
+            tokens_ids, position_ids, segment_ids, attention_mask
+        )
+
+        # Encoder
+        encoded_layers = self.generate_encoded_layers(embedding, attention_mask)
+
+        # Output Tuple(sequence output, all encoded layers)
+        return encoded_layers[-1], encoded_layers
+
+
+class BaseTransformerBackendFactory(nn.Module):
+    @dataclass
+    class Config:
+        type: str = MISSING
+        params: BaseTransformerBackend.Config = MISSING
 
 
 class BaseTransformer(BaseModel):
@@ -63,7 +156,7 @@ class BaseTransformer(BaseModel):
         # training head type used for initializing head
         training_head_type: str = MISSING
         # backend of the transformer
-        backend: BaseTransformerBackendConfig = MISSING
+        backend: BaseTransformerBackend.Config = MISSING
         # list of modalities for the model input
         modalities: List[BaseTransformerModalityConfig] = MISSING
         # std dev of the normal distribution to initialize layers
@@ -180,9 +273,10 @@ class BaseTransformer(BaseModel):
         backend_config = self.config.get("backend", {})
         backend_type = getattr(backend_config, "type", "huggingface")
         backend_class = registry.get_transformer_backend_class(backend_type)
-        self.backend = backend_class(self.config)
+        assert "params" in backend_config
+        self.backend = backend_class(backend_config.params)
 
-        if backend_config.get("freeze", False):
+        if backend_config.params.get("freeze", False):
             for param in self.backend.parameters():
                 param.requires_grad = False
 
@@ -225,10 +319,11 @@ class BaseTransformer(BaseModel):
         return
 
     def init_weights(self):
-        if self.config.random_initialize is False:
-            if self.config.transformer_base is None:
-                # No pretrained model, init weights
-                self.apply(self._init_weights)
+        # TODO: (vedanuj) Add support to automatically init_weights even
+        # when random_initialize is False and no pretrained model is used
+        if self.config.random_initialize:
+            # No pretrained model or random initialization, init weights
+            self.apply(self._init_weights)
 
         # Tie weights if required
         self.tie_weights()
@@ -284,93 +379,6 @@ class BaseTransformer(BaseModel):
             Dict[str, Tensor]: Dict containing scores or losses
         """
         return output
-
-
-class BaseTransformerBackend(nn.Module, ABC):
-    def __init__(self, config: BaseTransformer.Config, *args, **kwargs):
-        super().__init__()
-        self.config = config
-        self.build_transformer_config()
-        self.build_transformer_base()
-        self.build_embeddings()
-
-    @abstractmethod
-    def build_transformer_config(self):
-        """Build the transformer base model config.
-
-        Warning: Empty shell for code to be implemented in other class.
-        """
-
-    @abstractmethod
-    def build_transformer_base(self):
-        """Build the transformer base model.
-
-        Warning: Empty shell for code to be implemented in other class.
-        """
-
-    @abstractmethod
-    def build_embeddings(self):
-        """Build the multimodal embeddings using the transformer base
-        embeddings.
-
-        Warning: Empty shell for code to be implemented in other class.
-        """
-
-    @abstractmethod
-    def get_config(self):
-        """Return the transformer configuration. This can be the config built
-        in `build_transformer_config` or the model config passed to init.
-
-        Warning: Empty shell for code to be implemented in other class.
-        """
-
-    @abstractmethod
-    def generate_embeddings(
-        self,
-        tokens_ids: Dict[str, Tensor],
-        position_ids: Dict[str, Tensor],
-        segment_ids: Dict[str, Tensor],
-        attention_mask: Tensor,
-    ) -> Tensor:
-        """Generate the multimodal embeddings.
-
-        Warning: Empty shell for code to be implemented in other class.
-        """
-
-    @abstractmethod
-    def generate_attention_mask(self, masks: List[Tensor]) -> Tensor:
-        """Generate attention mask.
-
-        Warning: Empty shell for code to be implemented in other class.
-        """
-
-    @abstractmethod
-    def generate_encoded_layers(self, embedding, attention_mask) -> List[Tensor]:
-        """Generate the output from transformer layers. Return the encoded layers.
-
-        Warning: Empty shell for code to be implemented in other class.
-        """
-
-    def forward(
-        self,
-        tokens_ids: Dict[str, Tensor],
-        position_ids: Dict[str, Tensor],
-        segment_ids: Dict[str, Tensor],
-        masks: List[Tensor],
-    ) -> Tuple[Tensor, List[Tensor]]:
-        # Attention mask
-        attention_mask = self.generate_attention_mask(masks)
-
-        # Multimodal Embeddings
-        embedding = self.generate_embeddings(
-            tokens_ids, position_ids, segment_ids, attention_mask
-        )
-
-        # Encoder
-        encoded_layers = self.generate_encoded_layers(embedding, attention_mask)
-
-        # Output Tuple(sequence output, all encoded layers)
-        return encoded_layers[-1], encoded_layers
 
 
 class BaseTransformerHead(nn.Module, ABC):
