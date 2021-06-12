@@ -32,7 +32,12 @@ class TestLightningTrainerValidation(unittest.TestCase):
                 "max_updates": 8,
                 "avg_loss": 9703.29765625,
             },
-            # TODO: @sash, add one last validation when training is done
+            {
+                "current_iteration": 8,
+                "num_updates": 8,
+                "max_updates": 8,
+                "avg_loss": 9701.88046875,
+            },
         ]
 
     def teardown(self):
@@ -81,7 +86,21 @@ class TestLightningTrainerValidation(unittest.TestCase):
             keys = list(gt.keys())
             self.assertListEqual(keys, list(lv.keys()))
             for key in keys:
-                self.assertAlmostEqual(gt[key], lv[key], 1)
+                if key == "num_updates" and gt[key] == self.ground_truths[-1][key]:
+                    # After training, in the last evaluation run, mmf's num updates is 8
+                    # while lightning's num updates is 9, this is due to a hack to
+                    # assign the lightning num_updates to be the trainer.global_step+1.
+                    #
+                    # This is necessary because of a lightning bug: trainer.global_step
+                    # is 1 off less than the actual step count. When on_train_batch_end
+                    # is called for the first time, the trainer.global_step should be 1,
+                    # rather than 0, since 1 update/step has already been done.
+                    #
+                    # When lightning fixes its bug, we will update this test to remove
+                    # the hack
+                    self.assertAlmostEqual(gt[key], lv[key] - 1, 1)
+                else:
+                    self.assertAlmostEqual(gt[key], lv[key], 1)
 
     @patch("mmf.common.test_reporter.PathManager.mkdirs")
     @patch("torch.utils.tensorboard.SummaryWriter")
@@ -103,7 +122,6 @@ class TestLightningTrainerValidation(unittest.TestCase):
 
         calls = summarize_report_fn.call_args_list
         self.assertEqual(3, len(calls))
-        calls = calls[:2]
         self.assertEqual(len(self.ground_truths), len(calls))
         self._check_values(calls)
 
