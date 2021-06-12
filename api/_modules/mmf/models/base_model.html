@@ -432,7 +432,7 @@
 <span class="sd">            Dict: Dict containing loss.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forward_lightning_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">)</span>
-        <span class="n">report</span> <span class="o">=</span> <span class="n">Report</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="n">Report</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">train_meter</span><span class="o">.</span><span class="n">update_from_report</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">output</span></div>
 
@@ -449,7 +449,7 @@
 <span class="sd">            Dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forward_lightning_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">)</span>
-        <span class="n">report</span> <span class="o">=</span> <span class="n">Report</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="n">Report</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">val_meter</span><span class="o">.</span><span class="n">update_from_report</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
         <span class="n">report</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">output</span></div>
