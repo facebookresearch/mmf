@@ -146,7 +146,7 @@ class BaseTransformer(BaseModel):
         return parameters
 
     def set_lr_for_parameters(
-        self, config, module_name, base_lr, module, parameters, param_list, backbone_param_set = None
+        self, config, module_name, base_lr, module, parameters, param_list, excluded_params = None
     ):
         lr_multiplier = config.get("lr_multiplier", 1.0)
         if backbone_param_set is None:
