@@ -103,7 +103,7 @@ class BaseTransformer(BaseModel):
 
     def get_optimizer_parameters(self, config):
         lr = config.optimizer.params.lr
-        backbone_param_set = set()
+        trunk_param_set = set()
         param_list = []
         parameters = []
 
@@ -122,10 +122,10 @@ class BaseTransformer(BaseModel):
                         parameters=parameters,
                         param_list=param_list,
                     )
-            elif name != "heads":
+            if name != "heads":
                 # For other modules in trunk, add to same param group
                 param_list += list(module.named_parameters())
-                backbone_param_set.update(list(module.parameters()))
+                trunk_param_set.update(list(module.parameters()))
         head_configs = self.config.get("heads", [])
         # Heads can have different learning rates. This is handled here
         if len(head_configs) > 0:
@@ -139,20 +139,19 @@ class BaseTransformer(BaseModel):
                     module=head,
                     parameters=parameters,
                     param_list=param_list,
-                    backbone_param_set = backbone_param_set
+                    excluded_params= trunk_param_set
                 )
         parameters += get_bert_configured_parameters(param_list)
 
         return parameters
 
     def set_lr_for_parameters(
-        self, config, module_name, base_lr, module, parameters, param_list, backbone_param_set = None
+        self, config, module_name, base_lr, module, parameters, param_list, excluded_params = None
     ):
         lr_multiplier = config.get("lr_multiplier", 1.0)
-        if backbone_param_set is None:
-            module_param = list(module.named_parameters())
-        else:
-            module_param = [ tup for tup in module.named_parameters() if tup[1] not in backbone_param_set ]
+        module_param = list(module.named_parameters())
+        if excluded_params is not None:
+            module_param = [tup for tup in module_param if tup[1] not in excluded_params]
         if lr_multiplier != 1.0:
             logger.info(
                 f"Setting learning rate of {module_name} to be {base_lr} * {lr_multiplier}."
