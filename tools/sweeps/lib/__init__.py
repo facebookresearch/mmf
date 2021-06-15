@@ -34,6 +34,15 @@ def get_args(argv=None):
         help="number of nodes for distributed training",
     )
     parser.add_argument(
+        "--model_type",
+        type=str,
+        default="aicommerce__multimodal_model",
+        help="registered model type",
+    )
+    parser.add_argument(
+        "--oncall", type=str, default="ai_commerce", help="oncall team "
+    )
+    parser.add_argument(
         "--capabilities",
         type=str,
         default="GPU_V100_HOST",
