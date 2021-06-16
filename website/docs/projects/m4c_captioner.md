@@ -55,7 +55,7 @@ mmf_run datasets=textcaps \
     model=m4c_captioner \
     config=projects/m4c_captioner/configs/m4c_captioner/textcaps/defaults.yaml \
     env.save_dir=./save/m4c_captioner/defaults \
-    run_type=train_val    
+    run_type=train_val
 ```
 
 (Replace `projects/m4c_captioner/configs/m4c_captioner/textcaps/defaults.yaml` with other config files to train with other configurations. See the table above. You can also specify a different path to `env.save_dir` to save to a location you prefer.)

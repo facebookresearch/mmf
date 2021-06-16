@@ -3,49 +3,33 @@
 import logging
 import math
 import os
-import pickle
-from copy import deepcopy
 
-import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import yaml
 from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.modules.embeddings import BertVisioLinguisticEmbeddings
 from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.file_io import PathManager
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
-from mmf.utils.text import VocabDict
 from mmf.utils.transform import (
     transform_to_batch_sequence,
     transform_to_batch_sequence_dim,
 )
 from omegaconf import OmegaConf
-from torch import nn as nn
-from tqdm import tqdm
-from transformers import BertConfig, BertModel
+from torch import nn
 from transformers.modeling_bert import (
     BertConfig,
     BertEncoder,
-    BertForPreTraining,
     BertLayer,
+    BertModel,
     BertPooler,
     BertPredictionHeadTransform,
     BertPreTrainedModel,
 )
 
 
-# Import graph network module
-# Putting in try-catch to avoid adding dependencies to mmf
-try:
-    from projects.krisp.graphnetwork_module import GraphNetworkModule
-except:
-    print(
-        "Import error with KRISP dependencies. Fix dependencies if you want to use KRISP"
-    )
 logger = logging.getLogger(__name__)
+
 
 # This model essentially wraps GraphNetworkModule and multi-modal models
 @registry.register_model("krisp")
@@ -61,7 +45,8 @@ class KRISP(BaseModel):
     # Each method need to define a build method where the model's modules
     # are actually build and assigned to the model
     def build(self):
-        # Get any cross-model info we need for building network (like hidden sizes)
+        # Get any cross-model info we need for building network
+        # (like hidden sizes)
         extra_config = {}
         extra_config["vb_hid_sz"] = self.config.visual_bert.hidden_size
         extra_config["node_hid_dim"] = self.config.graph_module.node_hid_dim
@@ -84,6 +69,16 @@ class KRISP(BaseModel):
             self.q_enc = BertModel.from_pretrained("bert-base-uncased")
             extra_config["q_hid_sz"] = self.q_enc.config.hidden_size
 
+        # Import graph network module
+        # Putting in try-catch to avoid adding dependencies to mmf
+        try:
+            from projects.krisp.graphnetwork_module import GraphNetworkModule
+        except Exception:
+            print(
+                "Import error with KRISP dependencies. Fix dependencies if "
+                + "you want to use KRISP"
+            )
+            raise
         # Builds the graph network module
         self.graph_module = GraphNetworkModule(self.config.graph_module, extra_config)
 
@@ -129,8 +124,9 @@ class KRISP(BaseModel):
             assert not self.config.feed_vb_to_graph
 
             # Check mode
-            # Can be feed_graph_hid_to_vb, where we pass in some vector rep of graph into vb
-            # Or feed_top_node_to_vb which is similar, but it feeds in k node hidden states
+            # Can be feed_graph_hid_to_vb, where we pass in some vector
+            # rep of graph into vb or feed_top_node_to_vb which is similar,
+            # but it feeds in k node hidden states
             assert self.config.feed_mode in [
                 "feed_graph_hid_to_vb",
                 "feed_top_node_to_vb",
@@ -155,7 +151,8 @@ class KRISP(BaseModel):
         else:
             # Check mode
             if self.config.feed_vb_to_graph:
-                # Can be feed_vb_hid_to_graph where we feed final vb state into graph as a node input
+                # Can be feed_vb_hid_to_graph where we feed final
+                # vb state into graph as a node input
                 # Or feed_vb_logit_to_graph where we feed vg_predicted logits into graph
                 assert self.config.feed_mode in [
                     "feed_vb_hid_to_graph",
@@ -245,7 +242,8 @@ class GraphPtrNet(nn.Module):
         self.graph_w = nn.Linear(graph_hidden_size, hidden_size)
 
     def forward(self, bl_hidden, graph_hidden):
-        # Compute Eq. 4 from Iterative Answer Prediction with Pointer-Augmented Multimodal Transformers for TextVQA
+        # Compute Eq. 4 from Iterative Answer Prediction with
+        # Pointer-Augmented Multimodal Transformers for TextVQA
         # bl_hidden is bs x hidden_size
         # graph_hidden is bs x graph_hidden_size
 

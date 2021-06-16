@@ -1,33 +1,24 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-# This is the generic module for Graph Network computations, which can be added as a component to any base network
+# This is the generic module for Graph Network computations,
+# which can be added as a component to any base network
 # Used some word2vec code from https://github.com/adithyamurali/TaskGrasp
 # Also used example code from https://github.com/rusty1s/pytorch_geometric
-import copy
 import os
 import pickle
-from copy import deepcopy
 
 import networkx as nx
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import yaml
 from gensim.models import KeyedVectors
 from gensim.scripts.glove2word2vec import glove2word2vec
-
-# MMF
-# registry is need to register our new model so as to be MMF discoverable
 from mmf.common.registry import registry
-
-# All model using MMF need to inherit BaseModel
 from mmf.models.base_model import BaseModel
 from mmf.utils.text import VocabDict
 from networkx import convert_node_labels_to_integers
-from omegaconf import OmegaConf
 from torch_geometric.nn import BatchNorm, GCNConv, RGCNConv, SAGEConv
-from torch_geometric.utils import k_hop_subgraph
 from tqdm import tqdm
 
 
@@ -322,7 +313,8 @@ def prepare_embeddings(node_names, embedding_file, add_split):
             no_match_nodes.append([node_name, try_words])
 
 
-# This just wraps GraphNetworkModule for mmf so GNM can be a submodule of other networks too
+# This just wraps GraphNetworkModule for mmf so GNM can be a submodule of
+# other networks too
 @registry.register_model("graph_network_bare")
 class GraphNetworkBare(BaseModel):
     def __init__(self, config):
@@ -434,14 +426,19 @@ class GraphNetworkModule(nn.Module):
         self.num_relations = len(raw_graph["relations2idx"])
 
         # Get the dataset specific info and relate it to the constructed graph
-        self.name2node_idx, self.qid2nodeact, self.img_class_sz = self.get_dataset_info(
-            config
-        )
+        (
+            self.name2node_idx,
+            self.qid2nodeact,
+            self.img_class_sz,
+        ) = self.get_dataset_info(config)
 
         # And get the answer related info
-        self.index_in_ans, self.index_in_node, self.graph_answers, self.graph_ans_node_idx = self.get_answer_info(
-            config
-        )
+        (
+            self.index_in_ans,
+            self.index_in_node,
+            self.graph_answers,
+            self.graph_ans_node_idx,
+        ) = self.get_answer_info(config)
 
         # Save graph answers (to be used by data loader)
         torch.save(self.graph_answers, mmf_indirect(config.graph_vocab_file))
@@ -454,7 +451,8 @@ class GraphNetworkModule(nn.Module):
             with open(node2vec_filename, "rb") as f:
                 node2vec, node_names_saved, no_match_nodes = pickle.load(f)
 
-            # Make sure the nodes here are identical (otherwise, when we update graph code, we might have the wrong graph)
+            # Make sure the nodes here are identical (otherwise,
+            # when we update graph code, we might have the wrong graph)
             if set(node_names) == set(node_names_saved):
                 valid_node2vec = True
 
@@ -502,7 +500,8 @@ class GraphNetworkModule(nn.Module):
         if self.use_w2v:
             # Create the base node feature matrix
             # torch.Tensor of size num_nodes x in_node_dim
-            # In forward pass, will need to copy this batch_size times and convert to cuda
+            # In forward pass, will need to copy this batch_size times and
+            # convert to cuda
             self.base_node_features = torch.zeros(self.num_nodes, self.in_node_dim)
 
             # Copy over w2v
@@ -663,7 +662,8 @@ class GraphNetworkModule(nn.Module):
             img_data = [(name, img_data[name]) for name in img_data]
             qid2imginfo[qid] = img_data
 
-        # Convert qid2qnode and qid2imginfo to go from qid -> (name, conf) to qid -> (node_idx, conf) and merge q and img info (concat)
+        # Convert qid2qnode and qid2imginfo to go from qid -> (name, conf)
+        # to qid -> (node_idx, conf) and merge q and img info (concat)
         name2node_idx = {}
         idx = 0
         for nodename in self.graph.nodes:
@@ -674,7 +674,8 @@ class GraphNetworkModule(nn.Module):
         for qid in qid2qnode:
             # Get words / confs
             q_words = qid2qnode[qid]  # qid -> [qw_1, qw_2, ...]
-            img_info = qid2imginfo[qid]  # qid -> [(iw_1, conf_c1, conf_c2, ...), ...]
+            # qid -> [(iw_1, conf_c1, conf_c2, ...), ...]
+            img_info = qid2imginfo[qid]
             img_words = [x[0] for x in img_info]
             img_confs = [x[1] for x in img_info]
 
@@ -684,7 +685,8 @@ class GraphNetworkModule(nn.Module):
                 assert type(img_confs[0]) is torch.Tensor
                 img_class_sz = img_confs[0].size(0)
 
-            # We will arrange the node info [q, img_class_1_conf, img_class_2_conf ... w2v]
+            # We will arrange the node info
+            # [q, img_class_1_conf, img_class_2_conf ... w2v]
             # Add to list
             node_info = {}  # node_idx -> torch.Tensor(q, ic1, ic2, ...)
             for word in q_words:
@@ -715,7 +717,8 @@ class GraphNetworkModule(nn.Module):
                     node_info[node_idx] = val
 
             # Add node info to dict
-            # This structure will be used to dynamically create node info during forward pass
+            # This structure will be used to dynamically create node info
+            # during forward pass
             qid2nodeact[qid] = node_info
 
         # Check the average # of node activations is reasonable
@@ -736,23 +739,25 @@ class GraphNetworkModule(nn.Module):
 
         # If we're in okvqa v1.0, need to do this a bit differently
         if config.okvqa_v_mode in ["v1.0", "v1.0-121", "v1.0-121-mc"]:
-            # Load the answer translation file (to go from raw strings to stemmed in v1.0 vocab)
+            # Load the answer translation file (to go from raw strings to
+            # stemmed in v1.0 vocab)
             tx_data = torch.load(mmf_indirect(config.ans_translation_file))
             if config.okvqa_v_mode in ["v1.0-121", "v1.0-121-mc"]:
                 old_graph_vocab = torch.load(mmf_indirect(config.old_graph_vocab_file))
 
             # Get a list of answer node indices
-            # Important if we want to index those out to (for instance) do node classification on them
+            # Important if we want to index those out to (for instance)
+            # do node classification on them
             index_in_ans = []
             index_in_node = []
             graph_answers = []
             nomatch = []
-            node_ties = []
             for ans_str in answer_vocab.word2idx_dict:
                 # Regular, don't worry about 1-1
                 if config.okvqa_v_mode == "v1.0":
 
-                    # Convert it to the most common raw answer and see if it's in the graph
+                    # Convert it to the most common raw answer and
+                    # see if it's in the graph
                     if ans_str not in tx_data["v10_2_v11_mc"]:
                         nomatch.append(ans_str)
                         continue
@@ -791,7 +796,8 @@ class GraphNetworkModule(nn.Module):
                     index_in_ans.append(ans_idx)
 
                 else:
-                    # Convert it to the most common raw answer and see if it's in the graph
+                    # Convert it to the most common raw answer and see if
+                    # it's in the graph
                     if ans_str not in tx_data["v10_2_v11_mc"]:
                         nomatch.append(ans_str)
                         continue
@@ -852,7 +858,6 @@ class GraphNetworkModule(nn.Module):
                             idx = index_in_node.index(self.name2node_idx[raw_ans])
                             node_idx = index_in_node[idx]
                             old_ans_str = graph_answers[idx]
-                            old_ans_idx = index_in_ans[idx]
                             raw_counts = tx_data["v11_2_raw_count"][raw_ans]
                             assert ans_str in raw_counts and old_ans_str in raw_counts
                             assert ans_str != old_ans_str
@@ -893,7 +898,8 @@ class GraphNetworkModule(nn.Module):
             assert config.okvqa_v_mode == "v1.1"
 
             # Get a list of answer node indices
-            # Important if we want to index those out to (for instance) do node classification on them
+            # Important if we want to index those out to (for instance)
+            # do node classification on them
             index_in_ans = []
             index_in_node = []
             graph_answers = []
@@ -943,14 +949,16 @@ class GraphNetworkModule(nn.Module):
 
     # Forward function
     # Converts from sample_list to the exact structure needed by the graph network
-    # Assume right now that it's just passed in exactly how I need it and I'll figure it out layer
+    # Assume right now that it's just passed in exactly how
+    # I need it and I'll figure it out layer
     def forward(self, sample_list):
         # Get the batch size, qids, and device
         qids = sample_list["id"]
         batch_size = qids.size(0)
         device = qids.device
 
-        # First, if this is first forward pass or batch size changed, we need to allocate everything
+        # First, if this is first forward pass or batch size changed,
+        # we need to allocate everything
         if (
             self.node_features_forward is None
             or batch_size * self.num_nodes != self.node_features_forward.size(0)
@@ -1316,7 +1324,8 @@ class GraphNetworkModule(nn.Module):
                 logits[:, self.index_in_ans] = output[:, self.index_in_node]
                 output = logits
 
-        # If we generated a spec_out in graph network, put in sample list for other modules to use
+        # If we generated a spec_out in graph network, put in sample
+        # list for other modules to use
         if spec_out is not None:
             sample_list["graph_special_node_out"] = spec_out
 
@@ -1509,14 +1518,16 @@ class GraphNetwork(nn.Module):
 
         # Set output network
         if self.output_type in ["hidden", "hidden_subindex", "hidden_ans"]:
-            # Don't really need anything here, either passing all of G, or G for particular indices
+            # Don't really need anything here, either passing all of G,
+            # or G for particular indices
             pass
         elif self.output_type in [
             "graph_level",
             "graph_level_ansonly",
             "graph_level_inputonly",
         ]:
-            # Will first predict a logit for each node, then do softmax addition of all graph features
+            # Will first predict a logit for each node, then do
+            # softmax addition of all graph features
             self.logit_pred = nn.Linear(
                 self.node_hid_dim, 1
             )  # Predicts hid_dim -> 1, which then gets passed into softmax
@@ -1700,17 +1711,20 @@ class GraphNetwork(nn.Module):
             # Output
             if self.num_nodes is not None:
                 assert x.size(0) == self.num_nodes * batch_size + batch_size
-            # If it's output special, get the output as those special node hidden states
+            # If it's output special, get the output as those special
+            # node hidden states
             if self.output_special_node:
                 # Should be just the last (batch_size) nodes
                 spec_out = x[self.num_nodes * batch_size :]
                 assert spec_out.size(0) == batch_size
 
-            # Otherwise, we want to remove the last batch_size nodes (since we don't use them)
+            # Otherwise, we want to remove the last batch_size nodes
+            # (since we don't use them)
             x = x[: self.num_nodes * batch_size]
             assert x.size(0) == self.num_nodes * batch_size
         # Reshape output to batch size now
-        # For dynamic graph, we don't do the reshape. It's the class above's job to reshape this properly
+        # For dynamic graph, we don't do the reshape. It's the class
+        # above's job to reshape this properly
         if self.num_nodes is not None:
             x = x.reshape(batch_size, self.num_nodes, self.node_hid_dim)
 
