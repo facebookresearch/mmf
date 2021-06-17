@@ -1,0 +1,55 @@
+model_config:
+  visual_bert:
+    hidden_size: 768
+    hidden_dropout_prob: 0.1
+    training_head_type: classification
+    num_labels: 2250
+    pooler_strategy: vqa
+    zerobias: true
+    biasfill: -6.58
+    losses:
+    - type: logit_bce
+dataset_config:
+  okvqa:
+    use_images: false
+    use_features: true
+    return_features_info: true
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
+      answer_processor:
+        params:
+          vocab_file: okvqa/defaults/annotations/annotations/answer_vocab_count10.txt
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+    weight_decay: 0
+scheduler:
+  type: warmup_cosine
+  params:
+    num_warmup_steps: 2000
+    num_training_steps: 88000
+evaluation:
+  metrics:
+  - vqa_accuracy
+training:
+  batch_size: 56
+  lr_scheduler: true
+  # Don't forget to update schedule_attributes if you update this
+  max_updates: 88000
+  early_stop:
+    criteria: okvqa/vqa_accuracy
+    minimize: false
+  find_unused_parameters: true
+checkpoint:
+  pretrained_state_mapping:
+    model.bert: model.bert

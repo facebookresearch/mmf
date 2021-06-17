@@ -2,10 +2,10 @@
 # This is required to make sorting same as fbcode as all absolute imports
 # are considered third party there
 known_third_party = [
-    "PIL", "caffe2", "cv2", "demjson", "fairscale", "filelock", "h5py", "iopath", "lib", "lmdb", "maskrcnn_benchmark", "matplotlib",
-    "mmf", "mmf_cli", "numpy", "omegaconf", "packaging", "pandas", "pycocoevalcap", "pytorch_sphinx_theme",
+    "PIL", "caffe2", "cv2", "demjson", "fairscale", "filelock", "gensim", "h5py", "iopath", "lib", "lmdb", "maskrcnn_benchmark", "matplotlib",
+    "mmf", "mmf_cli", "networkx", "numpy", "omegaconf", "packaging", "pandas", "pycocoevalcap", "pytorch_sphinx_theme",
     "recommonmark", "requests", "scipy", "setuptools", "sklearn", "termcolor", "tests", "torch",
-    "torchaudio", "torchtext", "torchvision", "tqdm", "transformers", "pytorch_lightning"
+    "torchaudio", "torch_geometric", "torchtext", "torchvision", "tqdm", "transformers", "pytorch_lightning", "yaml"
 ]
 skip_glob = "**/build/**,website/**,**/fb/**"
 combine_as_imports = true

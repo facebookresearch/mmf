@@ -467,9 +467,8 @@ class FastTextProcessor(VocabProcessor):
             return model_file_path
 
         import requests
-        from tqdm import tqdm
-
         from mmf.common.constants import FASTTEXT_WIKI_URL
+        from tqdm import tqdm
 
         PathManager.mkdirs(os.path.dirname(model_file_path))
         response = requests.get(FASTTEXT_WIKI_URL, stream=True)
@@ -631,6 +630,232 @@ class VQAAnswerProcessor(BaseProcessor):
             answers_indices[idx] = self.answer_vocab.word2idx(token)
 
         answers_scores = self.compute_answers_scores(answers_indices)
+
+        return {
+            "answers": tokens,
+            "answers_indices": answers_indices,
+            "answers_scores": answers_scores,
+        }
+
+    def get_vocab_size(self):
+        """Get vocab size of the answer vocabulary. Can also include
+        soft copy dynamic answer space size.
+
+        Returns:
+            int: size of the answer vocabulary
+
+        """
+        return self.answer_vocab.num_vocab
+
+    def get_true_vocab_size(self):
+        """True vocab size can be different from normal vocab size in some cases
+        such as soft copy where dynamic answer space is added.
+
+        Returns:
+            int: True vocab size.
+
+        """
+        return self.answer_vocab.num_vocab
+
+    def word2idx(self, word):
+        """Convert a word to its index according to vocabulary
+
+        Args:
+            word (str): Word to be converted to index.
+
+        Returns:
+            int: Index of the word.
+
+        """
+        return self.answer_vocab.word2idx(word)
+
+    def idx2word(self, idx):
+        """Index to word according to the vocabulary.
+
+        Args:
+            idx (int): Index to be converted to the word.
+
+        Returns:
+            str: Word corresponding to the index.
+
+        """
+        return self.answer_vocab.idx2word(idx)
+
+    def compute_answers_scores(self, answers_indices):
+        """Generate VQA based answer scores for answers_indices.
+
+        Args:
+            answers_indices (torch.LongTensor): tensor containing indices of the answers
+
+        Returns:
+            torch.FloatTensor: tensor containing scores.
+
+        """
+        scores = torch.zeros(self.get_vocab_size(), dtype=torch.float)
+        gt_answers = list(enumerate(answers_indices))
+        unique_answers = set(answers_indices.tolist())
+
+        for answer in unique_answers:
+            accs = []
+            for gt_answer in gt_answers:
+                other_answers = [item for item in gt_answers if item != gt_answer]
+
+                matching_answers = [item for item in other_answers if item[1] == answer]
+                acc = min(1, float(len(matching_answers)) / 3)
+                accs.append(acc)
+            avg_acc = sum(accs) / len(accs)
+
+            if answer != self.answer_vocab.UNK_INDEX:
+                scores[answer] = avg_acc
+
+        return scores
+
+    def _increase_to_ten(self, tokens):
+        while len(tokens) < self.DEFAULT_NUM_ANSWERS:
+            tokens += tokens[: self.DEFAULT_NUM_ANSWERS - len(tokens)]
+
+        return tokens
+
+
+@registry.register_processor("graph_vqa_answer")
+class GraphVQAAnswerProcessor(BaseProcessor):
+    """Processor for generating answer scores for answers passed using VQA
+    accuracy formula. Using VocabDict class to represent answer vocabulary,
+    so parameters must specify "vocab_file". "num_answers" in parameter config
+    specify the max number of answers possible. Takes in dict containing
+    "answers" or "answers_tokens". "answers" are preprocessed to generate
+    "answers_tokens" if passed.
+
+    This version also takes a graph vocab and predicts a main and graph stream simultanously
+
+    Args:
+        config (DictConfig): Configuration for the processor
+
+    Attributes:
+        answer_vocab (VocabDict): Class representing answer vocabulary
+    """
+
+    DEFAULT_NUM_ANSWERS = 10
+
+    def __init__(self, config, *args, **kwargs):
+        if not hasattr(config, "vocab_file"):
+            raise AttributeError(
+                "'vocab_file' argument required, but not "
+                "present in AnswerProcessor's config"
+            )
+
+        self.answer_vocab = VocabDict(config.vocab_file, *args, **kwargs)
+        self.PAD_IDX = self.answer_vocab.word2idx("<pad>")
+        self.BOS_IDX = self.answer_vocab.word2idx("<s>")
+        self.EOS_IDX = self.answer_vocab.word2idx("</s>")
+        self.UNK_IDX = self.answer_vocab.UNK_INDEX
+
+        # Set EOS to something not achievable if it is not there
+        if self.EOS_IDX == self.UNK_IDX:
+            self.EOS_IDX = len(self.answer_vocab)
+
+        self.preprocessor = None
+
+        if hasattr(config, "preprocessor"):
+            self.preprocessor = Processor(config.preprocessor)
+
+            if self.preprocessor is None:
+                raise ValueError(
+                    f"No processor named {config.preprocessor} is defined."
+                )
+
+        if hasattr(config, "num_answers"):
+            self.num_answers = config.num_answers
+        else:
+            self.num_answers = self.DEFAULT_NUM_ANSWERS
+            warnings.warn(
+                "'num_answers' not defined in the config. "
+                "Setting to default of {}".format(self.DEFAULT_NUM_ANSWERS)
+            )
+
+        # Load the graph answer vocab file
+        if os.path.exists(config.graph_vocab_file):
+            graph_vocab_file = config.graph_vocab_file
+        else:
+            graph_vocab_file = os.path.join(
+                os.getenv("MMF_DATA_DIR"), "datasets", config.graph_vocab_file
+            )
+        self.graph_vocab = sorted(list(torch.load(graph_vocab_file)))
+        self.ans2graphvocabidx = {}
+        for graphvocabidx, graph_ans in enumerate(self.graph_vocab):
+            # Right now, this does need to overlap with the regular vocab
+            self.ans2graphvocabidx[graph_ans] = graphvocabidx
+
+            # Make sure graph_ans actually in vocab
+            assert graph_ans in self.answer_vocab.word2idx_dict
+
+        self.config = config
+
+    def __call__(self, item):
+        """Takes in dict with answers or answers_tokens, and returns back
+        a dict with answers (processed), "answers_indices" which point to
+        indices of the answers if present and "answers_scores" which represent
+        VQA style scores for the answers.
+
+        Args:
+            item (Dict): Dict containing answers or answers_tokens
+
+        Returns:
+            Dict: Processed answers, indices and scores.
+
+        """
+        tokens = []
+
+        if not isinstance(item, dict):
+            raise TypeError("'item' passed to processor must be a dict")
+
+        if "answer_tokens" in item:
+            tokens = item["answer_tokens"]
+        elif "answers" in item and item["answers"] is not None:
+            if self.preprocessor is None:
+                raise AssertionError(
+                    "'preprocessor' must be defined if you "
+                    "don't pass 'answer_tokens'"
+                )
+
+            tokens = [
+                self.preprocessor({"text": answer})["text"]
+                for answer in item["answers"]
+            ]
+        else:
+            raise AssertionError(
+                "'answers' or 'answer_tokens' must be passed"
+                " to answer processor in a dict"
+            )
+
+        if len(tokens) != 0:
+            tokens = self._increase_to_ten(tokens)
+
+        answers_indices = torch.zeros(self.DEFAULT_NUM_ANSWERS, dtype=torch.long)
+        answers_indices.fill_(self.answer_vocab.get_unk_index())
+
+        for idx, token in enumerate(tokens):
+            answers_indices[idx] = self.answer_vocab.word2idx(token)
+
+        answers_scores = self.compute_answers_scores(answers_indices)
+
+        # Get answer scores for the graph vocab
+        if self.config.concat_scores:
+            answers_scores_graph = torch.zeros(len(self.graph_vocab), dtype=torch.float)
+            unique_answers = set(answers_indices.tolist())
+            for answer in unique_answers:
+                # Get the original score
+                if answer != self.answer_vocab.UNK_INDEX:
+                    score = answers_scores[answer]
+
+                    # Copy into graph scores (if it's in there)
+                    ans_str = self.answer_vocab.idx2word(answer)
+                    if ans_str in self.ans2graphvocabidx:
+                        graph_idx = self.ans2graphvocabidx[ans_str]
+                        answers_scores_graph[graph_idx] = score
+
+            # Concat scores
+            answers_scores = torch.cat([answers_scores, answers_scores_graph], dim=0)
 
         return {
             "answers": tokens,

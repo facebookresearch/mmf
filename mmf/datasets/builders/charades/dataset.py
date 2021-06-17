@@ -156,8 +156,7 @@ class CharadesDataset(BaseDataset):
         return sample
 
     def show_clip(self, idx):
-        from IPython.display import Image, Audio
-        from IPython.display import display
+        from IPython.display import Audio, Image, display
 
         video, audio, text, one_hot = self[idx]
         # one hot to label index

@@ -1,0 +1,12 @@
+includes:
+- ./defaults.yaml
+
+model_config:
+  visual_bert:
+    num_labels: 2253
+
+dataset_config:
+  okvqa:
+      answer_processor:
+        params:
+          vocab_file: okvqa/defaults/annotations/annotations/answer_vocab_v10_count10.txt

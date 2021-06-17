@@ -44,7 +44,7 @@ mmimdb:
       file_name: features.tar.gz
       hashcode: dab8ef859d872fa42f84eb6f710d408929bc35f056ca699b47e8a43d0657f3f1
     images:
-    - url: https://archive.org/download/mmimdb/mmimdb.tar.gz
+    - url: http://lisi1.unal.edu.co/mmimdb/mmimdb.tar.gz
       file_name: mmimdb.tar.gz
     annotations:
     - url: mmf://datasets/mmimdb/defaults/annotations/annotations.tar.gz
@@ -405,7 +405,7 @@ gqa:
 
 okvqa:
   defaults:
-    version: 1.0_2020_07_16
+    version: 1.0_2021_01_29
     resources:
       images:
       - url: mmf://datasets/okvqa/defaults/images/images.tar.gz
@@ -415,16 +415,21 @@ okvqa:
       - url: mmf://datasets/okvqa/defaults/extras.tar.gz
         file_name: extras.tar.gz
         hashcode: 9a1cc2f2abedcee494917fae853069d8e465dad050307221b7969c9d65ed1b45
+      features:
+      - url: mmf://datasets/okvqa/defaults/features/features_fc6.tar.gz
+        file_name: features.tar.gz
       annotations:
-      - url: https://okvqa.allenai.org/static/data/mscoco_train2014_annotations.json.zip
-        file_name: mscoco_train2014_annotations.json.zip
-      - url: https://okvqa.allenai.org/static/data/mscoco_val2014_annotations.json.zip
-        file_name: mscoco_val2014_annotations.json.zip
-      - url: https://okvqa.allenai.org/static/data/OpenEnded_mscoco_train2014_questions.json.zip
-        file_name: OpenEnded_mscoco_train2014_questions.json.zip
-      - url: https://okvqa.allenai.org/static/data/OpenEnded_mscoco_val2014_questions.json.zip
-        file_name: OpenEnded_mscoco_val2014_questions.json.zip
-
+      - url: mmf://datasets/okvqa/defaults/annotations.tar.gz
+        file_name: annotations.tar.gz
+      graphs:
+      - url: mmf://datasets/okvqa/krisp/graphs.tar.gz
+        file_name: graphs.tar.gz
+      graph_vocab:
+      - url: mmf://datasets/okvqa/krisp/graph_vocab.tar.gz
+        file_name: graph_vocab.tar.gz
+      node2vec:
+      - url: mmf://datasets/okvqa/krisp/node2vec.tar.gz
+        file_name: node2vec.tar.gz
 
 vqacp_v2:
   defaults:

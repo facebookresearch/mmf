@@ -330,6 +330,12 @@ class VisualBERTForClassification(nn.Module):
             # Classifier needs to be initialized always as it is task specific
             self.classifier.apply(self.bert._init_weights)
 
+        # Set last hidden layer
+        if "losses" in self.config and self.config.zerobias:
+            for loss in self.config.losses:
+                if "bce" in loss["type"]:
+                    self.classifier[1].bias.data.fill_(self.config.biasfill)
+
     def forward(
         self,
         input_ids: Tensor,

@@ -1260,10 +1260,10 @@ class DetectionMeanAP(BaseMetric):
         # which are *already* gathered from all notes, the evaluation should only happen
         # in one node and broadcasted to other nodes (to avoid CPU OOM due to concurrent
         # mAP evaluation)
+        from mmf.utils.distributed import broadcast_tensor, is_master
+        from mmf.utils.general import get_current_device
         from pycocotools.coco import COCO
         from pycocotools.cocoeval import COCOeval
-        from mmf.utils.distributed import is_master, broadcast_tensor
-        from mmf.utils.general import get_current_device
 
         device = get_current_device()
         if execute_on_master_only and not is_master():

@@ -1,0 +1,12 @@
+includes:
+- ./randomgraph.yaml
+
+dataset_config:
+  okvqa:
+    annotations:
+      train:
+      - okvqa/defaults/annotations/annotations/imdb_trainval.npy
+      val:
+      - okvqa/defaults/annotations/annotations/imdb_test.npy
+      test:
+      - okvqa/defaults/annotations/annotations/imdb_test.npy

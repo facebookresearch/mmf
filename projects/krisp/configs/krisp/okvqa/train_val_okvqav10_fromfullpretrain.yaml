@@ -1,0 +1,12 @@
+includes:
+- ./okvqav10_fromfullpretrain.yaml
+
+dataset_config:
+  okvqa:
+    annotations:
+      train:
+      - okvqa/defaults/annotations/annotations/imdb_trainval_v10.npy
+      val:
+      - okvqa/defaults/annotations/annotations/imdb_test_v10.npy
+      test:
+      - okvqa/defaults/annotations/annotations/imdb_test_v10.npy

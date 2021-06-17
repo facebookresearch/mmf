@@ -1,0 +1,60 @@
+model_config:
+  visual_bert:
+    hidden_size: 768
+    hidden_dropout_prob: 0.1
+    training_head_type: classification
+    num_labels: 3129
+    pooler_strategy: vqa
+    losses:
+    - type: logit_bce
+
+dataset_config:
+  vqa2:
+    return_features_info: true
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
+    features:
+      train:
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
+      val:
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
+      test:
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+
+scheduler:
+  type: warmup_cosine
+  params:
+    num_warmup_steps: 2000
+    num_training_steps: 88000
+
+evaluation:
+  metrics:
+  - vqa_accuracy
+
+training:
+  batch_size: 56
+  lr_scheduler: true
+  # Don't forget to update schedule_attributes if you update this
+  max_updates: 88000
+  early_stop:
+    criteria: vqa2/vqa_accuracy
+    minimize: false
+  find_unused_parameters: true
+
+checkpoint:
+  pretrained_state_mapping:
+    model.bert: model.bert

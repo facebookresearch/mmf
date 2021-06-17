@@ -1,6 +1,8 @@
 dataset_config:
   okvqa:
     data_dir: ${env.data_dir}/datasets
+    depth_first: false
+    fast_read: false
     use_images: true
     use_features: false
     zoo_requirements:
@@ -12,13 +14,21 @@ dataset_config:
       - okvqa/defaults/images/
       test:
       - okvqa/defaults/images/
+    features:
+      train:
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
+      val:
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
+      test:
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
     annotations:
       train:
-      - okvqa/defaults/annotations/mscoco_train2014_annotations.json,okvqa/defaults/annotations/OpenEnded_mscoco_train2014_questions.json
+      - okvqa/defaults/annotations/annotations/imdb_train1.npy
       val:
-      - okvqa/defaults/annotations/mscoco_val2014_annotations.json,okvqa/defaults/annotations/OpenEnded_mscoco_val2014_questions.json
+      - okvqa/defaults/annotations/annotations/imdb_val1.npy
       test:
-      - okvqa/defaults/annotations/mscoco_val2014_annotations.json,okvqa/defaults/annotations/OpenEnded_mscoco_val2014_questions.json
+      - okvqa/defaults/annotations/annotations/imdb_test.npy
+    max_features: 100
     processors:
       text_processor:
         type: vocab
@@ -55,3 +65,21 @@ dataset_config:
               params:
                 mean: [0.485, 0.456, 0.406]
                 std: [0.12221994, 0.12145835, 0.14380469]
+      context_processor:
+        type: fasttext
+        params:
+          download_initially: false
+          max_length: 50
+          model_file: wiki.en.bin
+      ocr_token_processor:
+        type: simple_word
+        params: {}
+      bbox_processor:
+        type: bbox
+        params:
+          max_length: 50
+    return_features_info: false
+    # Return OCR information
+    use_ocr: false
+    # Return spatial information of OCR tokens if present
+    use_ocr_info: false
