@@ -1494,10 +1494,10 @@
         <span class="c1"># which are *already* gathered from all notes, the evaluation should only happen</span>
         <span class="c1"># in one node and broadcasted to other nodes (to avoid CPU OOM due to concurrent</span>
         <span class="c1"># mAP evaluation)</span>
+        <span class="kn">from</span> <span class="nn">mmf.utils.distributed</span> <span class="kn">import</span> <span class="n">broadcast_tensor</span><span class="p">,</span> <span class="n">is_master</span>
+        <span class="kn">from</span> <span class="nn">mmf.utils.general</span> <span class="kn">import</span> <span class="n">get_current_device</span>
         <span class="kn">from</span> <span class="nn">pycocotools.coco</span> <span class="kn">import</span> <span class="n">COCO</span>
         <span class="kn">from</span> <span class="nn">pycocotools.cocoeval</span> <span class="kn">import</span> <span class="n">COCOeval</span>
-        <span class="kn">from</span> <span class="nn">mmf.utils.distributed</span> <span class="kn">import</span> <span class="n">is_master</span><span class="p">,</span> <span class="n">broadcast_tensor</span>
-        <span class="kn">from</span> <span class="nn">mmf.utils.general</span> <span class="kn">import</span> <span class="n">get_current_device</span>
 
         <span class="n">device</span> <span class="o">=</span> <span class="n">get_current_device</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">execute_on_master_only</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_master</span><span class="p">():</span>

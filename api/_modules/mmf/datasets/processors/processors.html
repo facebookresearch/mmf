@@ -701,9 +701,8 @@
             <span class="k">return</span> <span class="n">model_file_path</span>
 
         <span class="kn">import</span> <span class="nn">requests</span>
-        <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
-
         <span class="kn">from</span> <span class="nn">mmf.common.constants</span> <span class="kn">import</span> <span class="n">FASTTEXT_WIKI_URL</span>
+        <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 
         <span class="n">PathManager</span><span class="o">.</span><span class="n">mkdirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">model_file_path</span><span class="p">))</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FASTTEXT_WIKI_URL</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -917,6 +916,232 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">idx2word</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="VQAAnswerProcessor.compute_answers_scores"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.VQAAnswerProcessor.compute_answers_scores">[docs]</a>    <span class="k">def</span> <span class="nf">compute_answers_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">answers_indices</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate VQA based answer scores for answers_indices.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            answers_indices (torch.LongTensor): tensor containing indices of the answers</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.FloatTensor: tensor containing scores.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_vocab_size</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="n">gt_answers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">answers_indices</span><span class="p">))</span>
+        <span class="n">unique_answers</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">answers_indices</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+
+        <span class="k">for</span> <span class="n">answer</span> <span class="ow">in</span> <span class="n">unique_answers</span><span class="p">:</span>
+            <span class="n">accs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">gt_answer</span> <span class="ow">in</span> <span class="n">gt_answers</span><span class="p">:</span>
+                <span class="n">other_answers</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">gt_answers</span> <span class="k">if</span> <span class="n">item</span> <span class="o">!=</span> <span class="n">gt_answer</span><span class="p">]</span>
+
+                <span class="n">matching_answers</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">other_answers</span> <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">answer</span><span class="p">]</span>
+                <span class="n">acc</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">matching_answers</span><span class="p">))</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span>
+                <span class="n">accs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span>
+            <span class="n">avg_acc</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">accs</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">accs</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">answer</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">UNK_INDEX</span><span class="p">:</span>
+                <span class="n">scores</span><span class="p">[</span><span class="n">answer</span><span class="p">]</span> <span class="o">=</span> <span class="n">avg_acc</span>
+
+        <span class="k">return</span> <span class="n">scores</span></div>
+
+    <span class="k">def</span> <span class="nf">_increase_to_ten</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="p">):</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_NUM_ANSWERS</span><span class="p">:</span>
+            <span class="n">tokens</span> <span class="o">+=</span> <span class="n">tokens</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_NUM_ANSWERS</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="n">tokens</span></div>
+
+
+<div class="viewcode-block" id="GraphVQAAnswerProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.GraphVQAAnswerProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;graph_vqa_answer&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">GraphVQAAnswerProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Processor for generating answer scores for answers passed using VQA</span>
+<span class="sd">    accuracy formula. Using VocabDict class to represent answer vocabulary,</span>
+<span class="sd">    so parameters must specify &quot;vocab_file&quot;. &quot;num_answers&quot; in parameter config</span>
+<span class="sd">    specify the max number of answers possible. Takes in dict containing</span>
+<span class="sd">    &quot;answers&quot; or &quot;answers_tokens&quot;. &quot;answers&quot; are preprocessed to generate</span>
+<span class="sd">    &quot;answers_tokens&quot; if passed.</span>
+
+<span class="sd">    This version also takes a graph vocab and predicts a main and graph stream simultanously</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        config (DictConfig): Configuration for the processor</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        answer_vocab (VocabDict): Class representing answer vocabulary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DEFAULT_NUM_ANSWERS</span> <span class="o">=</span> <span class="mi">10</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;vocab_file&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="s2">&quot;&#39;vocab_file&#39; argument required, but not &quot;</span>
+                <span class="s2">&quot;present in AnswerProcessor&#39;s config&quot;</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span> <span class="o">=</span> <span class="n">VocabDict</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">vocab_file</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PAD_IDX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">word2idx</span><span class="p">(</span><span class="s2">&quot;&lt;pad&gt;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BOS_IDX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">word2idx</span><span class="p">(</span><span class="s2">&quot;&lt;s&gt;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EOS_IDX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">word2idx</span><span class="p">(</span><span class="s2">&quot;&lt;/s&gt;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">UNK_IDX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">UNK_INDEX</span>
+
+        <span class="c1"># Set EOS to something not achievable if it is not there</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">EOS_IDX</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">UNK_IDX</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">EOS_IDX</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;preprocessor&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span> <span class="o">=</span> <span class="n">Processor</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">preprocessor</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;No processor named </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">preprocessor</span><span class="si">}</span><span class="s2"> is defined.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;num_answers&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_answers</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">num_answers</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_answers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_NUM_ANSWERS</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;&#39;num_answers&#39; not defined in the config. &quot;</span>
+                <span class="s2">&quot;Setting to default of </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_NUM_ANSWERS</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Load the graph answer vocab file</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">graph_vocab_file</span><span class="p">):</span>
+            <span class="n">graph_vocab_file</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">graph_vocab_file</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">graph_vocab_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MMF_DATA_DIR&quot;</span><span class="p">),</span> <span class="s2">&quot;datasets&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">graph_vocab_file</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graph_vocab</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">graph_vocab_file</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ans2graphvocabidx</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">graphvocabidx</span><span class="p">,</span> <span class="n">graph_ans</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph_vocab</span><span class="p">):</span>
+            <span class="c1"># Right now, this does need to overlap with the regular vocab</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ans2graphvocabidx</span><span class="p">[</span><span class="n">graph_ans</span><span class="p">]</span> <span class="o">=</span> <span class="n">graphvocabidx</span>
+
+            <span class="c1"># Make sure graph_ans actually in vocab</span>
+            <span class="k">assert</span> <span class="n">graph_ans</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">word2idx_dict</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Takes in dict with answers or answers_tokens, and returns back</span>
+<span class="sd">        a dict with answers (processed), &quot;answers_indices&quot; which point to</span>
+<span class="sd">        indices of the answers if present and &quot;answers_scores&quot; which represent</span>
+<span class="sd">        VQA style scores for the answers.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            item (Dict): Dict containing answers or answers_tokens</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict: Processed answers, indices and scores.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;item&#39; passed to processor must be a dict&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;answer_tokens&quot;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;answer_tokens&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="s2">&quot;answers&quot;</span> <span class="ow">in</span> <span class="n">item</span> <span class="ow">and</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;answers&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                    <span class="s2">&quot;&#39;preprocessor&#39; must be defined if you &quot;</span>
+                    <span class="s2">&quot;don&#39;t pass &#39;answer_tokens&#39;&quot;</span>
+                <span class="p">)</span>
+
+            <span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">preprocessor</span><span class="p">({</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">answer</span><span class="p">})[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">answer</span> <span class="ow">in</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;answers&quot;</span><span class="p">]</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                <span class="s2">&quot;&#39;answers&#39; or &#39;answer_tokens&#39; must be passed&quot;</span>
+                <span class="s2">&quot; to answer processor in a dict&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_increase_to_ten</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+
+        <span class="n">answers_indices</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_NUM_ANSWERS</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+        <span class="n">answers_indices</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">get_unk_index</span><span class="p">())</span>
+
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">token</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
+            <span class="n">answers_indices</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">word2idx</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+
+        <span class="n">answers_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_answers_scores</span><span class="p">(</span><span class="n">answers_indices</span><span class="p">)</span>
+
+        <span class="c1"># Get answer scores for the graph vocab</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">concat_scores</span><span class="p">:</span>
+            <span class="n">answers_scores_graph</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph_vocab</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+            <span class="n">unique_answers</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">answers_indices</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">answer</span> <span class="ow">in</span> <span class="n">unique_answers</span><span class="p">:</span>
+                <span class="c1"># Get the original score</span>
+                <span class="k">if</span> <span class="n">answer</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">UNK_INDEX</span><span class="p">:</span>
+                    <span class="n">score</span> <span class="o">=</span> <span class="n">answers_scores</span><span class="p">[</span><span class="n">answer</span><span class="p">]</span>
+
+                    <span class="c1"># Copy into graph scores (if it&#39;s in there)</span>
+                    <span class="n">ans_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">idx2word</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">ans_str</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ans2graphvocabidx</span><span class="p">:</span>
+                        <span class="n">graph_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ans2graphvocabidx</span><span class="p">[</span><span class="n">ans_str</span><span class="p">]</span>
+                        <span class="n">answers_scores_graph</span><span class="p">[</span><span class="n">graph_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">score</span>
+
+            <span class="c1"># Concat scores</span>
+            <span class="n">answers_scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">answers_scores</span><span class="p">,</span> <span class="n">answers_scores_graph</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;answers&quot;</span><span class="p">:</span> <span class="n">tokens</span><span class="p">,</span>
+            <span class="s2">&quot;answers_indices&quot;</span><span class="p">:</span> <span class="n">answers_indices</span><span class="p">,</span>
+            <span class="s2">&quot;answers_scores&quot;</span><span class="p">:</span> <span class="n">answers_scores</span><span class="p">,</span>
+        <span class="p">}</span>
+
+<div class="viewcode-block" id="GraphVQAAnswerProcessor.get_vocab_size"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.GraphVQAAnswerProcessor.get_vocab_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get vocab size of the answer vocabulary. Can also include</span>
+<span class="sd">        soft copy dynamic answer space size.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: size of the answer vocabulary</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">num_vocab</span></div>
+
+<div class="viewcode-block" id="GraphVQAAnswerProcessor.get_true_vocab_size"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.GraphVQAAnswerProcessor.get_true_vocab_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_true_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True vocab size can be different from normal vocab size in some cases</span>
+<span class="sd">        such as soft copy where dynamic answer space is added.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: True vocab size.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">num_vocab</span></div>
+
+<div class="viewcode-block" id="GraphVQAAnswerProcessor.word2idx"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.GraphVQAAnswerProcessor.word2idx">[docs]</a>    <span class="k">def</span> <span class="nf">word2idx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">word</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert a word to its index according to vocabulary</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            word (str): Word to be converted to index.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Index of the word.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">word2idx</span><span class="p">(</span><span class="n">word</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GraphVQAAnswerProcessor.idx2word"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.GraphVQAAnswerProcessor.idx2word">[docs]</a>    <span class="k">def</span> <span class="nf">idx2word</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Index to word according to the vocabulary.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            idx (int): Index to be converted to the word.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Word corresponding to the index.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer_vocab</span><span class="o">.</span><span class="n">idx2word</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GraphVQAAnswerProcessor.compute_answers_scores"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.GraphVQAAnswerProcessor.compute_answers_scores">[docs]</a>    <span class="k">def</span> <span class="nf">compute_answers_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">answers_indices</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Generate VQA based answer scores for answers_indices.</span>
 
 <span class="sd">        Args:</span>

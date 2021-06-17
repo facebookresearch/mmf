@@ -422,6 +422,115 @@ corresponding to those indices.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="mmf.datasets.processors.processors.GraphVQAAnswerProcessor">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.datasets.processors.processors.</span></span><span class="sig-name descname"><span class="pre">GraphVQAAnswerProcessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#GraphVQAAnswerProcessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.processors.processors.GraphVQAAnswerProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processor for generating answer scores for answers passed using VQA
+accuracy formula. Using VocabDict class to represent answer vocabulary,
+so parameters must specify “vocab_file”. “num_answers” in parameter config
+specify the max number of answers possible. Takes in dict containing
+“answers” or “answers_tokens”. “answers” are preprocessed to generate
+“answers_tokens” if passed.</p>
+<p>This version also takes a graph vocab and predicts a main and graph stream simultanously</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>DictConfig</em>) – Configuration for the processor</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mmf.datasets.processors.processors.GraphVQAAnswerProcessor.answer_vocab">
+<span class="sig-name descname"><span class="pre">answer_vocab</span></span><a class="headerlink" href="#mmf.datasets.processors.processors.GraphVQAAnswerProcessor.answer_vocab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class representing answer vocabulary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>VocabDict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mmf.datasets.processors.processors.GraphVQAAnswerProcessor.compute_answers_scores">
+<span class="sig-name descname"><span class="pre">compute_answers_scores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">answers_indices</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#GraphVQAAnswerProcessor.compute_answers_scores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.processors.processors.GraphVQAAnswerProcessor.compute_answers_scores" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate VQA based answer scores for answers_indices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>answers_indices</strong> (<em>torch.LongTensor</em>) – tensor containing indices of the answers</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>tensor containing scores.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.FloatTensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mmf.datasets.processors.processors.GraphVQAAnswerProcessor.get_true_vocab_size">
+<span class="sig-name descname"><span class="pre">get_true_vocab_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#GraphVQAAnswerProcessor.get_true_vocab_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.processors.processors.GraphVQAAnswerProcessor.get_true_vocab_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>True vocab size can be different from normal vocab size in some cases
+such as soft copy where dynamic answer space is added.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True vocab size.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mmf.datasets.processors.processors.GraphVQAAnswerProcessor.get_vocab_size">
+<span class="sig-name descname"><span class="pre">get_vocab_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#GraphVQAAnswerProcessor.get_vocab_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.processors.processors.GraphVQAAnswerProcessor.get_vocab_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get vocab size of the answer vocabulary. Can also include
+soft copy dynamic answer space size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>size of the answer vocabulary</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mmf.datasets.processors.processors.GraphVQAAnswerProcessor.idx2word">
+<span class="sig-name descname"><span class="pre">idx2word</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#GraphVQAAnswerProcessor.idx2word"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.processors.processors.GraphVQAAnswerProcessor.idx2word" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index to word according to the vocabulary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>idx</strong> (<em>int</em>) – Index to be converted to the word.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Word corresponding to the index.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mmf.datasets.processors.processors.GraphVQAAnswerProcessor.word2idx">
+<span class="sig-name descname"><span class="pre">word2idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">word</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#GraphVQAAnswerProcessor.word2idx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.processors.processors.GraphVQAAnswerProcessor.word2idx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a word to its index according to vocabulary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>word</strong> (<em>str</em>) – Word to be converted to index.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Index of the word.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="mmf.datasets.processors.processors.M4CAnswerProcessor">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.datasets.processors.processors.</span></span><span class="sig-name descname"><span class="pre">M4CAnswerProcessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/processors/processors.html#M4CAnswerProcessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.processors.processors.M4CAnswerProcessor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process a TextVQA answer for iterative decoding in M4C</p>
