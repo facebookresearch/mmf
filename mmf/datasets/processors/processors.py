@@ -141,7 +141,7 @@ class Processor:
     """
 
     def __init__(self, config: ProcessorConfigType, *args, **kwargs):
-        if not hasattr(config, "type"):
+        if "type" not in config:
             raise AttributeError(
                 "Config must have 'type' attribute to specify type of processor"
             )
