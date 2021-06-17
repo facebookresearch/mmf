@@ -15,8 +15,7 @@ from tests.test_utils import NumbersDataset, SimpleModel
 
 
 class MultiDataModuleNumbersTestObject(MultiDataModule):
-    def __init__(self, num_data, batch_size):
-        self.batch_size = batch_size
+    def __init__(self, num_data, batch_size, num_workers=1):
         config = OmegaConf.create(
             {
                 "use_features": True,
@@ -33,6 +32,8 @@ class MultiDataModuleNumbersTestObject(MultiDataModule):
         )
         self._num_data = num_data
         self._batch_size = batch_size
+        self._num_workers = num_workers
+
         self.config = config
         self.dataset_list = []
         dataset_builder = MMFDatasetBuilder(
@@ -49,7 +50,7 @@ class MultiDataModuleNumbersTestObject(MultiDataModule):
             dataset=dataset,
             batch_size=self._batch_size,
             shuffle=False,
-            num_workers=1,
+            num_workers=self._num_workers,
             drop_last=False,
         )
         return dataloader
@@ -71,6 +72,7 @@ class TrainerTrainingLoopMock(MMFTrainer):
         scheduler_config=None,
         grad_clipping_config=None,
         tensorboard=False,
+        num_workers=1,
     ):
         if config is None:
             self.config = OmegaConf.create(
@@ -84,6 +86,7 @@ class TrainerTrainingLoopMock(MMFTrainer):
                         "batch_size_per_device": batch_size_per_device,
                         "tensorboard": tensorboard,
                         "run_type": "train",
+                        "num_workers": num_workers,
                     },
                     "evaluation": {"use_cpu": False},
                 }
@@ -94,6 +97,7 @@ class TrainerTrainingLoopMock(MMFTrainer):
             config.training.fp16 = fp16
             config.training.update_frequency = update_frequency
             config.training.tensorboard = tensorboard
+            config.training.num_workers = num_workers
             self.training_config = config.training
             self.config = config
 
@@ -155,7 +159,9 @@ class TrainerTrainingLoopMock(MMFTrainer):
 
     def load_datasets(self):
         self.dataset_loader = MultiDataModuleNumbersTestObject(
-            num_data=self.num_data, batch_size=self.config.training.batch_size
+            num_data=self.num_data,
+            batch_size=self.config.training.batch_size,
+            num_workers=self.config.training.num_workers,
         )
         self.dataset_loader.seed_sampler = MagicMock(return_value=None)
         self.dataset_loader.prepare_batch = lambda x: SampleList(x)

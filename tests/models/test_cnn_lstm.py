@@ -64,7 +64,8 @@ class TestModelCNNLSTM(unittest.TestCase):
         test_sample_list = test_sample_list.to(get_current_device())
         cnn_lstm = cnn_lstm.to(get_current_device())
 
-        output = cnn_lstm(test_sample_list)
+        with torch.no_grad():
+            output = cnn_lstm(test_sample_list)
 
         scores = output["scores"]
         loss = output["losses"]["train/clevr/logit_bce"]

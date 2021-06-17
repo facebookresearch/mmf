@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-import gc
 import unittest
 
 import torch
@@ -15,10 +14,6 @@ class TestOptimizers(unittest.TestCase):
         self.config = OmegaConf.create(
             {"optimizer": {"type": "adam_w", "params": {"lr": 5e-5}}}
         )
-
-    def tearDown(self):
-        del self.config
-        gc.collect()
 
     def test_build_optimizer_simple_model(self):
         model = SimpleModel({"in_dim": 1})
