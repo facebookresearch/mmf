@@ -338,7 +338,7 @@
                         <span class="o">+</span> <span class="s2">&quot;or should be a string&quot;</span>
                     <span class="p">)</span>
                 <span class="n">metric_type</span> <span class="o">=</span> <span class="n">key</span> <span class="o">=</span> <span class="n">metric</span><span class="o">.</span><span class="n">type</span>
-                <span class="n">params</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="s2">&quot;params&quot;</span><span class="p">,</span> <span class="p">{})</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="n">metric</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">,</span> <span class="p">{})</span>
                 <span class="c1"># Support cases where uses need to give custom metric name</span>
                 <span class="k">if</span> <span class="s2">&quot;key&quot;</span> <span class="ow">in</span> <span class="n">metric</span><span class="p">:</span>
                     <span class="n">key</span> <span class="o">=</span> <span class="n">metric</span><span class="o">.</span><span class="n">key</span>
