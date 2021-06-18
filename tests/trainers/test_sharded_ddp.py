@@ -59,7 +59,7 @@ class TestShardedDDP(unittest.TestCase):
                     "enable_state_sharding": True,
                     "params": {"lr": 5e-5},
                 },
-                "training": {"find_unused_parameters": False},
+                "training": {"batch_size": 1, "find_unused_parameters": False},
             }
         )
         self.config_no_oss = OmegaConf.create(
@@ -69,7 +69,7 @@ class TestShardedDDP(unittest.TestCase):
                     "enable_state_sharding": False,
                     "params": {"lr": 5e-5},
                 },
-                "training": {"find_unused_parameters": False},
+                "training": {"batch_size": 1, "find_unused_parameters": False},
             }
         )
         self.trainer = None

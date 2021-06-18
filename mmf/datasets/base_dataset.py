@@ -48,7 +48,7 @@ class BaseDataset(Dataset):
         raise NotImplementedError
 
     def init_processors(self):
-        if not hasattr(self.config, "processors"):
+        if "processors" not in self.config:
             return
 
         from mmf.utils.build import build_processors

@@ -1,7 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import os
+
 import torch
 from mmf.utils.build import build_optimizer
+from mmf.utils.configuration import load_yaml
 from omegaconf import OmegaConf
 from tests.test_utils import SimpleLightningModel, SimpleModel
 from tests.trainers.lightning.lightning_trainer_mock import LightningTrainerMock
@@ -9,7 +12,9 @@ from tests.trainers.test_trainer_mocks import TrainerTrainingLoopMock
 
 
 def get_trainer_config():
-    return OmegaConf.create(
+    config = load_yaml(os.path.join("configs", "defaults.yaml"))
+    return OmegaConf.merge(
+        config,
         {
             "distributed": {},
             "run_type": "train_val",
@@ -49,7 +54,7 @@ def get_trainer_config():
                     "logger": False,
                 },
             },
-        }
+        },
     )
 
 

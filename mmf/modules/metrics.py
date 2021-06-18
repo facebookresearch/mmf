@@ -104,7 +104,7 @@ class Metrics:
                         + "or should be a string"
                     )
                 metric_type = key = metric.type
-                params = getattr(metric, "params", {})
+                params = metric.get("params", {})
                 # Support cases where uses need to give custom metric name
                 if "key" in metric:
                     key = metric.key

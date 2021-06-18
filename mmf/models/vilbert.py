@@ -1351,7 +1351,7 @@ class ViLBERT(BaseModel):
         else:
             self.model = ViLBERTForClassification(self.config)
 
-        if getattr(self.config, "freeze_base", False):
+        if self.config.get("freeze_base", False):
             for p in self.model.bert.parameters():
                 p.requires_grad = False
 

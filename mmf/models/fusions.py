@@ -87,8 +87,8 @@ class ConcatBERT(BaseModel):
     def get_optimizer_parameters(self, config):
         # For finetuning setup, we have classifier
         lr = config.optimizer.params.lr
-        model_config = getattr(config.model_config, config.model, {})
-        finetune_lr_multiplier = getattr(model_config, "finetune_lr_multiplier", 1)
+        model_config = config.model_config.get(config.model, {})
+        finetune_lr_multiplier = model_config.get("finetune_lr_multiplier", 1)
         # Finetune the bert pretrained part with finetune_lr_multiplier if it is set
         parameters = get_bert_configured_parameters(
             self.base, lr * finetune_lr_multiplier

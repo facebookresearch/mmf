@@ -423,7 +423,7 @@ class VisualBERTForClassification(nn.Module):
         # If bert_model_name is not specified, you will need to specify
         # all of the required parameters for BERTConfig and a pretrained
         # model won't be loaded
-        self.bert_model_name = getattr(self.config, "bert_model_name", None)
+        self.bert_model_name = self.config.get("bert_model_name", None)
         self.bert_config = BertConfig.from_dict(
             OmegaConf.to_container(self.config, resolve=True)
         )

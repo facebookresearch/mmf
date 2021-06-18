@@ -37,6 +37,7 @@ class TestMMFDatasetBuilder(unittest.TestCase):
         self.config = OmegaConf.create(
             {
                 "use_features": True,
+                "use_images": False,
                 "split_train": {"val": 0.2, "test": 0.1, "seed": 42},
                 "annotations": {"train": "not_a_real_annotations_dataset"},
                 "features": {"train": "not_a_real_features_dataset"},
