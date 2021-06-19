@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional
 
 import torch
+from mmf.common.registry import registry
 from mmf.common.sample import Sample, SampleList
 from mmf.models.base_model import BaseModel
 from mmf.utils.general import get_current_device
@@ -197,9 +198,8 @@ class SimpleModel(BaseModel):
 
 
 class SimpleLightningModel(SimpleModel):
-    def __init__(self, config: SimpleModel.Config, trainer_config=None):
+    def __init__(self, config: SimpleModel.Config):
         super().__init__(config)
-        self.trainer_config = trainer_config
 
     def build_meters(self, run_type):
         from mmf.utils.build import build_meters
@@ -218,12 +218,13 @@ class SimpleLightningModel(SimpleModel):
         return output
 
     def configure_optimizers(self):
-        if self.config is None:
+        config = registry.get("config")
+        if config is None:
             return torch.optim.Adam(self.parameters(), lr=0.01)
         else:
             from mmf.utils.build import build_lightning_optimizers
 
-            return build_lightning_optimizers(self, self.trainer_config)
+            return build_lightning_optimizers(self, config)
 
 
 def assertModulesEqual(mod1, mod2):

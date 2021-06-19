@@ -42,7 +42,7 @@ class LightningTrainer(BaseTrainer):
 
         lightning_params_dict = OmegaConf.to_container(lightning_params, resolve=True)
         self.trainer = Trainer(
-            callbacks=self._callbacks,
+            callbacks=self.callbacks,
             max_steps=self._max_updates,
             default_root_dir=get_mmf_env(key="log_dir"),
             **lightning_params_dict
@@ -98,7 +98,7 @@ class LightningTrainer(BaseTrainer):
         self.model.metrics = Metrics(metrics)
 
     def configure_callbacks(self) -> None:
-        self._callbacks = [LightningLoopCallback(self)]
+        self.callbacks = [LightningLoopCallback(self)]
 
     def train(self) -> None:
         logger.info("===== Model =====")
