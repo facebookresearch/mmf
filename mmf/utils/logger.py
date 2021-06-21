@@ -98,7 +98,12 @@ def setup_logger(
     distributed_rank = get_rank()
     handlers = []
 
-    logging_level = registry.get("config").training.logger_level.upper()
+    config = registry.get("config")
+    if config:
+        logging_level = config.get("training", {}).get("logger_level", "info").upper()
+    else:
+        logging_level = logging.INFO
+
     if distributed_rank == 0:
         logger.setLevel(logging_level)
         ch = logging.StreamHandler(stream=sys.stdout)
