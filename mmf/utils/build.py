@@ -344,18 +344,18 @@ def _add_extra_args_for_dataloader(
 
 def build_optimizer(model, config):
     optimizer_config = config.optimizer
-    if not hasattr(optimizer_config, "type"):
+    if "type" not in optimizer_config:
         raise ValueError(
             "Optimizer attributes must have a 'type' key "
             "specifying the type of optimizer. "
-            "(Custom or PyTorch)"
+            "(Custom or PyTorch, e.g. 'adam_w' or 'SGD')"
         )
     optimizer_type = optimizer_config.type
 
-    if not hasattr(optimizer_config, "params"):
+    if "params" not in optimizer_config:
         warnings.warn("optimizer attributes has no params defined, defaulting to {}.")
 
-    params = getattr(optimizer_config, "params", {})
+    params = optimizer_config.get("params", {})
 
     if hasattr(torch.optim, optimizer_type):
         optimizer_class = getattr(torch.optim, optimizer_type)
@@ -409,16 +409,16 @@ def build_lightning_optimizers(model, config):
 def build_scheduler(optimizer, config):
     scheduler_config = config.get("scheduler", {})
 
-    if not hasattr(scheduler_config, "type"):
+    if "type" not in scheduler_config:
         warnings.warn(
             "No type for scheduler specified even though lr_scheduler is True, "
             "setting default to 'Pythia'"
         )
-    scheduler_type = getattr(scheduler_config, "type", "pythia")
+    scheduler_type = scheduler_config.get("type", "pythia")
 
-    if not hasattr(scheduler_config, "params"):
+    if "params" not in scheduler_config:
         warnings.warn("scheduler attributes has no params defined, defaulting to {}.")
-    params = getattr(scheduler_config, "params", {})
+    params = scheduler_config.get("params", {})
     scheduler_class = registry.get_scheduler_class(scheduler_type)
     scheduler = scheduler_class(optimizer, **params)
 

@@ -25,7 +25,7 @@ class MaskedTokenProcessor(BaseProcessor):
         )
 
         self._max_seq_length = config.max_seq_length
-        self._probability = getattr(config, "mask_probability", 0.15)
+        self._probability = config.get("mask_probability", 0.15)
 
     def get_vocab_size(self) -> int:
         return len(self._tokenizer)

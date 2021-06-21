@@ -432,8 +432,8 @@ class Configuration:
         return load_yaml(default_model_config_path)
 
     def _build_dataset_config(self, config):
-        dataset = config.dataset
-        datasets = config.datasets
+        dataset = config.get("dataset", None)
+        datasets = config.get("datasets", None)
 
         if dataset is None and datasets is None:
             raise KeyError("Required argument 'dataset|datasets' not passed")
@@ -560,10 +560,13 @@ class Configuration:
         # if args["seed"] == -1:
         #     self.config["training"]["seed"] = random.randint(1, 1000000)
 
-        if config.learning_rate:
-            if "optimizer" in config and "params" in config.optimizer:
-                lr = config.learning_rate
-                config.optimizer.params.lr = lr
+        if (
+            "learning_rate" in config
+            and "optimizer" in config
+            and "params" in config.optimizer
+        ):
+            lr = config.learning_rate
+            config.optimizer.params.lr = lr
 
         # TODO: Correct the following issue
         # This check is triggered before the config override from

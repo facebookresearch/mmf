@@ -1,0 +1,15 @@
+includes:
+- ./defaults.yaml
+
+model_config:
+  krisp:
+    graph_module:
+      kg_path: okvqa/defaults/annotations/annotations/graphs/hp_graph.pth.tar
+      node2vec_filename: okvqa/defaults/annotations/annotations/node2vec/node2vec_hp.pkl
+      graph_vocab_file: okvqa/defaults/annotations/annotations/graph_vocab/graph_vocab_hp.pth.tar
+dataset_config:
+  okvqa:
+    processors:
+      answer_processor:
+        params:
+          graph_vocab_file: okvqa/defaults/annotations/annotations/graph_vocab/graph_vocab_hp.pth.tar

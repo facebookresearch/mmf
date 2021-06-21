@@ -184,7 +184,7 @@ class BaseTransformer(BaseModel):
         your derived class based on the transformer backend you want to use.
         """
         backend_config = self.config.get("backend", {})
-        backend_type = getattr(backend_config, "type", "huggingface")
+        backend_type = backend_config.get("type", "huggingface")
         backend_class = registry.get_transformer_backend_class(backend_type)
         self.backend = backend_class(self.config)
 

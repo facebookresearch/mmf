@@ -49,7 +49,7 @@ class UniT(BaseModel):
 
         ckpt_path = self.config.base_ckpt_path
         if ckpt_path != "":
-            logger.info("initializing base model (UniT) from {}".format(ckpt_path))
+            logger.info(f"initializing base model (UniT) from {ckpt_path}")
             if ckpt_path.startswith("https"):
                 base_checkpoint = torch.hub.load_state_dict_from_url(
                     ckpt_path, check_hash=True

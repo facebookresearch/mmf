@@ -29,7 +29,7 @@ class MMFBert(Pythia):
         super().build()
         self.tie_weights()
 
-        if getattr(self.config, "freeze_base", False):
+        if self.config.get("freeze_base", False):
             for n, p in self.named_parameters():
                 if "classifier" not in n:
                     p.requires_grad = False
@@ -100,7 +100,7 @@ class MMFBert(Pythia):
 
     def _init_feature_embeddings(self, attr):
         feature_embeddings_list = []
-        num_feature_feat = len(getattr(self.config, f"{attr}_feature_encodings"))
+        num_feature_feat = len(self.config.get(f"{attr}_feature_encodings"))
 
         self.image_feature_projection = ProjectionEmbedding(
             **self.config.image_feature_projection

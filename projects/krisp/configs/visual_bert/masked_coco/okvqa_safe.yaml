@@ -1,0 +1,29 @@
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+
+scheduler:
+  type: warmup_cosine
+  params:
+    num_warmup_steps: 2000
+    num_training_steps: 88000
+
+dataset_config:
+  masked_coco:
+    return_features_info: true
+    features:
+      train:
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
+      val:
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
+      test:
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
+
+training:
+  find_unused_parameters: true
+  batch_size: 56
+  lr_scheduler: true
+  # Don't forget to update schedule_attributes if you update this
+  max_updates: 88000

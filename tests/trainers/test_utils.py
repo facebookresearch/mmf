@@ -1,7 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import os
+
 import torch
 from mmf.utils.build import build_optimizer
+from mmf.utils.configuration import load_yaml
 from omegaconf import OmegaConf
 from tests.test_utils import SimpleLightningModel, SimpleModel
 from tests.trainers.lightning.lightning_trainer_mock import LightningTrainerMock
@@ -9,7 +12,9 @@ from tests.trainers.test_trainer_mocks import TrainerTrainingLoopMock
 
 
 def get_trainer_config():
-    return OmegaConf.create(
+    config = load_yaml(os.path.join("configs", "defaults.yaml"))
+    return OmegaConf.merge(
+        config,
         {
             "distributed": {},
             "run_type": "train_val",
@@ -24,13 +29,12 @@ def get_trainer_config():
                 "lr_scheduler": False,
                 "tensorboard": False,
             },
-            "evaluation": {"use_cpu": False},
+            "evaluation": {"use_cpu": False, "metrics": []},
             "optimizer": {"type": "adam_w", "params": {"lr": 5e-5, "eps": 1e-8}},
             "scheduler": {
                 "type": "warmup_linear",
                 "params": {"num_warmup_steps": 8, "num_training_steps": 8},
             },
-            "evaluation": {"metrics": []},
             "trainer": {
                 "type": "lightning",
                 "params": {
@@ -46,11 +50,11 @@ def get_trainer_config():
                     "accumulate_grad_batches": 1,
                     "precision": 32,
                     "num_sanity_val_steps": 0,
-                    "limit_val_batches": 5,
+                    "limit_val_batches": 1.0,
                     "logger": False,
                 },
             },
-        }
+        },
     )
 
 
@@ -159,3 +163,4 @@ def run_lightning_trainer_with_callback(trainer, callback, on_fit_start_callback
         train_dataloader=trainer.train_loader,
         val_dataloaders=trainer.val_loader,
     )
+    trainer.run_last_validation_after_train()
