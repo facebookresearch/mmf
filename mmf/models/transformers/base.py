@@ -139,14 +139,14 @@ class BaseTransformer(BaseModel):
                     module=head,
                     parameters=parameters,
                     param_list=param_list,
-                    excluded_params= trunk_param_set
+                    excluded_params=trunk_param_set
                 )
         parameters += get_bert_configured_parameters(param_list)
 
         return parameters
 
     def set_lr_for_parameters(
-        self, config, module_name, base_lr, module, parameters, param_list, excluded_params = None
+        self, config, module_name, base_lr, module, parameters, param_list, excluded_params=None
     ):
         lr_multiplier = config.get("lr_multiplier", 1.0)
         module_param = list(module.named_parameters())
