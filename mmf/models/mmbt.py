@@ -519,7 +519,7 @@ class MMBTForClassification(nn.Module):
         self.num_labels = self.config.num_labels
         self.output_hidden_states = self.encoder_config.output_hidden_states
         self.output_attentions = self.encoder_config.output_attentions
-        self.fused_feature_only = self.config.fused_feature_only
+        self.fused_feature_only = self.config.get("fused_feature_only", False)
 
         self.dropout = nn.Dropout(self.encoder_config.hidden_dropout_prob)
         self.classifier = nn.Sequential(

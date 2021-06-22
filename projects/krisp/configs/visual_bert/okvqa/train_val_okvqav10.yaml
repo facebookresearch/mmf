@@ -1,0 +1,12 @@
+includes:
+- ./defaults_v10.yaml
+
+dataset_config:
+  okvqa:
+    annotations:
+      train:
+      - okvqa/defaults/annoations/annotations/imdb_trainval_v10.npy
+      val:
+      - okvqa/defaults/annotations/annoations/imdb_test_v10.npy
+      test:
+      - okvqa/defaults/annotations/annoations/imdb_test_v10.npy

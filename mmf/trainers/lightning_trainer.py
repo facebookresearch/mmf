@@ -112,8 +112,20 @@ class LightningTrainer(BaseTrainer):
             return
 
         self.trainer.fit(self.model, self.data_module)
+        self.run_last_validation_after_train()
+
         # TODO: Look for a better way to hook this
         self.data_module.teardown()
+
+    def run_last_validation_after_train(self) -> None:
+        # Don't run if current iteration is divisble by
+        # val check interval as it will just be a repeat
+        if (
+            "val" in self.run_type
+            and self.trainer.global_step % self.trainer_config.val_check_interval != 0
+        ):
+            logger.info("Stepping into final validation check")
+            self.trainer.validate(self.model, self.val_loader)
 
     def inference(self) -> None:
         logger.info("Starting inference...")

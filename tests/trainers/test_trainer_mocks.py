@@ -10,6 +10,7 @@ from mmf.datasets.mmf_dataset_builder import MMFDatasetBuilder
 from mmf.datasets.multi_datamodule import MultiDataModule
 from mmf.trainers.callbacks.lr_scheduler import LRSchedulerCallback
 from mmf.trainers.mmf_trainer import MMFTrainer
+from mmf.utils.configuration import load_yaml
 from omegaconf import OmegaConf
 from tests.test_utils import NumbersDataset, SimpleModel
 
@@ -73,7 +74,9 @@ class TrainerTrainingLoopMock(MMFTrainer):
         tensorboard=False,
     ):
         if config is None:
-            self.config = OmegaConf.create(
+            self.config = load_yaml("configs/defaults.yaml")
+            self.config = OmegaConf.merge(
+                self.config,
                 {
                     "training": {
                         "detect_anomaly": False,
@@ -84,9 +87,11 @@ class TrainerTrainingLoopMock(MMFTrainer):
                         "batch_size_per_device": batch_size_per_device,
                         "tensorboard": tensorboard,
                         "run_type": "train",
+                        "num_workers": 0,
                     },
-                    "evaluation": {"use_cpu": False},
-                }
+                    "datasets": "",
+                    "model": "",
+                },
             )
             self.training_config = self.config.training
         else:

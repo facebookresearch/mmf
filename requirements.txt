@@ -14,7 +14,7 @@ sklearn==0.0
 omegaconf==2.0.6
 lmdb==0.98
 termcolor==1.1.0
-iopath==0.1.7
+iopath==0.1.8
 datasets==1.2.1
 matplotlib==3.3.4
 pycocotools==2.0.2

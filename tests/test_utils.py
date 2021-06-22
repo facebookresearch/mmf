@@ -25,9 +25,16 @@ def compare_tensors(a, b):
     return torch.equal(a, b)
 
 
-def dummy_args(model="cnn_lstm", dataset="clevr"):
+def dummy_args(model="cnn_lstm", dataset="clevr", config=None):
+    if config is None:
+        config = os.path.join("configs", "defaults.yaml")
     args = argparse.Namespace()
-    args.opts = [f"model={model}", f"dataset={dataset}"]
+    args.opts = [
+        f"model={model}",
+        f"dataset={dataset}",
+        f"datasets={dataset}",
+        f"config={config}",
+    ]
     args.config_override = None
     return args
 

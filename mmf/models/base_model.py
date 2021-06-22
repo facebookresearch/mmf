@@ -198,7 +198,7 @@ class BaseModel(pl.LightningModule):
             Dict: Dict containing loss.
         """
         output = self._forward_lightning_step(batch, batch_idx)
-        report = Report(batch, output)
+        report = Report(batch, output).detach()
         self.train_meter.update_from_report(report)
         return output
 
@@ -215,7 +215,7 @@ class BaseModel(pl.LightningModule):
             Dict
         """
         output = self._forward_lightning_step(batch, batch_idx)
-        report = Report(batch, output)
+        report = Report(batch, output).detach()
         self.val_meter.update_from_report(report)
         report.metrics = self.metrics(report, report)
         return output

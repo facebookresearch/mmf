@@ -286,7 +286,8 @@ class TorchvisionResNetImageEncoder(Encoder):
         name: str = "resnet50"
         pretrained: bool = False
         zero_init_residual: bool = True
-        use_avgpool: bool = True
+        num_output_features: int = -1
+        pool_type: str = "avg"
 
     def __init__(self, config: Config, *args, **kwargs):
         super().__init__()
@@ -295,17 +296,68 @@ class TorchvisionResNetImageEncoder(Encoder):
         model = getattr(torchvision.models, config.name)(
             pretrained=config.pretrained, zero_init_residual=config.zero_init_residual
         )
-        # Set avgpool and fc layers in torchvision to Identity.
-        if not config.get("use_avgpool", False):
-            model.avgpool = Identity()
-        model.fc = Identity()
 
-        self.model = model
-        self.out_dim = 2048
+        # checks if use_avgpool exists to maintain the old logic
+        self.use_avgpool = config.get("use_avgpool", None)
+        if self.use_avgpool:  # use_avgpool is True
+            config.num_output_features = 1
+            config.pool_type = "avg"
+        elif self.use_avgpool is False:  # use_avgpool is False
+            config.num_output_features = -1
+
+        if config.pretrained:
+            model = self._load_pretrained(model, config)
+
+        modules = list(model.children())[:-2]
+        self.model = nn.Sequential(*modules)
+        self.pool = self._pool_func(config)
+        self.out_dim = config.get("out_dim", 2048)
+
+    def _load_pretrained(self, model, config: Config):
+        pretrained_model = config.get("pretrained_model", "supervised")
+        if pretrained_model == "supervised":
+            pass  # this is already loaded via torchvision using pretrained=True
+        elif os.path.exists(pretrained_model):
+            model.load_state_dict(torch.load(pretrained_model))
+        else:
+            try:
+                with PathManager.open(pretrained_model, "rb") as f:
+                    model.load_state_dict(
+                        torch.load(f, map_location=lambda storage, loc: storage),
+                        strict=False,
+                    )
+            except Exception:
+                raise Exception(f"unknown pretrained ResNet model: {pretrained_model}")
+        return model
+
+    def _pool_func(self, config: Config):
+        pool_func = (
+            nn.AdaptiveAvgPool2d if config.pool_type == "avg" else nn.AdaptiveMaxPool2d
+        )
+        # -1 will keep the original feature size
+        if config.num_output_features == -1:
+            pool = nn.Identity()
+        elif config.num_output_features in [1, 2, 3, 5, 7]:
+            pool = pool_func((config.num_output_features, 1))
+        elif config.num_output_features == 4:
+            pool = pool_func((2, 2))
+        elif config.num_output_features == 6:
+            pool = pool_func((3, 2))
+        elif config.num_output_features == 8:
+            pool = pool_func((4, 2))
+        elif config.num_output_features == 9:
+            pool = pool_func((3, 3))
+
+        return pool
 
     def forward(self, x):
-        # B x 3 x 224 x 224 -> B x 2048 x 7 x 7
-        out = self.model(x)
+        # B x 3 x 224 x 224 -> B x out_dim x 7 x 7
+        out = self.pool(self.model(x))
+        if self.use_avgpool is None:
+            out = torch.flatten(out, start_dim=2)
+            out = out.transpose(1, 2).contiguous()  # BxNxout_dim
+        else:
+            out = torch.flatten(out, start_dim=1)  # BxN*out_dim
         return out
 
 

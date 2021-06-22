@@ -1,0 +1,112 @@
+model_config:
+  krisp:
+    visual_bert:
+      hidden_size: 768
+      hidden_dropout_prob: 0.1
+      training_head_type: classification
+      num_labels: 3129
+      pooler_strategy: vqa
+    graph_module:
+      kg_path: okvqa/defaults/annotations/annotations/full_graph.pth.tar
+      dataset_info_path: okvqa/defaults/annotations/annotations/graph_vocab/vqa_dataset_info.pth.tar
+      embedding_file: okvqa/defaults/annotations/annotations/glove.840B.300d.txt
+      node2vec_filename: okvqa/defaults/annotations/annotations/node2vec/node2vec_vqa.pkl
+      vocab_file: vqa2/defaults/extras/vocabs/answers_vqa.txt
+      graph_vocab_file: okvqa/defaults/annotations/annotations/graph_vocab/graph_vocab_vqa.pth.tar
+      prune_culdesacs: false
+      node_inputs:
+        question: 1
+        classifiers: 4
+        w2v: 300
+      node_hid_dim: 128
+      num_gcn_conv: 2
+      use_batch_norm: true
+      use_dropout: false
+      dropout_p: 0
+      output_type: hidden_ans
+      gcn_type: RGCN
+      num_labels: 3129
+      output_order: alpha
+      output_special_node: false
+      add_ans_nodes: false
+    num_labels: 3129
+    output_combine: concat
+    graph_logit_mode: mc4
+    losses:
+    - type: logit_bce
+    zerobias: true
+    feed_graph_to_vb: false
+    feed_vb_to_graph: true
+    feed_q_to_graph: false
+    feed_mode: feed_vb_hid_to_graph
+    feed_special_node: false
+    topk_ans_feed: 10
+    compress_crossmodel: true
+    crossmodel_compress_dim: 128
+    analysis_mode: false
+    noback_vb_to_graph: false
+    noback_vb_to_blinear: false
+    instance_graph: false
+dataset_config:
+  vqa2:
+    return_features_info: true
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
+      answer_processor:
+        type: graph_vqa_answer
+        params:
+          concat_scores: true
+          num_answers: 10
+          vocab_file: defaults/extras/vocabs/answers_vqa.txt
+          graph_vocab_file: okvqa/defaults/annotations/annotations/graph_vocab/graph_vocab_vqa.pth.tar
+          preprocessor:
+            type: simple_word
+            params: {}
+    features:
+      train:
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
+      val:
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
+      test:
+      - okvqa/defaults/features/features_fc6/COCO_trainval2014.lmdb
+    dump_output_dir: ${env.save_dir}
+    dump_pred_info: false
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+    weight_decay: 0
+
+scheduler:
+  type: warmup_cosine
+  params:
+    num_warmup_steps: 2000
+    num_training_steps: 88000
+
+evaluation:
+  metrics:
+  - vqa_accuracy
+
+training:
+  batch_size: 56
+  lr_scheduler: true
+  # Don't forget to update schedule_attributes if you update this
+  max_updates: 88000
+  early_stop:
+    criteria: vqa2/vqa_accuracy
+    minimize: false
+  find_unused_parameters: true
+
+checkpoint:
+  pretrained_state_mapping:
+    model.vb_module.bert: model.vb_module.bert
+    model.graph_module: model.graph_module
