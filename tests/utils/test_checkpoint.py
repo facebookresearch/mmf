@@ -67,7 +67,9 @@ class TestUtilsCheckpoint(unittest.TestCase):
         torch.manual_seed(1234)
         # An easy way to get a AttributeDict object
         self.trainer = argparse.Namespace()
-        self.config = OmegaConf.create(
+        self.config = load_yaml(os.path.join("configs", "defaults.yaml"))
+        self.config = OmegaConf.merge(
+            self.config,
             {
                 "model": "simple",
                 "model_config": {},
@@ -85,7 +87,7 @@ class TestUtilsCheckpoint(unittest.TestCase):
                 "config_override": "test",
                 "training": {
                     "checkpoint_interval": 1,
-                    "early_stop": {"criteria": "val/total_loss"},
+                    "early_stop": {"criteria": "val/total_loss", "minimize": True},
                     "lr_scheduler": True,
                 },
                 "scheduler": {
@@ -97,7 +99,7 @@ class TestUtilsCheckpoint(unittest.TestCase):
                         "warmup_factor": 1.0,
                     },
                 },
-            }
+            },
         )
         # Keep original copy for testing purposes
         self.trainer.config = deepcopy(self.config)
