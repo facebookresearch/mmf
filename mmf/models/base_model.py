@@ -239,7 +239,13 @@ class BaseModel(pl.LightningModule):
         output = self(batch)
         loss_dict = output["losses"]
         output["loss"] = sum(loss.mean() for loss in loss_dict.values())
+        self._detach_forward_output(output)
         return output
+
+    def _detach_forward_output(self, output):
+        keys_to_detach = [key for key in output.keys() if key != "loss"]
+        for key in keys_to_detach:
+            output[key] = output[key].detach()
 
     def configure_optimizers(self):
         """ Member function of PL modules. Used only when PL enabled."""
