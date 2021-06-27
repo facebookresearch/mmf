@@ -139,19 +139,28 @@ class BaseTransformer(BaseModel):
                     module=head,
                     parameters=parameters,
                     param_list=param_list,
-                    excluded_params=trunk_param_set
+                    excluded_params=trunk_param_set,
                 )
         parameters += get_bert_configured_parameters(param_list)
 
         return parameters
 
     def set_lr_for_parameters(
-        self, config, module_name, base_lr, module, parameters, param_list, excluded_params=None
+        self,
+        config,
+        module_name,
+        base_lr,
+        module,
+        parameters,
+        param_list,
+        excluded_params=None,
     ):
         lr_multiplier = config.get("lr_multiplier", 1.0)
         module_param = list(module.named_parameters())
         if excluded_params is not None:
-            module_param = [tup for tup in module_param if tup[1] not in excluded_params]
+            module_param = [
+                tup for tup in module_param if tup[1] not in excluded_params
+            ]
         if lr_multiplier != 1.0:
             logger.info(
                 f"Setting learning rate of {module_name} to be {base_lr} * {lr_multiplier}."
