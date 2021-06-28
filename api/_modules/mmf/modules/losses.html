@@ -273,7 +273,7 @@
 <span class="kn">from</span> <span class="nn">packaging</span> <span class="kn">import</span> <span class="n">version</span>
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">Tensor</span>
 <span class="kn">from</span> <span class="nn">torch.nn.utils.rnn</span> <span class="kn">import</span> <span class="n">pack_padded_sequence</span>
-
+<span class="kn">from</span> <span class="nn">mmf.utils.distributed</span> <span class="kn">import</span> <span class="n">gather_tensor_along_batch_with_backward</span><span class="p">,</span> <span class="n">get_rank</span>
 
 <div class="viewcode-block" id="LossConfig"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.LossConfig">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">LossConfig</span><span class="p">:</span>
@@ -991,14 +991,28 @@
         <span class="k">assert</span> <span class="p">(</span>
             <span class="s2">&quot;embedding_1&quot;</span> <span class="ow">in</span> <span class="n">model_output</span> <span class="ow">and</span> <span class="s2">&quot;embedding_2&quot;</span> <span class="ow">in</span> <span class="n">model_output</span>
         <span class="p">),</span> <span class="s2">&quot;Embedding names must be available before loss calculation&quot;</span>
+
         <span class="n">embedding_1</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;embedding_1&quot;</span><span class="p">]</span>
         <span class="n">embedding_2</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;embedding_2&quot;</span><span class="p">]</span>
 
-        <span class="n">mma</span> <span class="o">=</span> <span class="n">embedding_1</span> <span class="o">@</span> <span class="n">embedding_2</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">labels</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">mma</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">device</span><span class="o">=</span><span class="n">mma</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-        <span class="n">loss1</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">mma</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
-        <span class="n">loss2</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">mma</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">loss1</span> <span class="o">+</span> <span class="n">loss2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span></div></div>
+        <span class="k">assert</span> <span class="n">embedding_1</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="n">embedding_2</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="s2">&quot;batch size must match&quot;</span>
+        <span class="n">per_gpu_batch_size</span> <span class="o">=</span> <span class="n">embedding_1</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">embedding_1_all_gpus</span> <span class="o">=</span> <span class="n">gather_tensor_along_batch_with_backward</span><span class="p">(</span><span class="n">embedding_1</span><span class="p">)</span>
+        <span class="n">embedding_2_all_gpus</span> <span class="o">=</span> <span class="n">gather_tensor_along_batch_with_backward</span><span class="p">(</span><span class="n">embedding_2</span><span class="p">)</span>
+
+        <span class="n">temperature</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;temperature&quot;</span><span class="p">]</span>
+
+        <span class="n">logits_1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">embedding_1</span><span class="p">,</span> <span class="n">embedding_2_all_gpus</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">logits_2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">embedding_2</span><span class="p">,</span> <span class="n">embedding_1_all_gpus</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">per_gpu_batch_size</span> <span class="o">*</span> <span class="n">get_rank</span><span class="p">()</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+            <span class="n">per_gpu_batch_size</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">temperature</span><span class="o">.</span><span class="n">device</span>
+        <span class="p">)</span>
+
+        <span class="n">loss_1</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">logits_1</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+        <span class="n">loss_2</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">logits_2</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">loss_1</span> <span class="o">+</span> <span class="n">loss_2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span></div></div>
 
 
 <div class="viewcode-block" id="MSELoss"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.MSELoss">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_loss</span><span class="p">(</span><span class="s2">&quot;mse&quot;</span><span class="p">)</span>
