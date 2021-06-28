@@ -39,7 +39,7 @@ from omegaconf import MISSING
 from packaging import version
 from torch import Tensor
 from torch.nn.utils.rnn import pack_padded_sequence
-
+from mmf.utils.distributed import gather_tensor_along_batch_with_backward, get_rank
 
 @dataclass
 class LossConfig:
@@ -757,14 +757,28 @@ class ContrastiveLoss(nn.Module):
         assert (
             "embedding_1" in model_output and "embedding_2" in model_output
         ), "Embedding names must be available before loss calculation"
+
         embedding_1 = model_output["embedding_1"]
         embedding_2 = model_output["embedding_2"]
 
-        mma = embedding_1 @ embedding_2.T
-        labels = torch.arange(mma.shape[0], device=mma.device)
-        loss1 = F.cross_entropy(mma, labels)
-        loss2 = F.cross_entropy(mma.T, labels)
-        return (loss1 + loss2) / 2
+        assert embedding_1.size(0) == embedding_2.size(0), "batch size must match"
+        per_gpu_batch_size = embedding_1.size(0)
+
+        embedding_1_all_gpus = gather_tensor_along_batch_with_backward(embedding_1)
+        embedding_2_all_gpus = gather_tensor_along_batch_with_backward(embedding_2)
+
+        temperature = model_output["temperature"]
+
+        logits_1 = torch.matmul(embedding_1, embedding_2_all_gpus.transpose(0, 1))
+        logits_2 = torch.matmul(embedding_2, embedding_1_all_gpus.transpose(0, 1))
+        labels = per_gpu_batch_size * get_rank() + torch.arange(
+            per_gpu_batch_size, device=temperature.device
+        )
+
+        loss_1 = F.cross_entropy(logits_1, labels)
+        loss_2 = F.cross_entropy(logits_2, labels)
+
+        return (loss_1 + loss_2) / 2
 
 
 @registry.register_loss("mse")
