@@ -23,6 +23,44 @@ BYTE_SIZE = 256
 logger = logging.getLogger(__name__)
 
 
+# copied from https://github.com/facebookresearch/vissl/blob/master/vissl/utils/distributed_gradients.py
+class GatherLayer(torch.autograd.Function):
+    """
+    Gather tensors from all workers with support for backward propagation:
+    This implementation does not cut the gradients as torch.distributed.all_gather does.
+    """
+
+    @staticmethod
+    def forward(ctx, x):
+        output = [torch.zeros_like(x) for _ in range(dist.get_world_size())]
+        dist.all_gather(output, x)
+        return tuple(output)
+
+    @staticmethod
+    def backward(ctx, *grads):
+        all_gradients = torch.stack(grads)
+        dist.all_reduce(all_gradients)
+        return all_gradients[dist.get_rank()]
+
+
+class XLAGatherLayer(torch.autograd.Function):
+    """
+    Gather tensors from all TPU workers with support for backward propagation.
+    """
+
+    @staticmethod
+    def forward(ctx, x, dim):
+        ctx.dim = dim
+        tensor_list = xm.all_gather(x.unsqueeze(dim), dim=dim)
+        return tensor_list
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        dim = ctx.dim
+        all_grad_output = xm.all_reduce(xm.REDUCE_SUM, grad_output)
+        return all_grad_output.select(dim, xm.get_ordinal()), None
+
+
 def synchronize(message="sync-workers"):
     if is_xla():
         xm.rendezvous(message)
@@ -153,6 +191,21 @@ def gather_tensor_along_batch(tensor, dim=0):
             tensor_list.append(torch.zeros_like(tensor))
 
         dist.all_gather(tensor_list, tensor)
+        tensor_list = torch.cat(tensor_list, dim=dim)
+    return tensor_list
+
+
+def gather_tensor_along_batch_with_backward(tensor, dim=0):
+    world_size = get_world_size()
+
+    if world_size < 2:
+        return tensor
+
+    if is_xla():
+        tensor_list = XLAGatherLayer.apply(tensor, dim)
+        tensor_list = tensor_list.flatten(start_dim=dim, end_dim=dim + 1)
+    else:
+        tensor_list = GatherLayer.apply(tensor)
         tensor_list = torch.cat(tensor_list, dim=dim)
     return tensor_list
 

@@ -182,8 +182,8 @@ class IdentityEncoder(Encoder):
     def __init__(self, config: Config):
         super().__init__()
         self.module = nn.Identity()
-        self.in_dim = config.in_dim
-        self.out_dim = config.in_dim
+        self.in_dim = config.get("in_dim", 100)
+        self.out_dim = self.in_dim
 
     def forward(self, x):
         return self.module(x)

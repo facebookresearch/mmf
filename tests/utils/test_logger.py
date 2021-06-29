@@ -24,6 +24,7 @@ class TestLogger(unittest.TestCase):
         cls._tmpdir = tempfile.mkdtemp()
         args = argparse.Namespace()
         args.opts = [f"env.save_dir={cls._tmpdir}", f"model=cnn_lstm", f"dataset=clevr"]
+        args.opts.append(f"config={os.path.join('configs', 'defaults.yaml')}")
         args.config_override = None
         configuration = Configuration(args)
         configuration.freeze()
