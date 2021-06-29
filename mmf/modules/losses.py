@@ -34,12 +34,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from mmf.common.registry import registry
+from mmf.utils.distributed import gather_tensor_along_batch_with_backward, get_rank
 from mmf.utils.logger import log_class_usage
 from omegaconf import MISSING
 from packaging import version
 from torch import Tensor
 from torch.nn.utils.rnn import pack_padded_sequence
-from mmf.utils.distributed import gather_tensor_along_batch_with_backward, get_rank
+
 
 @dataclass
 class LossConfig:
