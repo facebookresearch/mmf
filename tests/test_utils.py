@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional
 
 import torch
+from mmf.common.registry import registry
 from mmf.common.sample import Sample, SampleList
 from mmf.models.base_model import BaseModel
 from mmf.utils.general import get_current_device
@@ -167,6 +168,7 @@ class NumbersDataset(torch.utils.data.Dataset):
         return self.num_examples
 
 
+@registry.register_model("simple_model")
 class SimpleModel(BaseModel):
     @dataclass
     class Config(BaseModel.Config):
@@ -187,15 +189,18 @@ class SimpleModel(BaseModel):
         batch = prepared_batch[self.data_item_key]
         output = self.classifier(batch)
         loss = torch.nn.MSELoss()(-1 * output, batch)
+
         return {
             "losses": {"loss": loss},
             "logits": output,
+            "scores": output,
             "input_batch": input_sample,
-            "dataset_type": "dummy_dataset_type",
-            "dataset_name": "dummy_dataset_name",
+            "dataset_type": input_sample["dataset_type"],
+            "dataset_name": input_sample["dataset_name"],
         }
 
 
+@registry.register_model("simple_lightning_model")
 class SimpleLightningModel(SimpleModel):
     def __init__(self, config: SimpleModel.Config, trainer_config=None):
         super().__init__(config)

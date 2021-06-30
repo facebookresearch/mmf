@@ -1,6 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 import math
+import os
+from typing import Any, List, Optional
 
 import omegaconf
 from mmf.common.registry import registry
@@ -10,10 +12,13 @@ from mmf.trainers.base_trainer import BaseTrainer
 from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
 from mmf.utils.build import build_model
 from mmf.utils.configuration import get_mmf_env
+from mmf.utils.download import download_pretrained_model
+from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_max_updates, print_model_parameters
 from mmf.utils.logger import TensorboardLogger, setup_output_folder
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Trainer, seed_everything
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 
 logger = logging.getLogger(__name__)
@@ -45,7 +50,7 @@ class LightningTrainer(BaseTrainer):
             callbacks=self._callbacks,
             max_steps=self._max_updates,
             default_root_dir=get_mmf_env(key="log_dir"),
-            **lightning_params_dict
+            **lightning_params_dict,
         )
 
     def configure_device(self) -> None:
@@ -84,9 +89,31 @@ class LightningTrainer(BaseTrainer):
         with omegaconf.open_dict(attributes):
             attributes.model = self.config.model
 
-        self.model = build_model(attributes)
-        self.model.is_pl_enabled = True
+        checkpoint_path = self.get_checkpoint_path()
+        self.model = build_model(attributes, checkpoint_path, True)
         self.model.build_meters(self.run_type)
+
+    def get_checkpoint_path(self) -> Optional[str]:
+        ckpt_config = self.config.checkpoint
+        suffix = "best.ckpt" if ckpt_config.resume_best else "current.ckpt"
+        default_ckpt_filepath = os.path.join(get_mmf_env(key="save_dir"), suffix)
+
+        ckpt_filepath = None
+        resume_from_specified_path = (
+            ckpt_config.resume_file is not None or ckpt_config.resume_zoo is not None
+        ) and (not ckpt_config.resume or not PathManager.exists(default_ckpt_filepath))
+        if resume_from_specified_path:
+            if ckpt_config.resume_file and PathManager.exists(ckpt_config.resume_file):
+                ckpt_filepath = ckpt_config.resume_file
+            elif ckpt_config.resume_zoo is not None:
+                ckpt_filepath = download_pretrained_model(ckpt_config.resume_zoo)
+            else:
+                raise RuntimeError(f"{ckpt_config.resume_file} doesn't exist")
+
+        if ckpt_config.resume and PathManager.exists(default_ckpt_filepath):
+            ckpt_filepath = default_ckpt_filepath
+
+        return ckpt_filepath
 
     def load_optimizer(self) -> None:
         logger.info("Loading optimizer: noop for lightning")
@@ -97,8 +124,33 @@ class LightningTrainer(BaseTrainer):
         # moved metrics into the model object
         self.model.metrics = Metrics(metrics)
 
+    def monitor_criteria(self):
+        monitor_criteria = self.training_config.early_stop.criteria
+        if "val" not in monitor_criteria:
+            monitor_criteria = f"val/{monitor_criteria}"
+        return monitor_criteria
+
     def configure_callbacks(self) -> None:
         self._callbacks = [LightningLoopCallback(self)]
+        # TODO @sash: add early stop callback
+        # earlystop_callback = self.configure_earlystop_callback()
+        checkpoint_callbacks = self.configure_checkpoint_callbacks()
+        self._callbacks += checkpoint_callbacks
+
+    def configure_earlystop_callback(self) -> List[Any]:
+        pass
+
+    def configure_checkpoint_callbacks(self) -> List[Any]:
+        train_callback = ModelCheckpoint(
+            monitor=None,
+            every_n_train_steps=self.config.training.checkpoint_interval,
+            dirpath=get_mmf_env(key="save_dir"),
+            filename="models/model_{step}",
+            save_last=True,
+            verbose=True,
+        )
+        train_callback.CHECKPOINT_NAME_LAST = "current"
+        return [train_callback]
 
     def train(self) -> None:
         logger.info("===== Model =====")

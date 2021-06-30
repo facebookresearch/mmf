@@ -19,6 +19,7 @@ from mmf.datasets.iteration_strategies import (
 from mmf.datasets.processors.processors import Processor
 from mmf.utils.configuration import Configuration, get_global_config
 from mmf.utils.distributed import is_dist_initialized, is_master, is_xla, synchronize
+from mmf.utils.download import load_model_requirements
 from mmf.utils.general import get_optimizer_parameters
 from omegaconf import DictConfig, OmegaConf
 
@@ -71,7 +72,9 @@ def build_trainer(config: DictConfig) -> Any:
 
 
 def build_model(
-    config: Union[DictConfig, "mmf.models.base_model.BaseModel.Config"]
+    config: Union[DictConfig, "mmf.models.base_model.BaseModel.Config"],
+    checkpoint_path: str = None,
+    is_pl_enabled: bool = False,
 ) -> "mmf.models.base_model.BaseModel":
     from mmf.models.base_model import BaseModel
 
@@ -84,28 +87,45 @@ def build_model(
 
     if model_class is None:
         raise RuntimeError(f"No model registered for name: {model_name}")
-    model = model_class(config)
 
-    if hasattr(model, "build"):
-        """Model build involves checkpoint loading
-        If the checkpoint is not available the underlying
-        methods try to download it.
-        Let master build the model (download the checkpoints) while
-        other ranks wait for the sync message
-        Once the master has downloaded the checkpoint and built the
-        model it sends the sync message, completing the synchronization
-        now other cores can proceed to build the model
-        using already downloaded checkpoint.
+    if not checkpoint_path:
+        model = model_class(config)
+        if hasattr(model, "build"):
+            """ Model build involves checkpoint loading
+            If the checkpoint is not available the underlying
+            methods try to download it.
+            Let master build the model (download the checkpoints) while
+            other ranks wait for the sync message
+            Once the master has downloaded the checkpoint and built the
+            model it sends the sync message, completing the synchronization
+            now other cores can proceed to build the model
+            using already downloaded checkpoint.
+            """
+            if is_master():
+                load_model_requirements(config)
+                model.build()
+                synchronize()
+            else:
+                synchronize()
+                model.build()
+    else:
+        """ model.build is called inside on_load_checkpoint as suggested here:
+        https://github.com/PyTorchLightning/pytorch-lightning/issues/5410
         """
+        assert is_pl_enabled, (
+            "Initializing model from checkpoint is only "
+            "availbale with pytorch lightning"
+        )
         if is_master():
-            model.load_requirements()
-            model.build()
+            load_model_requirements(config)
+            model = model_class.load_from_checkpoint(checkpoint_path, config=config)
             synchronize()
         else:
             synchronize()
-            model.build()
-        model.init_losses()
+            model = model_class.load_from_checkpoint(checkpoint_path, config=config)
 
+    model.init_losses()
+    model.is_pl_enabled = is_pl_enabled
     return model
 
 
