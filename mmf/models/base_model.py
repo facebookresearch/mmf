@@ -218,7 +218,7 @@ class BaseModel(pl.LightningModule):
         """
         output = self._forward_lightning_step(batch, batch_idx)
         report = Report(batch, output).detach()
-        self.val_meter.update_from_report(report)
+        self.val_meter.update_from_report(report, should_update_loss=False)
         report.metrics = self.metrics(report, report)
         self.log_dict(report.metrics)
         return output
@@ -248,7 +248,8 @@ class BaseModel(pl.LightningModule):
     def _detach_forward_output(self, output):
         keys_to_detach = [key for key in output.keys() if key != "loss"]
         for key in keys_to_detach:
-            output[key] = output[key].detach()
+            if hasattr(output[key], "detach"):
+                output[key] = output[key].detach()
 
     def configure_optimizers(self):
         """ Member function of PL modules. Used only when PL enabled."""
