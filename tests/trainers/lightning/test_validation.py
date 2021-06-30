@@ -11,9 +11,10 @@ from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
 from mmf.utils.logger import TensorboardLogger
 from mmf.utils.timer import Timer
 from tests.trainers.test_utils import (
+    get_config,
     get_lightning_trainer,
     get_mmf_trainer,
-    run_lightning_trainer_with_callback,
+    run_lightning_trainer,
 )
 
 
@@ -47,15 +48,16 @@ class TestLightningTrainerValidation(unittest.TestCase):
     @patch("mmf.common.test_reporter.PathManager.mkdirs")
     @patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value="")
     def test_validation(self, log_dir, mkdirs):
-        trainer = get_lightning_trainer(
+        config = self._get_config(
             max_steps=8,
             batch_size=2,
-            prepare_trainer=False,
             val_check_interval=3,
             log_every_n_steps=9,  # turn it off
             limit_val_batches=1.0,
         )
+        trainer = get_lightning_trainer(config=config, prepare_trainer=False)
         callback = LightningLoopCallback(trainer)
+        trainer._callbacks.append(callback)
         lightning_values = []
 
         def log_values(
@@ -79,7 +81,7 @@ class TestLightningTrainerValidation(unittest.TestCase):
             "mmf.trainers.lightning_core.loop_callback.summarize_report",
             side_effect=log_values,
         ):
-            run_lightning_trainer_with_callback(trainer, callback)
+            run_lightning_trainer(trainer)
 
         self.assertEqual(len(self.ground_truths), len(lightning_values))
         for gt, lv in zip(self.ground_truths, lightning_values):
@@ -107,9 +109,10 @@ class TestLightningTrainerValidation(unittest.TestCase):
     @patch("mmf.common.test_reporter.get_mmf_env", return_value="")
     @patch("mmf.trainers.callbacks.logistics.summarize_report")
     def test_validation_parity(self, summarize_report_fn, test_reporter, sw, mkdirs):
-        mmf_trainer = get_mmf_trainer(
-            max_updates=8, batch_size=2, max_epochs=None, evaluation_interval=3
+        config = self._get_mmf_config(
+            max_updates=8, max_epochs=None, batch_size=2, evaluation_interval=3
         )
+        mmf_trainer = get_mmf_trainer(config=config)
         mmf_trainer.load_metrics()
         logistics_callback = LogisticsCallback(mmf_trainer.config, mmf_trainer)
         logistics_callback.snapshot_timer = Timer()
@@ -132,3 +135,35 @@ class TestLightningTrainerValidation(unittest.TestCase):
                     self.assertAlmostEqual(kwargs["meter"].loss.avg, value, 1)
                 else:
                     self.assertAlmostEqual(kwargs[key], value, 1)
+
+    def _get_config(
+        self,
+        max_steps,
+        batch_size,
+        val_check_interval,
+        log_every_n_steps,
+        limit_val_batches,
+    ):
+        config = {
+            "trainer": {
+                "params": {
+                    "max_steps": max_steps,
+                    "log_every_n_steps": log_every_n_steps,
+                    "val_check_interval": val_check_interval,
+                    "limit_val_batches": limit_val_batches,
+                }
+            },
+            "training": {"batch_size": batch_size},
+        }
+        return get_config(config)
+
+    def _get_mmf_config(self, max_updates, max_epochs, batch_size, evaluation_interval):
+        config = {
+            "training": {
+                "max_updates": max_updates,
+                "max_epochs": max_epochs,
+                "batch_size": batch_size,
+                "evaluation_interval": evaluation_interval,
+            }
+        }
+        return get_config(config)
