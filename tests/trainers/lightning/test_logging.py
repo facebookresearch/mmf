@@ -82,7 +82,6 @@ class TestLightningTrainerLogging(unittest.TestCase):
 
         callback = LightningLoopCallback(trainer)
         trainer._callbacks.append(callback)
-
         run_lightning_trainer(trainer, on_fit_start_callback=_on_fit_start_callback)
         self.assertEqual(
             len(self.mmf_tensorboard_logs), len(self.lightning_tensorboard_logs)

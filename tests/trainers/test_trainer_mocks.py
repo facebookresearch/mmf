@@ -35,15 +35,27 @@ class MultiDataModuleNumbersTestObject(MultiDataModule):
         self.config = config
         self.dataset_list = []
         dataset_builder = MMFDatasetBuilder(
-            "simple", functools.partial(NumbersDataset, num_examples=num_data)
+            "simple",
+            functools.partial(NumbersDataset, num_examples=num_data, always_one=True),
         )
-        dataset_builder.train_dataloader = self._get_dataloader
-        dataset_builder.val_dataloader = self._get_dataloader
-        dataset_builder.test_dataloader = self._get_dataloader
+        dataset_builder.train_dataloader = self._get_dataloader_train
+        dataset_builder.val_dataloader = self._get_dataloader_val
+        dataset_builder.test_dataloader = self._get_dataloader_test
         self.datamodules = {"simple": dataset_builder}
 
-    def _get_dataloader(self):
-        dataset = NumbersDataset(self._num_data)
+    def _get_dataloader_train(self):
+        return self._get_dataloader()
+
+    def _get_dataloader_val(self):
+        return self._get_dataloader("val")
+
+    def _get_dataloader_test(self):
+        return self._get_dataloader("test")
+
+    def _get_dataloader(self, dataset_type="train"):
+        dataset = NumbersDataset(
+            self._num_data, always_one=True, dataset_type=dataset_type
+        )
         dataloader = torch.utils.data.DataLoader(
             dataset=dataset,
             batch_size=self._batch_size,
