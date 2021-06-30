@@ -53,20 +53,19 @@ class MaskedCOCODataset(COCODataset):
         other_caption = None
         is_correct = -1
 
-        if self._dataset_type == "train":
-            if self._two_sentence:
-                if random.random() > self._two_sentence_probability:
-                    other_caption = self._get_mismatching_caption(image_id)
-                    is_correct = False
-                else:
-                    other_caption = captions[random.choice(other_caption_indices)]
-                    is_correct = True
-            elif self._false_caption:
-                if random.random() < self._false_caption_probability:
-                    selected_caption = self._get_mismatching_caption(image_id)
-                    is_correct = False
-                else:
-                    is_correct = True
+        if self._two_sentence:
+            if random.random() > self._two_sentence_probability:
+                other_caption = self._get_mismatching_caption(image_id)
+                is_correct = False
+            else:
+                other_caption = captions[random.choice(other_caption_indices)]
+                is_correct = True
+        elif self._false_caption:
+            if random.random() < self._false_caption_probability:
+                selected_caption = self._get_mismatching_caption(image_id)
+                is_correct = False
+            else:
+                is_correct = True
 
         processed = self.masked_token_processor(
             {

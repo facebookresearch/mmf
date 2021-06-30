@@ -4,6 +4,7 @@ import unittest
 
 import torch
 from mmf.common.sample import Sample
+from mmf.models.transformers.heads.itm import ITM
 from mmf.models.transformers.heads.mlm import MLM
 from mmf.models.transformers.heads.mlp import MLP
 from omegaconf import OmegaConf
@@ -51,3 +52,23 @@ class TestMLPHead(unittest.TestCase):
 
         self.assertTrue("scores" in output)
         self.assertEqual(output["scores"].shape, torch.Size([1, 2]))
+
+
+class TestITMHead(unittest.TestCase):
+    def setUp(self):
+        self.config = OmegaConf.create({"type": "itm", "hidden_size": 768})
+
+    def test_forward(self):
+        module = ITM(self.config)
+        sequence_input = torch.ones(size=(1, 64, 768), dtype=torch.float)
+        encoder_output = [sequence_input, sequence_input]
+        processed_sample_list = Sample()
+        processed_sample_list["itm_labels"] = {}
+        processed_sample_list["itm_labels"]["is_correct"] = torch.tensor(
+            False, dtype=torch.long
+        )
+
+        output = module(sequence_input, encoder_output, processed_sample_list)
+
+        self.assertTrue("itm_loss" in output["losses"])
+        self.assertEqual(output["losses"]["itm_loss"].shape, torch.Size([]))
