@@ -253,12 +253,14 @@ hateful_memes:
         file_name: extras.tar.gz
         hashcode: 1bd88fa36b5c565234cd0bbc20189c85b51a283337bee574db91521be0364739
   fine_grained:
-    labels:
-    - url: mmf://datasets/hateful_memes/fine_grained/label_vocabs.tar.gz
-      file_name: label_vocabs.tar.gz
-    annotations:
-    - url: mmf://datasets/hateful_memes/fine_grained/annotations.tar.gz
-      file_name: annotations.tar.gz
+    version: 1.0_2021_06_29
+    resources:
+      labels:
+      - url: mmf://datasets/hateful_memes/fine_grained/label_vocabs.tar.gz
+        file_name: label_vocabs.tar.gz
+      annotations:
+      - url: mmf://datasets/hateful_memes/fine_grained/annotations.tar.gz
+        file_name: annotations.tar.gz
 
 flickr30k:
   defaults:
