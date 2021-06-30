@@ -14,7 +14,7 @@ from tests.trainers.test_utils import (
 
 class TestLightningTrainerLRSchedule(unittest.TestCase):
     def test_lr_schedule(self):
-        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=None):
+        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=""):
             # note, be aware some of the logic also is in the SimpleLightningModel
             config = self._get_config(max_steps=8, lr_scheduler=True)
             trainer1 = get_lightning_trainer(config=config)
@@ -40,7 +40,7 @@ class TestLightningTrainerLRSchedule(unittest.TestCase):
         mmf_trainer.evaluation_loop = MagicMock(return_value=(None, None))
         mmf_trainer.training_loop()
 
-        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=None):
+        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=""):
             config = self._get_config(max_steps=8, lr_scheduler=True)
             trainer = get_lightning_trainer(config=config)
             trainer.trainer.fit(trainer.model, trainer.data_module.train_loader)
