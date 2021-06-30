@@ -274,6 +274,7 @@ class Accuracy(BaseMetric):
         if expected.dim() == 2 and expected.size(-1) != 1:
             expected = expected.topk(self.topk, 1, True, True)[1].t().squeeze()
 
+        expected = expected.to(output.device)
         correct = (expected == output.squeeze()).sum().float()
         return correct / batch_size
 

@@ -161,17 +161,23 @@ class LightningTrainer(BaseTrainer):
         self.model.metrics = Metrics(metrics)
 
     def monitor_criteria(self):
-        monitor_criteria = self.training_config.early_stop.criteria
+        monitor_criteria = self.training_config.early_stop.get("criteria", None)
+        assert monitor_criteria, "criteria is required when early stop is specified."
         if "val" not in monitor_criteria:
             monitor_criteria = f"val/{monitor_criteria}"
-        return monitor_criteria
+        mode = (
+            "min" if self.training_config.early_stop.get("minimize", False) else "max"
+        )
+        return monitor_criteria, mode
 
     def configure_callbacks(self) -> None:
         self.callbacks = [LightningLoopCallback(self)]
-        # TODO @sash: add early stop callback
-        # earlystop_callback = self.configure_earlystop_callback()
-        checkpoint_callbacks = self.configure_checkpoint_callbacks()
-        self.callbacks += checkpoint_callbacks
+        self.callbacks += self.configure_checkpoint_callbacks()
+        if self.training_config.get(
+            "early_stop", None
+        ) and self.training_config.early_stop.get("enabled", False):
+            self.callbacks += self.configure_monitor_callbacks()
+            self.callbacks += self.configure_earlystop_callback()
 
     def configure_earlystop_callback(self) -> List[ModelCheckpoint]:
         pass
@@ -187,6 +193,19 @@ class LightningTrainer(BaseTrainer):
         )
         train_callback.CHECKPOINT_NAME_LAST = "current"
         return [train_callback]
+
+    def configure_monitor_callbacks(self) -> List[ModelCheckpoint]:
+        criteria, mode = self.monitor_criteria()
+        monitor_callback = ModelCheckpoint(
+            monitor=criteria,
+            dirpath=get_mmf_env(key="save_dir"),
+            filename="best",
+            mode=mode,
+            save_top_k=1,
+            save_last=False,
+            verbose=True,
+        )
+        return [monitor_callback]
 
     def train(self) -> None:
         logger.info("===== Model =====")
