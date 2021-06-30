@@ -10,6 +10,7 @@ from mmf.utils.build import build_optimizer
 from omegaconf import OmegaConf
 from tests.test_utils import SimpleModel, skip_if_no_cuda
 from tests.trainers.test_training_loop import TrainerTrainingLoopMock
+from tests.trainers.test_utils import get_config
 
 
 try:
@@ -23,16 +24,13 @@ except ImportError:
 
 
 class MMFTrainerMock(TrainerTrainingLoopMock, MMFTrainer):
-    def __init__(
-        self,
-        config,
-        num_train_data,
-        max_updates,
-        max_epochs,
-        device="cuda",
-        fp16_model=False,
-    ):
-        super().__init__(num_train_data, max_updates, max_epochs, fp16=True)
+    def __init__(self, config, num_train_data, max_updates, max_epochs, device="cuda"):
+        config.training.max_updates = max_updates
+        config.training.max_epochs = max_epochs
+        config.training.fp16 = True
+        config = get_config(config)
+
+        super().__init__(num_train_data, config=config)
         self.device = torch.device(device)
         self.config = config
         self.model = SimpleModel({"in_dim": 1})

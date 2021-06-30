@@ -1,17 +1,26 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import torch
 from mmf.common.registry import registry
 from mmf.utils.general import get_batch_size
 from tests.test_utils import SimpleModel
 from tests.trainers.test_trainer_mocks import TrainerTrainingLoopMock
+from tests.trainers.test_utils import (
+    add_model,
+    add_optimizer,
+    get_config,
+    get_mmf_trainer,
+)
 
 
 class TestTrainingLoop(unittest.TestCase):
-    def test_update_frequency_num_remaining_updates_greater_than_update_frequency(self):
+    @patch("mmf.common.test_reporter.PathManager", return_value=MagicMock())
+    def test_update_frequency_num_remaining_updates_greater_than_update_frequency(
+        self, a
+    ):
         trainer1 = self._train_with_condition(
             num_train_data=20,
             max_updates=None,
@@ -31,7 +40,8 @@ class TestTrainingLoop(unittest.TestCase):
         self.assertEqual(trainer2.num_updates, 4)
         self._compare_model_params(trainer1, trainer2)
 
-    def test_update_frequency_reporting(self):
+    @patch("mmf.common.test_reporter.PathManager", return_value=MagicMock())
+    def test_update_frequency_reporting(self, a):
         def _on_update_end(report, meter, should_log):
             # the losses here should be the sum of two losses in
             # iteration 0 and iteration 1 (both constitute update 0).
@@ -48,14 +58,17 @@ class TestTrainingLoop(unittest.TestCase):
             on_update_end_fn=_on_update_end,
         )
 
-    def test_update_frequency_correct_final_iteration(self):
-        trainer = TrainerTrainingLoopMock(100, 2, None, update_frequency=2)
+    @patch("mmf.common.test_reporter.PathManager", return_value=MagicMock())
+    def test_update_frequency_correct_final_iteration(self, a):
+        config = self._get_config(max_updates=2, max_epochs=None, update_frequency=2)
+        trainer = get_mmf_trainer(config=config)
         trainer.load_datasets()
         trainer.training_loop()
         self.assertEqual(trainer.max_updates, 2)
         self.assertEqual(trainer.current_iteration, 4)
 
-    def test_update_frequency_same_model_params(self):
+    @patch("mmf.common.test_reporter.PathManager", return_value=MagicMock())
+    def test_update_frequency_same_model_params(self, a):
         trainer1 = self._train_with_condition(
             num_train_data=100,
             max_updates=2,
@@ -90,28 +103,41 @@ class TestTrainingLoop(unittest.TestCase):
         on_update_end_fn=None,
     ):
         torch.random.manual_seed(2)
-        model = SimpleModel({"in_dim": 1})
-        model.build()
-        opt = torch.optim.SGD(model.parameters(), lr=0.01)
-        trainer = TrainerTrainingLoopMock(
-            num_train_data,
-            max_updates,
-            max_epochs,
-            optimizer=opt,
+        config = self._get_config(
+            max_updates=max_updates,
+            max_epochs=max_epochs,
             update_frequency=update_frequency,
             batch_size=batch_size,
         )
-        trainer.load_datasets()
+        trainer = get_mmf_trainer(num_data_size=num_train_data, config=config)
         if on_update_end_fn:
             trainer.on_update_end = on_update_end_fn
-        model.to(trainer.device)
-        trainer.model = model
         trainer.training_loop()
         return trainer
 
-    def test_epoch_over_updates(self):
-        trainer = TrainerTrainingLoopMock(100, 2, 0.04)
-        trainer.load_datasets()
+    def _get_config(
+        self,
+        max_updates,
+        max_epochs,
+        batch_size=1,
+        update_frequency=1,
+        batch_size_per_device=None,
+    ):
+        config = {
+            "training": {
+                "max_updates": max_updates,
+                "max_epochs": max_epochs,
+                "update_frequency": update_frequency,
+                "batch_size": batch_size,
+                "batch_size_per_device": batch_size_per_device,
+            }
+        }
+        return get_config(config)
+
+    @patch("mmf.common.test_reporter.PathManager", return_value=MagicMock())
+    def test_epoch_over_updates(self, a):
+        config = self._get_config(max_updates=2, max_epochs=0.04)
+        trainer = get_mmf_trainer(config=config)
         max_updates = trainer._calculate_max_updates()
         self.assertEqual(max_updates, 4)
 
@@ -119,9 +145,10 @@ class TestTrainingLoop(unittest.TestCase):
         trainer.training_loop()
         self.check_values(trainer, 4, 1, 4)
 
-    def test_fractional_epoch(self):
-        trainer = TrainerTrainingLoopMock(100, None, 0.04)
-        trainer.load_datasets()
+    @patch("mmf.common.test_reporter.PathManager", return_value=MagicMock())
+    def test_fractional_epoch(self, a):
+        config = self._get_config(max_updates=None, max_epochs=0.04)
+        trainer = get_mmf_trainer(config=config)
         max_updates = trainer._calculate_max_updates()
         self.assertEqual(max_updates, 4)
 
@@ -129,9 +156,10 @@ class TestTrainingLoop(unittest.TestCase):
         trainer.training_loop()
         self.check_values(trainer, 4, 1, 4)
 
-    def test_updates(self):
-        trainer = TrainerTrainingLoopMock(100, 2, None)
-        trainer.load_datasets()
+    @patch("mmf.common.test_reporter.PathManager", return_value=MagicMock())
+    def test_updates(self, a):
+        config = self._get_config(max_updates=2, max_epochs=None)
+        trainer = get_mmf_trainer(config=config)
         max_updates = trainer._calculate_max_updates()
         self.assertEqual(max_updates, 2)
 
@@ -139,11 +167,15 @@ class TestTrainingLoop(unittest.TestCase):
         trainer.training_loop()
         self.check_values(trainer, 2, 1, 2)
 
-    def test_batch_size_per_device(self):
+    @patch("mmf.common.test_reporter.PathManager", return_value=MagicMock())
+    def test_batch_size_per_device(self, a):
         # Need to patch the mmf.utils.general's world size not mmf.utils.distributed
         # as the first one is what will be used
         with patch("mmf.utils.general.get_world_size", return_value=2):
-            trainer = TrainerTrainingLoopMock(100, 2, None, batch_size=4)
+            config = self._get_config(max_updates=2, max_epochs=None, batch_size=4)
+            trainer = TrainerTrainingLoopMock(config=config)
+            add_model(trainer, SimpleModel({"in_dim": 1}))
+            add_optimizer(trainer, config)
             registry.register("config", trainer.config)
             batch_size = get_batch_size()
             trainer.config.training.batch_size = batch_size
@@ -152,7 +184,12 @@ class TestTrainingLoop(unittest.TestCase):
             # with world size 2, batch size per device should 4 // 2 = 2
             self.assertEqual(trainer.train_loader.current_loader.batch_size, 2)
             # This is per device, so should stay same
-            trainer = TrainerTrainingLoopMock(100, 2, None, batch_size_per_device=4)
+            config = self._get_config(
+                max_updates=2, max_epochs=None, batch_size_per_device=4
+            )
+            trainer = TrainerTrainingLoopMock(config=config)
+            add_model(trainer, SimpleModel({"in_dim": 1}))
+            add_optimizer(trainer, config)
             registry.register("config", trainer.config)
             batch_size = get_batch_size()
             trainer.config.training.batch_size = batch_size

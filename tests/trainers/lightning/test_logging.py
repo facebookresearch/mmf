@@ -7,9 +7,10 @@ from mmf.trainers.callbacks.logistics import LogisticsCallback
 from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
 from mmf.utils.timer import Timer
 from tests.trainers.test_utils import (
+    get_config,
     get_lightning_trainer,
     get_mmf_trainer,
-    run_lightning_trainer_with_callback,
+    run_lightning_trainer,
 )
 
 
@@ -38,7 +39,7 @@ class TestLightningTrainerLogging(unittest.TestCase):
         mkdirs,
     ):
         # mmf trainer
-        mmf_trainer = get_mmf_trainer(
+        config = self._get_mmf_config(
             max_updates=8,
             batch_size=2,
             max_epochs=None,
@@ -46,6 +47,7 @@ class TestLightningTrainerLogging(unittest.TestCase):
             evaluation_interval=9,
             tensorboard=True,
         )
+        mmf_trainer = get_mmf_trainer(config=config)
 
         def _add_scalars_mmf(log_dict, iteration):
             self.mmf_tensorboard_logs.append({iteration: log_dict})
@@ -63,14 +65,14 @@ class TestLightningTrainerLogging(unittest.TestCase):
         mmf_trainer.training_loop()
 
         # lightning_trainer
-        trainer = get_lightning_trainer(
+        config = self._get_config(
             max_steps=8,
             batch_size=2,
-            prepare_trainer=False,
             log_every_n_steps=3,
             val_check_interval=9,
             tensorboard=True,
         )
+        trainer = get_lightning_trainer(config=config, prepare_trainer=False)
 
         def _add_scalars_lightning(log_dict, iteration):
             self.lightning_tensorboard_logs.append({iteration: log_dict})
@@ -79,9 +81,9 @@ class TestLightningTrainerLogging(unittest.TestCase):
             trainer.tb_writer.add_scalars = _add_scalars_lightning
 
         callback = LightningLoopCallback(trainer)
-        run_lightning_trainer_with_callback(
-            trainer, callback, on_fit_start_callback=_on_fit_start_callback
-        )
+        trainer._callbacks.append(callback)
+
+        run_lightning_trainer(trainer, on_fit_start_callback=_on_fit_start_callback)
         self.assertEqual(
             len(self.mmf_tensorboard_logs), len(self.lightning_tensorboard_logs)
         )
@@ -90,3 +92,39 @@ class TestLightningTrainerLogging(unittest.TestCase):
             self.mmf_tensorboard_logs, self.lightning_tensorboard_logs
         ):
             self.assertDictEqual(mmf, lightning)
+
+    def _get_config(
+        self, max_steps, batch_size, log_every_n_steps, val_check_interval, tensorboard
+    ):
+        config = {
+            "trainer": {
+                "params": {
+                    "max_steps": max_steps,
+                    "log_every_n_steps": log_every_n_steps,
+                    "val_check_interval": val_check_interval,
+                }
+            },
+            "training": {"batch_size": batch_size, "tensorboard": tensorboard},
+        }
+        return get_config(config)
+
+    def _get_mmf_config(
+        self,
+        max_updates,
+        max_epochs,
+        batch_size,
+        log_interval,
+        evaluation_interval,
+        tensorboard,
+    ):
+        config = {
+            "training": {
+                "batch_size": batch_size,
+                "tensorboard": tensorboard,
+                "max_updates": max_updates,
+                "max_epochs": max_epochs,
+                "log_interval": log_interval,
+                "evaluation_interval": evaluation_interval,
+            }
+        }
+        return get_config(config)
