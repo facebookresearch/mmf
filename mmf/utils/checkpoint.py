@@ -92,23 +92,6 @@ def get_config_from_folder_or_ckpt(
     return config
 
 
-def is_pl_checkpoint(checkpoint):
-    return "pytorch-lightning_version" in checkpoint
-
-
-def is_model_only_checkpoint(checkpoint):
-    if is_pl_checkpoint(checkpoint):
-        return "optimizer_states" not in checkpoint or "lr_schedulers" not in checkpoint
-    else:
-        return "optimizer" not in checkpoint or "lr_scheduler" not in checkpoint
-
-
-def pl_checkpoint_from_mmf_checkpoint(checkpoint: Dict[str, Any]) -> None:
-    tmp_checkpoint = dict(checkpoint)
-    checkpoint.clear()
-    checkpoint["state_dict"] = tmp_checkpoint
-
-
 def _load_pretrained_checkpoint(checkpoint_path, *args, **kwargs):
     assert (
         os.path.splitext(checkpoint_path)[1] in ALLOWED_CHECKPOINT_EXTS
@@ -291,7 +274,6 @@ class Checkpoint:
             pretrained_state_mapping = {}
 
         state_dict = self.upgrade_state_dict(ckpt["model"])
-
         if len(pretrained_state_mapping.items()) == 0:
             incompatible_keys = self.trainer.model.load_state_dict(
                 state_dict, strict=False

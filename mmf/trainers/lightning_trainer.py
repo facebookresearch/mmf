@@ -15,8 +15,8 @@ from mmf.utils.checkpoint import (
     get_ckpt_from_path,
     get_ckpt_path_from_folder,
     get_config_from_folder_or_ckpt,
-    is_model_only_checkpoint,
 )
+from mmf.utils.checkpoint_updater import is_model_only_checkpoint
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager

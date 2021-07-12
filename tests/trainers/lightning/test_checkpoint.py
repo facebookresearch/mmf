@@ -30,18 +30,39 @@ def mock_env_with_temp(path):
     patched.stop()
 
 
+unimodal_text_model_config = {
+    "unimodal_text": {
+        "text_hidden_size": 1,
+        "classifier": {
+            "type": "mlp",
+            "params": {"num_layers": 2, "hidden_dim": 5, "out_dim": 2},
+            "losses": [{"type": "cross_entropy"}],
+        },
+    }
+}
+
+
 class TestLightningCheckpoint(unittest.TestCase):
     def _assert_same_dict(self, mmf, lightning):
         self.assertSetEqual(set(mmf.keys()), set(lightning.keys()))
         for key in mmf.keys():
-            if hasattr(mmf[key], "mean") and mmf[key].dtype == torch.float:
-                self.assertAlmostEquals(
-                    mmf[key].mean().item(), lightning[key].mean().item(), 2
-                )
-            elif hasattr(mmf[key], "item"):
-                self.assertEqual(mmf[key].item(), lightning[key].item())
+            self._assert_same(mmf[key], lightning[key])
+
+    def _assert_same(self, obj1, obj2, same=True):
+        if same:
+            if hasattr(obj1, "mean") and obj1.dtype == torch.float:
+                self.assertAlmostEquals(obj1.mean().item(), obj2.mean().item(), 2)
+            elif hasattr(obj1, "item"):
+                self.assertEqual(obj1.item(), obj2.item())
             else:
-                self.assertEqual(mmf[key], lightning[key])
+                self.assertEqual(obj1, obj2)
+        else:
+            if hasattr(obj1, "mean") and obj1.dtype == torch.float:
+                self.assertNotEqual(obj1.mean().item(), obj2.mean().item())
+            elif hasattr(obj1, "item"):
+                self.assertNotEqual(obj1.item(), obj2.item())
+            else:
+                self.assertNotEqual(obj1, obj2)
 
     def _get_ckpt_config(
         self, is_pl=False, ckpt_config=None, max_steps=6, resume_from_checkpoint=None
@@ -191,20 +212,12 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
         ckpt = torch.load(ckpt_filepath, map_location="cpu")
 
         ckpt_config = {"resume_zoo": resume_zoo, "zoo_config_override": True}
-        model_config = {
-            "unimodal_text": {
-                "text_hidden_size": 1,
-                "classifier": {
-                    "type": "mlp",
-                    "params": {"num_layers": 2, "hidden_dim": 5, "out_dim": 2},
-                    "losses": [{"type": "cross_entropy"}],
-                },
-            }
-        }
 
         with mock_env_with_temp("mmf.utils.checkpoint.get_mmf_env") as _:
             mmf_trainer = self._get_mmf_trainer(
-                ckpt_config=ckpt_config, model_config=model_config, max_updates=0
+                ckpt_config=ckpt_config,
+                model_config=unimodal_text_model_config,
+                max_updates=0,
             )
             mmf_trainer.on_init_start()
             mmf_ckpt = mmf_trainer.model.state_dict()
@@ -214,7 +227,10 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
         with mock_env_with_temp("mmf.trainers.lightning_trainer.get_mmf_env") as _:
             # lightning load from zoo, in this case, the zoo ckpt is in mmf format
             lightning = self._get_lightning_trainer(
-                ckpt_config=ckpt_config, model_config=model_config, max_steps=0, seed=4
+                ckpt_config=ckpt_config,
+                model_config=unimodal_text_model_config,
+                max_steps=0,
+                seed=4,
             )
             lightning.trainer.fit(
                 lightning.model, train_dataloader=lightning.train_loader
@@ -222,6 +238,55 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
             lightning_ckpt = lightning.model.state_dict()
             lightning_ckpt.pop("base.encoder.embeddings.position_ids")
             self._assert_same_dict(ckpt, lightning_ckpt)
+
+    def test_load_zoo_with_pretrained_state_mapping_parity_with_mmf(self):
+        # mmf with pretrained state mapping model state dict
+        resume_zoo = "unimodal_text.hateful_memes.bert"
+        pretrained_key = "base.encoder.embeddings"
+        ckpt_config = {
+            "resume_zoo": resume_zoo,
+            "zoo_config_override": True,
+            "resume_pretrained": True,
+            "pretrained_state_mapping": {pretrained_key: pretrained_key},
+        }
+        with mock_env_with_temp("mmf.utils.checkpoint.get_mmf_env") as _:
+            mmf_trainer = self._get_mmf_trainer(
+                ckpt_config=ckpt_config,
+                model_config=unimodal_text_model_config,
+                max_updates=0,
+            )
+            mmf_trainer.on_init_start()
+            mmf_ckpt = mmf_trainer.model.state_dict()
+            mmf_ckpt.pop("base.encoder.embeddings.position_ids")
+
+        with mock_env_with_temp("mmf.trainers.lightning_trainer.get_mmf_env") as _:
+            lightning = self._get_lightning_trainer(
+                ckpt_config=ckpt_config,
+                model_config=unimodal_text_model_config,
+                max_steps=0,
+                seed=4,
+            )
+            lightning.trainer.fit(
+                lightning.model, train_dataloader=lightning.train_loader
+            )
+            lightning_ckpt = lightning.model.state_dict()
+            lightning_ckpt.pop("base.encoder.embeddings.position_ids")
+
+        # lightning with pretrained state mapping model state dict should be the same
+        # only should be the same on certain axis
+        self.assertSetEqual(set(mmf_ckpt.keys()), set(lightning_ckpt.keys()))
+        # only the checkpoints with `pretrained_key` prefix will have the same value
+        for mmf_key in mmf_ckpt:
+            if pretrained_key in mmf_key:
+                self._assert_same(mmf_ckpt[mmf_key], lightning_ckpt[mmf_key])
+
+        for mmf_key in mmf_ckpt:
+            if "classifier.layers" in mmf_key:
+                self._assert_same(
+                    mmf_ckpt[mmf_key], lightning_ckpt[mmf_key], same=False
+                )
+
+        print("done")
 
     def test_load_trainer_resume_zoo_parity_with_mmf(self):
         # TODO @sash: lightning side would require the mmf_checkpoint
