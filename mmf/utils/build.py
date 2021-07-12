@@ -118,11 +118,11 @@ def build_model(
         )
         if is_master():
             load_model_requirements(config)
-            model = model_class.load_from_checkpoint(checkpoint_path, config=config)
+            model = model_class.load_from_checkpoint(checkpoint_path, config=config, strict=False)
             synchronize()
         else:
             synchronize()
-            model = model_class.load_from_checkpoint(checkpoint_path, config=config)
+            model = model_class.load_from_checkpoint(checkpoint_path, config=config, strict=False)
 
     model.init_losses()
     model.is_pl_enabled = is_pl_enabled
