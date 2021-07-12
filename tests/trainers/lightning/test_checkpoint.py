@@ -43,10 +43,11 @@ unimodal_text_model_config = {
 
 
 class TestLightningCheckpoint(unittest.TestCase):
-    def _assert_same_dict(self, mmf, lightning):
-        self.assertSetEqual(set(mmf.keys()), set(lightning.keys()))
+    def _assert_same_dict(self, mmf, lightning, same=True):
+        if same:
+            self.assertSetEqual(set(mmf.keys()), set(lightning.keys()))
         for key in mmf.keys():
-            self._assert_same(mmf[key], lightning[key])
+            self._assert_same(mmf[key], lightning[key], same=same)
 
     def _assert_same(self, obj1, obj2, same=True):
         if same:
@@ -54,6 +55,8 @@ class TestLightningCheckpoint(unittest.TestCase):
                 self.assertAlmostEquals(obj1.mean().item(), obj2.mean().item(), 2)
             elif hasattr(obj1, "item"):
                 self.assertEqual(obj1.item(), obj2.item())
+            elif type(obj1) is dict and type(obj2) is dict:
+                self._assert_same_dict(obj1, obj2)
             else:
                 self.assertEqual(obj1, obj2)
         else:
@@ -61,6 +64,8 @@ class TestLightningCheckpoint(unittest.TestCase):
                 self.assertNotEqual(obj1.mean().item(), obj2.mean().item())
             elif hasattr(obj1, "item"):
                 self.assertNotEqual(obj1.item(), obj2.item())
+            elif type(obj1) is dict and type(obj2) is dict:
+                self._assert_same_dict(obj1, obj2, same=False)
             else:
                 self.assertNotEqual(obj1, obj2)
 
@@ -182,7 +187,7 @@ class TestLightningCheckpoint(unittest.TestCase):
         return lightning
 
 
-class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
+class TestLightningCheckpoint(TestLightningCheckpoint):
     def test_load_resume_parity_with_mmf(self):
         # with checkpoint.resume = True, by default it loads "current.ckpt"
         self._load_checkpoint("current.ckpt", ckpt_config={"resume": True})
@@ -397,6 +402,47 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
             mmf_ckpt_current["model"], lightning_ckpt_current["state_dict"]
         )
 
+    def test_lightning_checkpoint_structure(self):
+        with mock_env_with_temp("mmf.trainers.lightning_trainer.get_mmf_env") as tmp_d:
+            lightning = self._get_lightning_trainer()
+            lightning.trainer.fit(
+                lightning.model, train_dataloader=lightning.train_loader
+            )
+            lightning_ckpt_current = torch.load(os.path.join(tmp_d, "current.ckpt"))
+            self.assertSetEqual(
+                set(lightning_ckpt_current.keys()),
+                {
+                    "epoch",
+                    "global_step",
+                    "pytorch-lightning_version",
+                    "state_dict",
+                    "callbacks",
+                    "optimizer_states",
+                    "lr_schedulers",
+                    "config",
+                },
+            )
+
+    def test_lightning_checkpoint_interval(self):
+        with mock_env_with_temp("mmf.trainers.lightning_trainer.get_mmf_env") as tmp_d:
+            # generate checkpoint, val_check_interval=2, checkpoint_inteval=2
+            lightning_gen = self._get_lightning_trainer(max_steps=6)
+            lightning_gen.trainer.fit(
+                lightning_gen.model,
+                train_dataloader=lightning_gen.train_loader,
+                val_dataloaders=lightning_gen.val_loader,
+            )
+            # this test should generate 3 model files under the modes directory.
+            # mmf's directory has model_{2|4|6}.ckpt
+            # lightning's directory has model_step={1|3|5}.ckpt
+            # this is due to
+            # https://github.com/PyTorchLightning/pytorch-lightning/pull/6997
+            # also was an issue according to test_validation.py
+            files = os.listdir(os.path.join(tmp_d, "models"))
+            self.assertEquals(3, len(files))
+            indexes = {int(x[:-5].split("=")[1]) for x in files}
+            self.assertSetEqual({1, 3, 5}, indexes)
+
     def _get_mmf_ckpt(self, filename, ckpt_config=None):
         with mock_env_with_temp(
             "mmf.utils.checkpoint.get_mmf_env"
@@ -419,7 +465,7 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
 
     def _load_checkpoint(self, filename, ckpt_config=None):
         # Make sure it loads x.ckpt when mmf
-        mmf_ckpt_current = self._get_mmf_ckpt(filename, ckpt_config=ckpt_config)
+        mmf_ckpt = self._get_mmf_ckpt(filename, ckpt_config=ckpt_config)
 
         # Make sure it loads x.ckpt when lightning
         with mock_env_with_temp("mmf.trainers.lightning_trainer.get_mmf_env") as tmp_d:
@@ -433,7 +479,7 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
 
             # load the generated checkpoint, calling fit is necessary to load the
             # checkpoint
-            lightning_ckpt_current = torch.load(os.path.join(tmp_d, filename))
+            lightning_ckpt = torch.load(os.path.join(tmp_d, filename))
             lightning = self._get_lightning_trainer(
                 ckpt_config=ckpt_config,
                 model_config={"simple_lightning_model": {"in_dim": 1}},
@@ -444,10 +490,14 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
                 lightning.model, train_dataloader=lightning.train_loader
             )
             self._assert_same_dict(
-                lightning_ckpt_current["state_dict"], lightning.model.state_dict()
+                lightning_ckpt["state_dict"], lightning.model.state_dict()
             )
 
         # Make sure lightning and mmf parity
+        self._assert_same_dict(mmf_ckpt["model"], lightning_ckpt["state_dict"])
+
+        self.assertEquals(mmf_ckpt["current_epoch"], lightning_ckpt["epoch"])
+        self.assertEquals(mmf_ckpt["num_updates"], lightning_ckpt["global_step"])
         self._assert_same_dict(
-            mmf_ckpt_current["model"], lightning_ckpt_current["state_dict"]
+            mmf_ckpt["optimizer"], lightning_ckpt["optimizer_states"][0]
         )
