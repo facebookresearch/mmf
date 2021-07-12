@@ -204,8 +204,8 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
 
     def test_load_resume_zoo_parity_with_mmf(self):
         # not specifying checkpoint.resume, but specifying
-        # checkpoint.resume_zoo. It should load the file underlying zoo
-        # mmf, use mmbt model
+        # checkpoint.resume_zoo. It should load the model file
+        # underlying zoo
         resume_zoo = "unimodal_text.hateful_memes.bert"
         ckpt_filepath = download_pretrained_model(resume_zoo)
         ckpt_filepath = get_ckpt_path_from_folder(ckpt_filepath)
@@ -286,14 +286,42 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
                     mmf_ckpt[mmf_key], lightning_ckpt[mmf_key], same=False
                 )
 
-        print("done")
+    def test_load_mmf_trainer_checkpoint_in_lightning(self):
+        # specifying an mmf .ckpt as the trainer resume_from_checkpoint
+        # for lightning trainer
+        with mock_env_with_temp(
+            "mmf.utils.checkpoint.get_mmf_env"
+        ) as tmp_d, mock_env_with_temp("mmf.common.test_reporter.get_mmf_env") as _:
+            # generate checkpoint
+            self._get_mmf_trainer(max_updates=6).training_loop()
 
-    def test_load_trainer_resume_zoo_parity_with_mmf(self):
-        # TODO @sash: lightning side would require the mmf_checkpoint
-        # to lightning adaptation. Next PR.
-        pass
+            # load the trianer checkpoint that is of mmf type
+            ckpt_file = os.path.join(tmp_d, "current.ckpt")
+            ckpt = torch.load(ckpt_file, map_location="cpu")
 
-    def test_load_trainer_resume_file_parity_with_mmf(self):
+            with patch.object(
+                LightningLoopCallback, "on_train_batch_end", return_value=None
+            ) as mock_method:
+                lightning = self._get_lightning_trainer(
+                    max_steps=6,
+                    resume_from_checkpoint=ckpt_file,
+                    model_config={"simple_lightning_model": {"in_dim": 1}},
+                )
+                lightning.trainer.fit(
+                    lightning.model, train_dataloaders=lightning.train_loader
+                )
+                self.assertEquals(lightning.trainer.global_step, 6)
+                call_args_list = mock_method.call_args_list
+                # training will take place 0 times. Since max_steps is the same
+                # as the checkpoint's global_step
+                self.assertEquals(len(call_args_list), 0)
+
+                # check to make sure that the lightning trainer's model and
+                # mmf's are the same
+                lightning_ckpt = lightning.trainer.model.state_dict()
+                self.assertDictEqual(lightning_ckpt, ckpt["model"])
+
+    def test_load_trainer_resume_parity_with_mmf(self):
         # directly setting lightning's trainer param: resume_from_checkpoint
         filename = "current.ckpt"
         mmf_ckpt_current = self._get_mmf_ckpt(filename, ckpt_config={"resume": True})

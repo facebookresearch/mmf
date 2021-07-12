@@ -20,9 +20,9 @@ def is_pl_trainer_checkpoint(checkpoint):
 
 def is_model_only_checkpoint(checkpoint):
     if is_pl_trainer_checkpoint(checkpoint):
-        return "optimizer_states" not in checkpoint or "lr_schedulers" not in checkpoint
+        return "state_dict" not in checkpoint
     else:
-        return "optimizer" not in checkpoint or "lr_scheduler" not in checkpoint
+        return "model" not in checkpoint
 
 
 def formatted_state_key(model: Any, attr: str):
@@ -32,6 +32,13 @@ def formatted_state_key(model: Any, attr: str):
         formatted_attr = attr
 
     return formatted_attr
+
+
+def remove_keys_inplace(ckpt: Dict[str, Any], keys_to_remove):
+    tmp_keys = dict(ckpt)
+    for key in tmp_keys:
+        if key in keys_to_remove:
+            ckpt.pop(key)
 
 
 class CheckpointUpdater:
@@ -54,10 +61,21 @@ class CheckpointUpdater:
             3. If config.checkpoint.pretrained_state_mapping is True, apply
                 the mapping speicified in the config, and remove the keys that exist
                 in the checkpoint that do not exist in the mapping.
+        The updated checkpoint should be of the format: {"state_dict": ckpts}, where
+        ckpts should be the model state_dict.
 
         If the checkpoint is a trainer only checkpoint:
             1. do the above steps for model checkpoint update
             2. do the checkpoint trainer state update from mmf to lightning
+        The updated checkpoint should be of the format: {
+            `epoch`: x,
+            `global_step`: x,
+            `pytorch-lightning_version`: x,
+            `state_dict`: x,
+            `callbacks`: x,
+            `optimizer_states`: [x],
+            `lr_schedulers`: [x],
+        }
         """
 
         if is_model_only_checkpoint(checkpoint):
@@ -65,6 +83,64 @@ class CheckpointUpdater:
             return
 
         # this assumes the checkpoint is trainer only
+        if not is_pl_trainer_checkpoint(checkpoint):
+            self._update_trainer_checkpoint_from_mmf(checkpoint=checkpoint, model=model)
+
+    def _update_trainer_checkpoint_from_mmf(
+        self, checkpoint: Dict[str, Any], model: Any
+    ) -> None:
+        """ updates checkpoint from the mmf format to lightning format.
+        mmf checkpoint is with keys:
+        `model`, `optimizer`, `best_iteration`, `current_iteration`, `current_epoch`, ,
+        `num_updates`, `best_update`, `best_metric_value`, `fp16_scaler`, `config`, ,
+        `lr_scheduler`, `git/branch`, `git/commit_hash`, `git/commit_author`,
+        `git/commit_message`, `git/diff`
+        """
+        remove_keys_inplace(
+            checkpoint,
+            {
+                "best_iteration",
+                "current_iteration",
+                "best_update",
+                "best_metric_value",
+                "fp16_scaler",
+                "config",
+                "git/branch",
+                "git/commit_hash",
+                "git/commit_author",
+                "git/commit_message",
+                "git/diff",
+            },
+        )
+
+        # update model
+        if "model" in checkpoint:
+            model_checkpoint = checkpoint.pop("model")
+            checkpoint["state_dict"] = model_checkpoint
+            self._update_model_format_state_keys(checkpoint["state_dict"], model=model)
+            config = registry.get("config")
+            if config.checkpoint.get("resume_pretrained", False):
+                self._update_pretrained_state_mapping(
+                    checkpoint=checkpoint["state_dict"], model=model, config=config
+                )
+        # update trainer progress
+        if "optimizer" in checkpoint:
+            optimizer = checkpoint.pop("optimizer")
+            checkpoint["optimizer_states"] = [optimizer]
+        if "lr_scheduler" in checkpoint:
+            lr_scheduler = checkpoint.pop("lr_scheduler")
+            checkpoint["lr_schedulers"] = [lr_scheduler]
+        else:
+            # we need to set this if it is not specified bc lightning expects
+            # lr_schedulers to be present to resume checkpoint while in mmf, it is
+            # not guranteed that lr_schedulers are used and saved in the checkpoint.
+            checkpoint["lr_schedulers"] = []
+        if "num_updates" in checkpoint:
+            global_step = checkpoint.pop("num_updates")
+            checkpoint["global_step"] = global_step
+        if "current_epoch" in checkpoint:
+            epoch = checkpoint.pop("current_epoch")
+            checkpoint["epoch"] = epoch
 
     def _update_model_checkpoint(self, checkpoint: Dict[str, Any], model: Any) -> None:
         """
