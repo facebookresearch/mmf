@@ -8,7 +8,7 @@ from tests.trainers.test_utils import get_config_with_defaults, get_lightning_tr
 
 class TestLightningTrainer(unittest.TestCase):
     def test_epoch_over_updates(self):
-        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=None):
+        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=""):
             config = self._get_config(max_steps=2, max_epochs=0.04)
             trainer = get_lightning_trainer(config=config)
             self.assertEqual(trainer._max_updates, 4)
@@ -18,7 +18,7 @@ class TestLightningTrainer(unittest.TestCase):
             self._check_values(trainer, 4, 0)
 
     def test_fractional_epoch(self):
-        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=None):
+        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=""):
             config = self._get_config(max_steps=None, max_epochs=0.04)
             trainer = get_lightning_trainer(config=config)
             self.assertEqual(trainer._max_updates, 4)
@@ -28,7 +28,7 @@ class TestLightningTrainer(unittest.TestCase):
             self._check_values(trainer, 4, 0)
 
     def test_updates(self):
-        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=None):
+        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=""):
             config = self._get_config(max_steps=2, max_epochs=None)
             trainer = get_lightning_trainer(config=config)
             self.assertEqual(trainer._max_updates, 2)

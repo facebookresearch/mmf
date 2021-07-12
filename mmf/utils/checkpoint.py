@@ -40,6 +40,19 @@ def _hack_imports():
     )
 
 
+def get_ckpt_path_from_folder(download_path) -> str:
+    ckpts = []
+    allowed_ckpt_types = [f"*{ext}" for ext in ALLOWED_CHECKPOINT_EXTS]
+    for ckpt_type in allowed_ckpt_types:
+        ckpts.extend(glob.glob(os.path.join(download_path, ckpt_type)))
+
+    assert (
+        len(ckpts) == 1
+    ), "None or multiple checkpoints files. MMF doesn't know what to do."
+
+    return ckpts[0]
+
+
 def _load_pretrained_checkpoint(checkpoint_path, *args, **kwargs):
     assert (
         os.path.splitext(checkpoint_path)[1] in ALLOWED_CHECKPOINT_EXTS
@@ -338,17 +351,21 @@ class Checkpoint:
 
             self.trainer.num_updates = self.trainer.current_iteration
 
-        lr_scheduler = self.trainer.lr_scheduler_callback._scheduler
+        lr_scheduler = self.trainer.lr_scheduler_callback
+
         if lr_scheduler is not None:
-            if "lr_scheduler" in ckpt:
-                lr_scheduler.load_state_dict(ckpt["lr_scheduler"])
-            else:
-                warnings.warn(
-                    "'lr_scheduler' key is not present in the "
-                    "checkpoint asked to be loaded. Setting lr_scheduler's "
-                    "last_epoch to current_iteration."
-                )
-                lr_scheduler.last_epoch = self.trainer.current_iteration
+            lr_scheduler = lr_scheduler._scheduler
+
+            if lr_scheduler is not None:
+                if "lr_scheduler" in ckpt:
+                    lr_scheduler.load_state_dict(ckpt["lr_scheduler"])
+                else:
+                    warnings.warn(
+                        "'lr_scheduler' key is not present in the "
+                        "checkpoint asked to be loaded. Setting lr_scheduler's "
+                        "last_epoch to current_iteration."
+                    )
+                    lr_scheduler.last_epoch = self.trainer.current_iteration
 
         registry.register("current_iteration", self.trainer.current_iteration)
         registry.register("num_updates", self.trainer.num_updates)
@@ -537,9 +554,13 @@ class Checkpoint:
             "config": OmegaConf.to_container(self.config, resolve=True),
         }
 
-        lr_scheduler = self.trainer.lr_scheduler_callback._scheduler
+        lr_scheduler = self.trainer.lr_scheduler_callback
+
         if lr_scheduler is not None:
-            ckpt["lr_scheduler"] = lr_scheduler.state_dict()
+            lr_scheduler = lr_scheduler._scheduler
+
+            if lr_scheduler is not None:
+                ckpt["lr_scheduler"] = lr_scheduler.state_dict()
 
         if self.git_repo:
             git_metadata_dict = self._get_vcs_fields()

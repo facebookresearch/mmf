@@ -332,6 +332,14 @@ def check_header(url, from_google=False):
     ).format(url)
 
 
+def load_model_requirements(model_config, *args, **kwargs):
+    requirements = model_config.get("zoo_requirements", [])
+    if isinstance(requirements, str):
+        requirements = [requirements]
+    for item in requirements:
+        download_pretrained_model(item, *args, **kwargs)
+
+
 def download_pretrained_model(model_name, *args, **kwargs):
     import omegaconf
     from mmf.utils.configuration import get_mmf_env, load_yaml

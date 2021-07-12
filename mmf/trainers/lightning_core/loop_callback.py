@@ -156,11 +156,6 @@ class LightningLoopCallback(Callback):
         optimizer = trainer.optimizers[0]
         return optimizer
 
-    def _save_checkpoint(self, trainer: Trainer):
-        logger.info("Checkpoint time. Saving a checkpoint.")
-        return
-        # TODO: sash Needs implementation - next mvp
-
     def _get_current_epoch_for_logging(self, trainer: Trainer):
         return trainer.current_epoch + 1
 
