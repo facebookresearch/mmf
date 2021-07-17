@@ -150,7 +150,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">Library Reference</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Library Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../lib/common/registry.html">common.registry</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../lib/common/sample.html">common.sample</a></li>
@@ -1004,8 +1004,14 @@
 
         <span class="n">temperature</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;temperature&quot;</span><span class="p">]</span>
 
-        <span class="n">logits_1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">embedding_1</span><span class="p">,</span> <span class="n">embedding_2_all_gpus</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="n">logits_2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">embedding_2</span><span class="p">,</span> <span class="n">embedding_1_all_gpus</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">logits_1</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">embedding_1</span><span class="p">,</span> <span class="n">embedding_2_all_gpus</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="o">/</span> <span class="n">temperature</span>
+        <span class="p">)</span>
+        <span class="n">logits_2</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">embedding_2</span><span class="p">,</span> <span class="n">embedding_1_all_gpus</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="o">/</span> <span class="n">temperature</span>
+        <span class="p">)</span>
         <span class="n">labels</span> <span class="o">=</span> <span class="n">per_gpu_batch_size</span> <span class="o">*</span> <span class="n">get_rank</span><span class="p">()</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
             <span class="n">per_gpu_batch_size</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">temperature</span><span class="o">.</span><span class="n">device</span>
         <span class="p">)</span>

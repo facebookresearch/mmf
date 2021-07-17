@@ -153,7 +153,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">Library Reference</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Library Reference</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="registry.html">common.registry</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">common.sample</a></li>
@@ -420,7 +420,7 @@ attribute’s value is not a tensor, it is ignored and kept as it is.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>device</strong> (<em>str|torch.device</em>) – Device on which the <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> should
+<li><p><strong>device</strong> (<em>str</em><em>|</em><em>torch.device</em>) – Device on which the <code class="docutils literal notranslate"><span class="pre">SampleList</span></code> should
 moved.</p></li>
 <li><p><strong>non_blocking</strong> (<em>bool</em>) – Whether the move should be non_blocking. Default: True</p></li>
 </ul>
@@ -436,7 +436,7 @@ moved.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mmf.common.sample.SampleList.to_dict">
-<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/mmf/common/sample.html#SampleList.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.sample.SampleList.to_dict" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/mmf/common/sample.html#SampleList.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.sample.SampleList.to_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts a sample list to dict, this is useful for TorchScript and for
 other internal API unification efforts.</p>
 <dl class="field-list simple">
@@ -453,7 +453,7 @@ other internal API unification efforts.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="mmf.common.sample.detach_tensor">
-<span class="sig-prename descclassname"><span class="pre">mmf.common.sample.</span></span><span class="sig-name descname"><span class="pre">detach_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Any</span><a class="reference internal" href="../../_modules/mmf/common/sample.html#detach_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.sample.detach_tensor" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">mmf.common.sample.</span></span><span class="sig-name descname"><span class="pre">detach_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="../../_modules/mmf/common/sample.html#detach_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.sample.detach_tensor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Detaches any element passed which has a <cite>.detach</cite> function defined.
 Currently, in MMF can be SampleList, Report or a tensor.</p>
 <dl class="field-list simple">
