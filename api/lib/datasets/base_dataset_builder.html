@@ -422,8 +422,9 @@ This hook is called on every process when using DDP.</p>
 <dt class="sig sig-object py" id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.test_dataloader">
 <span class="sig-name descname"><span class="pre">test_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.test_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.test_dataloader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement one or multiple PyTorch DataLoaders for testing.</p>
-<p>The dataloader you return will not be called every epoch unless you set
-<a href="#id1"><span class="problematic" id="id2">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_epoch`</span></a> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<p>The dataloader you return will not be reloaded unless you set
+<a href="#id1"><span class="problematic" id="id2">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_n_epochs`</span></a> to
+a postive integer.</p>
 <p>For data processing use the following pattern:</p>
 <blockquote>
 <div><ul class="simple">
@@ -452,7 +453,7 @@ There is no need to set it yourself.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Single or multiple PyTorch DataLoaders.</p>
+<dd class="field-odd"><p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.DataLoader</span></code> or a sequence of them specifying testing samples.</p>
 </dd>
 </dl>
 <p>Example:</p>
@@ -492,13 +493,13 @@ will have an argument <code class="docutils literal notranslate"><span class="pr
 <dd><p>Implement one or more PyTorch DataLoaders for training.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Either a single PyTorch <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code> or a collection of these
-(list, dict, nested lists and dicts). In the case of multiple dataloaders, please see
-this <span class="xref std std-ref">page</span></p>
+<dd class="field-odd"><p>A collection of <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.DataLoader</span></code> specifying training samples.
+In the case of multiple dataloaders, please see this <span class="xref std std-ref">page</span>.</p>
 </dd>
 </dl>
-<p>The dataloader you return will not be called every epoch unless you set
-<a href="#id3"><span class="problematic" id="id4">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_epoch`</span></a> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<p>The dataloader you return will not be reloaded unless you set
+<a href="#id3"><span class="problematic" id="id4">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_n_epochs`</span></a> to
+a positive integer.</p>
 <p>For data processing use the following pattern:</p>
 <blockquote>
 <div><ul class="simple">
@@ -570,8 +571,9 @@ There is no need to set it yourself.</p>
 <dt class="sig sig-object py" id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.val_dataloader">
 <span class="sig-name descname"><span class="pre">val_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.val_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.val_dataloader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement one or multiple PyTorch DataLoaders for validation.</p>
-<p>The dataloader you return will not be called every epoch unless you set
-<a href="#id5"><span class="problematic" id="id6">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_epoch`</span></a> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<p>The dataloader you return will not be reloaded unless you set
+<a href="#id5"><span class="problematic" id="id6">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_n_epochs`</span></a> to
+a positive integer.</p>
 <p>It’s recommended that all data downloads and preparation happen in <a class="reference internal" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data" title="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a>.</p>
 <ul class="simple">
 <li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></p></li>
@@ -588,7 +590,7 @@ There is no need to set it yourself.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Single or multiple PyTorch DataLoaders.</p>
+<dd class="field-odd"><p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.DataLoader</span></code> or a sequence of them specifying validation samples.</p>
 </dd>
 </dl>
 <p>Examples:</p>
