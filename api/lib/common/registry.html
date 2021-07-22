@@ -248,6 +248,7 @@ register different kind of classes.</p>
 <ul class="simple">
 <li><p>Register a trainer: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_trainer</span></code></p></li>
 <li><p>Register a dataset builder: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_builder</span></code></p></li>
+<li><p>Register a callback function: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_callback</span></code></p></li>
 <li><p>Register a metric: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_metric</span></code></p></li>
 <li><p>Register a loss: <code class="docutils literal notranslate"><span class="pre">&#64;registry.register_loss</span></code></p></li>
 <li><p>Register a fusion technique: <code class="docutils literal notranslate"><span class="pre">&#64;registery.register_fusion</span></code></p></li>
@@ -324,6 +325,27 @@ internal operations. Default: False</p></li>
 
 <span class="nd">@registry</span><span class="o">.</span><span class="n">register_builder</span><span class="p">(</span><span class="s2">&quot;vqa2&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">VQA2Builder</span><span class="p">(</span><span class="n">BaseDatasetBuilder</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mmf.common.registry.Registry.register_callback">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">register_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/common/registry.html#Registry.register_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.common.registry.Registry.register_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a callback to registry with key ‘name’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> – Key with which the callback will be registered.</p>
+</dd>
+</dl>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
+<span class="kn">from</span> <span class="nn">mmf.trainers.callbacks.base</span> <span class="kn">import</span> <span class="n">Callback</span>
+
+
+<span class="nd">@registry</span><span class="o">.</span><span class="n">register_callback</span><span class="p">(</span><span class="s2">&quot;logistic&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">LogisticCallback</span><span class="p">(</span><span class="n">Callback</span><span class="p">):</span>
     <span class="o">...</span>
 </pre></div>
 </div>

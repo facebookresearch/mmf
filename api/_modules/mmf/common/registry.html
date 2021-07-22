@@ -247,6 +247,7 @@
 
 <span class="sd">- Register a trainer: ``@registry.register_trainer``</span>
 <span class="sd">- Register a dataset builder: ``@registry.register_builder``</span>
+<span class="sd">- Register a callback function: ``@registry.register_callback``</span>
 <span class="sd">- Register a metric: ``@registry.register_metric``</span>
 <span class="sd">- Register a loss: ``@registry.register_loss``</span>
 <span class="sd">- Register a fusion technique: ``@registery.register_fusion``</span>
@@ -292,6 +293,7 @@
         <span class="s2">&quot;test_reporter_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s2">&quot;iteration_strategy_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;callback_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
     <span class="p">}</span>
 
 <div class="viewcode-block" id="Registry.register_trainer"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_trainer">[docs]</a>    <span class="nd">@classmethod</span>
@@ -346,6 +348,36 @@
             <span class="p">),</span> <span class="s2">&quot;All builders must inherit BaseDatasetBuilder class&quot;</span>
             <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;builder_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">builder_cls</span>
             <span class="k">return</span> <span class="n">builder_cls</span>
+
+        <span class="k">return</span> <span class="n">wrap</span></div>
+
+<div class="viewcode-block" id="Registry.register_callback"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_callback">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_callback</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register a callback to registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key with which the callback will be registered.</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+<span class="sd">            from mmf.trainers.callbacks.base import Callback</span>
+
+
+<span class="sd">            @registry.register_callback(&quot;logistic&quot;)</span>
+<span class="sd">            class LogisticCallback(Callback):</span>
+<span class="sd">                ...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">mmf.trainers.callbacks.base</span> <span class="kn">import</span> <span class="n">Callback</span>
+
+            <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">Callback</span>
+            <span class="p">),</span> <span class="s2">&quot;All callbacks must inherit Callback class&quot;</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;callback_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">func</span>
 
         <span class="k">return</span> <span class="n">wrap</span></div>
 
@@ -689,6 +721,10 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_builder_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;builder_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_callback_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;callback_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_model_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
