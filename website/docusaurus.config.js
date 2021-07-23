@@ -7,6 +7,8 @@
  * @format
  */
 
+const {fbContent} = require('internaldocs-fb-helpers');
+
 module.exports = {
   title: 'MMF',
   tagline:
@@ -107,8 +109,10 @@ module.exports = {
           sidebarPath: require.resolve('./sidebars.js'),
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
-          editUrl:
-            'https://github.com/facebookresearch/mmf/edit/master/website/',
+          editUrl: fbContent({
+            internal: 'https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/faim/mmf/website',
+            external: 'https://github.com/facebookresearch/mmf/edit/master/website/'
+          }),
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
