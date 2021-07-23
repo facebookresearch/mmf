@@ -7038,6 +7038,11 @@ internaldocs-fb-helpers@^1.4.0:
   resolved "https://registry.yarnpkg.com/internaldocs-fb-helpers/-/internaldocs-fb-helpers-1.4.0.tgz#65282d741c7b16f47efbf5d1c7507b18ad67d877"
   integrity sha512-bUf1wm5spaOrf5X41w8Zew2X4I9N5wOcsD6pYW5U87eeQoHoEzYsR8n+5GjP9ZAOmvkbqIxeHx0ccl6lSHDNmg==
 
+internaldocs-fb-helpers@^1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/internaldocs-fb-helpers/-/internaldocs-fb-helpers-1.7.0.tgz#eb647e818f273a298726d956f56b72d3094d9ede"
+  integrity sha512-WQVMMGPrcI6CGeLx402sXl7gWg5uoV24Xqwxq0kwooCteHeIgnARZsGukQq8T9+oUftxsDsYumaa7eD3iOFwVQ==
+
 interpret@^1.0.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/interpret/-/interpret-1.2.0.tgz#d5061a6224be58e8083985f5014d844359576296"
