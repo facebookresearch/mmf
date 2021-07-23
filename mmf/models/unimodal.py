@@ -83,6 +83,10 @@ class UnimodalModal(BaseModel):
     def build(self):
         self.base = UnimodalBase(self.config)
         self._is_direct_features_input = self.config.direct_features_input
+        if self.config.get("freeze_base", False):
+            for param in self.base.parameters():
+                param.requires_grad = False
+
         num_features = self.config.modal_encoder.params.num_output_features
 
         # As the in_dim is dynamically calculated we need to copy classifier_config
