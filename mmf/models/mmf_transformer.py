@@ -346,9 +346,7 @@ class MMFTransformer(BaseTransformer):
             itm_labels["is_correct"] = sample_list["is_correct"]
         else:
             itm_labels["is_correct"] = torch.tensor(
-                True,
-                dtype=torch.long,
-                device=input_ids[self.modality_keys[0]].device,
+                True, dtype=torch.long, device=input_ids[self.modality_keys[0]].device
             )
 
         return itm_labels
