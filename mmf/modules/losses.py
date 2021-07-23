@@ -770,8 +770,14 @@ class ContrastiveLoss(nn.Module):
 
         temperature = model_output["temperature"]
 
-        logits_1 = torch.matmul(embedding_1, embedding_2_all_gpus.transpose(0, 1))
-        logits_2 = torch.matmul(embedding_2, embedding_1_all_gpus.transpose(0, 1))
+        logits_1 = (
+            torch.matmul(embedding_1, embedding_2_all_gpus.transpose(0, 1))
+            / temperature
+        )
+        logits_2 = (
+            torch.matmul(embedding_2, embedding_1_all_gpus.transpose(0, 1))
+            / temperature
+        )
         labels = per_gpu_batch_size * get_rank() + torch.arange(
             per_gpu_batch_size, device=temperature.device
         )
