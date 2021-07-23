@@ -190,19 +190,19 @@ class TestLightningCheckpoint(unittest.TestCase):
 class TestLightningCheckpoint(TestLightningCheckpoint):
     def test_load_resume_parity_with_mmf(self):
         # with checkpoint.resume = True, by default it loads "current.ckpt"
-        self._load_checkpoint("current.ckpt", ckpt_config={"resume": True})
+        self._load_checkpoint_and_test("current.ckpt", ckpt_config={"resume": True})
 
     def test_load_resume_best_parity_with_mmf(self):
         # with checkpoint.resume = True and checkpoint.resume_best = True
         # by default it loads best.ckpt. It should load the "best.ckpt"
-        self._load_checkpoint(
+        self._load_checkpoint_and_test(
             "best.ckpt", ckpt_config={"resume": True, "resume_best": True}
         )
 
     def test_load_resume_ignore_resume_zoo(self):
         # specifying both checkpoint.resume = True and resume_zoo
         # resume zoo should be ignored. It should load the "current.ckpt"
-        self._load_checkpoint(
+        self._load_checkpoint_and_test(
             "current.ckpt",
             ckpt_config={"resume": True, "resume_zoo": "visual_bert.pretrained.coco"},
         )
@@ -463,7 +463,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
             )
         return mmf_ckpt_current
 
-    def _load_checkpoint(self, filename, ckpt_config=None):
+    def _load_checkpoint_and_test(self, filename, ckpt_config=None):
         # Make sure it loads x.ckpt when mmf
         mmf_ckpt = self._get_mmf_ckpt(filename, ckpt_config=ckpt_config)
 
