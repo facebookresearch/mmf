@@ -137,6 +137,15 @@ training:
     # drop in results.
     fp16: false
 
+    # Users can define their own callback functions in the trainer, e.g. adjust
+    # learning rate, plot data in tensorboard, etc.
+    # The format should look like:
+    # callbacks:
+    #   - type: my_callback
+    #     params:
+    #       foo: bar
+    callbacks: []
+
 trainer:
     # Name of the trainer class used to define the training/evalution loop
     # `mmf` or `lightning` to specify the trainer to be used
