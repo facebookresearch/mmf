@@ -16,7 +16,7 @@
     "@docusaurus/core": "^2.0.0-alpha.61",
     "@docusaurus/preset-classic": "^2.0.0-alpha.61",
     "classnames": "^2.2.6",
-    "internaldocs-fb-helpers": "^1.4.0",
+    "internaldocs-fb-helpers": "^1.7.0",
     "react": "^16.8.4",
     "react-dom": "^16.8.4"
   },
