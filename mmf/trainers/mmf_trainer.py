@@ -67,6 +67,12 @@ class MMFTrainer(
         # (otherwise the saved last_epoch in scheduler would be wrong)
         self.callbacks.append(self.checkpoint_callback)
         self.callbacks.append(self.logistics_callback)
+        # Add all customized callbacks defined by users
+        for callback in self.config.training.get("callbacks", []):
+            callback_type = callback.type
+            callback_param = callback.params
+            callback_cls = registry.get_callback_class(callback_type)
+            self.callbacks.append(callback_cls(self.config, self, **callback_param))
 
     def load_datasets(self):
         logger.info("Loading datasets")
