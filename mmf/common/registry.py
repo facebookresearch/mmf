@@ -13,6 +13,7 @@ Various decorators for registry different kind of classes with unique keys
 
 - Register a trainer: ``@registry.register_trainer``
 - Register a dataset builder: ``@registry.register_builder``
+- Register a callback function: ``@registry.register_callback``
 - Register a metric: ``@registry.register_metric``
 - Register a loss: ``@registry.register_loss``
 - Register a fusion technique: ``@registery.register_fusion``
@@ -58,6 +59,7 @@ class Registry:
         "test_reporter_mapping": {},
         "iteration_strategy_name_mapping": {},
         "state": {},
+        "callback_name_mapping": {},
     }
 
     @classmethod
@@ -112,6 +114,36 @@ class Registry:
             ), "All builders must inherit BaseDatasetBuilder class"
             cls.mapping["builder_name_mapping"][name] = builder_cls
             return builder_cls
+
+        return wrap
+
+    @classmethod
+    def register_callback(cls, name):
+        r"""Register a callback to registry with key 'name'
+
+        Args:
+            name: Key with which the callback will be registered.
+
+        Usage::
+
+            from mmf.common.registry import registry
+            from mmf.trainers.callbacks.base import Callback
+
+
+            @registry.register_callback("logistic")
+            class LogisticCallback(Callback):
+                ...
+
+        """
+
+        def wrap(func):
+            from mmf.trainers.callbacks.base import Callback
+
+            assert issubclass(
+                func, Callback
+            ), "All callbacks must inherit Callback class"
+            cls.mapping["callback_name_mapping"][name] = func
+            return func
 
         return wrap
 
@@ -455,6 +487,10 @@ class Registry:
     @classmethod
     def get_builder_class(cls, name):
         return cls.mapping["builder_name_mapping"].get(name, None)
+
+    @classmethod
+    def get_callback_class(cls, name):
+        return cls.mapping["callback_name_mapping"].get(name, None)
 
     @classmethod
     def get_model_class(cls, name):
