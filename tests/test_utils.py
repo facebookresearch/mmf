@@ -197,6 +197,13 @@ class SimpleModel(BaseModel):
         }
 
 
+class SimpleNaNLossModel(SimpleModel):
+    def forward(self, prepared_batch: Dict[str, Tensor]):
+        report = super().forward(prepared_batch)
+        report["losses"]["loss"] /= 0.0  # create an NaN loss
+        return report
+
+
 class SimpleLightningModel(SimpleModel):
     def __init__(self, config: SimpleModel.Config):
         super().__init__(config)

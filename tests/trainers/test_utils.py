@@ -31,6 +31,7 @@ def get_trainer_config():
                 "tensorboard": False,
                 "num_workers": 0,
                 "max_grad_l2_norm": 1,
+                "exit_on_nan_losses": True,
             },
             "optimizer": {"type": "adam_w", "params": {"lr": 5e-5, "eps": 1e-8}},
             "scheduler": {
