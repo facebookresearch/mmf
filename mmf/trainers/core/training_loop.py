@@ -164,9 +164,31 @@ class TrainerTrainingLoopMixin(ABC):
 
     def run_training_batch(self, batch: Dict[str, Tensor], loss_divisor: int) -> None:
         report = self._forward(batch)
+        if self.training_config.exit_on_nan_losses:
+            self._check_nan_losses(report)
         loss = extract_loss(report, loss_divisor)
         self._backward(loss)
         return report
+
+    def _check_nan_losses(self, report):
+        # skip this check in XLA mode as calling .item() in forward pass
+        # greatly slows down the training
+        if not is_xla():
+            # check whether NaN has occurred in the losses, and exit the training
+            # when NaN happens
+            loss_dict = report.losses
+            nan_loss_keys = []
+            for key, value in loss_dict.items():
+                if torch.any(torch.isnan(value)).item():
+                    nan_loss_keys.append(key)
+            if len(nan_loss_keys) > 0:
+                keys_str = ", ".join(nan_loss_keys)
+                error_msg = (
+                    f"NaN occurred in the following loss(es): {keys_str}; "
+                    f"exiting the training"
+                )
+                logger.info(error_msg)
+                raise RuntimeError(error_msg)
 
     def _forward(self, batch: Dict[str, Tensor]) -> Dict[str, Any]:
         # Move the sample list to device if it isn't as of now.

@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import torch
 from mmf.common.registry import registry
 from mmf.utils.general import get_batch_size
-from tests.test_utils import SimpleModel
+from tests.test_utils import SimpleModel, SimpleNaNLossModel
 from tests.trainers.test_trainer_mocks import TrainerTrainingLoopMock
 from tests.trainers.test_utils import (
     add_model,
@@ -207,3 +207,21 @@ class TestTrainingLoop(unittest.TestCase):
         self.assertEqual(trainer.current_iteration, current_iteration)
         self.assertEqual(trainer.current_epoch, current_epoch)
         self.assertEqual(trainer.num_updates, num_updates)
+
+    @patch("mmf.common.test_reporter.PathManager", return_value=MagicMock())
+    def test_exit_on_nan_losses(self, a):
+        config = self._get_config(max_updates=2, max_epochs=None, batch_size=4)
+        trainer = TrainerTrainingLoopMock(config=config)
+        add_model(trainer, SimpleNaNLossModel({"in_dim": 1}))
+        add_optimizer(trainer, config)
+        registry.register("config", trainer.config)
+        batch_size = get_batch_size()
+        trainer.config.training.batch_size = batch_size
+        trainer.load_datasets()
+
+        exception_raised = False
+        try:
+            trainer.training_loop()
+        except RuntimeError:
+            exception_raised = True
+        self.assertTrue(exception_raised)
