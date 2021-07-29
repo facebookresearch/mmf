@@ -10,7 +10,7 @@ from mmf.datasets.multi_datamodule import MultiDataModule
 from mmf.modules.metrics import Metrics
 from mmf.trainers.base_trainer import BaseTrainer
 from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
-from mmf.utils.build import build_model
+from mmf.utils.build import build_lightning_model
 from mmf.utils.checkpoint import get_ckpt_path_from_folder
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.download import download_pretrained_model
@@ -92,7 +92,7 @@ class LightningTrainer(BaseTrainer):
         with omegaconf.open_dict(attributes):
             attributes.model = self.config.model
 
-        self.model = build_model(attributes, is_pl_enabled=True)
+        self.model = build_lightning_model(attributes)
         self.model.build_meters(self.run_type)
 
     def get_checkpoint_path(self) -> Optional[str]:
