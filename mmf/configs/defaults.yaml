@@ -189,6 +189,8 @@ trainer:
         # (in that order). If `resume_from_checkpoint` is not specified, and if
         # `config.checkpoint` is not specified, then no checkpoint file will be loaded.
         resume_from_checkpoint: null
+        accelerator: null
+        move_metrics_to_cpu: True
 
 # Configuration for evaluation
 evaluation:

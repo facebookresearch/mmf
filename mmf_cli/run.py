@@ -93,6 +93,12 @@ def run(opts: typing.Optional[typing.List[str]] = None, predict: bool = False):
     configuration.args = args
     config = configuration.get_config()
     config.start_rank = 0
+
+    if config.training.trainer == "lightning":
+        config.device_id = 0
+        main(configuration, predict=predict)
+        return
+
     if config.distributed.init_method is None:
         infer_init_method(config)
 
