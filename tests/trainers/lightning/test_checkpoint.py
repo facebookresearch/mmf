@@ -12,6 +12,7 @@ from mmf.trainers.callbacks.early_stopping import EarlyStoppingCallback
 from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
 from mmf.utils.checkpoint import get_ckpt_path_from_folder
 from mmf.utils.download import download_pretrained_model
+from tests.test_utils import skip_if_no_network
 from tests.trainers.test_utils import (
     get_config_with_defaults,
     get_lightning_trainer,
@@ -181,6 +182,7 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
             ckpt_config={"resume": True, "resume_zoo": "visual_bert.pretrained.coco"},
         )
 
+    @skip_if_no_network
     def test_load_resume_zoo_parity_with_mmf(self):
         # not specifying checkpoint.resume, but specifying
         # checkpoint.resume_zoo. It should load the file underlying zoo
