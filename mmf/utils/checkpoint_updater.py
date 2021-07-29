@@ -20,9 +20,9 @@ def is_pl_trainer_checkpoint(checkpoint):
 
 def is_model_only_checkpoint(checkpoint):
     if is_pl_trainer_checkpoint(checkpoint):
-        return "optimizer_states" not in checkpoint or "lr_schedulers" not in checkpoint
+        return "state_dict" not in checkpoint
     else:
-        return "optimizer" not in checkpoint or "lr_scheduler" not in checkpoint
+        return "model" not in checkpoint
 
 
 def formatted_state_key(model: Any, attr: str):
@@ -32,6 +32,64 @@ def formatted_state_key(model: Any, attr: str):
         formatted_attr = attr
 
     return formatted_attr
+
+
+def is_shape_mismatch(
+    shape1: Tuple[str, torch.Size],
+    shape2: Tuple[str, torch.Size],
+    config: Dict[str, Any],
+) -> None:
+    if shape1[1] != shape2[1] and config.checkpoint.get("bypass_shape_mismatch", False):
+        logger.warning("bypass_shape_mismatch in config.checkpoint is set to be True")
+        logger.warning(
+            f"""
+            Modules {shape1[0]} and {shape2[0]} don't have the same shape:
+            own_attr has shape {shape1[1]} while
+            attr has shape {shape2[1]} - so skipping copy.
+            """
+        )
+    return shape1[1] != shape2[1]
+
+
+def update_pretrained_state_mapping(
+    checkpoint: Dict[str, Any], model: Any, config: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+        This function removes all checkpoint keys that do not exist in
+        the `pretrained_state_mapping`
+        """
+    mapping = config.checkpoint.pretrained_state_mapping
+    own_state = model.state_dict()
+    tmp_checkpoint = dict(checkpoint)
+
+    ckpt_update_dict = dict()
+    for key, value in mapping.items():
+        key += "."
+        value += "."
+        for attr in tmp_checkpoint:
+            formatted_attr = formatted_state_key(model, attr)
+            for own_attr in own_state:
+                if (
+                    key in own_attr
+                    and value in formatted_attr
+                    and own_attr.replace(key, "") == formatted_attr.replace(value, "")
+                ):
+                    if is_shape_mismatch(
+                        (own_attr, own_state[own_attr].shape),
+                        (attr, checkpoint[attr].shape),
+                        config,
+                    ):
+                        continue
+
+                    ckpt_update_dict[own_attr] = attr
+    return ckpt_update_dict
+
+
+def remove_keys_inplace(ckpt: Dict[str, Any], keys_to_remove):
+    tmp_keys = dict(ckpt)
+    for key in tmp_keys:
+        if key in keys_to_remove:
+            ckpt.pop(key)
 
 
 class CheckpointUpdater:
@@ -54,10 +112,21 @@ class CheckpointUpdater:
             3. If config.checkpoint.pretrained_state_mapping is True, apply
                 the mapping speicified in the config, and remove the keys that exist
                 in the checkpoint that do not exist in the mapping.
+        The updated checkpoint should be of the format: {"state_dict": ckpts}, where
+        ckpts should be the model state_dict.
 
         If the checkpoint is a trainer only checkpoint:
             1. do the above steps for model checkpoint update
             2. do the checkpoint trainer state update from mmf to lightning
+        The updated checkpoint should be of the format: {
+            `epoch`: x,
+            `global_step`: x,
+            `pytorch-lightning_version`: x,
+            `state_dict`: x,
+            `callbacks`: x,
+            `optimizer_states`: [x],
+            `lr_schedulers`: [x],
+        }
         """
 
         if is_model_only_checkpoint(checkpoint):
@@ -65,6 +134,64 @@ class CheckpointUpdater:
             return
 
         # this assumes the checkpoint is trainer only
+        if not is_pl_trainer_checkpoint(checkpoint):
+            self._update_trainer_checkpoint_from_mmf(checkpoint=checkpoint, model=model)
+
+    def _update_trainer_checkpoint_from_mmf(
+        self, checkpoint: Dict[str, Any], model: Any
+    ) -> None:
+        """ updates checkpoint from the mmf format to lightning format.
+        mmf checkpoint is with keys:
+        `model`, `optimizer`, `best_iteration`, `current_iteration`, `current_epoch`, ,
+        `num_updates`, `best_update`, `best_metric_value`, `fp16_scaler`, `config`, ,
+        `lr_scheduler`, `git/branch`, `git/commit_hash`, `git/commit_author`,
+        `git/commit_message`, `git/diff`
+        """
+        remove_keys_inplace(
+            checkpoint,
+            {
+                "best_iteration",
+                "current_iteration",
+                "best_update",
+                "best_metric_value",
+                "fp16_scaler",
+                "config",
+                "git/branch",
+                "git/commit_hash",
+                "git/commit_author",
+                "git/commit_message",
+                "git/diff",
+            },
+        )
+
+        # update model
+        if "model" in checkpoint:
+            model_checkpoint = checkpoint.pop("model")
+            checkpoint["state_dict"] = model_checkpoint
+            self._update_model_format_state_keys(checkpoint["state_dict"], model=model)
+            config = registry.get("config")
+            if config.checkpoint.get("resume_pretrained", False):
+                self._update_pretrained_state_mapping(
+                    checkpoint=checkpoint["state_dict"], model=model, config=config
+                )
+        # update trainer progress
+        if "optimizer" in checkpoint:
+            optimizer = checkpoint.pop("optimizer")
+            checkpoint["optimizer_states"] = [optimizer]
+        if "lr_scheduler" in checkpoint:
+            lr_scheduler = checkpoint.pop("lr_scheduler")
+            checkpoint["lr_schedulers"] = [lr_scheduler]
+        else:
+            # we need to set this if it is not specified bc lightning expects
+            # lr_schedulers to be present to resume checkpoint while in mmf, it is
+            # not guranteed that lr_schedulers are used and saved in the checkpoint.
+            checkpoint["lr_schedulers"] = []
+        if "num_updates" in checkpoint:
+            global_step = checkpoint.pop("num_updates")
+            checkpoint["global_step"] = global_step
+        if "current_epoch" in checkpoint:
+            epoch = checkpoint.pop("current_epoch")
+            checkpoint["epoch"] = epoch
 
     def _update_model_checkpoint(self, checkpoint: Dict[str, Any], model: Any) -> None:
         """
@@ -90,62 +217,23 @@ class CheckpointUpdater:
         This function removes all checkpoint keys that do not exist in
         the `pretrained_state_mapping`
         """
-        mapping = config.checkpoint.pretrained_state_mapping
-        own_state = model.state_dict()
-        tmp_checkpoint = dict(checkpoint)
-
+        ckpt_update_dict = update_pretrained_state_mapping(
+            checkpoint=checkpoint, model=model, config=config
+        )
         accepted_keys = set()
-        for key, value in mapping.items():
-            key += "."
-            value += "."
-            for attr in tmp_checkpoint:
-                formatted_attr = formatted_state_key(model, attr)
-                for own_attr in own_state:
-                    if (
-                        key in own_attr
-                        and value in formatted_attr
-                        and own_attr.replace(key, "")
-                        == formatted_attr.replace(value, "")
-                    ):
-                        if self._is_shape_mismatch(
-                            (own_attr, own_state[own_attr].shape),
-                            (attr, checkpoint[attr].shape),
-                            config,
-                        ):
-                            continue
-
-                        logger.info("Copying " + own_attr + " from " + attr)
-                        assert own_attr == attr, (
-                            "Since `_update_model_format_state_keys` was run ",
-                            "before, this has to be held true",
-                        )
-                        accepted_keys.add(attr)
+        for own_attr, attr in ckpt_update_dict.items():
+            assert own_attr == attr, (
+                "Since `_update_model_format_state_keys` was run ",
+                "before, this has to be held true",
+            )
+            logger.info("Copying " + own_attr + " from " + attr)
+            accepted_keys.add(attr)
 
         # keep only the checkpoint keys that exist in the `pretrained_state_mapping`
+        tmp_checkpoint = dict(checkpoint)
         for key in tmp_checkpoint:
             if key not in accepted_keys:
                 checkpoint.pop(key)
-
-    def _is_shape_mismatch(
-        self,
-        shape1: Tuple[str, torch.Size],
-        shape2: Tuple[str, torch.Size],
-        config: Dict[str, Any],
-    ) -> None:
-        if shape1[1] != shape2[1] and config.checkpoint.get(
-            "bypass_shape_mismatch", False
-        ):
-            logger.warning(
-                "bypass_shape_mismatch in config.checkpoint" + " is set to be True"
-            )
-            logger.warning(
-                f"""
-                Modules {shape1[0]} and {shape2[0]} don't have the same shape:
-                own_attr has shape {shape1[1]} while
-                attr has shape {shape2[1]} - so skipping copy.
-                """
-            )
-        return shape1[1] != shape2[1]
 
     def _update_model_format_state_keys(
         self, checkpoint: Dict[str, Any], model: Any
