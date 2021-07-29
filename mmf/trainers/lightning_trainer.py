@@ -10,7 +10,7 @@ from mmf.datasets.multi_datamodule import MultiDataModule
 from mmf.modules.metrics import Metrics
 from mmf.trainers.base_trainer import BaseTrainer
 from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
-from mmf.utils.build import build_model
+from mmf.utils.build import build_lightning_model
 from mmf.utils.checkpoint import (
     get_ckpt_from_path,
     get_ckpt_path_from_folder,
@@ -108,7 +108,7 @@ class LightningTrainer(BaseTrainer):
                 self.resume_from_checkpoint = checkpoint_path
 
         attributes = self.get_model_config(is_zoo, config)
-        self.model = build_model(attributes, model_checkpoint_path, is_pl_enabled=True)
+        self.model = build_lightning_model(attributes, model_checkpoint_path)
         self.model.build_meters(self.run_type)
 
     def get_model_config(
