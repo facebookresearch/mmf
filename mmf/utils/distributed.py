@@ -339,6 +339,17 @@ def distributed_init(config):
             f"Distributed Init (Rank {config.distributed.rank}): "
             f"{config.distributed.init_method}"
         )
+
+        nccl_config = config.distributed.get("nccl", {})
+
+        if nccl_config.get("nsocks_perthread", None):
+            os.environ["NCCL_NSOCKS_PERTHREAD"] = str(nccl_config["nsocks_perthread"])
+            logger.info(f"NCCL_NSOCKS_PERTHREAD: {os.environ['NCCL_NSOCKS_PERTHREAD']}")
+
+        if nccl_config.get("socket_nthreads", None):
+            os.environ["NCCL_SOCKET_NTHREADS"] = str(nccl_config["socket_nthreads"])
+            logger.info(f"NCCL_SOCKET_NTHREADS: {os.environ['NCCL_SOCKET_NTHREADS']}")
+
         dist.init_process_group(
             backend=config.distributed.backend,
             init_method=config.distributed.init_method,
