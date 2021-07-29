@@ -146,6 +146,10 @@ training:
     #       foo: bar
     callbacks: []
 
+    # check for NaNs in losses during training
+    # Set to true to look for NaNs in the losses and exit the training when NaN happens
+    exit_on_nan_losses: true
+
 trainer:
     # Name of the trainer class used to define the training/evalution loop
     # `mmf` or `lightning` to specify the trainer to be used
