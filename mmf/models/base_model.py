@@ -52,8 +52,11 @@ from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.common.sample import SampleList, to_device
 from mmf.modules.losses import LossConfig, Losses
+from mmf.utils.download import download_pretrained_model
 from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.checkpoint_updater import CheckpointUpdater
+
+
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_current_device
 from mmf.utils.logger import log_class_usage
@@ -323,6 +326,13 @@ class BaseModel(pl.LightningModule):
             model_output["losses"] = {}
 
         return model_output
+
+    def load_requirements(self, config, *args, **kwargs):
+        requirements = config.get("zoo_requirements", [])
+        if isinstance(requirements, str):
+            requirements = [requirements]
+        for item in requirements:
+            download_pretrained_model(item, *args, **kwargs)
 
     def format_for_prediction(self, results, report):
         """Implement this method in models if it requires to modify prediction
