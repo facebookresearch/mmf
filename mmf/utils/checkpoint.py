@@ -353,19 +353,21 @@ class Checkpoint:
 
         lr_scheduler = self.trainer.lr_scheduler_callback
 
-        if lr_scheduler is not None:
+        if (
+            lr_scheduler is not None
+            and getattr(lr_scheduler, "_scheduler", None) is not None
+        ):
             lr_scheduler = lr_scheduler._scheduler
 
-            if lr_scheduler is not None:
-                if "lr_scheduler" in ckpt:
-                    lr_scheduler.load_state_dict(ckpt["lr_scheduler"])
-                else:
-                    warnings.warn(
-                        "'lr_scheduler' key is not present in the "
-                        "checkpoint asked to be loaded. Setting lr_scheduler's "
-                        "last_epoch to current_iteration."
-                    )
-                    lr_scheduler.last_epoch = self.trainer.current_iteration
+            if "lr_scheduler" in ckpt:
+                lr_scheduler.load_state_dict(ckpt["lr_scheduler"])
+            else:
+                warnings.warn(
+                    "'lr_scheduler' key is not present in the "
+                    "checkpoint asked to be loaded. Setting lr_scheduler's "
+                    "last_epoch to current_iteration."
+                )
+                lr_scheduler.last_epoch = self.trainer.current_iteration
 
         registry.register("current_iteration", self.trainer.current_iteration)
         registry.register("num_updates", self.trainer.num_updates)
@@ -556,11 +558,12 @@ class Checkpoint:
 
         lr_scheduler = self.trainer.lr_scheduler_callback
 
-        if lr_scheduler is not None:
+        if (
+            lr_scheduler is not None
+            and getattr(lr_scheduler, "_scheduler", None) is not None
+        ):
             lr_scheduler = lr_scheduler._scheduler
-
-            if lr_scheduler is not None:
-                ckpt["lr_scheduler"] = lr_scheduler.state_dict()
+            ckpt["lr_scheduler"] = lr_scheduler.state_dict()
 
         if self.git_repo:
             git_metadata_dict = self._get_vcs_fields()
