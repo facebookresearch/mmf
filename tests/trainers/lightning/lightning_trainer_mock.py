@@ -2,6 +2,7 @@
 
 from mmf.common.registry import registry
 from mmf.trainers.lightning_trainer import LightningTrainer
+from mmf.utils.timer import Timer
 from tests.trainers.test_trainer_mocks import MultiDataModuleNumbersTestObject
 
 
@@ -31,3 +32,4 @@ class LightningTrainerMock(LightningTrainer):
         self.train_loader = self.data_module.train_dataloader()
         self.val_loader = self.data_module.val_dataloader()
         self.test_loader = self.data_module.test_dataloader()
+        self.total_timer = Timer()

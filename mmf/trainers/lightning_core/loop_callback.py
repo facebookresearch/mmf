@@ -28,7 +28,6 @@ class LightningLoopCallback(Callback):
         self.run_type = lightning_trainer.run_type
 
         # for logging
-        self.total_timer = Timer()
         self.snapshot_timer = Timer()
         self.snapshot_iterations = len(self.lightning_trainer.val_loader)
         self.train_timer = Timer()
@@ -122,6 +121,10 @@ class LightningLoopCallback(Callback):
             tb_writer=self.lightning_trainer.tb_writer,
         )
 
+    def on_test_start(self, trainer: Trainer, pl_module: LightningModule) -> None:
+        self.test_combined_report = None
+        pl_module.test_meter.reset()
+
     def _update_and_create_report(
         self,
         batch: Dict,
@@ -186,6 +189,7 @@ class LightningLoopCallback(Callback):
         optimizer = self.get_optimizer(trainer)
         num_updates = self._get_num_updates_for_logging(trainer)
         current_iteration = self._get_iterations_for_logging(trainer)
+        time_since_start = self.lightning_trainer.total_timer.get_time_since_start()
         extra.update(
             {
                 "epoch": self._get_current_epoch_for_logging(trainer),
@@ -198,7 +202,7 @@ class LightningLoopCallback(Callback):
                     / self.train_timer.unix_time_since_start()
                 ),
                 "time": self.train_timer.get_time_since_start(),
-                "time_since_start": self.total_timer.get_time_since_start(),
+                "time_since_start": time_since_start,
                 "eta": calculate_time_left(
                     max_updates=trainer.max_steps,
                     num_updates=num_updates,

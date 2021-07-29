@@ -127,6 +127,7 @@ class LogisticsCallback(Callback):
         prefix = "{}: full {}".format(
             kwargs["report"].dataset_name, kwargs["report"].dataset_type
         )
+
         summarize_report(
             current_iteration=self.trainer.current_iteration,
             num_updates=getattr(self.trainer, "num_updates", None),

@@ -21,7 +21,8 @@ from mmf.utils.configuration import get_mmf_env
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_max_updates, print_model_parameters
-from mmf.utils.logger import TensorboardLogger, setup_output_folder
+from mmf.utils.logger import TensorboardLogger, setup_output_folder, summarize_report
+from mmf.utils.timer import Timer
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -225,11 +226,12 @@ class LightningTrainer(BaseTrainer):
 
     def monitor_criteria(self):
         monitor_criteria = self.training_config.early_stop.get("criteria", None)
-        assert (
-            monitor_criteria
-        ), "monitor criteria is required when early stop is specified."
+        if monitor_criteria is None:
+            return "total_loss", "min"
+
         if "val" not in monitor_criteria:
             monitor_criteria = f"val/{monitor_criteria}"
+
         mode = (
             "min" if self.training_config.early_stop.get("minimize", False) else "max"
         )
@@ -238,10 +240,10 @@ class LightningTrainer(BaseTrainer):
     def configure_callbacks(self) -> None:
         self.callbacks = [LightningLoopCallback(self)]
         self.callbacks += self.configure_checkpoint_callbacks()
+        self.callbacks += self.configure_monitor_callbacks()
         if self.training_config.get(
             "early_stop", None
         ) and self.training_config.early_stop.get("enabled", False):
-            self.callbacks += self.configure_monitor_callbacks()
             self.callbacks += self.configure_earlystop_callback()
 
     def configure_earlystop_callback(self) -> List[ModelCheckpoint]:
@@ -279,6 +281,7 @@ class LightningTrainer(BaseTrainer):
         print_model_parameters(self.model)
 
         logger.info("Starting training...")
+        self.total_timer = Timer()
 
         if "train" not in self.run_type:
             self.inference()
@@ -287,8 +290,24 @@ class LightningTrainer(BaseTrainer):
         self.trainer.fit(self.model, self.data_module)
         self.run_last_validation_after_train()
 
+        self.try_loading_best_model()
+        self.inference()
+
         # TODO: Look for a better way to hook this
         self.data_module.teardown()
+
+    def try_loading_best_model(self):
+        # load best model
+        best_path = os.path.join(get_mmf_env(key="save_dir"), "best.ckpt")
+        if PathManager.exists(best_path):
+            logger.info("Loading best model...")
+            model_config = self.model.config
+            metrics = self.model.metrics
+            del self.model
+            attributes = self.get_model_config(False, model_config)
+            self.model = build_model(attributes, best_path, is_pl_enabled=True)
+            self.model.build_meters(self.run_type)
+            self.model.metrics = metrics
 
     def run_last_validation_after_train(self) -> None:
         # Don't run if current iteration is divisble by
@@ -302,8 +321,30 @@ class LightningTrainer(BaseTrainer):
 
     def inference(self) -> None:
         logger.info("Starting inference...")
-        # TODO: @sash coming soon
-        pass
+        dataloaders = self._populate_dataloaders()
+
+        if self.config.evaluation.predict:
+            self.trainer.test(test_dataloaders=dataloaders)
+        else:
+            self.trainer.validate(self.model, val_dataloaders=dataloaders)
+            summarize_report(
+                current_iteration=self.trainer.train_loop.batch_idx + 1,
+                num_updates=self.trainer.global_step + 1,
+                max_updates=self._max_updates,
+                meter=self.model.val_meter,
+                should_print=True,
+                tb_writer=self.tb_writer,
+            )
+
+        logger.info(f"Finished run in {self.total_timer.get_time_since_start()}")
+
+    def _populate_dataloaders(self):
+        dataloaders = []
+        if "val" in self.run_type:
+            dataloaders.append(self.val_loader)
+        if any(rt in self.run_type for rt in ["inference", "test", "predict"]):
+            dataloaders.append(self.test_loader)
+        return dataloaders
 
     def _calculate_max_updates(self) -> None:
         self._max_updates = self.trainer_config.max_steps

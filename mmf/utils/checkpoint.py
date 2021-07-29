@@ -369,13 +369,12 @@ class Checkpoint:
 
             self.trainer.num_updates = self.trainer.current_iteration
 
-        lr_scheduler = self.trainer.lr_scheduler_callback
-
         if (
-            lr_scheduler is not None
-            and getattr(lr_scheduler, "_scheduler", None) is not None
+            getattr(self.trainer, "lr_scheduler_callback", None) is not None
+            and self.trainer.lr_scheduler_callback is not None
+            and getattr(self.trainer.lr_scheduler_callback, "_scheduler", None) is not None
         ):
-            lr_scheduler = lr_scheduler._scheduler
+            lr_scheduler = self.trainer.lr_scheduler_callback._scheduler
 
             if "lr_scheduler" in ckpt:
                 lr_scheduler.load_state_dict(ckpt["lr_scheduler"])
@@ -587,7 +586,6 @@ class Checkpoint:
         synchronize()
         logger.info("Restoring checkpoint")
         best_path = os.path.join(self.ckpt_foldername, self.ckpt_prefix + "best.ckpt")
-
         if PathManager.exists(best_path):
             self._load(best_path, force=True)
 
