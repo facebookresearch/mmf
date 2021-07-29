@@ -36,6 +36,7 @@ class LightningLoopCallback(Callback):
     def on_train_start(self, trainer: Trainer, pl_module: LightningModule):
         registry.register("current_epoch", trainer.current_epoch)
         self.train_combined_report = None
+        pl_module.train_meter.reset()
 
     def on_train_batch_end(
         self,
