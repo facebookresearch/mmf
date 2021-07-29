@@ -56,7 +56,7 @@ class TestLightningTrainerGradClipping(unittest.TestCase, Callback):
             trainer.callbacks.append(self)
             trainer.trainer.fit(trainer.model, trainer.data_module.train_loader)
 
-    def on_after_backward(self, trainer, pl_module):
+    def on_before_optimizer_step(self, trainer, pl_module, optimizer, optimizer_idx):
         for param in pl_module.parameters():
             self.assertLessEqual(param.grad, self.grad_clip_magnitude)
 
