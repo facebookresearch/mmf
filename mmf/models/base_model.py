@@ -52,6 +52,8 @@ from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.common.sample import SampleList, to_device
 from mmf.modules.losses import LossConfig, Losses
+from mmf.utils.checkpoint import load_pretrained_model
+from mmf.utils.checkpoint_updater import CheckpointUpdater
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.checkpoint_updater import CheckpointUpdater
