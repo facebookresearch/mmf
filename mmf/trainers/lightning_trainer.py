@@ -305,7 +305,7 @@ class LightningTrainer(BaseTrainer):
             metrics = self.model.metrics
             del self.model
             attributes = self.get_model_config(False, model_config)
-            self.model = build_model(attributes, best_path, is_pl_enabled=True)
+            self.model = build_lightning_model(attributes, best_path)
             self.model.build_meters(self.run_type)
             self.model.metrics = metrics
 
