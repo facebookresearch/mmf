@@ -11,6 +11,7 @@ from tests.trainers.test_utils import (
     get_config_with_defaults,
     get_lightning_trainer,
     get_mmf_trainer,
+    mock_env_with_temp,
     run_lightning_trainer,
 )
 
@@ -32,49 +33,53 @@ class TestLightningInference(unittest.TestCase):
     @patch("mmf.trainers.lightning_trainer.summarize_report")
     def test_final_val_inference_parity_with_mmf(self, lightning, mmf):
         # lightning
-        config = self._get_config(
-            max_steps=8,
-            batch_size=2,
-            val_check_interval=3,
-            log_every_n_steps=9,  # turn it off
-            limit_val_batches=1.0,
-        )
-        model_config = {"simple_lightning_model": {"in_dim": 1}}
-        config.model_config = model_config
-        config.model = "simple_lightning_model"
-        trainer = get_lightning_trainer(
-            config=config, load_model_from_config=True, prepare_trainer=False
-        )
-        callback = LightningLoopCallback(trainer)
-        trainer.callbacks.append(callback)
-        run_lightning_trainer(trainer)
-        trainer.try_loading_best_model()
-        trainer.inference()
+        with mock_env_with_temp("mmf.trainers.lightning_trainer.get_mmf_env") as _:
+            config = self._get_config(
+                max_steps=8,
+                batch_size=2,
+                val_check_interval=3,
+                log_every_n_steps=9,  # turn it off
+                limit_val_batches=1.0,
+            )
+            model_config = {"simple_lightning_model": {"in_dim": 1}}
+            config.model_config = model_config
+            config.model = "simple_lightning_model"
+            trainer = get_lightning_trainer(
+                config=config, load_model_from_config=True, prepare_trainer=False
+            )
+            callback = LightningLoopCallback(trainer)
+            trainer.callbacks.append(callback)
+            run_lightning_trainer(trainer)
+            trainer.try_loading_best_model()
+            trainer.inference()
 
         # mmf
-        config = self._get_mmf_config(
-            max_updates=8, max_epochs=None, batch_size=2, evaluation_interval=3
-        )
-        model_config = {"simple_lightning_model": {"in_dim": 1}}
-        config.model_config = model_config
-        config.model = "simple_lightning_model"
-        mmf_trainer = get_mmf_trainer(config=config)
-        mmf_trainer.load_metrics()
-        logistics_callback = LogisticsCallback(mmf_trainer.config, mmf_trainer)
-        logistics_callback.snapshot_timer = Timer()
-        logistics_callback.train_timer = Timer()
-        mmf_trainer.logistics_callback = logistics_callback
-        mmf_trainer.callbacks.append(logistics_callback)
+        with mock_env_with_temp(
+            "mmf.utils.checkpoint.get_mmf_env"
+        ) as _, mock_env_with_temp("mmf.common.test_reporter.get_mmf_env") as _:
+            config = self._get_mmf_config(
+                max_updates=8, max_epochs=None, batch_size=2, evaluation_interval=3
+            )
+            model_config = {"simple_model": {"in_dim": 1}}
+            config.model_config = model_config
+            config.model = "simple_model"
+            mmf_trainer = get_mmf_trainer(config=config)
+            mmf_trainer.load_metrics()
+            logistics_callback = LogisticsCallback(mmf_trainer.config, mmf_trainer)
+            logistics_callback.snapshot_timer = Timer()
+            logistics_callback.train_timer = Timer()
+            mmf_trainer.logistics_callback = logistics_callback
+            mmf_trainer.callbacks.append(logistics_callback)
 
-        checkpoint_callback = CheckpointCallback(config, mmf_trainer)
-        mmf_trainer.on_init_start = checkpoint_callback.on_init_start
-        mmf_trainer.on_train_end = checkpoint_callback.on_train_end
-        mmf_trainer.callbacks.append(checkpoint_callback)
-        mmf_trainer.checkpoint_callback = checkpoint_callback
+            checkpoint_callback = CheckpointCallback(config, mmf_trainer)
+            mmf_trainer.on_init_start = checkpoint_callback.on_init_start
+            mmf_trainer.on_train_end = checkpoint_callback.on_train_end
+            mmf_trainer.callbacks.append(checkpoint_callback)
+            mmf_trainer.checkpoint_callback = checkpoint_callback
 
-        mmf_trainer.early_stop_callback = MagicMock(return_value=None)
-        mmf_trainer.on_validation_end = logistics_callback.on_validation_end
-        mmf_trainer.train()
+            mmf_trainer.early_stop_callback = MagicMock(return_value=None)
+            mmf_trainer.on_validation_end = logistics_callback.on_validation_end
+            mmf_trainer.train()
 
         lightning_loss = lightning.call_args_list[-1][1]["meter"].meters["loss"].avg
         mmf_loss = mmf.call_args_list[-1][1]["meter"].meters["loss"].avg

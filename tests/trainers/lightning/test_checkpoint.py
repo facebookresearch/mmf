@@ -1,8 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-import contextlib
 import os
-import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -17,18 +15,9 @@ from tests.trainers.test_utils import (
     get_config_with_defaults,
     get_lightning_trainer,
     get_mmf_trainer,
+    mock_env_with_temp,
     prepare_lightning_trainer,
 )
-
-
-@contextlib.contextmanager
-def mock_env_with_temp(path):
-    d = tempfile.TemporaryDirectory()
-    patched = patch(path, return_value=d.name)
-    patched.start()
-    yield d.name
-    d.cleanup()
-    patched.stop()
 
 
 unimodal_text_model_config = {

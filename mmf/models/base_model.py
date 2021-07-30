@@ -55,10 +55,6 @@ from mmf.modules.losses import LossConfig, Losses
 from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.checkpoint_updater import CheckpointUpdater
 from mmf.utils.download import download_pretrained_model
-from mmf.utils.checkpoint import load_pretrained_model
-from mmf.utils.checkpoint_updater import CheckpointUpdater
-
-
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_current_device
 from mmf.utils.logger import log_class_usage
@@ -257,7 +253,7 @@ class BaseModel(pl.LightningModule):
         report = Report(batch, output).detach()
         self.val_meter.update_from_report(report, should_update_loss=False)
         report.metrics = self.metrics(report, report)
-        self.log_dict(report.metrics)
+        self.log_dict({"val/total_loss": output["loss"].item(), **report.metrics})
         return output
 
     def test_step(self, batch: SampleList, batch_idx: int, *args, **kwargs):

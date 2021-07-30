@@ -1,6 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import contextlib
 import os
+import tempfile
+from unittest.mock import patch
 
 import torch
 from mmf.utils.build import build_optimizer
@@ -9,6 +12,16 @@ from omegaconf import OmegaConf
 from tests.test_utils import SimpleLightningModel, SimpleModel
 from tests.trainers.lightning.lightning_trainer_mock import LightningTrainerMock
 from tests.trainers.test_trainer_mocks import TrainerTrainingLoopMock
+
+
+@contextlib.contextmanager
+def mock_env_with_temp(path):
+    d = tempfile.TemporaryDirectory()
+    patched = patch(path, return_value=d.name)
+    patched.start()
+    yield d.name
+    d.cleanup()
+    patched.stop()
 
 
 def get_trainer_config():
