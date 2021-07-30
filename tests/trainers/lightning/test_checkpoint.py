@@ -87,7 +87,11 @@ class TestLightningCheckpoint(unittest.TestCase):
                     },
                     "model": "simple_model",
                     "evaluation": {"metrics": ["accuracy"]},
-                    "checkpoint": {"max_to_keep": 1, **ckpt_config},
+                    "checkpoint": {
+                        "max_to_keep": 1,
+                        "save_git_details": False,
+                        **ckpt_config,
+                    },
                     "run_type": "train_val",
                 }
             )
@@ -113,7 +117,11 @@ class TestLightningCheckpoint(unittest.TestCase):
                     },
                     "model": "simple_lightning_model",
                     "evaluation": {"metrics": ["accuracy"]},
-                    "checkpoint": {"max_to_keep": 1, **ckpt_config},
+                    "checkpoint": {
+                        "max_to_keep": 1,
+                        "save_git_details": False,
+                        **ckpt_config,
+                    },
                     "run_type": "train_val",
                 }
             )

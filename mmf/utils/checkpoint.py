@@ -10,6 +10,7 @@ from typing import Any, Dict
 
 import torch
 from mmf.common.registry import registry
+from mmf.utils.checkpoint_updater import update_pretrained_state_mapping
 from mmf.utils.configuration import get_mmf_env, load_yaml
 from mmf.utils.distributed import is_master, is_xla, synchronize
 from mmf.utils.download import download_pretrained_model
@@ -370,19 +371,21 @@ class Checkpoint:
 
         lr_scheduler = self.trainer.lr_scheduler_callback
 
-        if lr_scheduler is not None:
+        if (
+            lr_scheduler is not None
+            and getattr(lr_scheduler, "_scheduler", None) is not None
+        ):
             lr_scheduler = lr_scheduler._scheduler
 
-            if lr_scheduler is not None:
-                if "lr_scheduler" in ckpt:
-                    lr_scheduler.load_state_dict(ckpt["lr_scheduler"])
-                else:
-                    warnings.warn(
-                        "'lr_scheduler' key is not present in the "
-                        "checkpoint asked to be loaded. Setting lr_scheduler's "
-                        "last_epoch to current_iteration."
-                    )
-                    lr_scheduler.last_epoch = self.trainer.current_iteration
+            if "lr_scheduler" in ckpt:
+                lr_scheduler.load_state_dict(ckpt["lr_scheduler"])
+            else:
+                warnings.warn(
+                    "'lr_scheduler' key is not present in the "
+                    "checkpoint asked to be loaded. Setting lr_scheduler's "
+                    "last_epoch to current_iteration."
+                )
+                lr_scheduler.last_epoch = self.trainer.current_iteration
 
         registry.register("current_iteration", self.trainer.current_iteration)
         registry.register("num_updates", self.trainer.num_updates)
@@ -399,43 +402,12 @@ class Checkpoint:
     def _load_pretrained(self, ckpt):
         model = self.trainer.model
         own_state = model.state_dict()
-        mapping = self.trainer.config.checkpoint.pretrained_state_mapping
-        for key, value in mapping.items():
-            key += "."
-            value += "."
-            for attr in ckpt:
-                if hasattr(model, "format_state_key"):
-                    formatted_attr = model.format_state_key(attr)
-                else:
-                    formatted_attr = attr
-
-                for own_attr in own_state:
-                    if (
-                        key in own_attr
-                        and value in formatted_attr
-                        and own_attr.replace(key, "")
-                        == formatted_attr.replace(value, "")
-                    ):
-                        if own_state[own_attr].shape != ckpt[
-                            attr
-                        ].shape and self.config.checkpoint.get(
-                            "bypass_shape_mismatch", False
-                        ):
-                            logger.warning(
-                                "bypass_shape_mismatch in config.checkpoint"
-                                + " is set to be True"
-                            )
-                            logger.warning(
-                                f"""
-                                Modules {own_attr} and {attr} don't have the same shape:
-                                own_attr has shape {own_state[own_attr].shape} while
-                                attr has shape {ckpt[attr].shape} - so skipping copy.
-                                """
-                            )
-                            pass
-                        else:
-                            logger.info("Copying " + own_attr + " from " + attr)
-                            own_state[own_attr].copy_(ckpt[attr])
+        ckpt_update_dict = update_pretrained_state_mapping(
+            checkpoint=ckpt, model=model, config=self.trainer.config
+        )
+        for own_attr, attr in ckpt_update_dict.items():
+            logger.info("Copying " + own_attr + " from " + attr)
+            own_state[own_attr].copy_(ckpt[attr])
         logger.info("Pretrained model loaded")
 
     def upgrade_state_dict(self, state_dict):
@@ -573,11 +545,12 @@ class Checkpoint:
 
         lr_scheduler = self.trainer.lr_scheduler_callback
 
-        if lr_scheduler is not None:
+        if (
+            lr_scheduler is not None
+            and getattr(lr_scheduler, "_scheduler", None) is not None
+        ):
             lr_scheduler = lr_scheduler._scheduler
-
-            if lr_scheduler is not None:
-                ckpt["lr_scheduler"] = lr_scheduler.state_dict()
+            ckpt["lr_scheduler"] = lr_scheduler.state_dict()
 
         if self.git_repo:
             git_metadata_dict = self._get_vcs_fields()

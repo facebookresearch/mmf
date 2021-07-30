@@ -34,6 +34,64 @@ def formatted_state_key(model: Any, attr: str):
     return formatted_attr
 
 
+def is_shape_mismatch(
+    shape1: Tuple[str, torch.Size],
+    shape2: Tuple[str, torch.Size],
+    config: Dict[str, Any],
+) -> None:
+    if shape1[1] != shape2[1] and config.checkpoint.get("bypass_shape_mismatch", False):
+        logger.warning("bypass_shape_mismatch in config.checkpoint is set to be True")
+        logger.warning(
+            f"""
+            Modules {shape1[0]} and {shape2[0]} don't have the same shape:
+            own_attr has shape {shape1[1]} while
+            attr has shape {shape2[1]} - so skipping copy.
+            """
+        )
+    return shape1[1] != shape2[1]
+
+
+def update_pretrained_state_mapping(
+    checkpoint: Dict[str, Any], model: Any, config: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+        This function removes all checkpoint keys that do not exist in
+        the `pretrained_state_mapping`
+        """
+    mapping = config.checkpoint.pretrained_state_mapping
+    own_state = model.state_dict()
+    tmp_checkpoint = dict(checkpoint)
+
+    ckpt_update_dict = dict()
+    for key, value in mapping.items():
+        key += "."
+        value += "."
+        for attr in tmp_checkpoint:
+            formatted_attr = formatted_state_key(model, attr)
+            for own_attr in own_state:
+                if (
+                    key in own_attr
+                    and value in formatted_attr
+                    and own_attr.replace(key, "") == formatted_attr.replace(value, "")
+                ):
+                    if is_shape_mismatch(
+                        (own_attr, own_state[own_attr].shape),
+                        (attr, checkpoint[attr].shape),
+                        config,
+                    ):
+                        continue
+
+                    ckpt_update_dict[own_attr] = attr
+    return ckpt_update_dict
+
+
+def remove_keys_inplace(ckpt: Dict[str, Any], keys_to_remove):
+    tmp_keys = dict(ckpt)
+    for key in tmp_keys:
+        if key in keys_to_remove:
+            ckpt.pop(key)
+
+
 class CheckpointUpdater:
     def __init__(self):
         pass
@@ -90,62 +148,23 @@ class CheckpointUpdater:
         This function removes all checkpoint keys that do not exist in
         the `pretrained_state_mapping`
         """
-        mapping = config.checkpoint.pretrained_state_mapping
-        own_state = model.state_dict()
-        tmp_checkpoint = dict(checkpoint)
-
+        ckpt_update_dict = update_pretrained_state_mapping(
+            checkpoint=checkpoint, model=model, config=config
+        )
         accepted_keys = set()
-        for key, value in mapping.items():
-            key += "."
-            value += "."
-            for attr in tmp_checkpoint:
-                formatted_attr = formatted_state_key(model, attr)
-                for own_attr in own_state:
-                    if (
-                        key in own_attr
-                        and value in formatted_attr
-                        and own_attr.replace(key, "")
-                        == formatted_attr.replace(value, "")
-                    ):
-                        if self._is_shape_mismatch(
-                            (own_attr, own_state[own_attr].shape),
-                            (attr, checkpoint[attr].shape),
-                            config,
-                        ):
-                            continue
-
-                        logger.info("Copying " + own_attr + " from " + attr)
-                        assert own_attr == attr, (
-                            "Since `_update_model_format_state_keys` was run ",
-                            "before, this has to be held true",
-                        )
-                        accepted_keys.add(attr)
+        for own_attr, attr in ckpt_update_dict.items():
+            assert own_attr == attr, (
+                "Since `_update_model_format_state_keys` was run ",
+                "before, this has to be held true",
+            )
+            logger.info("Copying " + own_attr + " from " + attr)
+            accepted_keys.add(attr)
 
         # keep only the checkpoint keys that exist in the `pretrained_state_mapping`
+        tmp_checkpoint = dict(checkpoint)
         for key in tmp_checkpoint:
             if key not in accepted_keys:
                 checkpoint.pop(key)
-
-    def _is_shape_mismatch(
-        self,
-        shape1: Tuple[str, torch.Size],
-        shape2: Tuple[str, torch.Size],
-        config: Dict[str, Any],
-    ) -> None:
-        if shape1[1] != shape2[1] and config.checkpoint.get(
-            "bypass_shape_mismatch", False
-        ):
-            logger.warning(
-                "bypass_shape_mismatch in config.checkpoint" + " is set to be True"
-            )
-            logger.warning(
-                f"""
-                Modules {shape1[0]} and {shape2[0]} don't have the same shape:
-                own_attr has shape {shape1[1]} while
-                attr has shape {shape2[1]} - so skipping copy.
-                """
-            )
-        return shape1[1] != shape2[1]
 
     def _update_model_format_state_keys(
         self, checkpoint: Dict[str, Any], model: Any
