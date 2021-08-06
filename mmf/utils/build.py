@@ -21,6 +21,7 @@ from mmf.utils.configuration import Configuration, get_global_config
 from mmf.utils.distributed import is_dist_initialized, is_master, is_xla, synchronize
 from mmf.utils.general import get_optimizer_parameters
 from omegaconf import DictConfig, OmegaConf
+from packaging import version
 
 
 try:
@@ -248,6 +249,15 @@ def build_dataloader_and_sampler(
         "shuffle": datamodule_config.get("shuffle", None),
         "batch_size": datamodule_config.get("batch_size", None),
     }
+    if version.parse(torch.__version__) >= version.parse("1.8"):
+        # only use persistent workers in PyTorch 1.8 or higher
+        # (PyTorch 1.7 also has this option but doesn't support it correctly due to
+        # https://github.com/pytorch/pytorch/issues/48370)
+        other_args["persistent_workers"] = (
+            datamodule_config.get(
+                "persistent_workers", training_config.get("persistent_workers", True)
+            ),
+        )
 
     # IterableDataset returns batches directly, so no need to add Sampler
     # or batch size as user is expected to control those. This is a fine
