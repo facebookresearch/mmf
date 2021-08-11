@@ -258,6 +258,12 @@ def build_dataloader_and_sampler(
                 "persistent_workers", training_config.get("persistent_workers", True)
             ),
         )
+        if other_args["persistent_workers"] and other_args["num_workers"] == 0:
+            logger.warning(
+                "persistent_workers cannot be used together with num_workers == 0; "
+                "setting persistent_workers to False"
+            )
+            other_args["persistent_workers"] = False
 
     # IterableDataset returns batches directly, so no need to add Sampler
     # or batch size as user is expected to control those. This is a fine
