@@ -61,6 +61,9 @@ training:
     dataset_size_proportional_sampling: true
     # Whether to pin memory in dataloader
     pin_memory: false
+    # Whether to use persistent workers in dataloader
+    # (only effective for PyTorch 1.8 or higher which supports persistent_workers)
+    persistent_workers: true
 
     # After `checkpoint_interval` number of updates, MMF will make a snapshot
     # which will involve creating a checkpoint for current training scenarios
@@ -169,7 +172,7 @@ trainer:
         max_epochs: null
         gradient_clip_val: 0.0
         num_sanity_val_steps: 0
-        checkpoint_callback: True
+        checkpoint_callback: true
         accumulate_grad_batches: 1
         val_check_interval: 1000
         log_every_n_steps: 100
