@@ -223,6 +223,9 @@ class Checkpoint:
         self.saved_iterations = []
 
     def save_config(self):
+        if not is_master():
+            return
+
         cfg_file = os.path.join(self.ckpt_foldername, "config.yaml")
         with PathManager.open(cfg_file, "w") as f:
             f.write(OmegaConf.to_yaml(self.config, resolve=True))
