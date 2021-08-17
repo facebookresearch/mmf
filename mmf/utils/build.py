@@ -73,10 +73,10 @@ def build_trainer(config: DictConfig) -> Any:
 
 def build_lightning_model(
     config: Union[DictConfig, "mmf.models.base_model.BaseModel.Config"],
-    checkpoint_path: str=None,
+    checkpoint_path: str = None,
 ) -> "mmf.models.base_model.BaseModel":
     from mmf.models.base_model import BaseModel
-    
+
     if not checkpoint_path:
         model = build_model(config)
         model.is_pl_enabled = True
@@ -91,22 +91,27 @@ def build_lightning_model(
 
     if model_class is None:
         raise RuntimeError(f"No model registered for name: {model_name}")
-      
+
     """ model.build is called inside on_load_checkpoint as suggested here:
     https://github.com/PyTorchLightning/pytorch-lightning/issues/5410
     """
 
     if is_master():
         model_class.load_requirements(model_class, config=config)
-        model = model_class.load_from_checkpoint(checkpoint_path, config=config, strict=False)
+        model = model_class.load_from_checkpoint(
+            checkpoint_path, config=config, strict=False
+        )
         synchronize()
     else:
         synchronize()
-        model = model_class.load_from_checkpoint(checkpoint_path, config=config, strict=False)
-    
+        model = model_class.load_from_checkpoint(
+            checkpoint_path, config=config, strict=False
+        )
+
     model.init_losses()
     model.is_pl_enabled = True
     return model
+
 
 def build_model(
     config: Union[DictConfig, "mmf.models.base_model.BaseModel.Config"],
@@ -125,7 +130,7 @@ def build_model(
     model = model_class(config)
 
     if hasattr(model, "build"):
-        """ Model build involves checkpoint loading
+        """Model build involves checkpoint loading
         If the checkpoint is not available the underlying
         methods try to download it.
         Let master build the model (download the checkpoints) while
