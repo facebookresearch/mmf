@@ -279,7 +279,7 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
@@ -346,6 +346,9 @@
     <span class="nd">@is_pl_enabled</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">is_pl_enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_pl_enabled</span> <span class="o">=</span> <span class="n">x</span>
+
+<div class="viewcode-block" id="BaseModel.on_load_checkpoint"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.on_load_checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">on_load_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="BaseModel.build"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Function to be implemented by the child class, in case they need to</span>
@@ -450,8 +453,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forward_lightning_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">)</span>
         <span class="n">report</span> <span class="o">=</span> <span class="n">Report</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">val_meter</span><span class="o">.</span><span class="n">update_from_report</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_meter</span><span class="o">.</span><span class="n">update_from_report</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">should_update_loss</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">report</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_dict</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">output</span></div>
 
 <div class="viewcode-block" id="BaseModel.test_step"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.test_step">[docs]</a>    <span class="k">def</span> <span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">SampleList</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -479,7 +483,8 @@
     <span class="k">def</span> <span class="nf">_detach_forward_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
         <span class="n">keys_to_detach</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s2">&quot;loss&quot;</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys_to_detach</span><span class="p">:</span>
-            <span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="s2">&quot;detach&quot;</span><span class="p">):</span>
+                <span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
 
 <div class="viewcode-block" id="BaseModel.configure_optimizers"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.configure_optimizers">[docs]</a>    <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Member function of PL modules. Used only when PL enabled.&quot;&quot;&quot;</span>
@@ -533,8 +538,8 @@
 
         <span class="k">return</span> <span class="n">model_output</span>
 
-    <span class="k">def</span> <span class="nf">load_requirements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">requirements</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;zoo_requirements&quot;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="k">def</span> <span class="nf">load_requirements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">requirements</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;zoo_requirements&quot;</span><span class="p">,</span> <span class="p">[])</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">requirements</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">requirements</span> <span class="o">=</span> <span class="p">[</span><span class="n">requirements</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">requirements</span><span class="p">:</span>
