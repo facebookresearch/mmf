@@ -31,7 +31,7 @@ class TestLightningTrainerLoss(unittest.TestCase, Callback):
         mmf_trainer.training_loop()
 
         # compute lightning_trainer training losses
-        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=None):
+        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=""):
             config = get_config_with_defaults({"trainer": {"params": {"max_steps": 5}}})
             trainer = get_lightning_trainer(config=config)
             trainer.callbacks.append(self)

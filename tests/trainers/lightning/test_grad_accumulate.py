@@ -9,7 +9,7 @@ from tests.trainers.test_utils import get_config_with_defaults, get_lightning_tr
 
 class TestLightningTrainerGradAccumulate(unittest.TestCase):
     def test_grad_accumulate(self):
-        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=None):
+        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=""):
             config = self._get_config(
                 accumulate_grad_batches=2, max_steps=2, batch_size=3
             )

@@ -45,7 +45,7 @@ import logging
 import warnings
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import pytorch_lightning as pl
 from mmf.common.registry import registry
@@ -112,6 +112,9 @@ class BaseModel(pl.LightningModule):
     @is_pl_enabled.setter
     def is_pl_enabled(self, x: bool):
         self._is_pl_enabled = x
+
+    def on_load_checkpoint(self, checkpoint: Dict[str, Any]) -> None:
+        self.build()
 
     def build(self):
         """Function to be implemented by the child class, in case they need to
@@ -218,6 +221,7 @@ class BaseModel(pl.LightningModule):
         report = Report(batch, output).detach()
         self.val_meter.update_from_report(report)
         report.metrics = self.metrics(report, report)
+        self.log_dict(report.metrics)
         return output
 
     def test_step(self, batch: SampleList, batch_idx: int, *args, **kwargs):
@@ -299,8 +303,8 @@ class BaseModel(pl.LightningModule):
 
         return model_output
 
-    def load_requirements(self, *args, **kwargs):
-        requirements = self.config.get("zoo_requirements", [])
+    def load_requirements(self, config, *args, **kwargs):
+        requirements = config.get("zoo_requirements", [])
         if isinstance(requirements, str):
             requirements = [requirements]
         for item in requirements:

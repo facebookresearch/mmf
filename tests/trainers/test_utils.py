@@ -80,9 +80,9 @@ def add_optimizer(trainer, config):
 
 
 def get_mmf_trainer(
-    config=None, model_size=1, num_data_size=100, load_model_from_config=False
+    config=None, model_size=1, num_data_size=100, load_model_from_config=False, seed=2
 ):
-    torch.random.manual_seed(2)
+    torch.random.manual_seed(seed)
     trainer = TrainerTrainingLoopMock(num_data_size, config=config)
 
     if not load_model_from_config:
@@ -101,9 +101,10 @@ def get_lightning_trainer(
     model_size=1,
     prepare_trainer=True,
     load_model_from_config=False,
+    seed=2,
     **kwargs
 ):
-    torch.random.manual_seed(2)
+    torch.random.manual_seed(seed)
     trainer = LightningTrainerMock(config=config, **kwargs)
 
     if not load_model_from_config:

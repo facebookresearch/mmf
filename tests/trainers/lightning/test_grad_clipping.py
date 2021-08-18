@@ -48,7 +48,7 @@ class TestLightningTrainerGradClipping(unittest.TestCase, Callback):
         mmf_trainer._finish_update = _finish_update
         mmf_trainer.training_loop()
 
-        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=None):
+        with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=""):
             config = self._get_config(
                 max_steps=5, max_epochs=None, gradient_clip_val=self.grad_clip_magnitude
             )

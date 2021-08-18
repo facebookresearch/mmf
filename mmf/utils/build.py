@@ -71,8 +71,46 @@ def build_trainer(config: DictConfig) -> Any:
     return trainer_obj
 
 
+def build_lightning_model(
+    config: Union[DictConfig, "mmf.models.base_model.BaseModel.Config"],
+    checkpoint_path: str = None,
+) -> "mmf.models.base_model.BaseModel":
+    from mmf.models.base_model import BaseModel
+
+    if not checkpoint_path:
+        model = build_model(config)
+        model.is_pl_enabled = True
+        return model
+
+    # If it is not an OmegaConf object, create the object
+    if not isinstance(config, DictConfig) and isinstance(config, BaseModel.Config):
+        config = OmegaConf.structured(config)
+
+    model_name = config.model
+    model_class = registry.get_model_class(model_name)
+
+    if model_class is None:
+        raise RuntimeError(f"No model registered for name: {model_name}")
+
+    """ model.build is called inside on_load_checkpoint as suggested here:
+    https://github.com/PyTorchLightning/pytorch-lightning/issues/5410
+    """
+
+    if is_master():
+        model_class.load_requirements(model_class, config=config)
+        model = model_class.load_from_checkpoint(checkpoint_path, config=config)
+        synchronize()
+    else:
+        synchronize()
+        model = model_class.load_from_checkpoint(checkpoint_path, config=config)
+
+    model.init_losses()
+    model.is_pl_enabled = True
+    return model
+
+
 def build_model(
-    config: Union[DictConfig, "mmf.models.base_model.BaseModel.Config"]
+    config: Union[DictConfig, "mmf.models.base_model.BaseModel.Config"],
 ) -> "mmf.models.base_model.BaseModel":
     from mmf.models.base_model import BaseModel
 
@@ -99,14 +137,13 @@ def build_model(
         using already downloaded checkpoint.
         """
         if is_master():
-            model.load_requirements()
+            model_class.load_requirements(model_class, config=config)
             model.build()
             synchronize()
         else:
             synchronize()
             model.build()
         model.init_losses()
-
     return model
 
 
