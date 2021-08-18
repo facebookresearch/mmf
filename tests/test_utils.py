@@ -217,17 +217,6 @@ class SimpleLightningModel(SimpleModel):
 
         self.train_meter, self.val_meter, self.test_meter = build_meters(run_type)
 
-    def training_step(self, batch, batch_idx, *args, **kwargs):
-        return self._forward_step(batch, batch_idx, *args, **kwargs)
-
-    def validation_step(self, batch, batch_idx, *args, **kwargs):
-        return self._forward_step(batch, batch_idx, *args, **kwargs)
-
-    def _forward_step(self, batch, batch_idx, *args, **kwargs):
-        output = self(batch)
-        output["loss"] = output["losses"]["loss"]
-        return output
-
     def configure_optimizers(self):
         config = registry.get("config")
         if config is None:
