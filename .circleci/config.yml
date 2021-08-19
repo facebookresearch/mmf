@@ -10,10 +10,10 @@ gpu: &gpu
   machine:
     image: ubuntu-1604:201903-01
   resource_class: gpu.medium
+  
 
-# -------------------------------------------------------------------------------------
-# Re-usable commands
-# -------------------------------------------------------------------------------------
+# -->  Re-usable commands
+
 cache_key: &cache_key cache-key-{{ .Environment.CIRCLE_JOB }}-{{ checksum ".circleci/config.yml" }}-{{ checksum "setup.py"}}-{{ checksum "requirements.txt"}}
 
 install_dep: &install_dep
@@ -32,7 +32,6 @@ install_dep: &install_dep
         python setup.py install
         python -c 'import torch; print("Torch version:", torch.__version__)'
         python -m torch.utils.collect_env
-
 
 install_repo: &install_repo
   - run:
@@ -81,9 +80,8 @@ create_conda_env: &create_conda_env
         pip install --upgrade pip
 
 
-# -------------------------------------------------------------------------------------
-# Jobs to run
-# -------------------------------------------------------------------------------------
+# --> Jobs to run
+
 
 jobs:
   # GPU config initially taken from detectron2
