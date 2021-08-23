@@ -26,11 +26,22 @@ language datasets (The Hateful Memes, TextVQA, TextCaps and VQA challenges). MMF
 
 ## Installation
 
-Follow installation instructions in the [documentation](https://mmf.sh/docs/getting_started/installation).
+Follow installation instructions in the [documentation](https://mmf.sh/docs#creating-a-conda-environment-optional).
 
 ## Documentation
 
 Learn more about MMF [here](https://mmf.sh/docs).
+
+### Segmentation Fault ###
+It generally occurs when the program is trying to read or write an illegal memory location, for example, trying to read or write to a non-existent array element, not properly defined pointers etc.
+It can be handled using the following utilities:-
+* #### htop ####
+  It allows us to monitor running processes on the system, their memory usage, CPU usage etc
+  Here, looking into VIRT (Virtual memory usage), RES (Physical RAM usage in kb), SHR (Shared memory), PID (Process ID)   will give insights into the problem.
+* #### vmstat ####
+  Segfault's common reason is to access the part of the virtual address space that is not mapped to a physical one.
+  vmstat (virtual memory statistics) might be helpful here, through this system activity can be observed in real-time.
+
 
 ## Citation
 
