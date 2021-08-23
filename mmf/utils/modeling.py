@@ -15,7 +15,7 @@ ACT2FN = {
 }
 
 
-def get_bert_configured_parameters(module, lr=None):
+def get_bert_configured_parameters(module, lr=None, weight_decay=0.01):
     # module param can either be a nn.Module or in some cases can also be
     # a list of named parameters for a nn.Module
     if isinstance(module, nn.Module):
@@ -29,7 +29,7 @@ def get_bert_configured_parameters(module, lr=None):
             "params": [
                 p for n, p in param_optimizer if not any(nd in n for nd in no_decay)
             ],
-            "weight_decay": 0.01,
+            "weight_decay": weight_decay,
         },
         {
             "params": [
