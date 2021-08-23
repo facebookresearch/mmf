@@ -393,6 +393,54 @@ class SampleList(OrderedDict):
 
         return sample_dict
 
+    def __eq__(self,other):
+        """Compare a sampleList with the current SampleList.
+
+        Returns:
+            Bool : True or False
+        """
+
+        if not isinstance(other,SampleList):
+            return False
+
+        fields = self.fields()
+        fields_other = other.fields()
+        tensor_field = self._get_tensor_field()
+        tensor_field_other = other._get_tensor_field()
+
+        # Check for tensor fields comparison
+        if (
+            len(fields) != 0
+            and len(fields_other) != 0
+            and tensor_field is not None
+            and other[tensor_field_other].size(0) != self[tensor_field].size(0)
+        ):
+            return False
+
+        a = set(fields)  
+        b = set(fields_other)  
+
+        # Comparison between keys and early fail
+        if a==b:
+            # Compare all the features
+            for field in fields:
+                # Compare Tensors
+                if (
+                    isinstance(self[field],torch.Tensor)
+                    and isinstance(other.get_field(field),torch.Tensor)
+                ):
+                    if not torch.equal(self[field],other.get_field(field)):
+                        return False
+
+                # Compare Lists
+                else:
+                    if not self[field]==other.get_field(field):
+                        return False
+
+            return True
+
+        return False
+
 
 def convert_batch_to_sample_list(
     batch: Union[SampleList, Dict[str, Any]]

@@ -75,6 +75,22 @@ class TestSampleList(unittest.TestCase):
 
         self.assertTrue(all_keys)
         self.assertTrue(isinstance(sample_dict, dict))
+    
+    def test_equal(self):
+        sample_list1 = test_utils.build_random_sample_list()
+        sample_list2 = sample_list1.copy()
+        sample_list3 = sample_list1.copy()
+        sample_list3.add_field('new',list([1,2,3,4]))
+        sample_list4 = sample_list1.copy()
+        tensor_size = sample_list1.get_batch_size()
+        sample_list4.add_field('new',torch.zeros(tensor_size))
+        sample_list5 = SampleList()
+
+        self.assertTrue(sample_list1 == sample_list2)
+        self.assertFalse(sample_list1 == sample_list3)
+        self.assertFalse(sample_list1 == sample_list4)
+        self.assertFalse(sample_list2 == sample_list4)
+        self.assertFalse(sample_list1 == sample_list5)
 
 
 class TestFunctions(unittest.TestCase):
