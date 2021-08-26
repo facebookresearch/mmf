@@ -217,12 +217,21 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
                 ckpt_config=ckpt_config, model_config=model_config, max_updates=0
             )
             mmf_trainer.on_init_start()
-            model_state_dict = mmf_trainer.model.state_dict()
-            model_state_dict.pop("base.encoder.embeddings.position_ids")
-            self._assert_same_dict(ckpt, model_state_dict)
+            mmf_ckpt = mmf_trainer.model.state_dict()
+            mmf_ckpt.pop("base.encoder.embeddings.position_ids")
+            self._assert_same_dict(ckpt, mmf_ckpt)
 
-        # TODO @sash: lightning side would require the mmf_checkpoint
-        # to lightning adaptation. Next PR.
+        with mock_env_with_temp("mmf.trainers.lightning_trainer.get_mmf_env") as _:
+            # lightning load from zoo, in this case, the zoo ckpt is in mmf format
+            lightning = self._get_lightning_trainer(
+                ckpt_config=ckpt_config, model_config=model_config, max_steps=0, seed=4
+            )
+            lightning.trainer.fit(
+                lightning.model, train_dataloader=lightning.train_loader
+            )
+            lightning_ckpt = lightning.model.state_dict()
+            lightning_ckpt.pop("base.encoder.embeddings.position_ids")
+            self._assert_same_dict(ckpt, lightning_ckpt)
 
     def test_load_trainer_resume_zoo_parity_with_mmf(self):
         # TODO @sash: lightning side would require the mmf_checkpoint
@@ -230,6 +239,7 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
         pass
 
     def test_load_trainer_resume_file_parity_with_mmf(self):
+        # directly setting lightning's trainer param: resume_from_checkpoint
         filename = "current.ckpt"
         mmf_ckpt_current = self._get_mmf_ckpt(filename, ckpt_config={"resume": True})
 
@@ -285,7 +295,7 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
                 call_args_list = [l[0][4] for l in mock_method.call_args_list]
                 self.assertListEqual(list(range(6)), call_args_list)
 
-    def test_save_current_parity_with_mmf(self):
+    def test_trainer_save_current_parity_with_mmf(self):
         with mock_env_with_temp(
             "mmf.utils.checkpoint.get_mmf_env"
         ) as tmp_d, mock_env_with_temp("mmf.common.test_reporter.get_mmf_env") as _:
@@ -342,7 +352,10 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
             # checkpoint
             lightning_ckpt_current = torch.load(os.path.join(tmp_d, filename))
             lightning = self._get_lightning_trainer(
-                ckpt_config=ckpt_config, max_steps=6, seed=4
+                ckpt_config=ckpt_config,
+                model_config={"simple_lightning_model": {"in_dim": 1}},
+                max_steps=6,
+                seed=4,
             )
             lightning.trainer.fit(
                 lightning.model, train_dataloader=lightning.train_loader

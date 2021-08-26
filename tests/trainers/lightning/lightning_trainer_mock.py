@@ -7,6 +7,8 @@ from tests.trainers.test_trainer_mocks import MultiDataModuleNumbersTestObject
 
 class LightningTrainerMock(LightningTrainer):
     def __init__(self, config, num_data_size=100, **kwargs):
+        super().__init__(config)
+
         self.config = config
         self.callbacks = []
 

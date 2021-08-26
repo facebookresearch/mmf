@@ -52,8 +52,13 @@ from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.common.sample import SampleList, to_device
 from mmf.modules.losses import LossConfig, Losses
-from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.download import download_pretrained_model
+from mmf.utils.checkpoint import (
+    is_model_only_checkpoint,
+    is_pl_checkpoint,
+    load_pretrained_model,
+    pl_checkpoint_from_mmf_checkpoint,
+)
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_current_device
 from mmf.utils.logger import log_class_usage
@@ -115,6 +120,21 @@ class BaseModel(pl.LightningModule):
 
     def on_load_checkpoint(self, checkpoint: Dict[str, Any]) -> None:
         self.build()
+
+        if is_model_only_checkpoint(checkpoint):
+            self._run_format_state_key(checkpoint)
+            if not is_pl_checkpoint(checkpoint):
+                pl_checkpoint_from_mmf_checkpoint(checkpoint)
+
+    def _run_format_state_key(self, state_dict: Dict[str, Any]) -> None:
+        """Function to rewrtie the checkpoint in place
+        """
+        tmp_state_dict = dict(state_dict)
+        for attr in tmp_state_dict:
+            new_attr = self.format_state_key(attr)
+            if attr != new_attr:
+                value = state_dict.pop(attr)
+                state_dict[new_attr] = value
 
     def build(self):
         """Function to be implemented by the child class, in case they need to

@@ -2,7 +2,7 @@
 import logging
 import math
 import os
-from typing import List, Optional
+from typing import Any, Dict, List
 
 import omegaconf
 from mmf.common.registry import registry
@@ -11,7 +11,12 @@ from mmf.modules.metrics import Metrics
 from mmf.trainers.base_trainer import BaseTrainer
 from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
 from mmf.utils.build import build_lightning_model
-from mmf.utils.checkpoint import get_ckpt_path_from_folder
+from mmf.utils.checkpoint import (
+    get_ckpt_from_path,
+    get_ckpt_path_from_folder,
+    get_config_from_folder_or_ckpt,
+    is_model_only_checkpoint,
+)
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
@@ -32,6 +37,7 @@ class LightningTrainer(BaseTrainer):
         self.trainer = None
         self.trainer_config = self.config.trainer.params
         self.data_module = None
+        self.resume_from_checkpoint = None
 
     def load(self):
         super().load()
@@ -41,7 +47,6 @@ class LightningTrainer(BaseTrainer):
 
     def _load_trainer(self):
         lightning_params = self.trainer_config
-        checkpoint_path = self.get_checkpoint_path()
         with omegaconf.open_dict(lightning_params):
             lightning_params.pop("max_steps")
             lightning_params.pop("max_epochs")
@@ -51,7 +56,7 @@ class LightningTrainer(BaseTrainer):
         self.trainer = Trainer(
             callbacks=self.callbacks,
             max_steps=self._max_updates,
-            resume_from_checkpoint=checkpoint_path,
+            resume_from_checkpoint=self.resume_from_checkpoint,
             default_root_dir=get_mmf_env(key="log_dir"),
             **lightning_params_dict,
         )
@@ -86,17 +91,43 @@ class LightningTrainer(BaseTrainer):
     def load_model(self) -> None:
         logger.info("Loading models")
 
+        checkpoint_data = self.get_checkpoint_data()
+        checkpoint_path = checkpoint_data["checkpoint_path"]
+        ckpt = checkpoint_data["ckpt"]
+        is_zoo = checkpoint_data["is_zoo"]
+        config = checkpoint_data["config"]
+
+        model_checkpoint_path = None
+        if checkpoint_path is not None:
+            assert ckpt, "checkpoint should have been loaded when path is available"
+            if is_model_only_checkpoint(ckpt):
+                # it is model only checkpoint, then we load it here
+                model_checkpoint_path = checkpoint_path
+            else:
+                # it is a trainer checkpoint, we pass it as a trainer param
+                self.resume_from_checkpoint = checkpoint_path
+
+        attributes = self.get_model_config(is_zoo, config)
+        self.model = build_lightning_model(attributes, model_checkpoint_path)
+        self.model.build_meters(self.run_type)
+
+    def get_model_config(
+        self, is_zoo: bool = False, config: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
+        ckpt_config = self.config.checkpoint
+        if is_zoo and ckpt_config.zoo_config_override and config:
+            self.config.model_config = config.model_config
+
         attributes = self.config.model_config[self.config.model]
         if isinstance(attributes, str):
             attributes = self.config.model_config[attributes]
         with omegaconf.open_dict(attributes):
             attributes.model = self.config.model
 
-        self.model = build_lightning_model(attributes)
-        self.model.build_meters(self.run_type)
+        return attributes
 
-    def get_checkpoint_path(self) -> Optional[str]:
-        """ This function gets checkpoint file path from
+    def get_checkpoint_data(self) -> Dict[str, Any]:
+        """ This function gets checkpoint file path on disk from
         config.trainer.params.resume_from_checkpoint. However if it not specified,
         it gets checkpoint path from config.checkpoint. If config.resume is specified
         it gets the latest checkpoint from the config's save directory (alternatively it
@@ -105,17 +136,38 @@ class LightningTrainer(BaseTrainer):
         config.resume_zoo (in that order).
 
         Returns:
-            Optional[str]: a local file path specifying the checkpoint
-            location. If None, no checkpoint will be passed into trainer.
+            Dict[str, Any]: a dict containing the following keys,
+            `checkpoint_path` (str) local file path for the checkpoint;
+            `ckpt` (Dict[str, Any])
+            `is_zoo` (Bool) whether or not the checkpoint is specified through a
+                zoo identifier
+            `config` (Dict[str, Any]]) the config that is stored together with this
+                checkpoint
         """
         # get ckpt file path from config.trainer.params.resume_from_checkpoint
         path = self.config.trainer.params.get("resume_from_checkpoint", None)
         if path is not None:
-            if self.is_zoo_path(path):
-                path = download_pretrained_model(path)
-                path = get_ckpt_path_from_folder(path)
-            return path
+            is_zoo = self.is_zoo_path(path)
+            ckpt_filepath = path
+            if is_zoo:
+                folder = download_pretrained_model(path)
+                ckpt_filepath = get_ckpt_path_from_folder(folder)
+                ckpt = get_ckpt_from_path(ckpt_filepath)
+                config = get_config_from_folder_or_ckpt(folder, ckpt)
+            else:
+                ckpt = get_ckpt_from_path(ckpt_filepath)
+                config = None
 
+            return {
+                "ckpt": ckpt,
+                "checkpoint_path": ckpt_filepath,
+                "is_zoo": is_zoo,
+                "config": config,
+            }
+
+        is_zoo = False
+        config = None
+        ckpt = None
         # get ckpt file path from config.checkpoint
         ckpt_config = self.config.checkpoint
         suffix = "best.ckpt" if ckpt_config.resume_best else "current.ckpt"
@@ -128,15 +180,26 @@ class LightningTrainer(BaseTrainer):
             if ckpt_config.resume_file and PathManager.exists(ckpt_config.resume_file):
                 ckpt_filepath = ckpt_config.resume_file
             elif ckpt_config.resume_zoo is not None:
-                ckpt_filepath = download_pretrained_model(ckpt_config.resume_zoo)
-                ckpt_filepath = get_ckpt_path_from_folder(ckpt_filepath)
+                is_zoo = True
+                folder = download_pretrained_model(ckpt_config.resume_zoo)
+                ckpt_filepath = get_ckpt_path_from_folder(folder)
+                ckpt = get_ckpt_from_path(ckpt_filepath)
+                config = get_config_from_folder_or_ckpt(folder, ckpt)
             else:
                 raise RuntimeError(f"{ckpt_config.resume_file} doesn't exist")
 
         if ckpt_config.resume and PathManager.exists(path):
             ckpt_filepath = path
 
-        return ckpt_filepath
+        if ckpt_filepath is not None:
+            ckpt = get_ckpt_from_path(ckpt_filepath)
+
+        return {
+            "ckpt": ckpt,
+            "checkpoint_path": ckpt_filepath,
+            "is_zoo": is_zoo,
+            "config": config,
+        }
 
     def is_zoo_path(self, path) -> bool:
         from mmf.utils.configuration import get_mmf_env, load_yaml
@@ -162,7 +225,9 @@ class LightningTrainer(BaseTrainer):
 
     def monitor_criteria(self):
         monitor_criteria = self.training_config.early_stop.get("criteria", None)
-        assert monitor_criteria, "criteria is required when early stop is specified."
+        assert (
+            monitor_criteria
+        ), "monitor criteria is required when early stop is specified."
         if "val" not in monitor_criteria:
             monitor_criteria = f"val/{monitor_criteria}"
         mode = (
@@ -180,7 +245,7 @@ class LightningTrainer(BaseTrainer):
             self.callbacks += self.configure_earlystop_callback()
 
     def configure_earlystop_callback(self) -> List[ModelCheckpoint]:
-        pass
+        return []
 
     def configure_checkpoint_callbacks(self) -> List[ModelCheckpoint]:
         train_callback = ModelCheckpoint(
