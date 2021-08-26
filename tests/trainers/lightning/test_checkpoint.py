@@ -57,32 +57,51 @@ class TestLightningCheckpoint(unittest.TestCase):
                         "max_updates": max_steps,
                         "max_epochs": None,
                         "early_stop": {
+                            "enabled": True,
                             "criteria": "numbers/accuracy",
                             "minimize": False,
                         },
-                        "checkpoint_interval": 6,
-                        "evaluation_interval": 6,
+                        "checkpoint_interval": 2,
+                        "evaluation_interval": 2,
                     },
                     "model": "simple_model",
                     "evaluation": {"metrics": ["accuracy"]},
-                    "checkpoint": {"max_to_keep": 1, **ckpt_config},
-                    "run_type": "train",
+                    "checkpoint": {
+                        "max_to_keep": 1,
+                        "save_git_details": False,
+                        **ckpt_config,
+                    },
+                    "run_type": "train_val",
                 }
             )
         else:
             return get_config_with_defaults(
                 {
-                    "training": {"checkpoint_interval": 6, "evaluation_interval": 6},
+                    "training": {
+                        "checkpoint_interval": 2,
+                        "early_stop": {
+                            "enabled": True,
+                            "criteria": "numbers/accuracy",
+                            "minimize": False,
+                        },
+                    },
                     "trainer": {
                         "params": {
                             "max_steps": max_steps,
                             "max_epochs": None,
                             "checkpoint_callback": True,
                             "resume_from_checkpoint": resume_from_checkpoint,
+                            "val_check_interval": 2,
                         }
                     },
                     "model": "simple_lightning_model",
-                    "checkpoint": {"max_to_keep": 1, **ckpt_config},
+                    "evaluation": {"metrics": ["accuracy"]},
+                    "checkpoint": {
+                        "max_to_keep": 1,
+                        "save_git_details": False,
+                        **ckpt_config,
+                    },
+                    "run_type": "train_val",
                 }
             )
 
@@ -146,6 +165,7 @@ class TestLightningCheckpoint(unittest.TestCase):
         callback = LightningLoopCallback(lightning)
         lightning.callbacks.append(callback)
         lightning.callbacks += lightning.configure_checkpoint_callbacks()
+        lightning.callbacks += lightning.configure_monitor_callbacks()
         prepare_lightning_trainer(lightning)
         return lightning
 
@@ -158,8 +178,9 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
     def test_load_resume_best_parity_with_mmf(self):
         # with checkpoint.resume = True and checkpoint.resume_best = True
         # by default it loads best.ckpt. It should load the "best.ckpt"
-        # next PR
-        pass
+        self._load_checkpoint(
+            "best.ckpt", ckpt_config={"resume": True, "resume_best": True}
+        )
 
     def test_load_resume_ignore_resume_zoo(self):
         # specifying both checkpoint.resume = True and resume_zoo
@@ -310,20 +331,22 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
         # Make sure it loads x.ckpt when lightning
         with mock_env_with_temp("mmf.trainers.lightning_trainer.get_mmf_env") as tmp_d:
             # generate checkpoint
-            lightning = self._get_lightning_trainer(max_steps=6)
-            lightning.trainer.fit(
-                lightning.model, train_dataloader=lightning.train_loader
+            lightning_gen = self._get_lightning_trainer(max_steps=6)
+            lightning_gen.trainer.fit(
+                lightning_gen.model,
+                train_dataloader=lightning_gen.train_loader,
+                val_dataloaders=lightning_gen.val_loader,
             )
 
             # load the generated checkpoint, calling fit is necessary to load the
             # checkpoint
+            lightning_ckpt_current = torch.load(os.path.join(tmp_d, filename))
             lightning = self._get_lightning_trainer(
                 ckpt_config=ckpt_config, max_steps=6, seed=4
             )
             lightning.trainer.fit(
                 lightning.model, train_dataloader=lightning.train_loader
             )
-            lightning_ckpt_current = torch.load(os.path.join(tmp_d, filename))
             self._assert_same_dict(
                 lightning_ckpt_current["state_dict"], lightning.model.state_dict()
             )
