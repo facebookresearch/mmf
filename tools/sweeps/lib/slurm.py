@@ -159,6 +159,11 @@ def launch_train(args, config):
         train_cmd.extend(["env.tensorboard_logdir", tensorboard_logdir])
     for hp in config.values():
         train_cmd.extend(map(str, hp.get_cli_args()))
+    if args.extra_args is not None and len(args.extra_args) > 0:
+        # convert commands with equal sign to the other format without the equal sign
+        # e.g. ["training.batch_size=128"] to ["training.batch_size", "128"]
+        extra_args = [c for arg in args.extra_args for c in arg.split("=")]
+        train_cmd.extend(extra_args)
     if args.dry_run:
         print(train_cmd)
         train_cmd_str = " ".join(train_cmd)
