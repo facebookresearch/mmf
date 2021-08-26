@@ -75,7 +75,7 @@ class BaseAlign(BaseModel):
     @dataclass
     class Config(BaseModel.Config):
         # final layer mlp hidden size
-        final_hiddle_size: int = 512
+        final_hidden_size: int = 512
         # whether to normalize the embedding
         norm_img_embeddings: bool = False
         norm_text_embeddings: bool = True
