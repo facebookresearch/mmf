@@ -53,6 +53,12 @@ def get_args(argv=None):
         "--config", type=str, default=None, help="configuration for model"
     )
     parser.add_argument(
+        "--extra_mmf_args",
+        type=str,
+        nargs="+",
+        help="extra arguments to be passed into MMF command (e.g. config arguments)",
+    )
+    parser.add_argument(
         "--baseline_model", help="path to baseline model from which to resume training"
     )
     parser.add_argument(
