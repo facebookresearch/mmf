@@ -55,7 +55,7 @@ def get_args(argv=None):
     parser.add_argument(
         "--extra_args",
         type=str,
-        nargs="+",
+        nargs="*",
         help="extra arguments to be passed into MMF command (e.g. config arguments)",
     )
     parser.add_argument(
