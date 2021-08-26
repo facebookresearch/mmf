@@ -53,7 +53,7 @@ def get_args(argv=None):
         "--config", type=str, default=None, help="configuration for model"
     )
     parser.add_argument(
-        "--extra_mmf_args",
+        "--extra_args",
         type=str,
         nargs="+",
         help="extra arguments to be passed into MMF command (e.g. config arguments)",
