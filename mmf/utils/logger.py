@@ -217,6 +217,7 @@ def summarize_report(
     should_print=True,
     extra=None,
     tb_writer=None,
+    wandb_logger=None,
 ):
     if extra is None:
         extra = {}
@@ -226,6 +227,10 @@ def summarize_report(
     if tb_writer:
         scalar_dict = meter.get_scalar_dict()
         tb_writer.add_scalars(scalar_dict, current_iteration)
+
+    if wandb_logger:
+        metrics = meter.get_scalar_dict()
+        wandb_logger.log_metrics({**metrics, "trainer/global_step": current_iteration})
 
     if not should_print:
         return

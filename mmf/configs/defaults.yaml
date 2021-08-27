@@ -41,6 +41,9 @@ training:
     # Tensorboard control, by default tensorboard is disabled
     tensorboard: false
 
+    # Weights and Biases control, by default Weights and Biases (wandb) is disabled
+    wandb: false
+
     # Size of the batch globally. If distributed or data_parallel
     # is used, this will be divided equally among GPUs
     batch_size: 512
@@ -284,6 +287,21 @@ env:
     # Only used when training.tensorboard is enabled.
     # Use MMF_TENSORBOARD_LOGDIR or env.tensorboard_logdir to override
     tensorboard_logdir: ${env:MMF_TENSORBOARD_LOGDIR,}
+
+    # Log directory for Weights and Biases, default points to same as logs
+    # Only used when training.wandb is enabled.
+    # Use MMF_WANDB_LOGDIR or env.wandb_logdir to override
+    wandb_projectname: ${env:MMF_WANDB_PROJECTNAME,}
+
+    # Log directory for Weights and Biases, default points to same as logs
+    # Only used when training.wandb is enabled.
+    # Use MMF_WANDB_LOGDIR or env.wandb_logdir to override
+    wandb_runname: ${env:MMF_WANDB_RUNNAME,}
+
+    # Log directory for Weights and Biases, default points to same as logs
+    # Only used when training.wandb is enabled.
+    # Use MMF_WANDB_LOGDIR or env.wandb_logdir to override
+    wandb_logdir: ${env:MMF_WANDB_LOGDIR,}
 
     # User directory where user can keep their own models independent of MMF
     # This allows users to create projects which only include MMF as dependency
