@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 import warnings
+from typing import Any, Dict
 
 import torch
 from mmf.common.registry import registry
@@ -40,17 +41,72 @@ def _hack_imports():
     )
 
 
-def get_ckpt_path_from_folder(download_path) -> str:
+def get_ckpt_path_from_folder(folder) -> str:
     ckpts = []
     allowed_ckpt_types = [f"*{ext}" for ext in ALLOWED_CHECKPOINT_EXTS]
     for ckpt_type in allowed_ckpt_types:
-        ckpts.extend(glob.glob(os.path.join(download_path, ckpt_type)))
+        ckpts.extend(glob.glob(os.path.join(folder, ckpt_type)))
 
     assert (
         len(ckpts) == 1
     ), "None or multiple checkpoints files. MMF doesn't know what to do."
 
     return ckpts[0]
+
+
+def get_ckpt_from_path(path) -> Dict[str, Any]:
+    with PathManager.open(path, "rb") as f:
+        ckpt = torch.load(f, map_location=lambda storage, loc: storage)
+        return ckpt
+
+
+def get_config_from_folder_or_ckpt(
+    folder: str, ckpt: Dict[str, Any] = None
+) -> Dict[str, Any]:
+    r"""gets config from folder or checkpoint
+
+        Args:
+            folder (str): folder from which config will be searched first
+            ckpt (Optional[Dict[str, Any]]): optional checkpoint from which config
+                might be found.
+
+        Returns:
+            config (Dict[str, Any]): config object
+        """
+    configs = glob.glob(os.path.join(folder, "*.yaml"))
+
+    if len(configs) > 0:
+        assert len(configs) <= 1, (
+            "Multiple yaml files with the pretrained model. "
+            + "MMF doesn't know what to do."
+        )
+        config_file = configs[0]
+        config = load_yaml(config_file)
+    else:
+        assert "config" in ckpt, (
+            "No configs provided with pretrained model"
+            " while checkpoint also doesn't have configuration."
+        )
+        config = ckpt["config"]
+
+    return config
+
+
+def is_pl_checkpoint(checkpoint):
+    return "pytorch-lightning_version" in checkpoint
+
+
+def is_model_only_checkpoint(checkpoint):
+    if is_pl_checkpoint(checkpoint):
+        return "optimizer_states" not in checkpoint or "lr_schedulers" not in checkpoint
+    else:
+        return "optimizer" not in checkpoint or "lr_scheduler" not in checkpoint
+
+
+def pl_checkpoint_from_mmf_checkpoint(checkpoint: Dict[str, Any]) -> None:
+    tmp_checkpoint = dict(checkpoint)
+    checkpoint.clear()
+    checkpoint["state_dict"] = tmp_checkpoint
 
 
 def _load_pretrained_checkpoint(checkpoint_path, *args, **kwargs):
@@ -89,34 +145,13 @@ def _load_pretrained_model(model_name_or_path, *args, **kwargs):
         download_path = download_pretrained_model(model_name_or_path, *args, **kwargs)
         model_name = model_name_or_path
 
-    configs = glob.glob(os.path.join(download_path, "*.yaml"))
-    assert len(configs) <= 1, (
-        "Multiple yaml files with the pretrained model. "
-        + "MMF doesn't know what to do."
-    )
-
-    ckpts = []
-    allowed_ckpt_types = [f"*{ext}" for ext in ALLOWED_CHECKPOINT_EXTS]
-    for ckpt_type in allowed_ckpt_types:
-        ckpts.extend(glob.glob(os.path.join(download_path, ckpt_type)))
-
-    assert (
-        len(ckpts) == 1
-    ), "None or multiple checkpoints files. MMF doesn't know what to do."
-
     _hack_imports()
 
-    with PathManager.open(ckpts[0], "rb") as f:
-        ckpt = torch.load(f, map_location=lambda storage, loc: storage)
+    ckpt_path = get_ckpt_path_from_folder(download_path)
+    ckpt = get_ckpt_from_path(ckpt_path)
+
     # If configs are not present, will ckpt provide the config?
-    if len(configs) == 0:
-        assert "config" in ckpt, (
-            "No configs provided with pretrained model"
-            " while checkpoint also doesn't have configuration."
-        )
-        config = ckpt["config"]
-    else:
-        config = load_yaml(configs[0])
+    config = get_config_from_folder_or_ckpt(download_path, ckpt)
     model_config = config.get("model_config", config)
     ckpt = ckpt.get("model", ckpt)
 

@@ -73,7 +73,7 @@ class LightningLoopCallback(Callback):
         self,
         trainer: Trainer,
         pl_module: LightningModule,
-        outputs: List,
+        outputs: Dict,
         batch: SampleList,
         batch_idx: int,
         dataloader_idx: int,

@@ -183,8 +183,8 @@ trainer:
         # `config.trainer.params.resume_from_checkpoint` always takes precedence over
         # `config.checkpoint` such as `config.checkpoint.resume_file`,
         # `config.checkpoint.resume_zoo` and `config.checkpoint.resume`.
-        # `resume_from_checkpoint` can take both file path and zoo identifier.
-        # Additional checkpoint customization is specified under config.checkpoint.
+        # `resume_from_checkpoint` is used to specify trainer resume parameters,
+        # including resuming model state.
         # If `resume_from_checkpoint` is not specified, then we default to using
         # "current.ckpt" if `config.checkpoint.resume is True`, or "best.ckpt" if
         # `config.checkpoint.resume_best is True`. Else, we read it from
