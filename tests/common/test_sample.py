@@ -80,18 +80,37 @@ class TestSampleList(unittest.TestCase):
         sample_list1 = test_utils.build_random_sample_list()
         sample_list2 = sample_list1.copy()
         sample_list3 = sample_list1.copy()
-        sample_list3.add_field('new',list([1,2,3,4]))
+        
+        sample_list3.add_field('new',list([1,2,3,4,5]))
         sample_list4 = sample_list1.copy()
         tensor_size = sample_list1.get_batch_size()
         sample_list4.add_field('new',torch.zeros(tensor_size))
+        
         sample_list5 = SampleList()
+        sample_list6 = SampleList()
+        sample_list6.add_field('new',SampleList())
+
+        sample_list7 = SampleList()
+        dict_example = {'a':1, 'b':2}
+        sample_list7.add_field('new',dict_example)
+
+        sample_list8 = sample_list1.copy()
+        sample_list8.add_field('new',torch.ones(tensor_size))
+
 
         self.assertTrue(sample_list1 == sample_list2)
-        self.assertFalse(sample_list1 == sample_list3)
-        self.assertFalse(sample_list1 == sample_list4)
-        self.assertFalse(sample_list2 == sample_list4)
-        self.assertFalse(sample_list1 == sample_list5)
-
+        self.assertTrue(sample_list1 != sample_list3)
+        self.assertTrue(sample_list1 != sample_list4)
+        self.assertTrue(sample_list2 != sample_list4)
+        self.assertTrue(sample_list1 != sample_list5)
+        self.assertTrue(sample_list1 != sample_list6)
+        self.assertTrue(sample_list1 != sample_list7)
+        self.assertTrue(sample_list5 != sample_list6)
+        self.assertTrue(sample_list6 != sample_list7)
+        self.assertTrue(sample_list6 != sample_list5)
+        self.assertTrue(sample_list6 != sample_list1)
+        self.assertTrue(sample_list1 != sample_list8)
+        self.assertFalse(sample_list4 == sample_list8)
 
 class TestFunctions(unittest.TestCase):
     def test_to_device(self):

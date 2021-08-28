@@ -413,28 +413,35 @@ class SampleList(OrderedDict):
             len(fields) != 0
             and len(fields_other) != 0
             and tensor_field is not None
+            and tensor_field_other is not None
             and other[tensor_field_other].size(0) != self[tensor_field].size(0)
         ):
             return False
 
-        a = set(fields)  
-        b = set(fields_other)  
+        fields_set = set(fields)  
+        fields_set_other = set(fields_other)  
 
         # Comparison between keys and early fail
-        if a==b:
+        if fields_set==fields_set_other:
             # Compare all the features
             for field in fields:
                 # Compare Tensors
                 if (
-                    isinstance(self[field],torch.Tensor)
+                    isinstance(self.get_field(field),torch.Tensor)
                     and isinstance(other.get_field(field),torch.Tensor)
                 ):
-                    if not torch.equal(self[field],other.get_field(field)):
+                    if not torch.equal(self.get_field(field),other.get_field(field)):
                         return False
+
+                # Check for same data type
+                elif (
+                      type(self.get_field(field)) is not type(other.get_field(field))
+                ):
+                    return False
 
                 # Compare Lists
                 else:
-                    if not self[field]==other.get_field(field):
+                    if not self.get_field(field)==other.get_field(field):
                         return False
 
             return True
