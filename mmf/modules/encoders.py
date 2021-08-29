@@ -443,11 +443,11 @@ class VisionTransformerEncoder(Encoder):
     class Config(Encoder.Config):
         name: str = "vision_transformer"
         pretrained: bool = False
-        pretrained_path: str = None
+        out_dim: int = 768
 
     def __init__(self, config: Config, *args, **kwargs):
         super().__init__()
-        self.config = config.params
+        self.config = config.get("params", {})
         pretrained = config.get("pretrained", False)
         pretrained_path = config.get("pretrained_path", None)
         self.vit = GeneralizedVisionTransformer(self.config)
