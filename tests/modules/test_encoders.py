@@ -81,3 +81,12 @@ class TestEncoders(unittest.TestCase):
         x = torch.rand((1, 1, 4778, 224))
         output = encoder(x)
         self.assertEqual(output.size(-1), config.out_dim)
+
+    def test_vision_transformer(self):
+        config = OmegaConf.structured(
+            encoders.VisionTransformerEncoder.Config()
+        )
+        encoder = encoders.VisionTransformerEncoder(config)
+        x = torch.rand((1, 3, 224, 224))
+        output = encoder(x)
+        self.assertEqual(output.size(-1), config.embed_dim)
