@@ -37,10 +37,7 @@ class AlbefVitEncoder(Encoder):
             self.vit.load_state_dict(state_dict)
             self.vit.eval()
 
-    def forward(
-        self,
-        x: torch.Tensor,
-    ):
+    def forward(self, x: torch.Tensor):
         x = self.vit(x)
         return x
 
@@ -215,7 +212,7 @@ class DropBlock2d(nn.Module):
         batchwise=False,
         fast=True,
     ):
-        super(DropBlock2d, self).__init__()
+        super().__init__()
         self.drop_prob = drop_prob
         self.gamma_scale = gamma_scale
         self.block_size = block_size
@@ -273,7 +270,7 @@ class DropPath(nn.Module):
     """Drop paths (Stochastic Depth) per sample  (when applied in main path of residual blocks)."""
 
     def __init__(self, drop_prob=None):
-        super(DropPath, self).__init__()
+        super().__init__()
         self.drop_prob = drop_prob
 
     def forward(self, x):

@@ -1,6 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import gc
-import os
 import unittest
 
 import torch
