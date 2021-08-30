@@ -25,7 +25,7 @@ def is_model_only_checkpoint(checkpoint):
         return "model" not in checkpoint
 
 
-def formatted_state_key(model: Any, attr: str):
+def _format_state_key(model: torch.nn.Module, attr: str):
     if hasattr(model, "format_state_key"):
         formatted_attr = model.format_state_key(attr)
     else:
@@ -34,7 +34,7 @@ def formatted_state_key(model: Any, attr: str):
     return formatted_attr
 
 
-def is_shape_mismatch(
+def _is_shape_mismatch(
     shape1: Tuple[str, torch.Size],
     shape2: Tuple[str, torch.Size],
     config: Dict[str, Any],
@@ -51,13 +51,14 @@ def is_shape_mismatch(
     return shape1[1] != shape2[1]
 
 
-def update_pretrained_state_mapping(
+def get_pretrained_state_mapping_checkpoint(
     checkpoint: Dict[str, Any], model: Any, config: Dict[str, Any]
 ) -> Dict[str, Any]:
     """
-        This function removes all checkpoint keys that do not exist in
-        the `pretrained_state_mapping`
-        """
+    This function gets the checkpoint keys that exists in pretrained state mapping
+    that also exist in model's state, and returns a dictionary with the value from the
+    `checkpoint` dict.
+    """
     mapping = config.checkpoint.pretrained_state_mapping
     own_state = model.state_dict()
     tmp_checkpoint = dict(checkpoint)
@@ -67,14 +68,14 @@ def update_pretrained_state_mapping(
         key += "."
         value += "."
         for attr in tmp_checkpoint:
-            formatted_attr = formatted_state_key(model, attr)
+            formatted_attr = _format_state_key(model, attr)
             for own_attr in own_state:
                 if (
                     key in own_attr
                     and value in formatted_attr
                     and own_attr.replace(key, "") == formatted_attr.replace(value, "")
                 ):
-                    if is_shape_mismatch(
+                    if _is_shape_mismatch(
                         (own_attr, own_state[own_attr].shape),
                         (attr, checkpoint[attr].shape),
                         config,
@@ -217,7 +218,7 @@ class CheckpointUpdater:
         This function removes all checkpoint keys that do not exist in
         the `pretrained_state_mapping`
         """
-        ckpt_update_dict = update_pretrained_state_mapping(
+        ckpt_update_dict = get_pretrained_state_mapping_checkpoint(
             checkpoint=checkpoint, model=model, config=config
         )
         accepted_keys = set()
@@ -245,7 +246,7 @@ class CheckpointUpdater:
         """
         tmp_state_dict = dict(checkpoint)
         for attr in tmp_state_dict:
-            new_attr = formatted_state_key(model, attr)
+            new_attr = _format_state_key(model, attr)
             if attr != new_attr:
                 logger.info(f"checkpoint: rewriting {attr} into {new_attr}")
                 value = checkpoint.pop(attr)
