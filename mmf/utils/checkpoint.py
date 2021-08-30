@@ -10,7 +10,7 @@ from typing import Any, Dict
 
 import torch
 from mmf.common.registry import registry
-from mmf.utils.checkpoint_updater import update_pretrained_state_mapping
+from mmf.utils.checkpoint_updater import get_pretrained_state_mapping_checkpoint
 from mmf.utils.configuration import get_mmf_env, load_yaml
 from mmf.utils.distributed import is_master, is_xla, synchronize
 from mmf.utils.download import download_pretrained_model
@@ -405,7 +405,7 @@ class Checkpoint:
     def _load_pretrained(self, ckpt):
         model = self.trainer.model
         own_state = model.state_dict()
-        ckpt_update_dict = update_pretrained_state_mapping(
+        ckpt_update_dict = get_pretrained_state_mapping_checkpoint(
             checkpoint=ckpt, model=model, config=self.trainer.config
         )
         for own_attr, attr in ckpt_update_dict.items():
