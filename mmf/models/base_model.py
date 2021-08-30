@@ -55,10 +55,6 @@ from mmf.modules.losses import LossConfig, Losses
 from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.checkpoint_updater import CheckpointUpdater
 from mmf.utils.download import download_pretrained_model
-from mmf.utils.checkpoint import load_pretrained_model
-from mmf.utils.checkpoint_updater import CheckpointUpdater
-
-
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_current_device
 from mmf.utils.logger import log_class_usage
