@@ -42,5 +42,5 @@ __all__ = [
     "UnimodalBase",
     "UnimodalModal",
     "UnimodalText",
-    "AlbefVitEncoder"
+    "AlbefVitEncoder",
 ]

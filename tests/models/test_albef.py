@@ -9,6 +9,7 @@ from omegaconf import OmegaConf
 from tests.test_utils import setup_proxy
 from torch import nn
 
+
 class TestAlbefEncoders(unittest.TestCase):
     def setUp(self):
         setup_proxy()
@@ -18,9 +19,7 @@ class TestAlbefEncoders(unittest.TestCase):
         self.assertTrue(isinstance(encoder, nn.Module))
 
     def test_vision_transformer(self):
-        config = OmegaConf.structured(
-            AlbefVitEncoder.Config()
-        )
+        config = OmegaConf.structured(AlbefVitEncoder.Config())
         encoder = AlbefVitEncoder(config)
         x = torch.rand((1, 3, 224, 224))
         output = encoder(x)
