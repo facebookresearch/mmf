@@ -37,10 +37,7 @@ class AlbefVitEncoder(Encoder):
             self.vit.load_state_dict(state_dict)
             self.vit.eval()
 
-    def forward(
-        self,
-        x: torch.Tensor,
-    ):
+    def forward(self, x: torch.Tensor):
         x = self.vit(x)
         return x
 
