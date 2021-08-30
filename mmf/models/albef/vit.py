@@ -7,14 +7,43 @@ from typing import List
 
 import omegaconf
 import math
+from functools import partial
+from itertools import repeat
+import collections.abc
+from dataclasses import dataclass
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from functools import partial
-from itertools import repeat
-import collections.abc
+from mmf.common.registry import registry
+from mmf.modules.encoders import Encoder
 
+
+@registry.register_encoder("albef_vit_encoder")
+class AlbefVitEncoder(Encoder):
+    @dataclass
+    class Config(Encoder.Config):
+        name: str = "albef_vit_encoder"
+        pretrained: bool = False
+        out_dim: int = 768
+
+    def __init__(self, config: Config, *args, **kwargs):
+        super().__init__()
+        self.config = config.get("params", {})
+        pretrained = config.get("pretrained", False)
+        pretrained_path = config.get("pretrained_path", None)
+        self.vit = VisionTransformer(self.config)
+        if pretrained:
+            state_dict = torch.load(pretrained_path)
+            self.vit.load_state_dict(state_dict)
+            self.vit.eval()
+
+    def forward(
+        self,
+        x: torch.Tensor,
+    ):
+        x = self.vit(x)
+        return x
 
 # From PyTorch internals
 def _ntuple(n):
@@ -361,7 +390,7 @@ class Block(nn.Module):
         return x
     
 
-class GeneralizedVisionTransformer(nn.Module):
+class VisionTransformer(nn.Module):
     """ Vision Transformer
     A PyTorch impl of : `An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale`  -
         https://arxiv.org/abs/2010.11929

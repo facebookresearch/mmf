@@ -12,7 +12,6 @@ import torch
 import torchvision
 from mmf.common.registry import registry
 from mmf.models.frcnn import GeneralizedRCNN
-from mmf.models.vit import GeneralizedVisionTransformer
 from mmf.modules.embeddings import ProjectionEmbedding, TextEmbedding
 from mmf.modules.hf_layers import BertModelJit
 from mmf.modules.layers import Identity
@@ -435,32 +434,6 @@ class FRCNNImageEncoder(Encoder):
             max_detections=max_detections,
             return_tensors=return_tensors,
         )
-        return x
-
-@registry.register_encoder("vision_transformer")
-class VisionTransformerEncoder(Encoder):
-    @dataclass
-    class Config(Encoder.Config):
-        name: str = "vision_transformer"
-        pretrained: bool = False
-        out_dim: int = 768
-
-    def __init__(self, config: Config, *args, **kwargs):
-        super().__init__()
-        self.config = config.get("params", {})
-        pretrained = config.get("pretrained", False)
-        pretrained_path = config.get("pretrained_path", None)
-        self.vit = GeneralizedVisionTransformer(self.config)
-        if pretrained:
-            state_dict = torch.load(pretrained_path)
-            self.vit.load_state_dict(state_dict)
-            self.vit.eval()
-
-    def forward(
-        self,
-        x: torch.Tensor,
-    ):
-        x = self.vit(x)
         return x
 
 
