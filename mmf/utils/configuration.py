@@ -488,9 +488,9 @@ class Configuration:
         OmegaConf.clear_resolvers()
         # Device count resolver
         device_count = max(1, torch.cuda.device_count())
-        OmegaConf.register_resolver("device_count", lambda: device_count)
-        OmegaConf.register_resolver("resolve_cache_dir", resolve_cache_dir)
-        OmegaConf.register_resolver("resolve_dir", resolve_dir)
+        OmegaConf.register_new_resolver("device_count", lambda: device_count)
+        OmegaConf.register_new_resolver("resolve_cache_dir", resolve_cache_dir)
+        OmegaConf.register_new_resolver("resolve_dir", resolve_dir)
 
     def freeze(self):
         OmegaConf.set_struct(self.config, True)
