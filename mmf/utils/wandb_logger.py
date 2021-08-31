@@ -45,15 +45,13 @@ class WandbLogger:
 
         self._wandb_init.update(**init_kwargs)
 
-        self._is_master = is_master()
-
         self.setup()
 
     def setup(self):
         """
         Setup `Weights and Biases` for logging.
         """
-        if self._is_master:
+        if _is_master():
 
             if self._wandb.run is None:
                 self._wandb.init(**self._wandb_init)
@@ -70,7 +68,7 @@ class WandbLogger:
             self._wandb.finish()
 
     def _should_log_wandb(self):
-        if self._wandb is None or not self._is_master:
+        if self._wandb is None or not _is_master():
             return False
         else:
             return True
