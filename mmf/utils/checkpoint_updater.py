@@ -48,11 +48,12 @@ def _is_shape_mismatch(
             attr has shape {shape2[1]} - so skipping copy.
             """
         )
+        return False
     return shape1[1] != shape2[1]
 
 
 def get_pretrained_state_mapping_checkpoint(
-    checkpoint: Dict[str, Any], model: Any, config: Dict[str, Any]
+    checkpoint: Dict[str, Any], model: torch.nn.Module, config: Dict[str, Any]
 ) -> Dict[str, Any]:
     """
     This function gets the checkpoint keys that exists in pretrained state mapping
@@ -97,7 +98,9 @@ class CheckpointUpdater:
     def __init__(self):
         pass
 
-    def update_checkpoint(self, checkpoint: Dict[str, Any], model: Any) -> None:
+    def update_checkpoint(
+        self, checkpoint: Dict[str, Any], model: torch.nn.Module
+    ) -> None:
         r"""
         This function should only be called on lightning. It handles checkpoint
         update that is being called by LightningModule's `on_load_checkpoint`,
@@ -194,7 +197,9 @@ class CheckpointUpdater:
             epoch = checkpoint.pop("current_epoch")
             checkpoint["epoch"] = epoch
 
-    def _update_model_checkpoint(self, checkpoint: Dict[str, Any], model: Any) -> None:
+    def _update_model_checkpoint(
+        self, checkpoint: Dict[str, Any], model: torch.nn.Module
+    ) -> None:
         """
         This function assumes the checkpoint is just the model and does not include
         training params.
@@ -212,7 +217,7 @@ class CheckpointUpdater:
             )
 
     def _update_pretrained_state_mapping(
-        self, checkpoint: Dict[str, Any], model: Any, config: Dict[str, Any]
+        self, checkpoint: Dict[str, Any], model: torch.nn.Module, config: Dict[str, Any]
     ) -> None:
         """
         This function removes all checkpoint keys that do not exist in
@@ -237,10 +242,10 @@ class CheckpointUpdater:
                 checkpoint.pop(key)
 
     def _update_model_format_state_keys(
-        self, checkpoint: Dict[str, Any], model: Any
+        self, checkpoint: Dict[str, Any], model: torch.nn.Module
     ) -> None:
         """
-        Function to rewrtie the checkpoint in place to give the model a chance
+        Function to rewrite the checkpoint in place to give the model a chance
         to update state_dict keys. This assumes that checkpoint is the
         model's state_dict.
         """
