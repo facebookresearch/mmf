@@ -26,11 +26,11 @@ language datasets (The Hateful Memes, TextVQA, TextCaps and VQA challenges). MMF
 
 ## Installation
 
-Follow installation instructions in the [documentation](https://mmf.sh/docs/getting_started/installation).
+Follow installation instructions in the [documentation](https://mmf.sh/docs).
 
 ## Documentation
 
-Learn more about MMF [here](https://mmf.sh/docs).
+Learn more about MMF [here](https://mmf.sh/docs/getting_started/features).
 
 ## Citation
 
