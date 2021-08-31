@@ -42,7 +42,14 @@ training:
     tensorboard: false
 
     # Weights and Biases control, by default Weights and Biases (wandb) is disabled
-    wandb: false
+    wandb: 
+        # Whether to use Weights and Biases Logger, (Default: false)
+        enabled: false
+        # Project name to be used while logging the experiment with wandb
+        wandb_projectname: project
+        # Experiment/ run name to be used while logging the experiment 
+        # under the project with wandb
+        wandb_runname: run
 
     # Size of the batch globally. If distributed or data_parallel
     # is used, this will be divided equally among GPUs
@@ -287,16 +294,6 @@ env:
     # Only used when training.tensorboard is enabled.
     # Use MMF_TENSORBOARD_LOGDIR or env.tensorboard_logdir to override
     tensorboard_logdir: ${env:MMF_TENSORBOARD_LOGDIR,}
-
-    # Log directory for Weights and Biases, default points to same as logs
-    # Only used when training.wandb is enabled.
-    # Use MMF_WANDB_LOGDIR or env.wandb_logdir to override
-    wandb_projectname: ${env:MMF_WANDB_PROJECTNAME,}
-
-    # Log directory for Weights and Biases, default points to same as logs
-    # Only used when training.wandb is enabled.
-    # Use MMF_WANDB_LOGDIR or env.wandb_logdir to override
-    wandb_runname: ${env:MMF_WANDB_RUNNAME,}
 
     # Log directory for Weights and Biases, default points to same as logs
     # Only used when training.wandb is enabled.
