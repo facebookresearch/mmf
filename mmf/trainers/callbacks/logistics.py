@@ -51,18 +51,18 @@ class LogisticsCallback(Callback):
 
             self.tb_writer = TensorboardLogger(log_dir, self.trainer.current_iteration)
 
-        if self.training_config.wandb:
+        if self.training_config.wandb.enabled:
             log_dir = setup_output_folder(folder_only=True)
 
             env_wandb_logdir = get_mmf_env(key="wandb_logdir")
             if env_wandb_logdir:
                 log_dir = env_wandb_logdir
 
-            env_wandb_projectname = get_mmf_env(key="wandb_projectname")
-            env_wandb_runname = get_mmf_env(key="wandb_runname")
+            wandb_projectname = config.trainer.wandb.wandb_projectname
+            wandb_runname = config.trainer.wandb.wandb_runname
 
             self.wandb_logger = WandbLogger(
-                name=env_wandb_runname, save_dir=log_dir, project=env_wandb_projectname
+                name=wandb_runname, save_dir=log_dir, project=wandb_projectname
             )
 
     def on_train_start(self):
