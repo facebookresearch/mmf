@@ -167,13 +167,44 @@ class TrainerTrainingLoopMixin(ABC):
         if self.training_config.exit_on_nan_losses:
             self._check_nan_losses(report)
         loss = extract_loss(report, loss_divisor)
+        if self.training_config.try_previous_batch_on_nan_losses and not is_xla():
+            if loss.isnan().item():
+                report, loss = self._try_previous_batch(loss_divisor)
+            else:
+                self.previous_batch = batch
         self._backward(loss)
         return report
+
+    def _try_previous_batch(self, loss_divisor):
+        if not hasattr(self, "previous_batch"):
+            error_msg = (
+                "NaN loss occurred but cannot find a previous batch (usually because "
+                "this is the first batch); exiting the training"
+            )
+            logger.info(error_msg)
+            raise RuntimeError(error_msg)
+
+        logger.info(f"NaN loss occurred; retrying previous batch")
+        report = self._forward(self.previous_batch)
+        loss = extract_loss(report, loss_divisor)
+        if loss.isnan().item():
+            error_msg = (
+                "NaN loss occurred again on previous batch; exiting the training"
+            )
+            logger.info(error_msg)
+            raise RuntimeError(error_msg)
+
+        return report, loss
 
     def _check_nan_losses(self, report):
         # skip this check in XLA mode as calling .item() in forward pass
         # greatly slows down the training
         if not is_xla():
+            assert not self.training_config.try_previous_batch_on_nan_losses, (
+                "training.exit_on_nan_losses cannot be used together with "
+                "training.try_previous_batch_on_nan_losses."
+            )
+
             # check whether NaN has occurred in the losses, and exit the training
             # when NaN happens
             loss_dict = report.losses
