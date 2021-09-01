@@ -39,6 +39,7 @@ class BaseTransformerModalityConfig:
     # This is actually: Union[EncoderFactory.Config, Encoder.Config]
     # NOTE: Waiting on https://github.com/omry/omegaconf/issues/144
     encoder: Any = IdentityEncoder.Config()
+    consume_raw: bool = True
 
 
 @dataclass
