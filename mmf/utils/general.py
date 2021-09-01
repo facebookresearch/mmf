@@ -418,7 +418,7 @@ def get_current_device():
         import torch_xla.core.xla_model as xm
 
         return xm.xla_device()
-    if torch.cuda.is_available():
+    if torch.cuda.is_available() and torch.cuda.is_initialized():
         return f"cuda:{torch.cuda.current_device()}"
     else:
         return torch.device("cpu")
