@@ -1063,6 +1063,8 @@ class ViLBERTForPretraining(nn.Module):
         self.num_negative = config.num_negative
         self.loss_fct = CrossEntropyLoss(ignore_index=-1)
         
+        if itm_loss is not False:
+            itm_head = ITM({"type": "itm", "hidden_size": self.vocab_size})
 
         if self.visual_target == 0:
             self.vis_criterion = nn.KLDivLoss(reduction="none")
@@ -1232,7 +1234,6 @@ class ViLBERTForPretraining(nn.Module):
             output["masked_lm_loss"] = masked_lm_loss.unsqueeze(0)
         
         if itm_loss is not False:
-            itm_head = ITM({"type": "itm", "hidden_size": self.vocab_size})
             seq_output = torch.cat(sequence_output_t, sequence_output_v)
             multimodal_alignment_loss = itm_head(seq_output, processed_sample_list = next_sentence_label)
             if multimodal_alignment_loss is not None:
