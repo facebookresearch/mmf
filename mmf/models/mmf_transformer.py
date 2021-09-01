@@ -87,6 +87,7 @@ class MMFTransformer(BaseTransformer):
         self.modality_keys: List = []
         self.modality_type: List = []
         self.modality_segments: List = []
+        self.modality_masks: List = []
         for modality in self.config.modalities:
             self.modality_keys.append(modality.key)
             self.modality_type.append(modality.type)
@@ -94,6 +95,11 @@ class MMFTransformer(BaseTransformer):
                 self.modality_segments.append(modality.segment_id)
             else:
                 self.modality_segments.append(-1)
+
+            if "mask_key" in modality:
+                self.modality_masks.append(modality.mask_key)
+            else:
+                self.modality_masks.append(f"${modality.key}_mask")
 
     # Backward compatibility for code for old mmft checkpoints
     @classmethod
@@ -136,6 +142,9 @@ class MMFTransformer(BaseTransformer):
 
     def tie_weights(self):
         """Tie some head weights with backend embeddings"""
+        if "text" not in self.modality_type:
+            return
+
         text_embedding_idx = self.modality_type.index("text")
         if text_embedding_idx >= 0:
             for head in self.heads:
@@ -296,7 +305,7 @@ class MMFTransformer(BaseTransformer):
                 else:
                     masks[modality] = sample_list["input_mask"]
             else:
-                mask_attribute = f"{modality}_mask"
+                mask_attribute = self.modality_masks[idx]
                 if mask_attribute in sample_list:
                     masks[modality] = sample_list[mask_attribute]
                 else:

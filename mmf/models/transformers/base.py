@@ -9,7 +9,7 @@ from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.modules.encoders import IdentityEncoder
 from mmf.utils.modeling import get_bert_configured_parameters
-from omegaconf import MISSING, OmegaConf
+from omegaconf import MISSING, OmegaConf, SI
 from torch import Tensor, nn
 
 
@@ -39,6 +39,8 @@ class BaseTransformerModalityConfig:
     # This is actually: Union[EncoderFactory.Config, Encoder.Config]
     # NOTE: Waiting on https://github.com/omry/omegaconf/issues/144
     encoder: Any = IdentityEncoder.Config()
+    # separate mask key if needed, defaults to `{key}_mask`
+    mask_key: str = SI("${key}_mask")
 
 
 @dataclass
