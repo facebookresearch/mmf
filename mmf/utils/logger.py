@@ -7,7 +7,8 @@ import logging
 import os
 import sys
 import time
-from typing import Any, Dict, Union
+from functools import wraps
+from typing import Any, Callable, Dict, Optional, Union
 
 import torch
 from mmf.common.registry import registry
@@ -301,6 +302,24 @@ def log_class_usage(component_type, klass):
     torch._C._log_api_usage_once(identifier)
 
 
+def skip_if_tensorboard_inactive(fn: Callable) -> Callable:
+    """
+    Checks whether summary writer is initialized and rank is 0 (master)
+    Args:
+        fn (Callable): Function which should be called based on whether
+            tensorboard should log or not
+    """
+
+    @wraps(fn)
+    def wrapped_fn(self, *args: Any, **kwargs: Any) -> Optional[Any]:
+        if self.summary_writer is None or not self._is_master:
+            return None
+        else:
+            return fn(self, *args, **kwargs)
+
+    return wrapped_fn
+
+
 # ColorfulFormatter is adopted from Detectron2 and adapted for MMF
 class ColorfulFormatter(logging.Formatter):
     def __init__(self, *args, **kwargs):
@@ -319,49 +338,48 @@ class ColorfulFormatter(logging.Formatter):
 
 class TensorboardLogger:
     def __init__(self, log_folder="./logs", iteration=0):
-        # This would handle warning of missing tensorboard
-        from torch.utils.tensorboard import SummaryWriter
-
-        self.summary_writer = None
+        self._summary_writer = None
         self._is_master = is_master()
         self.timer = Timer()
         self.log_folder = log_folder
         self.time_format = "%Y-%m-%dT%H:%M:%S"
+        current_time = self.timer.get_time_hhmmss(None, format=self.time_format)
+        self.tensorboard_folder = os.path.join(
+            self.log_folder, f"tensorboard_{current_time}"
+        )
 
-        if self._is_master:
-            current_time = self.timer.get_time_hhmmss(None, format=self.time_format)
-            tensorboard_folder = os.path.join(
-                self.log_folder, f"tensorboard_{current_time}"
-            )
-            self.summary_writer = SummaryWriter(tensorboard_folder)
+    @property
+    def summary_writer(self):
+        # Only on rank zero
+        if not self._is_master:
+            return None
 
-    def __del__(self):
-        if getattr(self, "summary_writer", None) is not None:
-            self.summary_writer.close()
+        if self._summary_writer is None:
+            # This would handle warning of missing tensorboard
+            from torch.utils.tensorboard import SummaryWriter
 
-    def _should_log_tensorboard(self):
-        if self.summary_writer is None or not self._is_master:
-            return False
-        else:
-            return True
+            self._summary_writer = SummaryWriter(self.tensorboard_folder)
 
+        return self._summary_writer
+
+    @skip_if_tensorboard_inactive
+    def close(self):
+        """
+        Closes the tensorboard summary writer.
+        """
+        self.summary_writer.close()
+
+    @skip_if_tensorboard_inactive
     def add_scalar(self, key, value, iteration):
-        if not self._should_log_tensorboard():
-            return
-
         self.summary_writer.add_scalar(key, value, iteration)
 
+    @skip_if_tensorboard_inactive
     def add_scalars(self, scalar_dict, iteration):
-        if not self._should_log_tensorboard():
-            return
-
         for key, val in scalar_dict.items():
             self.summary_writer.add_scalar(key, val, iteration)
 
+    @skip_if_tensorboard_inactive
     def add_histogram_for_model(self, model, iteration):
-        if not self._should_log_tensorboard():
-            return
-
         for name, param in model.named_parameters():
             np_param = param.clone().cpu().data.numpy()
             self.summary_writer.add_histogram(name, np_param, iteration)
