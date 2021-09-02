@@ -167,50 +167,41 @@ class TrainerTrainingLoopMixin(ABC):
         if self.training_config.exit_on_nan_losses:
             self._check_nan_losses(report)
         loss = extract_loss(report, loss_divisor)
-        if self.training_config.try_previous_batch_on_nan_losses and not is_xla():
-            if loss.isnan().item():
-                report, loss = self._try_previous_batch(loss_divisor)
-            else:
-                self.previous_batch = batch
+        if self.training_config.get("skip_batch_on_nan_losses", False):
+            self._check_and_skip_batch_on_nan_losses(loss)
         self._backward(loss)
         return report
 
-    def _try_previous_batch(self, loss_divisor):
-        if not hasattr(self, "previous_batch"):
-            error_msg = (
-                "NaN loss occurred but cannot find a previous batch (usually because "
-                "this is the first batch); exiting the training"
-            )
-            logger.info(error_msg)
-            raise RuntimeError(error_msg)
-
-        logger.info(f"NaN loss occurred; retrying previous batch")
-        report = self._forward(self.previous_batch)
-        loss = extract_loss(report, loss_divisor)
-        if loss.isnan().item():
-            error_msg = (
-                "NaN loss occurred again on previous batch; exiting the training"
-            )
-            logger.info(error_msg)
-            raise RuntimeError(error_msg)
-
-        return report, loss
+    def _check_and_skip_batch_on_nan_losses(self, loss):
+        # skip this check in XLA mode as calling .item() in forward pass
+        # greatly slows down the training
+        if not is_xla():
+            # When update_frequency > 1, skip the optimizer update when at least one
+            # batch has NaNs
+            # (self._skip_update is cleared in _finish_update every update_frequency)
+            prev_skip_update = getattr(self, "_skip_update", False)
+            # Unlike `self._check_nan_losses` above, here we check the *reduced* loss,
+            # where `loss.isfinite()` is the same across GPUs
+            self._skip_update = prev_skip_update or not loss.isfinite().item()
 
     def _check_nan_losses(self, report):
         # skip this check in XLA mode as calling .item() in forward pass
         # greatly slows down the training
         if not is_xla():
-            assert not self.training_config.try_previous_batch_on_nan_losses, (
-                "training.exit_on_nan_losses cannot be used together with "
-                "training.try_previous_batch_on_nan_losses."
-            )
+            if self.training_config.get("skip_batch_on_nan_losses", False):
+                logger.warning(
+                    "training.exit_on_nan_losses cannot be used together with "
+                    "training.skip_batch_on_nan_losses; when encountering NaNs "
+                    "the latter (skipping the update) will be used."
+                )
+                return
 
             # check whether NaN has occurred in the losses, and exit the training
             # when NaN happens
             loss_dict = report.losses
             nan_loss_keys = []
             for key, value in loss_dict.items():
-                if torch.any(torch.isnan(value)).item():
+                if not torch.all(torch.isfinite(value)).item():
                     nan_loss_keys.append(key)
             if len(nan_loss_keys) > 0:
                 keys_str = ", ".join(nan_loss_keys)
@@ -259,8 +250,17 @@ class TrainerTrainingLoopMixin(ABC):
             # Assumes no model parallel
             xm.reduce_gradients(self.optimizer)
 
-        self.scaler.step(self.optimizer)
-        self.scaler.update()
+        skip_update = False
+        if self.training_config.get("skip_batch_on_nan_losses", False) and not is_xla():
+            skip_update = self._skip_update
+        if not skip_update:
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
+        else:
+            logger.warning(
+                f"NaN loss occurred; skipping optimizer update on this batch"
+            )
+        self._skip_update = False
         self.num_updates += 1
         self.profile("Finished update")
 

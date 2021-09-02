@@ -153,11 +153,11 @@ training:
     # Set to true to look for NaNs in the losses and exit the training when NaN happens
     exit_on_nan_losses: true
 
-    # When setting to True, if the current batch results in NaNs in the losses, try
-    # forwarding on the previous batch in this iteration. This could be useful in avoiding
+    # When setting to True, if the current batch results in NaNs in the losses, skip the
+    # optimizer (and grad scaler) update on this batch. This could be useful in avoiding
     # occastional underflow or overflow when training.fp16 is activated.
     # Mutually exclusive with training.exit_on_nan_losses
-    try_previous_batch_on_nan_losses: false
+    skip_batch_on_nan_losses: false
 
 trainer:
     # Name of the trainer class used to define the training/evalution loop

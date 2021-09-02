@@ -225,3 +225,44 @@ class TestTrainingLoop(unittest.TestCase):
         except RuntimeError:
             exception_raised = True
         self.assertTrue(exception_raised)
+
+    @patch("mmf.common.test_reporter.PathManager", return_value=MagicMock())
+    def test_skipping_batch_on_nan_losses(self, a):
+        # This test uses a SimpleNaNLossModel that produces NaN losses and gradients
+        # Case 1: `training.skip_batch_on_nan_losses=False`:
+        # learned params have NaNs
+        config = self._get_config(max_updates=2, max_epochs=None, batch_size=4)
+        config.training.exit_on_nan_losses = False
+        config.training.skip_batch_on_nan_losses = False
+        trainer = TrainerTrainingLoopMock(config=config)
+        add_model(trainer, SimpleNaNLossModel({"in_dim": 1}))
+        add_optimizer(trainer, config)
+        registry.register("config", trainer.config)
+        batch_size = get_batch_size()
+        trainer.config.training.batch_size = batch_size
+        trainer.load_datasets()
+        trainer.training_loop()
+
+        is_all_params_finite = True
+        for p in trainer.model.parameters():
+            is_all_params_finite = is_all_params_finite and p.isfinite().all().item()
+        self.assertFalse(is_all_params_finite)
+
+        # Case 2: `training.skip_batch_on_nan_losses=True`:
+        # learned params don't have NaNs
+        config = self._get_config(max_updates=2, max_epochs=None, batch_size=4)
+        config.training.exit_on_nan_losses = False
+        config.training.skip_batch_on_nan_losses = True
+        trainer = TrainerTrainingLoopMock(config=config)
+        add_model(trainer, SimpleNaNLossModel({"in_dim": 1}))
+        add_optimizer(trainer, config)
+        registry.register("config", trainer.config)
+        batch_size = get_batch_size()
+        trainer.config.training.batch_size = batch_size
+        trainer.load_datasets()
+        trainer.training_loop()
+
+        is_all_params_finite = True
+        for p in trainer.model.parameters():
+            is_all_params_finite = is_all_params_finite and p.isfinite().all().item()
+        self.assertTrue(is_all_params_finite)

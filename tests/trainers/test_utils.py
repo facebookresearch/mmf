@@ -32,6 +32,7 @@ def get_trainer_config():
                 "num_workers": 0,
                 "max_grad_l2_norm": 1,
                 "exit_on_nan_losses": True,
+                "skip_batch_on_nan_losses": False,
             },
             "optimizer": {"type": "adam_w", "params": {"lr": 5e-5, "eps": 1e-8}},
             "scheduler": {
