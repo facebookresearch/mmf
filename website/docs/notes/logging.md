@@ -16,10 +16,10 @@ training:
         # Whether to use Weights and Biases Logger, (Default: false)
         enabled: false
         # Project name to be used while logging the experiment with wandb
-        wandb_projectname: project
+        wandb_projectname: mmf_${oc.env:USER}
         # Experiment/ run name to be used while logging the experiment 
         # under the project with wandb
-        wandb_runname: run
+        wandb_runname: ${training.experiment_name}
 env:
     wandb_logdir: ${env:MMF_WANDB_LOGDIR,}
 ```
