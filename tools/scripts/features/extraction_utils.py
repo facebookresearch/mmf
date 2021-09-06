@@ -36,7 +36,7 @@ def get_image_files(
     for f in list(files):
         file_name = f.split(os.path.sep)[-1].split(".")[0]
         if file_name in exclude or file_name in output_ignore:
-            files.pop(f)
+            files.remove(f)
 
     files = list(files)
     files = sorted(files)
