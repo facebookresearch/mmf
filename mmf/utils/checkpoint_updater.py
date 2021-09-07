@@ -94,7 +94,7 @@ def remove_keys_inplace(ckpt: Dict[str, Any], keys_to_remove):
             ckpt.pop(key)
 
 
-class CheckpointUpdater:
+class MMFToPLCheckpointUpdater:
     def __init__(self):
         pass
 
@@ -144,7 +144,7 @@ class CheckpointUpdater:
     def _update_trainer_checkpoint_from_mmf(
         self, checkpoint: Dict[str, Any], model: Any
     ) -> None:
-        """ updates checkpoint from the mmf format to lightning format.
+        """updates checkpoint from the mmf format to lightning format.
         mmf checkpoint is with keys:
         `model`, `optimizer`, `best_iteration`, `current_iteration`, `current_epoch`, ,
         `num_updates`, `best_update`, `best_metric_value`, `fp16_scaler`, `config`, ,
