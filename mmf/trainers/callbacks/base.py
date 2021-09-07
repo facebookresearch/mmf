@@ -20,6 +20,12 @@ class Callback:
         self.trainer = trainer
         self.training_config = self.config.training
 
+    def teardown(self, **kwargs) -> None:
+        """
+        Called at the end of the training to teardown the callback
+        """
+        pass
+
     def on_init_start(self, **kwargs) -> None:
         """
         Called when the trainer initialization begins.
