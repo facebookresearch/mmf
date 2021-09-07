@@ -296,8 +296,6 @@ class TestLightningCheckpointLoadingSaving(TestLightningCheckpoint):
                     mmf_ckpt[mmf_key], lightning_ckpt[mmf_key], same=False
                 )
 
-        print("done")
-
     def test_load_trainer_resume_zoo_parity_with_mmf(self):
         # TODO @sash: lightning side would require the mmf_checkpoint
         # to lightning adaptation. Next PR.
