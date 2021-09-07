@@ -53,7 +53,7 @@ from mmf.common.report import Report
 from mmf.common.sample import SampleList, to_device
 from mmf.modules.losses import LossConfig, Losses
 from mmf.utils.checkpoint import load_pretrained_model
-from mmf.utils.checkpoint_updater import CheckpointUpdater
+from mmf.utils.checkpoint_updater import MMFToPLCheckpointUpdater
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_current_device
@@ -123,7 +123,7 @@ class BaseModel(pl.LightningModule):
         self.build()
 
         if self.checkpoint_updater is None:
-            self.checkpoint_updater = CheckpointUpdater()
+            self.checkpoint_updater = MMFToPLCheckpointUpdater()
 
         self.checkpoint_updater.update_checkpoint(checkpoint, self)
 
