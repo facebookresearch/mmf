@@ -63,7 +63,7 @@ class HuggingfaceEmbeddings(nn.Module):
             hidden_dropout_prob = modality.get(
                 "hidden_dropout_prob", self.transformer_config.hidden_dropout_prob
             )
-            if modality.type == "text":
+            if modality.type == "text" and modality.get("consume_raw", True):
                 self.token_embeddings.append(
                     nn.Embedding(
                         self.transformer_config.vocab_size,
