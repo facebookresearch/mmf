@@ -140,16 +140,13 @@ class MMFTrainer(
         logger.info(self.model)
         print_model_parameters(self.model)
 
-        if "train" not in self.run_type:
-            self.inference()
-            return
-
-        self.on_train_start()
-        self.training_loop()
-        self.on_train_end()
+        if "train" in self.run_type:
+            self.on_train_start()
+            self.training_loop()
+            self.on_train_end()
 
         self.inference()
-        self.dataset_loader.teardown()
+        self.finalize()
 
     def inference(self):
         dataset_type = []
@@ -168,3 +165,7 @@ class MMFTrainer(
                 logger.info(f"Starting inference on {dataset} set")
                 report, meter = self.evaluation_loop(dataset, use_tqdm=True)
                 self.on_test_end(report=report, meter=meter)
+
+    def finalize(self):
+        self.dataset_loader.teardown()
+        self.teardown()

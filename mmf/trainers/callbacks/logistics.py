@@ -136,3 +136,7 @@ class LogisticsCallback(Callback):
             tb_writer=self.tb_writer,
         )
         logger.info(f"Finished run in {self.total_timer.get_time_since_start()}")
+
+    def teardown(self):
+        if self.tb_writer is not None:
+            self.tb_writer.close()
