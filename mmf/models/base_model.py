@@ -128,8 +128,7 @@ class BaseModel(pl.LightningModule):
         self.checkpoint_updater.update_checkpoint(checkpoint, self)
 
     def _run_format_state_key(self, state_dict: Dict[str, Any]) -> None:
-        """Function to rewrtie the checkpoint in place
-        """
+        """Function to rewrtie the checkpoint in place"""
         tmp_state_dict = dict(state_dict)
         for attr in tmp_state_dict:
             new_attr = self.format_state_key(attr)
@@ -285,7 +284,7 @@ class BaseModel(pl.LightningModule):
                 output[key] = output[key].detach()
 
     def configure_optimizers(self):
-        """ Member function of PL modules. Used only when PL enabled."""
+        """Member function of PL modules. Used only when PL enabled."""
         assert self._is_pl_enabled, (
             "configure_optimizers should be only used as a member "
             "function of LightningModule when pytorch lightning is enabled."
