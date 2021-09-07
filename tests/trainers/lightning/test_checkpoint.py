@@ -254,6 +254,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
             lightning_ckpt.pop("base.encoder.embeddings.position_ids")
             self._assert_same_dict(ckpt, lightning_ckpt)
 
+    @skip_if_no_network
     def test_load_zoo_with_pretrained_state_mapping_parity_with_mmf(self):
         # mmf with pretrained state mapping model state dict
         resume_zoo = "unimodal_text.hateful_memes.bert"
