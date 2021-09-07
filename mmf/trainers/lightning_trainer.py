@@ -127,7 +127,7 @@ class LightningTrainer(BaseTrainer):
         return attributes
 
     def get_checkpoint_data(self) -> Dict[str, Any]:
-        """ This function gets checkpoint file path on disk from
+        """This function gets checkpoint file path on disk from
         config.trainer.params.resume_from_checkpoint. However if it not specified,
         it gets checkpoint path from config.checkpoint. If config.resume is specified
         it gets the latest checkpoint from the config's save directory (alternatively it
