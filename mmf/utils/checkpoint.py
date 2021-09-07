@@ -66,14 +66,14 @@ def get_config_from_folder_or_ckpt(
 ) -> Dict[str, Any]:
     r"""gets config from folder or checkpoint
 
-        Args:
-            folder (str): folder from which config will be searched first
-            ckpt (Optional[Dict[str, Any]]): optional checkpoint from which config
-                might be found.
+    Args:
+        folder (str): folder from which config will be searched first
+        ckpt (Optional[Dict[str, Any]]): optional checkpoint from which config
+            might be found.
 
-        Returns:
-            config (Dict[str, Any]): config object
-        """
+    Returns:
+        config (Dict[str, Any]): config object
+    """
     configs = glob.glob(os.path.join(folder, "*.yaml"))
 
     if len(configs) > 0:
