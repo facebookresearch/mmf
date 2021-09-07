@@ -5,6 +5,8 @@ dataset_config:
     fast_read: false
     use_images: false
     use_features: true
+    zoo_requirements:
+    - coco.defaults
     features:
       train:
       - coco/defaults/features/trainval2014.lmdb
