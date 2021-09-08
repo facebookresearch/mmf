@@ -7,7 +7,6 @@ import warnings
 from ast import literal_eval
 from typing import List
 
-import demjson
 import torch
 from mmf.common.registry import registry
 from mmf.utils.env import import_user_module
@@ -475,6 +474,14 @@ class Configuration:
 
     def _build_demjson_config(self, demjson_string):
         if demjson_string is None:
+            return OmegaConf.create()
+
+        try:
+            import demjson
+        except Exception:
+            logger.info(
+                "demjson failed. Likely https://github.com/dmeranda/demjson/issues/40"
+            )
             return OmegaConf.create()
 
         demjson_dict = demjson.decode(demjson_string)
