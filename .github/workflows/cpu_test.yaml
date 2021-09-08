@@ -48,7 +48,8 @@ jobs:
       run: |
         conda activate mmf
         python -m pip install --upgrade pip
-        pip install --upgrade setuptools certifi
+        pip install --upgrade certifi
+        pip install --progress-bar off 'setuptools<58.0'
         pip install --progress-bar off torch torchvision torchaudio
         pip install --progress-bar off scipy==1.4.1 pybind11==2.5.0 pywin32==225
         python -c 'import torch; print("Torch version:", torch.__version__)'
@@ -59,7 +60,7 @@ jobs:
       run: |
         conda activate mmf
         python -m pip install --upgrade pip
-        pip install --upgrade setuptools
+        pip install --progress-bar off 'setuptools<58.0'
         pip install --progress-bar off pytest
         pip install -r requirements.txt
         python -c 'import torch; print("Torch version:", torch.__version__)'
