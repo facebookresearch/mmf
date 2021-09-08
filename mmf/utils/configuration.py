@@ -478,11 +478,9 @@ class Configuration:
 
         try:
             import demjson
-        except Exception:
-            logger.info(
-                "demjson failed. Likely https://github.com/dmeranda/demjson/issues/40"
-            )
-            return OmegaConf.create()
+        except ImportError:
+            logger.warning("demjson is required to use config_override")
+            raise
 
         demjson_dict = demjson.decode(demjson_string)
         return OmegaConf.create(demjson_dict)
