@@ -84,7 +84,7 @@ class TestUtilsCheckpoint(unittest.TestCase):
                     "pretrained_state_mapping": {"base_test": "base"},
                     "max_to_keep": 5,
                 },
-                "config_override": "test",
+                "config_override": None,
                 "training": {
                     "checkpoint_interval": 1,
                     "early_stop": {"criteria": "val/total_loss", "minimize": True},
