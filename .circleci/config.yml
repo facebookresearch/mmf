@@ -21,7 +21,7 @@ install_dep: &install_dep
       name: Install Dependencies
       command: |
         source activate mmf
-        pip install --upgrade setuptools
+        pip install --progress-bar off 'setuptools<58.0'
         pip install --upgrade torch torchvision
         pip install --progress-bar off flake8==3.7.9
         pip install --progress-bar off black==19.3b0
