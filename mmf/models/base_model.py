@@ -52,13 +52,13 @@ from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.common.sample import SampleList, to_device
 from mmf.modules.losses import LossConfig, Losses
-from mmf.utils.download import download_pretrained_model
 from mmf.utils.checkpoint import (
     is_model_only_checkpoint,
     is_pl_checkpoint,
     load_pretrained_model,
     pl_checkpoint_from_mmf_checkpoint,
 )
+from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_current_device
 from mmf.utils.logger import log_class_usage
