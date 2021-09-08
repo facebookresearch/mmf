@@ -9,6 +9,8 @@ from mmf.models.transformers.base import BaseTransformerHead
 from torch import nn
 from transformers.modeling_bert import BertPooler, BertPredictionHeadTransform
 
+from ....modules import layers
+
 
 @registry.register_transformer_head("mlp")
 class MLP(BaseTransformerHead):
@@ -25,7 +27,7 @@ class MLP(BaseTransformerHead):
         super().__init__(config, *args, **kwargs)
 
         # Head modules
-        self.pooler = BertPooler(self.config)
+        self.pooler = self.get_pooler(self.config.pooler_name)(self.config)
         self.classifier = nn.Sequential(
             nn.Dropout(self.config.hidden_dropout_prob),
             BertPredictionHeadTransform(self.config),
@@ -48,3 +50,11 @@ class MLP(BaseTransformerHead):
         prediction = self.classifier(pooled_output)
         output_dict["scores"] = prediction.view(-1, self.num_labels)
         return output_dict
+
+    def get_pooler(self, pooler_name):
+        if pooler_name == "bert_pooler":
+            return BertPooler
+        elif hasattr(layers, pooler_name):
+            return getattr(layers, pooler_name)
+        else:
+            return None
