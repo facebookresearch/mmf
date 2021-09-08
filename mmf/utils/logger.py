@@ -371,6 +371,7 @@ class TensorboardLogger:
             np_param = param.clone().cpu().data.numpy()
             self.summary_writer.add_histogram(name, np_param, iteration)
 
+
 class WandbLogger:
     r"""
     Log using `Weights and Biases`.
@@ -412,7 +413,7 @@ class WandbLogger:
         """
         Setup `Weights and Biases` for logging.
         """
-        if _is_master():
+        if is_master():
 
             if self._wandb.run is None:
                 self._wandb.init(**self._wandb_init)
@@ -429,7 +430,7 @@ class WandbLogger:
             self._wandb.finish()
 
     def _should_log_wandb(self):
-        if self._wandb is None or not _is_master():
+        if self._wandb is None or not is_master():
             return False
         else:
             return True
