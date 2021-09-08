@@ -9,6 +9,11 @@ from mmf.trainers.callbacks.base import Callback
 class TrainerCallbackHookMixin(ABC):
     callbacks: List[Callback] = []
 
+    def teardown(self, **kwargs) -> None:
+        """Called to teardown the callback at end of training"""
+        for callback in self.callbacks:
+            callback.teardown(**kwargs)
+
     def on_init_start(self, **kwargs) -> None:
         """Called when the trainer initialization begins."""
         for callback in self.callbacks:
