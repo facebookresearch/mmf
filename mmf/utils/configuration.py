@@ -7,7 +7,6 @@ import warnings
 from ast import literal_eval
 from typing import List
 
-import demjson
 import torch
 from mmf.common.registry import registry
 from mmf.utils.env import import_user_module
@@ -476,6 +475,12 @@ class Configuration:
     def _build_demjson_config(self, demjson_string):
         if demjson_string is None:
             return OmegaConf.create()
+
+        try:
+            import demjson
+        except ImportError:
+            logger.warning("demjson is required to use config_override")
+            raise
 
         demjson_dict = demjson.decode(demjson_string)
         return OmegaConf.create(demjson_dict)
