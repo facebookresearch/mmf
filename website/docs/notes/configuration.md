@@ -202,7 +202,7 @@ optimizer:
 
 ## Other overrides
 
-We also support some useful overrides schemes at the same level of command line dot list override. For example, user can specify their overrides in form of [demjson](https://pypi.org/project/demjson/) as value to argument `--config_override` which will them override each part of config accordingly.
+We also support some useful overrides schemes at the same level of command line dot list override. For example, user can specify their overrides in form of [demjson](https://pypi.org/project/demjson/) as value to argument `--config_override` which will them override each part of config accordingly. To use this feature, you will need to install `demjson` package.
 
 ## Environment Variables
 
