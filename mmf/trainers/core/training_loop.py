@@ -23,6 +23,7 @@ class TrainerTrainingLoopMixin(ABC):
     current_iteration: int = 0
     num_updates: int = 0
     meter: Meter = Meter()
+    skip_optim_update: bool = False
 
     def training_loop(self) -> None:
         self.max_updates = self._calculate_max_updates()
@@ -114,7 +115,10 @@ class TrainerTrainingLoopMixin(ABC):
                 should_start_update = True
 
                 should_log = False
-                if self.num_updates % self.logistics_callback.log_interval == 0:
+                if (
+                    self.num_updates % self.logistics_callback.log_interval == 0
+                    and not self.skip_optim_update
+                ):
                     should_log = True
                     # Calculate metrics every log interval for debugging
                     if self.training_config.evaluate_metrics:
@@ -122,6 +126,9 @@ class TrainerTrainingLoopMixin(ABC):
                             combined_report, combined_report
                         )
                     self.meter.update_from_report(combined_report)
+
+                if self.skip_optim_update:
+                    self.skip_optim_update = False
 
                 self.on_update_end(
                     report=combined_report, meter=self.meter, should_log=should_log
@@ -179,16 +186,17 @@ class TrainerTrainingLoopMixin(ABC):
             loss_dict = report.losses
             nan_loss_keys = []
             for key, value in loss_dict.items():
-                if torch.any(torch.isnan(value)).item():
+                if torch.isnan(value).any() or torch.isinf(value).any():
                     nan_loss_keys.append(key)
             if len(nan_loss_keys) > 0:
                 keys_str = ", ".join(nan_loss_keys)
                 error_msg = (
                     f"NaN occurred in the following loss(es): {keys_str}; "
-                    f"exiting the training"
+                    f"skipping optimizer update"
                 )
                 logger.info(error_msg)
-                raise RuntimeError(error_msg)
+                # raise RuntimeError(error_msg)
+                self.skip_optim_update = True
 
     def _forward(self, batch: Dict[str, Tensor]) -> Dict[str, Any]:
         # Move the sample list to device if it isn't as of now.
@@ -213,6 +221,9 @@ class TrainerTrainingLoopMixin(ABC):
         self.profile("Backward time")
 
     def _finish_update(self):
+        if self.skip_optim_update:
+            self.scaler.unscale_(self.optimizer)
+            self.optimizer.zero_grad(set_to_none=True)
         if self.training_config.clip_gradients:
             clip_gradients(
                 self.model,
