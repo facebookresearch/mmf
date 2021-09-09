@@ -253,6 +253,7 @@ class LightningTrainer(BaseTrainer):
             every_n_train_steps=self.config.training.checkpoint_interval,
             dirpath=get_mmf_env(key="save_dir"),
             filename="models/model_{step}",
+            save_top_k=-1,
             save_last=True,
             verbose=True,
         )

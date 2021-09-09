@@ -192,6 +192,17 @@ class BaseModel(pl.LightningModule):
 
         return super().load_state_dict(copied_state_dict, *args, **kwargs)
 
+    def on_save_checkpoint(self, checkpoint: Dict[str, Any]) -> None:
+        super().on_save_checkpoint(checkpoint)
+
+        config = registry.get("config")
+        config_dict = OmegaConf.to_container(config, resolve=True)
+        checkpoint["config"] = config_dict
+
+        # TODO: add git features, for example:
+        # 'git/branch', 'git/commit_hash', 'git/commit_author',
+        # 'git/commit_message', 'git/diff'
+
     def forward(self, sample_list, *args, **kwargs):
         """To be implemented by child class. Takes in a ``SampleList`` and
         returns back a dict.
