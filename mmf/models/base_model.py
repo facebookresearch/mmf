@@ -52,12 +52,8 @@ from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.common.sample import SampleList, to_device
 from mmf.modules.losses import LossConfig, Losses
-from mmf.utils.checkpoint import (
-    is_model_only_checkpoint,
-    is_pl_checkpoint,
-    load_pretrained_model,
-    pl_checkpoint_from_mmf_checkpoint,
-)
+from mmf.utils.checkpoint import load_pretrained_model
+from mmf.utils.checkpoint_updater import CheckpointUpdater
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_current_device
@@ -95,6 +91,7 @@ class BaseModel(pl.LightningModule):
         self._logged_warning = {"losses_present": False}
         self._is_pretrained = False
         self._is_pl_enabled = False
+        self.checkpoint_updater = None
 
         log_class_usage("Model", self.__class__)
 
@@ -119,16 +116,19 @@ class BaseModel(pl.LightningModule):
         self._is_pl_enabled = x
 
     def on_load_checkpoint(self, checkpoint: Dict[str, Any]) -> None:
+        """
+        This is called by the pl.LightningModule before the model's checkpoint
+        is loaded.
+        """
         self.build()
 
-        if is_model_only_checkpoint(checkpoint):
-            self._run_format_state_key(checkpoint)
-            if not is_pl_checkpoint(checkpoint):
-                pl_checkpoint_from_mmf_checkpoint(checkpoint)
+        if self.checkpoint_updater is None:
+            self.checkpoint_updater = CheckpointUpdater()
+
+        self.checkpoint_updater.update_checkpoint(checkpoint, self)
 
     def _run_format_state_key(self, state_dict: Dict[str, Any]) -> None:
-        """Function to rewrtie the checkpoint in place
-        """
+        """Function to rewrtie the checkpoint in place"""
         tmp_state_dict = dict(state_dict)
         for attr in tmp_state_dict:
             new_attr = self.format_state_key(attr)
@@ -273,7 +273,7 @@ class BaseModel(pl.LightningModule):
                 output[key] = output[key].detach()
 
     def configure_optimizers(self):
-        """ Member function of PL modules. Used only when PL enabled."""
+        """Member function of PL modules. Used only when PL enabled."""
         assert self._is_pl_enabled, (
             "configure_optimizers should be only used as a member "
             "function of LightningModule when pytorch lightning is enabled."

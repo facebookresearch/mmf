@@ -15,8 +15,8 @@ from mmf.utils.checkpoint import (
     get_ckpt_from_path,
     get_ckpt_path_from_folder,
     get_config_from_folder_or_ckpt,
-    is_model_only_checkpoint,
 )
+from mmf.utils.checkpoint_updater import is_model_only_checkpoint
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
@@ -127,7 +127,7 @@ class LightningTrainer(BaseTrainer):
         return attributes
 
     def get_checkpoint_data(self) -> Dict[str, Any]:
-        """ This function gets checkpoint file path on disk from
+        """This function gets checkpoint file path on disk from
         config.trainer.params.resume_from_checkpoint. However if it not specified,
         it gets checkpoint path from config.checkpoint. If config.resume is specified
         it gets the latest checkpoint from the config's save directory (alternatively it
