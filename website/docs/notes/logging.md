@@ -8,6 +8,12 @@ sidebar_label: Terminology and Concepts
 
 MMF has a `WandbLogger` class which lets the user to log their model's progress using [Weights and Biases](https://gitbook-docs.wandb.ai/).
 
+To set up wandb, run the following:
+```
+pip install wandb
+wandb login
+```
+
 The following options are available in config to enable and customize the wandb logging:
 ```yaml
 training:
