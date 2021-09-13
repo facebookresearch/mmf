@@ -290,6 +290,7 @@
     <span class="n">average_precision_score</span><span class="p">,</span>
     <span class="n">f1_score</span><span class="p">,</span>
     <span class="n">precision_recall_curve</span><span class="p">,</span>
+    <span class="n">precision_recall_fscore_support</span><span class="p">,</span>
     <span class="n">roc_auc_score</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">Tensor</span>
@@ -386,18 +387,27 @@
             <span class="k">for</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric_object</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">metric_object</span><span class="o">.</span><span class="n">is_dataset_applicable</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">):</span>
                     <span class="k">continue</span>
-                <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dataset_type</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">metric_object</span><span class="o">.</span><span class="n">_calculate_with_checks</span><span class="p">(</span>
+
+                <span class="n">metric_result</span> <span class="o">=</span> <span class="n">metric_object</span><span class="o">.</span><span class="n">_calculate_with_checks</span><span class="p">(</span>
                     <span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
                 <span class="p">)</span>
 
-                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
-                    <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metric_result</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+                    <span class="n">metric_result</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;&quot;</span><span class="p">:</span> <span class="n">metric_result</span><span class="p">}</span>
 
-                <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">child_metric_name</span><span class="p">,</span> <span class="n">child_metric_result</span> <span class="ow">in</span> <span class="n">metric_result</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dataset_type</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">child_metric_name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">child_metric_name</span> <span class="k">else</span> <span class="n">key</span>
+
+                    <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">child_metric_result</span>
+
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+                        <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+
+                    <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="n">registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>
             <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.</span><span class="si">{}</span><span class="s2">.</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;metrics&quot;</span><span class="p">,</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">dataset_type</span><span class="p">),</span> <span class="n">values</span>
@@ -1052,7 +1062,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">average</span><span class="o">=</span><span class="s2">&quot;micro&quot;</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">average</span><span class="o">=</span><span class="s2">&quot;binary&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;binary_f1&quot;</span></div>
 
 
@@ -1090,6 +1100,95 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">average</span><span class="o">=</span><span class="s2">&quot;macro&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;multilabel_macro_f1&quot;</span></div>
+
+
+<div class="viewcode-block" id="F1PrecisionRecall"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.F1PrecisionRecall">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;f1_precision_recall&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">F1PrecisionRecall</span><span class="p">(</span><span class="n">BaseMetric</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Metric for calculating F1 precision and recall.</span>
+<span class="sd">    params will be directly passed to sklearn</span>
+<span class="sd">    precision_recall_fscore_support function.</span>
+<span class="sd">    **Key:** ``f1_precision_recall``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;f1_precision_recall&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_multilabel</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;multilabel&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sk_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+
+<div class="viewcode-block" id="F1PrecisionRecall.calculate"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.F1PrecisionRecall.calculate">[docs]</a>    <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate f1_precision_recall and return it back as a dict.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sample_list (SampleList): SampleList provided by DataLoader for</span>
+<span class="sd">                                current iteration</span>
+<span class="sd">            model_output (Dict): Dict returned by model.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict(</span>
+<span class="sd">                &#39;f1&#39;:         torch.FloatTensor,</span>
+<span class="sd">                &#39;precision&#39;:  torch.FloatTensor,</span>
+<span class="sd">                &#39;recall&#39;:     torch.FloatTensor</span>
+<span class="sd">            )</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="n">sample_list</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multilabel</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+            <span class="n">expected</span> <span class="o">=</span> <span class="n">_convert_to_one_hot</span><span class="p">(</span><span class="n">expected</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Multiclass, or binary case</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">expected</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># Probably one-hot, convert back to class indices array</span>
+                <span class="n">expected</span> <span class="o">=</span> <span class="n">expected</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">value_tuple</span> <span class="o">=</span> <span class="n">precision_recall_fscore_support</span><span class="p">(</span>
+            <span class="n">expected</span><span class="o">.</span><span class="n">cpu</span><span class="p">(),</span> <span class="n">output</span><span class="o">.</span><span class="n">cpu</span><span class="p">(),</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_sk_kwargs</span>
+        <span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="n">expected</span><span class="o">.</span><span class="n">new_tensor</span><span class="p">(</span><span class="n">value_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">),</span>
+            <span class="s2">&quot;recall&quot;</span><span class="p">:</span> <span class="n">expected</span><span class="o">.</span><span class="n">new_tensor</span><span class="p">(</span><span class="n">value_tuple</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">),</span>
+            <span class="s2">&quot;f1&quot;</span><span class="p">:</span> <span class="n">expected</span><span class="o">.</span><span class="n">new_tensor</span><span class="p">(</span><span class="n">value_tuple</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">value</span></div></div>
+
+
+<div class="viewcode-block" id="BinaryF1PrecisionRecall"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.BinaryF1PrecisionRecall">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;binary_f1_precision_recall&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">BinaryF1PrecisionRecall</span><span class="p">(</span><span class="n">F1PrecisionRecall</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Metric for calculating Binary F1 Precision and Recall.</span>
+
+<span class="sd">    **Key:** ``binary_f1_precision_recall``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">average</span><span class="o">=</span><span class="s2">&quot;binary&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;binary_f1_precision_recall&quot;</span></div>
+
+
+<div class="viewcode-block" id="MacroF1PrecisionRecall"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.MacroF1PrecisionRecall">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;macro_f1_precision_recall&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MacroF1PrecisionRecall</span><span class="p">(</span><span class="n">F1PrecisionRecall</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Metric for calculating Macro F1 Precision and Recall.</span>
+
+<span class="sd">    **Key:** ``macro_f1_precision_recall``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">average</span><span class="o">=</span><span class="s2">&quot;macro&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;macro_f1_precision_recall&quot;</span></div>
+
+
+<div class="viewcode-block" id="MicroF1PrecisionRecall"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.MicroF1PrecisionRecall">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;micro_f1_precision_recall&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MicroF1PrecisionRecall</span><span class="p">(</span><span class="n">F1PrecisionRecall</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Metric for calculating Micro F1 Precision and Recall.</span>
+
+<span class="sd">    **Key:** ``micro_f1_precision_recall``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">average</span><span class="o">=</span><span class="s2">&quot;micro&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;micro_f1_precision_recall&quot;</span></div>
 
 
 <div class="viewcode-block" id="ROC_AUC"><a class="viewcode-back" href="../../../lib/modules/metrics.html#mmf.modules.metrics.ROC_AUC">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;roc_auc&quot;</span><span class="p">)</span>

@@ -416,6 +416,13 @@ field pointing to logits returned from the model.</p></li>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="mmf.modules.metrics.BinaryF1PrecisionRecall">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></span><span class="sig-name descname"><span class="pre">BinaryF1PrecisionRecall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#BinaryF1PrecisionRecall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.BinaryF1PrecisionRecall" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating Binary F1 Precision and Recall.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">binary_f1_precision_recall</span></code></p>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="mmf.modules.metrics.CaptionBleu4Metric">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></span><span class="sig-name descname"><span class="pre">CaptionBleu4Metric</span></span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#CaptionBleu4Metric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.CaptionBleu4Metric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Metric for calculating caption accuracy using BLEU4 Score.</p>
@@ -510,6 +517,40 @@ current iteration</p></li>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="mmf.modules.metrics.F1PrecisionRecall">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></span><span class="sig-name descname"><span class="pre">F1PrecisionRecall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#F1PrecisionRecall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.F1PrecisionRecall" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating F1 precision and recall.
+params will be directly passed to sklearn
+precision_recall_fscore_support function.
+<strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">f1_precision_recall</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mmf.modules.metrics.F1PrecisionRecall.calculate">
+<span class="sig-name descname"><span class="pre">calculate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#F1PrecisionRecall.calculate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.F1PrecisionRecall.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate f1_precision_recall and return it back as a dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample_list</strong> (<a class="reference internal" href="../common/sample.html#mmf.common.sample.SampleList" title="mmf.common.sample.SampleList"><em>SampleList</em></a>) – SampleList provided by DataLoader for
+current iteration</p></li>
+<li><p><strong>model_output</strong> (<em>Dict</em>) – Dict returned by model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Dict(</dt><dd><p>‘f1’:         torch.FloatTensor,
+‘precision’:  torch.FloatTensor,
+‘recall’:     torch.FloatTensor</p>
+</dd>
+</dl>
+<p>)</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="mmf.modules.metrics.MacroAP">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></span><span class="sig-name descname"><span class="pre">MacroAP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MacroAP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.MacroAP" title="Permalink to this definition">¶</a></dt>
 <dd><p>Metric for calculating Macro Average Precision.</p>
@@ -521,6 +562,13 @@ current iteration</p></li>
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></span><span class="sig-name descname"><span class="pre">MacroF1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MacroF1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.MacroF1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Metric for calculating Macro F1.</p>
 <p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">macro_f1</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mmf.modules.metrics.MacroF1PrecisionRecall">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></span><span class="sig-name descname"><span class="pre">MacroF1PrecisionRecall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MacroF1PrecisionRecall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.MacroF1PrecisionRecall" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating Macro F1 Precision and Recall.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">macro_f1_precision_recall</span></code></p>
 </dd></dl>
 
 <dl class="py class">
@@ -617,6 +665,13 @@ metrics used.</p>
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></span><span class="sig-name descname"><span class="pre">MicroF1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MicroF1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.MicroF1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Metric for calculating Micro F1.</p>
 <p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">micro_f1</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mmf.modules.metrics.MicroF1PrecisionRecall">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">mmf.modules.metrics.</span></span><span class="sig-name descname"><span class="pre">MicroF1PrecisionRecall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/modules/metrics.html#MicroF1PrecisionRecall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.modules.metrics.MicroF1PrecisionRecall" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metric for calculating Micro F1 Precision and Recall.</p>
+<p><strong>Key:</strong> <code class="docutils literal notranslate"><span class="pre">micro_f1_precision_recall</span></code></p>
 </dd></dl>
 
 <dl class="py class">
