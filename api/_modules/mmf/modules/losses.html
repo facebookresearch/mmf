@@ -421,21 +421,31 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">loss_criterion</span> <span class="o">=</span> <span class="n">loss_class</span><span class="p">(</span><span class="o">**</span><span class="n">loss_params</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MMFLoss.forward"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.MMFLoss.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span> <span class="n">model_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]):</span>
-        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_criterion</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">)</span>
+        <span class="n">loss_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">loss_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_criterion</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
-            <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">loss_result</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+            <span class="n">loss_result</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;&quot;</span><span class="p">:</span> <span class="n">loss_result</span><span class="p">}</span>
 
-        <span class="k">if</span> <span class="n">loss</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">loss</span> <span class="o">=</span> <span class="n">loss</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">child_loss_name</span><span class="p">,</span> <span class="n">child_loss_result</span> <span class="ow">in</span> <span class="n">loss_result</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">is_scripting</span><span class="p">():</span>
-            <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">sample_list</span><span class="o">.</span><span class="n">dataset_type</span><span class="p">,</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">loss</span><span class="p">}</span></div></div>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">child_loss_result</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+                <span class="n">child_loss_result</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">child_loss_result</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">child_loss_result</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">child_loss_result</span> <span class="o">=</span> <span class="n">child_loss_result</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">is_scripting</span><span class="p">():</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">sample_list</span><span class="o">.</span><span class="n">dataset_type</span><span class="p">,</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+            <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">child_loss_name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">child_loss_name</span> <span class="k">else</span> <span class="n">key</span>
+            <span class="n">loss_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">child_loss_result</span>
+
+        <span class="k">return</span> <span class="n">loss_dict</span></div></div>
 
 
 <div class="viewcode-block" id="LogitBinaryCrossEntropy"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.LogitBinaryCrossEntropy">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_loss</span><span class="p">(</span><span class="s2">&quot;logit_bce&quot;</span><span class="p">)</span>
@@ -1050,6 +1060,40 @@
         <span class="n">scores</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">targets</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">targets</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span></div></div>
+
+
+<div class="viewcode-block" id="BCEAndKLLoss"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.BCEAndKLLoss">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_loss</span><span class="p">(</span><span class="s2">&quot;bce_kl&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">BCEAndKLLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;binary_cross_entropy_with_logits and kl divergence loss.</span>
+<span class="sd">    Calculates both losses and returns a dict with string keys.</span>
+<span class="sd">    Similar to bce_kl_combined, but returns both losses.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weight_softmax</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight_softmax</span> <span class="o">=</span> <span class="n">weight_softmax</span>
+
+<div class="viewcode-block" id="BCEAndKLLoss.forward"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.BCEAndKLLoss.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">):</span>
+        <span class="n">pred_score</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span>
+        <span class="n">target_score</span> <span class="o">=</span> <span class="n">sample_list</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">]</span>
+
+        <span class="n">tar_sum</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">target_score</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">tar_sum_is_0</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">tar_sum</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">tar_sum</span><span class="o">.</span><span class="n">masked_fill_</span><span class="p">(</span><span class="n">tar_sum_is_0</span><span class="p">,</span> <span class="mf">1.0e-06</span><span class="p">)</span>
+        <span class="n">tar</span> <span class="o">=</span> <span class="n">target_score</span> <span class="o">/</span> <span class="n">tar_sum</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="n">pred_score</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">loss1</span> <span class="o">=</span> <span class="n">kl_div</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">tar</span><span class="p">)</span>
+        <span class="n">loss1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">loss1</span><span class="p">)</span> <span class="o">/</span> <span class="n">loss1</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">loss2</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span>
+            <span class="n">pred_score</span><span class="p">,</span> <span class="n">target_score</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span>
+        <span class="p">)</span>
+        <span class="n">loss2</span> <span class="o">*=</span> <span class="n">target_score</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">loss</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;kl&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_softmax</span> <span class="o">*</span> <span class="n">loss1</span><span class="p">,</span> <span class="s2">&quot;bce&quot;</span><span class="p">:</span> <span class="n">loss2</span><span class="p">}</span>
+
         <span class="k">return</span> <span class="n">loss</span></div></div>
 </pre></div>
 
