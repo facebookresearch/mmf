@@ -139,6 +139,7 @@ class LogisticsCallback(Callback):
             meter=kwargs["meter"],
             extra=extra,
             tb_writer=self.tb_writer,
+            wandb_logger=self.wandb_logger
         )
 
     def on_test_end(self, **kwargs):
