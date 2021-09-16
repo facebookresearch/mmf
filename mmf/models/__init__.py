@@ -17,6 +17,7 @@ from .unimodal import UnimodalBase, UnimodalText, UnimodalModal
 from .visual_bert import VisualBERT
 from .vilbert import ViLBERT
 from .albef.vit import AlbefVitEncoder
+from .vilt import ViLT
 
 
 __all__ = [
@@ -43,4 +44,5 @@ __all__ = [
     "UnimodalModal",
     "UnimodalText",
     "AlbefVitEncoder",
+    "ViLT",
 ]
