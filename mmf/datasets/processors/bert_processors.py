@@ -353,3 +353,14 @@ class MultiSentenceRobertaTokenizer(MultiSentenceBertTokenizer):
         self.fusion_strategy = config.get("fusion", "concat")
         self.tokenizer = RobertaTokenizer(config, *args, **kwargs)
         self._probability = config.get("mask_probability", 0)
+
+
+@registry.register_processor("vilt_text_processor")
+class VILTTextProcessor(BertTokenizer):
+    from omegaconf import OmegaConf
+
+    def __init__(self, config, *args, **kwargs):
+        config.tokenizer_config = self.OmegaConf.create(
+            {"type": "bert-base-uncased", "params": {"do_lower_case": True}}
+        )
+        super().__init__(config, *args, **kwargs)

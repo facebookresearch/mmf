@@ -162,3 +162,28 @@ class NormalizeBGR255(BaseProcessor):
 
             return padded_image
         return image
+
+
+@registry.register_processor("vilt_image_processor")
+class VILTImageProcessor(BaseProcessor):
+    from torchvision.transforms import Resize, ToTensor, Normalize, Compose
+
+    def __init__(self, config, *args, **kwargs):
+        image_size = getattr(config, "size", [224, 224])
+        transforms_list = []
+        transforms_list.append(self.Resize(image_size))
+        transforms_list.append(self.ToTensor())
+        transforms_list.append(GrayScaleTo3Channels())
+
+        mean = [0.485, 0.456, 0.406]
+        std = [0.229, 0.224, 0.225]
+        transforms_list.append(self.Normalize(mean, std))
+        self.transform = self.Compose(transforms_list)
+
+    def __call__(self, x):
+        # Support both dict and normal mode
+        if isinstance(x, collections.abc.Mapping):
+            x = x["image"]
+            return {"image": self.transform(x)}
+        else:
+            return self.transform(x)
