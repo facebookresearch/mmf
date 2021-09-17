@@ -6,6 +6,7 @@ from abc import ABC
 
 import torch
 from mmf.common.registry import registry
+from packaging import version
 
 
 logger = logging.getLogger(__name__)
@@ -53,6 +54,7 @@ class TrainerDeviceMixin(ABC):
     def parallelize_model(self) -> None:
         registry.register("data_parallel", False)
         registry.register("distributed", False)
+        training_config = self.config.training
         if (
             "cuda" in str(self.device)
             and torch.cuda.device_count() > 1
@@ -66,12 +68,31 @@ class TrainerDeviceMixin(ABC):
             set_torch_ddp = True
             try:
                 from fairscale.optim.oss import OSS
+                from fairscale import __version__ as fairscale_version
                 from fairscale.nn.data_parallel import ShardedDataParallel
 
-                if isinstance(self.optimizer, OSS):
+                if version.parse(fairscale_version) >= version.parse("0.3"):
+                    from fairscale.nn.data_parallel import FullyShardedDataParallel
+                else:
+                    FullyShardedDataParallel = None
+
+                if training_config.get("fsdp.enabled", False):
+                    self.model = FullyShardedDataParallel(
+                        self.model,
+                        mixed_precision=(
+                            training_config.get("fp16", False)
+                            or training_config.get("fsdp.mixed_precision", False)
+                        ),
+                        reshard_after_forward=training_config.get(
+                            "fsdp.reshard_after_forward", True
+                        ),
+                        cpu_offload=training_config.get("fsdp.cpu_offload", False),
+                    )
+                elif isinstance(self.optimizer, OSS):
                     self.model = ShardedDataParallel(self.model, self.optimizer)
                     set_torch_ddp = False
                     logger.info("Using FairScale ShardedDataParallel")
+
             except ImportError:
                 logger.info("Using PyTorch DistributedDataParallel")
                 warnings.warn(
@@ -84,5 +105,5 @@ class TrainerDeviceMixin(ABC):
                     self.model,
                     device_ids=[self.local_rank],
                     output_device=self.local_rank,
-                    find_unused_parameters=self.config.training.find_unused_parameters,
+                    find_unused_parameters=training_config.find_unused_parameters,
                 )

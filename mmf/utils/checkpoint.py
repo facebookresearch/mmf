@@ -143,6 +143,7 @@ class Checkpoint:
         self.trainer = trainer
 
         self.config = self.trainer.config
+        self.is_fsdp = self.config.get("training.fsdp.enabled", False)
         self.save_dir = get_mmf_env(key="save_dir")
         self.model_name = self.config.model
         self.ckpt_foldername = self.save_dir
@@ -462,7 +463,10 @@ class Checkpoint:
         }
 
     def save_func(self, *args):
-        return xm.save(*args) if is_xla() else torch.save(*args)
+        if is_xla():
+            return xm.save(*args)
+        elif is_master():
+            return torch.save(*args)
 
     def save(self, update, iteration=None, update_best=False):
         # Only save in main process
@@ -470,7 +474,10 @@ class Checkpoint:
         # Which ensures that actual checkpoint saving happens
         # only for the master node.
         # The method also takes care of all the necessary synchronization
-        if not is_master() and not is_xla():
+        #
+        # FSDP state_dict also does synchronization and thus we require to call
+        # state_dict() method on all processes.
+        if not is_master() and not is_xla() and not self.is_fsdp:
             return
 
         logger.info("Checkpoint save operation started!")

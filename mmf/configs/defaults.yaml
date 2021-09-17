@@ -137,6 +137,16 @@ training:
     # drop in results.
     fp16: false
 
+    # Whether to enable FSDP support
+    fsdp:
+        enabled: false
+        mixed_precision: ${training.fp16}
+        cpu_offload: false
+
+
+# The following config is separate from training config and is used by trainer
+# such as lightning and other newer ones. If you are using MMFTrainer please use
+# training.x options otherwise, look into the trainer options below.
 trainer:
     # Name of the trainer class used to define the training/evalution loop
     # `mmf` or `lightning` to specify the trainer to be used
