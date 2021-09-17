@@ -150,6 +150,7 @@ training:
     # drop in results.
     fp16: false
 
+<<<<<<< HEAD
     # Users can define their own callback functions in the trainer, e.g. adjust
     # learning rate, plot data in tensorboard, etc.
     # The format should look like:
@@ -163,6 +164,18 @@ training:
     # Set to true to look for NaNs in the losses and exit the training when NaN happens
     exit_on_nan_losses: true
 
+=======
+    # Whether to enable FSDP support
+    fsdp:
+        enabled: false
+        mixed_precision: ${training.fp16}
+        cpu_offload: false
+
+
+# The following config is separate from training config and is used by trainer
+# such as lightning and other newer ones. If you are using MMFTrainer please use
+# training.x options otherwise, look into the trainer options below.
+>>>>>>> 4347a0d0 (fsdp)
 trainer:
     # Name of the trainer class used to define the training/evalution loop
     # `mmf` or `lightning` to specify the trainer to be used

@@ -38,6 +38,8 @@ def clip_gradients(model, optimizer, i_iter, writer, config, scale=1.0):
         if clip_norm_mode == "all":
             if hasattr(optimizer, "clip_grad_norm"):
                 norm = optimizer.clip_grad_norm(max_grad_l2_norm * scale)
+            elif hasattr(model, "clip_grad_norm_"):
+                norm = model.clip_grad_norm_(max_grad_l2_norm * scale)
             else:
                 norm = nn.utils.clip_grad_norm_(
                     model.parameters(), max_grad_l2_norm * scale
