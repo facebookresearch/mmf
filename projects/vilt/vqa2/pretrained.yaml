@@ -1,0 +1,120 @@
+includes:
+- ../projects/unit/configs/vqa2_dataset_cfg.yaml
+
+other_configs:
+  image_w: 224
+  image_h: 224
+dataset_config:
+  vqa2:
+    processors:
+      image_processor:
+        type: vilt_image_processor
+        params:
+          size:
+          - ${other_configs.image_w}
+          - ${other_configs.image_h}
+      text_processor:
+        type: vilt_text_processor
+        params:
+          mask_probability: 0
+          max_seq_length: 25
+
+model_config:
+  vilt:
+    tasks: ${datasets}
+    heads:
+      vissl_image:
+        type: mlp
+        num_labels: 1000
+      vqa2:
+        type: multilayer_mlp
+        num_labels: 3129
+      glue_mnli_mismatched:
+        type: mlp
+        num_labels: 3
+      everstore:
+        type: mlp
+        num_labels: 2
+
+    losses:
+      vissl_image: cross_entropy
+      vqa2: logit_bce
+      glue_mnli_mismatched: cross_entropy
+      everstore: cross_entropy
+
+    image_encoder:
+      type: vit
+      params:
+        random_init: False
+        pretrained_model_name: google/vit-base-patch16-224
+        gradient_checkpointing: false
+        do_pooling: false
+        hidden_dropout_prob: 0
+        add_pooling_layer: False
+        do_patch_embeddings: False
+        image_size:
+        - ${other_configs.image_w}
+        - ${other_configs.image_h}
+        regularize_bn: False
+        regularize_bias: True
+        hidden_dim: 768
+        pretrained_model: vit_base_patch16_224
+        mlp_dim: 3072
+
+    image_embeddings:
+      type: vilt_img_embedding
+      params:
+        image_size:
+        - ${other_configs.image_w}
+        - ${other_configs.image_h}
+        hidden_dropout_prob: 0
+        hidden_dim: 768
+        hidden_size: 768
+        patch_size: 16
+        num_channels: 3
+        random_init: False
+        image_encoder: ${model_config.vilt.image_encoder}
+
+    text_embeddings:
+      type: vilt_text_embedding
+      params:
+        bert_model_name: bert-base-uncased
+        hidden_dim: 768
+        hidden_size: 768
+
+
+training:
+  clip_gradients: false
+  lr_scheduler: true
+  max_updates: 44000
+  checkpoint_interval: 4000
+  evaluation_interval: 4000
+  batch_size: 256 # 32 per GPU * 8 GPU
+  find_unused_parameters: false
+
+
+optimizer:
+  type: adam_w_skip_params_with_zero_grad
+  params:
+    lr: 5e-5
+    eps: 1e-8
+    weight_decay: 1e-4
+
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 4000
+    num_training_steps: ${training.max_updates}
+
+
+evaluation:
+  metrics:
+    - type: accuracy
+      datasets:
+      - vissl_image
+      - glue_mnli_mismatched
+      - everstore
+    - type: vqa_accuracy
+      datasets:
+      - vqa2

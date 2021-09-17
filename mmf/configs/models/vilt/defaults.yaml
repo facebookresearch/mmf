@@ -1,0 +1,17 @@
+model_config:
+  vilt:
+    image_encoder:
+        type: vit
+    heads:
+      vqa2:
+        type: multilayer_mlp
+        freeze: false
+        lr_multiplier: 1.0
+        in_dim: 768
+        hidden_size: 1536
+        num_labels: 3129
+        pooler_name: bert_pooler
+    text_embeddings:
+      type: vilt_text_embedding
+    image_embeddings:
+      type: vilt_img_embedding
