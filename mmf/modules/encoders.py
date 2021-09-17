@@ -4,7 +4,7 @@ import pickle
 import re
 from collections import OrderedDict
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
@@ -787,3 +787,86 @@ class ViTEncoder(Encoder):
             kwargs["output_hidden_states"] = True
         output = self.module(*args, **kwargs)
         return output["last_hidden_state"], output["hidden_states"]
+
+
+@registry.register_encoder("vilt_img_embedding")
+class VILTImageEmbedding(Encoder):
+    """
+    Patch embedding used for ViLT.
+    https://arxiv.org/pdf/2102.03334.pdf
+    Implementation based off
+    https://github.com/dandelin/ViLT/blob/master/vilt/modules/vilt_module.py
+    Using huggingface ViT modules.
+    Can be built with random init or the embeddings weights from an exisiting
+    ViT model from huggingface. Model list: availible at
+    https://huggingface.co/models?other=vit&sort=downloads
+    """
+
+    @dataclass
+    class Config(Encoder.Config):
+        image_size: list = field(default_factory=[224, 224])
+        hidden_dropout_prob: float = 0
+        hidden_dim: int = 768
+        hidden_size: int = 768
+        patch_size: int = 16
+        num_channels: int = 3
+        random_init: bool = True
+
+    def __init__(self, config: Config):
+        super().__init__()
+        self.config = config
+
+        print("image embedding config:", config)
+        if not getattr(config, "random_init", False) and hasattr(
+            config, "image_encoder"
+        ):
+            self.embedding = ViTEncoder(self.config.image_encoder.params).embeddings
+        else:
+            self.embedding = vit.ViTEmbeddings(config)
+
+        self.token_type_embeddings = nn.Embedding(1, config.hidden_size)
+
+    def forward(self, sample_list):
+        image = sample_list["image"]
+        if image.dim() == 5:
+            # manual collation for SimCLR inputs (when VISSL collator is not used)
+            # make num_view the 1st dimension to be consistent with VISSL SimCLR
+            image = image.permute(1, 0, 2, 3, 4).flatten(start_dim=0, end_dim=1)
+
+        img_embeddings = self.embedding(image)
+
+        img_segment_ids = torch.zeros(
+            img_embeddings.size()[:-1],
+            dtype=img_embeddings.dtype,
+            device=img_embeddings.device,
+        ).long()
+        img_type_embed = self.token_type_embeddings(img_segment_ids)
+        img_embeddings = img_embeddings + img_type_embed
+        return img_embeddings
+
+
+@registry.register_encoder("vilt_text_embedding")
+class VILTTextEmbedding(Encoder):
+    @dataclass
+    class Config(Encoder.Config):
+        hidden_dim: int = 768
+        hidden_size: int = 768
+
+    def __init__(self, config: Config):
+
+        super().__init__()
+        self.config = config
+        text_encoder = TransformerEncoder(self.config)
+        self.text_embeddings = text_encoder.embeddings
+        encoder_output_dim = self.config.hidden_dim
+        self.text_projection = nn.Linear(
+            text_encoder.config.hidden_size, encoder_output_dim
+        )
+
+    def forward(self, sample_list):
+        input_ids = sample_list.input_ids
+        segment_ids = sample_list.segment_ids
+
+        text_embedding = self.text_embeddings(input_ids, token_type_ids=segment_ids)
+        text_embedding = self.text_projection(text_embedding)
+        return text_embedding
