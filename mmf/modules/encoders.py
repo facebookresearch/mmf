@@ -10,6 +10,7 @@ from typing import Any
 
 import torch
 import torchvision
+import transformers.models.vit.modeling_vit as vit
 from mmf.common.registry import registry
 from mmf.models.frcnn import GeneralizedRCNN
 from mmf.modules.embeddings import ProjectionEmbedding, TextEmbedding
@@ -18,7 +19,7 @@ from mmf.modules.layers import Identity
 from mmf.utils.build import build_image_encoder, build_text_encoder
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
-from mmf.utils.general import get_absolute_path
+from mmf.utils.general import get_absolute_path, retry_n
 from mmf.utils.logger import log_class_usage
 from omegaconf import MISSING, OmegaConf
 from torch import Tensor, nn
@@ -729,3 +730,60 @@ class ResNet18AudioEncoder(PooledEncoder):
         model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
         modules = list(model.children())[:-2]
         return nn.Sequential(*modules)
+
+
+@registry.register_encoder("vit")
+class ViTEncoder(Encoder):
+    @dataclass
+    class Config(Encoder.Config):
+        name: str = "vit"
+        # See https://huggingface.co/models?filter=vit for available options
+        pretrained_model_name: str = "google/vit-base-patch16-224"
+        random_init: bool = False
+        gradient_checkpointing: bool = False
+
+    def __init__(self, config: Config, *args, **kwargs):
+
+        super().__init__()
+        self.config = config
+        random_init = self.config.get("random_init", False)
+        gradient_checkpointing = self.config.get("gradient_checkpointing", False)
+
+        hf_config = retry_n(
+            6,
+            vit.ViTConfig.from_pretrained,
+            self.config.pretrained_model_name,
+            **OmegaConf.to_container(config),
+        )
+        hf_config.gradient_checkpointing = gradient_checkpointing
+        hf_config.add_pooling_layer = config.get("add_pooling_layer", True)
+        hf_config.do_patch_embeddings = config.get("do_patch_embeddings", True)
+        hf_config.image_size = config.get("image_size", hf_config.image_size)
+
+        if not random_init:
+            self.module = retry_n(
+                6,
+                self._model_class.from_pretrained,
+                self.config.pretrained_model_name,
+                config=hf_config,
+            )
+        else:
+            self.module = retry_n(6, self._model_class, hf_config)
+
+        self.embeddings = self.module.embeddings
+
+        self.original_config = self.config
+        self.config = hf_config
+        self.out_dim = hf_config.hidden_size
+
+    @property
+    def _model_class(self):
+        from ..modules.vit import ViTModel
+
+        return ViTModel
+
+    def forward(self, *args, **kwargs):
+        if "output_hidden_states" not in kwargs:
+            kwargs["output_hidden_states"] = True
+        output = self.module(*args, **kwargs)
+        return output["last_hidden_state"], output["hidden_states"]
