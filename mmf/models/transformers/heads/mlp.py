@@ -23,6 +23,7 @@ class MLP(BaseTransformerHead):
         hidden_dropout_prob: float = 0.1
         layer_norm_eps: float = 1e-6
         hidden_act: str = "gelu"
+        pooler_name: str = "bert_pooler"
 
     def __init__(self, config: Config, *args, **kwargs):
         super().__init__(config, *args, **kwargs)
