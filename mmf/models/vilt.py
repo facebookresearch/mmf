@@ -34,11 +34,19 @@ class ViLT(BaseModel):
         if isinstance(self.tasks, str):
             self.tasks = self.tasks.split(",")
 
+        self.prepare_itm = False
+        self.prepare_mlm = False
         for task in self.tasks:
             head_config = head_configs[task]
             head_type = head_config.get("type", "mlp")
+            if head_type == "itm":
+                self.prepare_itm = True
+            elif head_type == "itm":
+                self.prepare_mlm = True
             head_class = registry.get_transformer_head_class(head_type)
             self.heads[task] = head_class(head_config)
+
+        self.modality_keys = self.modality_type = ["text", "image"]
 
     def init_losses(self):
         self.losses = nn.ModuleDict()
@@ -54,8 +62,16 @@ class ViLT(BaseModel):
             self.losses[task] = MMFLoss(loss_config)
 
     def forward(self, sample_list):
+
         text_embedding = self.text_embeddings(sample_list)
         image_embedding = self.image_embeddings(sample_list)
+
+        if self.prepare_itm:
+            sample_list.itm_labels = self._infer_itm_labels(sample_list)
+        if self.prepare_mlm:
+            sample_list.mlm_labels = self._infer_mlm_labels(
+                sample_list, image_embedding.size()[:-1]
+            )
 
         # Feed through encoder
         embeddings = torch.cat([image_embedding, text_embedding], dim=1)
@@ -119,3 +135,43 @@ class ViLT(BaseModel):
             attention_mask = attention_mask[:, None, None, :]
 
         return attention_mask
+
+    def _infer_itm_labels(self, sample_list):
+        input_ids = sample_list["input_ids"]
+        itm_labels = {}
+        if "is_correct" in sample_list:
+            itm_labels["is_correct"] = sample_list["is_correct"]
+        else:
+            itm_labels["is_correct"] = torch.tensor(
+                True, dtype=torch.long, device=input_ids.device
+            )
+
+        return itm_labels
+
+    def _infer_mlm_labels(self, sample_list, image_embeddings_size):
+        input_ids = sample_list["input_ids"]
+        mlm_labels = {}
+        current_text_idx = 0
+        if "lm_label_ids" in sample_list:
+            if sample_list["lm_label_ids"].dim() > 2:
+                mlm_labels["text"] = sample_list["lm_label_ids"][:, current_text_idx]
+                current_text_idx += 1
+            else:
+                mlm_labels["text"] = sample_list["lm_label_ids"]
+        else:
+            mlm_labels["text"] = torch.full(
+                input_ids.size(),
+                fill_value=-1,
+                dtype=torch.long,
+                device=input_ids.device,
+            )
+        mlm_labels["image"] = torch.full(
+            image_embeddings_size,
+            fill_value=-1,
+            dtype=torch.long,
+            device=input_ids.device,
+        )
+        mlm_labels["combined_labels"] = torch.cat(
+            [mlm_labels["text"], mlm_labels["image"]], dim=-1
+        )
+        return mlm_labels
