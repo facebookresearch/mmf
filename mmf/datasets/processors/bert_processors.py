@@ -357,10 +357,11 @@ class MultiSentenceRobertaTokenizer(MultiSentenceBertTokenizer):
 
 @registry.register_processor("vilt_text_processor")
 class VILTTextProcessor(BertTokenizer):
-    from omegaconf import OmegaConf
-
     def __init__(self, config, *args, **kwargs):
-        config.tokenizer_config = self.OmegaConf.create(
-            {"type": "bert-base-uncased", "params": {"do_lower_case": True}}
-        )
+        from omegaconf import OmegaConf, open_dict
+
+        with open_dict(config):
+            config.tokenizer_config = OmegaConf.create(
+                {"type": "bert-base-uncased", "params": {"do_lower_case": True}}
+            )
         super().__init__(config, *args, **kwargs)
