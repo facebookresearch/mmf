@@ -6,7 +6,6 @@ import unittest
 import tests.test_utils as test_utils
 import torch
 from mmf.common.sample import SampleList
-from mmf.modules.hf_layers import replace_with_jit
 from mmf.utils.build import build_model
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports, teardown_imports
@@ -20,7 +19,6 @@ class TestViltPretraining(unittest.TestCase):
     def setUp(self):
         test_utils.setup_proxy()
         setup_imports()
-        replace_with_jit()
         model_name = "vilt"
         args = test_utils.dummy_args(
             model=model_name,
@@ -50,8 +48,7 @@ class TestViltPretraining(unittest.TestCase):
         sample_list.add_field("image", torch.rand((1, 3, 224, 224)).float())
         sample_list.add_field("targets", torch.rand((1, 3129)).float())
 
-        # self.pretrain_model.eval()
-        self.pretrain_model.training = True
+        self.pretrain_model.eval()
         self.pretrain_model = self.pretrain_model.to(get_current_device())
         sample_list = sample_list.to(get_current_device())
 
@@ -60,6 +57,5 @@ class TestViltPretraining(unittest.TestCase):
         with torch.no_grad():
             model_output = self.pretrain_model(sample_list)
 
-        print(model_output)
         self.assertTrue("losses" in model_output)
         self.assertTrue("test/vqa2/logit_bce" in model_output["losses"])
