@@ -804,22 +804,19 @@ class VILTImageEmbedding(Encoder):
 
     @dataclass
     class Config(Encoder.Config):
-        image_size: list = field(default_factory=[224, 224])
+        image_size: list = field(default_factory=lambda: [224, 224])
         hidden_dropout_prob: float = 0
-        hidden_dim: int = 768
         hidden_size: int = 768
         patch_size: int = 16
         num_channels: int = 3
         random_init: bool = True
+        image_encoder: Any = None
 
     def __init__(self, config: Config):
         super().__init__()
         self.config = config
 
-        print("image embedding config:", config)
-        if not getattr(config, "random_init", False) and hasattr(
-            config, "image_encoder"
-        ):
+        if not config.random_init and config.image_encoder is not None:
             self.embedding = ViTEncoder(self.config.image_encoder.params).embeddings
         else:
             self.embedding = vit.ViTEmbeddings(config)
@@ -851,6 +848,7 @@ class VILTTextEmbedding(Encoder):
     class Config(Encoder.Config):
         hidden_dim: int = 768
         hidden_size: int = 768
+        bert_model_name: str = "bert-base-uncased"
 
     def __init__(self, config: Config):
 
