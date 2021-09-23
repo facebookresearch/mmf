@@ -26,10 +26,62 @@ from transformers.modeling_roberta import (
 from transformers.modeling_utils import PreTrainedModel
 
 
+original_functions = {}
+
+
 def replace_with_jit():
     """
     Monkey patch some transformer functions to replace with scriptable ones.
     """
+    # to revert monkey patch without reload()
+    original_functions["BertEmbeddings.forward"] = original_functions.get(
+        "BertEmbeddings.forward", BertEmbeddings.forward
+    )
+    original_functions["BertEncoder.forward"] = original_functions.get(
+        "BertEncoder.forward", BertEncoder.forward
+    )
+    original_functions["BertLayer.forward"] = original_functions.get(
+        "BertLayer.forward", BertLayer.forward
+    )
+    original_functions["BertAttention.forward"] = original_functions.get(
+        "BertAttention.forward", BertAttention.forward
+    )
+    original_functions["BertSelfAttention.forward"] = original_functions.get(
+        "BertSelfAttention.forward", BertSelfAttention.forward
+    )
+    original_functions[
+        "BertSelfAttention.transpose_for_scores"
+    ] = original_functions.get(
+        "BertSelfAttention.transpose_for_scores", BertSelfAttention.transpose_for_scores
+    )
+    original_functions["BertModel.forward"] = original_functions.get(
+        "BertModel.forward", BertModel.forward
+    )
+    original_functions["RobertaEmbeddings.forward"] = original_functions.get(
+        "RobertaEmbeddings.forward", RobertaEmbeddings.forward
+    )
+    original_functions["RobertaEncoder.forward"] = original_functions.get(
+        "RobertaEncoder.forward", RobertaEncoder.forward
+    )
+    original_functions["RobertaLayer.forward"] = original_functions.get(
+        "RobertaLayer.forward", RobertaLayer.forward
+    )
+    original_functions["RobertaAttention.forward"] = original_functions.get(
+        "RobertaAttention.forward", RobertaAttention.forward
+    )
+    original_functions["RobertaSelfAttention.forward"] = original_functions.get(
+        "RobertaSelfAttention.forward", RobertaSelfAttention.forward
+    )
+    original_functions[
+        "RobertaSelfAttention.transpose_for_scores"
+    ] = original_functions.get(
+        "RobertaSelfAttention.transpose_for_scores",
+        RobertaSelfAttention.transpose_for_scores,
+    )
+    original_functions["RobertaModel.forward"] = original_functions.get(
+        "RobertaModel.forward", RobertaModel.forward
+    )
+
     BertEmbeddings.forward = BertEmbeddingsJit.forward
     BertEncoder.forward = BertEncoderJit.forward
     BertLayer.forward = BertLayerJit.forward
@@ -52,6 +104,52 @@ def replace_with_jit():
         BertSelfAttentionJit.transpose_for_scores
     )
     RobertaModel.forward = BertModelJit.forward
+    print("replace")
+
+
+def undo_replace_with_jit():
+    """
+    Reload modules to undo monkey patch.
+    """
+    BertEmbeddings.forward = original_functions.get(
+        "BertEmbeddings.forward", BertEmbeddings.forward
+    )
+    BertEncoder.forward = original_functions.get(
+        "BertEncoder.forward", BertEncoder.forward
+    )
+    BertLayer.forward = original_functions.get("BertLayer.forward", BertLayer.forward)
+    BertAttention.forward = original_functions.get(
+        "BertAttention.forward", BertAttention.forward
+    )
+    BertSelfAttention.forward = original_functions.get(
+        "BertSelfAttention.forward", BertSelfAttention.forward
+    )
+    BertSelfAttention.transpose_for_scores = original_functions.get(
+        "BertSelfAttention.transpose_for_scores", BertSelfAttention.transpose_for_scores
+    )
+    BertModel.forward = original_functions.get("BertModel.forward", BertModel.forward)
+    RobertaEmbeddings.forward = original_functions.get(
+        "RobertaEmbeddings.forward", RobertaEmbeddings.forward
+    )
+    RobertaEncoder.forward = original_functions.get(
+        "RobertaEncoder.forward", RobertaEncoder.forward
+    )
+    RobertaLayer.forward = original_functions.get(
+        "RobertaLayer.forward", RobertaLayer.forward
+    )
+    RobertaAttention.forward = original_functions.get(
+        "RobertaAttention.forward", RobertaAttention.forward
+    )
+    RobertaSelfAttention.forward = original_functions.get(
+        "RobertaSelfAttention.forward", RobertaSelfAttention.forward
+    )
+    RobertaSelfAttention.transpose_for_scores = original_functions.get(
+        "RobertaSelfAttention.transpose_for_scores",
+        RobertaSelfAttention.transpose_for_scores,
+    )
+    RobertaModel.forward = original_functions.get(
+        "RobertaModel.forward", RobertaModel.forward
+    )
 
 
 class BertEmbeddingsJit(BertEmbeddings):
