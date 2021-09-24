@@ -41,7 +41,10 @@ class ViLT(BaseModel):
             head_type = head_config.get("type", "mlp")
             if head_type == "itm":
                 self.prepare_itm = True
-            elif head_type == "itm":
+            elif head_type == "mlm":
+                self.prepare_mlm = True
+            elif head_type == "mlm_itm":
+                self.prepare_itm = True
                 self.prepare_mlm = True
             head_class = registry.get_transformer_head_class(head_type)
             self.heads[task] = head_class(head_config)
