@@ -4,7 +4,7 @@ model_config:
         type: vit
     heads:
       vqa2:
-        type: multilayer_mlp
+        type: mlp
         freeze: false
         lr_multiplier: 1.0
         in_dim: 768
