@@ -746,8 +746,8 @@ class ViTEncoder(Encoder):
 
         super().__init__()
         self.config = config
-        random_init = self.config.get("random_init", False)
-        gradient_checkpointing = self.config.get("gradient_checkpointing", False)
+        random_init = config.get("random_init", False)
+        gradient_checkpointing = config.get("gradient_checkpointing", False)
 
         hf_config = retry_n(
             6,
