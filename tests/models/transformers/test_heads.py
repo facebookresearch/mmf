@@ -6,7 +6,7 @@ import torch
 from mmf.common.sample import Sample
 from mmf.models.transformers.heads.itm import ITM
 from mmf.models.transformers.heads.mlm import MLM
-from mmf.models.transformers.heads.mlp import MLP, MultiLayerMLP
+from mmf.models.transformers.heads.mlp import MLP
 from omegaconf import OmegaConf
 from tests.test_utils import skip_if_no_cuda
 
@@ -78,7 +78,7 @@ class TestMutilayerMLPHead(unittest.TestCase):
     def setUp(self):
         self.config = OmegaConf.create(
             {
-                "type": "multilayer_mlp",
+                "type": "mlp",
                 "num_labels": 2,
                 "hidden_size": 768,
                 "num_layers": 2,
@@ -88,7 +88,7 @@ class TestMutilayerMLPHead(unittest.TestCase):
         )
 
     def test_forward(self):
-        module = MultiLayerMLP(self.config)
+        module = MLP(self.config)
         sequence_input = torch.ones(size=(1, 64, 768), dtype=torch.float)
         encoder_output = [sequence_input, sequence_input]
         processed_sample_list = {}

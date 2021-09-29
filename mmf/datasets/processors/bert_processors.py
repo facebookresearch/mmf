@@ -355,8 +355,8 @@ class MultiSentenceRobertaTokenizer(MultiSentenceBertTokenizer):
         self._probability = config.get("mask_probability", 0)
 
 
-@registry.register_processor("vilt_text_processor")
-class VILTTextProcessor(BertTokenizer):
+@registry.register_processor("vilt_text_tokenizer")
+class VILTTextTokenizer(BertTokenizer):
     def __init__(self, config, *args, **kwargs):
         from omegaconf import OmegaConf, open_dict
 
