@@ -39,6 +39,7 @@ class MMFTrainer(
         super().__init__(config)
 
     def load(self):
+        self._is_fsdp_enabled = OmegaConf.select(self.config, "training.fsdp.enabled", default=False)
         super().load()
         self.load_fp16_scaler()
 
@@ -51,7 +52,10 @@ class MMFTrainer(
         # Callbacks
         self.on_init_end()
 
-    def configure_callbacks(self):
+    def configure_callbacks(self, force_init=False):
+        if self._is_fsdp_enabled and not force_init:
+            return
+
         self.checkpoint_callback = CheckpointCallback(self.config, self)
         self.early_stop_callback = EarlyStoppingCallback(self.config, self)
         self.logistics_callback = LogisticsCallback(self.config, self)
@@ -82,7 +86,11 @@ class MMFTrainer(
         self.val_loader = self.dataset_loader.val_dataloader()
         self.test_loader = self.dataset_loader.test_dataloader()
 
-    def load_model(self):
+    def load_model(self, force_init=False, build_callback=None):
+        if self._is_fsdp_enabled and not force_init:
+            self.model = None
+            return
+
         logger.info("Loading model")
         if self.config.model in self.config.model_config:
             attributes = self.config.model_config[self.config.model]
@@ -99,10 +107,18 @@ class MMFTrainer(
         with omegaconf.open_dict(attributes):
             attributes.model = self.config.model
 
-        self.model = build_model(attributes)
+        if build_callback:
+            self.model = build_callback(build_model(attributes))
+        else:
+            self.model = build_model(attributes)
+
         self.model = self.model.to(self.device)
 
-    def load_optimizer(self):
+    def load_optimizer(self, force_init=False):
+        if self._is_fsdp_enabled and not force_init:
+            self.optimizer = None
+            return
+
         logger.info("Loading optimizer")
         self.optimizer = build_optimizer(self.model, self.config)
 
@@ -120,20 +136,26 @@ class MMFTrainer(
             assert self.device != torch.device("cpu"), "fp16 cannot be used on cpu"
 
         set_torch_grad_scaler = True
-        if self.training_config.fp16 and self.distributed:
-            try:
-                from fairscale.optim.grad_scaler import ShardedGradScaler
-                from fairscale.optim.oss import OSS
+        try:
+            from fairscale.optim.grad_scaler import ShardedGradScaler
+            from fairscale.optim.oss import OSS
 
+            if self._is_fsdp_enabled:
+                self.scaler = ShardedGradScaler()
+                set_torch_grad_scaler = False
+            elif self.training_config.fp16 and self.distributed:
                 if isinstance(self.optimizer, OSS):
                     self.scaler = ShardedGradScaler()
                     set_torch_grad_scaler = False
-                    logger.info("Using FairScale ShardedGradScaler")
-            except ImportError:
-                logger.info("Using Pytorch AMP GradScaler")
+        except ImportError:
+            pass
 
         if set_torch_grad_scaler:
-            self.scaler = torch.cuda.amp.GradScaler(enabled=self.training_config.fp16)
+            logger.info("Using Pytorch AMP GradScaler")
+            # self.scaler = torch.cuda.amp.GradScaler(enabled=self.training_config.fp16)
+            self.scaler = torch.cuda.amp.GradScaler(enabled=False)
+        else:
+            logger.info("Using FairScale ShardedGradScaler")
 
     def train(self):
         logger.info("===== Model =====")

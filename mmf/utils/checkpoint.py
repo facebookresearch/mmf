@@ -175,7 +175,7 @@ class Checkpoint:
         self.trainer = trainer
 
         self.config = self.trainer.config
-        self.is_fsdp = self.config.get("training.fsdp.enabled", False)
+        self.is_fsdp = OmegaConf.select(self.config, "training.fsdp.enabled", default=False)
         self.save_dir = get_mmf_env(key="save_dir")
         self.model_name = self.config.model
         self.ckpt_foldername = self.save_dir
@@ -428,7 +428,10 @@ class Checkpoint:
         new_dict = {}
         for attr in state_dict:
             new_attr = model.format_state_key(attr)
-            if not data_parallel and attr.startswith("module."):
+            if self.is_fsdp:
+                # For starters, let's just skip in case of fsdp
+                pass
+            elif not data_parallel and attr.startswith("module."):
                 # In case the ckpt was actually a data parallel model
                 # replace first module. from dataparallel with empty string
                 new_attr = new_attr.replace("module.", "", 1)
@@ -504,6 +507,7 @@ class Checkpoint:
         #
         # FSDP state_dict also does synchronization and thus we require to call
         # state_dict() method on all processes.
+
         if not is_master() and not is_xla() and not self.is_fsdp:
             return
 
@@ -536,7 +540,7 @@ class Checkpoint:
         if fp16_scaler is not None:
             fp16_scaler_dict = fp16_scaler.state_dict()
 
-        if data_parallel is True:
+        if data_parallel is True and not self.is_fsdp:
             model = model.module
 
         ckpt = {

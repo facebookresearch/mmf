@@ -3,10 +3,12 @@
 import logging
 from abc import ABC
 from typing import Any, Dict, Tuple, Type
+from xml.etree.ElementPath import prepare_parent
 
 import torch
 import tqdm
 from caffe2.python.timeout_guard import CompleteInTimeOrDie
+from torch import Tensor
 from mmf.common.meter import Meter
 from mmf.common.report import Report
 from mmf.common.sample import to_device
@@ -41,15 +43,12 @@ class TrainerEvaluationLoopMixin(ABC):
                     with CompleteInTimeOrDie(600 if loaded_batches else 3600 * 24):
                         loaded_batches += 1
                         prepared_batch = reporter.prepare_batch(batch)
-                        prepared_batch = to_device(prepared_batch, self.device)
                         if not validate_batch_sizes(prepared_batch.get_batch_size()):
                             logger.info("Skip batch due to uneven batch sizes.")
                             skipped_batches += 1
                             continue
-                        model_output = self.model(prepared_batch)
-                        report = Report(prepared_batch, model_output)
-                        report = report.detach()
 
+                        report = self._forward(prepared_batch)
                         meter.update_from_report(report)
 
                         moved_report = report
@@ -84,8 +83,10 @@ class TrainerEvaluationLoopMixin(ABC):
                         if single_batch is True:
                             break
 
-                logger.info(f"Finished training. Loaded {loaded_batches}")
-                logger.info(f" -- skipped {skipped_batches} batches.")
+                logger.info(
+                    f"Finished training. Loaded {loaded_batches} and "
+                    + f"skipped {skipped_batches} batches."
+                )
 
                 reporter.postprocess_dataset_report()
                 assert (
@@ -112,6 +113,14 @@ class TrainerEvaluationLoopMixin(ABC):
             self.model.train()
 
         return combined_report, meter
+
+    def _forward(self, batch: Dict[str, Tensor]) -> Report:
+        prepared_batch = to_device(batch, self.device)
+        with torch.cuda.amp.autocast(enabled=self.training_config.fp16):
+            model_output = self.model(prepared_batch)
+            report = Report(prepared_batch, model_output)
+        report = report.detach()
+        return report
 
     def prediction_loop(self, dataset_type: str) -> None:
         reporter = self.dataset_loader.get_test_reporter(dataset_type)

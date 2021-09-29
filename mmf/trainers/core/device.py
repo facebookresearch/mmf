@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+from cgitb import enable
 import logging
 import warnings
 from abc import ABC
@@ -84,27 +85,31 @@ class TrainerDeviceMixin(ABC):
             registry.register("distributed", True)
             set_torch_ddp = True
             try:
-                from fairscale import __version__ as fairscale_version
                 from fairscale.nn.data_parallel import ShardedDataParallel
                 from fairscale.optim.oss import OSS
+                from mmf.trainers.fsdp.fsdp_utils import FullyShardedDataParallel
 
-                if version.parse(fairscale_version) >= version.parse("0.3"):
-                    from fairscale.nn.data_parallel import FullyShardedDataParallel
-                else:
-                    FullyShardedDataParallel = None
-
-                if training_config.get("fsdp.enabled", False):
-                    self.model = FullyShardedDataParallel(
-                        self.model,
+                fsdp_config = training_config.get("fsdp", {})
+                if fsdp_config.get("enabled", False):
+                    from fairscale.nn import default_auto_wrap_policy, enable_wrap, wrap
+                    with enable_wrap(
+                        auto_wrap_policy=default_auto_wrap_policy,
+                        wrapper_cls=FullyShardedDataParallel,
                         mixed_precision=(
                             training_config.get("fp16", False)
-                            or training_config.get("fsdp.mixed_precision", False)
+                            or fsdp_config.get("mixed_precision", False)
                         ),
-                        reshard_after_forward=training_config.get(
-                            "fsdp.reshard_after_forward", True
+                        reshard_after_forward=fsdp_config.get(
+                            "reshard_after_forward", True
                         ),
-                        cpu_offload=training_config.get("fsdp.cpu_offload", False),
-                    )
+                        cpu_offload=fsdp_config.get("cpu_offload", False),
+                        flatten_parameters=True,
+                    ):
+                        self.load_model(force_init=True, build_callback=wrap)
+                        self.load_optimizer(force_init=True)
+                        self.configure_callbacks(force_init=True)
+                        self.on_init_start()
+                    set_torch_ddp = False
                 elif isinstance(self.optimizer, OSS):
                     self.model = ShardedDataParallel(self.model, self.optimizer)
                     set_torch_ddp = False

@@ -138,9 +138,9 @@ def get_absolute_path(paths):
 def get_optimizer_parameters(model, config):
     parameters = model.parameters()
 
-    has_custom = hasattr(model, "get_optimizer_parameters")
-    if has_custom:
-        parameters = model.get_optimizer_parameters(config)
+    # has_custom = hasattr(model, "get_optimizer_parameters")
+    # if has_custom:
+    #     parameters = model.get_optimizer_parameters(config)
 
     is_parallel = isinstance(model, nn.DataParallel) or isinstance(
         model, nn.parallel.DistributedDataParallel
@@ -171,13 +171,26 @@ def get_optimizer_parameters(model, config):
 def check_unused_parameters(parameters, model, config):
     optimizer_param_set = {p for group in parameters for p in group["params"]}
     unused_param_names = []
+    used_param_names = []
     for n, p in model.named_parameters():
         if p.requires_grad and p not in optimizer_param_set:
             unused_param_names.append(n)
+        else:
+            used_param_names.append(n)
     if len(unused_param_names) > 0:
         logger.info(
             "Model parameters not used by optimizer: {}".format(
                 " ".join(unused_param_names)
+            )
+        )
+        logger.info(
+            "Actual parameters used by optimizer: {}".format(
+                " ".join(used_param_names)
+            )
+        )
+        logger.info(
+            "Counts: {}, {}".format(
+                len(unused_param_names), len(optimizer_param_set)
             )
         )
         if not config.optimizer.allow_unused_parameters:

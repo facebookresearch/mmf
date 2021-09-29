@@ -2,7 +2,8 @@
 import numpy as np
 import torch
 from mmf.utils.distributed import is_master, is_xla
-
+from mmf.common.registry import registry
+from omegaconf import OmegaConf
 
 class EarlyStopping:
     """
@@ -35,6 +36,8 @@ class EarlyStopping:
         self.should_stop = should_stop
         self.activated = False
         self.metric = self.early_stop_criteria
+        self._is_fsdp = OmegaConf.select(registry.get("config", {}), "training.fsdp.enabled", default=False)
+
 
     def __call__(self, update, iteration, meter):
         """
@@ -46,6 +49,11 @@ class EarlyStopping:
         Returns:
             bool -- Tells whether early stopping occurred or not
         """
+        # NOTE: FSDP causes issues with our early stopping class.
+        # Disabling it until we find a solution
+        if self._is_fsdp:
+            return False
+
         # There are operations involving synchronization downstream
         # For XLA those calls must be executed from all cores
         # Therefore we do return here in case of XLA
