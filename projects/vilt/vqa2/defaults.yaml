@@ -16,7 +16,7 @@ dataset_config:
           - ${other_configs.image_w}
           - ${other_configs.image_h}
       text_processor:
-        type: vilt_text_processor
+        type: vilt_text_tokenizer
         params:
           mask_probability: 0
           max_seq_length: 25
@@ -26,7 +26,7 @@ model_config:
     tasks: ${datasets}
     heads:
       vqa2:
-        type: multilayer_mlp
+        type: mlp
         num_labels: 3129
 
     losses:
