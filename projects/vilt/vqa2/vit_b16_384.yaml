@@ -12,7 +12,7 @@ model_config:
     tasks: ${datasets}
     heads:
       vqa2:
-        type: multilayer_mlp
+        type: mlp
         num_labels: 3129
 
     image_encoder:
