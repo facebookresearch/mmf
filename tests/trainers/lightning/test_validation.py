@@ -99,7 +99,7 @@ class TestLightningTrainerValidation(unittest.TestCase):
                     # rather than 0, since 1 update/step has already been done.
                     #
                     # When lightning fixes its bug, we will update this test to remove
-                    # the hack
+                    # the hack. # issue: 6997 in pytorch lightning
                     self.assertAlmostEqual(gt[key], lv[key] - 1, 1)
                 else:
                     self.assertAlmostEqual(gt[key], lv[key], 1)
