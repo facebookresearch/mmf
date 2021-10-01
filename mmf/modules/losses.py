@@ -187,21 +187,31 @@ class MMFLoss(nn.Module):
             self.loss_criterion = loss_class(**loss_params)
 
     def forward(self, sample_list: Dict[str, Tensor], model_output: Dict[str, Tensor]):
-        loss = self.loss_criterion(sample_list, model_output)
+        loss_dict = {}
+        loss_result = self.loss_criterion(sample_list, model_output)
 
-        if not isinstance(loss, torch.Tensor):
-            loss = torch.tensor(loss, dtype=torch.float)
+        if not isinstance(loss_result, collections.abc.Mapping):
+            loss_result = {"": loss_result}
 
-        if loss.dim() == 0:
-            loss = loss.view(1)
+        for child_loss_name, child_loss_result in loss_result.items():
 
-        if not torch.jit.is_scripting():
-            key = "{}/{}/{}".format(
-                sample_list.dataset_type, sample_list.dataset_name, self.name
-            )
-        else:
-            key = f"{self.name}"
-        return {key: loss}
+            if not isinstance(child_loss_result, torch.Tensor):
+                child_loss_result = torch.tensor(child_loss_result, dtype=torch.float)
+
+            if child_loss_result.dim() == 0:
+                child_loss_result = child_loss_result.view(1)
+
+            if not torch.jit.is_scripting():
+                key = "{}/{}/{}".format(
+                    sample_list.dataset_type, sample_list.dataset_name, self.name
+                )
+            else:
+                key = f"{self.name}"
+
+            key = f"{key}/{child_loss_name}" if child_loss_name else key
+            loss_dict[key] = child_loss_result
+
+        return loss_dict
 
 
 @registry.register_loss("logit_bce")
@@ -816,4 +826,38 @@ class CosineEmbeddingLoss(nn.Module):
         scores = model_output["scores"]
         y = torch.ones(targets.size(0)).to(targets.device)
         loss = self.loss_fn(scores, targets, y)
+        return loss
+
+
+@registry.register_loss("bce_kl")
+class BCEAndKLLoss(nn.Module):
+    """binary_cross_entropy_with_logits and kl divergence loss.
+    Calculates both losses and returns a dict with string keys.
+    Similar to bce_kl_combined, but returns both losses.
+    """
+
+    def __init__(self, weight_softmax):
+        super().__init__()
+        self.weight_softmax = weight_softmax
+
+    def forward(self, sample_list, model_output):
+        pred_score = model_output["scores"]
+        target_score = sample_list["targets"]
+
+        tar_sum = torch.sum(target_score, dim=1, keepdim=True)
+        tar_sum_is_0 = torch.eq(tar_sum, 0)
+        tar_sum.masked_fill_(tar_sum_is_0, 1.0e-06)
+        tar = target_score / tar_sum
+
+        res = F.log_softmax(pred_score, dim=1)
+        loss1 = kl_div(res, tar)
+        loss1 = torch.sum(loss1) / loss1.size(0)
+
+        loss2 = F.binary_cross_entropy_with_logits(
+            pred_score, target_score, reduction="mean"
+        )
+        loss2 *= target_score.size(1)
+
+        loss = {"kl": self.weight_softmax * loss1, "bce": loss2}
+
         return loss
