@@ -182,7 +182,7 @@ class TestDatasetProcessors(unittest.TestCase):
         config = OmegaConf.create({"size": [size, size]})
         image_processor = VILTImageProcessor(config)
 
-        expected_size = torch.Size([size, size])
+        expected_size = torch.Size([3, size, size])
 
         image = ToPILImage()(torch.ones(3, 300, 500))
         processed_image = image_processor(image)

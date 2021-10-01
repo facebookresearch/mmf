@@ -6,6 +6,7 @@ from mmf.trainers.callbacks.base import Callback
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.logger import (
     TensorboardLogger,
+    WandbLogger,
     calculate_time_left,
     setup_output_folder,
     summarize_report,
@@ -40,6 +41,8 @@ class LogisticsCallback(Callback):
 
         self.tb_writer = None
 
+        self.wandb_logger = None
+
         if self.training_config.tensorboard:
             log_dir = setup_output_folder(folder_only=True)
             env_tb_logdir = get_mmf_env(key="tensorboard_logdir")
@@ -47,6 +50,20 @@ class LogisticsCallback(Callback):
                 log_dir = env_tb_logdir
 
             self.tb_writer = TensorboardLogger(log_dir, self.trainer.current_iteration)
+
+        if self.training_config.wandb.enabled:
+            log_dir = setup_output_folder(folder_only=True)
+
+            env_wandb_logdir = get_mmf_env(key="wandb_logdir")
+            if env_wandb_logdir:
+                log_dir = env_wandb_logdir
+
+            wandb_projectname = config.trainer.wandb.wandb_projectname
+            wandb_runname = config.trainer.wandb.wandb_runname
+
+            self.wandb_logger = WandbLogger(
+                name=wandb_runname, save_dir=log_dir, project=wandb_projectname
+            )
 
     def on_train_start(self):
         self.train_timer = Timer()
@@ -97,6 +114,7 @@ class LogisticsCallback(Callback):
             meter=kwargs["meter"],
             extra=extra,
             tb_writer=self.tb_writer,
+            wandb_logger=self.wandb_logger,
         )
 
     def on_validation_start(self, **kwargs):
