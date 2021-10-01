@@ -23,7 +23,7 @@ def load_yaml(f):
     abs_f = get_absolute_path(f)
 
     try:
-        mapping = OmegaConf.load(abs_f)
+        mapping = OmegaConf.load(PathManager.get_local_path(abs_f))
         f = abs_f
     except FileNotFoundError as e:
         # Check if this file might be relative to root?
@@ -33,7 +33,7 @@ def load_yaml(f):
             raise e
         else:
             f = relative
-            mapping = OmegaConf.load(f)
+            mapping = OmegaConf.load(PathManager.get_local_path(f))
 
     if mapping is None:
         mapping = OmegaConf.create()

@@ -56,6 +56,7 @@ from sklearn.metrics import (
     average_precision_score,
     f1_score,
     precision_recall_curve,
+    precision_recall_fscore_support,
     roc_auc_score,
 )
 from torch import Tensor
@@ -152,18 +153,27 @@ class Metrics:
             for metric_name, metric_object in self.metrics.items():
                 if not metric_object.is_dataset_applicable(dataset_name):
                     continue
-                key = f"{dataset_type}/{dataset_name}/{metric_name}"
-                values[key] = metric_object._calculate_with_checks(
+
+                metric_result = metric_object._calculate_with_checks(
                     sample_list, model_output, *args, **kwargs
                 )
 
-                if not isinstance(values[key], torch.Tensor):
-                    values[key] = torch.tensor(values[key], dtype=torch.float)
-                else:
-                    values[key] = values[key].float()
+                if not isinstance(metric_result, collections.abc.Mapping):
+                    metric_result = {"": metric_result}
 
-                if values[key].dim() == 0:
-                    values[key] = values[key].view(1)
+                for child_metric_name, child_metric_result in metric_result.items():
+                    key = f"{dataset_type}/{dataset_name}/{metric_name}"
+                    key = f"{key}/{child_metric_name}" if child_metric_name else key
+
+                    values[key] = child_metric_result
+
+                    if not isinstance(values[key], torch.Tensor):
+                        values[key] = torch.tensor(values[key], dtype=torch.float)
+                    else:
+                        values[key] = values[key].float()
+
+                    if values[key].dim() == 0:
+                        values[key] = values[key].view(1)
 
         registry.register(
             "{}.{}.{}".format("metrics", sample_list.dataset_name, dataset_type), values
@@ -818,7 +828,7 @@ class BinaryF1(F1):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__(average="micro", labels=[1], **kwargs)
+        super().__init__(average="binary", **kwargs)
         self.name = "binary_f1"
 
 
@@ -856,6 +866,95 @@ class MultiLabelMacroF1(MultiLabelF1):
     def __init__(self, *args, **kwargs):
         super().__init__(average="macro", **kwargs)
         self.name = "multilabel_macro_f1"
+
+
+@registry.register_metric("f1_precision_recall")
+class F1PrecisionRecall(BaseMetric):
+    """Metric for calculating F1 precision and recall.
+    params will be directly passed to sklearn
+    precision_recall_fscore_support function.
+    **Key:** ``f1_precision_recall``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__("f1_precision_recall")
+        self._multilabel = kwargs.pop("multilabel", False)
+        self._sk_kwargs = kwargs
+
+    def calculate(self, sample_list, model_output, *args, **kwargs):
+        """Calculate f1_precision_recall and return it back as a dict.
+
+        Args:
+            sample_list (SampleList): SampleList provided by DataLoader for
+                                current iteration
+            model_output (Dict): Dict returned by model.
+
+        Returns:
+            Dict(
+                'f1':         torch.FloatTensor,
+                'precision':  torch.FloatTensor,
+                'recall':     torch.FloatTensor
+            )
+        """
+        scores = model_output["scores"]
+        expected = sample_list["targets"]
+
+        if self._multilabel:
+            output = torch.sigmoid(scores)
+            output = torch.round(output)
+            expected = _convert_to_one_hot(expected, output)
+        else:
+            # Multiclass, or binary case
+            output = scores.argmax(dim=-1)
+            if expected.dim() != 1:
+                # Probably one-hot, convert back to class indices array
+                expected = expected.argmax(dim=-1)
+
+        value_tuple = precision_recall_fscore_support(
+            expected.cpu(), output.cpu(), **self._sk_kwargs
+        )
+        value = {
+            "precision": expected.new_tensor(value_tuple[0], dtype=torch.float),
+            "recall": expected.new_tensor(value_tuple[1], dtype=torch.float),
+            "f1": expected.new_tensor(value_tuple[2], dtype=torch.float),
+        }
+        return value
+
+
+@registry.register_metric("binary_f1_precision_recall")
+class BinaryF1PrecisionRecall(F1PrecisionRecall):
+    """Metric for calculating Binary F1 Precision and Recall.
+
+    **Key:** ``binary_f1_precision_recall``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(average="binary", **kwargs)
+        self.name = "binary_f1_precision_recall"
+
+
+@registry.register_metric("macro_f1_precision_recall")
+class MacroF1PrecisionRecall(F1PrecisionRecall):
+    """Metric for calculating Macro F1 Precision and Recall.
+
+    **Key:** ``macro_f1_precision_recall``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(average="macro", **kwargs)
+        self.name = "macro_f1_precision_recall"
+
+
+@registry.register_metric("micro_f1_precision_recall")
+class MicroF1PrecisionRecall(F1PrecisionRecall):
+    """Metric for calculating Micro F1 Precision and Recall.
+
+    **Key:** ``micro_f1_precision_recall``
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(average="micro", **kwargs)
+        self.name = "micro_f1_precision_recall"
 
 
 @registry.register_metric("roc_auc")
