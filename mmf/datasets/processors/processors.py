@@ -79,6 +79,7 @@ from typing import Any, Dict, Optional, Union
 
 import numpy as np
 import torch
+from mmf.common.constants import IMAGE_COLOR_MEAN, IMAGE_COLOR_STD
 from mmf.common.registry import registry
 from mmf.common.typings import ProcessorConfigType
 from mmf.utils.configuration import get_mmf_cache_dir, get_mmf_env
@@ -726,7 +727,8 @@ class GraphVQAAnswerProcessor(BaseProcessor):
     "answers" or "answers_tokens". "answers" are preprocessed to generate
     "answers_tokens" if passed.
 
-    This version also takes a graph vocab and predicts a main and graph stream simultanously
+    This version also takes a graph vocab and predicts a main and graph
+    stream simultanously
 
     Args:
         config (DictConfig): Configuration for the processor
@@ -1751,14 +1753,14 @@ class DETRImageAndTargetProcessor(BaseProcessor):
                     ),
                 ),
                 T.ToTensor(),
-                T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                T.Normalize(IMAGE_COLOR_MEAN, IMAGE_COLOR_STD),
             ]
         )
         self.inference_transform = T.Compose(
             [
                 T.RandomResize([config.test_image_size], max_size=config.max_size),
                 T.ToTensor(),
-                T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                T.Normalize(IMAGE_COLOR_MEAN, IMAGE_COLOR_STD),
             ]
         )
 
