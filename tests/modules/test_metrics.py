@@ -145,6 +145,32 @@ class TestModuleMetrics(unittest.TestCase):
 
         self.assertAlmostEqual(float(metric.calculate(sample, predicted)), value)
 
+    def _test_binary_dict_metric(self, metric, value_dict):
+        sample = Sample()
+        predicted = dict()
+
+        sample.targets = torch.tensor(
+            [[0, 1], [1, 0], [1, 0], [0, 1]], dtype=torch.float
+        )
+        predicted["scores"] = torch.tensor(
+            [
+                [-0.9332, 0.8149],
+                [-0.8391, 0.6797],
+                [-0.7235, 0.7220],
+                [-0.9043, 0.3078],
+            ],
+            dtype=torch.float,
+        )
+
+        metric_result = metric.calculate(sample, predicted)
+        for key, val in value_dict.items():
+            self.assertAlmostEqual(metric_result[key].item(), val, 4)
+
+        sample.targets = torch.tensor([1, 0, 0, 1], dtype=torch.long)
+        metric_result = metric.calculate(sample, predicted)
+        for key, val in value_dict.items():
+            self.assertAlmostEqual(metric_result[key].item(), val, 4)
+
     def test_micro_f1(self):
         metric = metrics.MicroF1()
         self._test_binary_metric(metric, 0.5)
@@ -166,6 +192,24 @@ class TestModuleMetrics(unittest.TestCase):
     def test_multilabel_macro_f1(self):
         metric = metrics.MultiLabelMacroF1()
         self._test_multilabel_metric(metric, 0.355555)
+
+    def test_micro_f1_precision_recall(self):
+        metric = metrics.MicroF1PrecisionRecall()
+        self._test_binary_dict_metric(
+            metric, {"f1": 0.5, "precision": 0.5, "recall": 0.5}
+        )
+
+    def test_macro_f1_precision_recall(self):
+        metric = metrics.MacroF1PrecisionRecall()
+        self._test_binary_dict_metric(
+            metric, {"f1": 0.3333, "precision": 0.25, "recall": 0.5}
+        )
+
+    def test_binary_f1_precision_recall(self):
+        metric = metrics.BinaryF1PrecisionRecall()
+        self._test_binary_dict_metric(
+            metric, {"f1": 0.66666666, "precision": 0.5, "recall": 1.0}
+        )
 
     def test_macro_roc_auc(self):
         metric = metrics.MacroROC_AUC()
