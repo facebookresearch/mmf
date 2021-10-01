@@ -4,12 +4,48 @@ other_configs:
   hidden_size: 768
 
 dataset_config:
-  masked_coco:
-    zoo_requirements:
-    - coco.defaults
-    return_features_info: true
-    use_features: false
-    use_images: true
+  cmd:
+    false_caption: true
+    false_caption_probability: 0.1
+
+    images:
+      train:
+      # COCO
+      - coco/defaults/images/trainval2014
+      - coco/defaults/images/trainval2014
+      # VG Regions
+      - /datasets01/VisualGenome1.2/061517/VG_100K_all/
+      # CC 12M
+      - /large_experiments/cmd/cc12m/images
+      # CC 3M
+      - /large_experiments/cmd/cc/training
+      # SBU Captions
+      - /large_experiments/cmd/sbu_captions/images
+      # YFCC
+      - /large_experiments/cmd/yfcc100m_filtered
+      val:
+      - coco/defaults/images/trainval2014
+      test:
+      - coco/defaults/images/trainval2014
+    annotations:
+      train:
+      # COCO
+      - /checkpoint/vedanuj/vqa_data/data/imdb/caption/imdb_karpathy_train.npy
+      - /checkpoint/vedanuj/vqa_data/data/imdb/caption/imdb_karpathy_restval.npy
+      # VG Regions
+      - /large_experiments/cmd/visual_genome/vg_region_annotations.npy
+      # CC 12M
+      - /large_experiments/cmd/cc12m/captions_cleaned.npy
+      # CC 3M
+      - /large_experiments/cmd/cc/train_all.npy
+      # SBU Captions
+      - /large_experiments/cmd/sbu_captions/captions.npy
+      # YFCC
+      - /large_experiments/cmd/yfcc100m_filtered/descriptions.npy
+      val:
+      - coco/defaults/annotations/imdb_karpathy_val_by_image.npy
+      test:
+      - coco/defaults/annotations/imdb_karpathy_val_by_image.npy
     processors:
       image_processor:
         type: vilt_image_processor
@@ -22,26 +58,23 @@ dataset_config:
         params:
           mask_probability: 0
           max_seq_length: 25
-    images:
-      train:
-      - coco/defaults/images/train2014
-      - coco/defaults/images/val2014
-      - coco/defaults/images/train2014
-      - coco/defaults/images/val2014
-      - coco/defaults/images/val2014
-      val:
-      - coco/defaults/images/val2014
-      test:
-      - coco/defaults/images/test2015
 
 model_config:
   vilt:
     tasks: ${datasets}
     heads:
-      vqa2:
-        type: mlp
-        num_labels: 3129
-
+      cmd:
+        type: mlm_itm
+        mlm_config:
+          freeze: false
+          lr_multiplier: 1.0
+          vocab_size: 30522
+          hidden_size: 768
+        itm_config:
+          hidden_size: 768
+          label_key: is_correct
+          freeze: false
+          lr_multiplier: 1.0
 
     losses:
       vqa2: logit_bce
@@ -94,6 +127,7 @@ training:
   evaluation_interval: 4000
   batch_size: 4096
   find_unused_parameters: false
+  num_workers: 1
 
 
 optimizer:

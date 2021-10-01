@@ -1,0 +1,18 @@
+includes:
+- ./defaults.yaml
+
+training:
+  num_workers: 2
+  batch_size: 2048
+  max_updates: 200000  # 55695156 * 30 // 2048
+  checkpoint_interval: 10000
+  evaluation_interval: 5000000  # never evaluates
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 2e-4
+    weight_decay: 1e-2
+
+checkpoint:
+  max_to_keep: 2

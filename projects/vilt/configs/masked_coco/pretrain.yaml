@@ -1,0 +1,24 @@
+includes:
+- ./defaults.yaml
+
+model_config:
+  vilt:
+    heads:
+      masked_coco:
+        type: mlm_itm
+        mlm_config:
+          freeze: false
+          lr_multiplier: 1.0
+          vocab_size: 30522
+          hidden_size: 768
+        itm_config:
+          hidden_size: 768
+          label_key: is_correct
+          freeze: false
+          lr_multiplier: 1.0
+
+dataset_config:
+  masked_coco:
+    return_features_info: true
+    false_caption: true
+    false_caption_probability: 0.1
