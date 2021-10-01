@@ -5,6 +5,8 @@ from unittest.mock import MagicMock
 
 import mmf.modules.losses as losses
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 from mmf.common.registry import registry
 from mmf.common.sample import SampleList
 
@@ -26,6 +28,22 @@ def build_loss_side_effect(return_value=RETURN_VALUE):
             return loss_class_mock
 
     return loss_side_effect
+
+
+@registry.register_loss("mse_mae")
+class TestMSEAndMAELoss(nn.Module):
+    """Mean squared, absolute error loss.
+    Calculates both losses and returns a dict with string keys.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, sample_list, model_output):
+        targets = sample_list["targets"]
+        scores = model_output["scores"]
+        loss = {"mse": F.mse_loss(scores, targets), "mae": F.l1_loss(scores, targets)}
+        return loss
 
 
 class TestModuleLosses(unittest.TestCase):
@@ -67,6 +85,22 @@ class TestModuleLosses(unittest.TestCase):
 
         self.assertTrue(get_loss_class_mock.called)
         self.assertEqual(get_loss_class_mock.call_count, 5)
+
+    def test_mmf_dict_loss(self):
+        mse_mae_loss = losses.MMFLoss("mse_mae")
+        torch.manual_seed(1234)
+        random_tensor = torch.rand((1, 768))
+
+        sample_list = SampleList()
+        sample_list.dataset_type = "val"
+        sample_list.dataset_name = "vqa2"
+        sample_list["targets"] = random_tensor
+        model_output = {"scores": random_tensor}
+
+        output = mse_mae_loss(sample_list, model_output)
+
+        self.assertEqual(output["val/vqa2/mse_mae/mse"].item(), 0.0)
+        self.assertEqual(output["val/vqa2/mse_mae/mae"].item(), 0.0)
 
     def test_caption_cross_entropy(self):
         caption_ce_loss = losses.CaptionCrossEntropyLoss()
@@ -128,3 +162,15 @@ class TestModuleLosses(unittest.TestCase):
         sample_list = {"targets": random_tensor}
         model_output = {"scores": random_tensor}
         self.assertEqual(cos_emb_loss(sample_list, model_output).item(), 0.0)
+
+    def test_bce_kl_loss(self):
+        combined_loss = losses.BCEAndKLLoss(0.5)
+
+        # Test random tensor but the same targets and scores
+        torch.manual_seed(1234)
+        random_tensor = torch.rand((1, 768))
+        sample_list = {"targets": random_tensor}
+        model_output = {"scores": random_tensor}
+        loss_result = combined_loss(sample_list, model_output)
+        self.assertAlmostEqual(loss_result["bce"].item(), 504.22253418, 4)
+        self.assertAlmostEqual(loss_result["kl"].item(), 0.031847, 4)
