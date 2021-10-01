@@ -235,7 +235,7 @@ def reduce_dict(dictionary):
 
 
 # Object byte tensor utilities have been adopted from
-# https://github.com/pytorch/fairseq/blob/master/fairseq/distributed_utils.py
+# https://github.com/pytorch/fairseq/blob/main/fairseq/distributed_utils.py
 def object_to_byte_tensor(obj, max_size=4094):
     """
     Encode Python objects to PyTorch byte tensors
