@@ -12,10 +12,11 @@ import torch
 from mmf.common.registry import registry
 from mmf.utils.checkpoint_updater import get_pretrained_state_mapping_checkpoint
 from mmf.utils.configuration import get_mmf_env, load_yaml
-from mmf.utils.distributed import is_master, is_xla, synchronize
+from mmf.utils.distributed import is_master, is_xla, open_if_master, synchronize
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_current_device, updir
+from mmf.utils.xla import save_xla_ckpt
 from omegaconf import OmegaConf
 
 
@@ -489,7 +490,7 @@ class Checkpoint:
         }
 
     def save_func(self, *args):
-        return xm.save(*args) if is_xla() else torch.save(*args)
+        return save_xla_ckpt(*args) if is_xla() else torch.save(*args)
 
     def save(self, update, iteration=None, update_best=False):
         # Only save in main process
@@ -559,22 +560,23 @@ class Checkpoint:
             git_metadata_dict = self._get_vcs_fields()
             ckpt.update(git_metadata_dict)
 
-        with PathManager.open(ckpt_filepath, "wb") as f:
+        with open_if_master(ckpt_filepath, "wb") as f:
             self.save_func(ckpt, f)
 
         if update_best:
             logger.info("Saving best checkpoint")
-            with PathManager.open(best_ckpt_filepath, "wb") as f:
+            with open_if_master(best_ckpt_filepath, "wb") as f:
                 self.save_func(ckpt, f)
 
         # Save current always
 
         logger.info("Saving current checkpoint")
-        with PathManager.open(current_ckpt_filepath, "wb") as f:
+        with open_if_master(current_ckpt_filepath, "wb") as f:
             self.save_func(ckpt, f)
 
         # Remove old checkpoints if max_to_keep is set
-        if self.max_to_keep > 0:
+        # In XLA, only delete checkpoint files in main process
+        if self.max_to_keep > 0 and is_master():
             if len(self.saved_iterations) == self.max_to_keep:
                 self.remove(self.saved_iterations.pop(0))
             self.saved_iterations.append(update)
@@ -596,5 +598,5 @@ class Checkpoint:
 
     def finalize(self):
         if is_master() or is_xla():
-            with PathManager.open(self.pth_filepath, "wb") as f:
+            with open_if_master(self.pth_filepath, "wb") as f:
                 self.save_func(self.trainer.model.state_dict(), f)
