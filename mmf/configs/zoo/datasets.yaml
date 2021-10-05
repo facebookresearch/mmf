@@ -44,7 +44,7 @@ mmimdb:
       file_name: features.tar.gz
       hashcode: dab8ef859d872fa42f84eb6f710d408929bc35f056ca699b47e8a43d0657f3f1
     images:
-    - url: http://lisi1.unal.edu.co/mmimdb/mmimdb.tar.gz
+    - url: https://archive.org/download/mmimdb/mmimdb.tar.gz
       file_name: mmimdb.tar.gz
     annotations:
     - url: mmf://datasets/mmimdb/defaults/annotations/annotations.tar.gz
