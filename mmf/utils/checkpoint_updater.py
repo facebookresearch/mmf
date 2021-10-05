@@ -34,22 +34,29 @@ def _format_state_key(model: torch.nn.Module, attr: str):
     return formatted_attr
 
 
-def _is_shape_mismatch(
+def _should_skip_if_mismatch(
     shape1: Tuple[str, torch.Size],
     shape2: Tuple[str, torch.Size],
     config: Dict[str, Any],
 ) -> None:
-    if shape1[1] != shape2[1] and config.checkpoint.get("bypass_shape_mismatch", False):
-        logger.warning("bypass_shape_mismatch in config.checkpoint is set to be True")
-        logger.warning(
-            f"""
+    if shape1[1] != shape2[1]:
+        message = f"""
             Modules {shape1[0]} and {shape2[0]} don't have the same shape:
             own_attr has shape {shape1[1]} while
-            attr has shape {shape2[1]} - so skipping copy.
+            attr has shape {shape2[1]}. This can fail down the line.
             """
-        )
-        return False
-    return shape1[1] != shape2[1]
+        if config.checkpoint.get("bypass_shape_mismatch", False):
+            message += "bypass_shape_mismatch in config.checkpoint "
+            message += "is set to be True, -- so skipping copy"
+            logger.warning(message)
+
+            return True
+        else:
+            logger.warning(message)
+
+    # In case of either mismatch or match both, MMF will try
+    # to copy the attribute.
+    return False
 
 
 def get_pretrained_state_mapping_checkpoint(
@@ -76,13 +83,12 @@ def get_pretrained_state_mapping_checkpoint(
                     and value in formatted_attr
                     and own_attr.replace(key, "") == formatted_attr.replace(value, "")
                 ):
-                    if _is_shape_mismatch(
+                    if _should_skip_if_mismatch(
                         (own_attr, own_state[own_attr].shape),
                         (attr, checkpoint[attr].shape),
                         config,
                     ):
                         continue
-
                     ckpt_update_dict[own_attr] = attr
     return ckpt_update_dict
 
