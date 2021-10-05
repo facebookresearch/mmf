@@ -1,11 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # Inspired from maskrcnn_benchmark, fairseq
+import contextlib
 import logging
 import os
 import pickle
 import socket
 import subprocess
 import warnings
+from itertools import chain
 
 import torch
 from mmf.common.registry import registry
@@ -124,11 +126,11 @@ def broadcast_tensor(tensor, src=0):
     with torch.no_grad():
         if is_xla():
             tensor = xm.all_to_all(
-                tensor.repeat([world_size, 1]),
+                tensor.repeat([world_size] + [1] * tensor.dim()),
                 split_dimension=0,
                 concat_dimension=0,
                 split_count=world_size,
-            )[0]
+            )[src]
         else:
             dist.broadcast(tensor, src=0)
 
@@ -166,13 +168,12 @@ def gather_tensor(tensor):
     with torch.no_grad():
         tensor_list = []
 
-        for _ in range(world_size):
-            tensor_list.append(torch.zeros_like(tensor))
-
         if is_xla():
             tensor_list = xm.all_gather(tensor)
             tensor_list = tensor_list.view(world_size, *tensor.size())
         else:
+            for _ in range(world_size):
+                tensor_list.append(torch.zeros_like(tensor))
             dist.all_gather(tensor_list, tensor)
             tensor_list = torch.stack(tensor_list, dim=0)
     return tensor_list
@@ -409,3 +410,30 @@ def suppress_output(is_master):
     # Log warnings only once
     warnings.warn = warn
     warnings.simplefilter("once", UserWarning)
+
+
+def open_if_master(path, mode):
+    from mmf.utils.file_io import PathManager
+
+    if is_master():
+        return PathManager.open(path, mode)
+    else:
+        return contextlib.nullcontext()
+
+
+def broadcast_xla_master_model_param(model):
+    logger.info("Broadcasting XLA model parameters and buffers from master process ...")
+
+    parameters_and_buffers = []
+    for p in chain(model.parameters(), model.buffers()):
+        # Set all params in non-master devices to zero so that all_reduce is equivalent
+        # to broadcasting parameters from master to other devices.
+        if not is_master():
+            zero = torch.tensor(0, dtype=p.data.dtype, device=p.data.device)
+            p.data.mul_(zero)
+        parameters_and_buffers.append(p.data)
+    xm.wait_device_ops()
+    xm.all_reduce(xm.REDUCE_SUM, parameters_and_buffers)
+    xm.mark_step()
+    xm.rendezvous("mmf.trainers.core.device.broadcast_xla_master_model_param")
+    logger.info("Done!")

@@ -25,7 +25,7 @@ class MLP(BaseTransformerHead):
         hidden_act: str = "gelu"
         pooler_name: str = "bert_pooler"
         num_layers: int = 1
-        in_dim: int = None
+        in_dim: Optional[int] = None
 
     def __init__(self, config: Config, *args, **kwargs):
         super().__init__(config, *args, **kwargs)
