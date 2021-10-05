@@ -316,6 +316,8 @@ def build_dataloader_and_sampler(
     else:
         other_args.pop("shuffle")
 
+    # Set drop_last=True when using XLA to have constant batch size.
+    # In this case we also need to set drop_last=True in DistributedSampler.
     loader = torch.utils.data.DataLoader(
         dataset=dataset_instance,
         collate_fn=BatchCollator(
@@ -390,6 +392,7 @@ def _add_extra_args_for_dataloader(
             num_replicas=xm.xrt_world_size(),
             rank=xm.get_ordinal(),
             shuffle=other_args["shuffle"],
+            drop_last=True,
         )
         other_args.pop("shuffle")
 
