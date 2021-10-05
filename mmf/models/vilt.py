@@ -5,6 +5,7 @@ import logging
 
 import torch
 from mmf.common.registry import registry
+from mmf.common.sample import SampleList
 from mmf.models.base_model import BaseModel
 from mmf.modules.losses import MMFLoss
 from mmf.utils.build import build_encoder
@@ -75,6 +76,7 @@ class ViLT(BaseModel):
             sample_list.mlm_labels = self._infer_mlm_labels(
                 sample_list, image_embedding.size()[:-1]
             )
+            self._encode_mlm(sample_list, image_embedding)
 
         # Feed through encoder
         embeddings = torch.cat([image_embedding, text_embedding], dim=1)
@@ -134,7 +136,7 @@ class ViLT(BaseModel):
         if attention_mask is not None:
             attention_mask = attention_mask.masked_fill(
                 ~attention_mask.bool(), float("-inf")
-            )
+            ).masked_fill(attention_mask.bool(), 0)
             attention_mask = attention_mask[:, None, None, :]
 
         return attention_mask
@@ -178,3 +180,23 @@ class ViLT(BaseModel):
             [mlm_labels["text"], mlm_labels["image"]], dim=-1
         )
         return mlm_labels
+
+    def _encode_mlm(self, sample_list, image_embedding):
+        assert "lm_label_ids" in sample_list
+
+        masked_sample_list = SampleList()
+        masked_sample_list.input_ids = sample_list.get(
+            "input_ids_masked", sample_list.input_ids
+        )
+        masked_sample_list.segment_ids = sample_list.segment_ids
+        text_embedding = self.text_embeddings(masked_sample_list)
+
+        embeddings = torch.cat([image_embedding, text_embedding], dim=1)
+        attention_mask = self.get_attention_mask(
+            sample_list, text_embedding, image_embedding
+        )
+        sequence, _ = self.encoder(embeddings, attention_mask=attention_mask)
+        if sequence.dim() != 3:
+            sequence = sequence.unsqueeze(1)
+
+        sample_list.hs_masked_for_mlm = sequence

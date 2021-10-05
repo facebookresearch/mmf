@@ -18,7 +18,8 @@ class MLMAndITM(nn.Module):
 
     def forward(self, sequence_output, processed_sample_list):
         mlm_outputs = self.mlm_head(
-            sequence_output, processed_sample_list=processed_sample_list
+            processed_sample_list.hs_masked_for_mlm,
+            processed_sample_list=processed_sample_list,
         )
         itm_outputs = self.itm_head(
             sequence_output, processed_sample_list=processed_sample_list
