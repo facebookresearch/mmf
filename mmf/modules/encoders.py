@@ -4,7 +4,7 @@ import pickle
 import re
 from collections import OrderedDict
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Any
 
@@ -12,7 +12,11 @@ import torch
 import torchvision
 from mmf.common.registry import registry
 from mmf.models.frcnn import GeneralizedRCNN
-from mmf.modules.embeddings import ProjectionEmbedding, TextEmbedding
+from mmf.modules.embeddings import (
+    ProjectionEmbedding,
+    TextEmbedding,
+    UniterImageEmbeddings,
+)
 from mmf.modules.hf_layers import BertModelJit
 from mmf.modules.layers import Identity
 from mmf.utils.build import build_image_encoder, build_text_encoder
@@ -24,6 +28,7 @@ from omegaconf import MISSING, OmegaConf
 from torch import Tensor, nn
 from transformers.configuration_auto import AutoConfig
 from transformers.modeling_auto import AutoModel
+from transformers.modeling_bert import BertEmbeddings
 
 
 try:
@@ -729,3 +734,42 @@ class ResNet18AudioEncoder(PooledEncoder):
         model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
         modules = list(model.children())[:-2]
         return nn.Sequential(*modules)
+
+
+@registry.register_encoder("uniter_image_embeddings")
+class UniterImageEmbeddingsEncoder(Encoder):
+    """
+    Encoder wrapper around UniterImageEmbeddings
+    to enable config from yaml.
+    """
+
+    def __init__(self, config, *args, **kwargs):
+        super().__init__()
+        self.embeddings = UniterImageEmbeddings(config)
+
+    def forward(self, *args, **kwargs):
+        return self.embeddings(*args, **kwargs)
+
+
+@registry.register_encoder("bert_embeddings")
+class BertEmbeddingsEncoder(Encoder):
+    """
+    Encoder wrapper around transformers BertEmbeddings
+    to enable config from yaml.
+    """
+
+    @dataclass
+    class Config(Encoder.Config):
+        vocab_size: int = 30522
+        hidden_size: int = 768
+        max_position_embeddings: int = 512
+        eps: int = 1e-12
+        hidden_dropout_prob: float = 0
+
+    def __init__(self, config: Config, *args, **kwargs):
+        super().__init__()
+        config = OmegaConf.create({**asdict(self.Config()), **config})
+        self.embeddings = BertEmbeddings(config)
+
+    def forward(self, *args, **kwargs):
+        return self.embeddings(*args, **kwargs)

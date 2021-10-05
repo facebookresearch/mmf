@@ -4,6 +4,7 @@
 import os
 import pickle
 from copy import deepcopy
+from dataclasses import asdict, dataclass, field
 from functools import lru_cache
 from typing import Optional, Tuple
 
@@ -14,6 +15,7 @@ from mmf.modules.bottleneck import MovieBottleneck
 from mmf.modules.layers import AttnPool1d, Identity
 from mmf.utils.file_io import PathManager
 from mmf.utils.vocab import Vocab
+from omegaconf import OmegaConf
 from torch import Tensor, nn
 from transformers.modeling_bert import BertEmbeddings
 
@@ -624,3 +626,45 @@ class TwoBranchEmbedding(nn.Module):
         x_cbn = self.cbn(x, v)
 
         return x_sga, x_cbn
+
+
+class UniterImageEmbeddings(nn.Module):
+    """
+    Image Embeddings used by UNITER.
+    Code modified from https://github.com/ChenRocks/UNITER/blob/master/model/model.py
+    Performs a linear projection then normalization over image and position features.
+    """
+
+    @dataclass
+    class Config:
+        img_dim: list = field(default_factory=lambda: [224, 224])
+        hidden_size: int = 768
+        eps: int = 1e-12
+        hidden_dropout_prob: float = 0
+        pos_dim: int = 7
+
+    def __init__(self, config: Config, *args, **kwargs):
+        super().__init__()
+        config = OmegaConf.create({**asdict(self.Config()), **config})
+
+        self.img_linear = nn.Linear(config.img_dim, config.hidden_size)
+        self.img_layer_norm = nn.LayerNorm(config.hidden_size, eps=config.eps)
+        self.pos_layer_norm = nn.LayerNorm(config.hidden_size, eps=config.eps)
+        self.pos_linear = nn.Linear(config.pos_dim, config.hidden_size)
+        self.mask_embedding = nn.Embedding(2, config.img_dim, padding_idx=0)
+
+        self.final_layer_norm = nn.LayerNorm(config.hidden_size, eps=config.eps)
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+
+    def forward(self, img_feat, img_pos_feat, type_embeddings, img_masks=None):
+        if img_masks is not None:
+            self.mask_embedding.weight.data[0, :].fill_(0)
+            mask = self.mask_embedding(img_masks.long())
+            img_feat = img_feat + mask
+
+        transformed_im = self.img_layer_norm(self.img_linear(img_feat))
+        transformed_pos = self.pos_layer_norm(self.pos_linear(img_pos_feat))
+        embeddings = transformed_im + transformed_pos + type_embeddings
+        embeddings = self.final_layer_norm(embeddings)
+        embeddings = self.dropout(embeddings)
+        return embeddings
