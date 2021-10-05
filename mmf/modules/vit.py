@@ -10,7 +10,6 @@ class ViTAttention(vit.ViTAttention):
     def __init__(self, config):
         super().__init__(config)
         self.attention = BertSelfAttention(config)
-        self.pruned_heads = set()
 
     def forward(
         self,
@@ -28,9 +27,7 @@ class ViTAttention(vit.ViTAttention):
 
         attention_output = self.output(self_outputs[0], hidden_states)
 
-        outputs = (attention_output,) + self_outputs[
-            1:
-        ]  # add attentions if we output them
+        outputs = (attention_output,) + self_outputs[1:]
         return outputs
 
 
@@ -164,7 +161,7 @@ class ViTEncoder(nn.Module):
         )
 
 
-class ViTModel(vit.ViTPreTrainedModel):
+class ViTModel(vit.ViTModel):
     def __init__(self, config):
         super().__init__(config)
         self.config = config
@@ -177,17 +174,6 @@ class ViTModel(vit.ViTPreTrainedModel):
         self.pooler = vit.ViTPooler(config) if add_pooling_layer else None
 
         self.init_weights()
-
-    def get_input_embeddings(self):
-        return self.embeddings.patch_embeddings
-
-    def _prune_heads(self, heads_to_prune):
-        """
-        Prunes heads of the model. heads_to_prune: dict of {layer_num: list of heads
-        to prune in this layer} See base class PreTrainedModel
-        """
-        for layer, heads in heads_to_prune.items():
-            self.encoder.layer[layer].attention.prune_heads(heads)
 
     def forward(
         self,
