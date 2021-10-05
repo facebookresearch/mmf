@@ -10,7 +10,7 @@ from caffe2.python.timeout_guard import CompleteInTimeOrDie
 from mmf.common.meter import Meter
 from mmf.common.report import Report
 from mmf.common.sample import to_device
-from mmf.utils.distributed import gather_tensor, is_master
+from mmf.utils.distributed import gather_tensor, is_master, is_xla
 
 
 logger = logging.getLogger(__name__)
@@ -167,6 +167,12 @@ def validate_batch_sizes(my_batch_size: int) -> bool:
     """
     Validates all workers got the same batch size.
     """
+
+    # skip batch size validation on XLA (as there's too much overhead
+    # and data loader automatically drops the last batch in XLA mode)
+    if is_xla():
+        return True
+
     batch_size_tensor = torch.IntTensor([my_batch_size])
     if torch.cuda.is_available():
         batch_size_tensor = batch_size_tensor.cuda()
