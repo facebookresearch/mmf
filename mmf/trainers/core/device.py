@@ -6,6 +6,11 @@ from abc import ABC
 
 import torch
 from mmf.common.registry import registry
+from mmf.utils.distributed import (
+    broadcast_xla_master_model_param,
+    get_world_size,
+    is_xla,
+)
 from omegaconf import open_dict
 
 
@@ -103,3 +108,6 @@ class TrainerDeviceMixin(ABC):
                     output_device=self.local_rank,
                     find_unused_parameters=self.config.training.find_unused_parameters,
                 )
+
+        if is_xla() and get_world_size() > 1:
+            broadcast_xla_master_model_param(self.model)
