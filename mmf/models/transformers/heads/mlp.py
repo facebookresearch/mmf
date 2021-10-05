@@ -20,6 +20,7 @@ class MLP(BaseTransformerHead):
         hidden_dropout_prob: float = 0.1
         layer_norm_eps: float = 1e-6
         hidden_act: str = "gelu"
+        output_key: str = "scores"
 
     def __init__(self, config: Config, *args, **kwargs):
         super().__init__(config, *args, **kwargs)
@@ -33,6 +34,7 @@ class MLP(BaseTransformerHead):
         )
         self.num_labels = self.config.num_labels
         self.hidden_size = self.config.hidden_size
+        self.output_key = self.config.get("output_key", "scores")
 
     def forward(
         self,
@@ -46,5 +48,5 @@ class MLP(BaseTransformerHead):
         output_dict = {}
         pooled_output = self.pooler(sequence_output)
         prediction = self.classifier(pooled_output)
-        output_dict["scores"] = prediction.view(-1, self.num_labels)
+        output_dict[self.output_key] = prediction.view(-1, self.num_labels)
         return output_dict
