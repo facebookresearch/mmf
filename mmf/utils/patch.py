@@ -51,7 +51,7 @@ def patch_transformers(log_incompatible=False):
             continue
 
         for module in model_lib._modules:
-            if not module or module == ".":
+            if not module or module == "." or module[0] == ".":
                 continue
             sys.modules[f"transformers.{module}"] = importlib.import_module(
                 f"transformers.models.{key}.{module}"
