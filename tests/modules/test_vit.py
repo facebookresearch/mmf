@@ -5,8 +5,12 @@ import unittest
 import torch
 import transformers.models.vit.modeling_vit as vit
 from mmf.modules.vit import ViTModel
+from mmf.utils.patch import patch_vit
 from tests.test_utils import setup_proxy
 from torch import nn
+
+
+patch_vit()
 
 
 class TestViT(unittest.TestCase):
@@ -19,6 +23,7 @@ class TestViT(unittest.TestCase):
             "num_hidden_layers": 2,
             "do_patch_embeddings": False,
             "add_pooling_layer": False,
+            "return_dict": True,
         }
         hf_config = vit.ViTConfig()
         hf_config.update(config)
@@ -30,6 +35,8 @@ class TestViT(unittest.TestCase):
     def test_model_forward(self):
         embeddings = torch.rand(32, 197, 768)
         output = self.model(embeddings, output_hidden_states=True)
+
+        # import pdb; pdb.set_trace()
 
         self.assertTrue(hasattr(output, "last_hidden_state"))
         self.assertEqual(output["last_hidden_state"].shape, torch.Size([32, 197, 768]))
