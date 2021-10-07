@@ -13,6 +13,7 @@ from torch import nn
 from transformers.modeling_bert import BertPooler, BertPredictionHeadTransform
 
 
+@registry.register_transformer_head("multilayer_mlp")
 @registry.register_transformer_head("mlp")
 class MLP(BaseTransformerHead):
     @dataclass
