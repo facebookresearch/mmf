@@ -4,11 +4,13 @@ import importlib
 import logging
 import sys
 
+from mmf.common.registry import registry
 from packaging import version
 
 
 logger = logging.getLogger(__name__)
-original_functions = {}
+ORIGINAL_PATCH_FUNCTIONS_KEY = "original_patch_functions"
+registry.register(ORIGINAL_PATCH_FUNCTIONS_KEY, {})
 
 
 def patch_transformers(log_incompatible=False):
@@ -83,6 +85,7 @@ def safecopy_modules(module_function_names, caller_globals):
 
         # store function is nothing is stored,
         # prevents multiple calls from overwriting original function
+        original_functions = registry.get(ORIGINAL_PATCH_FUNCTIONS_KEY)
         original_functions[module_function_name] = original_functions.get(
             module_function_name, function
         )
@@ -98,9 +101,9 @@ def restore_saved_modules(caller_globals):
     Example:
         restore_saved_modules(global())
     """
-    global original_functions
+    original_functions = registry.get(ORIGINAL_PATCH_FUNCTIONS_KEY)
     for module_function_name, function in original_functions.items():
         module_name, function_name = module_function_name.split(".")
         if module_name in caller_globals:
             setattr(caller_globals[module_name], function_name, function)
-    original_functions = {}
+    registry.register(ORIGINAL_PATCH_FUNCTIONS_KEY, {})
