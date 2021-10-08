@@ -17,6 +17,9 @@ class TestClass:
 
 
 class TestUtilsPatch(unittest.TestCase):
+    def setUp(self):
+        registry.register(ORIGINAL_PATCH_FUNCTIONS_KEY, {})
+
     def test_safecopy_modules(self):
 
         safecopy_modules(["TestClass.test_function"], {"TestClass": TestClass})
