@@ -90,6 +90,15 @@ def skip_if_non_fb(testfn, reason="Doesn't run on non FB infra"):
     return unittest.skipUnless(is_fb(), reason)(testfn)
 
 
+def skip_if_old_transformers(testfn, reason="Requires newer version of transformers"):
+    from packaging import version
+    from transformers import __version__ as transformers_version
+
+    return unittest.skipUnless(
+        version.parse(transformers_version) >= version.parse("4.10.1"), reason
+    )(testfn)
+
+
 def compare_state_dicts(a, b):
     same = True
     same = same and (list(a.keys()) == list(b.keys()))
