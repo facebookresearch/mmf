@@ -78,6 +78,7 @@ def safecopy_modules(module_function_names, caller_globals):
         restore_saved_modules(globals())
         assert( original_forward is BertSelfAttention.forward )
     """
+    original_functions = registry.get(ORIGINAL_PATCH_FUNCTIONS_KEY)
     for module_function_name in module_function_names:
         module_name, function_name = module_function_name.split(".")
         module = caller_globals[module_name]
@@ -85,7 +86,6 @@ def safecopy_modules(module_function_names, caller_globals):
 
         # store function is nothing is stored,
         # prevents multiple calls from overwriting original function
-        original_functions = registry.get(ORIGINAL_PATCH_FUNCTIONS_KEY)
         original_functions[module_function_name] = original_functions.get(
             module_function_name, function
         )
