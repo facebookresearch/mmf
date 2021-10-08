@@ -1,13 +1,30 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+from collections import namedtuple
+
 import torch
-import transformers.models.vit.modeling_vit as vit
+from packaging import version
 from torch import nn
+from transformers import __version__ as transformers_version
 from transformers.modeling_bert import BertSelfAttention
+
+
+if version.parse(transformers_version) >= version.parse("4.10.1"):
+    import transformers.models.vit.modeling_vit as vit
+
+    has_VIT = True
+else:
+    VitStub = namedtuple("Vit", ["ViTAttention", "ViTPreTrainedModel"])
+    vit = VitStub(torch.nn.Module, torch.nn.Module)
+    has_VIT = False
 
 
 class ViTAttention(vit.ViTAttention):
     def __init__(self, config):
+        if not has_VIT:
+            raise ImportError(
+                "transformers version >= 4.10.1 required for using modeling_vit"
+            )
         super().__init__(config)
         self.attention = BertSelfAttention(config)
 
@@ -161,8 +178,13 @@ class ViTEncoder(nn.Module):
         )
 
 
-class ViTModel(vit.ViTModel):
+class ViTModel(vit.ViTPreTrainedModel):
     def __init__(self, config):
+        if not has_VIT:
+            raise ImportError(
+                "transformers version >= 4.10.1 required for using modeling_vit"
+            )
+
         super().__init__(config)
         self.config = config
 
@@ -174,6 +196,17 @@ class ViTModel(vit.ViTModel):
         self.pooler = vit.ViTPooler(config) if add_pooling_layer else None
 
         self.init_weights()
+
+    def get_input_embeddings(self):
+        return self.embeddings.patch_embeddings
+
+    def _prune_heads(self, heads_to_prune):
+        """
+        Prunes heads of the model. heads_to_prune: dict of {layer_num: list of heads
+        to prune in this layer} See base class PreTrainedModel
+        """
+        for layer, heads in heads_to_prune.items():
+            self.encoder.layer[layer].attention.prune_heads(heads)
 
     def forward(
         self,
