@@ -3,20 +3,17 @@
 import unittest
 
 import torch
-import transformers.models.vit.modeling_vit as vit
 from mmf.modules.vit import ViTModel
-from mmf.utils.patch import patch_vit
-from tests.test_utils import setup_proxy
+from tests.test_utils import setup_proxy, skip_if_old_transformers
 from torch import nn
 
 
-patch_vit()
-
-
+@skip_if_old_transformers
 class TestViT(unittest.TestCase):
     def setUp(self):
-        setup_proxy()
+        import transformers.models.vit.modeling_vit as vit
 
+        setup_proxy()
         config = {
             "layer_norm_eps": 0.0001,
             "hidden_size": 768,
@@ -25,9 +22,8 @@ class TestViT(unittest.TestCase):
             "add_pooling_layer": False,
             "return_dict": True,
         }
-        hf_config = vit.ViTConfig()
-        hf_config.update(config)
-        self.model = ViTModel(hf_config)
+        config = vit.ViTConfig(**config)
+        self.model = ViTModel(config)
 
     def test_model_init(self):
         self.assertTrue(isinstance(self.model, nn.Module))

@@ -2,7 +2,7 @@
 import os
 import pickle
 import re
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
@@ -10,7 +10,6 @@ from typing import Any
 
 import torch
 import torchvision
-import transformers.models.vit.modeling_vit as vit
 from mmf.common.registry import registry
 from mmf.models.frcnn import GeneralizedRCNN
 from mmf.modules.embeddings import ProjectionEmbedding, TextEmbedding
@@ -22,7 +21,9 @@ from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path, retry_n
 from mmf.utils.logger import log_class_usage
 from omegaconf import MISSING, OmegaConf
+from packaging import version
 from torch import Tensor, nn
+from transformers import __version__ as transformers_version
 from transformers.configuration_auto import AutoConfig
 from transformers.modeling_auto import AutoModel
 
@@ -31,6 +32,15 @@ try:
     from detectron2.modeling import ShapeSpec, build_resnet_backbone
 except ImportError:
     pass
+
+if version.parse(transformers_version) >= version.parse("4.10.1"):
+    import transformers.models.vit.modeling_vit as vit
+
+    has_VIT = True
+else:
+    VitStub = namedtuple("Vit", ["ViTAttention", "ViTPreTrainedModel"])
+    vit = VitStub(torch.nn.Module, torch.nn.Module)
+    has_VIT = False
 
 
 class Encoder(nn.Module):
@@ -743,6 +753,10 @@ class ViTEncoder(Encoder):
         gradient_checkpointing: bool = False
 
     def __init__(self, config: Config, *args, **kwargs):
+        if not has_VIT:
+            raise ImportError(
+                "transformers version >= 4.10.1 required for using modeling_vit"
+            )
 
         super().__init__()
         self.config = config
