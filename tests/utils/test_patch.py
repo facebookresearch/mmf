@@ -3,7 +3,11 @@
 import unittest
 
 from mmf.common.registry import registry
-from mmf.utils.patch import restore_saved_modules, safecopy_modules
+from mmf.utils.patch import (
+    ORIGINAL_PATCH_FUNCTIONS_KEY,
+    restore_saved_modules,
+    safecopy_modules,
+)
 
 
 class TestClass:
@@ -15,10 +19,10 @@ class TestClass:
 class TestUtilsPatch(unittest.TestCase):
     def test_safecopy_modules(self):
 
-        safecopy_modules(["TestClass.test_function"], globals())
-        original_functions = registry.get("original_patch_functions")
+        safecopy_modules(["TestClass.test_function"], {"TestClass": TestClass})
+        original_functions = registry.get(ORIGINAL_PATCH_FUNCTIONS_KEY)
         self.assertTrue("TestClass.test_function" in original_functions)
 
         TestClass.test_function = lambda: False
-        restore_saved_modules(globals())
+        restore_saved_modules({"TestClass": TestClass})
         self.assertTrue(TestClass.test_function())
