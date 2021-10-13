@@ -40,7 +40,7 @@ We take the following factors into consideration before accepting features and P
 ### Process
 
 1. Read the [PR guidelines](#guidelines) if you haven't.
-1. Fork the repo and create your branch from `master`.
+1. Fork the repo and create your branch from `main`.
 1. If your PR contains multiple orthogonal changes, split it to several PRs. Keep one PR focused on a single change while keeping it small.
 1. If you've added code that should be tested, add tests.
 1. Follow the [coding style guidelines](#coding-style) mentioned below.
@@ -64,7 +64,7 @@ pip install pre-commit && pre-commit install
 
 After this pre-commit hooks will be run before every commit.
 
-* Read the [editorconfig](https://github.com/facebookresearch/mmf/blob/master/.editorconfig) file to understand the exact coding style preferences.
+* Read the [editorconfig](https://github.com/facebookresearch/mmf/blob/main/.editorconfig) file to understand the exact coding style preferences.
 
 * Ideally, black and isort should be run via pre-commit hooks.
 But if for some reason you want to run black and isort separately follow this:

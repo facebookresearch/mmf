@@ -82,7 +82,7 @@ Add `--dry_run` argument to first print out what exactly is going to be run with
 
 :::
 
-An actual complex sweep config for visual bert with more options can be found at [./tools/sweep/sweep_visual_bert.py](https://github.com/facebookresearch/mmf/blob/master/tools/sweeps/sweep_visual_bert.py). Command following the above command to run it:
+An actual complex sweep config for visual bert with more options can be found at [./tools/sweep/sweep_visual_bert.py](https://github.com/facebookresearch/mmf/blob/main/tools/sweeps/sweep_visual_bert.py). Command following the above command to run it:
 
 ```sh
 python tools/sweeps/sweep_visual_bert.py \

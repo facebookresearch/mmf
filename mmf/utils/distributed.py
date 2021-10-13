@@ -98,6 +98,10 @@ def get_rank():
     return dist.get_rank()
 
 
+def is_main():
+    return is_master()
+
+
 def is_master():
     return get_rank() == 0
 
@@ -380,12 +384,12 @@ def distributed_init(config):
         # perform a dummy all-reduce to initialize the NCCL communicator
         dist.all_reduce(torch.zeros(1).cuda())
 
-        suppress_output(is_master())
+        suppress_output(is_main())
         config.distributed.rank = dist.get_rank()
     return config.distributed.rank
 
 
-def suppress_output(is_master):
+def suppress_output(is_main):
     """Suppress printing on the current device. Force printing with `force=True`."""
     import builtins as __builtin__
 
@@ -393,7 +397,7 @@ def suppress_output(is_master):
 
     def print(*args, **kwargs):
         force = kwargs.pop("force", False)
-        if is_master or force:
+        if is_main or force:
             builtin_print(*args, **kwargs)
 
     __builtin__.print = print
@@ -404,7 +408,7 @@ def suppress_output(is_master):
 
     def warn(*args, **kwargs):
         force = kwargs.pop("force", False)
-        if is_master or force:
+        if is_main or force:
             builtin_warn(*args, **kwargs)
 
     # Log warnings only once
@@ -415,10 +419,14 @@ def suppress_output(is_master):
 def open_if_master(path, mode):
     from mmf.utils.file_io import PathManager
 
-    if is_master():
+    if is_main():
         return PathManager.open(path, mode)
     else:
         return contextlib.nullcontext()
+
+
+def open_if_main(*args):
+    return open_if_master(*args)
 
 
 def broadcast_xla_master_model_param(model):
@@ -428,7 +436,7 @@ def broadcast_xla_master_model_param(model):
     for p in chain(model.parameters(), model.buffers()):
         # Set all params in non-master devices to zero so that all_reduce is equivalent
         # to broadcasting parameters from master to other devices.
-        if not is_master():
+        if not is_main():
             zero = torch.tensor(0, dtype=p.data.dtype, device=p.data.device)
             p.data.mul_(zero)
         parameters_and_buffers.append(p.data)
