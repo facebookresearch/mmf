@@ -266,14 +266,13 @@
 <span class="sd">        def build(self, config, dataset_type, *args, **kwargs):</span>
 <span class="sd">            ...</span>
 
-<span class="sd">.. _here: https://github.com/facebookresearch/mmf/blob/master/mmf/datasets/vqa/vqa2/builder.py</span>
+<span class="sd">.. _here: https://github.com/facebookresearch/mmf/blob/main/mmf/datasets/vqa/vqa2/builder.py</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
 <span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.build</span> <span class="kn">import</span> <span class="n">build_dataloader_and_sampler</span>
-<span class="kn">from</span> <span class="nn">mmf.utils.distributed</span> <span class="kn">import</span> <span class="n">is_master</span><span class="p">,</span> <span class="n">synchronize</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.logger</span> <span class="kn">import</span> <span class="n">log_class_usage</span>
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">DictConfig</span>
 <span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span>
@@ -311,14 +310,14 @@
 
 <div class="viewcode-block" id="BaseDatasetBuilder.prepare_data"><a class="viewcode-back" href="../../../lib/datasets/base_dataset_builder.html#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        NOTE: The caller to this function should only call this on master process</span>
+<span class="sd">        NOTE: The caller to this function should only call this on main process</span>
 <span class="sd">        in a distributed settings so that downloads and build only happen</span>
-<span class="sd">        on master process and others can just load it. Make sure to call</span>
+<span class="sd">        on main process and others can just load it. Make sure to call</span>
 <span class="sd">        synchronize afterwards to bring all processes in sync.</span>
 
 <span class="sd">        Lightning automatically wraps datamodule in a way that it is only</span>
-<span class="sd">        called on a master node, but for extra precaution as lightning</span>
-<span class="sd">        can introduce bugs, we should always call this under master process</span>
+<span class="sd">        called on a main node, but for extra precaution as lightning</span>
+<span class="sd">        can introduce bugs, we should always call this under main process</span>
 <span class="sd">        with extra checks on our sides as well.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
@@ -363,9 +362,9 @@
 <span class="sd">        time when it is not available. This internally calls &#39;build&#39; function.</span>
 <span class="sd">        Override that function in your child class.</span>
 
-<span class="sd">        NOTE: The caller to this function should only call this on master process</span>
+<span class="sd">        NOTE: The caller to this function should only call this on main process</span>
 <span class="sd">        in a distributed settings so that downloads and build only happen</span>
-<span class="sd">        on master process and others can just load it. Make sure to call</span>
+<span class="sd">        on main process and others can just load it. Make sure to call</span>
 <span class="sd">        synchronize afterwards to bring all processes in sync.</span>
 
 <span class="sd">        Args:</span>
@@ -539,7 +538,7 @@
             <li class="list-title"><a href="https://mmf.sh/">MMF</a></li>
             <li><a href="https://mmf.sh/docs">Get Started</a></li>
             <li><a href="https://mmf.sh/docs/getting_started/features">Features</a></li>
-            <li><a href="https://github.com/facebookresearch/master/blob/master/CONTRIBUTING.md">Contributing</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/blob/main/CONTRIBUTING.md">Contributing</a></li>
           </ul>
         </div>
 
@@ -548,7 +547,7 @@
             <li class="list-title"><a href="">Resources</a></li>
             <li><a href="https://mmf.sh/docs">Docs</a></li>
             <li><a href="https://mmf.sh/api">API</a></li>
-            <li><a href="https://github.com/facebookresearch/master/issues" target="_blank">Github Issues</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/issues" target="_blank">Github Issues</a></li>
           </ul>
         </div>
         </div>

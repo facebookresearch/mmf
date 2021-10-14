@@ -402,14 +402,26 @@ is loaded.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="mmf.models.base_model.BaseModel.on_save_checkpoint">
 <span class="sig-name descname"><span class="pre">on_save_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/mmf/models/base_model.html#BaseModel.on_save_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.models.base_model.BaseModel.on_save_checkpoint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Give the model a chance to add something to the checkpoint.
-<code class="docutils literal notranslate"><span class="pre">state_dict</span></code> is already there.</p>
+<dd><p>Called by Lightning when saving a checkpoint to give you a chance to store anything
+else you might want to save.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>checkpoint</strong> – A dictionary in which you can save variables to save in a checkpoint.
-Contents need to be pickleable.</p>
+<dd class="field-odd"><p><strong>checkpoint</strong> – The full checkpoint dictionary before it gets dumped to a file.
+Implementations of this hook can insert additional data into this dictionary.</p>
 </dd>
 </dl>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">on_save_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">):</span>
+    <span class="c1"># 99% of use cases you don&#39;t need to implement this method</span>
+    <span class="n">checkpoint</span><span class="p">[</span><span class="s1">&#39;something_cool_i_want_to_save&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">my_cool_pickable_object</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Lightning saves all aspects of training (epoch, global step, etc…)
+including amp scaling.
+There is no need for you to store anything about training.</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -568,7 +580,7 @@ batch_idx and returns back a dict.</p>
             <li class="list-title"><a href="https://mmf.sh/">MMF</a></li>
             <li><a href="https://mmf.sh/docs">Get Started</a></li>
             <li><a href="https://mmf.sh/docs/getting_started/features">Features</a></li>
-            <li><a href="https://github.com/facebookresearch/master/blob/master/CONTRIBUTING.md">Contributing</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/blob/main/CONTRIBUTING.md">Contributing</a></li>
           </ul>
         </div>
 
@@ -577,7 +589,7 @@ batch_idx and returns back a dict.</p>
             <li class="list-title"><a href="">Resources</a></li>
             <li><a href="https://mmf.sh/docs">Docs</a></li>
             <li><a href="https://mmf.sh/api">API</a></li>
-            <li><a href="https://github.com/facebookresearch/master/issues" target="_blank">Github Issues</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/issues" target="_blank">Github Issues</a></li>
           </ul>
         </div>
         </div>

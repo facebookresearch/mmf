@@ -246,7 +246,7 @@ downloading the ImDBs for a dataset. In future, we plan to add a <code class="do
 to add dataset builder to ease setup of MMF.</p>
 <p><code class="docutils literal notranslate"><span class="pre">load</span></code> is used to load a dataset from specific path. <code class="docutils literal notranslate"><span class="pre">load</span></code> needs to return
 an instance of subclass of <code class="docutils literal notranslate"><span class="pre">mmf.datasets.base_dataset.BaseDataset</span></code>.</p>
-<p>See complete example for <code class="docutils literal notranslate"><span class="pre">VQA2DatasetBuilder</span></code> <a class="reference external" href="https://github.com/facebookresearch/mmf/blob/master/mmf/datasets/vqa/vqa2/builder.py">here</a>.</p>
+<p>See complete example for <code class="docutils literal notranslate"><span class="pre">VQA2DatasetBuilder</span></code> <a class="reference external" href="https://github.com/facebookresearch/mmf/blob/main/mmf/datasets/vqa/vqa2/builder.py">here</a>.</p>
 <p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span>
 
@@ -298,9 +298,9 @@ config.</p></li>
 <dd><p>Similar to load function, used by MMF to build a dataset for first
 time when it is not available. This internally calls ‘build’ function.
 Override that function in your child class.</p>
-<p>NOTE: The caller to this function should only call this on master process
+<p>NOTE: The caller to this function should only call this on main process
 in a distributed settings so that downloads and build only happen
-on master process and others can just load it. Make sure to call
+on main process and others can just load it. Make sure to call
 synchronize afterwards to bring all processes in sync.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -367,22 +367,22 @@ dataset returned from <code class="docutils literal notranslate"><span class="pr
 <dl class="py method">
 <dt class="sig sig-object py" id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data">
 <span class="sig-name descname"><span class="pre">prepare_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.prepare_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.prepare_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>NOTE: The caller to this function should only call this on master process
+<dd><p>NOTE: The caller to this function should only call this on main process
 in a distributed settings so that downloads and build only happen
-on master process and others can just load it. Make sure to call
+on main process and others can just load it. Make sure to call
 synchronize afterwards to bring all processes in sync.</p>
 <p>Lightning automatically wraps datamodule in a way that it is only
-called on a master node, but for extra precaution as lightning
-can introduce bugs, we should always call this under master process
+called on a main node, but for extra precaution as lightning
+can introduce bugs, we should always call this under main process
 with extra checks on our sides as well.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup">
 <span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stage</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">omegaconf.dictconfig.DictConfig</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mmf/datasets/base_dataset_builder.html#BaseDatasetBuilder.setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mmf.datasets.base_dataset_builder.BaseDatasetBuilder.setup" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called at the beginning of fit (train + validate), validate, test, and predict.
-This is a good hook when you need to build models dynamically or adjust something about them.
-This hook is called on every process when using DDP.</p>
+<dd><p>Called at the beginning of fit (train + validate), validate, test, and predict. This is a good hook when
+you need to build models dynamically or adjust something about them. This hook is called on every process
+when using DDP.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>stage</strong> – either <code class="docutils literal notranslate"><span class="pre">'fit'</span></code>, <code class="docutils literal notranslate"><span class="pre">'validate'</span></code>, <code class="docutils literal notranslate"><span class="pre">'test'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'predict'</span></code></p>
@@ -720,7 +720,7 @@ will have an argument <code class="docutils literal notranslate"><span class="pr
             <li class="list-title"><a href="https://mmf.sh/">MMF</a></li>
             <li><a href="https://mmf.sh/docs">Get Started</a></li>
             <li><a href="https://mmf.sh/docs/getting_started/features">Features</a></li>
-            <li><a href="https://github.com/facebookresearch/master/blob/master/CONTRIBUTING.md">Contributing</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/blob/main/CONTRIBUTING.md">Contributing</a></li>
           </ul>
         </div>
 
@@ -729,7 +729,7 @@ will have an argument <code class="docutils literal notranslate"><span class="pr
             <li class="list-title"><a href="">Resources</a></li>
             <li><a href="https://mmf.sh/docs">Docs</a></li>
             <li><a href="https://mmf.sh/api">API</a></li>
-            <li><a href="https://github.com/facebookresearch/master/issues" target="_blank">Github Issues</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/issues" target="_blank">Github Issues</a></li>
           </ul>
         </div>
         </div>
