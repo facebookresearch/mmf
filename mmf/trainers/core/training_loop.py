@@ -10,7 +10,7 @@ from mmf.common.meter import Meter
 from mmf.common.registry import registry
 from mmf.common.report import Report
 from mmf.common.sample import to_device
-from mmf.utils.distributed import is_xla
+from mmf.utils.distributed import is_xla, reduce_scalar
 from mmf.utils.general import clip_gradients, extract_loss, get_max_updates
 from torch import Tensor
 
@@ -23,6 +23,7 @@ class TrainerTrainingLoopMixin(ABC):
     current_iteration: int = 0
     num_updates: int = 0
     meter: Meter = Meter()
+    nan_skips: int = 0
 
     def training_loop(self) -> None:
         self.max_updates = self._calculate_max_updates()
@@ -110,7 +111,7 @@ class TrainerTrainingLoopMixin(ABC):
                 ):
                     continue
 
-                self._finish_update()
+                self._finish_update(report=combined_report)
                 should_start_update = True
 
                 should_log = False
@@ -124,7 +125,7 @@ class TrainerTrainingLoopMixin(ABC):
                     self.meter.update_from_report(combined_report)
 
                 self.on_update_end(
-                    report=combined_report, meter=self.meter, should_log=should_log
+                    report=combined_report, meter=self.meter, should_log=should_log,
                 )
 
                 num_remaining_batches -= num_batches_for_this_update
@@ -164,11 +165,48 @@ class TrainerTrainingLoopMixin(ABC):
 
     def run_training_batch(self, batch: Dict[str, Tensor], loss_divisor: int) -> None:
         report = self._forward(batch)
-        if self.training_config.exit_on_nan_losses:
-            self._check_nan_losses(report)
+        # if self.training_config.exit_on_nan_losses:
+        #     self._check_nan_losses(report)
         loss = extract_loss(report, loss_divisor)
         self._backward(loss)
         return report
+
+    def _check_and_skip_nans(self, report):
+        invalid = False
+        with self.model.summon_full_params():
+            for name, param in self.model.named_parameters():
+                if param.requires_grad and param.grad is not None:
+                    valid_gradients = not (torch.isnan(param.grad).any() or torch.isinf(param.grad).any())
+                    logger.warn(f"NaN detect in param {name}")
+                    if not valid_gradients:
+                        invalid = True
+                        break
+
+        # skip this check in XLA mode as calling .item() in forward pass
+        # greatly slows down the training
+        if not is_xla():
+            # check whether NaN has occurred in the losses, and exit the training
+            # when NaN happens
+            loss_dict = report.losses
+            nan_loss_keys = []
+            for key, value in loss_dict.items():
+                if torch.any(torch.isnan(value)).item():
+                    nan_loss_keys.append(key)
+            if len(nan_loss_keys) > 0:
+                invalid = True
+                keys_str = ", ".join(nan_loss_keys)
+                report.losses = {}
+                logger.warn(f"NaN detect in losses {keys_str}")
+        reduced_invalid = reduce_scalar(1 if invalid else 0)
+        invalid = True if reduced_invalid != 0 else False
+
+        if invalid:
+            logger.warn("NaNs were detected. Skipping update.")
+            for param in self.model.parameters():
+                if param.requires_grad:
+                    param.grad = None
+
+        return invalid
 
     def _check_nan_losses(self, report):
         # skip this check in XLA mode as calling .item() in forward pass
@@ -212,7 +250,8 @@ class TrainerTrainingLoopMixin(ABC):
         self.scaler.scale(loss).backward()
         self.profile("Backward time")
 
-    def _finish_update(self):
+    def _finish_update(self, report):
+        invalid = self._check_and_skip_nans(report)
         if self.training_config.clip_gradients:
             clip_gradients(
                 self.model,
@@ -227,9 +266,11 @@ class TrainerTrainingLoopMixin(ABC):
 
             # Assumes no model parallel
             xm.reduce_gradients(self.optimizer)
-
-        self.scaler.step(self.optimizer)
-        self.scaler.update()
+        if not invalid:
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
+        else:
+            self.nan_skips += 1
         self.num_updates += 1
         self.profile("Finished update")
 

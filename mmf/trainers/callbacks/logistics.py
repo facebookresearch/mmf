@@ -82,11 +82,13 @@ class LogisticsCallback(Callback):
 
         max_updates = getattr(self.trainer, "max_updates", None)
         num_updates = getattr(self.trainer, "num_updates", None)
+        nan_skips = getattr(self.trainer, "nan_skips", None)
         extra.update(
             {
                 "epoch": self.trainer.current_epoch,
                 "num_updates": num_updates,
                 "iterations": self.trainer.current_iteration,
+                "nan_skips": nan_skips,
                 "max_updates": max_updates,
                 "lr": "{:.5f}".format(
                     self.trainer.optimizer.param_groups[0]["lr"]

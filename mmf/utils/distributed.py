@@ -143,6 +143,14 @@ def broadcast_scalar(scalar, src=0, device="cpu"):
     return scalar_tensor.item()
 
 
+def reduce_scalar(scalar):
+    if get_world_size() < 2:
+        return scalar
+    scalar_tensor = torch.tensor(scalar).long().to(f"cuda:{torch.cuda.current_device()}")
+    scalar_tensor = reduce_tensor(scalar_tensor)
+    return scalar_tensor.item()
+
+
 def reduce_tensor(tensor):
     world_size = get_world_size()
 

@@ -320,7 +320,7 @@ class Configuration:
             default_only = True
 
         self.args = args
-        self._register_resolvers()
+        self.register_resolvers()
 
         self._default_config = self._build_default_config()
 
@@ -469,7 +469,7 @@ class Configuration:
         return dataset_config
 
     def get_config(self):
-        self._register_resolvers()
+        self.register_resolvers()
         return self.config
 
     def _build_demjson_config(self, demjson_string):
@@ -489,13 +489,18 @@ class Configuration:
         args_dict = vars(args)
         return OmegaConf.create(args_dict)
 
-    def _register_resolvers(self):
+    @staticmethod
+    def register_resolvers():
         OmegaConf.clear_resolvers()
         # Device count resolver
         device_count = max(1, torch.cuda.device_count())
-        OmegaConf.register_new_resolver("device_count", lambda: device_count)
-        OmegaConf.register_new_resolver("resolve_cache_dir", resolve_cache_dir)
-        OmegaConf.register_new_resolver("resolve_dir", resolve_dir)
+        if hasattr(OmegaConf, "register_new_resolver"):
+            new_resolver = OmegaConf.register_new_resolver
+        else:
+            new_resolver = OmegaConf.register_resolver
+        new_resolver("device_count", lambda: device_count)
+        new_resolver("resolve_cache_dir", resolve_cache_dir)
+        new_resolver("resolve_dir", resolve_dir)
 
     def freeze(self):
         OmegaConf.set_struct(self.config, True)

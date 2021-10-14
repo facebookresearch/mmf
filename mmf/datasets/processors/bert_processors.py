@@ -8,6 +8,7 @@ from mmf.common.registry import registry
 from mmf.common.sample import Sample, SampleList
 from mmf.datasets.processors.processors import BaseProcessor
 from transformers.tokenization_auto import AutoTokenizer
+from mmf.utils.general import retry_n
 
 
 @registry.register_processor("masked_token")
@@ -20,7 +21,8 @@ class MaskedTokenProcessor(BaseProcessor):
     def __init__(self, config, *args, **kwargs):
 
         tokenizer_config = config.tokenizer_config
-        self._tokenizer = AutoTokenizer.from_pretrained(
+        self._tokenizer = retry_n(
+            6, AutoTokenizer.from_pretrained,
             tokenizer_config.type, **tokenizer_config.params
         )
 
