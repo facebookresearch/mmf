@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import torch
-from mmf.utils.distributed import is_master
+from mmf.utils.distributed import is_main
 
 
 try:
@@ -16,10 +16,10 @@ def save_xla_ckpt(ckpt, file_or_path):
     checkpoint to CPU, since they hold PyTorch tensors. Other items like lr_scheduler
     often cannot be saved with xm.save due to its errors in handling mappingproxy.
 
-    Only save on the global master process (which is different from the default behavior
+    Only save on the global main process (which is different from the default behavior
     of xm.save that saves a checkpoint on each node).
     """
-    should_write_data = is_master()
+    should_write_data = is_main()
 
     is_full_ckpt = isinstance(ckpt, dict) and "model" in ckpt and "optimizer" in ckpt
     if is_full_ckpt:

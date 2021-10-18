@@ -10,8 +10,8 @@ This is a tutorial on how to add a new metric to MMF.
 
 MMF is agnostic to the kind of metrics that can be added to it.
 Adding a metric requires adding a metric class and adding your new metric to your config yaml.
-For example, the [ConcatBERT](https://github.com/facebookresearch/mmf/blob/master/website/docs/tutorials/concat_bert_tutorial.md) model uses the `binary_f1` metric when evaluating on the hateful memes dataset.
-The metric class is `BinaryF1` defined in [mmf/modules/metrics.py](https://github.com/facebookresearch/mmf/blob/master/mmf/modules/metrics.py)
+For example, the [ConcatBERT](https://github.com/facebookresearch/mmf/blob/main/website/docs/tutorials/concat_bert_tutorial.md) model uses the `binary_f1` metric when evaluating on the hateful memes dataset.
+The metric class is `BinaryF1` defined in [mmf/modules/metrics.py](https://github.com/facebookresearch/mmf/blob/main/mmf/modules/metrics.py)
 The metric key `binary_f1` is added to the list of metrics in the config yaml at [mmf/projects/hateful_memes/configs/concat_bert/defaults.yaml](https://github.com/facebookresearch/mmf/blob/15fa63071bfaed56db43deba871cfec76439c66f/projects/others/concat_bert/hateful_memes/defaults.yaml#L28).
 
 
@@ -88,7 +88,7 @@ evaluation:
   - binary_f1
 ```
 
-For metrics that take parameters your yaml config will specify params. You can also specify a custom key to be assigned to the metric. For [example](https://github.com/facebookresearch/mmf/blob/master/projects/unit/configs/vg/single_task.yaml),
+For metrics that take parameters your yaml config will specify params. You can also specify a custom key to be assigned to the metric. For [example](https://github.com/facebookresearch/mmf/blob/main/projects/unit/configs/vg/single_task.yaml),
 
 ```yaml
 evaluation:
@@ -104,7 +104,7 @@ evaluation:
 
 ```
 
-If your model uses early stopping, make sure that the early_stop.criteria is added as an evaluation metric. For example the [vizwiz](https://github.com/facebookresearch/mmf/blob/master/projects/ban/configs/vizwiz/defaults.yaml) config,
+If your model uses early stopping, make sure that the early_stop.criteria is added as an evaluation metric. For example the [vizwiz](https://github.com/facebookresearch/mmf/blob/main/projects/ban/configs/vizwiz/defaults.yaml) config,
 
 ```yaml
 evaluation:
@@ -121,7 +121,7 @@ training:
 
 If a loss class is responsible for calculating multiple metrics, for example, maybe due to shared calculations, you can return a dictionary of tensors.
 
-For an example, take a look at the `BinaryF1PrecisionRecall` class in [mmf/modules/metrics.py](https://github.com/facebookresearch/mmf/blob/master/mmf/modules/metrics.py)
+For an example, take a look at the `BinaryF1PrecisionRecall` class in [mmf/modules/metrics.py](https://github.com/facebookresearch/mmf/blob/main/mmf/modules/metrics.py)
 
 ```python
 @registry.register_metric("f1_precision_recall")
