@@ -11,7 +11,7 @@ import pytorch_lightning as pl
 from mmf.common.registry import registry
 from mmf.common.sample import convert_batch_to_sample_list
 from mmf.utils.configuration import get_mmf_env
-from mmf.utils.distributed import gather_tensor, is_master
+from mmf.utils.distributed import gather_tensor, is_main
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import ckpt_name_from_core_args, foldername_from_config_override
 from mmf.utils.logger import log_class_usage
@@ -115,7 +115,7 @@ class TestReporter(Dataset):
             return True
 
     def flush_report(self):
-        if not is_master():
+        if not is_main():
             # Empty report in all processes to avoid any leaks
             self.report = []
             return

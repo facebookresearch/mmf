@@ -4,13 +4,13 @@ title: 'Tutorial: Adding a model - Concat BERT'
 sidebar_label: Adding a model - Concat BERT
 ---
 
-In this tutorial, we will go through the step-by-step process of creating a new model using MMF. In this case, we will create a fusion model and train it on the [Hateful Memes dataset](https://github.com/facebookresearch/mmf/tree/master/projects/hateful_memes).
+In this tutorial, we will go through the step-by-step process of creating a new model using MMF. In this case, we will create a fusion model and train it on the [Hateful Memes dataset](https://github.com/facebookresearch/mmf/tree/main/projects/hateful_memes).
 
 The fusion model that we will create concatenates embeddings from a text encoder and an image encoder and passes them through a two-layer classifier. MMF provides standard image and text encoders out of the box. For the image encoder, we will use ResNet152 image encoder and for the text encoder, we will use BERT-Base Encoder.
 
 ## Prerequisites
 
-Follow the prerequisites for installation and dataset [here](https://github.com/facebookresearch/mmf/tree/master/projects/hateful_memes#prerequisites).
+Follow the prerequisites for installation and dataset [here](https://github.com/facebookresearch/mmf/tree/main/projects/hateful_memes#prerequisites).
 
 ## Using MMF to build the model
 

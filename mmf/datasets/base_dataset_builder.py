@@ -32,14 +32,13 @@ Example::
         def build(self, config, dataset_type, *args, **kwargs):
             ...
 
-.. _here: https://github.com/facebookresearch/mmf/blob/master/mmf/datasets/vqa/vqa2/builder.py
+.. _here: https://github.com/facebookresearch/mmf/blob/main/mmf/datasets/vqa/vqa2/builder.py
 """
 import uuid
 from typing import Optional
 
 import pytorch_lightning as pl
 from mmf.utils.build import build_dataloader_and_sampler
-from mmf.utils.distributed import is_master, synchronize
 from mmf.utils.logger import log_class_usage
 from omegaconf import DictConfig
 from torch.utils.data import Dataset
@@ -77,14 +76,14 @@ class BaseDatasetBuilder(pl.LightningDataModule):
 
     def prepare_data(self, config, *args, **kwargs):
         """
-        NOTE: The caller to this function should only call this on master process
+        NOTE: The caller to this function should only call this on main process
         in a distributed settings so that downloads and build only happen
-        on master process and others can just load it. Make sure to call
+        on main process and others can just load it. Make sure to call
         synchronize afterwards to bring all processes in sync.
 
         Lightning automatically wraps datamodule in a way that it is only
-        called on a master node, but for extra precaution as lightning
-        can introduce bugs, we should always call this under master process
+        called on a main node, but for extra precaution as lightning
+        can introduce bugs, we should always call this under main process
         with extra checks on our sides as well.
         """
         self.config = config
@@ -129,9 +128,9 @@ class BaseDatasetBuilder(pl.LightningDataModule):
         time when it is not available. This internally calls 'build' function.
         Override that function in your child class.
 
-        NOTE: The caller to this function should only call this on master process
+        NOTE: The caller to this function should only call this on main process
         in a distributed settings so that downloads and build only happen
-        on master process and others can just load it. Make sure to call
+        on main process and others can just load it. Make sure to call
         synchronize afterwards to bring all processes in sync.
 
         Args:
