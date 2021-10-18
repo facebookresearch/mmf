@@ -6,7 +6,7 @@ from collections import defaultdict
 import numpy as np
 import torch
 from mmf.utils.configuration import get_mmf_cache_dir
-from mmf.utils.distributed import is_master, synchronize
+from mmf.utils.distributed import is_main, synchronize
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path
 from torchtext import vocab
@@ -294,7 +294,7 @@ class IntersectedVocab(BaseVocab):
 
         # First test loading the vectors in master so that everybody doesn't
         # download it in case it doesn't exist
-        if is_master():
+        if is_main():
             vocab.pretrained_aliases[embedding_name](cache=vector_cache)
         synchronize()
 
@@ -342,7 +342,7 @@ class PretrainedVocab(BaseVocab):
 
         # First test loading the vectors in master so that everybody doesn't
         # download it in case it doesn't exist
-        if is_master():
+        if is_main():
             vocab.pretrained_aliases[embedding_name](cache=vector_cache)
         synchronize()
 

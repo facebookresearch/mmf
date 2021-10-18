@@ -2,13 +2,11 @@
 from typing import Type, Union
 
 import torch
-import tqdm
 from mmf.common.sample import Sample
 from mmf.common.typings import MMFDatasetConfigType
 from mmf.datasets.builders.okvqa.database import OKVQAAnnotationDatabase
 from mmf.datasets.mmf_dataset import MMFDataset
 from mmf.datasets.processors import GraphVQAAnswerProcessor
-from mmf.utils.distributed import is_master
 
 
 class OKVQADataset(MMFDataset):
