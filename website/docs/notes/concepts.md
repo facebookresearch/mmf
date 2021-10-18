@@ -17,9 +17,9 @@ To achieve this, MMF has few opinions about architecture of your research projec
 
 ## Datasets
 
-You can find all the latest datasets [here](https://github.com/facebookresearch/mmf/tree/master/mmf/configs/datasets).
+You can find all the latest datasets [here](https://github.com/facebookresearch/mmf/tree/main/mmf/configs/datasets).
 
-The dataset's key is available under the particular dataset's config, ie., for vizwiz's key, you can look in vizwiz's config available [here](https://github.com/facebookresearch/mmf/blob/master/mmf/configs/datasets/vizwiz/defaults.yaml)
+The dataset's key is available under the particular dataset's config, ie., for vizwiz's key, you can look in vizwiz's config available [here](https://github.com/facebookresearch/mmf/blob/main/mmf/configs/datasets/vizwiz/defaults.yaml)
 
 ```yaml
 dataset_config:
@@ -41,11 +41,11 @@ Reference implementations for state-of-the-art models have been included to act 
 - [Towards VQA Models That Can Read (LoRRA model)](https://arxiv.org/abs/1904.08920)
 - [VQA 2018 Challenge winner](https://arxiv.org/abs/1807.09956)
 - [VizWiz 2018 Challenge winner](https://vizwiz.org/wp-content/uploads/2019/06/workshop2018_slides_FAIR_A-STAR.pdf)
-- [VQA 2020 Challenge winner](https://github.com/facebookresearch/mmf/tree/master/projects/movie_mcan)
+- [VQA 2020 Challenge winner](https://github.com/facebookresearch/mmf/tree/main/projects/movie_mcan)
 
-Similar to datasets, each model has been registered with a unique key for easy reference in configuration and command line arguments. For a more complete list of models, please see [here](https://github.com/facebookresearch/mmf/tree/master/mmf/configs/models)
+Similar to datasets, each model has been registered with a unique key for easy reference in configuration and command line arguments. For a more complete list of models, please see [here](https://github.com/facebookresearch/mmf/tree/main/mmf/configs/models)
 
-The model's key is available under the particular model's config, ie., for mmf_transformer, the model's config file is available under [here](https://github.com/facebookresearch/mmf/blob/master/mmf/configs/models/mmf_transformer/defaults.yaml)
+The model's key is available under the particular model's config, ie., for mmf_transformer, the model's config file is available under [here](https://github.com/facebookresearch/mmf/blob/main/mmf/configs/models/mmf_transformer/defaults.yaml)
 
 ```yaml
 model_config:
@@ -76,11 +76,11 @@ Find more details about Registry class in its documentation [common/registry](ht
 
 ## Configuration
 
-As is necessary with research, most of the parameters/settings in MMF are configurable. MMF specific default values (`training`) are present in [mmf/configs/defaults.yaml](https://github.com/facebookresearch/mmf/blob/master/mmf/configs/defaults.yaml) with detailed comments delineating the usage of each parameter.
+As is necessary with research, most of the parameters/settings in MMF are configurable. MMF specific default values (`training`) are present in [mmf/configs/defaults.yaml](https://github.com/facebookresearch/mmf/blob/main/mmf/configs/defaults.yaml) with detailed comments delineating the usage of each parameter.
 
 For ease of usage and modularity, configuration for each dataset is kept separately in `mmf/configs/datasets/[dataset]/[variants].yaml` where you can get `[dataset]` value for the dataset from the tables in [Datasets](#datasets) section.
 
-The most dynamic part, model configurations are also kept separate and are the ones which need to be defined by the user if they are creating their own models. We include configurations for the models included in the model zoo of MMF. You can find the model configurations [here](https://github.com/facebookresearch/mmf/tree/master/mmf/configs/models)
+The most dynamic part, model configurations are also kept separate and are the ones which need to be defined by the user if they are creating their own models. We include configurations for the models included in the model zoo of MMF. You can find the model configurations [here](https://github.com/facebookresearch/mmf/tree/main/mmf/configs/models)
 
 
 It is possible to include other configs into your config using `includes` directive. Thus, in MMF config above you can include `lxmert`'s config like this:

@@ -11,6 +11,8 @@ repos:
     -   id: check-ast
     -   id: check-merge-conflict
     -   id: no-commit-to-branch
+        args: ['--branch=main']
+    -   id: no-commit-to-branch
         args: ['--branch=master']
     -   id: check-added-large-files
         args: ['--maxkb=500']
