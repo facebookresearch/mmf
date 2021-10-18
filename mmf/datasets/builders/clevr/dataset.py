@@ -3,10 +3,9 @@ import os
 
 import numpy as np
 import torch
-from mmf.common.registry import registry
 from mmf.common.sample import Sample
 from mmf.datasets.base_dataset import BaseDataset
-from mmf.utils.distributed import is_master, synchronize
+from mmf.utils.distributed import is_main, synchronize
 from mmf.utils.general import get_mmf_root
 from mmf.utils.text import VocabFromText, tokenize
 from PIL import Image
@@ -81,7 +80,7 @@ class CLEVRDataset(BaseDataset):
             self.questions = json.load(f)[_CONSTANTS["questions_key"]]
 
             # Vocab should only be built in main process, as it will repetition of same task
-            if is_master():
+            if is_main():
                 self._build_vocab(self.questions, _CONSTANTS["question_key"])
                 self._build_vocab(self.questions, _CONSTANTS["answer_key"])
             synchronize()
