@@ -18,7 +18,7 @@ from mmf.datasets.iteration_strategies import (
 )
 from mmf.datasets.processors.processors import Processor
 from mmf.utils.configuration import Configuration, get_global_config
-from mmf.utils.distributed import is_dist_initialized, is_master, is_xla, synchronize
+from mmf.utils.distributed import is_dist_initialized, is_main, is_xla, synchronize
 from mmf.utils.general import get_optimizer_parameters
 from omegaconf import DictConfig, OmegaConf
 from packaging import version
@@ -96,7 +96,7 @@ def build_lightning_model(
     https://github.com/PyTorchLightning/pytorch-lightning/issues/5410
     """
 
-    if is_master():
+    if is_main():
         model_class.load_requirements(model_class, config=config)
         model = model_class.load_from_checkpoint(
             checkpoint_path, config=config, strict=False
@@ -140,7 +140,7 @@ def build_model(
         now other cores can proceed to build the model
         using already downloaded checkpoint.
         """
-        if is_master():
+        if is_main():
             model_class.load_requirements(model_class, config=config)
             model.build()
             synchronize()
@@ -250,7 +250,7 @@ def build_multiple_datamodules(
             )
             dataset_config = OmegaConf.create()
 
-        if is_master():
+        if is_main():
             datamodule_instance.prepare_data(dataset_config)
 
         synchronize()

@@ -4,7 +4,7 @@ title: Quickstart
 sidebar_label: Quickstart
 ---
 
-In this quickstart guide, we are going to train the [M4C](https://github.com/facebookresearch/mmf/tree/master/projects/m4c) model on the TextVQA dataset. TextVQA requires models to read and reason about text in images to answer questions about them. `M4C` is a recent SOTA model on TextVQA which consists of a multimodal transformer architecture accompanied by a rich representation for text in images.
+In this quickstart guide, we are going to train the [M4C](https://github.com/facebookresearch/mmf/tree/main/projects/m4c) model on the TextVQA dataset. TextVQA requires models to read and reason about text in images to answer questions about them. `M4C` is a recent SOTA model on TextVQA which consists of a multimodal transformer architecture accompanied by a rich representation for text in images.
 
 To train other models or understand more about MMF, follow Next Steps at the bottom of this tutorial.
 

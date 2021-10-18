@@ -2,9 +2,9 @@
 import os
 import pickle
 import re
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict
 from copy import deepcopy
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
@@ -18,12 +18,10 @@ from mmf.modules.layers import Identity
 from mmf.utils.build import build_image_encoder, build_text_encoder
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
-from mmf.utils.general import get_absolute_path, retry_n
+from mmf.utils.general import get_absolute_path
 from mmf.utils.logger import log_class_usage
 from omegaconf import MISSING, OmegaConf
-from packaging import version
 from torch import Tensor, nn
-from transformers import __version__ as transformers_version
 from transformers.configuration_auto import AutoConfig
 from transformers.modeling_auto import AutoModel
 
@@ -32,15 +30,6 @@ try:
     from detectron2.modeling import ShapeSpec, build_resnet_backbone
 except ImportError:
     pass
-
-if version.parse(transformers_version) >= version.parse("4.10.1"):
-    import transformers.models.vit.modeling_vit as vit
-
-    has_VIT = True
-else:
-    VitStub = namedtuple("Vit", ["ViTAttention", "ViTPreTrainedModel"])
-    vit = VitStub(torch.nn.Module, torch.nn.Module)
-    has_VIT = False
 
 
 class Encoder(nn.Module):
@@ -753,132 +742,22 @@ class ViTEncoder(Encoder):
         gradient_checkpointing: bool = False
 
     def __init__(self, config: Config, *args, **kwargs):
-        if not has_VIT:
-            raise ImportError(
-                "transformers version >= 4.10.1 required for using modeling_vit"
-            )
-
         super().__init__()
         self.config = config
-        random_init = config.get("random_init", False)
-        gradient_checkpointing = config.get("gradient_checkpointing", False)
 
-        hf_config = retry_n(
-            6,
-            vit.ViTConfig.from_pretrained,
-            self.config.pretrained_model_name,
-            **OmegaConf.to_container(config),
-        )
-        hf_config.gradient_checkpointing = gradient_checkpointing
-        hf_config.add_pooling_layer = config.get("add_pooling_layer", True)
-        hf_config.do_patch_embeddings = config.get("do_patch_embeddings", True)
-        hf_config.image_size = config.get("image_size", hf_config.image_size)
-
-        if not random_init:
-            self.module = retry_n(
-                6,
-                self._model_class.from_pretrained,
-                self.config.pretrained_model_name,
-                config=hf_config,
-            )
-        else:
-            self.module = retry_n(6, self._model_class, hf_config)
+        self.module, self.hf_config = self._model_class.from_config(config)
 
         self.embeddings = self.module.embeddings
-
-        self.original_config = self.config
-        self.config = hf_config
-        self.out_dim = hf_config.hidden_size
+        self.out_dim = self.hf_config.hidden_size
 
     @property
     def _model_class(self):
-        from ..modules.vit import ViTModel
+        from mmf.modules.vit import ViTModel
 
         return ViTModel
 
     def forward(self, *args, **kwargs):
         if "output_hidden_states" not in kwargs:
-            kwargs["output_hidden_states"] = True
+            kwargs["output_hidden_states"] = False
         output = self.module(*args, **kwargs)
-        return output["last_hidden_state"], output["hidden_states"]
-
-
-@registry.register_encoder("vilt_img_embedding")
-class VILTImageEmbedding(Encoder):
-    """
-    Patch embedding used for ViLT.
-    https://arxiv.org/pdf/2102.03334.pdf
-    Implementation based off
-    https://github.com/dandelin/ViLT/blob/master/vilt/modules/vilt_module.py
-    Using huggingface ViT modules.
-    Can be built with random init or the embeddings weights from an exisiting
-    ViT model from huggingface. Model list: availible at
-    https://huggingface.co/models?other=vit&sort=downloads
-    """
-
-    @dataclass
-    class Config(Encoder.Config):
-        image_size: list = field(default_factory=lambda: [224, 224])
-        hidden_dropout_prob: float = 0
-        hidden_size: int = 768
-        patch_size: int = 16
-        num_channels: int = 3
-        random_init: bool = True
-        image_encoder: Any = None
-
-    def __init__(self, config: Config):
-        super().__init__()
-        self.config = config
-
-        if not config.random_init and config.image_encoder is not None:
-            self.embedding = ViTEncoder(self.config.image_encoder.params).embeddings
-        else:
-            self.embedding = vit.ViTEmbeddings(config)
-
-        self.token_type_embeddings = nn.Embedding(1, config.hidden_size)
-
-    def forward(self, sample_list):
-        image = sample_list["image"]
-        if image.dim() == 5:
-            # manual collation for SimCLR inputs (when VISSL collator is not used)
-            # make num_view the 1st dimension to be consistent with VISSL SimCLR
-            image = image.permute(1, 0, 2, 3, 4).flatten(start_dim=0, end_dim=1)
-
-        img_embeddings = self.embedding(image)
-
-        img_segment_ids = torch.zeros(
-            img_embeddings.size()[:-1],
-            dtype=img_embeddings.dtype,
-            device=img_embeddings.device,
-        ).long()
-        img_type_embed = self.token_type_embeddings(img_segment_ids)
-        img_embeddings = img_embeddings + img_type_embed
-        return img_embeddings
-
-
-@registry.register_encoder("vilt_text_embedding")
-class VILTTextEmbedding(Encoder):
-    @dataclass
-    class Config(Encoder.Config):
-        hidden_dim: int = 768
-        hidden_size: int = 768
-        bert_model_name: str = "bert-base-uncased"
-
-    def __init__(self, config: Config):
-
-        super().__init__()
-        self.config = config
-        text_encoder = TransformerEncoder(self.config)
-        self.text_embeddings = text_encoder.embeddings
-        encoder_output_dim = self.config.hidden_dim
-        self.text_projection = nn.Linear(
-            text_encoder.config.hidden_size, encoder_output_dim
-        )
-
-    def forward(self, sample_list):
-        input_ids = sample_list.input_ids
-        segment_ids = sample_list.segment_ids
-
-        text_embedding = self.text_embeddings(input_ids, token_type_ids=segment_ids)
-        text_embedding = self.text_projection(text_embedding)
-        return text_embedding
+        return output["last_hidden_state"], output.get("hidden_states", None)
