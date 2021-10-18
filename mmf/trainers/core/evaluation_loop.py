@@ -10,7 +10,7 @@ from caffe2.python.timeout_guard import CompleteInTimeOrDie
 from mmf.common.meter import Meter
 from mmf.common.report import Report
 from mmf.common.sample import to_device
-from mmf.utils.distributed import gather_tensor, is_master, is_xla
+from mmf.utils.distributed import gather_tensor, is_main, is_xla
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class TrainerEvaluationLoopMixin(ABC):
 
         with torch.no_grad():
             self.model.eval()
-            disable_tqdm = not use_tqdm or not is_master()
+            disable_tqdm = not use_tqdm or not is_main()
             while reporter.next_dataset(flush_report=False):
                 dataloader = reporter.get_dataloader()
                 combined_report = None
