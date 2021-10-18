@@ -1,0 +1,50 @@
+includes:
+- ./defaults.yaml
+
+model_config:
+  vilt:
+    tasks: ${datasets}
+    heads:
+      masked_coco:
+      - type: mlm_multi
+        freeze: false
+        lr_multiplier: 1.0
+        hidden_size: 768
+        vocab_size: 30522
+      - type: itm
+        freeze: false
+        lr_multiplier: 1.0
+        hidden_size: 768
+        label_key: is_correct
+
+training:
+  clip_gradients: false
+  lr_scheduler: true
+  max_updates: 100000
+  checkpoint_interval: 5000
+  evaluation_interval: 5000000
+  batch_size: 4096
+  find_unused_parameters: false
+  num_workers: 1
+
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 1e-4
+    eps: 1e-8
+    weight_decay: 1e-2
+
+
+scheduler:
+  type: warmup_cosine
+  params:
+    num_warmup_steps: 10000
+    num_training_steps: ${training.max_updates}
+
+
+dataset_config:
+  masked_coco:
+    return_features_info: true
+    false_caption: true
+    false_caption_probability: 0.1

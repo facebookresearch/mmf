@@ -18,7 +18,7 @@ dataset_config:
           - ${other_configs.image_w}
           - ${other_configs.image_h}
       text_processor:
-        type: vilt_text_processor
+        type: vilt_text_tokenizer
         params:
           mask_probability: 0
           max_seq_length: 25
@@ -35,16 +35,17 @@ dataset_config:
       - coco/defaults/images/test2015
 
 model_config:
-  vilt:
+  masked_coco:
     tasks: ${datasets}
     heads:
-      vqa2:
-        type: multilayer_mlp
-        num_labels: 3129
+      masked_coco:
+        - type: multilayer_mlp
+          loss: masked_coco_mlp
+          num_labels: 3129
 
 
     losses:
-      vqa2: logit_bce
+      masked_coco_mlp: logit_bce
 
     image_encoder:
       type: vit
@@ -89,23 +90,23 @@ model_config:
 training:
   clip_gradients: false
   lr_scheduler: true
-  max_updates: 100000
+  max_updates: 44000
   checkpoint_interval: 4000
   evaluation_interval: 4000
-  batch_size: 4096
+  batch_size: 256 # 32 per GPU * 8 GPU
   find_unused_parameters: false
-
+  log_interval: 1000
 
 optimizer:
-  type: adam_w_skip_params_with_zero_grad
+  type: adam_w
   params:
-    lr: 5e-5
+    lr: 1e-4
     eps: 1e-8
-    weight_decay: 1e-4
+    weight_decay: 1e-2
 
 
 scheduler:
-  type: warmup_linear
+  type: warmup_cosine
   params:
-    num_warmup_steps: 4000
+    num_warmup_steps: 4400
     num_training_steps: ${training.max_updates}

@@ -29,21 +29,19 @@ model_config:
 
     image_embeddings:
       type: vilt_img_embedding
-      params:
-        image_size:
-        - ${other_configs.image_w}
-        - ${other_configs.image_h}
-        hidden_dropout_prob: 0
-        hidden_dim: ${other_configs.hidden_dim}
-        hidden_size: ${other_configs.hidden_dim}
-        patch_size: 16
-        num_channels: 3
-        random_init: False
-        image_encoder: ${model_config.vilt.image_encoder}
+      image_size:
+      - ${other_configs.image_w}
+      - ${other_configs.image_h}
+      hidden_dropout_prob: 0.1
+      hidden_dim: ${other_configs.hidden_dim}
+      hidden_size: ${other_configs.hidden_dim}
+      patch_size: 16
+      num_channels: 3
+      random_init: False
+      image_encoder: ${model_config.vilt.image_encoder}
 
     text_embeddings:
       type: vilt_text_embedding
-      params:
-        bert_model_name: bert-base-uncased
-        hidden_dim: ${other_configs.hidden_dim}
-        hidden_size: 768
+      bert_model_name: bert-base-uncased
+      hidden_dim: ${other_configs.hidden_dim}
+      hidden_size: 768

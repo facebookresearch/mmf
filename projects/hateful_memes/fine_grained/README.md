@@ -6,13 +6,13 @@ This folder contains configs required to reproduce results and baselines for [20
 
 Install MMF following the [installation docs](https://mmf.sh/docs/getting_started/installation/).
 
-To acquire the hateful memes data, follow th instructions [here](https://github.com/facebookresearch/mmf/tree/master/projects/hateful_memes).
+To acquire the hateful memes data, follow th instructions [here](https://github.com/facebookresearch/mmf/tree/main/projects/hateful_memes).
 
-The additional fine grained labels can be found [here](https://github.com/facebookresearch/fine_grained_hateful_memes/tree/master/data).
+The additional fine grained labels can be found [here](https://github.com/facebookresearch/fine_grained_hateful_memes/tree/main/data).
 
 
 ## Reproducing Baselines
-We provide the configration fine to reproduce the baseline results we have in the [GitHub repo](https://github.com/facebookresearch/fine_grained_hateful_memes). The instrustions for training and evaluation are the same as [hateful memes](https://github.com/facebookresearch/mmf/tree/master/projects/hateful_memes). The output format is different and specified in the [GitHub repo](https://github.com/facebookresearch/fine_grained_hateful_memes).
+We provide the configration fine to reproduce the baseline results we have in the [GitHub repo](https://github.com/facebookresearch/fine_grained_hateful_memes). The instrustions for training and evaluation are the same as [hateful memes](https://github.com/facebookresearch/mmf/tree/main/projects/hateful_memes). The output format is different and specified in the [GitHub repo](https://github.com/facebookresearch/fine_grained_hateful_memes).
 
 The baselines are all based on VisualBert with image features.
 
