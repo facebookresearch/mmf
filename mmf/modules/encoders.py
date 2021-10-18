@@ -2,7 +2,7 @@
 import os
 import pickle
 import re
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
@@ -18,12 +18,10 @@ from mmf.modules.layers import Identity
 from mmf.utils.build import build_image_encoder, build_text_encoder
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
-from mmf.utils.general import get_absolute_path, retry_n
+from mmf.utils.general import get_absolute_path
 from mmf.utils.logger import log_class_usage
 from omegaconf import MISSING, OmegaConf
-from packaging import version
 from torch import Tensor, nn
-from transformers import __version__ as transformers_version
 from transformers.configuration_auto import AutoConfig
 from transformers.modeling_auto import AutoModel
 
@@ -32,15 +30,6 @@ try:
     from detectron2.modeling import ShapeSpec, build_resnet_backbone
 except ImportError:
     pass
-
-if version.parse(transformers_version) >= version.parse("4.10.1"):
-    import transformers.models.vit.modeling_vit as vit
-
-    has_VIT = True
-else:
-    VitStub = namedtuple("Vit", ["ViTAttention", "ViTPreTrainedModel"])
-    vit = VitStub(torch.nn.Module, torch.nn.Module)
-    has_VIT = False
 
 
 class Encoder(nn.Module):
@@ -753,51 +742,22 @@ class ViTEncoder(Encoder):
         gradient_checkpointing: bool = False
 
     def __init__(self, config: Config, *args, **kwargs):
-        if not has_VIT:
-            raise ImportError(
-                "transformers version >= 4.10.1 required for using modeling_vit"
-            )
-
         super().__init__()
         self.config = config
-        random_init = config.get("random_init", False)
-        gradient_checkpointing = config.get("gradient_checkpointing", False)
 
-        hf_config = retry_n(
-            6,
-            vit.ViTConfig.from_pretrained,
-            self.config.pretrained_model_name,
-            **OmegaConf.to_container(config),
-        )
-        hf_config.gradient_checkpointing = gradient_checkpointing
-        hf_config.add_pooling_layer = config.get("add_pooling_layer", True)
-        hf_config.do_patch_embeddings = config.get("do_patch_embeddings", True)
-        hf_config.image_size = config.get("image_size", hf_config.image_size)
-
-        if not random_init:
-            self.module = retry_n(
-                6,
-                self._model_class.from_pretrained,
-                self.config.pretrained_model_name,
-                config=hf_config,
-            )
-        else:
-            self.module = retry_n(6, self._model_class, hf_config)
+        self.module, self.hf_config = self._model_class.from_config(config)
 
         self.embeddings = self.module.embeddings
-
-        self.original_config = self.config
-        self.config = hf_config
-        self.out_dim = hf_config.hidden_size
+        self.out_dim = self.hf_config.hidden_size
 
     @property
     def _model_class(self):
-        from ..modules.vit import ViTModel
+        from mmf.modules.vit import ViTModel
 
         return ViTModel
 
     def forward(self, *args, **kwargs):
         if "output_hidden_states" not in kwargs:
-            kwargs["output_hidden_states"] = True
+            kwargs["output_hidden_states"] = False
         output = self.module(*args, **kwargs)
-        return output["last_hidden_state"], output["hidden_states"]
+        return output["last_hidden_state"], output.get("hidden_states", None)
