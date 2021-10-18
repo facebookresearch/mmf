@@ -5,7 +5,7 @@ import torch
 import tqdm
 from mmf.common.sample import Sample
 from mmf.datasets.mmf_dataset import MMFDataset
-from mmf.utils.distributed import is_master
+from mmf.utils.distributed import is_main
 
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class VQA2Dataset(MMFDataset):
             )
             self.cache = {}
             for idx in tqdm.tqdm(
-                range(len(self.annotation_db)), miniters=100, disable=not is_master()
+                range(len(self.annotation_db)), miniters=100, disable=not is_main()
             ):
                 self.cache[idx] = self.load_item(idx)
 
