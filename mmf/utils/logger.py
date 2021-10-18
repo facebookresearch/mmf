@@ -13,7 +13,7 @@ from typing import Any, Callable, Dict, Optional, Union
 import torch
 from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env
-from mmf.utils.distributed import get_rank, is_master, is_xla
+from mmf.utils.distributed import get_rank, is_main, is_xla
 from mmf.utils.file_io import PathManager
 from mmf.utils.timer import Timer
 from termcolor import colored
@@ -222,7 +222,7 @@ def summarize_report(
 ):
     if extra is None:
         extra = {}
-    if not is_master() and not is_xla():
+    if not is_main() and not is_xla():
         return
 
     if tb_writer:
@@ -309,7 +309,7 @@ def log_class_usage(component_type, klass):
 
 def skip_if_tensorboard_inactive(fn: Callable) -> Callable:
     """
-    Checks whether summary writer is initialized and rank is 0 (master)
+    Checks whether summary writer is initialized and rank is 0 (main)
     Args:
         fn (Callable): Function which should be called based on whether
             tensorboard should log or not
@@ -317,7 +317,7 @@ def skip_if_tensorboard_inactive(fn: Callable) -> Callable:
 
     @wraps(fn)
     def wrapped_fn(self, *args: Any, **kwargs: Any) -> Optional[Any]:
-        if self.summary_writer is None or not self._is_master:
+        if self.summary_writer is None or not self._is_main:
             return None
         else:
             return fn(self, *args, **kwargs)
@@ -344,7 +344,7 @@ class ColorfulFormatter(logging.Formatter):
 class TensorboardLogger:
     def __init__(self, log_folder="./logs", iteration=0):
         self._summary_writer = None
-        self._is_master = is_master()
+        self._is_main = is_main()
         self.timer = Timer()
         self.log_folder = log_folder
         self.time_format = "%Y-%m-%dT%H:%M:%S"
@@ -356,7 +356,7 @@ class TensorboardLogger:
     @property
     def summary_writer(self):
         # Only on rank zero
-        if not self._is_master:
+        if not self._is_main:
             return None
 
         if self._summary_writer is None:
@@ -431,7 +431,7 @@ class WandbLogger:
         """
         Setup `Weights and Biases` for logging.
         """
-        if is_master():
+        if is_main():
 
             if self._wandb.run is None:
                 self._wandb.init(**self._wandb_init)
@@ -448,7 +448,7 @@ class WandbLogger:
             self._wandb.finish()
 
     def _should_log_wandb(self):
-        if self._wandb is None or not is_master():
+        if self._wandb is None or not is_main():
             return False
         else:
             return True

@@ -83,7 +83,7 @@ from mmf.common.constants import IMAGE_COLOR_MEAN, IMAGE_COLOR_STD
 from mmf.common.registry import registry
 from mmf.common.typings import ProcessorConfigType
 from mmf.utils.configuration import get_mmf_cache_dir, get_mmf_env
-from mmf.utils.distributed import is_master, synchronize
+from mmf.utils.distributed import is_main, synchronize
 from mmf.utils.file_io import PathManager
 from mmf.utils.logger import log_class_usage
 from mmf.utils.text import VocabDict
@@ -422,7 +422,7 @@ class FastTextProcessor(VocabProcessor):
             self._try_download()
 
     def _try_download(self):
-        _is_master = is_master()
+        _is_main = is_main()
 
         if self._already_downloaded:
             return
@@ -430,7 +430,7 @@ class FastTextProcessor(VocabProcessor):
         needs_download = False
 
         if not hasattr(self.config, "model_file"):
-            if _is_master:
+            if _is_main:
                 warnings.warn(
                     "'model_file' key is required but missing "
                     "from FastTextProcessor's config."
@@ -443,7 +443,7 @@ class FastTextProcessor(VocabProcessor):
             model_file = os.path.join(get_mmf_cache_dir(), model_file)
 
         if not PathManager.exists(model_file):
-            if _is_master:
+            if _is_main:
                 warnings.warn(f"No model file present at {model_file}.")
             needs_download = True
 
@@ -456,11 +456,11 @@ class FastTextProcessor(VocabProcessor):
         synchronize()
 
     def _download_model(self):
-        _is_master = is_master()
+        _is_main = is_main()
 
         model_file_path = os.path.join(get_mmf_cache_dir(), "wiki.en.bin")
 
-        if not _is_master:
+        if not _is_main:
             return model_file_path
 
         if PathManager.exists(model_file_path):
@@ -478,7 +478,7 @@ class FastTextProcessor(VocabProcessor):
             pbar = tqdm(
                 total=int(response.headers["Content-Length"]) / 4096,
                 miniters=50,
-                disable=not _is_master,
+                disable=not _is_main,
             )
 
             idx = 0

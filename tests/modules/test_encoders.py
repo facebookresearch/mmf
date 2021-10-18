@@ -101,31 +101,3 @@ class TestEncoders(unittest.TestCase):
         x = torch.rand(32, 197, 768)
         output, _ = encoder(x)
         self.assertEqual(output.size(-1), config.out_dim)
-
-    def test_vilt_image_embedding(self):
-        from mmf.common.sample import SampleList
-
-        config = OmegaConf.structured(encoders.VILTImageEmbedding.Config())
-        encoder = encoders.VILTImageEmbedding(config)
-        self.assertTrue(isinstance(encoder, nn.Module))
-
-        sample_list = SampleList({"image": torch.rand(32, 3, 224, 224)})
-        output = encoder(sample_list)
-        self.assertEqual(output.shape, torch.Size([32, 197, 768]))
-
-    def test_vilt_text_embedding(self):
-        from mmf.common.sample import SampleList
-
-        config = OmegaConf.structured(encoders.VILTTextEmbedding.Config())
-
-        encoder = encoders.VILTTextEmbedding(config)
-        self.assertTrue(isinstance(encoder, nn.Module))
-
-        sample_list = SampleList(
-            {
-                "input_ids": torch.ones(32, 25).long(),
-                "segment_ids": torch.ones(32, 25).long(),
-            }
-        )
-        output = encoder(sample_list)
-        self.assertEqual(output.shape, torch.Size([32, 25, 768]))
