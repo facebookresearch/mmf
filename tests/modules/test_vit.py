@@ -8,7 +8,7 @@ from tests.test_utils import setup_proxy, skip_if_old_transformers
 from torch import nn
 
 
-@skip_if_old_transformers
+@skip_if_old_transformers(min_version="4.5.0")
 class TestViT(unittest.TestCase):
     def setUp(self):
         import transformers.models.vit.modeling_vit as vit

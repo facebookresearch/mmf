@@ -7,7 +7,6 @@ import logging
 import warnings
 from typing import Dict, Iterator
 
-import numpy as np
 import torch
 from mmf.common.sample import SampleList, convert_batch_to_sample_list
 from mmf.datasets import iteration_strategies
@@ -17,7 +16,7 @@ from mmf.utils.distributed import (
     broadcast_scalar,
     get_world_size,
     is_dist_initialized,
-    is_master,
+    is_main,
     is_xla,
 )
 from mmf.utils.general import get_batch_size, get_current_device
@@ -47,7 +46,7 @@ class MultiDataLoader:
 
         self._iteration_strategy = iteration_strategy
         self._loaders = loaders
-        self._is_master = is_master()
+        self._is_main = is_main()
         self._num_datasets = len(self.loaders)
         self.dataset_list = list(loaders.keys())
         self._iterators = {}
@@ -230,7 +229,7 @@ class MultiDataLoader:
             self.current_index = choice
             return
 
-        if self._is_master:
+        if self._is_main:
             choice = self.iteration_strategy()
 
             # self._finished_iterators will always be empty in case of

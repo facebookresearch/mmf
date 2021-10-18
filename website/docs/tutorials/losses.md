@@ -10,8 +10,8 @@ This is a tutorial on how to add a new loss function to MMF.
 
 MMF is agnostic to the kind of losses that can be added to it.
 Adding a loss requires adding a loss class and adding your new loss to your config yaml.
-For example, the [ConcatBERT](https://github.com/facebookresearch/mmf/blob/master/website/docs/tutorials/concat_bert_tutorial.md) model uses the `cross_entropy` loss when training on the hateful memes dataset.
-The loss class is `CrossEntropyLoss` defined in [mmf/modules/losses.py](https://github.com/facebookresearch/mmf/blob/master/mmf/modules/losses.py)
+For example, the [ConcatBERT](https://github.com/facebookresearch/mmf/blob/main/website/docs/tutorials/concat_bert_tutorial.md) model uses the `cross_entropy` loss when training on the hateful memes dataset.
+The loss class is `CrossEntropyLoss` defined in [mmf/modules/losses.py](https://github.com/facebookresearch/mmf/blob/main/mmf/modules/losses.py)
 The loss key `cross_entropy` is added to the list of losses in the config yaml at [mmf/projects/hateful_memes/configs/concat_bert/defaults.yaml](https://github.com/facebookresearch/mmf/blob/15fa63071bfaed56db43deba871cfec76439c66f/projects/others/concat_bert/hateful_memes/defaults.yaml#L11).
 
 
@@ -62,7 +62,7 @@ For losses with params you can do,
 
 If a loss class is responsible for calculating multiple losses, for example, maybe due to shared calculations you can return a dictionary of tensors.
 The resulting loss that is optimized is the sum of all losses configured for the model.
-For an example, take a look at the `BCEAndKLLoss` class in [mmf/modules/losses.py](https://github.com/facebookresearch/mmf/blob/master/mmf/modules/losses.py)
+For an example, take a look at the `BCEAndKLLoss` class in [mmf/modules/losses.py](https://github.com/facebookresearch/mmf/blob/main/mmf/modules/losses.py)
 
 ```python
 @registry.register_loss("bce_kl")
