@@ -1,15 +1,18 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 from collections import namedtuple
+from dataclasses import asdict, dataclass
 
 import torch
+from mmf.utils.general import retry_n
+from omegaconf import OmegaConf
 from packaging import version
 from torch import nn
 from transformers import __version__ as transformers_version
 from transformers.modeling_bert import BertSelfAttention
 
 
-if version.parse(transformers_version) >= version.parse("4.10.1"):
+if version.parse(transformers_version) >= version.parse("4.5.0"):
     import transformers.models.vit.modeling_vit as vit
 
     has_VIT = True
@@ -21,11 +24,12 @@ else:
 
 class ViTAttention(vit.ViTAttention):
     def __init__(self, config):
-        if not has_VIT:
-            raise ImportError(
-                "transformers version >= 4.10.1 required for using modeling_vit"
-            )
+        check_vit_in_transformers()
         super().__init__(config)
+        # We need to support attention masks for vision language input
+        # ViTAttention from transformers doesn't currently support attention masks,
+        # for versions without attention_mask support we use these clones of ViT modules
+        # that use BertSelfAttention to enable masking.
         self.attention = BertSelfAttention(config)
 
     def forward(
@@ -41,9 +45,7 @@ class ViTAttention(vit.ViTAttention):
             head_mask=head_mask,
             output_attentions=output_attentions,
         )
-
         attention_output = self.output(self_outputs[0], hidden_states)
-
         outputs = (attention_output,) + self_outputs[1:]
         return outputs
 
@@ -178,13 +180,16 @@ class ViTEncoder(nn.Module):
         )
 
 
+def check_vit_in_transformers():
+    if not has_VIT:
+        raise ImportError(
+            "transformers version >= 4.5.0 required for using modeling_vit"
+        )
+
+
 class ViTModel(vit.ViTPreTrainedModel):
     def __init__(self, config):
-        if not has_VIT:
-            raise ImportError(
-                "transformers version >= 4.10.1 required for using modeling_vit"
-            )
-
+        check_vit_in_transformers()
         super().__init__(config)
         self.config = config
 
@@ -291,3 +296,41 @@ class ViTModel(vit.ViTPreTrainedModel):
             hidden_states=encoder_outputs.hidden_states,
             attentions=encoder_outputs.attentions,
         )
+
+    @dataclass
+    class VitModelConstructorConfig:
+        name: str = "vit"
+        # See https://huggingface.co/models?filter=vit for available options
+        pretrained_model_name: str = "google/vit-base-patch16-224"
+        random_init: bool = False
+        gradient_checkpointing: bool = False
+        do_patch_embeddings: bool = True
+
+    @staticmethod
+    def from_config(config: VitModelConstructorConfig):
+        check_vit_in_transformers()
+
+        config_with_defaults = OmegaConf.create(
+            {**asdict(ViTModel.VitModelConstructorConfig()), **config}
+        )
+        random_init = config_with_defaults.get("random_init", False)
+
+        hf_config = retry_n(
+            6,
+            vit.ViTConfig.from_pretrained,
+            config_with_defaults.pretrained_model_name,
+            **OmegaConf.to_container(config_with_defaults),
+        )
+        hf_config.update(config)
+
+        if not random_init:
+            module = retry_n(
+                6,
+                ViTModel.from_pretrained,
+                config.pretrained_model_name,
+                config=hf_config,
+            )
+        else:
+            module = ViTModel(hf_config)
+
+        return module, hf_config

@@ -65,8 +65,8 @@ templates_path = ["_templates"]
 source_suffix = [".rst", ".md"]
 # source_suffix = '.rst'
 
-# The master toctree document.
-master_doc = "index"
+# The main toctree document.
+main_doc = "index"
 
 # General information about the project.
 project = "MMF"
@@ -167,7 +167,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "mmf.tex", "MMF Documentation", "Facebook AI Research", "manual")
+    (main_doc, "mmf.tex", "MMF Documentation", "Facebook AI Research", "manual")
 ]
 
 
@@ -175,7 +175,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "mmf", "MMF Documentation", [author], 1)]
+man_pages = [(main_doc, "mmf", "MMF Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output -------------------------------------------
@@ -185,7 +185,7 @@ man_pages = [(master_doc, "mmf", "MMF Documentation", [author], 1)]
 #  dir menu entry, description, category)
 texinfo_documents = [
     (
-        master_doc,
+        main_doc,
         "mmf",
         "MMF Documentation",
         author,
@@ -195,7 +195,7 @@ texinfo_documents = [
     )
 ]
 
-github_doc_root = "https://github.com/facebookresearch/mmf/tree/master"
+github_doc_root = "https://github.com/facebookresearch/mmf/tree/main"
 
 
 # At the bottom of conf.py

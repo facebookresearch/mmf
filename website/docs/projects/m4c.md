@@ -35,7 +35,7 @@ The released imdbs contain OCR results and normalized bounding boxes (i.e. in th
 
 For the TextVQA dataset, the downloaded file contains both imdbs with the Rosetta-en OCRs (better performance) and imdbs with Rosetta-ml OCRs (same OCR results as in the previous [LoRRA](http://openaccess.thecvf.com/content_CVPR_2019/papers/Singh_Towards_VQA_Models_That_Can_Read_CVPR_2019_paper.pdf) model). Please download the corresponding OCR feature files.
 
-Note that the object Faster R-CNN features are extracted with [`extract_features_vmb.py`](https://github.com/facebookresearch/mmf/blob/master/tools/scripts/features/extract_features_vmb.py) and the OCR Faster R-CNN features are extracted with [`extract_ocr_frcn_feature.py`](https://github.com/facebookresearch/mmf/blob/master/projects/m4c/scripts/extract_ocr_frcn_feature.py).
+Note that the object Faster R-CNN features are extracted with [`extract_features_vmb.py`](https://github.com/facebookresearch/mmf/blob/main/tools/scripts/features/extract_features_vmb.py) and the OCR Faster R-CNN features are extracted with [`extract_ocr_frcn_feature.py`](https://github.com/facebookresearch/mmf/blob/main/projects/m4c/scripts/extract_ocr_frcn_feature.py).
 
 ## Pretrained M4C Models
 
