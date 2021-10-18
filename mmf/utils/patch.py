@@ -28,6 +28,11 @@ def patch_transformers(log_incompatible=False):
     """
     import transformers
 
+    # pl uses importlib to find_transformers spec throwing if None
+    # this prevents mmf/__init__() from raising and value error
+    if transformers.__spec__ is None:
+        transformers.__spec__ = "MISSING"
+
     if version.parse(transformers.__version__) < version.parse("4.0.0"):
         return
     if not hasattr(transformers, "models"):
