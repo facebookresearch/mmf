@@ -48,6 +48,7 @@ class Registry:
         "model_name_mapping": {},
         "metric_name_mapping": {},
         "loss_name_mapping": {},
+        "pool_name_mapping": {},
         "fusion_name_mapping": {},
         "optimizer_name_mapping": {},
         "scheduler_name_mapping": {},
@@ -202,6 +203,35 @@ class Registry:
                 func, nn.Module
             ), "All loss must inherit torch.nn.Module class"
             cls.mapping["loss_name_mapping"][name] = func
+            return func
+
+        return wrap
+
+    @classmethod
+    def register_pooler(cls, name):
+        r"""Register a modality pooling method to registry with key 'name'
+
+        Args:
+            name: Key with which the pooling method will be registered.
+
+        Usage::
+
+            from mmf.common.registry import registry
+            from torch import nn
+
+            @registry.register_pool("average_pool")
+            class average_pool(nn.Module):
+                ...
+
+        """
+
+        def wrap(func):
+            from torch import nn
+
+            assert issubclass(
+                func, nn.Module
+            ), "All pooling methods must inherit torch.nn.Module class"
+            cls.mapping["pool_name_mapping"][name] = func
             return func
 
         return wrap
@@ -507,6 +537,10 @@ class Registry:
     @classmethod
     def get_loss_class(cls, name):
         return cls.mapping["loss_name_mapping"].get(name, None)
+
+    @classmethod
+    def get_pool_class(cls, name):
+        return cls.mapping["pool_name_mapping"].get(name, None)
 
     @classmethod
     def get_optimizer_class(cls, name):

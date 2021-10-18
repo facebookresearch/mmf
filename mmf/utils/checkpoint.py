@@ -12,7 +12,7 @@ import torch
 from mmf.common.registry import registry
 from mmf.utils.checkpoint_updater import get_pretrained_state_mapping_checkpoint
 from mmf.utils.configuration import get_mmf_env, load_yaml
-from mmf.utils.distributed import is_master, is_xla, open_if_master, synchronize
+from mmf.utils.distributed import is_main, is_xla, open_if_main, synchronize
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_current_device, updir
@@ -208,7 +208,7 @@ class Checkpoint:
         self.saved_iterations = []
 
     def save_config(self):
-        if not is_master():
+        if not is_main():
             return
 
         cfg_file = os.path.join(self.ckpt_foldername, "config.yaml")
@@ -498,7 +498,7 @@ class Checkpoint:
         # Which ensures that actual checkpoint saving happens
         # only for the master node.
         # The method also takes care of all the necessary synchronization
-        if not is_master() and not is_xla():
+        if not is_main() and not is_xla():
             return
 
         logger.info("Checkpoint save operation started!")
@@ -560,23 +560,23 @@ class Checkpoint:
             git_metadata_dict = self._get_vcs_fields()
             ckpt.update(git_metadata_dict)
 
-        with open_if_master(ckpt_filepath, "wb") as f:
+        with open_if_main(ckpt_filepath, "wb") as f:
             self.save_func(ckpt, f)
 
         if update_best:
             logger.info("Saving best checkpoint")
-            with open_if_master(best_ckpt_filepath, "wb") as f:
+            with open_if_main(best_ckpt_filepath, "wb") as f:
                 self.save_func(ckpt, f)
 
         # Save current always
 
         logger.info("Saving current checkpoint")
-        with open_if_master(current_ckpt_filepath, "wb") as f:
+        with open_if_main(current_ckpt_filepath, "wb") as f:
             self.save_func(ckpt, f)
 
         # Remove old checkpoints if max_to_keep is set
         # In XLA, only delete checkpoint files in main process
-        if self.max_to_keep > 0 and is_master():
+        if self.max_to_keep > 0 and is_main():
             if len(self.saved_iterations) == self.max_to_keep:
                 self.remove(self.saved_iterations.pop(0))
             self.saved_iterations.append(update)
@@ -597,6 +597,6 @@ class Checkpoint:
             self._load(best_path, force=True)
 
     def finalize(self):
-        if is_master() or is_xla():
-            with open_if_master(self.pth_filepath, "wb") as f:
+        if is_main() or is_xla():
+            with open_if_main(self.pth_filepath, "wb") as f:
                 self.save_func(self.trainer.model.state_dict(), f)
