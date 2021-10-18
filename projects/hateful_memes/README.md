@@ -14,7 +14,7 @@ Please cite the following paper if you use these models and the hateful memes da
   year={2020}
 }
 ```
-* [Citation for MMF](https://github.com/facebookresearch/mmf/tree/master/README.md#citation)
+* [Citation for MMF](https://github.com/facebookresearch/mmf/tree/main/README.md#citation)
 
 Links: [[arxiv]](https://arxiv.org/abs/2005.04790) [[challenge]](https://www.drivendata.org/competitions/70/hateful-memes-phase-2/) [[blog post]](https://ai.facebook.com/blog/hateful-memes-challenge-and-data-set)
 
@@ -54,7 +54,7 @@ In the table, we provide configuration corresponding to each of the baselines in
 | Visual BERT COCO | visual_bert    | visual_bert.finetuned.hateful_memes.from_coco    | projects/hateful_memes/configs/visual_bert/from_coco.yaml  |
 
 
-For individual baselines and their proper citation have a look at their project pages: [[Visual BERT]](https://github.com/facebookresearch/mmf/tree/master/projects/visual_bert) [[VilBERT]](https://github.com/facebookresearch/mmf/tree/master/projects/vilbert) [[MMBT]](https://github.com/facebookresearch/mmf/tree/master/projects/mmbt)
+For individual baselines and their proper citation have a look at their project pages: [[Visual BERT]](https://github.com/facebookresearch/mmf/tree/main/projects/visual_bert) [[VilBERT]](https://github.com/facebookresearch/mmf/tree/main/projects/vilbert) [[MMBT]](https://github.com/facebookresearch/mmf/tree/main/projects/mmbt)
 
 ## Training
 
