@@ -98,7 +98,7 @@ class HeadsDict(nn.Module):
 
         # list of dict( losses, scores )
         processed_outputs_list = [
-            self.process_head_output(outputs, loss_name, head_name, sample_list)
+            self.__process_head_output(outputs, loss_name, head_name, sample_list)
             for outputs, loss_name, head_name in zip(
                 outputs_list, head_losses, head_names
             )
@@ -123,7 +123,7 @@ class HeadsDict(nn.Module):
         }
         return results
 
-    def process_head_output(self, outputs, loss_name, head_name, sample_list):
+    def __process_head_output(self, outputs, loss_name, head_name, sample_list):
         if isinstance(outputs, collections.MutableMapping) and "losses" in outputs:
             return outputs
 
