@@ -3,14 +3,22 @@
 # Initial version was taken from https://github.com/ChenRocks/UNITER/
 # and adapted for MMF.
 
+import collections
+import logging
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
 import torch
+from mmf.common.registry import registry
+from mmf.models import BaseModel
+from mmf.modules.losses import MMFLoss
 from mmf.utils.general import retry_n
-from omegaconf import OmegaConf
+from omegaconf import MISSING, OmegaConf
 from torch import nn
 from transformers.modeling_bert import BertConfig, BertEmbeddings, BertModel, BertPooler
+
+
+logger = logging.getLogger()
 
 
 class UniterImageEmbeddings(nn.Module):
@@ -207,3 +215,174 @@ class UniterModelBase(nn.Module):
         if not output_hidden_states:
             encoded_layers = encoded_layers[-1]
         return encoded_layers
+
+
+@registry.register_model("uniter")
+class Uniter(BaseModel):
+    """ Modification for Joint Vision-Language Encoding
+    """
+
+    @dataclass
+    class Config(UniterModelBase.Config):
+        heads: Any = MISSING
+        tasks: Any = MISSING
+
+    def __init__(self, config):
+        super().__init__(config)
+
+    @classmethod
+    def config_path(cls):
+        return "configs/models/uniter/defaults.yaml"
+
+    def build(self):
+        self.uniter = UniterModelBase(self.config)
+
+        self.heads = nn.ModuleDict()
+        head_configs = self.config.get("heads", {})
+
+        self.tasks = self.config.tasks
+        if isinstance(self.tasks, str):
+            self.tasks = self.tasks.split(",")
+
+        for task in self.tasks:
+            head_config = head_configs[task]
+            head_type = head_config.get("type", "mlp")
+            head_class = registry.get_transformer_head_class(head_type)
+            if head_type == "wra":
+                self.heads[task] = head_class(
+                    head_config, self.uniter.img_embeddings.weight
+                )
+            else:
+                self.heads[task] = head_class(head_config)
+
+    def init_losses(self):
+        self.losses = nn.ModuleDict()
+        loss_configs = self.config.get("losses", {})
+        for task in self.tasks:
+            if task not in loss_configs:
+                logger.warning(
+                    f"No loss defined for {task}. Head is expected "
+                    + "to return dict with 'losses'"
+                )
+                continue
+            loss_config = loss_configs[task]
+            self.losses[task] = MMFLoss(loss_config)
+
+    def add_pos_feat(self, sample_list):
+        assert "image_info_0" in sample_list
+        assert "bbox" in sample_list["image_info_0"]
+
+        bboxs = torch.tensor(sample_list["image_info_0"]["bbox"])  # (bs, num_feats, 4)
+        img_h = (
+            torch.tensor(sample_list["image_info_0"]["image_height"])
+            .unsqueeze(1)
+            .unsqueeze(1)
+        )  # (bs,)
+        img_w = (
+            torch.tensor(sample_list["image_info_0"]["image_width"])
+            .unsqueeze(1)
+            .unsqueeze(1)
+        )  # (bs,)
+
+        norm_xy = torch.clone(bboxs)
+        max_image_size = torch.cat([img_w, img_h, img_w, img_h], dim=-1)
+        norm_xy /= max_image_size
+
+        num_feat = bboxs.size(1)
+        expanded_img_w = img_w.expand(-1, num_feat, -1)
+        expanded_img_h = img_h.expand(-1, num_feat, -1)
+        area = expanded_img_w * expanded_img_h
+
+        pos_feat = torch.cat(
+            [norm_xy, expanded_img_w, expanded_img_h, area], dim=-1
+        ).to(sample_list["image_feature_0"])
+        sample_list["img_pos_feat"] = pos_feat
+
+    def add_custom_params(self, sample_list):
+        image_feat = sample_list["image_feat"] = sample_list["image_feature_0"]
+
+        image_info = getattr(sample_list, "image_info_0", {})
+        image_dim = getattr(image_info, "max_features", None)
+        sample_list["image_dim"] = image_dim
+
+        image_mask = torch.arange(image_feat.size(-2), device=image_feat.device).expand(
+            image_feat.size()[:-1]
+        )
+        if len(image_dim.size()) < len(image_mask.size()):
+            image_dim = image_dim.unsqueeze(-1)
+            assert len(image_dim.size()) == len(image_mask.size())
+        image_mask = image_mask < image_dim
+        sample_list["image_mask"] = image_mask.long()
+
+        attention_mask = torch.cat(
+            (sample_list["input_mask"], sample_list["image_mask"]), dim=-1
+        )
+        sample_list["attention_mask"] = attention_mask
+        task_index = torch.randint(len(self.tasks), (1,)).item()
+        sample_list["task"] = self.tasks[task_index]
+        sample_list["position_ids"] = torch.arange(
+            0,
+            sample_list["input_ids"].size(1),
+            dtype=torch.long,
+            device=image_feat.device,
+        ).unsqueeze(0)
+        sample_list["gather_index"] = None
+
+        self.add_pos_feat(sample_list)
+        return sample_list
+
+    def forward(self, sample_list):
+        sample_list = self.add_custom_params(sample_list)
+
+        task = sample_list["task"]
+        if task == "mlm" or task == "itm":
+            img_masks = None
+        else:
+            img_masks = sample_list["image_mask"]
+
+        sequence_output = self.uniter(
+            sample_list["input_ids"],
+            sample_list["position_ids"],
+            sample_list["image_feat"],
+            sample_list["img_pos_feat"],
+            sample_list["attention_mask"],
+            sample_list["gather_index"],
+            output_hidden_states=False,
+            img_masks=img_masks,
+        )
+
+        outputs = self.heads[task](sequence_output, processed_sample_list=sample_list)
+
+        if isinstance(outputs, collections.MutableMapping) and "losses" in outputs:
+            return outputs
+
+        logits = outputs
+        if isinstance(outputs, collections.MutableMapping) and "scores" in outputs:
+            logits = outputs["scores"]
+        logits = logits.contiguous().view(-1, logits.size(-1))
+        output = self.losses[sample_list.dataset_name](sample_list, {"scores": logits})
+        return {"losses": output, "scores": logits}
+
+    def get_attention_mask(self, sample_list, text_embedding, image_embedding):
+        image_mask = getattr(sample_list, "image_mask", None)
+
+        if image_mask is not None and sample_list.input_mask is not None:
+            attention_mask = torch.cat((sample_list.input_mask, image_mask), dim=-1)
+        elif image_mask is not None:
+            text_mask = torch.ones(
+                text_embedding.size()[:-1],
+                dtype=text_embedding.dtype,
+                device=text_embedding.device,
+            )
+            attention_mask = torch.cat((image_mask, text_mask), dim=-1)
+        elif sample_list.input_mask is not None:
+            image_mask = torch.ones(
+                image_embedding.size()[:-1],
+                dtype=image_embedding.dtype,
+                device=image_embedding.device,
+            )
+            attention_mask = torch.cat((image_mask, sample_list.input_mask), dim=-1)
+        else:
+            attention_mask = None
+
+        return attention_mask
