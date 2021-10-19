@@ -5,7 +5,7 @@ from multiprocessing.pool import ThreadPool
 import tqdm
 from mmf.datasets.databases.image_database import ImageDatabase
 from mmf.datasets.databases.readers.feature_readers import FeatureReader
-from mmf.utils.distributed import is_master
+from mmf.utils.distributed import is_main
 from mmf.utils.general import get_absolute_path
 
 
@@ -47,7 +47,7 @@ class FeaturesDatabase(ImageDatabase):
         elements = [idx for idx in range(1, len(self.annotation_db))]
         pool = ThreadPool(processes=4)
 
-        with tqdm.tqdm(total=len(elements), disable=not is_master()) as pbar:
+        with tqdm.tqdm(total=len(elements), disable=not is_main()) as pbar:
             for i, _ in enumerate(pool.imap_unordered(self._fill_cache, elements)):
                 if i % 100 == 0:
                     pbar.update(100)

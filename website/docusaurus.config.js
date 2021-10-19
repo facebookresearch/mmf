@@ -111,7 +111,7 @@ module.exports = {
           showLastUpdateTime: true,
           editUrl: fbContent({
             internal: 'https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/faim/mmf/website',
-            external: 'https://github.com/facebookresearch/mmf/edit/master/website/'
+            external: 'https://github.com/facebookresearch/mmf/edit/main/website/'
           }),
         },
         theme: {
