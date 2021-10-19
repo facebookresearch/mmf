@@ -1,0 +1,98 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
+# Initial version was taken from https://github.com/ChenRocks/UNITER/
+# and adapted for MMF.
+
+from dataclasses import dataclass
+from typing import Dict, Optional
+
+import torch
+import torch.nn.functional as F
+from mmf.common.registry import registry
+from mmf.models.transformers.base import BaseTransformerHead
+from torch import nn
+
+
+LABEL_KEY = "mrc_labels"
+
+
+@registry.register_transformer_head("mrc")
+class MRC(BaseTransformerHead):
+    @dataclass
+    class Config(BaseTransformerHead.Config):
+        type: str = "mrc"
+        hidden_size: int = 768
+        loss_name: str = "mrc_loss"
+        ignore_index: int = -1
+        mrc_label_key: str = "region_class"
+        mrc_mask_key: str = "image_region_mask"
+        label_dim: int = 1601
+        eps: float = 1e-12
+        use_kl: bool = True
+
+    def __init__(self, config: Config, *args, **kwargs):
+        super().__init__(config, *args, **kwargs)
+
+        # Head modules
+        hidden_size = self.config.hidden_size
+        self.cls = nn.Sequential(
+            nn.Linear(hidden_size, hidden_size),
+            nn.GELU(),
+            nn.LayerNorm(hidden_size, eps=self.config.eps),
+            nn.Linear(hidden_size, self.config.label_dim),
+        )
+
+    def forward(
+        self,
+        sequence_output: torch.Tensor,
+        processed_sample_list: Optional[Dict[str, Dict[str, torch.Tensor]]] = None,
+    ):
+        assert (
+            processed_sample_list is not None
+        ), "MRC head requires 'processed_sample_list' argument"
+
+        output_dict = {}
+
+        assert (
+            self.config.mrc_label_key in processed_sample_list
+            and processed_sample_list[self.config.mrc_label_key] is not None
+        ), (
+            f"MRC pretraining requires {self.config.mrc_label_key} to be in sample "
+            + "list with value not None."
+        )
+        region_labels = processed_sample_list[self.config.mrc_label_key]
+
+        assert (
+            self.config.mrc_mask_key in processed_sample_list
+            and processed_sample_list[self.config.mrc_mask_key] is not None
+        ), (
+            f"MRC pretraining requires {self.config.mrc_mask_key} to be in sample "
+            + "list with value not None."
+        )
+        image_region_masks = processed_sample_list[self.config.mrc_mask_key]
+
+        masked_output = self._compute_masked_hidden(sequence_output, image_region_masks)
+        prediction_soft_label = self.region_classifier(masked_output)
+
+        if self.config.use_kl:
+            prediction_soft_label = F.log_softmax(prediction_soft_label, dim=-1)
+            mrc_loss = F.kl_div(prediction_soft_label, region_labels, reduction="none")
+        else:
+            # background class should not be the target
+            label_targets = torch.max(region_labels[:, 1:], dim=-1)[1] + 1
+            mrc_loss = F.cross_entropy(
+                prediction_soft_label,
+                label_targets,
+                ignore_index=self.config.ignore_index,
+                reduction="none",
+            )
+
+        output_dict["losses"] = {}
+        output_dict["losses"][self.config.loss_name] = mrc_loss
+        return output_dict
+
+    def _compute_masked_hidden(self, hidden, mask):
+        """ get only the masked region (don't compute unnecessary hiddens) """
+        mask = mask.unsqueeze(-1).expand_as(hidden)
+        hidden_masked = hidden[mask].contiguous().view(-1, hidden.size(-1))
+        return hidden_masked
