@@ -6,13 +6,13 @@ sidebar_label: Hateful Memes Challenge
 
 The Hateful Memes challenge is available at [this link](https://www.drivendata.org/competitions/70/hateful-memes-phase-2/data/).
 
-In MMF, we provide the starter code and baseline pretrained models for this challenge and the configurations used for training the reported baselines. For more details check [this link](https://github.com/facebookresearch/mmf/tree/master/projects/hateful_memes).
+In MMF, we provide the starter code and baseline pretrained models for this challenge and the configurations used for training the reported baselines. For more details check [this link](https://github.com/facebookresearch/mmf/tree/main/projects/hateful_memes).
 
 In this tutorial, we provide steps for running training and evaluation with MMBT model on hateful memes dataset and generating submission file for the challenge. The same steps can be used for your own models.
 
 ## Installation and Preparing the dataset
 
-Follow the prerequisites for installation and dataset [here](https://github.com/facebookresearch/mmf/tree/master/projects/hateful_memes#prerequisites).
+Follow the prerequisites for installation and dataset [here](https://github.com/facebookresearch/mmf/tree/main/projects/hateful_memes#prerequisites).
 
 ## Training and Evaluation
 

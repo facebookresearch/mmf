@@ -8,7 +8,7 @@ In this tutorial, we will learn about the different details around finetuning fr
 
 ## Pre-requisites and installation
 
-Follow the prerequisites for installation and dataset [here](https://github.com/facebookresearch/mmf/tree/master/projects/hateful_memes#prerequisites).
+Follow the prerequisites for installation and dataset [here](https://github.com/facebookresearch/mmf/tree/main/projects/hateful_memes#prerequisites).
 
 ## Finetuning from a pretrained model
 
