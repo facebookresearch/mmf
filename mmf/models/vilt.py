@@ -112,8 +112,6 @@ class ViLT(BaseModel):
             self.tasks = self.tasks.split(",")
 
         self.losses = nn.ModuleDict()
-        # heads: Union[ nn.ModuleList, nn.ModuleDict ]
-        # loss_names: Union[ list, dict ]
         self.heads_dict = HeadsDict.build_heads(head_configs, self.tasks, self.losses)
         self.modality_keys = self.modality_type = ["text", "image"]
 
@@ -130,7 +128,7 @@ class ViLT(BaseModel):
         self.preprocess_sample(sample_list, image_embedding)
 
         # Feed through encoder
-        embeddings = torch.cat([image_embedding, text_embedding], dim=1)
+        embeddings = torch.cat([text_embedding, image_embedding], dim=1)
         attention_mask = self.get_attention_mask(
             sample_list, text_embedding, image_embedding
         )
@@ -138,7 +136,7 @@ class ViLT(BaseModel):
         if sequence.dim() != 3:
             sequence = sequence.unsqueeze(1)
 
-        outputs = self.heads_dict(sample_list.dataset_name, sequence, sample_list)
+        outputs = self.heads_dict(sample_list["dataset_name"], sequence, sample_list)
         return outputs
 
     def preprocess_sample(self, sample_list, image_embedding):
@@ -169,26 +167,27 @@ class ViLT(BaseModel):
         return params
 
     def get_attention_mask(self, sample_list, text_embedding, image_embedding):
+        text_mask = getattr(sample_list, "input_mask", None)
         image_mask = getattr(sample_list, "image_mask", None)
 
-        if image_mask is not None and sample_list.input_mask is not None:
-            attention_mask = torch.cat((sample_list.input_mask, image_mask), dim=-1)
-        elif image_mask is not None:
+        if text_mask is None and image_mask is None:
+            return None
+
+        if text_mask is None:
             text_mask = torch.ones(
                 text_embedding.size()[:-1],
                 dtype=text_embedding.dtype,
                 device=text_embedding.device,
             )
-            attention_mask = torch.cat((image_mask, text_mask), dim=-1)
-        elif sample_list.input_mask is not None:
+
+        if image_mask is None:
             image_mask = torch.ones(
                 image_embedding.size()[:-1],
                 dtype=image_embedding.dtype,
                 device=image_embedding.device,
             )
-            attention_mask = torch.cat((image_mask, sample_list.input_mask), dim=-1)
-        else:
-            attention_mask = None
+
+        attention_mask = torch.cat((text_mask, image_mask), dim=-1)
         return attention_mask
 
     def _infer_itm_labels(self, sample_list):
