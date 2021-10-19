@@ -1,0 +1,54 @@
+# includes:
+# - ../projects/unit/configs/vqa2_dataset_cfg.yaml
+
+model_config:
+  uniter:
+    tasks: vqa2
+    heads:
+      vqa2:
+        type: mlp
+        num_labels: 3129
+    losses:
+      vqa2: logit_bce
+
+
+dataset_config:
+  vqa2:
+    return_features_info: true
+    use_features: true
+    use_images: false
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 25
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 6000
+    num_training_steps: 60000
+
+evaluation:
+  metrics:
+  - vqa_accuracy
+
+training:
+  batch_size: 480
+  lr_scheduler: true
+  # Don't forget to update schedule_attributes if you update this
+  max_updates: 60000
+  early_stop:
+    criteria: vqa2/vqa_accuracy
+    minimize: false
