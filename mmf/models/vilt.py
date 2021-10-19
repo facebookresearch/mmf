@@ -23,7 +23,7 @@ class ViLTImageEmbedding(nn.Module):
     class Config:
         image_size: list = field(default_factory=lambda: [224, 224])
         hidden_dropout_prob: float = 0
-        hidden_size: int = 768
+        hidden_dim: int = 768
         patch_size: int = 16
         num_channels: int = 3
         random_init: bool = True
@@ -33,7 +33,7 @@ class ViLTImageEmbedding(nn.Module):
         super().__init__()
         self.config = config
         self.embedding = ViTEncoder(self.config).embeddings
-        self.token_type_embeddings = nn.Embedding(1, self.config.hidden_size)
+        self.token_type_embeddings = nn.Embedding(1, self.config.hidden_dim)
 
     def forward(self, image):
         if image.dim() == 5:
