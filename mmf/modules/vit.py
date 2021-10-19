@@ -273,9 +273,22 @@ class ViTModel(vit.ViTPreTrainedModel):
             self.embeddings(input_values) if do_patch_embeddings else input_values
         )
 
+        batch_size, seq_length, _ = embedding_output.shape
+        device = embedding_output.device
+
+        if attention_mask is None:
+            attention_mask = torch.ones(((batch_size, seq_length)), device=device)
+
+        # We can provide a self-attention mask of dimensions
+        # [batch_size, from_seq_length, to_seq_length]
+        # ourselves in which case we just need to make it broadcastable to all heads.
+        extended_attention_mask: torch.Tensor = self.get_extended_attention_mask(
+            attention_mask, (batch_size, seq_length), device
+        )
+
         encoder_outputs = self.encoder(
             embedding_output,
-            attention_mask=attention_mask,
+            attention_mask=extended_attention_mask,
             head_mask=head_mask,
             output_attentions=output_attentions,
             output_hidden_states=output_hidden_states,
