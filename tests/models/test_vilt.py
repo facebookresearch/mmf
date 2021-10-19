@@ -63,7 +63,7 @@ class TestViltPretrained(unittest.TestCase):
         test_utils.setup_proxy()
         setup_imports()
         model_name = "vilt"
-        args = test_utils.dummy_args(model=model_name, dataset="vqa2")
+        args = test_utils.dummy_args(model=model_name, dataset="test")
         configuration = Configuration(args)
         config = configuration.get_config()
         model_config = config.model_config[model_name]
@@ -91,10 +91,10 @@ class TestViltPretrained(unittest.TestCase):
         self.pretrain_model = self.pretrain_model.to(get_current_device())
         sample_list = sample_list.to(get_current_device())
 
-        sample_list.dataset_name = "vqa2"
+        sample_list.dataset_name = "test"
         sample_list.dataset_type = "test"
         with torch.no_grad():
             model_output = self.pretrain_model(sample_list)
 
         self.assertTrue("losses" in model_output)
-        self.assertTrue("test/vqa2/logit_bce" in model_output["losses"])
+        self.assertTrue("test/test/logit_bce" in model_output["losses"])
