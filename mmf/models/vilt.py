@@ -34,7 +34,7 @@ class ViLTImageEmbedding(nn.Module):
     class Config:
         image_size: list = field(default_factory=lambda: [224, 224])
         hidden_dropout_prob: float = 0
-        hidden_size: int = 768
+        hidden_dim: int = 768
         patch_size: int = 16
         num_channels: int = 3
         random_init: bool = True
@@ -44,7 +44,7 @@ class ViLTImageEmbedding(nn.Module):
         super().__init__()
         self.config = config
         self.embedding = ViTEncoder(self.config).embeddings
-        self.token_type_embeddings = nn.Embedding(1, self.config.hidden_size)
+        self.token_type_embeddings = nn.Embedding(1, self.config.hidden_dim)
 
     def forward(self, image):
         if image.dim() == 5:
@@ -94,7 +94,6 @@ class ViLT(BaseModel):
     class Config(BaseModel.Config):
         name: str = "ViLT"
         text_embeddings: ViLTTextEmbedding.Config = ViLTTextEmbedding.Config()
-        image_embeddings: ViLTImageEmbedding.Config = ViLTImageEmbedding.Config()
         image_encoder: Any = MISSING
 
     @classmethod
@@ -103,7 +102,7 @@ class ViLT(BaseModel):
 
     def build(self):
         self.text_embeddings = ViLTTextEmbedding(self.config.text_embeddings)
-        self.image_embeddings = ViLTImageEmbedding(self.config.image_embeddings)
+        self.image_embeddings = ViLTImageEmbedding(self.config.image_encoder.params)
         self.encoder = build_encoder(self.config.image_encoder)
 
         head_configs = self.config.get("heads", {})
@@ -170,11 +169,4 @@ class ViLT(BaseModel):
             attention_mask = torch.cat((image_mask, sample_list.input_mask), dim=-1)
         else:
             attention_mask = None
-
-        if attention_mask is not None:
-            attention_mask = attention_mask.masked_fill(
-                ~attention_mask.bool(), float("-inf")
-            )
-            attention_mask = attention_mask[:, None, None, :]
-
         return attention_mask
