@@ -58,11 +58,15 @@ class LogisticsCallback(Callback):
             if env_wandb_logdir:
                 log_dir = env_wandb_logdir
 
-            wandb_projectname = config.training.wandb.wandb_projectname
-            wandb_runname = config.training.wandb.wandb_runname
+            wandb_init_kwargs = config.training.wandb.init_kwargs
 
             self.wandb_logger = WandbLogger(
-                name=wandb_runname, save_dir=log_dir, project=wandb_projectname
+                entity=config.training.wandb.entity,
+                project=config.training.wandb.wandb_projectname,
+                config=config,
+                name=config.training.wandb.wandb_runname,
+                save_dir=log_dir,
+                **wandb_init_kwargs,
             )
 
     def on_train_start(self):

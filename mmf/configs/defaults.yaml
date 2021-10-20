@@ -45,11 +45,19 @@ training:
     wandb:
         # Whether to use Weights and Biases Logger, (Default: false)
         enabled: false
+        # An entity is a username or team name where you're sending runs.
+        # This is necessary if you want to log your metrics to a team account. By default
+        # it will log the run to your user account.
+        entity: null
         # Project name to be used while logging the experiment with wandb
         wandb_projectname: mmf_${oc.env:USER,}
         # Experiment/ run name to be used while logging the experiment
         # under the project with wandb
         wandb_runname: ${training.experiment_name}
+        # Specify other argument values to be used while logging the experiment
+        init_kwargs:
+            job_type: train
+
 
     # Size of the batch globally. If distributed or data_parallel
     # is used, this will be divided equally among GPUs

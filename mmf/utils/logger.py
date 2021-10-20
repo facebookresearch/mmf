@@ -395,9 +395,11 @@ class WandbLogger:
     Log using `Weights and Biases`.
 
     Args:
+        entity: An entity is a username or team name where you're sending runs.
         name: Display name for the run.
         save_dir: Path where data is saved (./save/logs/wandb/ by default).
         project: Display name for the project.
+        config: Configuration for the run.
         **init_kwargs: Arguments passed to :func:`wandb.init`.
 
     Raises:
@@ -406,9 +408,11 @@ class WandbLogger:
 
     def __init__(
         self,
+        entity: Optional[str] = None,
         name: Optional[str] = None,
         save_dir: Optional[str] = None,
         project: Optional[str] = None,
+        config: Optional[Dict] = None,
         **init_kwargs,
     ):
         try:
@@ -421,7 +425,9 @@ class WandbLogger:
 
         self._wandb = wandb
 
-        self._wandb_init = dict(name=name, project=project, dir=save_dir)
+        self._wandb_init = dict(
+            entity=entity, name=name, project=project, dir=save_dir, config=config
+        )
 
         self._wandb_init.update(**init_kwargs)
 
