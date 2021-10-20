@@ -6,7 +6,7 @@ torchtext==0.5.0
 GitPython==3.1.0
 requests==2.23.0
 fasttext==0.9.1
-nltk==3.4.5
+nltk==3.6.5
 editdistance==0.5.3
 transformers>=3.4.0, <=4.10.1
 sklearn==0.0
