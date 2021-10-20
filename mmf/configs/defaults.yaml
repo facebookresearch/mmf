@@ -42,12 +42,12 @@ training:
     tensorboard: false
 
     # Weights and Biases control, by default Weights and Biases (wandb) is disabled
-    wandb: 
+    wandb:
         # Whether to use Weights and Biases Logger, (Default: false)
         enabled: false
         # Project name to be used while logging the experiment with wandb
-        wandb_projectname: mmf_${oc.env:USER}
-        # Experiment/ run name to be used while logging the experiment 
+        wandb_projectname: mmf_${oc.env:USER,}
+        # Experiment/ run name to be used while logging the experiment
         # under the project with wandb
         wandb_runname: ${training.experiment_name}
 
