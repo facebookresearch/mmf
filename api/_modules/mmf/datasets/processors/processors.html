@@ -313,6 +313,7 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">mmf.common.constants</span> <span class="kn">import</span> <span class="n">IMAGE_COLOR_MEAN</span><span class="p">,</span> <span class="n">IMAGE_COLOR_STD</span>
 <span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
 <span class="kn">from</span> <span class="nn">mmf.common.typings</span> <span class="kn">import</span> <span class="n">ProcessorConfigType</span>
 <span class="kn">from</span> <span class="nn">mmf.utils.configuration</span> <span class="kn">import</span> <span class="n">get_mmf_cache_dir</span><span class="p">,</span> <span class="n">get_mmf_env</span>
@@ -960,8 +961,8 @@
 <span class="sd">    &quot;answers&quot; or &quot;answers_tokens&quot;. &quot;answers&quot; are preprocessed to generate</span>
 <span class="sd">    &quot;answers_tokens&quot; if passed.</span>
 
-<span class="sd">    This version also takes a graph vocab and predicts a main</span>
-<span class="sd">    and graph stream simultanously</span>
+<span class="sd">    This version also takes a graph vocab and predicts a main and graph</span>
+<span class="sd">    stream simultanously</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        config (DictConfig): Configuration for the processor</span>
@@ -1986,14 +1987,14 @@
                     <span class="p">),</span>
                 <span class="p">),</span>
                 <span class="n">T</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
-                <span class="n">T</span><span class="o">.</span><span class="n">Normalize</span><span class="p">([</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">]),</span>
+                <span class="n">T</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">IMAGE_COLOR_MEAN</span><span class="p">,</span> <span class="n">IMAGE_COLOR_STD</span><span class="p">),</span>
             <span class="p">]</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">inference_transform</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="n">T</span><span class="o">.</span><span class="n">RandomResize</span><span class="p">([</span><span class="n">config</span><span class="o">.</span><span class="n">test_image_size</span><span class="p">],</span> <span class="n">max_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">max_size</span><span class="p">),</span>
                 <span class="n">T</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
-                <span class="n">T</span><span class="o">.</span><span class="n">Normalize</span><span class="p">([</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">]),</span>
+                <span class="n">T</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">IMAGE_COLOR_MEAN</span><span class="p">,</span> <span class="n">IMAGE_COLOR_STD</span><span class="p">),</span>
             <span class="p">]</span>
         <span class="p">)</span>
 

@@ -240,10 +240,12 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">mmf.common.constants</span> <span class="kn">import</span> <span class="n">IMAGE_COLOR_MEAN</span><span class="p">,</span> <span class="n">IMAGE_COLOR_STD</span>
 <span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
 <span class="kn">from</span> <span class="nn">mmf.datasets.processors.processors</span> <span class="kn">import</span> <span class="n">BaseProcessor</span>
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">OmegaConf</span>
 <span class="kn">from</span> <span class="nn">torchvision</span> <span class="kn">import</span> <span class="n">transforms</span>
+<span class="kn">from</span> <span class="nn">torchvision.transforms</span> <span class="kn">import</span> <span class="n">Compose</span><span class="p">,</span> <span class="n">Normalize</span><span class="p">,</span> <span class="n">Resize</span><span class="p">,</span> <span class="n">ToTensor</span>
 
 
 <div class="viewcode-block" id="TorchvisionTransforms"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.image_processors.TorchvisionTransforms">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;torchvision_transforms&quot;</span><span class="p">)</span>
@@ -396,6 +398,26 @@
 
             <span class="k">return</span> <span class="n">padded_image</span>
         <span class="k">return</span> <span class="n">image</span></div>
+
+
+<div class="viewcode-block" id="VILTImageProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.image_processors.VILTImageProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;vilt_image_processor&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">VILTImageProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">image_size</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;size&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">])</span>
+        <span class="n">transforms_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">transforms_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Resize</span><span class="p">(</span><span class="n">image_size</span><span class="p">))</span>
+        <span class="n">transforms_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ToTensor</span><span class="p">())</span>
+        <span class="n">transforms_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">GrayScaleTo3Channels</span><span class="p">())</span>
+        <span class="n">transforms_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Normalize</span><span class="p">(</span><span class="n">IMAGE_COLOR_MEAN</span><span class="p">,</span> <span class="n">IMAGE_COLOR_STD</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">Compose</span><span class="p">(</span><span class="n">transforms_list</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="c1"># Support both dict and normal mode</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 </pre></div>
 
              </article>
