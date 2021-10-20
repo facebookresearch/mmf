@@ -6,7 +6,7 @@ import unittest
 import tests.test_utils as test_utils
 import torch
 from mmf.common.sample import SampleList
-from mmf.modules.hf_layers import replace_with_jit
+from mmf.modules.hf_layers import replace_with_jit, undo_replace_with_jit
 from mmf.utils.build import build_model
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports, teardown_imports
@@ -33,6 +33,7 @@ class TestVisualBertTorchscript(unittest.TestCase):
 
     def tearDown(self):
         teardown_imports()
+        undo_replace_with_jit()
         del self.finetune_model
         gc.collect()
 
@@ -63,6 +64,7 @@ class TestVisualBertPretraining(unittest.TestCase):
 
     def tearDown(self):
         teardown_imports()
+        undo_replace_with_jit()
         del self.pretrain_model
         gc.collect()
 
