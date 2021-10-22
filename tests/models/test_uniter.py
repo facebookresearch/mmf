@@ -6,10 +6,10 @@ import tests.test_utils as test_utils
 import torch
 from mmf.common.sample import SampleList
 from mmf.models.uniter import (
-    UniterForClassification,
-    UniterForPretraining,
-    UniterImageEmbeddings,
-    UniterModelBase,
+    UNITERForClassification,
+    UNITERForPretraining,
+    UNITERImageEmbeddings,
+    UNITERModelBase,
 )
 from mmf.utils.build import build_model
 from mmf.utils.configuration import Configuration
@@ -18,12 +18,12 @@ from mmf.utils.general import get_current_device
 from omegaconf import OmegaConf
 
 
-class TestUniterImageEmbeddings(unittest.TestCase):
+class TestUNITERImageEmbeddings(unittest.TestCase):
     def test_forward_has_correct_output_dim(self):
         bs = 32
         num_feat = 100
         config = OmegaConf.create({"img_dim": 1024, "hidden_size": 256, "pos_dim": 7})
-        embedding = UniterImageEmbeddings(config)
+        embedding = UNITERImageEmbeddings(config)
         img_feat = torch.rand((bs, num_feat, config["img_dim"]))
         img_pos_feat = torch.rand((bs, num_feat, config["pos_dim"]))
         type_embeddings = torch.ones((bs, num_feat, 1), dtype=torch.long)
@@ -32,7 +32,7 @@ class TestUniterImageEmbeddings(unittest.TestCase):
         self.assertEquals(list(output.shape), [32, 100, 256])
 
 
-class TestUniterModelBase(unittest.TestCase):
+class TestUNITERModelBase(unittest.TestCase):
     def tearDown(self):
         del self.model
         gc.collect()
@@ -40,7 +40,7 @@ class TestUniterModelBase(unittest.TestCase):
     def test_pretrained_model(self):
         img_dim = 1024
         config = OmegaConf.create({"image_embeddings": {"img_dim": img_dim}})
-        self.model = UniterModelBase(config)
+        self.model = UNITERModelBase(config)
 
         self.model.eval()
         self.model = self.model.to(get_current_device())
@@ -111,7 +111,7 @@ class TestUniterWithHeads(unittest.TestCase):
                 "losses": {"test": "logit_bce"},
             }
         )
-        self.model = UniterForClassification(config)
+        self.model = UNITERForClassification(config)
 
         self.model.eval()
         self.model = self.model.to(get_current_device())
@@ -159,7 +159,7 @@ class TestUniterWithHeads(unittest.TestCase):
             }
         )
 
-        self.model = UniterForPretraining(config)
+        self.model = UNITERForPretraining(config)
         self.model.eval()
         self.model = self.model.to(get_current_device())
         sample_list = self._get_sample_list()
