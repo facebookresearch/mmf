@@ -9,18 +9,17 @@ import torch
 import torch.nn as nn
 import torchvision.models as models
 import torchvision.transforms as transforms
+from mmf.common.constants import IMAGE_COLOR_MEAN, IMAGE_COLOR_STD
 from PIL import Image
 from torch.autograd import Variable
 
 
 TARGET_IMAGE_SIZE = [448, 448]
-CHANNEL_MEAN = [0.485, 0.456, 0.406]
-CHANNEL_STD = [0.229, 0.224, 0.225]
 data_transforms = transforms.Compose(
     [
         transforms.Resize(TARGET_IMAGE_SIZE),
         transforms.ToTensor(),
-        transforms.Normalize(CHANNEL_MEAN, CHANNEL_STD),
+        transforms.Normalize(IMAGE_COLOR_MEAN, IMAGE_COLOR_STD),
     ]
 )
 
