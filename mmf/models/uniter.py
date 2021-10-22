@@ -406,7 +406,7 @@ class UniterForPretraining(nn.Module):
             self._get_img_mask(mask_prob, num_feat)
             for _ in range(img_feat_masked.size(0))
         ]
-        img_masks = torch.tensor(img_masks).to(img_feat_masked.device)
+        img_masks = torch.tensor(img_masks).bool().to(img_feat_masked.device)
         img_masks_ext = img_masks.unsqueeze(-1).expand_as(img_feat_masked)
         processed_sample_list["image_feat_masked"] = img_feat_masked.data.masked_fill(
             img_masks_ext, 0
@@ -500,14 +500,14 @@ class UniterForPretraining(nn.Module):
 
         def _compute_pad(lens):
             max_len = max(lens)
-            pad = torch.zeros(len(lens), max_len, dtype=torch.uint8)
+            pad = torch.zeros(len(lens), max_len)
             for i, l in enumerate(lens):
                 pad.data[i, l:].fill_(1)
             return pad
 
         device = processed_sample_list["input_ids"].device
-        txt_pad = _compute_pad(txt_lens).to(device)
-        img_pad = _compute_pad(num_bbs).to(device)
+        txt_pad = _compute_pad(txt_lens).to(device).bool()
+        img_pad = _compute_pad(num_bbs).to(device).bool()
 
         ot_inputs = {"txt_pad": txt_pad, "img_pad": img_pad}
 
@@ -557,6 +557,7 @@ class Uniter(BaseModel):
 
     def __init__(self, config):
         super().__init__(config)
+        self.config = OmegaConf.create({**asdict(self.Config()), **config})
         self.do_pretraining = self.config.do_pretraining
 
     @classmethod
@@ -580,30 +581,32 @@ class Uniter(BaseModel):
         assert "image_info_0" in sample_list
         assert "bbox" in sample_list["image_info_0"]
 
-        bboxs = torch.tensor(sample_list["image_info_0"]["bbox"])  # (bs, num_feats, 4)
-        img_h = (
-            torch.tensor(sample_list["image_info_0"]["image_height"])
-            .unsqueeze(1)
-            .unsqueeze(1)
-        )  # (bs,)
-        img_w = (
-            torch.tensor(sample_list["image_info_0"]["image_width"])
-            .unsqueeze(1)
-            .unsqueeze(1)
-        )  # (bs,)
-
+        # (x1, y1, x2, y2), dim = (bs, num_feats, 4)
+        bboxs = torch.tensor(sample_list["image_info_0"]["bbox"])[:, :, :4]
         norm_xy = torch.clone(bboxs)
-        max_image_size = torch.cat([img_w, img_h, img_w, img_h], dim=-1)
-        norm_xy /= max_image_size
+        # if bboxs are not normalized, just do it here
+        if norm_xy[0, 0, 0] < 1:
+            img_h = (
+                torch.tensor(sample_list["image_info_0"]["image_height"])
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )  # (bs,)
+            img_w = (
+                torch.tensor(sample_list["image_info_0"]["image_width"])
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )  # (bs,)
+            max_image_size = torch.cat([img_w, img_h, img_w, img_h], dim=-1)
+            max_image_size = max_image_size.to(norm_xy.device)
+            norm_xy /= max_image_size
 
-        num_feat = bboxs.size(1)
-        expanded_img_w = img_w.expand(-1, num_feat, -1)
-        expanded_img_h = img_h.expand(-1, num_feat, -1)
-        area = expanded_img_w * expanded_img_h
-
-        pos_feat = torch.cat(
-            [norm_xy, expanded_img_w, expanded_img_h, area], dim=-1
-        ).to(sample_list["image_feature_0"])
+        bbox_w = (norm_xy[:, :, 2] - norm_xy[:, :, 0]).unsqueeze(-1)
+        bbox_h = (norm_xy[:, :, 3] - norm_xy[:, :, 1]).unsqueeze(-1)
+        area = bbox_w * bbox_h
+        # normalized (x1, y1, x2, y2, w, h, area)
+        pos_feat = torch.cat([norm_xy, bbox_w, bbox_h, area], dim=-1).to(
+            sample_list["image_feature_0"]
+        )
         sample_list["img_pos_feat"] = pos_feat
 
     def add_custom_params(self, sample_list):
