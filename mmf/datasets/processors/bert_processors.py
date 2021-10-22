@@ -353,3 +353,47 @@ class MultiSentenceRobertaTokenizer(MultiSentenceBertTokenizer):
         self.fusion_strategy = config.get("fusion", "concat")
         self.tokenizer = RobertaTokenizer(config, *args, **kwargs)
         self._probability = config.get("mask_probability", 0)
+
+
+@registry.register_processor("vilt_text_tokenizer")
+class VILTTextTokenizer(MaskedTokenProcessor):
+    def __init__(self, config, *args, **kwargs):
+        from transformers import BertTokenizer
+
+        if isinstance(config, str):
+            config = {"from_pretrained": config}
+
+        from_pretrained_name = config.get("from_pretrained", "bert-base-uncased")
+        kwargs_dict = dict(kwargs, do_lower_case="uncased" in from_pretrained_name)
+        self._tokenizer = BertTokenizer.from_pretrained(
+            from_pretrained_name, **kwargs_dict
+        )
+        self._max_seq_length = config.get("max_seq_length", 25)
+        self._probability = config.get("mask_probability", 0)
+
+    def __call__(self, item):
+        if "text" in item:
+            text_a = item["text"]
+        elif "text_a" in item:
+            text_a = item["text_a"]
+        else:
+            text_a = " ".join(item["tokens"])
+
+        if isinstance(text_a, list):
+            text_a = " ".join(text_a)
+
+        tokens_a = self.tokenize(text_a)
+
+        # 'text_b' can be defined in the dataset preparation
+        tokens_b = None
+        if "text_b" in item:
+            text_b = item["text_b"]
+            if text_b:
+                tokens_b = self.tokenize(text_b)
+
+        self._truncate_seq_pair(tokens_a, tokens_b, self._max_seq_length)
+        output = self._convert_to_indices(
+            tokens_a, tokens_b, probability=self._probability
+        )
+        output["text"] = output["tokens"]
+        return output

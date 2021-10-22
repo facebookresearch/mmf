@@ -4,6 +4,7 @@ import math
 from typing import List, Optional, Tuple
 
 import torch
+from mmf.utils.patch import restore_saved_modules, safecopy_modules
 from torch import Tensor, nn
 from transformers.modeling_bert import (
     BertAttention,
@@ -26,10 +27,32 @@ from transformers.modeling_roberta import (
 from transformers.modeling_utils import PreTrainedModel
 
 
+patch_functions = [
+    "BertEmbeddings.forward",
+    "BertEncoder.forward",
+    "BertLayer.forward",
+    "BertAttention.forward",
+    "BertSelfAttention.forward",
+    "BertSelfAttention.transpose_for_scores",
+    "BertModel.forward",
+    "RobertaEmbeddings.forward",
+    "RobertaEncoder.forward",
+    "RobertaLayer.forward",
+    "RobertaAttention.forward",
+    "RobertaSelfAttention.forward",
+    "RobertaSelfAttention.transpose_for_scores",
+    "RobertaModel.forward",
+]
+patch_modules = [p_fun.split(".")[0] for p_fun in patch_functions]
+
+
 def replace_with_jit():
     """
     Monkey patch some transformer functions to replace with scriptable ones.
     """
+    # to revert monkey patch without reload()
+    safecopy_modules(patch_functions, _get_modules_dict(patch_modules))
+
     BertEmbeddings.forward = BertEmbeddingsJit.forward
     BertEncoder.forward = BertEncoderJit.forward
     BertLayer.forward = BertLayerJit.forward
@@ -52,6 +75,23 @@ def replace_with_jit():
         BertSelfAttentionJit.transpose_for_scores
     )
     RobertaModel.forward = BertModelJit.forward
+
+
+def undo_replace_with_jit():
+    """
+    Reload modules to undo monkey patch.
+    """
+    restore_saved_modules(_get_modules_dict(patch_modules))
+
+
+def _get_modules_dict(modules_list):
+    """
+    Expects a list of str module names.
+    Returns a dict of module_name: module obj,
+    a subset of globals().
+    """
+    global_table = globals()
+    return {module_name: global_table[module_name] for module_name in modules_list}
 
 
 class BertEmbeddingsJit(BertEmbeddings):

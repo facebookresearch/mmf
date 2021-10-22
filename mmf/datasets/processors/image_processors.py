@@ -6,10 +6,12 @@ import random
 import warnings
 
 import torch
+from mmf.common.constants import IMAGE_COLOR_MEAN, IMAGE_COLOR_STD
 from mmf.common.registry import registry
 from mmf.datasets.processors.processors import BaseProcessor
 from omegaconf import OmegaConf
 from torchvision import transforms
+from torchvision.transforms import Compose, Normalize, Resize, ToTensor
 
 
 @registry.register_processor("torchvision_transforms")
@@ -162,3 +164,23 @@ class NormalizeBGR255(BaseProcessor):
 
             return padded_image
         return image
+
+
+@registry.register_processor("vilt_image_processor")
+class VILTImageProcessor(BaseProcessor):
+    def __init__(self, config, *args, **kwargs):
+        image_size = config.get("size", [224, 224])
+        transforms_list = []
+        transforms_list.append(Resize(image_size))
+        transforms_list.append(ToTensor())
+        transforms_list.append(GrayScaleTo3Channels())
+        transforms_list.append(Normalize(IMAGE_COLOR_MEAN, IMAGE_COLOR_STD))
+        self.transform = Compose(transforms_list)
+
+    def __call__(self, x):
+        # Support both dict and normal mode
+        if isinstance(x, collections.abc.Mapping):
+            x = x["image"]
+            return {"image": self.transform(x)}
+        else:
+            return self.transform(x)

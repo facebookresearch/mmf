@@ -18,7 +18,7 @@
 
 MMF is a modular framework for vision and language multimodal research from Facebook AI Research. MMF contains reference implementations of state-of-the-art vision and language models and has powered multiple research projects at Facebook AI Research. See full list of project inside or built on MMF [here](https://mmf.sh/docs/notes/projects).
 
-MMF is powered by PyTorch, allows distributed training and is un-opinionated, scalable and fast. Use MMF to **_bootstrap_** for your next vision and language multimodal research project by following the [installation instructions](https://mmf.sh/docs/getting_started/installation). Take a look at list of MMF features [here](https://mmf.sh/docs/getting_started/features).
+MMF is powered by PyTorch, allows distributed training and is un-opinionated, scalable and fast. Use MMF to **_bootstrap_** for your next vision and language multimodal research project by following the [installation instructions](https://mmf.sh/docs/). Take a look at list of MMF features [here](https://mmf.sh/docs/getting_started/features).
 
 MMF also acts as **starter codebase** for challenges around vision and
 language datasets (The Hateful Memes, TextVQA, TextCaps and VQA challenges). MMF was formerly known as Pythia. The next video shows an overview of how datasets and models work inside MMF. Checkout MMF's [video overview](https://mmf.sh/docs/getting_started/video_overview).
@@ -26,7 +26,7 @@ language datasets (The Hateful Memes, TextVQA, TextCaps and VQA challenges). MMF
 
 ## Installation
 
-Follow installation instructions in the [documentation](https://mmf.sh/docs/getting_started/installation).
+Follow installation instructions in the [documentation](https://mmf.sh/docs/).
 
 ## Documentation
 
