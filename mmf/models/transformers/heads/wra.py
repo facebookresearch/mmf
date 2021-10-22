@@ -14,11 +14,18 @@ from mmf.modules.ot import optimal_transport_dist
 
 @registry.register_transformer_head("wra")
 class WRA(BaseTransformerHead):
+    """"
+    Word Region Alignment from UNITER.
+    Optimal Transport (OT) distance between text and image
+    features is used to optimize for WRA.
+    OT transport plan (T) is approximated through IPOT.
+    """
+
     @dataclass
     class Config(BaseTransformerHead.Config):
         type: str = "wra"
         loss_name: str = "wra_loss"
-        ot_inputs_key: str = "wra_region_target"
+        ot_inputs_key: str = "wra_info"
         wra_label_key: str = "is_correct"
 
     def __init__(self, config: Config, *args, **kwargs):
@@ -44,21 +51,22 @@ class WRA(BaseTransformerHead):
         )
         ot_inputs = processed_sample_list[self.config.ot_inputs_key]
 
-        ot_scatter = ot_inputs["ot_scatter"]
+        assert (
+            ot_inputs.get("txt_pad") is not None
+            and ot_inputs.get("img_pad") is not None
+        ), (
+            "WRA pretraining requires 'txt_pad', and 'img_pad' to be in "
+            + f"'processed_sample_list[{self.config.ot_inputs_key}]' with"
+            + " values not None."
+        )
+        assert processed_sample_list.get(self.config.wra_label_key) is not None, (
+            f"WRA pretraining requires {self.config.wra_label_key} to be in sample "
+            + "list with value not None."
+        )
 
-        b = sequence_output.size(0)
-        tl = processed_sample_list.input_ids.size(1)
-        il = processed_sample_list.img_feat.size(1)
-        max_l = max(ot_inputs["scatter_max"] + 1, tl + il)
-
-        ot_scatter = ot_scatter.unsqueeze(-1).expand_as(sequence_output)
-        ctx_emb = torch.zeros(
-            b,
-            max_l,
-            self.config.hidden_size,
-            dtype=sequence_output.dtype,
-            device=sequence_output.device,
-        ).scatter_(dim=1, index=ot_scatter, src=sequence_output)
+        ctx_emb = sequence_output
+        tl = processed_sample_list["input_ids"].size(1)
+        il = processed_sample_list["image_feat"].size(1)
         txt_emb = ctx_emb[:, :tl, :]
         img_emb = ctx_emb[:, tl : tl + il, :]
 
@@ -69,12 +77,12 @@ class WRA(BaseTransformerHead):
         ot_dist = optimal_transport_dist(
             txt_emb.float(), img_emb.float(), txt_pad, img_pad
         ).to(txt_emb)
-        ot_pos_dist = ot_dist.masked_select(itm_labels == 1)
-        ot_neg_dist = ot_dist.masked_select(itm_labels == 0)
+        ot_pos = ot_dist.masked_select(itm_labels == 1)
+        ot_neg = ot_dist.masked_select(itm_labels == 0)
+        ot_loss = (ot_pos.sum() - ot_neg.sum()) / (ot_pos.size(0) + ot_neg.size(0))
 
         output_dict["losses"] = {}
-        output_dict["losses"][self.config.loss_name + "/pos"] = ot_pos_dist
-        output_dict["losses"][self.config.loss_name + "/neg"] = ot_neg_dist
+        output_dict["losses"][self.config.loss_name] = ot_loss
         return output_dict
 
     def _compute_masked_hidden(self, hidden, mask):

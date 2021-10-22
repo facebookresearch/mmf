@@ -8,7 +8,7 @@ requests==2.23.0
 fasttext==0.9.1
 nltk==3.4.5
 editdistance==0.5.3
-transformers==3.4.0
+transformers>=3.4.0, <=4.10.1
 sklearn==0.0
 omegaconf>=2.0.6, <=2.1
 lmdb==0.98
