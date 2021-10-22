@@ -32,8 +32,6 @@ class TestViT(unittest.TestCase):
         embeddings = torch.rand(32, 197, 768)
         output = self.model(embeddings, output_hidden_states=True)
 
-        # import pdb; pdb.set_trace()
-
         self.assertTrue(hasattr(output, "last_hidden_state"))
         self.assertEqual(output["last_hidden_state"].shape, torch.Size([32, 197, 768]))
 

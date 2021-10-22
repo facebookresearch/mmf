@@ -37,8 +37,6 @@ class ViLTImageEmbedding(nn.Module):
 
     def forward(self, image):
         if image.dim() == 5:
-            # manual collation for SimCLR inputs (when VISSL collator is not used)
-            # make num_view the 1st dimension to be consistent with VISSL SimCLR
             image = image.permute(1, 0, 2, 3, 4).flatten(start_dim=0, end_dim=1)
 
         img_embeddings = self.embedding(image)
