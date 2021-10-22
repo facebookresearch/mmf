@@ -3,6 +3,7 @@
 
 model_config:
   uniter:
+    do_pretraining: false
     tasks: vqa2
     heads:
       vqa2:

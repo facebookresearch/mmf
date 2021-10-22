@@ -26,4 +26,10 @@ To train UNITER model on the VQA2.0 dataset, run the following command
 mmf_run config=projects/uniter/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=uniter
 ```
 
+To pretrain UNITER on the masked COCO dataset, run the following command
+```
+mmf_run config=projects/uniter/configs/masked_coco/defaults.yaml run_type=train_val dataset=masked_coco model=uniter
+```
+
+
 Based on the config used and `do_pretraining` defined in the config, the model can use the pretraining recipe described in the UNITER paper, or be finetuned on downstream tasks.
