@@ -9,7 +9,7 @@ from omegaconf import OmegaConf
 from torch import nn
 
 
-class UniterImageEmbeddings(nn.Module):
+class UNITERImageEmbeddings(nn.Module):
     """
     Image Embeddings used by UNITER.
     Code modified from https://github.com/ChenRocks/UNITER/blob/master/model/model.py
