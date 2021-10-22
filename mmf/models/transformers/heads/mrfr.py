@@ -18,6 +18,12 @@ LABEL_KEY = "mrfr_targets"
 
 @registry.register_transformer_head("mrfr")
 class MRFR(BaseTransformerHead):
+    """
+    Masked Region Feature Regression transformer head,
+    From uniter paper https://arxiv.org/pdf/1909.11740.pdf
+    For an example usage take a look at the unit test.
+    """
+
     @dataclass
     class Config(BaseTransformerHead.Config):
         type: str = "mrfr"
@@ -33,8 +39,15 @@ class MRFR(BaseTransformerHead):
 
         # Head modules
         hidden_size = self.config.hidden_size
+        assert img_embedding_weight is not None and tuple(
+            img_embedding_weight.shape
+        ) == (self.config.img_dim, hidden_size), (
+            "MRFR head requires 'img_embedding_weight' with shape "
+            + f"({self.config.img_dim}, {hidden_size})."
+        )
+
         self.linear_proj = nn.Linear(hidden_size, self.config.img_dim)
-        self.linear_proj.weight = img_embedding_weight
+        self.linear_proj.weight.data = img_embedding_weight
         self.linear_proj.bias.data.fill_(0)
 
         self.feat_regress = nn.Sequential(
@@ -62,6 +75,7 @@ class MRFR(BaseTransformerHead):
             f"MRFR pretraining requires {self.config.mrfr_target_key} to be in sample "
             + "list with value not None."
         )
+        # (bs*num_feat, img_dim)  Look at unit test for example usage!
         feat_targets = processed_sample_list[self.config.mrfr_target_key]
 
         assert (
@@ -71,11 +85,12 @@ class MRFR(BaseTransformerHead):
             f"MRFR pretraining requires {self.config.mrfr_mask_key} to be in sample "
             + "list with value not None."
         )
+        # (bs, num_feat)
         image_region_masks = processed_sample_list[self.config.mrfr_mask_key]
 
         masked_output = self._compute_masked_hidden(sequence_output, image_region_masks)
         prediction_feat = self.feat_regress(masked_output)
-        mrfr_loss = F.mse_loss(prediction_feat, feat_targets, reduction="none")
+        mrfr_loss = F.mse_loss(prediction_feat, feat_targets, reduction="mean")
 
         output_dict["losses"] = {}
         output_dict["losses"][self.config.loss_name] = mrfr_loss
