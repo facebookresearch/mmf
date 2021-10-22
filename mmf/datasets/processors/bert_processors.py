@@ -440,6 +440,11 @@ class UNITERTextTokenizer(MaskedTokenProcessor):
             tokens_a, tokens_b, probability=self._probability
         )
         output["text"] = output["tokens_masked"]
+        output["tokens"] = output["tokens_masked"]
+        if "is_correct" in item:
+            output["is_correct"] = torch.tensor(
+                item.get("is_correct", True), dtype=torch.long
+            )
         return output
 
     def _convert_to_indices(
