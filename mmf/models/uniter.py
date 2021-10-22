@@ -13,7 +13,7 @@ from torch import nn
 from transformers.modeling_bert import BertConfig, BertEmbeddings, BertModel, BertPooler
 
 
-class UniterImageEmbeddings(nn.Module):
+class UNITERImageEmbeddings(nn.Module):
     """
     Image Embeddings used by UNITER.
     Code modified from https://github.com/ChenRocks/UNITER/blob/master/model/model.py
@@ -55,8 +55,20 @@ class UniterImageEmbeddings(nn.Module):
         return embeddings
 
 
-class UniterModelBase(nn.Module):
-    """ Modification for Joint Vision-Language Encoding
+class UNITERModelBase(nn.Module):
+    """ UNITER embedding and transformer trunk for V-L modeling.
+    Modified from https://github.com/ChenRocks/UNITER/ for MMF.
+    https://arxiv.org/pdf/1909.11740.pdf
+
+    By default, this model uses the pretrained bert-base-uncased
+    transformer trunk with from huggingface.
+
+    To train on this model through MMF, look at the UNTIER model,
+    which supports pretraining and finetuning of UNITERModelBase
+    with configurable heads.
+
+    For an example of using this model standalone,
+    take a look at its unit test in `test_uniter.py`.
     """
 
     @dataclass
@@ -77,7 +89,7 @@ class UniterModelBase(nn.Module):
         random_init: bool = False
         bert_model_name: str = "bert-base-uncased"
         text_embeddings: Any = field(default_factory=lambda: {})
-        image_embeddings: UniterImageEmbeddings.Config = UniterImageEmbeddings.Config()
+        image_embeddings: UNITERImageEmbeddings.Config = UNITERImageEmbeddings.Config()
         encoder: Any = field(default_factory=lambda: {})
 
     def __init__(self, config):
@@ -91,7 +103,7 @@ class UniterModelBase(nn.Module):
         bert_config.update(text_embedding_config)
         self.embeddings = BertEmbeddings(bert_config)
 
-        self.img_embeddings = UniterImageEmbeddings(config.image_embeddings)
+        self.img_embeddings = UNITERImageEmbeddings(config.image_embeddings)
 
         bert_model_name = config["bert_model_name"]
         hf_config = retry_n(
@@ -135,7 +147,6 @@ class UniterModelBase(nn.Module):
         position_ids,
         img_feat,
         img_pos_feat,
-        gather_index,
         img_masks=None,
         txt_type_ids=None,
         img_type_ids=None,
@@ -144,15 +155,6 @@ class UniterModelBase(nn.Module):
         img_emb = self._compute_img_embeddings(
             img_feat, img_pos_feat, img_masks, img_type_ids
         )
-        # be ok with embeddings with padding
-        # TODO: add gather_index and require less work
-        # # align back to most compact input
-        # gather_index = gather_index.unsqueeze(-1).expand(
-        #     -1, -1, self.config.hidden_size
-        # )
-        # embedding_output = torch.gather(
-        #     torch.cat([txt_emb, img_emb], dim=1), dim=1, index=gather_index
-        # )
         embedding_output = torch.cat([txt_emb, img_emb], dim=1)
         return embedding_output
 
@@ -163,7 +165,6 @@ class UniterModelBase(nn.Module):
         img_feat,
         img_pos_feat,
         attention_mask,
-        gather_index=None,
         img_masks=None,
         output_hidden_states=False,
         txt_type_ids=None,
@@ -193,7 +194,6 @@ class UniterModelBase(nn.Module):
                 position_ids,
                 img_feat,
                 img_pos_feat,
-                gather_index,
                 img_masks,
                 txt_type_ids,
                 img_type_ids,
