@@ -28,7 +28,7 @@ def trace(x):
     """ compute trace of input tensor (batched) """
     b, m, n = x.size()
     assert m == n
-    mask = torch.eye(n, dtype=torch.uint8, device=x.device).unsqueeze(0).expand_as(x)
+    mask = torch.eye(n, dtype=torch.bool, device=x.device).unsqueeze(0).expand_as(x)
     trace = x.masked_select(mask).contiguous().view(b, n).sum(dim=-1, keepdim=False)
     return trace
 
