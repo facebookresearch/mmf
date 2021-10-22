@@ -70,8 +70,8 @@ class WRA(BaseTransformerHead):
         txt_emb = ctx_emb[:, :tl, :]
         img_emb = ctx_emb[:, tl : tl + il, :]
 
-        txt_pad = ot_inputs["txt_pad"]
-        img_pad = ot_inputs["img_pad"]
+        txt_pad = ot_inputs["txt_pad"].bool()
+        img_pad = ot_inputs["img_pad"].bool()
         itm_labels = processed_sample_list[self.config.wra_label_key]
         # NOTE: run in fp32 for stability
         ot_dist = optimal_transport_dist(
