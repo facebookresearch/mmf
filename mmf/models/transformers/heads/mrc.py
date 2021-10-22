@@ -32,10 +32,9 @@ class MRC(BaseTransformerHead):
 
     def __init__(self, config: Config, *args, **kwargs):
         super().__init__(config, *args, **kwargs)
-
         # Head modules
         hidden_size = self.config.hidden_size
-        self.cls = nn.Sequential(
+        self.region_classifier = nn.Sequential(
             nn.Linear(hidden_size, hidden_size),
             nn.GELU(),
             nn.LayerNorm(hidden_size, eps=self.config.eps),
@@ -60,6 +59,7 @@ class MRC(BaseTransformerHead):
             f"MRC pretraining requires {self.config.mrc_label_key} to be in sample "
             + "list with value not None."
         )
+        # (bs*num_feat, label_dim)  Look at unit test for example usage!
         region_labels = processed_sample_list[self.config.mrc_label_key]
 
         assert (
@@ -69,14 +69,16 @@ class MRC(BaseTransformerHead):
             f"MRC pretraining requires {self.config.mrc_mask_key} to be in sample "
             + "list with value not None."
         )
+        # (bs, num_feat)
         image_region_masks = processed_sample_list[self.config.mrc_mask_key]
 
         masked_output = self._compute_masked_hidden(sequence_output, image_region_masks)
         prediction_soft_label = self.region_classifier(masked_output)
-
         if self.config.use_kl:
             prediction_soft_label = F.log_softmax(prediction_soft_label, dim=-1)
-            mrc_loss = F.kl_div(prediction_soft_label, region_labels, reduction="none")
+            mrc_loss = F.kl_div(
+                prediction_soft_label, region_labels, reduction="batchmean"
+            )
         else:
             # background class should not be the target
             label_targets = torch.max(region_labels[:, 1:], dim=-1)[1] + 1
@@ -84,7 +86,7 @@ class MRC(BaseTransformerHead):
                 prediction_soft_label,
                 label_targets,
                 ignore_index=self.config.ignore_index,
-                reduction="none",
+                reduction="mean",
             )
 
         output_dict["losses"] = {}
