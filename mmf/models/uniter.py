@@ -405,7 +405,7 @@ class UniterForPretraining(nn.Module):
             self._get_img_mask(mask_prob, num_feat)
             for _ in range(img_feat_masked.size(0))
         ]
-        img_masks = torch.tensor(img_masks).to(img_feat_masked.device)
+        img_masks = torch.tensor(img_masks).bool().to(img_feat_masked.device)
         img_masks_ext = img_masks.unsqueeze(-1).expand_as(img_feat_masked)
         processed_sample_list["image_feat_masked"] = img_feat_masked.data.masked_fill(
             img_masks_ext, 0
@@ -499,14 +499,14 @@ class UniterForPretraining(nn.Module):
 
         def _compute_pad(lens):
             max_len = max(lens)
-            pad = torch.zeros(len(lens), max_len, dtype=torch.uint8)
+            pad = torch.zeros(len(lens), max_len)
             for i, l in enumerate(lens):
                 pad.data[i, l:].fill_(1)
             return pad
 
         device = processed_sample_list["input_ids"].device
-        txt_pad = _compute_pad(txt_lens).to(device)
-        img_pad = _compute_pad(num_bbs).to(device)
+        txt_pad = _compute_pad(txt_lens).to(device).bool()
+        img_pad = _compute_pad(num_bbs).to(device).bool()
 
         ot_inputs = {"txt_pad": txt_pad, "img_pad": img_pad}
 
