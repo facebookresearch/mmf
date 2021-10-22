@@ -12,7 +12,7 @@ from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports, teardown_imports
 from mmf.utils.general import get_current_device
 from omegaconf import OmegaConf
-from tests.test_utils import skip_if_no_network, skip_if_old_transformers
+from tests.test_utils import skip_if_old_transformers
 from torch import nn
 
 
@@ -30,7 +30,6 @@ class TestViltEmbeddings(unittest.TestCase):
         output = embedding(image)
         self.assertEqual(output.shape, torch.Size([32, 197, 768]))
 
-    @skip_if_no_network
     def test_vilt_image_embedding_pretrained(self):
         config = OmegaConf.structured(ViLTImageEmbedding.Config())
         config.random_init = False

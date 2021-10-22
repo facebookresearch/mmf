@@ -6,7 +6,7 @@ import unittest
 import torch
 from mmf.modules import encoders
 from omegaconf import OmegaConf
-from tests.test_utils import setup_proxy
+from tests.test_utils import setup_proxy, skip_if_old_transformers
 from torch import nn
 
 
@@ -82,6 +82,7 @@ class TestEncoders(unittest.TestCase):
         output = encoder(x)
         self.assertEqual(output.size(-1), config.out_dim)
 
+    @skip_if_old_transformers(min_version="4.5.0")
     def test_vit_encoder(self):
         from omegaconf import open_dict
 
