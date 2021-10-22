@@ -82,7 +82,7 @@ class TestEncoders(unittest.TestCase):
         output = encoder(x)
         self.assertEqual(output.size(-1), config.out_dim)
 
-    def test_vilt_encoder(self):
+    def test_vit_encoder(self):
         from omegaconf import open_dict
 
         config = OmegaConf.structured(encoders.ViTEncoder.Config())
