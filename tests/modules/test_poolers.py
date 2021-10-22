@@ -16,7 +16,7 @@ class TestModulePoolers(unittest.TestCase):
         self.encoded_layers = [
             torch.randn(self.batch_size, self.token_len, self.embedding_size),
             torch.randn(self.batch_size, self.token_len, self.embedding_size),
-            torch.randn(self.batch_size, self.token_len, self.embedding_size)
+            torch.randn(self.batch_size, self.token_len, self.embedding_size),
         ]
         self.pad_mask = torch.randn(self.batch_size, self.token_len)
 

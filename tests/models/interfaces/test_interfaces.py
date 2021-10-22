@@ -10,6 +10,7 @@ import numpy as np
 import tests.test_utils as test_utils
 import torch
 from mmf.models.mmbt import MMBT
+from mmf.modules.hf_layers import undo_replace_with_jit
 from mmf.utils.configuration import get_mmf_env, load_yaml
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_current_device
@@ -79,3 +80,6 @@ class TestModelInterfaces(unittest.TestCase):
         )
 
         return model_folder
+
+    def tearDown(self):
+        undo_replace_with_jit()
