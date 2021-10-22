@@ -2,7 +2,7 @@
 
 This repository contains the code for pytorch implementation of VisualBERT model, released originally under this ([repo](https://github.com/dandelin/ViLT)). Please cite the following papers if you are using ViLT model from mmf:
 
-* Kim, Wonjae and Son, Bokyung and Kim, Ildoo (2021). *ViLT: Vision-and-Language Transformer Without Convolution or Region Supervision}*. In Proceedings of the 38th International Conference on Machine Learning. ([arXiV](https://arxiv.org/pdf/2102.03334))
+* Wonjae Kim, Bokyung Son, and Ildoo Kim. 2021. *ViLT: Vision-and-Language Transformer Without Convolution or Region Supervision}*. In 38th International Conference on Machine Learning (ICML). ([arXiV](https://arxiv.org/pdf/2102.03334))
 ```
 @misc{kim2021vilt,
       title={ViLT: Vision-and-Language Transformer Without Convolution or Region Supervision},
