@@ -5,6 +5,7 @@ import unittest
 
 import torch
 from mmf.models.mmbt import MMBT
+from mmf.modules.hf_layers import undo_replace_with_jit
 from mmf.utils.build import build_optimizer
 from omegaconf import OmegaConf
 from tests.test_utils import SimpleModel, skip_if_no_network
@@ -18,6 +19,7 @@ class TestOptimizers(unittest.TestCase):
 
     def tearDown(self):
         del self.config
+        undo_replace_with_jit()
         gc.collect()
 
     def test_build_optimizer_simple_model(self):
