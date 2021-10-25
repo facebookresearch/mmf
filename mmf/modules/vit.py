@@ -17,8 +17,8 @@ if version.parse(transformers_version) >= version.parse("4.5.0"):
 
     has_VIT = True
 else:
-    VitStub = namedtuple("Vit", ["ViTAttention", "ViTPreTrainedModel"])
-    vit = VitStub(torch.nn.Module, torch.nn.Module)
+    ViTStub = namedtuple("Vit", ["ViTAttention", "ViTPreTrainedModel"])
+    vit = ViTStub(torch.nn.Module, torch.nn.Module)
     has_VIT = False
 
 
@@ -83,35 +83,19 @@ class ViTLayer(nn.Module):
             output_attentions=output_attentions,
         )
         attention_output = self_attention_outputs[0]
-        outputs = self_attention_outputs[
-            1:
-        ]  # add self attentions if we output attention weights
-
+        outputs = self_attention_outputs[1:]
         # first residual connection
         hidden_states = attention_output + hidden_states
 
         # in ViT, layernorm is also applied after self-attention
         layer_output = self.layernorm_after(hidden_states)
-
-        # TODO feedforward chunking not working for now
-        # layer_output = apply_chunking_to_forward(
-        #     self.feed_forward_chunk, self.chunk_size_feed_forward, self.seq_len_dim,
-        #     layer_output
-        # )
-
         layer_output = self.intermediate(layer_output)
 
         # second residual connection is done here
         layer_output = self.output(layer_output, hidden_states)
-
         outputs = (layer_output,) + outputs
 
         return outputs
-
-    def feed_forward_chunk(self, attention_output):
-        intermediate_output = self.intermediate(attention_output)
-        layer_output = self.output(intermediate_output)
-        return layer_output
 
 
 class ViTEncoder(nn.Module):
@@ -258,7 +242,7 @@ class ViTModel(vit.ViTPreTrainedModel):
         )
 
         if input_values is None:
-            raise ValueError("You have to specify pixel_values")
+            raise ValueError("You have to specify input_values")
 
         # Prepare head mask if needed
         # 1.0 in head_mask indicate we keep the head
