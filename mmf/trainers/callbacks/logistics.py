@@ -58,15 +58,12 @@ class LogisticsCallback(Callback):
             if env_wandb_logdir:
                 log_dir = env_wandb_logdir
 
-            wandb_init_kwargs = config.training.wandb.init_kwargs
-
             self.wandb_logger = WandbLogger(
                 entity=config.training.wandb.entity,
                 project=config.training.wandb.wandb_projectname,
                 config=config,
                 name=config.training.wandb.wandb_runname,
                 save_dir=log_dir,
-                **wandb_init_kwargs,
             )
 
     def on_train_start(self):
@@ -157,6 +154,7 @@ class LogisticsCallback(Callback):
             meter=kwargs["meter"],
             should_print=prefix,
             tb_writer=self.tb_writer,
+            wandb_logger=self.wandb_logger,
         )
         logger.info(f"Finished run in {self.total_timer.get_time_since_start()}")
 

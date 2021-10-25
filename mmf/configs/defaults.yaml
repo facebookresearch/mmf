@@ -54,9 +54,11 @@ training:
         # Experiment/ run name to be used while logging the experiment
         # under the project with wandb
         wandb_runname: ${training.experiment_name}
-        # Specify other argument values to be used while logging the experiment
-        init_kwargs:
-            job_type: train
+        # Specify other argument values that you want to pass to wandb.init(). Check out the documentation
+        # at https://docs.wandb.ai/ref/python/init to see what arguments are available.
+        # job_type: 'train'
+        # tags: ['tag1', 'tag2']
+
 
 
     # Size of the batch globally. If distributed or data_parallel

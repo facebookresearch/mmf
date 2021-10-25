@@ -2,6 +2,7 @@
 
 import collections
 import functools
+import itertools
 import json
 import logging
 import os
@@ -231,7 +232,11 @@ def summarize_report(
 
     if wandb_logger:
         metrics = meter.get_scalar_dict()
-        wandb_logger.log_metrics({**metrics, "trainer/global_step": current_iteration})
+        wandb_logger.log_metrics({**metrics, "trainer/global_step": current_iteration}, commit=False)
+
+    # Log the learning rate if available
+    if wandb_logger and 'lr' in extra.keys():
+        wandb_logger.log_metrics({"train/learning_rate": float(extra["lr"])})
 
     if not should_print:
         return
@@ -400,7 +405,6 @@ class WandbLogger:
         save_dir: Path where data is saved (./save/logs/wandb/ by default).
         project: Display name for the project.
         config: Configuration for the run.
-        **init_kwargs: Arguments passed to :func:`wandb.init`.
 
     Raises:
         ImportError: If wandb package is not installed.
@@ -413,7 +417,6 @@ class WandbLogger:
         save_dir: Optional[str] = None,
         project: Optional[str] = None,
         config: Optional[Dict] = None,
-        **init_kwargs,
     ):
         try:
             import wandb
@@ -429,6 +432,11 @@ class WandbLogger:
             entity=entity, name=name, project=project, dir=save_dir, config=config
         )
 
+        init_kwargs = dict(
+            itertools.islice(
+                config.training.wandb.items(), 4, len(config.training.wandb)
+            )
+        )
         self._wandb_init.update(**init_kwargs)
 
         self.setup()
@@ -459,14 +467,15 @@ class WandbLogger:
         else:
             return True
 
-    def log_metrics(self, metrics: Dict[str, float]):
+    def log_metrics(self, metrics: Dict[str, float], commit=True):
         """
         Log the monitored metrics to the wand dashboard.
 
         Args:
-            metrics (Dict[str, float]): [description]
+            metrics (Dict[str, float]): A dictionary of metrics to log.
+            commit (bool): Save the metrics dict to the wandb server and increment the step. (default: True)
         """
         if not self._should_log_wandb():
             return
 
-        self._wandb.log(metrics)
+        self._wandb.log(metrics, commit=commit)
