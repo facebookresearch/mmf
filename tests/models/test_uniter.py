@@ -8,14 +8,19 @@ from omegaconf import OmegaConf
 
 
 class TestUNITERImageEmbeddings(unittest.TestCase):
-    def test_forward_has_correct_output_dim(self):
+    def setUp(self):
         bs = 32
         num_feat = 100
-        config = OmegaConf.create({"img_dim": 1024, "hidden_size": 256, "pos_dim": 7})
-        embedding = UNITERImageEmbeddings(config)
-        img_feat = torch.rand((bs, num_feat, config["img_dim"]))
-        img_pos_feat = torch.rand((bs, num_feat, config["pos_dim"]))
-        type_embeddings = torch.ones((bs, num_feat, 1), dtype=torch.long)
+        self.config = OmegaConf.create(
+            {"img_dim": 1024, "hidden_size": 256, "pos_dim": 7}
+        )
+        self.img_feat = torch.rand((bs, num_feat, self.config["img_dim"]))
+        self.img_pos_feat = torch.rand((bs, num_feat, self.config["pos_dim"]))
+        self.type_embeddings = torch.ones((bs, num_feat, 1), dtype=torch.long)
 
-        output = embedding(img_feat, img_pos_feat, type_embeddings, img_masks=None)
+    def test_forward(self):
+        embedding = UNITERImageEmbeddings(self.config)
+        output = embedding(
+            self.img_feat, self.img_pos_feat, self.type_embeddings, img_masks=None
+        )
         self.assertEquals(list(output.shape), [32, 100, 256])
