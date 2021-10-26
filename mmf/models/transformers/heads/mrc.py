@@ -10,10 +10,8 @@ import torch
 import torch.nn.functional as F
 from mmf.common.registry import registry
 from mmf.models.transformers.base import BaseTransformerHead
+from mmf.models.transformers.heads.utils import compute_masked_hidden
 from torch import nn
-
-
-LABEL_KEY = "mrc_labels"
 
 
 @registry.register_transformer_head("mrc")
@@ -72,7 +70,7 @@ class MRC(BaseTransformerHead):
         # (bs, num_feat)
         image_region_masks = processed_sample_list[self.config.mrc_mask_key]
 
-        masked_output = self._compute_masked_hidden(sequence_output, image_region_masks)
+        masked_output = compute_masked_hidden(sequence_output, image_region_masks)
         prediction_soft_label = self.region_classifier(masked_output)
         if self.config.use_kl:
             prediction_soft_label = F.log_softmax(prediction_soft_label, dim=-1)
@@ -92,9 +90,3 @@ class MRC(BaseTransformerHead):
         output_dict["losses"] = {}
         output_dict["losses"][self.config.loss_name] = mrc_loss
         return output_dict
-
-    def _compute_masked_hidden(self, hidden, mask):
-        """ get only the masked region (don't compute unnecessary hiddens) """
-        mask = mask.unsqueeze(-1).expand_as(hidden)
-        hidden_masked = hidden[mask].contiguous().view(-1, hidden.size(-1))
-        return hidden_masked
