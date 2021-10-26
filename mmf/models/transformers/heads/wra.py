@@ -84,9 +84,3 @@ class WRA(BaseTransformerHead):
         output_dict["losses"] = {}
         output_dict["losses"][self.config.loss_name] = ot_loss
         return output_dict
-
-    def _compute_masked_hidden(self, hidden, mask):
-        """ get only the masked region (don't compute unnecessary hiddens) """
-        mask = mask.unsqueeze(-1).expand_as(hidden)
-        hidden_masked = hidden[mask].contiguous().view(-1, hidden.size(-1))
-        return hidden_masked
