@@ -60,10 +60,8 @@ class LogisticsCallback(Callback):
 
             self.wandb_logger = WandbLogger(
                 entity=config.training.wandb.entity,
-                project=config.training.wandb.wandb_projectname,
                 config=config,
-                name=config.training.wandb.wandb_runname,
-                save_dir=log_dir,
+                project=config.training.wandb.project,
             )
 
     def on_train_start(self):

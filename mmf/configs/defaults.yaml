@@ -50,10 +50,10 @@ training:
         # it will log the run to your user account.
         entity: null
         # Project name to be used while logging the experiment with wandb
-        wandb_projectname: mmf_${oc.env:USER,}
+        project: mmf
         # Experiment/ run name to be used while logging the experiment
         # under the project with wandb
-        wandb_runname: ${training.experiment_name}
+        name: ${training.experiment_name}
         # Specify other argument values that you want to pass to wandb.init(). Check out the documentation
         # at https://docs.wandb.ai/ref/python/init to see what arguments are available.
         # job_type: 'train'

@@ -2,7 +2,6 @@
 
 import collections
 import functools
-import itertools
 import json
 import logging
 import os
@@ -11,12 +10,14 @@ import time
 from functools import wraps
 from typing import Any, Callable, Dict, Optional, Union
 
+import omegaconf
 import torch
 from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import get_rank, is_main, is_xla
 from mmf.utils.file_io import PathManager
 from mmf.utils.timer import Timer
+from omegaconf import OmegaConf
 from termcolor import colored
 
 
@@ -226,17 +227,19 @@ def summarize_report(
     if not is_main() and not is_xla():
         return
 
+    # Log the learning rate if available
+    if wandb_logger and "lr" in extra.keys():
+        wandb_logger.log_metrics(
+            {"train/learning_rate": float(extra["lr"])}, commit=False
+        )
+
     if tb_writer:
         scalar_dict = meter.get_scalar_dict()
         tb_writer.add_scalars(scalar_dict, current_iteration)
 
     if wandb_logger:
         metrics = meter.get_scalar_dict()
-        wandb_logger.log_metrics({**metrics, "trainer/global_step": current_iteration}, commit=False)
-
-    # Log the learning rate if available
-    if wandb_logger and 'lr' in extra.keys():
-        wandb_logger.log_metrics({"train/learning_rate": float(extra["lr"])})
+        wandb_logger.log_metrics({**metrics, "trainer/global_step": current_iteration})
 
     if not should_print:
         return
@@ -401,10 +404,8 @@ class WandbLogger:
 
     Args:
         entity: An entity is a username or team name where you're sending runs.
-        name: Display name for the run.
-        save_dir: Path where data is saved (./save/logs/wandb/ by default).
-        project: Display name for the project.
         config: Configuration for the run.
+        project: Name of the W&B project.
 
     Raises:
         ImportError: If wandb package is not installed.
@@ -413,10 +414,8 @@ class WandbLogger:
     def __init__(
         self,
         entity: Optional[str] = None,
-        name: Optional[str] = None,
-        save_dir: Optional[str] = None,
-        project: Optional[str] = None,
         config: Optional[Dict] = None,
+        project: Optional[str] = None,
     ):
         try:
             import wandb
@@ -428,15 +427,15 @@ class WandbLogger:
 
         self._wandb = wandb
 
-        self._wandb_init = dict(
-            entity=entity, name=name, project=project, dir=save_dir, config=config
-        )
+        self._wandb_init = dict(entity=entity, config=config, project=project)
 
-        init_kwargs = dict(
-            itertools.islice(
-                config.training.wandb.items(), 4, len(config.training.wandb)
-            )
-        )
+        wandb_params = config.training.wandb
+        with omegaconf.open_dict(wandb_params):
+            wandb_params.pop("enabled")
+            wandb_params.pop("entity")
+            wandb_params.pop("project")
+
+        init_kwargs = OmegaConf.to_container(wandb_params, resolve=True)
         self._wandb_init.update(**init_kwargs)
 
         self.setup()
@@ -473,7 +472,8 @@ class WandbLogger:
 
         Args:
             metrics (Dict[str, float]): A dictionary of metrics to log.
-            commit (bool): Save the metrics dict to the wandb server and increment the step. (default: True)
+            commit (bool): Save the metrics dict to the wandb server and
+                           increment the step. (default: True)
         """
         if not self._should_log_wandb():
             return
