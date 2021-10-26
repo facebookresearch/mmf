@@ -384,25 +384,24 @@ class MMFTransformer(BaseTransformer):
 
     def forward(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
         # Sample preprocess
-        orig_and_processed_sample_list = self.preprocess_sample(sample_list)
+        processed_sample_list = self.preprocess_sample(sample_list)
 
-        orig_and_processed_sample_list["target_key"] = sample_list
         # Arrange masks in a list
         masks = []
         for modality in self.modality_keys:
-            masks.append(orig_and_processed_sample_list["masks"][modality])
+            masks.append(processed_sample_list["masks"][modality])
 
         # Call transformer backend
         sequence_output, encoded_layers = self.backend(
-            orig_and_processed_sample_list["input_ids"],
-            orig_and_processed_sample_list["position_ids"],
-            orig_and_processed_sample_list["segment_ids"],
+            processed_sample_list["input_ids"],
+            processed_sample_list["position_ids"],
+            processed_sample_list["segment_ids"],
             masks,
         )
 
         # Transformer Heads
         return self.postprocess_output(
-            sequence_output, encoded_layers, orig_and_processed_sample_list
+            sequence_output, encoded_layers, processed_sample_list
         )
 
     def postprocess_output(
