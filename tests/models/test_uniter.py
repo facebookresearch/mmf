@@ -19,31 +19,32 @@ from omegaconf import OmegaConf
 
 
 class TestUNITERImageEmbeddings(unittest.TestCase):
-    def test_forward_has_correct_output_dim(self):
+    def setUp(self):
         bs = 32
         num_feat = 100
-        config = OmegaConf.create({"img_dim": 1024, "hidden_size": 256, "pos_dim": 7})
-        embedding = UNITERImageEmbeddings(config)
-        img_feat = torch.rand((bs, num_feat, config["img_dim"]))
-        img_pos_feat = torch.rand((bs, num_feat, config["pos_dim"]))
-        type_embeddings = torch.ones((bs, num_feat, 1), dtype=torch.long)
+        self.config = OmegaConf.create(
+            {"img_dim": 1024, "hidden_size": 256, "pos_dim": 7}
+        )
+        self.img_feat = torch.rand((bs, num_feat, self.config["img_dim"]))
+        self.img_pos_feat = torch.rand((bs, num_feat, self.config["pos_dim"]))
+        self.type_embeddings = torch.ones((bs, num_feat, 1), dtype=torch.long)
 
-        output = embedding(img_feat, img_pos_feat, type_embeddings, img_masks=None)
+    def test_forward(self):
+        embedding = UNITERImageEmbeddings(self.config)
+        output = embedding(
+            self.img_feat, self.img_pos_feat, self.type_embeddings, img_masks=None
+        )
         self.assertEquals(list(output.shape), [32, 100, 256])
 
 
 class TestUNITERModelBase(unittest.TestCase):
-    def tearDown(self):
-        del self.model
-        gc.collect()
-
     def test_pretrained_model(self):
         img_dim = 1024
         config = OmegaConf.create({"image_embeddings": {"img_dim": img_dim}})
-        self.model = UNITERModelBase(config)
+        model = UNITERModelBase(config)
 
-        self.model.eval()
-        self.model = self.model.to(get_current_device())
+        model.eval()
+        model = model.to(get_current_device())
 
         bs = 8
         num_feats = 100
@@ -58,7 +59,7 @@ class TestUNITERModelBase(unittest.TestCase):
         attention_mask = torch.ones((bs, max_sentence_len + num_feats))
 
         with torch.no_grad():
-            model_output = self.model(
+            model_output = model(
                 input_ids, position_ids, img_feat, img_pos_feat, attention_mask
             )
 
@@ -66,10 +67,6 @@ class TestUNITERModelBase(unittest.TestCase):
 
 
 class TestUniterWithHeads(unittest.TestCase):
-    def tearDown(self):
-        del self.model
-        gc.collect()
-
     def _get_sample_list(self):
         bs = 8
         num_feats = 100
@@ -111,14 +108,14 @@ class TestUniterWithHeads(unittest.TestCase):
                 "losses": {"test": "logit_bce"},
             }
         )
-        self.model = UNITERForClassification(config)
+        model = UNITERForClassification(config)
 
-        self.model.eval()
-        self.model = self.model.to(get_current_device())
+        model.eval()
+        model = model.to(get_current_device())
         sample_list = self._get_sample_list()
 
         with torch.no_grad():
-            model_output = self.model(sample_list)
+            model_output = model(sample_list)
 
         self.assertTrue("losses" in model_output)
         self.assertTrue("test/test/logit_bce" in model_output["losses"])
@@ -159,9 +156,9 @@ class TestUniterWithHeads(unittest.TestCase):
             }
         )
 
-        self.model = UNITERForPretraining(config)
-        self.model.eval()
-        self.model = self.model.to(get_current_device())
+        model = UNITERForPretraining(config)
+        model.eval()
+        model = model.to(get_current_device())
         sample_list = self._get_sample_list()
         self._enhance_sample_list_for_pretraining(sample_list)
 
@@ -176,10 +173,8 @@ class TestUniterWithHeads(unittest.TestCase):
         for task_name, loss_name in expected_loss_names.items():
             sample_list["task"] = task_name
             with torch.no_grad():
-                model_output = self.model(sample_list)
+                model_output = model(sample_list)
 
-            print(task_name)
-            print(model_output["losses"].keys())
             self.assertTrue("losses" in model_output)
             self.assertTrue(loss_name in model_output["losses"])
 
