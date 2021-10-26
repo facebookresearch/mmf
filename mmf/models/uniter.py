@@ -80,16 +80,6 @@ class UNITERModelBase(nn.Module):
     """
 
     @dataclass
-    class TextEmbeddingConfig:
-        vocab_size: int = 30522
-        hidden_size: int = 768
-        max_position_embeddings: int = 512
-        eps: float = 1e-12
-        hidden_dropout_prob: float = 0
-        pad_token_id: int = 0
-        type_vocab_size: int = 2
-
-    @dataclass
     class Config:
         hidden_size: int = 768
         eps: float = 1e-12
@@ -104,12 +94,9 @@ class UNITERModelBase(nn.Module):
         super().__init__()
         self.config = config = OmegaConf.create({**asdict(self.Config()), **config})
 
-        text_embedding_config = OmegaConf.create(
-            {**asdict(self.TextEmbeddingConfig()), **config.text_embeddings}
-        )
         bert_config = BertConfig.from_pretrained(config.bert_model_name)
-        bert_config.update(text_embedding_config)
-        self.embeddings = BertEmbeddings(bert_config)
+        bert_config.update(config.text_embeddings)
+        self.text_embeddings = BertEmbeddings(bert_config)
 
         self.img_embeddings = UNITERImageEmbeddings(config.image_embeddings)
 
@@ -131,7 +118,7 @@ class UNITERModelBase(nn.Module):
         self.pooler = BertPooler(config)
 
     def _compute_txt_embeddings(self, input_ids, position_ids, token_type_ids=None):
-        output = self.embeddings(
+        output = self.text_embeddings(
             input_ids=input_ids,
             position_ids=position_ids,
             token_type_ids=token_type_ids,
@@ -143,7 +130,7 @@ class UNITERModelBase(nn.Module):
     ):
         if img_type_ids is None:
             img_type_ids = torch.ones_like(img_feat[:, :, 0].long())
-        img_type_embeddings = self.embeddings.token_type_embeddings(img_type_ids)
+        img_type_embeddings = self.text_embeddings.token_type_embeddings(img_type_ids)
         output = self.img_embeddings(
             img_feat, img_pos_feat, img_type_embeddings, img_masks
         )
@@ -177,21 +164,24 @@ class UNITERModelBase(nn.Module):
         output_hidden_states=False,
         txt_type_ids=None,
         img_type_ids=None,
+        input_modality="VL",
     ):
         # compute self-attention mask
         extended_attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
         extended_attention_mask = extended_attention_mask.to(
             dtype=next(self.parameters()).dtype
         )  # fp16 compatibility
+        # https://github.com/huggingface/transformers/issues/542 for details
+        # on why we add very negative values to attention scores
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
 
         # embedding layer
-        if input_ids is None:
+        if input_modality == "V":
             # image only
             embedding_output = self._compute_img_embeddings(
                 img_feat, img_pos_feat, img_masks, img_type_ids
             )
-        elif img_feat is None:
+        elif input_modality == "L":
             # text only
             embedding_output = self._compute_txt_embeddings(
                 input_ids, position_ids, txt_type_ids

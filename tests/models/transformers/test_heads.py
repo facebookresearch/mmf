@@ -148,7 +148,7 @@ class TestMRFRHead(unittest.TestCase):
             size=(bs, num_feat, feat_dim), dtype=torch.float
         )
         self.processed_sample_list = Sample()
-        feat_targets = torch.rand((bs, num_feat, img_dim))
+        feat_targets = torch.zeros((bs, num_feat, img_dim))
         self.processed_sample_list[
             "mrfr_region_target"
         ] = feat_targets.contiguous().view(-1, img_dim)
@@ -156,7 +156,7 @@ class TestMRFRHead(unittest.TestCase):
             (bs, num_feat)
         ).bool()
 
-        self.img_embedding_weight = nn.Parameter(torch.rand((feat_dim, img_dim)).T)
+        self.img_embedding_weight = nn.Parameter(torch.rand((feat_dim, img_dim)))
 
     def test_forward(self):
         config = OmegaConf.create({"type": "mrfr", "hidden_size": 768, "img_dim": 1024})
@@ -164,6 +164,18 @@ class TestMRFRHead(unittest.TestCase):
         output = module(self.sequence_input, self.processed_sample_list)
         self.assertTrue("mrfr_loss" in output["losses"])
         self.assertEqual(output["losses"]["mrfr_loss"].shape, torch.Size([]))
+
+    def test_linear_proj_param_is_shared(self):
+        config = OmegaConf.create({"type": "mrfr", "hidden_size": 768, "img_dim": 1024})
+        module = MRFR(config, self.img_embedding_weight)
+        with torch.no_grad():
+            self.img_embedding_weight *= 0
+            output = module(self.sequence_input, self.processed_sample_list)
+
+        self.assertTrue(
+            torch.equal(module.linear_proj_weight, self.img_embedding_weight)
+        )
+        self.assertEqual(output["losses"]["mrfr_loss"], 0)
 
 
 class TestWRAHead(unittest.TestCase):
