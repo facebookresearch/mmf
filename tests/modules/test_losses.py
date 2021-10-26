@@ -174,3 +174,57 @@ class TestModuleLosses(unittest.TestCase):
         loss_result = combined_loss(sample_list, model_output)
         self.assertAlmostEqual(loss_result["bce"].item(), 504.22253418, 4)
         self.assertAlmostEqual(loss_result["kl"].item(), 0.031847, 4)
+
+    def test_refiner_ms_loss(self):
+        refiner_ms_loss = losses.RefinerMSLoss(
+            alpha=50,
+            beta=2,
+            base=0.5,
+            margin=0.1,
+            epsilon=1e-16,
+        )
+
+        torch.manual_seed(1234)
+        random_tensor = torch.rand((1, 768))
+        sample_list = {"targets": random_tensor}
+        model_output = {"scores": random_tensor}
+
+        loss_result = refiner_ms_loss(sample_list, model_output)
+        self.assertEqual(loss_result, 0.0)
+
+    def test_ms_loss(self):
+        ms_loss = losses.MSLoss(
+            alpha=50,
+            beta=2,
+            margin=0.5,
+            hard_mining=True,
+            is_multilabel=False,
+        )
+
+        torch.manual_seed(1234)
+
+        label_tensor = torch.Tensor([0, 0, 0, 0, 0])
+        fused_tensor = torch.randn(5, 768)
+        sample_list = {"targets": label_tensor}
+        model_output = {"fused_embedding": fused_tensor}
+        loss_result = ms_loss(sample_list, model_output)
+        self.assertEqual(loss_result, 0.0)
+
+        label_tensor = torch.Tensor([1, 1, 1, 1, 1])
+        loss_result = ms_loss(sample_list, model_output)
+        self.assertEqual(loss_result, 0.0)
+
+    def test_refiner_contrastive_loss(self):
+        refiner_contrastive_loss = losses.RefinerContrastiveLoss(
+            sim_thresh=0.1,
+            epsilon=1e-16,
+        )
+
+        inputs = torch.rand((10, 768))
+        targets = inputs
+
+        sample_list = {"targets": targets}
+        model_output = {"scores": inputs}
+
+        loss_result = refiner_contrastive_loss(sample_list, model_output)
+        self.assertEqual(loss_result, 0.0)
