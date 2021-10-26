@@ -1,0 +1,203 @@
+.tutorials-header .header-logo  {
+    background-image: url("../images/mmf_logo.svg");
+}
+
+
+.header-logo {
+    height: 43px;
+    width: 93px;
+    position: absolute;
+    background-image: url(../images/logo.svg);
+    background-repeat: no-repeat;
+    background-size: 108px 43px;
+    display: block;
+    float: left;
+    left: -15px;
+    top: -22px;
+    z-index: 10;
+}
+@media screen and (min-width: 1100px) {
+    .header-logo {
+        background-size: 120px 50px;
+        position: absolute;
+        height: 50px;
+        width: 120px;
+        top: -5px;
+        left: -10px;
+    }
+}
+
+.main-menu-open-button {
+    background-image: url("../images/icon-menu-dots.svg");
+    background-position: center center;
+    background-size: 25px 7px;
+    background-repeat: no-repeat;
+    width: 25px;
+    height: 17px;
+    position: absolute;
+    right: 0;
+    top: -8px;
+}
+
+
+.pytorch-left-menu-search input[type=text] {
+    background-image: url("../images/search_icon.svg");
+}
+
+.footer-logo {
+    background-image: url("../images/logo_icon.svg");
+    background-size: 40px 40px;
+    height: 40px;
+    width: 40px;
+}
+
+@media screen and (min-width: 768px) {
+    .footer-logo {
+        background-size: 40px 40px;
+    }
+}
+
+.mobile-main-menu-header-container .header-logo {
+    background-image: url("../images/mmf_logo_white_f.svg");
+    background-size: 79px 43px;
+    left: 2px;
+    top: -16px;
+}
+
+p a:link,
+p a:visited,
+p a:hover {
+  color: #0054a6;
+}
+
+.wy-breadcrumbs li a {
+    color: #0054a6;
+}
+
+ul.pytorch-breadcrumbs a {
+    color: #0054a6;
+}
+
+@media screen and (min-width: 768px) {
+    article.pytorch-article .sphx-glr-thumbcontainer:after {
+      background-color: #0054a6;
+    }
+  }
+
+  article.pytorch-article .function dt, article.pytorch-article .attribute dt, article.pytorch-article .class .attribute dt, article.pytorch-article .class dt {
+    border-left: 3px solid #0054a6;
+}
+
+article.pytorch-article .function dt:hover .viewcode-link, article.pytorch-article .attribute dt:hover .viewcode-link, article.pytorch-article .class dt:hover .viewcode-link {
+    color: #0054a6;
+}
+
+article.pytorch-article .class dt {
+    border-left: none;
+    border-top: 3px solid #0054a6;
+    padding-left: 4em;
+}
+
+article.pytorch-article .class em.property {
+    color: #0054a6;
+}
+
+article.pytorch-article .class .staticmethod dt {
+    border-left: 3px solid #0054a6;
+    border-top: none;
+}
+@media screen and (min-width: 768px) {
+    .pytorch-article div.sphx-glr-download a:after {
+      background-color: #0054a6;
+    }
+}
+article.pytorch-article .wy-table-responsive table tbody td .pre {
+    background: #ffffff;
+    outline: 1px solid #e9e9e9;
+    color: #0054a6;
+    font-size: 87.5%;
+}
+
+
+a:link,
+a:visited,
+a:hover {
+  color: #0054a6;
+}
+
+::-webkit-input-placeholder {
+  color: #0054a6;
+}
+
+::-moz-placeholder {
+  color: #0054a6;
+}
+
+:-ms-input-placeholder {
+  color: #0054a6;
+}
+
+:-moz-placeholder {
+  color: #0054a6;
+}
+
+@media screen and (min-width: 768px) {
+    .site-footer a:hover {
+        color: #0054a6;
+    }
+}
+
+.docs-tutorials-resources a {
+    color: #0054a6;
+}
+
+
+.header-holder .main-menu ul li.active:after {
+    color: #0054a6;
+}
+.header-holder .main-menu ul li.active a {
+    color: #0054a6;
+}
+@media screen and (min-width: 1100px) {
+  .header-holder .main-menu ul li a:hover {
+    color: #0054a6;
+  }
+}
+
+.mobile-main-menu.open ul li.active a {
+    color: #0054a6;
+}
+.pytorch-content-right {
+    height: 0%;
+}
+.pytorch-call-to-action-links a {
+    padding-right: 1.25rem;
+    color: #000000;
+    cursor: pointer;
+}
+.pytorch-call-to-action-links a:hover {
+    color: #0054a6;
+}
+.pytorch-left-menu li.toctree-l1.current > a,
+.pytorch-right-menu li.toctree-l1.current > a {
+    color: #0054a6;
+}
+.pytorch-left-menu li.toctree-l1.current > a:before,
+.pytorch-right-menu li.toctree-l1.current > a:before {
+    color: #0054a6;
+}
+.pytorch-right-menu li.active > a {
+    color: #0054a6;
+}
+.pytorch-right-menu li.active > a span.pre, .pytorch-right-menu li.active > a:before {
+    color: #0054a6;
+}
+
+a.with-right-arrow, .btn.with-right-arrow {
+    background-image: url("../images/chevron_blue.svg");
+}
+article.pytorch-article .class .method dt,
+article.pytorch-article .class .staticmethod dt {
+  border-left: 3px solid #0054a6;
+  border-top: none;
+}

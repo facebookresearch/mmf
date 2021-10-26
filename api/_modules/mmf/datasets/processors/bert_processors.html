@@ -1,0 +1,801 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mmf.datasets.processors.bert_processors | MMF 1.0.0rc12 documentation</title>
+  
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-135079836-2"></script>
+  <script src="../../../../_static/js/ga.js"></script>
+  <script src="../../../../_static/js/redirect.js"></script>
+  
+  <link rel="shortcut icon" href="../../../../_static/images/favicon.png"/>
+  
+  
+  <link rel="canonical" href="https://mmf.sh/api/_modules/mmf/datasets/processors/bert_processors.html"/>
+  
+  <meta property="og:title" content="mmf.datasets.processors.bert_processors | MMF 1.0.0rc12 documentation">
+  <meta name="description" content="API docs for MMF. MMF is a modular framework powered by PyTorch for multimodal vision and language research from Facebook AI Research">
+  <meta property="og:description" content="API docs for MMF. MMF is a modular framework powered by PyTorch for multimodal vision and language research from Facebook AI Research">
+  <meta property="og:image" content="https://mmf.sh/img/logo.png">
+  <meta property="twitter:image" content="https://mmf.sh/img/logo.png">
+  <meta name="twitter:image:alt" content="Image for MMF">
+  <meta name="twitter:card" content="summary_large_image">
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/customize.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://mmf.sh/" aria-label="MMF"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://mmf.sh/docs">Get Started</a>
+          </li>
+
+
+          <li>
+            <a href="https://mmf.sh/docs">Docs</a>
+          </li>
+
+          <li class="active">
+            <a href="https://mmf.sh/api">API</a>
+          </li>
+
+          <li>
+            <a href="https://github.com/facebookresearch/mmf">Github</a>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+
+  </div>
+</div>
+
+
+<body class="pytorch-body">
+
+   
+
+    
+
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+      <div class="pytorch-side-scroll">
+        <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          <div class="pytorch-left-menu-search">
+            
+
+            
+              
+              
+                <div class="version">
+                  1.0.0
+                </div>
+              
+            
+
+            
+
+
+  
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+            
+          </div>
+
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Library Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../lib/common/registry.html">common.registry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../lib/common/sample.html">common.sample</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../lib/models/base_model.html">models.base_model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../lib/modules/losses.html">modules.losses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../lib/modules/metrics.html">modules.metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../lib/datasets/base_dataset_builder.html">datasets.base_dataset_builder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../lib/datasets/base_dataset.html">datasets.base_dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../lib/datasets/processors.html">datasets.processors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../lib/utils/text.html">utils.text</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <div class="pytorch-container">
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../../index.html">
+          
+            Docs
+          
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../../index.html">Module code</a> &gt;</li>
+        
+      <li>mmf.datasets.processors.bert_processors</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+        </div>
+
+        <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+          Shortcuts
+        </div>
+      </div>
+
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        <div class="pytorch-content-left">
+
+        
+          
+          <div class="rst-content">
+          
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <h1>Source code for mmf.datasets.processors.bert_processors</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Facebook, Inc. and its affiliates.</span>
+
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
+<span class="kn">from</span> <span class="nn">mmf.common.sample</span> <span class="kn">import</span> <span class="n">Sample</span><span class="p">,</span> <span class="n">SampleList</span>
+<span class="kn">from</span> <span class="nn">mmf.datasets.processors.processors</span> <span class="kn">import</span> <span class="n">BaseProcessor</span>
+<span class="kn">from</span> <span class="nn">transformers.tokenization_auto</span> <span class="kn">import</span> <span class="n">AutoTokenizer</span>
+
+
+<div class="viewcode-block" id="MaskedTokenProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.MaskedTokenProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;masked_token&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MaskedTokenProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
+    <span class="n">_CLS_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;[CLS]&quot;</span>
+    <span class="n">_SEP_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;[SEP]&quot;</span>
+    <span class="n">_MASK_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;[MASK]&quot;</span>
+    <span class="n">_PAD_TOKEN_ID</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="n">tokenizer_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">tokenizer_config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+            <span class="n">tokenizer_config</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="o">**</span><span class="n">tokenizer_config</span><span class="o">.</span><span class="n">params</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">max_seq_length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_probability</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mask_probability&quot;</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">tokenize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_convert_tokens_to_ids</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span><span class="o">.</span><span class="n">convert_tokens_to_ids</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_convert_ids_to_tokens</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span><span class="o">.</span><span class="n">convert_ids_to_tokens</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_random_word</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.15</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">token</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
+            <span class="n">prob</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">prob</span> <span class="o">&lt;</span> <span class="n">probability</span><span class="p">:</span>
+                <span class="n">prob</span> <span class="o">/=</span> <span class="n">probability</span>
+
+                <span class="c1"># 80% randomly change token to mask token</span>
+                <span class="k">if</span> <span class="n">prob</span> <span class="o">&lt;</span> <span class="mf">0.8</span><span class="p">:</span>
+                    <span class="n">tokens</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MASK_TOKEN</span>
+                <span class="c1"># 10% randomly change token to random token</span>
+                <span class="k">elif</span> <span class="n">prob</span> <span class="o">&lt;</span> <span class="mf">0.9</span><span class="p">:</span>
+                    <span class="n">tokens</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_ids_to_tokens</span><span class="p">(</span>
+                        <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_vocab_size</span><span class="p">(),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+                    <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="c1"># rest 10% keep the original token as it is</span>
+
+                <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_convert_tokens_to_ids</span><span class="p">(</span><span class="n">token</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tokens</span><span class="p">,</span> <span class="n">labels</span>
+
+<div class="viewcode-block" id="MaskedTokenProcessor._truncate_seq_pair"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.MaskedTokenProcessor._truncate_seq_pair">[docs]</a>    <span class="k">def</span> <span class="nf">_truncate_seq_pair</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">tokens_a</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">tokens_b</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">max_length</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Truncates a sequence pair in place to the maximum length.&quot;&quot;&quot;</span>
+
+        <span class="c1"># This is a simple heuristic which will always truncate the longer sequence</span>
+        <span class="c1"># one token at a time. This makes more sense than truncating an equal percent</span>
+        <span class="c1"># of tokens from each, since if one sequence is very short then each token</span>
+        <span class="c1"># that&#39;s truncated likely contains more information than a longer sequence.</span>
+        <span class="k">if</span> <span class="n">tokens_b</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tokens_b</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">max_length</span> <span class="o">-=</span> <span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># _convert_to_indices does [CLS] tokens_a [SEP] tokens_b [SEP]</span>
+            <span class="n">max_length</span> <span class="o">-=</span> <span class="mi">3</span>
+        <span class="k">assert</span> <span class="n">max_length</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s2">&quot;Max length should be minimum 2 in case of single sentence&quot;</span>
+            <span class="o">+</span> <span class="s2">&quot; and 3 in case of two sentences.&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">total_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_b</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">total_length</span> <span class="o">&lt;=</span> <span class="n">max_length</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_b</span><span class="p">):</span>
+                <span class="n">tokens_a</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tokens_b</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MaskedTokenProcessor._convert_to_indices"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.MaskedTokenProcessor._convert_to_indices">[docs]</a>    <span class="k">def</span> <span class="nf">_convert_to_indices</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">tokens_a</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">tokens_b</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.15</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        BERT encodes</span>
+<span class="sd">        - single sequence: ``[CLS] X [SEP]``</span>
+<span class="sd">        - pair of sequences: ``[CLS] A [SEP] B [SEP]``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tokens_a</span><span class="p">,</span> <span class="n">label_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_random_word</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">,</span> <span class="n">probability</span><span class="o">=</span><span class="n">probability</span><span class="p">)</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_CLS_TOKEN</span><span class="p">]</span> <span class="o">+</span> <span class="n">tokens_a</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_SEP_TOKEN</span><span class="p">]</span>
+        <span class="n">segment_ids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">tokens_b</span><span class="p">:</span>
+            <span class="n">tokens_b</span><span class="p">,</span> <span class="n">label_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_random_word</span><span class="p">(</span><span class="n">tokens_b</span><span class="p">,</span> <span class="n">probability</span><span class="o">=</span><span class="n">probability</span><span class="p">)</span>
+            <span class="n">lm_label_ids</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">label_a</span> <span class="o">+</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">label_b</span> <span class="o">+</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_b</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="n">tokens</span> <span class="o">+=</span> <span class="n">tokens_b</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_SEP_TOKEN</span><span class="p">]</span>
+            <span class="n">segment_ids</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_b</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lm_label_ids</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">label_a</span> <span class="o">+</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">input_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_tokens_to_ids</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+        <span class="n">input_mask</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span>
+
+        <span class="c1"># Zero-pad up to the sequence length.</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span><span class="p">:</span>
+            <span class="n">input_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_PAD_TOKEN_ID</span><span class="p">)</span>
+            <span class="n">input_mask</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">segment_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">lm_label_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_mask</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">segment_ids</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">lm_label_ids</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span>
+
+        <span class="n">input_ids</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">input_ids</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+        <span class="n">input_mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">input_mask</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+        <span class="n">segment_ids</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">segment_ids</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+        <span class="n">lm_label_ids</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">lm_label_ids</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;input_ids&quot;</span><span class="p">:</span> <span class="n">input_ids</span><span class="p">,</span>
+            <span class="s2">&quot;input_mask&quot;</span><span class="p">:</span> <span class="n">input_mask</span><span class="p">,</span>
+            <span class="s2">&quot;segment_ids&quot;</span><span class="p">:</span> <span class="n">segment_ids</span><span class="p">,</span>
+            <span class="s2">&quot;lm_label_ids&quot;</span><span class="p">:</span> <span class="n">lm_label_ids</span><span class="p">,</span>
+            <span class="s2">&quot;tokens&quot;</span><span class="p">:</span> <span class="n">tokens</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="n">text_a</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;text_a&quot;</span><span class="p">]</span>
+        <span class="n">text_b</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;text_b&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">tokens_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="n">text_a</span><span class="p">)</span>
+        <span class="n">tokens_b</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">text_b</span><span class="p">:</span>
+            <span class="n">tokens_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="n">text_b</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_truncate_seq_pair</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">,</span> <span class="n">tokens_b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_to_indices</span><span class="p">(</span>
+            <span class="n">tokens_a</span><span class="p">,</span> <span class="n">tokens_b</span><span class="p">,</span> <span class="n">probability</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_probability</span>
+        <span class="p">)</span>
+        <span class="n">output</span><span class="p">[</span><span class="s2">&quot;is_correct&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;is_correct&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="BertTokenizer"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.BertTokenizer">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;bert_tokenizer&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">BertTokenizer</span><span class="p">(</span><span class="n">MaskedTokenProcessor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_probability</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mask_probability&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="s2">&quot;text&quot;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+            <span class="n">text_a</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="s2">&quot;text_a&quot;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+            <span class="n">text_a</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;text_a&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">text_a</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;tokens&quot;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text_a</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">text_a</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">text_a</span><span class="p">)</span>
+
+        <span class="n">tokens_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="n">text_a</span><span class="p">)</span>
+
+        <span class="c1"># &#39;text_b&#39; can be defined in the dataset preparation</span>
+        <span class="n">tokens_b</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="s2">&quot;text_b&quot;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+            <span class="n">text_b</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;text_b&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">text_b</span><span class="p">:</span>
+                <span class="n">tokens_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="n">text_b</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_truncate_seq_pair</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">,</span> <span class="n">tokens_b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_to_indices</span><span class="p">(</span>
+            <span class="n">tokens_a</span><span class="p">,</span> <span class="n">tokens_b</span><span class="p">,</span> <span class="n">probability</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_probability</span>
+        <span class="p">)</span>
+        <span class="n">output</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;tokens&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="MultiSentenceBertTokenizer"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.MultiSentenceBertTokenizer">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;multi_sentence_bert_tokenizer&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MultiSentenceBertTokenizer</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Extension of BertTokenizer which supports multiple sentences.</span>
+<span class="sd">    Separate from normal usecase, each sentence will be passed through</span>
+<span class="sd">    bert tokenizer separately and indices will be reshaped as single</span>
+<span class="sd">    tensor. Segment ids will also be increasing in number.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fusion_strategy</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fusion&quot;</span><span class="p">,</span> <span class="s2">&quot;concat&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_probability</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mask_probability&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">BertTokenizer</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="n">texts</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">texts</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">texts</span> <span class="o">=</span> <span class="p">[</span><span class="n">texts</span><span class="p">]</span>
+
+        <span class="n">processed</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">texts</span><span class="p">):</span>
+            <span class="n">sample</span> <span class="o">=</span> <span class="n">Sample</span><span class="p">()</span>
+            <span class="n">processed_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">({</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">text</span><span class="p">})</span>
+            <span class="n">sample</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">processed_text</span><span class="p">)</span>
+            <span class="n">sample</span><span class="o">.</span><span class="n">segment_ids</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+            <span class="n">processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+        <span class="c1"># Use SampleList to convert list of tensors to stacked tensors</span>
+        <span class="n">processed</span> <span class="o">=</span> <span class="n">SampleList</span><span class="p">(</span><span class="n">processed</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fusion_strategy</span> <span class="o">==</span> <span class="s2">&quot;concat&quot;</span><span class="p">:</span>
+            <span class="n">processed</span><span class="o">.</span><span class="n">input_ids</span> <span class="o">=</span> <span class="n">processed</span><span class="o">.</span><span class="n">input_ids</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">processed</span><span class="o">.</span><span class="n">input_mask</span> <span class="o">=</span> <span class="n">processed</span><span class="o">.</span><span class="n">input_mask</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">processed</span><span class="o">.</span><span class="n">segment_ids</span> <span class="o">=</span> <span class="n">processed</span><span class="o">.</span><span class="n">segment_ids</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">processed</span><span class="o">.</span><span class="n">lm_label_ids</span> <span class="o">=</span> <span class="n">processed</span><span class="o">.</span><span class="n">lm_label_ids</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">processed</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MaskedRobertaTokenizer"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.MaskedRobertaTokenizer">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;masked_roberta_tokenizer&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MaskedRobertaTokenizer</span><span class="p">(</span><span class="n">MaskedTokenProcessor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># https://huggingface.co/transformers/model_doc/xlmroberta.html</span>
+        <span class="c1"># roberta is with different tokenization of above default (bert)</span>
+        <span class="n">tokenizer_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">tokenizer_config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+            <span class="n">tokenizer_config</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="o">**</span><span class="n">tokenizer_config</span><span class="o">.</span><span class="n">params</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_CLS_TOKEN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span><span class="o">.</span><span class="n">bos_token</span>  <span class="c1"># &lt;s&gt;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_SEP_TOKEN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span><span class="o">.</span><span class="n">sep_token</span>  <span class="c1"># &lt;/s&gt;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_MASK_TOKEN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span><span class="o">.</span><span class="n">mask_token</span>  <span class="c1"># &lt;mask&gt;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_PAD_TOKEN_ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span><span class="o">.</span><span class="n">pad_token_id</span>  <span class="c1"># 1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">max_seq_length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_probability</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;mask_probability&quot;</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MaskedRobertaTokenizer._truncate_seq_pair"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.MaskedRobertaTokenizer._truncate_seq_pair">[docs]</a>    <span class="k">def</span> <span class="nf">_truncate_seq_pair</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">tokens_a</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">tokens_b</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">max_length</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Truncates a sequence pair in place to the maximum length.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">tokens_b</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tokens_b</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">max_length</span> <span class="o">-=</span> <span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># _convert_to_indices does &lt;s&gt; tokens_a &lt;/s&gt; &lt;/s&gt; tokens_b &lt;/s&gt;</span>
+            <span class="n">max_length</span> <span class="o">-=</span> <span class="mi">4</span>
+        <span class="k">assert</span> <span class="n">max_length</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s2">&quot;Max length should be minimum 2 in case of single sentence&quot;</span>
+            <span class="o">+</span> <span class="s2">&quot; and 4 in case of two sentences.&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">total_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_b</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">total_length</span> <span class="o">&lt;=</span> <span class="n">max_length</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_b</span><span class="p">):</span>
+                <span class="n">tokens_a</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tokens_b</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MaskedRobertaTokenizer._convert_to_indices"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.MaskedRobertaTokenizer._convert_to_indices">[docs]</a>    <span class="k">def</span> <span class="nf">_convert_to_indices</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">tokens_a</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">tokens_b</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.15</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Roberta encodes</span>
+<span class="sd">        - single sequence: ``&lt;s&gt; X &lt;/s&gt;``</span>
+<span class="sd">        - pair of sequences: ``&lt;s&gt; A &lt;/s&gt; &lt;/s&gt; B &lt;/s&gt;``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tokens_a</span><span class="p">,</span> <span class="n">label_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_random_word</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">,</span> <span class="n">probability</span><span class="o">=</span><span class="n">probability</span><span class="p">)</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_CLS_TOKEN</span><span class="p">]</span> <span class="o">+</span> <span class="n">tokens_a</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_SEP_TOKEN</span><span class="p">]</span>
+        <span class="n">segment_ids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">lm_label_ids</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">label_a</span> <span class="o">+</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">tokens_b</span><span class="p">:</span>
+            <span class="n">tokens_b</span><span class="p">,</span> <span class="n">label_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_random_word</span><span class="p">(</span><span class="n">tokens_b</span><span class="p">,</span> <span class="n">probability</span><span class="o">=</span><span class="n">probability</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_b</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="c1"># ``&lt;s&gt; A &lt;/s&gt; &lt;/s&gt; B &lt;/s&gt;``</span>
+            <span class="n">tokens</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_SEP_TOKEN</span><span class="p">]</span> <span class="o">+</span> <span class="n">tokens_b</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_SEP_TOKEN</span><span class="p">]</span>
+            <span class="c1"># RoBERTA and XLM-R don&#39;t use segment_ids, segment_ids are all 0&#39;s</span>
+            <span class="n">segment_ids</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_b</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">lm_label_ids</span> <span class="o">+=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">label_b</span> <span class="o">+</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">input_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_tokens_to_ids</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+        <span class="n">input_mask</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span>
+
+        <span class="c1"># Zero-pad up to the sequence length.</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span><span class="p">:</span>
+            <span class="n">input_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_PAD_TOKEN_ID</span><span class="p">)</span>
+            <span class="n">input_mask</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">segment_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">lm_label_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_mask</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">segment_ids</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">lm_label_ids</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span>
+
+        <span class="n">input_ids</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">input_ids</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+        <span class="n">input_mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">input_mask</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+        <span class="n">segment_ids</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">segment_ids</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+        <span class="n">lm_label_ids</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">lm_label_ids</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;input_ids&quot;</span><span class="p">:</span> <span class="n">input_ids</span><span class="p">,</span>
+            <span class="s2">&quot;input_mask&quot;</span><span class="p">:</span> <span class="n">input_mask</span><span class="p">,</span>
+            <span class="s2">&quot;segment_ids&quot;</span><span class="p">:</span> <span class="n">segment_ids</span><span class="p">,</span>
+            <span class="s2">&quot;lm_label_ids&quot;</span><span class="p">:</span> <span class="n">lm_label_ids</span><span class="p">,</span>
+            <span class="s2">&quot;tokens&quot;</span><span class="p">:</span> <span class="n">tokens</span><span class="p">,</span>
+        <span class="p">}</span></div></div>
+
+
+<div class="viewcode-block" id="RobertaTokenizer"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.RobertaTokenizer">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;roberta_tokenizer&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">RobertaTokenizer</span><span class="p">(</span><span class="n">BertTokenizer</span><span class="p">,</span> <span class="n">MaskedRobertaTokenizer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_probability</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mask_probability&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MultiSentenceRobertaTokenizer"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.MultiSentenceRobertaTokenizer">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;multi_sentence_roberta_tokenizer&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MultiSentenceRobertaTokenizer</span><span class="p">(</span><span class="n">MultiSentenceBertTokenizer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Extension of SPMTokenizer which supports multiple sentences.</span>
+<span class="sd">    Similar to MultiSentenceBertTokenizer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fusion_strategy</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fusion&quot;</span><span class="p">,</span> <span class="s2">&quot;concat&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">RobertaTokenizer</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_probability</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mask_probability&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VILTTextTokenizer"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.bert_processors.VILTTextTokenizer">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;vilt_text_tokenizer&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">VILTTextTokenizer</span><span class="p">(</span><span class="n">MaskedTokenProcessor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">transformers</span> <span class="kn">import</span> <span class="n">BertTokenizer</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;from_pretrained&quot;</span><span class="p">:</span> <span class="n">config</span><span class="p">}</span>
+
+        <span class="n">from_pretrained_name</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;from_pretrained&quot;</span><span class="p">,</span> <span class="s2">&quot;bert-base-uncased&quot;</span><span class="p">)</span>
+        <span class="n">kwargs_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">do_lower_case</span><span class="o">=</span><span class="s2">&quot;uncased&quot;</span> <span class="ow">in</span> <span class="n">from_pretrained_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span> <span class="o">=</span> <span class="n">BertTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+            <span class="n">from_pretrained_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_dict</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_seq_length&quot;</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_probability</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mask_probability&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;text&quot;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+            <span class="n">text_a</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="s2">&quot;text_a&quot;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+            <span class="n">text_a</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;text_a&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">text_a</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;tokens&quot;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text_a</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">text_a</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">text_a</span><span class="p">)</span>
+
+        <span class="n">tokens_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="n">text_a</span><span class="p">)</span>
+
+        <span class="c1"># &#39;text_b&#39; can be defined in the dataset preparation</span>
+        <span class="n">tokens_b</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="s2">&quot;text_b&quot;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+            <span class="n">text_b</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;text_b&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">text_b</span><span class="p">:</span>
+                <span class="n">tokens_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="n">text_b</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_truncate_seq_pair</span><span class="p">(</span><span class="n">tokens_a</span><span class="p">,</span> <span class="n">tokens_b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_seq_length</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_to_indices</span><span class="p">(</span>
+            <span class="n">tokens_a</span><span class="p">,</span> <span class="n">tokens_b</span><span class="p">,</span> <span class="n">probability</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_probability</span>
+        <span class="p">)</span>
+        <span class="n">output</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;tokens&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">output</span></div>
+</pre></div>
+
+             </article>
+             
+            </div>
+            <footer>
+  
+
+  
+
+    <hr>
+
+  
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Facebook AI Research.
+
+    </p>
+  </div>
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+      </div>
+     
+
+</footer>
+
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  
+
+
+  
+
+     
+       <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+         <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+         <script src="../../../../_static/jquery.js"></script>
+         <script src="../../../../_static/underscore.js"></script>
+         <script src="../../../../_static/doctools.js"></script>
+     
+
+  
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+
+  <footer class="site-footer">
+    <div class="container footer-container">
+      <div class="footer-logo-wrapper">
+        <a href="https://mmf.sh/" class="footer-logo"></a>
+      </div>
+      <div class="footer-links-wrapper">
+        <div class="footer-links-col">
+          <ul>
+            <li class="list-title"><a href="https://mmf.sh/">MMF</a></li>
+            <li><a href="https://mmf.sh/docs">Get Started</a></li>
+            <li><a href="https://mmf.sh/docs/getting_started/features">Features</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/blob/main/CONTRIBUTING.md">Contributing</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links-col">
+          <ul>
+            <li class="list-title"><a href="">Resources</a></li>
+            <li><a href="https://mmf.sh/docs">Docs</a></li>
+            <li><a href="https://mmf.sh/api">API</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/issues" target="_blank">Github Issues</a></li>
+          </ul>
+        </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="cookie-banner-wrapper">
+  <div class="container">
+    <p class="gdpr-notice">To analyze traffic and optimize your experience, we serve cookies on this site. By clicking or navigating, you agree to allow our usage of cookies. As the current maintainers of this site, Facebook’s Cookies Policy applies. Learn more, including about available controls: <a href="https://www.facebook.com/policies/cookies/">Cookies Policy</a>.</p>
+    <img class="close-button" src="../../../../_static/images/pytorch-x.svg">
+  </div>
+</div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://mmf.sh/" aria-label="MMF"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://mmf.sh/docs">Get Started</a>
+          </li>
+
+          <li>
+            <a href="https://mmf.sh/docs/getting_started/features">Features</a>
+          </li>
+
+          <li>
+            <a href="https://mmf.sh/docs">Docs</a>
+          </li>
+
+          <li class="active">
+            <a href="https://mmf.sh/api">API</a>
+          </li>
+          <li>
+            <a href="https://github.com/facebookresearch/mmf">Github</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+</html>

@@ -1,0 +1,1037 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mmf.common.registry | MMF 1.0.0rc12 documentation</title>
+  
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-135079836-2"></script>
+  <script src="../../../_static/js/ga.js"></script>
+  <script src="../../../_static/js/redirect.js"></script>
+  
+  <link rel="shortcut icon" href="../../../_static/images/favicon.png"/>
+  
+  
+  <link rel="canonical" href="https://mmf.sh/api/_modules/mmf/common/registry.html"/>
+  
+  <meta property="og:title" content="mmf.common.registry | MMF 1.0.0rc12 documentation">
+  <meta name="description" content="API docs for MMF. MMF is a modular framework powered by PyTorch for multimodal vision and language research from Facebook AI Research">
+  <meta property="og:description" content="API docs for MMF. MMF is a modular framework powered by PyTorch for multimodal vision and language research from Facebook AI Research">
+  <meta property="og:image" content="https://mmf.sh/img/logo.png">
+  <meta property="twitter:image" content="https://mmf.sh/img/logo.png">
+  <meta name="twitter:image:alt" content="Image for MMF">
+  <meta name="twitter:card" content="summary_large_image">
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/customize.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://mmf.sh/" aria-label="MMF"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://mmf.sh/docs">Get Started</a>
+          </li>
+
+
+          <li>
+            <a href="https://mmf.sh/docs">Docs</a>
+          </li>
+
+          <li class="active">
+            <a href="https://mmf.sh/api">API</a>
+          </li>
+
+          <li>
+            <a href="https://github.com/facebookresearch/mmf">Github</a>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+
+  </div>
+</div>
+
+
+<body class="pytorch-body">
+
+   
+
+    
+
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+      <div class="pytorch-side-scroll">
+        <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          <div class="pytorch-left-menu-search">
+            
+
+            
+              
+              
+                <div class="version">
+                  1.0.0
+                </div>
+              
+            
+
+            
+
+
+  
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+            
+          </div>
+
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Library Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/common/registry.html">common.registry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/common/sample.html">common.sample</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/models/base_model.html">models.base_model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/modules/losses.html">modules.losses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/modules/metrics.html">modules.metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/datasets/base_dataset_builder.html">datasets.base_dataset_builder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/datasets/base_dataset.html">datasets.base_dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/datasets/processors.html">datasets.processors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/utils/text.html">utils.text</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <div class="pytorch-container">
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+          
+            Docs
+          
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>mmf.common.registry</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+        </div>
+
+        <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+          Shortcuts
+        </div>
+      </div>
+
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        <div class="pytorch-content-left">
+
+        
+          
+          <div class="rst-content">
+          
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <h1>Source code for mmf.common.registry</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Registry is central source of truth in MMF. Inspired from Redux&#39;s</span>
+<span class="sd">concept of global store, Registry maintains mappings of various information</span>
+<span class="sd">to unique keys. Special functions in registry can be used as decorators to</span>
+<span class="sd">register different kind of classes.</span>
+
+<span class="sd">Import the global registry object using</span>
+
+<span class="sd">``from mmf.common.registry import registry``</span>
+
+<span class="sd">Various decorators for registry different kind of classes with unique keys</span>
+
+<span class="sd">- Register a trainer: ``@registry.register_trainer``</span>
+<span class="sd">- Register a dataset builder: ``@registry.register_builder``</span>
+<span class="sd">- Register a callback function: ``@registry.register_callback``</span>
+<span class="sd">- Register a metric: ``@registry.register_metric``</span>
+<span class="sd">- Register a loss: ``@registry.register_loss``</span>
+<span class="sd">- Register a fusion technique: ``@registery.register_fusion``</span>
+<span class="sd">- Register a model: ``@registry.register_model``</span>
+<span class="sd">- Register a processor: ``@registry.register_processor``</span>
+<span class="sd">- Register a optimizer: ``@registry.register_optimizer``</span>
+<span class="sd">- Register a scheduler: ``@registry.register_scheduler``</span>
+<span class="sd">- Register a encoder: ``@registry.register_encoder``</span>
+<span class="sd">- Register a decoder: ``@registry.register_decoder``</span>
+<span class="sd">- Register a transformer backend: ``@registry.register_transformer_backend``</span>
+<span class="sd">- Register a transformer head: ``@registry.register_transformer_head``</span>
+<span class="sd">- Register a test reporter: ``@registry.register_test_reporter``</span>
+<span class="sd">- Register a pl datamodule: ``@registry.register_datamodule``</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">mmf.utils.env</span> <span class="kn">import</span> <span class="n">setup_imports</span>
+
+
+<div class="viewcode-block" id="Registry"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry">[docs]</a><span class="k">class</span> <span class="nc">Registry</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Class for registry object which acts as central source of truth</span>
+<span class="sd">    for MMF</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mapping</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># Mappings of builder name to their respective classes</span>
+        <span class="c1"># Use `registry.register_builder` to register a builder class</span>
+        <span class="c1"># with a specific name</span>
+        <span class="c1"># Further, use the name with the class is registered in the</span>
+        <span class="c1"># command line or configuration to load that specific dataset</span>
+        <span class="s2">&quot;builder_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="c1"># Similar to the builder_name_mapping above except that this</span>
+        <span class="c1"># one is used to keep a mapping for dataset to its trainer class.</span>
+        <span class="s2">&quot;trainer_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;model_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;metric_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;loss_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;pool_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;fusion_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;optimizer_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;scheduler_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;processor_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;encoder_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;decoder_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;transformer_backend_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;transformer_head_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;test_reporter_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;iteration_strategy_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;callback_name_mapping&quot;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="Registry.register_trainer"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_trainer">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_trainer</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register a trainer to registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key with which the trainer will be registered.</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+<span class="sd">            from mmf.trainers.custom_trainer import CustomTrainer</span>
+
+
+<span class="sd">            @registry.register_trainer(&quot;custom_trainer&quot;)</span>
+<span class="sd">            class CustomTrainer():</span>
+<span class="sd">                ...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">trainer_cls</span><span class="p">):</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;trainer_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">trainer_cls</span>
+            <span class="k">return</span> <span class="n">trainer_cls</span>
+
+        <span class="k">return</span> <span class="n">wrap</span></div>
+
+<div class="viewcode-block" id="Registry.register_builder"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_builder">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_builder</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register a dataset builder to registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key with which the metric will be registered.</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+<span class="sd">            from mmf.datasets.base_dataset_builder import BaseDatasetBuilder</span>
+
+
+<span class="sd">            @registry.register_builder(&quot;vqa2&quot;)</span>
+<span class="sd">            class VQA2Builder(BaseDatasetBuilder):</span>
+<span class="sd">                ...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">builder_cls</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">mmf.datasets.base_dataset_builder</span> <span class="kn">import</span> <span class="n">BaseDatasetBuilder</span>
+
+            <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span>
+                <span class="n">builder_cls</span><span class="p">,</span> <span class="n">BaseDatasetBuilder</span>
+            <span class="p">),</span> <span class="s2">&quot;All builders must inherit BaseDatasetBuilder class&quot;</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;builder_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">builder_cls</span>
+            <span class="k">return</span> <span class="n">builder_cls</span>
+
+        <span class="k">return</span> <span class="n">wrap</span></div>
+
+<div class="viewcode-block" id="Registry.register_callback"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_callback">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_callback</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register a callback to registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key with which the callback will be registered.</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+<span class="sd">            from mmf.trainers.callbacks.base import Callback</span>
+
+
+<span class="sd">            @registry.register_callback(&quot;logistic&quot;)</span>
+<span class="sd">            class LogisticCallback(Callback):</span>
+<span class="sd">                ...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">mmf.trainers.callbacks.base</span> <span class="kn">import</span> <span class="n">Callback</span>
+
+            <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">Callback</span>
+            <span class="p">),</span> <span class="s2">&quot;All callbacks must inherit Callback class&quot;</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;callback_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">func</span>
+
+        <span class="k">return</span> <span class="n">wrap</span></div>
+
+<div class="viewcode-block" id="Registry.register_metric"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_metric">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_metric</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register a metric to registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key with which the metric will be registered.</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+<span class="sd">            from mmf.modules.metrics import BaseMetric</span>
+
+
+<span class="sd">            @registry.register_metric(&quot;r@1&quot;)</span>
+<span class="sd">            class RecallAt1(BaseMetric):</span>
+<span class="sd">                ...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">mmf.modules.metrics</span> <span class="kn">import</span> <span class="n">BaseMetric</span>
+
+            <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">BaseMetric</span>
+            <span class="p">),</span> <span class="s2">&quot;All Metric must inherit BaseMetric class&quot;</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;metric_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">func</span>
+
+        <span class="k">return</span> <span class="n">wrap</span></div>
+
+<div class="viewcode-block" id="Registry.register_loss"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_loss">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_loss</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register a loss to registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key with which the loss will be registered.</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+<span class="sd">            from torch import nn</span>
+
+<span class="sd">            @registry.register_task(&quot;logit_bce&quot;)</span>
+<span class="sd">            class LogitBCE(nn.Module):</span>
+<span class="sd">                ...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span>
+
+            <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span>
+            <span class="p">),</span> <span class="s2">&quot;All loss must inherit torch.nn.Module class&quot;</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;loss_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">func</span>
+
+        <span class="k">return</span> <span class="n">wrap</span></div>
+
+<div class="viewcode-block" id="Registry.register_pooler"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_pooler">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_pooler</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register a modality pooling method to registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key with which the pooling method will be registered.</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+<span class="sd">            from torch import nn</span>
+
+<span class="sd">            @registry.register_pool(&quot;average_pool&quot;)</span>
+<span class="sd">            class average_pool(nn.Module):</span>
+<span class="sd">                ...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span>
+
+            <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span>
+            <span class="p">),</span> <span class="s2">&quot;All pooling methods must inherit torch.nn.Module class&quot;</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;pool_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">func</span>
+
+        <span class="k">return</span> <span class="n">wrap</span></div>
+
+<div class="viewcode-block" id="Registry.register_fusion"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_fusion">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_fusion</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register a fusion technique to registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key with which the fusion technique will be registered</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+<span class="sd">            from torch import nn</span>
+
+<span class="sd">            @registry.register_fusion(&quot;linear_sum&quot;)</span>
+<span class="sd">            class LinearSum():</span>
+<span class="sd">                ...</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span>
+
+            <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span>
+            <span class="p">),</span> <span class="s2">&quot;All Fusion must inherit torch.nn.Module class&quot;</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;fusion_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">func</span>
+
+        <span class="k">return</span> <span class="n">wrap</span></div>
+
+<div class="viewcode-block" id="Registry.register_model"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_model">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register a model to registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key with which the model will be registered.</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+<span class="sd">            from mmf.models.base_model import BaseModel</span>
+
+<span class="sd">            @registry.register_task(&quot;pythia&quot;)</span>
+<span class="sd">            class Pythia(BaseModel):</span>
+<span class="sd">                ...</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">mmf.models.base_model</span> <span class="kn">import</span> <span class="n">BaseModel</span>
+
+            <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">BaseModel</span>
+            <span class="p">),</span> <span class="s2">&quot;All models must inherit BaseModel class&quot;</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;model_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">func</span>
+
+        <span class="k">return</span> <span class="n">wrap</span></div>
+
+<div class="viewcode-block" id="Registry.register_processor"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_processor">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_processor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register a processor to registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key with which the processor will be registered.</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+<span class="sd">            from mmf.datasets.processors import BaseProcessor</span>
+
+<span class="sd">            @registry.register_task(&quot;glove&quot;)</span>
+<span class="sd">            class GloVe(BaseProcessor):</span>
+<span class="sd">                ...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">mmf.datasets.processors.processors</span> <span class="kn">import</span> <span class="n">BaseProcessor</span>
+
+            <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">BaseProcessor</span>
+            <span class="p">),</span> <span class="s2">&quot;All Processor classes must inherit BaseProcessor class&quot;</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;processor_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">func</span>
+
+        <span class="k">return</span> <span class="n">wrap</span></div>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_optimizer</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;optimizer_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">func</span>
+
+        <span class="k">return</span> <span class="n">wrap</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_scheduler</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;scheduler_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">func</span>
+
+        <span class="k">return</span> <span class="n">wrap</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_transformer_backend</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;transformer_backend_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">func</span>
+
+        <span class="k">return</span> <span class="n">wrap</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_transformer_head</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;transformer_head_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">func</span>
+
+        <span class="k">return</span> <span class="n">wrap</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_test_reporter</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;test_reporter_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">func</span>
+
+        <span class="k">return</span> <span class="n">wrap</span>
+
+<div class="viewcode-block" id="Registry.register_decoder"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_decoder">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_decoder</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register a decoder to registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key with which the decoder will be registered.</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+<span class="sd">            from mmf.utils.text import TextDecoder</span>
+
+
+<span class="sd">            @registry.register_decoder(&quot;nucleus_sampling&quot;)</span>
+<span class="sd">            class NucleusSampling(TextDecoder):</span>
+<span class="sd">                ...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">decoder_cls</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">mmf.utils.text</span> <span class="kn">import</span> <span class="n">TextDecoder</span>
+
+            <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span>
+                <span class="n">decoder_cls</span><span class="p">,</span> <span class="n">TextDecoder</span>
+            <span class="p">),</span> <span class="s2">&quot;All decoders must inherit TextDecoder class&quot;</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;decoder_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">decoder_cls</span>
+            <span class="k">return</span> <span class="n">decoder_cls</span>
+
+        <span class="k">return</span> <span class="n">wrap</span></div>
+
+<div class="viewcode-block" id="Registry.register_encoder"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_encoder">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_encoder</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register a encoder to registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key with which the encoder will be registered.</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+<span class="sd">            from mmf.modules.encoders import Encoder</span>
+
+
+<span class="sd">            @registry.register_encoder(&quot;transformer&quot;)</span>
+<span class="sd">            class TransformerEncoder(Encoder):</span>
+<span class="sd">                ...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">encoder_cls</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">mmf.modules.encoders</span> <span class="kn">import</span> <span class="n">Encoder</span>
+
+            <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span>
+                <span class="n">encoder_cls</span><span class="p">,</span> <span class="n">Encoder</span>
+            <span class="p">),</span> <span class="s2">&quot;All encoders must inherit Encoder class&quot;</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;encoder_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">encoder_cls</span>
+            <span class="k">return</span> <span class="n">encoder_cls</span>
+
+        <span class="k">return</span> <span class="n">wrap</span></div>
+
+<div class="viewcode-block" id="Registry.register_datamodule"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_datamodule">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_datamodule</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register a datamodule to registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key with which the datamodule will be registered.</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+<span class="sd">            import pytorch_lightning as pl</span>
+
+
+<span class="sd">            @registry.register_datamodule(&quot;my_datamodule&quot;)</span>
+<span class="sd">            class MyDataModule(pl.LightningDataModule):</span>
+<span class="sd">                ...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">datamodule_cls</span><span class="p">):</span>
+            <span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
+
+            <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span>
+                <span class="n">datamodule_cls</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">LightningDataModule</span>
+            <span class="p">),</span> <span class="s2">&quot;All datamodules must inherit PyTorch Lightning DataModule class&quot;</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;builder_name_mapping&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">datamodule_cls</span>
+            <span class="k">return</span> <span class="n">datamodule_cls</span>
+
+        <span class="k">return</span> <span class="n">wrap</span></div>
+
+<div class="viewcode-block" id="Registry.register_iteration_strategy"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register_iteration_strategy">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register_iteration_strategy</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register an iteration_strategy to registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key with which the iteration_strategy will be registered.</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from dataclasses import dataclass</span>
+<span class="sd">            from mmf.common.registry import registry</span>
+<span class="sd">            from mmf.datasets.iterators import IterationStrategy</span>
+
+
+<span class="sd">            @registry.register_iteration_strategy(&quot;my_iteration_strategy&quot;)</span>
+<span class="sd">            class MyStrategy(IterationStrategy):</span>
+<span class="sd">                @dataclass</span>
+<span class="sd">                class Config:</span>
+<span class="sd">                    name: str = &quot;my_strategy&quot;</span>
+<span class="sd">                def __init__(self, config, dataloader):</span>
+<span class="sd">                    ...</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">iteration_strategy_cls</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">mmf.datasets.iteration_strategies</span> <span class="kn">import</span> <span class="n">IterationStrategy</span>
+
+            <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span>
+                <span class="n">iteration_strategy_cls</span><span class="p">,</span> <span class="n">IterationStrategy</span>
+            <span class="p">),</span> <span class="s2">&quot;All datamodules must inherit IterationStrategy class&quot;</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;iteration_strategy_name_mapping&quot;</span><span class="p">][</span>
+                <span class="n">name</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="n">iteration_strategy_cls</span>
+            <span class="k">return</span> <span class="n">iteration_strategy_cls</span>
+
+        <span class="k">return</span> <span class="n">wrap</span></div>
+
+<div class="viewcode-block" id="Registry.register"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.register">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Register an item to registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key with which the item will be registered.</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+
+<span class="sd">            registry.register(&quot;config&quot;, {})</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">path</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">part</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">current</span><span class="p">:</span>
+                <span class="n">current</span><span class="p">[</span><span class="n">part</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="n">current</span><span class="p">[</span><span class="n">part</span><span class="p">]</span>
+
+        <span class="n">current</span><span class="p">[</span><span class="n">path</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">obj</span></div>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_trainer_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;trainer_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_builder_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;builder_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_callback_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;callback_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_model_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;model_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_processor_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;processor_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_metric_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;metric_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_loss_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;loss_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_pool_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;pool_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_optimizer_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;optimizer_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_scheduler_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;scheduler_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_decoder_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;decoder_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_encoder_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;encoder_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_iteration_strategy_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;iteration_strategy_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_transformer_backend_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;transformer_backend_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_transformer_head_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;transformer_head_name_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_test_rerporter_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;test_reporter_mapping&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Registry.get"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.get">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">no_warning</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Get an item from registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (string): Key whose value needs to be retrieved.</span>
+<span class="sd">            default: If passed and key is not in registry, default value will</span>
+<span class="sd">                     be returned with a warning. Default: None</span>
+<span class="sd">            no_warning (bool): If passed as True, warning when key doesn&#39;t exist</span>
+<span class="sd">                               will not be generated. Useful for MMF&#39;s</span>
+<span class="sd">                               internal operations. Default: False</span>
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+
+<span class="sd">            config = registry.get(&quot;config&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">original_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">subname</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">subname</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="n">default</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="s2">&quot;writer&quot;</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">]</span>
+            <span class="ow">and</span> <span class="n">value</span> <span class="o">==</span> <span class="n">default</span>
+            <span class="ow">and</span> <span class="n">no_warning</span> <span class="ow">is</span> <span class="kc">False</span>
+        <span class="p">):</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">][</span><span class="s2">&quot;writer&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Key </span><span class="si">{}</span><span class="s2"> is not present in registry, returning default value &quot;</span>
+                <span class="s2">&quot;of </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">original_name</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="Registry.unregister"><a class="viewcode-back" href="../../../lib/common/registry.html#mmf.common.registry.Registry.unregister">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">unregister</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Remove an item from registry with key &#39;name&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Key which needs to be removed.</span>
+<span class="sd">        Usage::</span>
+
+<span class="sd">            from mmf.common.registry import registry</span>
+
+<span class="sd">            config = registry.unregister(&quot;config&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div></div>
+
+
+<span class="n">registry</span> <span class="o">=</span> <span class="n">Registry</span><span class="p">()</span>
+
+<span class="c1"># Only setup imports in main process, this means registry won&#39;t be</span>
+<span class="c1"># fully available in spawned child processes (such as dataloader processes)</span>
+<span class="c1"># but instantiated. This is to prevent issues such as</span>
+<span class="c1"># https://github.com/facebookresearch/mmf/issues/355</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">setup_imports</span><span class="p">()</span>
+</pre></div>
+
+             </article>
+             
+            </div>
+            <footer>
+  
+
+  
+
+    <hr>
+
+  
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Facebook AI Research.
+
+    </p>
+  </div>
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+      </div>
+     
+
+</footer>
+
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  
+
+
+  
+
+     
+       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+         <script src="../../../_static/jquery.js"></script>
+         <script src="../../../_static/underscore.js"></script>
+         <script src="../../../_static/doctools.js"></script>
+     
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+
+  <footer class="site-footer">
+    <div class="container footer-container">
+      <div class="footer-logo-wrapper">
+        <a href="https://mmf.sh/" class="footer-logo"></a>
+      </div>
+      <div class="footer-links-wrapper">
+        <div class="footer-links-col">
+          <ul>
+            <li class="list-title"><a href="https://mmf.sh/">MMF</a></li>
+            <li><a href="https://mmf.sh/docs">Get Started</a></li>
+            <li><a href="https://mmf.sh/docs/getting_started/features">Features</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/blob/main/CONTRIBUTING.md">Contributing</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links-col">
+          <ul>
+            <li class="list-title"><a href="">Resources</a></li>
+            <li><a href="https://mmf.sh/docs">Docs</a></li>
+            <li><a href="https://mmf.sh/api">API</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/issues" target="_blank">Github Issues</a></li>
+          </ul>
+        </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="cookie-banner-wrapper">
+  <div class="container">
+    <p class="gdpr-notice">To analyze traffic and optimize your experience, we serve cookies on this site. By clicking or navigating, you agree to allow our usage of cookies. As the current maintainers of this site, Facebook’s Cookies Policy applies. Learn more, including about available controls: <a href="https://www.facebook.com/policies/cookies/">Cookies Policy</a>.</p>
+    <img class="close-button" src="../../../_static/images/pytorch-x.svg">
+  </div>
+</div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://mmf.sh/" aria-label="MMF"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://mmf.sh/docs">Get Started</a>
+          </li>
+
+          <li>
+            <a href="https://mmf.sh/docs/getting_started/features">Features</a>
+          </li>
+
+          <li>
+            <a href="https://mmf.sh/docs">Docs</a>
+          </li>
+
+          <li class="active">
+            <a href="https://mmf.sh/api">API</a>
+          </li>
+          <li>
+            <a href="https://github.com/facebookresearch/mmf">Github</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+</html>

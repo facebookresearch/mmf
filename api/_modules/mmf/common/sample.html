@@ -1,0 +1,870 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mmf.common.sample | MMF 1.0.0rc12 documentation</title>
+  
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-135079836-2"></script>
+  <script src="../../../_static/js/ga.js"></script>
+  <script src="../../../_static/js/redirect.js"></script>
+  
+  <link rel="shortcut icon" href="../../../_static/images/favicon.png"/>
+  
+  
+  <link rel="canonical" href="https://mmf.sh/api/_modules/mmf/common/sample.html"/>
+  
+  <meta property="og:title" content="mmf.common.sample | MMF 1.0.0rc12 documentation">
+  <meta name="description" content="API docs for MMF. MMF is a modular framework powered by PyTorch for multimodal vision and language research from Facebook AI Research">
+  <meta property="og:description" content="API docs for MMF. MMF is a modular framework powered by PyTorch for multimodal vision and language research from Facebook AI Research">
+  <meta property="og:image" content="https://mmf.sh/img/logo.png">
+  <meta property="twitter:image" content="https://mmf.sh/img/logo.png">
+  <meta name="twitter:image:alt" content="Image for MMF">
+  <meta name="twitter:card" content="summary_large_image">
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/customize.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://mmf.sh/" aria-label="MMF"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://mmf.sh/docs">Get Started</a>
+          </li>
+
+
+          <li>
+            <a href="https://mmf.sh/docs">Docs</a>
+          </li>
+
+          <li class="active">
+            <a href="https://mmf.sh/api">API</a>
+          </li>
+
+          <li>
+            <a href="https://github.com/facebookresearch/mmf">Github</a>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+
+  </div>
+</div>
+
+
+<body class="pytorch-body">
+
+   
+
+    
+
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+      <div class="pytorch-side-scroll">
+        <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          <div class="pytorch-left-menu-search">
+            
+
+            
+              
+              
+                <div class="version">
+                  1.0.0
+                </div>
+              
+            
+
+            
+
+
+  
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+            
+          </div>
+
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Library Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/common/registry.html">common.registry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/common/sample.html">common.sample</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/models/base_model.html">models.base_model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/modules/losses.html">modules.losses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/modules/metrics.html">modules.metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/datasets/base_dataset_builder.html">datasets.base_dataset_builder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/datasets/base_dataset.html">datasets.base_dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/datasets/processors.html">datasets.processors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/utils/text.html">utils.text</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <div class="pytorch-container">
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+          
+            Docs
+          
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>mmf.common.sample</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+        </div>
+
+        <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+          Shortcuts
+        </div>
+      </div>
+
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        <div class="pytorch-content-left">
+
+        
+          
+          <div class="rst-content">
+          
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <h1>Source code for mmf.common.sample</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">``Sample`` and ``SampleList`` are data structures for arbitrary data returned from a</span>
+<span class="sd">dataset. To work with MMF, minimum requirement for datasets is to return</span>
+<span class="sd">an object of ``Sample`` class and for models to accept an object of type `SampleList`</span>
+<span class="sd">as an argument.</span>
+
+<span class="sd">``Sample`` is used to represent an arbitrary sample from dataset, while ``SampleList``</span>
+<span class="sd">is list of Sample combined in an efficient way to be used by the model.</span>
+<span class="sd">In simple term, ``SampleList`` is a batch of Sample but allow easy access of</span>
+<span class="sd">attributes from ``Sample`` while taking care of properly batching things.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+
+
+<div class="viewcode-block" id="Sample"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.Sample">[docs]</a><span class="k">class</span> <span class="nc">Sample</span><span class="p">(</span><span class="n">OrderedDict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sample represent some arbitrary data. All datasets in MMF must</span>
+<span class="sd">    return an object of type ``Sample``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        init_dict (Dict): Dictionary to init ``Sample`` class with.</span>
+
+<span class="sd">    Usage::</span>
+
+<span class="sd">        &gt;&gt;&gt; sample = Sample({&quot;text&quot;: torch.tensor(2)})</span>
+<span class="sd">        &gt;&gt;&gt; sample.text.zero_()</span>
+<span class="sd">        # Custom attributes can be added to ``Sample`` after initialization</span>
+<span class="sd">        &gt;&gt;&gt; sample.context = torch.tensor(4)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">init_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">init_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">init_dict</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">Sample</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">Sample</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Sample.fields"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.Sample.fields">[docs]</a>    <span class="k">def</span> <span class="nf">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get current attributes/fields registered under the sample.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: Attributes registered under the Sample.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div></div>
+
+
+<div class="viewcode-block" id="SampleList"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.SampleList">[docs]</a><span class="k">class</span> <span class="nc">SampleList</span><span class="p">(</span><span class="n">OrderedDict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;``SampleList`` is used to collate a list of ``Sample`` into a batch during batch</span>
+<span class="sd">    preparation. It can be thought of as a merger of list of Dicts into a single Dict.</span>
+
+<span class="sd">    If ``Sample`` contains an attribute &#39;text&#39; of size (2) and there are 10 samples in</span>
+<span class="sd">    list, the returned ``SampleList`` will have an attribute &#39;text&#39; which is a tensor</span>
+<span class="sd">    of size (10, 2).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        samples (type): List of ``Sample`` from which the ``SampleList``</span>
+<span class="sd">                        will be created.</span>
+
+<span class="sd">    Usage::</span>
+
+<span class="sd">        &gt;&gt;&gt; sample_list = [</span>
+<span class="sd">                Sample({&quot;text&quot;: torch.tensor(2)}),</span>
+<span class="sd">                Sample({&quot;text&quot;: torch.tensor(2)})</span>
+<span class="sd">            ]</span>
+<span class="sd">        &gt;&gt;&gt; sample_list.text</span>
+<span class="sd">        torch.tensor([2, 2])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_TENSOR_FIELD_</span> <span class="o">=</span> <span class="s2">&quot;_tensor_field&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">samples</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_and_load_dict</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="c1"># If passed sample list was in form of key, value pairs of tuples</span>
+        <span class="c1"># return after loading these</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_and_load_tuple</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="n">fields</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">field</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+                <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">),</span> <span class="o">*</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">())</span>
+                <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">new_empty</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_tensor_field</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_set_tensor_field</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">))]</span>
+
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">sample</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
+                <span class="c1"># it should be a tensor but not a 0-d tensor</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="nb">isinstance</span><span class="p">(</span><span class="n">sample</span><span class="p">[</span><span class="n">field</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">())</span> <span class="o">!=</span> <span class="mi">0</span>
+                    <span class="ow">and</span> <span class="n">sample</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">!=</span> <span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                        <span class="s2">&quot;Fields for all samples must be equally sized. &quot;</span>
+                        <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> is of different sizes&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+                    <span class="p">)</span>
+
+                <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_data_copy</span><span class="p">(</span><span class="n">sample</span><span class="p">[</span><span class="n">field</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">field</span><span class="p">],</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+                <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">SampleList</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_check_and_load_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">kv_pair</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">kv_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">kv_pair</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_check_and_load_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">samples</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_fix_sample_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Sample</span><span class="p">):</span>
+            <span class="n">proper_samples</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">:</span>
+                <span class="n">proper_samples</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Sample</span><span class="p">(</span><span class="n">sample</span><span class="p">))</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">proper_samples</span>
+        <span class="k">return</span> <span class="n">samples</span>
+
+    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="s2">&quot;Key </span><span class="si">{}</span><span class="s2"> not found in the SampleList. &quot;</span>
+                <span class="s2">&quot;Valid choices are </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">())</span>
+            <span class="p">)</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="n">sample</span> <span class="o">=</span> <span class="n">Sample</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="n">sample</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">sample</span>
+
+    <span class="k">def</span> <span class="nf">get_device</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">field_tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_tensor_field</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">field_tensor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;No tensor field in sample list, available keys: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">field_tensor</span><span class="p">]</span><span class="o">.</span><span class="n">device</span>
+
+<div class="viewcode-block" id="SampleList.get_item_list"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.SampleList.get_item_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_item_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get ``SampleList`` of only one particular attribute that is present</span>
+<span class="sd">        in the ``SampleList``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            key (str): Attribute whose ``SampleList`` will be made.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SampleList: SampleList containing only the attribute value of the key</span>
+<span class="sd">            which was passed.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sample</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">SampleList</span><span class="p">([</span><span class="n">sample</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="SampleList.copy"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.SampleList.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get a copy of the current SampleList</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SampleList: Copy of current SampleList.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sample_list</span> <span class="o">=</span> <span class="n">SampleList</span><span class="p">()</span>
+
+        <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="n">sample_list</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">sample_list</span></div>
+
+<div class="viewcode-block" id="SampleList.fields"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.SampleList.fields">[docs]</a>    <span class="k">def</span> <span class="nf">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get current attributes/fields registered under the SampleList.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: list of attributes of the SampleList.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="SampleList.get_fields"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.SampleList.get_fields">[docs]</a>    <span class="k">def</span> <span class="nf">get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get a new ``SampleList`` generated from the current ``SampleList``</span>
+<span class="sd">        but contains only the attributes passed in `fields` argument</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            fields (List[str]): Attributes whose ``SampleList`` will be made.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SampleList: SampleList containing only the attribute values of the fields</span>
+<span class="sd">            which were passed.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current_fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">()</span>
+
+        <span class="n">return_list</span> <span class="o">=</span> <span class="n">SampleList</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">current_fields</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> not present in SampleList. &quot;</span>
+                    <span class="s2">&quot;Valid choices are </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">current_fields</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">return_list</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">return_list</span></div>
+
+<div class="viewcode-block" id="SampleList.get_field"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.SampleList.get_field">[docs]</a>    <span class="k">def</span> <span class="nf">get_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get value of a particular attribute</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            field (str): Attribute whose value is to be returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_data_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="c1"># if isinstance(data, torch.Tensor):</span>
+        <span class="c1">#     copy_ = data.clone()</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#     copy_ = deepcopy(data)</span>
+        <span class="c1"># return copy_</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">def</span> <span class="nf">_get_tensor_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SampleList</span><span class="o">.</span><span class="n">_TENSOR_FIELD_</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_tensor_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">SampleList</span><span class="o">.</span><span class="n">_TENSOR_FIELD_</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+<div class="viewcode-block" id="SampleList.get_batch_size"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.SampleList.get_batch_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_batch_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get batch size of the current ``SampleList``. There must be a tensor</span>
+<span class="sd">        be a tensor present inside sample list to use this function.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Size of the batch in ``SampleList``.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tensor_field</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_tensor_field</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">tensor_field</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;There is no tensor yet in SampleList&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">tensor_field</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SampleList.add_field"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.SampleList.add_field">[docs]</a>    <span class="k">def</span> <span class="nf">add_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add an attribute ``field`` with value ``data`` to the SampleList</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            field (str): Key under which the data will be added.</span>
+<span class="sd">            data (object): Data to be added, can be a ``torch.Tensor``, ``list``</span>
+<span class="sd">                         or ``Sample``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">()</span>
+        <span class="n">tensor_field</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_tensor_field</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
+            <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">size</span><span class="p">())</span> <span class="o">!=</span> <span class="mi">0</span>
+            <span class="ow">and</span> <span class="n">tensor_field</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="p">[</span><span class="n">tensor_field</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                <span class="s2">&quot;A tensor field to be added must &quot;</span>
+                <span class="s2">&quot;have same size as existing tensor &quot;</span>
+                <span class="s2">&quot;fields in SampleList. &quot;</span>
+                <span class="s2">&quot;Passed size: </span><span class="si">{}</span><span class="s2">, Required size: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">tensor_field</span><span class="p">])</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">SampleList</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_data_copy</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">tensor_field</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_set_tensor_field</span><span class="p">(</span><span class="n">field</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SampleList.to"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.SampleList.to">[docs]</a>    <span class="k">def</span> <span class="nf">to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">non_blocking</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Similar to ``.to`` function on a `torch.Tensor`. Moves all of the</span>
+<span class="sd">        tensors present inside the ``SampleList`` to a particular device. If an</span>
+<span class="sd">        attribute&#39;s value is not a tensor, it is ignored and kept as it is.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            device (str|torch.device): Device on which the ``SampleList`` should</span>
+<span class="sd">                                       moved.</span>
+<span class="sd">            non_blocking (bool): Whether the move should be non_blocking. Default: True</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SampleList: a SampleList moved to the ``device``.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">sample_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s2">&quot;device must be either &#39;str&#39; or &quot;</span>
+                    <span class="s2">&quot;&#39;torch.device&#39; type, </span><span class="si">{}</span><span class="s2"> found&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
+                <span class="p">)</span>
+            <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sample_list</span><span class="p">[</span><span class="n">field</span><span class="p">],</span> <span class="s2">&quot;to&quot;</span><span class="p">):</span>
+                <span class="n">sample_list</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">sample_list</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
+                    <span class="n">device</span><span class="p">,</span> <span class="n">non_blocking</span><span class="o">=</span><span class="n">non_blocking</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">sample_list</span></div>
+
+<div class="viewcode-block" id="SampleList.pin_memory"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.SampleList.pin_memory">[docs]</a>    <span class="k">def</span> <span class="nf">pin_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;In custom batch object, we need to define pin_memory function so that</span>
+<span class="sd">        PyTorch can actually apply pinning. This function just individually pins</span>
+<span class="sd">        all of the tensor fields</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">],</span> <span class="s2">&quot;pin_memory&quot;</span><span class="p">):</span>
+                <span class="c1"># This will also handle nested sample list recursively</span>
+                <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">pin_memory</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+    <span class="k">def</span> <span class="nf">detach</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">detach_tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="SampleList.to_dict"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.SampleList.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Converts a sample list to dict, this is useful for TorchScript and for</span>
+<span class="sd">        other internal API unification efforts.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Any]: A dict representation of current sample list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sample_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="c1"># Handle nested sample list recursively</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">],</span> <span class="s2">&quot;to_dict&quot;</span><span class="p">):</span>
+                <span class="n">sample_dict</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sample_dict</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">field</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">sample_dict</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">convert_batch_to_sample_list</span><span class="p">(</span>
+    <span class="n">batch</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">SampleList</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SampleList</span><span class="p">:</span>
+    <span class="c1"># Create and return sample list with proper name</span>
+    <span class="c1"># and type set if it is already not a sample list</span>
+    <span class="c1"># (case of batched iterators)</span>
+    <span class="n">sample_list</span> <span class="o">=</span> <span class="n">batch</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="c1"># Check if batch is a list before checking batch[0]</span>
+        <span class="c1"># or len as sometimes batch is already SampleList</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">SampleList</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="n">sample_list</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">SampleList</span><span class="p">):</span>
+        <span class="n">sample_list</span> <span class="o">=</span> <span class="n">SampleList</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">_get_tensor_field</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sample_list</span> <span class="o">=</span> <span class="n">SampleList</span><span class="p">(</span><span class="n">sample_list</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="n">sample_list</span>
+
+
+<span class="n">device_type</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">to_device</span><span class="p">(</span>
+    <span class="n">sample_list</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">SampleList</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">device</span><span class="p">:</span> <span class="n">device_type</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SampleList</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+        <span class="n">sample_list</span> <span class="o">=</span> <span class="n">convert_batch_to_sample_list</span><span class="p">(</span><span class="n">sample_list</span><span class="p">)</span>
+    <span class="c1"># to_device is specifically for SampleList</span>
+    <span class="c1"># if user is passing something custom built</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">SampleList</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;You are not returning SampleList/Sample from your dataset. &quot;</span>
+            <span class="s2">&quot;MMF expects you to move your tensors to cuda yourself.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">sample_list</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="c1"># default value of device_type is cuda</span>
+    <span class="c1"># Other device types such as xla can also be passed.</span>
+    <span class="c1"># Fall back to cpu only happens when device_type</span>
+    <span class="c1"># is set to cuda but cuda is not available.</span>
+    <span class="k">if</span> <span class="n">device</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;cuda&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Selected device is cuda, but it is NOT available!!! Falling back on cpu.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">get_device</span><span class="p">()</span> <span class="o">!=</span> <span class="n">device</span><span class="p">:</span>
+        <span class="n">sample_list</span> <span class="o">=</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sample_list</span>
+
+
+<div class="viewcode-block" id="detach_tensor"><a class="viewcode-back" href="../../../lib/common/sample.html#mmf.common.sample.detach_tensor">[docs]</a><span class="k">def</span> <span class="nf">detach_tensor</span><span class="p">(</span><span class="n">tensor</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Detaches any element passed which has a `.detach` function defined.</span>
+<span class="sd">    Currently, in MMF can be SampleList, Report or a tensor.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tensor (Any): Item to be detached</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Any: Detached element</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="s2">&quot;detach&quot;</span><span class="p">):</span>
+        <span class="n">tensor</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">tensor</span></div>
+</pre></div>
+
+             </article>
+             
+            </div>
+            <footer>
+  
+
+  
+
+    <hr>
+
+  
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Facebook AI Research.
+
+    </p>
+  </div>
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+      </div>
+     
+
+</footer>
+
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  
+
+
+  
+
+     
+       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+         <script src="../../../_static/jquery.js"></script>
+         <script src="../../../_static/underscore.js"></script>
+         <script src="../../../_static/doctools.js"></script>
+     
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+
+  <footer class="site-footer">
+    <div class="container footer-container">
+      <div class="footer-logo-wrapper">
+        <a href="https://mmf.sh/" class="footer-logo"></a>
+      </div>
+      <div class="footer-links-wrapper">
+        <div class="footer-links-col">
+          <ul>
+            <li class="list-title"><a href="https://mmf.sh/">MMF</a></li>
+            <li><a href="https://mmf.sh/docs">Get Started</a></li>
+            <li><a href="https://mmf.sh/docs/getting_started/features">Features</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/blob/main/CONTRIBUTING.md">Contributing</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links-col">
+          <ul>
+            <li class="list-title"><a href="">Resources</a></li>
+            <li><a href="https://mmf.sh/docs">Docs</a></li>
+            <li><a href="https://mmf.sh/api">API</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/issues" target="_blank">Github Issues</a></li>
+          </ul>
+        </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="cookie-banner-wrapper">
+  <div class="container">
+    <p class="gdpr-notice">To analyze traffic and optimize your experience, we serve cookies on this site. By clicking or navigating, you agree to allow our usage of cookies. As the current maintainers of this site, Facebook’s Cookies Policy applies. Learn more, including about available controls: <a href="https://www.facebook.com/policies/cookies/">Cookies Policy</a>.</p>
+    <img class="close-button" src="../../../_static/images/pytorch-x.svg">
+  </div>
+</div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://mmf.sh/" aria-label="MMF"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://mmf.sh/docs">Get Started</a>
+          </li>
+
+          <li>
+            <a href="https://mmf.sh/docs/getting_started/features">Features</a>
+          </li>
+
+          <li>
+            <a href="https://mmf.sh/docs">Docs</a>
+          </li>
+
+          <li class="active">
+            <a href="https://mmf.sh/api">API</a>
+          </li>
+          <li>
+            <a href="https://github.com/facebookresearch/mmf">Github</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+</html>

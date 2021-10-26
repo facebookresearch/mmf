@@ -1,0 +1,870 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mmf.utils.text | MMF 1.0.0rc12 documentation</title>
+  
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-135079836-2"></script>
+  <script src="../../../_static/js/ga.js"></script>
+  <script src="../../../_static/js/redirect.js"></script>
+  
+  <link rel="shortcut icon" href="../../../_static/images/favicon.png"/>
+  
+  
+  <link rel="canonical" href="https://mmf.sh/api/_modules/mmf/utils/text.html"/>
+  
+  <meta property="og:title" content="mmf.utils.text | MMF 1.0.0rc12 documentation">
+  <meta name="description" content="API docs for MMF. MMF is a modular framework powered by PyTorch for multimodal vision and language research from Facebook AI Research">
+  <meta property="og:description" content="API docs for MMF. MMF is a modular framework powered by PyTorch for multimodal vision and language research from Facebook AI Research">
+  <meta property="og:image" content="https://mmf.sh/img/logo.png">
+  <meta property="twitter:image" content="https://mmf.sh/img/logo.png">
+  <meta name="twitter:image:alt" content="Image for MMF">
+  <meta name="twitter:card" content="summary_large_image">
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/customize.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://mmf.sh/" aria-label="MMF"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://mmf.sh/docs">Get Started</a>
+          </li>
+
+
+          <li>
+            <a href="https://mmf.sh/docs">Docs</a>
+          </li>
+
+          <li class="active">
+            <a href="https://mmf.sh/api">API</a>
+          </li>
+
+          <li>
+            <a href="https://github.com/facebookresearch/mmf">Github</a>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+
+  </div>
+</div>
+
+
+<body class="pytorch-body">
+
+   
+
+    
+
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+      <div class="pytorch-side-scroll">
+        <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          <div class="pytorch-left-menu-search">
+            
+
+            
+              
+              
+                <div class="version">
+                  1.0.0
+                </div>
+              
+            
+
+            
+
+
+  
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+            
+          </div>
+
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Library Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/common/registry.html">common.registry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/common/sample.html">common.sample</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/models/base_model.html">models.base_model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/modules/losses.html">modules.losses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/modules/metrics.html">modules.metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/datasets/base_dataset_builder.html">datasets.base_dataset_builder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/datasets/base_dataset.html">datasets.base_dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/datasets/processors.html">datasets.processors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/utils/text.html">utils.text</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <div class="pytorch-container">
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+          
+            Docs
+          
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>mmf.utils.text</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+        </div>
+
+        <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+          Shortcuts
+        </div>
+      </div>
+
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        <div class="pytorch-content-left">
+
+        
+          
+          <div class="rst-content">
+          
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <h1>Source code for mmf.utils.text</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Text utils module contains implementations for various decoding strategies like</span>
+<span class="sd">Greedy, Beam Search and Nucleus Sampling.</span>
+
+<span class="sd">In your model&#39;s config you can specify ``inference`` attribute to use these strategies</span>
+<span class="sd">in the following way:</span>
+
+<span class="sd">.. code::</span>
+
+<span class="sd">   model_config:</span>
+<span class="sd">       some_model:</span>
+<span class="sd">           inference:</span>
+<span class="sd">               - type: greedy</span>
+<span class="sd">               - params: {}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
+<span class="kn">from</span> <span class="nn">mmf.utils.file_io</span> <span class="kn">import</span> <span class="n">PathManager</span>
+<span class="kn">from</span> <span class="nn">mmf.utils.general</span> <span class="kn">import</span> <span class="n">get_absolute_path</span>
+
+
+<span class="n">SENTENCE_SPLIT_REGEX</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(\W+)&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="generate_ngrams"><a class="viewcode-back" href="../../../lib/utils/text.html#mmf.utils.text.generate_ngrams">[docs]</a><span class="k">def</span> <span class="nf">generate_ngrams</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate ngrams for particular &#39;n&#39; from a list of tokens</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tokens (List[str]): List of tokens for which the ngram are to be generated</span>
+<span class="sd">        n (int, optional): n for which ngrams are to be generated. Defaults to 1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[str]: List of ngrams generated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">shifted_tokens</span> <span class="o">=</span> <span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">:]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+    <span class="n">tuple_ngrams</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">shifted_tokens</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tuple_ngrams</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="generate_ngrams_range"><a class="viewcode-back" href="../../../lib/utils/text.html#mmf.utils.text.generate_ngrams_range">[docs]</a><span class="k">def</span> <span class="nf">generate_ngrams_range</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">ngram_range</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;Generates and returns a list of ngrams for all n present in ngram_range</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tokens (List[str]): List of string tokens for which ngram are to be generated</span>
+<span class="sd">        ngram_range (List[int], optional): List of &#39;n&#39; for which ngrams are to be</span>
+<span class="sd">            generated. For e.g. if ngram_range = (1, 4) then it will returns</span>
+<span class="sd">            1grams, 2grams and 3grams. Defaults to (1, 3).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[str]: List of ngrams for each n in ngram_range</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ngram_range</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span>
+        <span class="s2">&quot;&#39;ngram_range&#39; should be a tuple&quot;</span> <span class="s2">&quot; of two elements which is range of numbers&quot;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">generate_ngrams</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">*</span><span class="n">ngram_range</span><span class="p">)))</span></div>
+
+
+<span class="k">def</span> <span class="nf">tokenize</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="n">SENTENCE_SPLIT_REGEX</span><span class="p">,</span> <span class="n">keep</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">keep</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">keep</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&#39;s&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">remove</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">remove</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;?&quot;</span><span class="p">]</span>
+    <span class="n">sentence</span> <span class="o">=</span> <span class="n">sentence</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">keep</span><span class="p">:</span>
+        <span class="n">sentence</span> <span class="o">=</span> <span class="n">sentence</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">token</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">remove</span><span class="p">:</span>
+        <span class="n">sentence</span> <span class="o">=</span> <span class="n">sentence</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">tokens</span> <span class="o">=</span> <span class="n">regex</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">sentence</span><span class="p">)</span>
+    <span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">tokens</span>
+
+
+<span class="k">def</span> <span class="nf">word_tokenize</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">remove</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">remove</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;?&quot;</span><span class="p">]</span>
+    <span class="n">word</span> <span class="o">=</span> <span class="n">word</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">remove</span><span class="p">:</span>
+        <span class="n">word</span> <span class="o">=</span> <span class="n">word</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">word</span> <span class="o">=</span> <span class="n">word</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;s&quot;</span><span class="p">,</span> <span class="s2">&quot; &#39;s&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">word</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">load_str_list</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">PathManager</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">lines</span>
+
+
+<span class="k">class</span> <span class="nc">VocabDict</span><span class="p">:</span>
+    <span class="n">UNK_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;&lt;unk&gt;&quot;</span>
+    <span class="n">PAD_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;&lt;pad&gt;&quot;</span>
+    <span class="n">START_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;&lt;s&gt;&quot;</span>
+    <span class="n">END_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;&lt;/s&gt;&quot;</span>
+
+    <span class="n">PAD_INDEX</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">SOS_INDEX</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">EOS_INDEX</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">UNK_INDEX</span> <span class="o">=</span> <span class="mi">3</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab_file</span><span class="p">,</span> <span class="n">data_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">PathManager</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">vocab_file</span><span class="p">)</span> <span class="ow">and</span> <span class="n">data_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">vocab_file</span> <span class="o">=</span> <span class="n">get_absolute_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">vocab_file</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">PathManager</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">vocab_file</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Vocab file </span><span class="si">{</span><span class="n">vocab_file</span><span class="si">}</span><span class="s2"> for vocab dict doesn&#39;t exist&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">word_list</span> <span class="o">=</span> <span class="n">load_str_list</span><span class="p">(</span><span class="n">vocab_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">UNK_TOKEN</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">word_list</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">word_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">UNK_TOKEN</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">word_list</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">word2idx_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">w</span><span class="p">:</span> <span class="n">n_w</span> <span class="k">for</span> <span class="n">n_w</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">word_list</span><span class="p">)}</span>
+
+        <span class="c1"># String (word) to integer (index) dict mapping</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stoi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">word2idx_dict</span>
+        <span class="c1"># Integer to string (word) reverse mapping</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">itos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">word_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_vocab</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">word_list</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">UNK_INDEX</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">word2idx_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">UNK_TOKEN</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">UNK_TOKEN</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">word2idx_dict</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">PAD_INDEX</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">word2idx_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">PAD_TOKEN</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">PAD_TOKEN</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">word2idx_dict</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">idx2word</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_w</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">word_list</span><span class="p">[</span><span class="n">n_w</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">word_list</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">word_list</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_unk_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">UNK_INDEX</span>
+
+    <span class="k">def</span> <span class="nf">get_unk_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">UNK_TOKEN</span>
+
+    <span class="k">def</span> <span class="nf">word2idx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">w</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">word2idx_dict</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">word2idx_dict</span><span class="p">[</span><span class="n">w</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">UNK_INDEX</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">UNK_INDEX</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;word </span><span class="si">%s</span><span class="s2"> not in dictionary </span><span class="se">\</span>
+<span class="s2">                             (while dictionary does not contain &lt;unk&gt;)&quot;</span>
+                <span class="o">%</span> <span class="n">w</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">tokenize_and_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sentence</span><span class="p">):</span>
+        <span class="n">inds</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">word2idx</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">sentence</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">inds</span>
+
+
+<span class="k">class</span> <span class="nc">VocabFromText</span><span class="p">(</span><span class="n">VocabDict</span><span class="p">):</span>
+    <span class="n">DEFAULT_TOKENS</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">VocabDict</span><span class="o">.</span><span class="n">PAD_TOKEN</span><span class="p">,</span>
+        <span class="n">VocabDict</span><span class="o">.</span><span class="n">UNK_TOKEN</span><span class="p">,</span>
+        <span class="n">VocabDict</span><span class="o">.</span><span class="n">START_TOKEN</span><span class="p">,</span>
+        <span class="n">VocabDict</span><span class="o">.</span><span class="n">END_TOKEN</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sentences</span><span class="p">,</span>
+        <span class="n">min_count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">regex</span><span class="o">=</span><span class="n">SENTENCE_SPLIT_REGEX</span><span class="p">,</span>
+        <span class="n">keep</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">remove</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">only_unk_extra</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">keep</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">keep</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">remove</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">remove</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">token_counter</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">sentence</span> <span class="ow">in</span> <span class="n">sentences</span><span class="p">:</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="n">regex</span><span class="p">,</span> <span class="n">keep</span><span class="o">=</span><span class="n">keep</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="n">remove</span><span class="p">)</span>
+            <span class="n">token_counter</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+
+        <span class="n">token_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">token_counter</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">token_counter</span><span class="p">[</span><span class="n">token</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_count</span><span class="p">:</span>
+                <span class="n">token_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+
+        <span class="n">extras</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_TOKENS</span>
+
+        <span class="k">if</span> <span class="n">only_unk_extra</span><span class="p">:</span>
+            <span class="n">extras</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">UNK_TOKEN</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">word_list</span> <span class="o">=</span> <span class="n">extras</span> <span class="o">+</span> <span class="n">token_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="TextDecoder"><a class="viewcode-back" href="../../../lib/utils/text.html#mmf.utils.text.TextDecoder">[docs]</a><span class="k">class</span> <span class="nc">TextDecoder</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Base class to be inherited by all decoding strategies. Contains</span>
+<span class="sd">    implementations that are common for all strategies.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        vocab (list): Collection of all words in vocabulary.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vocab</span> <span class="o">=</span> <span class="n">vocab</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vocab_size</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">get_size</span><span class="p">()</span>
+
+        <span class="c1"># Lists to store completed sequences and scores</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">init_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">):</span>
+        <span class="n">img_size</span> <span class="o">=</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">image_feature_0</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span><span class="p">,</span> <span class="n">feature_size_1</span><span class="p">,</span> <span class="n">feature_size_2</span> <span class="o">=</span> <span class="n">img_size</span>
+        <span class="n">t_batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seqs</span> <span class="o">=</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">answers</span><span class="o">.</span><span class="n">new_full</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">t_batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vocab</span><span class="o">.</span><span class="n">SOS_INDEX</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span>
+        <span class="p">)</span>
+        <span class="n">sample_list</span><span class="o">.</span><span class="n">image_feature_0</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">sample_list</span><span class="o">.</span><span class="n">image_feature_0</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">t_batch_size</span><span class="p">,</span> <span class="n">feature_size_1</span><span class="p">,</span> <span class="n">feature_size_2</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_list</span> <span class="o">=</span> <span class="n">sample_list</span>
+        <span class="k">return</span> <span class="n">sample_list</span>
+
+    <span class="k">def</span> <span class="nf">add_next_word</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seqs</span><span class="p">,</span> <span class="n">prev_word_inds</span><span class="p">,</span> <span class="n">next_word_inds</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">seqs</span><span class="p">[</span><span class="n">prev_word_inds</span><span class="p">],</span> <span class="n">next_word_inds</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">find_complete_inds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">next_word_inds</span><span class="p">):</span>
+        <span class="n">incomplete_inds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">next_word</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">next_word_inds</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">next_word</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vocab</span><span class="o">.</span><span class="n">EOS_INDEX</span><span class="p">:</span>
+                <span class="n">incomplete_inds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+        <span class="n">complete_inds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">next_word_inds</span><span class="p">)))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">incomplete_inds</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">complete_inds</span><span class="p">,</span> <span class="n">incomplete_inds</span>
+
+    <span class="k">def</span> <span class="nf">update_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">prev_word_inds</span><span class="p">,</span> <span class="n">next_word_inds</span><span class="p">,</span> <span class="n">incomplete_inds</span><span class="p">):</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;texts&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_word_inds</span><span class="p">[</span><span class="n">incomplete_inds</span><span class="p">]</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">h1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">][</span><span class="s2">&quot;td_hidden&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">prev_word_inds</span><span class="p">[</span><span class="n">incomplete_inds</span><span class="p">]]</span>
+        <span class="n">c1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">][</span><span class="s2">&quot;td_hidden&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="n">prev_word_inds</span><span class="p">[</span><span class="n">incomplete_inds</span><span class="p">]]</span>
+        <span class="n">h2</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">][</span><span class="s2">&quot;lm_hidden&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">prev_word_inds</span><span class="p">[</span><span class="n">incomplete_inds</span><span class="p">]]</span>
+        <span class="n">c2</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">][</span><span class="s2">&quot;lm_hidden&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="n">prev_word_inds</span><span class="p">[</span><span class="n">incomplete_inds</span><span class="p">]]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;td_hidden&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">h1</span><span class="p">,</span> <span class="n">c1</span><span class="p">),</span> <span class="s2">&quot;lm_hidden&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">h2</span><span class="p">,</span> <span class="n">c2</span><span class="p">)}</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="BeamSearch"><a class="viewcode-back" href="../../../lib/utils/text.html#mmf.utils.text.BeamSearch">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_decoder</span><span class="p">(</span><span class="s2">&quot;beam_search&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">BeamSearch</span><span class="p">(</span><span class="n">TextDecoder</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;inference&quot;</span><span class="p">][</span><span class="s2">&quot;params&quot;</span><span class="p">][</span><span class="s2">&quot;beam_length&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">init_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_list</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">init_batch</span><span class="p">(</span><span class="n">sample_list</span><span class="p">)</span>
+
+        <span class="c1"># initialize with t_batch_size = _batch_size * _decode_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top_k_scores</span> <span class="o">=</span> <span class="n">sample_list</span><span class="o">.</span><span class="n">answers</span><span class="o">.</span><span class="n">new_zeros</span><span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span>
+        <span class="p">)</span>
+        <span class="c1"># maintain _decode_size, _complete_seqs and _complete_seqs_scores</span>
+        <span class="c1"># for each example in a batch.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_decode_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_list</span>
+
+    <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">scores</span><span class="p">):</span>
+        <span class="c1"># Add predicted scores to top_k_scores</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">top_k_scores</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span> <span class="o">+</span> <span class="n">scores</span>
+
+        <span class="c1"># Find next top k scores and words. We flatten the scores tensor here</span>
+        <span class="c1"># and get the top_k_scores and their indices top_k_words</span>
+        <span class="n">top_k_scores</span><span class="p">,</span> <span class="n">top_k_words</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="n">ex_start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">decode_size</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decode_sizes</span><span class="p">:</span>
+            <span class="n">ex_end</span> <span class="o">=</span> <span class="n">ex_start</span> <span class="o">+</span> <span class="n">decode_size</span>
+            <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">top_k_score</span><span class="p">,</span> <span class="n">top_k_word</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="n">ex_start</span><span class="p">]</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span>
+                    <span class="n">decode_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">top_k_score</span><span class="p">,</span> <span class="n">top_k_word</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">scores</span><span class="p">[</span><span class="n">ex_start</span><span class="p">:</span><span class="n">ex_end</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">decode_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">top_k_scores</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">top_k_score</span><span class="p">)</span>
+            <span class="n">top_k_words</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">top_k_word</span><span class="p">)</span>
+            <span class="n">ex_start</span> <span class="o">=</span> <span class="n">ex_end</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top_k_scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">top_k_scores</span><span class="p">)</span>
+        <span class="c1"># Convert to vocab indices. top_k_words contain indices from a flattened</span>
+        <span class="c1"># k x vocab_size tensor. To get prev_word_indices we divide top_k_words</span>
+        <span class="c1"># by vocab_size to determine which index in the beam among k generated</span>
+        <span class="c1"># the next top_k_word. To get next_word_indices we take top_k_words</span>
+        <span class="c1"># modulo vocab_size index. For example :</span>
+        <span class="c1"># vocab_size : 9491</span>
+        <span class="c1"># top_k_words : [610, 7, 19592, 9529, 292]</span>
+        <span class="c1"># prev_word_ind : [0, 0, 2, 1, 0]</span>
+        <span class="c1"># next_word_ind : [610, 7, 610, 38, 292]</span>
+        <span class="c1"># further, shift the prev_word_ind by ex_start to find corresponding example</span>
+        <span class="c1"># within a batch.</span>
+
+        <span class="n">ex_start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">prev_word_inds</span><span class="p">,</span> <span class="n">next_word_inds</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ex_idx</span><span class="p">,</span> <span class="n">decode_size</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decode_sizes</span><span class="p">):</span>
+            <span class="n">prev_word_inds</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">top_k_words</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vocab_size</span><span class="p">)</span> <span class="o">+</span> <span class="n">ex_start</span><span class="p">)</span>
+            <span class="n">next_word_inds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">top_k_words</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vocab_size</span><span class="p">)</span>
+            <span class="n">ex_start</span> <span class="o">+=</span> <span class="n">decode_size</span>
+        <span class="n">prev_word_inds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">prev_word_inds</span><span class="p">)</span>
+        <span class="n">next_word_inds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">next_word_inds</span><span class="p">)</span>
+
+        <span class="c1"># Add new words to sequences</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_next_word</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqs</span><span class="p">,</span> <span class="n">prev_word_inds</span><span class="p">,</span> <span class="n">next_word_inds</span><span class="p">)</span>
+        <span class="c1"># Find completed sequences</span>
+        <span class="n">complete_inds</span><span class="p">,</span> <span class="n">incomplete_inds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_complete_inds</span><span class="p">(</span><span class="n">next_word_inds</span><span class="p">)</span>
+
+        <span class="c1"># Add to completed sequences and Reduce beam length</span>
+        <span class="n">ex_start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">ex_idx</span><span class="p">,</span> <span class="n">decode_size</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decode_sizes</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">beam_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ex_start</span><span class="p">,</span> <span class="n">ex_start</span> <span class="o">+</span> <span class="n">decode_size</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">beam_idx</span> <span class="ow">in</span> <span class="n">complete_inds</span><span class="p">:</span>
+                    <span class="n">top_k_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">top_k_scores</span><span class="p">[</span><span class="n">beam_idx</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqs</span><span class="p">[</span><span class="n">beam_idx</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">top_k_score</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_decode_sizes</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="n">ex_start</span> <span class="o">+=</span> <span class="n">decode_size</span>
+
+        <span class="c1"># Proceed with incomplete sequences</span>
+        <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decode_sizes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqs</span><span class="p">[</span><span class="n">incomplete_inds</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top_k_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">top_k_scores</span><span class="p">[</span><span class="n">incomplete_inds</span><span class="p">]</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># TODO: Make the data update generic for any type of model</span>
+        <span class="c1"># This is specific to BUTD model only.</span>
+        <span class="n">image_feature_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_list</span><span class="o">.</span><span class="n">image_feature_0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_list</span><span class="o">.</span><span class="n">image_feature_0</span> <span class="o">=</span> <span class="n">image_feature_0</span><span class="p">[</span><span class="n">incomplete_inds</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">prev_word_inds</span><span class="p">,</span> <span class="n">next_word_inds</span><span class="p">,</span> <span class="n">incomplete_inds</span><span class="p">)</span>
+
+        <span class="n">next_beam_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prev_word_inds</span><span class="p">[</span><span class="n">incomplete_inds</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">next_beam_length</span>
+
+    <span class="k">def</span> <span class="nf">get_result</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">captions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">max_len</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">ex_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">captions</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span>
+                <span class="n">max_len</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_len</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">max_score</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">])</span>
+                <span class="n">max_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs_scores</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">max_score</span><span class="p">)</span>
+                <span class="n">captions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">][</span><span class="n">max_idx</span><span class="p">])</span>
+                <span class="n">max_len</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_len</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">captions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">ex_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">captions</span><span class="p">)):</span>
+            <span class="n">padded_tokens</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_vocab</span><span class="o">.</span><span class="n">PAD_INDEX</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">max_len</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">captions</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]))</span>
+            <span class="n">captions</span><span class="p">[</span><span class="n">ex_idx</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">padded_tokens</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="n">captions</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NucleusSampling"><a class="viewcode-back" href="../../../lib/utils/text.html#mmf.utils.text.NucleusSampling">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_decoder</span><span class="p">(</span><span class="s2">&quot;nucleus_sampling&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">NucleusSampling</span><span class="p">(</span><span class="n">TextDecoder</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Nucleus Sampling is a new text decoding strategy that avoids likelihood</span>
+<span class="sd">    maximization. Rather, it works by sampling from the smallest set of top</span>
+<span class="sd">    tokens which have a cumulative probability greater than a specified</span>
+<span class="sd">    threshold.</span>
+
+<span class="sd">    Present text decoding strategies like beam search do not work well on open-ended</span>
+<span class="sd">    generation tasks (even on strong language models like GPT-2). They tend to repeat</span>
+<span class="sd">    text a lot and the main reason behind it is that they try to maximize likelihood,</span>
+<span class="sd">    which is a contrast from human-generated text which has a mix of high and low</span>
+<span class="sd">    probability tokens.</span>
+
+<span class="sd">    Nucleus Sampling is a stochastic approach and resolves this issue. Moreover,</span>
+<span class="sd">    it improves upon other stochastic methods like top-k sampling by choosing the</span>
+<span class="sd">    right amount of tokens to sample from. The overall result is better text</span>
+<span class="sd">    generation on the same language model.</span>
+
+<span class="sd">    Link to the paper introducing Nucleus Sampling (Section 6) -</span>
+<span class="sd">    https://arxiv.org/pdf/1904.09751.pdf</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        vocab (list): Collection of all words in vocabulary.</span>
+<span class="sd">        sum_threshold (float): Ceiling of sum of probabilities of tokens to</span>
+<span class="sd">            sample from.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_decode_size</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="c1"># Threshold for sum of probability</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;inference&quot;</span><span class="p">][</span><span class="s2">&quot;params&quot;</span><span class="p">][</span><span class="s2">&quot;sum_threshold&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">scores</span><span class="p">):</span>
+        <span class="c1"># Convert scores to probabilities</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Sort scores in descending order and then select the top m elements having</span>
+        <span class="c1"># sum more than threshold.</span>
+        <span class="c1"># We get the top_m_scores and their indices top_m_words</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">top_m_scores</span><span class="p">,</span> <span class="n">top_m_words</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">top_m_scores</span><span class="p">,</span> <span class="n">top_m_words</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">last_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">score_sum</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">top_m_scores</span><span class="p">:</span>
+            <span class="n">last_index</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">score_sum</span> <span class="o">+=</span> <span class="n">score</span>
+            <span class="k">if</span> <span class="n">score_sum</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="n">top_m_scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">top_m_scores</span><span class="p">[:</span><span class="n">last_index</span><span class="p">],</span> <span class="n">score_sum</span><span class="p">)</span>
+        <span class="n">top_m_words</span> <span class="o">=</span> <span class="n">top_m_words</span><span class="p">[:</span><span class="n">last_index</span><span class="p">]</span>
+
+        <span class="c1"># Zero value inside prev_word_inds because we are predicting a single</span>
+        <span class="c1"># stream of output.</span>
+        <span class="n">prev_word_ind</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+        <span class="c1"># Get next word based on probabilities of top m words.</span>
+        <span class="n">next_word_ind</span> <span class="o">=</span> <span class="n">top_m_words</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">multinomial</span><span class="p">(</span><span class="n">top_m_scores</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="c1"># Add next word to sequence</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">seqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_next_word</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqs</span><span class="p">,</span> <span class="n">prev_word_ind</span><span class="p">,</span> <span class="n">next_word_ind</span><span class="p">)</span>
+        <span class="c1"># Check if sequence is complete</span>
+        <span class="n">complete_inds</span><span class="p">,</span> <span class="n">incomplete_inds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_complete_inds</span><span class="p">(</span><span class="n">next_word_ind</span><span class="p">)</span>
+        <span class="c1"># If sequence is complete then return</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">complete_inds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqs</span><span class="p">[</span><span class="n">complete_inds</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">seqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqs</span><span class="p">[</span><span class="n">incomplete_inds</span><span class="p">]</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">prev_word_ind</span><span class="p">,</span> <span class="n">next_word_ind</span><span class="p">,</span> <span class="n">incomplete_inds</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">get_result</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">captions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">captions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_complete_seqs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">captions</span></div>
+</pre></div>
+
+             </article>
+             
+            </div>
+            <footer>
+  
+
+  
+
+    <hr>
+
+  
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Facebook AI Research.
+
+    </p>
+  </div>
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+      </div>
+     
+
+</footer>
+
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  
+
+
+  
+
+     
+       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+         <script src="../../../_static/jquery.js"></script>
+         <script src="../../../_static/underscore.js"></script>
+         <script src="../../../_static/doctools.js"></script>
+     
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+
+  <footer class="site-footer">
+    <div class="container footer-container">
+      <div class="footer-logo-wrapper">
+        <a href="https://mmf.sh/" class="footer-logo"></a>
+      </div>
+      <div class="footer-links-wrapper">
+        <div class="footer-links-col">
+          <ul>
+            <li class="list-title"><a href="https://mmf.sh/">MMF</a></li>
+            <li><a href="https://mmf.sh/docs">Get Started</a></li>
+            <li><a href="https://mmf.sh/docs/getting_started/features">Features</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/blob/main/CONTRIBUTING.md">Contributing</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links-col">
+          <ul>
+            <li class="list-title"><a href="">Resources</a></li>
+            <li><a href="https://mmf.sh/docs">Docs</a></li>
+            <li><a href="https://mmf.sh/api">API</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/issues" target="_blank">Github Issues</a></li>
+          </ul>
+        </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="cookie-banner-wrapper">
+  <div class="container">
+    <p class="gdpr-notice">To analyze traffic and optimize your experience, we serve cookies on this site. By clicking or navigating, you agree to allow our usage of cookies. As the current maintainers of this site, Facebook’s Cookies Policy applies. Learn more, including about available controls: <a href="https://www.facebook.com/policies/cookies/">Cookies Policy</a>.</p>
+    <img class="close-button" src="../../../_static/images/pytorch-x.svg">
+  </div>
+</div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://mmf.sh/" aria-label="MMF"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://mmf.sh/docs">Get Started</a>
+          </li>
+
+          <li>
+            <a href="https://mmf.sh/docs/getting_started/features">Features</a>
+          </li>
+
+          <li>
+            <a href="https://mmf.sh/docs">Docs</a>
+          </li>
+
+          <li class="active">
+            <a href="https://mmf.sh/api">API</a>
+          </li>
+          <li>
+            <a href="https://github.com/facebookresearch/mmf">Github</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+</html>

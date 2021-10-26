@@ -1,0 +1,811 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mmf.models.base_model | MMF 1.0.0rc12 documentation</title>
+  
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-135079836-2"></script>
+  <script src="../../../_static/js/ga.js"></script>
+  <script src="../../../_static/js/redirect.js"></script>
+  
+  <link rel="shortcut icon" href="../../../_static/images/favicon.png"/>
+  
+  
+  <link rel="canonical" href="https://mmf.sh/api/_modules/mmf/models/base_model.html"/>
+  
+  <meta property="og:title" content="mmf.models.base_model | MMF 1.0.0rc12 documentation">
+  <meta name="description" content="API docs for MMF. MMF is a modular framework powered by PyTorch for multimodal vision and language research from Facebook AI Research">
+  <meta property="og:description" content="API docs for MMF. MMF is a modular framework powered by PyTorch for multimodal vision and language research from Facebook AI Research">
+  <meta property="og:image" content="https://mmf.sh/img/logo.png">
+  <meta property="twitter:image" content="https://mmf.sh/img/logo.png">
+  <meta name="twitter:image:alt" content="Image for MMF">
+  <meta name="twitter:card" content="summary_large_image">
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/customize.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://mmf.sh/" aria-label="MMF"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://mmf.sh/docs">Get Started</a>
+          </li>
+
+
+          <li>
+            <a href="https://mmf.sh/docs">Docs</a>
+          </li>
+
+          <li class="active">
+            <a href="https://mmf.sh/api">API</a>
+          </li>
+
+          <li>
+            <a href="https://github.com/facebookresearch/mmf">Github</a>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+
+  </div>
+</div>
+
+
+<body class="pytorch-body">
+
+   
+
+    
+
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+      <div class="pytorch-side-scroll">
+        <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          <div class="pytorch-left-menu-search">
+            
+
+            
+              
+              
+                <div class="version">
+                  1.0.0
+                </div>
+              
+            
+
+            
+
+
+  
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+            
+          </div>
+
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Library Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/common/registry.html">common.registry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/common/sample.html">common.sample</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/models/base_model.html">models.base_model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/modules/losses.html">modules.losses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/modules/metrics.html">modules.metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/datasets/base_dataset_builder.html">datasets.base_dataset_builder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/datasets/base_dataset.html">datasets.base_dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/datasets/processors.html">datasets.processors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lib/utils/text.html">utils.text</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <div class="pytorch-container">
+      <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+        <div class="pytorch-breadcrumbs-wrapper">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+          
+            Docs
+          
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>mmf.models.base_model</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+        </div>
+
+        <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+          Shortcuts
+        </div>
+      </div>
+
+      <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+        <div class="pytorch-content-left">
+
+        
+          
+          <div class="rst-content">
+          
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+              
+  <h1>Source code for mmf.models.base_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Facebook, Inc. and its affiliates.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Models built in MMF need to inherit ``BaseModel`` class and adhere to</span>
+<span class="sd">a fixed format. To create a model for MMF, follow this quick cheatsheet.</span>
+
+<span class="sd">1. Inherit ``BaseModel`` class, make sure to call ``super().__init__()`` in your</span>
+<span class="sd">   class&#39;s ``__init__`` function.</span>
+<span class="sd">2. Implement `build` function for your model. If you build everything in ``__init__``,</span>
+<span class="sd">   you can just return in this function.</span>
+<span class="sd">3. Write a `forward` function which takes in a ``SampleList`` as an argument and</span>
+<span class="sd">   returns a dict.</span>
+<span class="sd">4. Register using ``@registry.register_model(&quot;key&quot;)`` decorator on top of the</span>
+<span class="sd">   class.</span>
+
+<span class="sd">If you are doing logits based predictions, the dict you return from your model</span>
+<span class="sd">should contain a `scores` field. Losses are automatically calculated by the</span>
+<span class="sd">``BaseModel`` class and added to this dict if not present.</span>
+
+<span class="sd">Example::</span>
+
+<span class="sd">    import torch</span>
+
+<span class="sd">    from mmf.common.registry import registry</span>
+<span class="sd">    from mmf.models.base_model import BaseModel</span>
+
+
+<span class="sd">    @registry.register(&quot;pythia&quot;)</span>
+<span class="sd">    class Pythia(BaseModel):</span>
+<span class="sd">        # config is model_config from global config</span>
+<span class="sd">        def __init__(self, config):</span>
+<span class="sd">            super().__init__(config)</span>
+
+<span class="sd">        def build(self):</span>
+<span class="sd">            ....</span>
+
+<span class="sd">        def forward(self, sample_list):</span>
+<span class="sd">            scores = torch.rand(sample_list.get_batch_size(), 3127)</span>
+<span class="sd">            return {&quot;scores&quot;: scores}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
+<span class="kn">from</span> <span class="nn">mmf.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
+<span class="kn">from</span> <span class="nn">mmf.common.report</span> <span class="kn">import</span> <span class="n">Report</span>
+<span class="kn">from</span> <span class="nn">mmf.common.sample</span> <span class="kn">import</span> <span class="n">SampleList</span><span class="p">,</span> <span class="n">to_device</span>
+<span class="kn">from</span> <span class="nn">mmf.modules.losses</span> <span class="kn">import</span> <span class="n">LossConfig</span><span class="p">,</span> <span class="n">Losses</span>
+<span class="kn">from</span> <span class="nn">mmf.utils.checkpoint</span> <span class="kn">import</span> <span class="n">load_pretrained_model</span>
+<span class="kn">from</span> <span class="nn">mmf.utils.checkpoint_updater</span> <span class="kn">import</span> <span class="n">MMFToPLCheckpointUpdater</span>
+<span class="kn">from</span> <span class="nn">mmf.utils.download</span> <span class="kn">import</span> <span class="n">download_pretrained_model</span>
+<span class="kn">from</span> <span class="nn">mmf.utils.file_io</span> <span class="kn">import</span> <span class="n">PathManager</span>
+<span class="kn">from</span> <span class="nn">mmf.utils.general</span> <span class="kn">import</span> <span class="n">get_current_device</span>
+<span class="kn">from</span> <span class="nn">mmf.utils.logger</span> <span class="kn">import</span> <span class="n">log_class_usage</span>
+<span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span><span class="p">,</span> <span class="n">DictConfig</span><span class="p">,</span> <span class="n">OmegaConf</span>
+
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BaseModel"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel">[docs]</a><span class="k">class</span> <span class="nc">BaseModel</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;For integration with MMF&#39;s trainer, datasets and other features,</span>
+<span class="sd">    models needs to inherit this class, call `super`, write a build function,</span>
+<span class="sd">    write a forward function taking a ``SampleList`` as input and returning a</span>
+<span class="sd">    dict as output and finally, register it using ``@registry.register_model``</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        config (DictConfig): ``model_config`` configuration from global config.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BaseModel.Config"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.Config">[docs]</a>    <span class="nd">@dataclass</span>
+    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="c1"># Name of the model that is used in registry</span>
+        <span class="n">model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">MISSING</span>
+        <span class="n">losses</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">LossConfig</span><span class="p">]]</span> <span class="o">=</span> <span class="n">MISSING</span></div>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">DictConfig</span><span class="p">,</span> <span class="n">Config</span><span class="p">]):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">DictConfig</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">OmegaConf</span><span class="o">.</span><span class="n">structured</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logged_warning</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;losses_present&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_pretrained</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_pl_enabled</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_updater</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">log_class_usage</span><span class="p">(</span><span class="s2">&quot;Model&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_params</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">OmegaConf</span><span class="o">.</span><span class="n">structured</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_pretrained</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_pl_enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_pl_enabled</span>
+
+    <span class="nd">@is_pretrained</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">is_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_pretrained</span> <span class="o">=</span> <span class="n">x</span>
+
+    <span class="nd">@is_pl_enabled</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">is_pl_enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_pl_enabled</span> <span class="o">=</span> <span class="n">x</span>
+
+<div class="viewcode-block" id="BaseModel.on_load_checkpoint"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.on_load_checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">on_load_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This is called by the pl.LightningModule before the model&#39;s checkpoint</span>
+<span class="sd">        is loaded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_updater</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_updater</span> <span class="o">=</span> <span class="n">MMFToPLCheckpointUpdater</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_updater</span><span class="o">.</span><span class="n">update_checkpoint</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_run_format_state_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Function to rewrtie the checkpoint in place&quot;&quot;&quot;</span>
+        <span class="n">tmp_state_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">tmp_state_dict</span><span class="p">:</span>
+            <span class="n">new_attr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_state_key</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">attr</span> <span class="o">!=</span> <span class="n">new_attr</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">state_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+                <span class="n">state_dict</span><span class="p">[</span><span class="n">new_attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+<div class="viewcode-block" id="BaseModel.build"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function to be implemented by the child class, in case they need to</span>
+<span class="sd">        build their model separately than ``__init__``. All model related</span>
+<span class="sd">        downloads should also happen here.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;Build method not implemented in the child model class.&quot;</span>
+        <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">build_meters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_type</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">mmf.utils.build</span> <span class="kn">import</span> <span class="n">build_meters</span>
+
+        <span class="sd">&quot;&quot;&quot;Function only used in lightning setting&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_meter</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_meter</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_meter</span> <span class="o">=</span> <span class="n">build_meters</span><span class="p">(</span><span class="n">run_type</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BaseModel.init_losses"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.init_losses">[docs]</a>    <span class="k">def</span> <span class="nf">init_losses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes loss for the model based ``losses`` key. Automatically called by</span>
+<span class="sd">        MMF internally after building the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">losses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;losses&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_pretrained</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;No losses are defined in model configuration. You are expected &quot;</span>
+                <span class="s2">&quot;to return loss in your return dict from forward.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">losses</span> <span class="o">=</span> <span class="n">Losses</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span></div>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">config_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="BaseModel.format_state_key"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.format_state_key">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">format_state_key</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Can be implemented if something special needs to be done to the</span>
+<span class="sd">        key when pretrained model is being loaded. This will adapt and return</span>
+<span class="sd">        keys according to that. Useful for backwards compatibility. See</span>
+<span class="sd">        updated load_state_dict below. For an example, see VisualBERT model&#39;s</span>
+<span class="sd">        code.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            key (string): key to be formatted</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            string: formatted key</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">key</span></div>
+
+<div class="viewcode-block" id="BaseModel.load_state_dict"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.load_state_dict">[docs]</a>    <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">copied_state_dict</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">copied_state_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">formatted_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_state_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="n">copied_state_dict</span><span class="p">[</span><span class="n">formatted_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">copied_state_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">copied_state_dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseModel.on_save_checkpoint"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.on_save_checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">on_save_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">on_save_checkpoint</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">)</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">)</span>
+        <span class="n">config_dict</span> <span class="o">=</span> <span class="n">OmegaConf</span><span class="o">.</span><span class="n">to_container</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">resolve</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;config&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config_dict</span></div>
+
+        <span class="c1"># TODO: add git features, for example:</span>
+        <span class="c1"># &#39;git/branch&#39;, &#39;git/commit_hash&#39;, &#39;git/commit_author&#39;,</span>
+        <span class="c1"># &#39;git/commit_message&#39;, &#39;git/diff&#39;</span>
+
+<div class="viewcode-block" id="BaseModel.forward"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;To be implemented by child class. Takes in a ``SampleList`` and</span>
+<span class="sd">        returns back a dict.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sample_list (SampleList): SampleList returned by the DataLoader for</span>
+<span class="sd">            current iteration</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict: Dict containing scores object.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;Forward of the child model class needs to be implemented.&quot;</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseModel.training_step"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.training_step">[docs]</a>    <span class="k">def</span> <span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">SampleList</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Member function of PL modules. Used only when PL enabled.</span>
+<span class="sd">        To be implemented by child class. Takes in a ``SampleList``,</span>
+<span class="sd">        batch_idx and returns back a dict.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sample_list (SampleList): SampleList returned by the DataLoader for</span>
+<span class="sd">            current iteration</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict: Dict containing loss.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forward_lightning_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">)</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="n">Report</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_meter</span><span class="o">.</span><span class="n">update_from_report</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output</span></div>
+
+<div class="viewcode-block" id="BaseModel.validation_step"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.validation_step">[docs]</a>    <span class="k">def</span> <span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">SampleList</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Member function of PL modules. Used only when PL enabled.</span>
+<span class="sd">        To be implemented by child class. Takes in a ``SampleList``,</span>
+<span class="sd">        batch_idx and returns back a dict.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sample_list (SampleList): SampleList returned by the DataLoader for</span>
+<span class="sd">            current iteration</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forward_lightning_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">)</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="n">Report</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_meter</span><span class="o">.</span><span class="n">update_from_report</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">should_update_loss</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_dict</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output</span></div>
+
+<div class="viewcode-block" id="BaseModel.test_step"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.test_step">[docs]</a>    <span class="k">def</span> <span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">SampleList</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Member function of PL modules. Used only when PL enabled.</span>
+<span class="sd">        To be implemented by child class. Takes in a ``SampleList``,</span>
+<span class="sd">        batch_idx and returns back a dict.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sample_list (SampleList): SampleList returned by the DataLoader for</span>
+<span class="sd">            current iteration</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forward_lightning_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_forward_lightning_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+        <span class="n">batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_sample_list</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+        <span class="n">loss_dict</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s2">&quot;losses&quot;</span><span class="p">]</span>
+        <span class="n">output</span><span class="p">[</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">for</span> <span class="n">loss</span> <span class="ow">in</span> <span class="n">loss_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_detach_forward_output</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output</span>
+
+    <span class="k">def</span> <span class="nf">_detach_forward_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="n">keys_to_detach</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s2">&quot;loss&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys_to_detach</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="s2">&quot;detach&quot;</span><span class="p">):</span>
+                <span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+
+<div class="viewcode-block" id="BaseModel.configure_optimizers"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.configure_optimizers">[docs]</a>    <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Member function of PL modules. Used only when PL enabled.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_pl_enabled</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s2">&quot;configure_optimizers should be only used as a member &quot;</span>
+            <span class="s2">&quot;function of LightningModule when pytorch lightning is enabled.&quot;</span>
+        <span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">mmf.utils.build</span> <span class="kn">import</span> <span class="n">build_lightning_optimizers</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">build_lightning_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_ensure_sample_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">SampleList</span><span class="p">):</span>
+            <span class="c1"># Try converting to SampleList</span>
+            <span class="n">batch</span> <span class="o">=</span> <span class="n">SampleList</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">batch</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_pl_enabled</span><span class="p">:</span>
+            <span class="c1"># Move to proper device i.e. same as the model before passing</span>
+            <span class="n">sample_list</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">get_current_device</span><span class="p">())</span>
+
+        <span class="n">model_output</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Don&#39;t do anything fancy to output if it is pretrained</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_pretrained</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">model_output</span>
+
+        <span class="c1"># Make sure that the output from the model is a Mapping</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">model_output</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span>
+        <span class="p">),</span> <span class="s2">&quot;A dict must be returned from the forward of the model.&quot;</span>
+
+        <span class="k">if</span> <span class="s2">&quot;losses&quot;</span> <span class="ow">in</span> <span class="n">model_output</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logged_warning</span><span class="p">[</span><span class="s2">&quot;losses_present&quot;</span><span class="p">]:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="s2">&quot;&#39;losses&#39; already present in model output. &quot;</span>
+                    <span class="s2">&quot;No calculation will be done in base model.&quot;</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logged_warning</span><span class="p">[</span><span class="s2">&quot;losses_present&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+                <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;losses&quot;</span><span class="p">],</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span>
+            <span class="p">),</span> <span class="s2">&quot;&#39;losses&#39; must be a dict.&quot;</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;losses&quot;</span><span class="p">):</span>
+            <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;losses&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">losses</span><span class="p">(</span><span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;losses&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">return</span> <span class="n">model_output</span>
+
+    <span class="k">def</span> <span class="nf">load_requirements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">requirements</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;zoo_requirements&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">requirements</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">requirements</span> <span class="o">=</span> <span class="p">[</span><span class="n">requirements</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">requirements</span><span class="p">:</span>
+            <span class="n">download_pretrained_model</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BaseModel.format_for_prediction"><a class="viewcode-back" href="../../../lib/models/base_model.html#mmf.models.base_model.BaseModel.format_for_prediction">[docs]</a>    <span class="k">def</span> <span class="nf">format_for_prediction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">report</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Implement this method in models if it requires to modify prediction</span>
+<span class="sd">        results using report fields. Note that the required fields in report</span>
+<span class="sd">        should already be gathered in report.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_pretrained</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">model_name_or_path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># Check if the path exists, if not it is pretrained, otherwise,</span>
+        <span class="c1"># we will try to load the checkpoint from the path</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">PathManager</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">model_name_or_path</span><span class="p">):</span>
+            <span class="n">model_key</span> <span class="o">=</span> <span class="n">model_name_or_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">model_cls</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get_model_class</span><span class="p">(</span><span class="n">model_key</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="n">model_cls</span> <span class="o">==</span> <span class="bp">cls</span>
+            <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Incorrect pretrained model key </span><span class="si">{</span><span class="n">model_name_or_path</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="s2">&quot;for class </span><span class="si">{cls.__name__}</span><span class="s2">&quot;</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">load_pretrained_model</span><span class="p">(</span><span class="n">model_name_or_path</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">config</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">full_config</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">output</span><span class="p">[</span><span class="s2">&quot;config&quot;</span><span class="p">],</span>
+            <span class="n">output</span><span class="p">[</span><span class="s2">&quot;checkpoint&quot;</span><span class="p">],</span>
+            <span class="n">output</span><span class="p">[</span><span class="s2">&quot;full_config&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Save original config for state reset later</span>
+        <span class="n">config_temp_holder</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">)</span>
+        <span class="c1"># Register full config from checkpoint when loading the model</span>
+        <span class="n">registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="n">full_config</span><span class="p">)</span>
+
+        <span class="c1"># Some models need registry updates to be load pretrained model</span>
+        <span class="c1"># If they have this method, call it so they can update accordingly</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;update_registry_for_pretrained&quot;</span><span class="p">):</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">update_registry_for_pretrained</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+
+        <span class="n">instance</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">instance</span><span class="o">.</span><span class="n">is_pretrained</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">instance</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+        <span class="n">incompatible_keys</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># The model has loaded, reset the state</span>
+        <span class="n">registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="n">config_temp_holder</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">incompatible_keys</span><span class="o">.</span><span class="n">missing_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Missing keys </span><span class="si">{</span><span class="n">incompatible_keys</span><span class="o">.</span><span class="n">missing_keys</span><span class="si">}</span><span class="s2"> in the&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot; checkpoint.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;If this is not your checkpoint, please open up an &quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;issue on MMF GitHub. </span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;Unexpected keys if any: </span><span class="si">{</span><span class="n">incompatible_keys</span><span class="o">.</span><span class="n">unexpected_keys</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">incompatible_keys</span><span class="o">.</span><span class="n">unexpected_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Unexpected keys in state dict: &quot;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">incompatible_keys</span><span class="o">.</span><span class="n">unexpected_keys</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;This is usually not a problem with pretrained models, but &quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;if this is your own model, please double check. </span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;If you think this is an issue, please open up a &quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;bug at MMF GitHub.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">instance</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">instance</span></div>
+</pre></div>
+
+             </article>
+             
+            </div>
+            <footer>
+  
+
+  
+
+    <hr>
+
+  
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Facebook AI Research.
+
+    </p>
+  </div>
+    
+      <div>
+        Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+      </div>
+     
+
+</footer>
+
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  
+
+
+  
+
+     
+       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+         <script src="../../../_static/jquery.js"></script>
+         <script src="../../../_static/underscore.js"></script>
+         <script src="../../../_static/doctools.js"></script>
+     
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+
+  <footer class="site-footer">
+    <div class="container footer-container">
+      <div class="footer-logo-wrapper">
+        <a href="https://mmf.sh/" class="footer-logo"></a>
+      </div>
+      <div class="footer-links-wrapper">
+        <div class="footer-links-col">
+          <ul>
+            <li class="list-title"><a href="https://mmf.sh/">MMF</a></li>
+            <li><a href="https://mmf.sh/docs">Get Started</a></li>
+            <li><a href="https://mmf.sh/docs/getting_started/features">Features</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/blob/main/CONTRIBUTING.md">Contributing</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links-col">
+          <ul>
+            <li class="list-title"><a href="">Resources</a></li>
+            <li><a href="https://mmf.sh/docs">Docs</a></li>
+            <li><a href="https://mmf.sh/api">API</a></li>
+            <li><a href="https://github.com/facebookresearch/mmf/issues" target="_blank">Github Issues</a></li>
+          </ul>
+        </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="cookie-banner-wrapper">
+  <div class="container">
+    <p class="gdpr-notice">To analyze traffic and optimize your experience, we serve cookies on this site. By clicking or navigating, you agree to allow our usage of cookies. As the current maintainers of this site, Facebook’s Cookies Policy applies. Learn more, including about available controls: <a href="https://www.facebook.com/policies/cookies/">Cookies Policy</a>.</p>
+    <img class="close-button" src="../../../_static/images/pytorch-x.svg">
+  </div>
+</div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://mmf.sh/" aria-label="MMF"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://mmf.sh/docs">Get Started</a>
+          </li>
+
+          <li>
+            <a href="https://mmf.sh/docs/getting_started/features">Features</a>
+          </li>
+
+          <li>
+            <a href="https://mmf.sh/docs">Docs</a>
+          </li>
+
+          <li class="active">
+            <a href="https://mmf.sh/api">API</a>
+          </li>
+          <li>
+            <a href="https://github.com/facebookresearch/mmf">Github</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function(e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+</html>
