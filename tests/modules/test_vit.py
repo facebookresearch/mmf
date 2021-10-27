@@ -4,6 +4,7 @@ import unittest
 
 import torch
 from mmf.modules.vit import ViTModel
+from omegaconf import OmegaConf
 from tests.test_utils import setup_proxy, skip_if_old_transformers
 from torch import nn
 
@@ -22,8 +23,24 @@ class TestViT(unittest.TestCase):
             "add_pooling_layer": False,
             "return_dict": True,
         }
-        config = vit.ViTConfig(**config)
-        self.model = ViTModel(config)
+        hf_config = vit.ViTConfig(**config)
+        self.model = ViTModel(hf_config)
+
+    def test_model_static_constructor_from_config(self):
+        config = OmegaConf.create(
+            {
+                "pretrained_model_name": "google/vit-base-patch16-224",
+                "do_patch_embeddings": False,
+                "add_pooling_layer": False,
+                "return_dict": True,
+            }
+        )
+        pretrained_model, _ = ViTModel.from_config(config)
+        embeddings = torch.rand(32, 197, 768)
+        output = pretrained_model(embeddings, output_hidden_states=False)
+
+        self.assertTrue(hasattr(output, "last_hidden_state"))
+        self.assertEqual(output["last_hidden_state"].shape, torch.Size([32, 197, 768]))
 
     def test_model_init(self):
         self.assertTrue(isinstance(self.model, nn.Module))
