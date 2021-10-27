@@ -22,6 +22,16 @@ else:
     has_VIT = False
 
 
+def check_vit_in_transformers():
+    if not has_VIT:
+        raise ImportError(
+            "transformers version >= 4.5.0 required for using modeling_vit"
+        )
+
+
+NUM_RETRIES = 6
+
+
 class ViTAttention(vit.ViTAttention):
     def __init__(self, config):
         check_vit_in_transformers()
@@ -164,14 +174,16 @@ class ViTEncoder(nn.Module):
         )
 
 
-def check_vit_in_transformers():
-    if not has_VIT:
-        raise ImportError(
-            "transformers version >= 4.5.0 required for using modeling_vit"
-        )
-
-
 class ViTModel(vit.ViTPreTrainedModel):
+    @dataclass
+    class Config:
+        name: str = "vit"
+        # See https://huggingface.co/models?filter=vit for available options
+        pretrained_model_name: str = "google/vit-base-patch16-224"
+        random_init: bool = False
+        gradient_checkpointing: bool = False
+        do_patch_embeddings: bool = True
+
     def __init__(self, config):
         check_vit_in_transformers()
         super().__init__(config)
@@ -294,26 +306,15 @@ class ViTModel(vit.ViTPreTrainedModel):
             attentions=encoder_outputs.attentions,
         )
 
-    @dataclass
-    class VitModelConstructorConfig:
-        name: str = "vit"
-        # See https://huggingface.co/models?filter=vit for available options
-        pretrained_model_name: str = "google/vit-base-patch16-224"
-        random_init: bool = False
-        gradient_checkpointing: bool = False
-        do_patch_embeddings: bool = True
-
     @staticmethod
-    def from_config(config: VitModelConstructorConfig):
+    def from_config(config: Config):
         check_vit_in_transformers()
 
-        config_with_defaults = OmegaConf.create(
-            {**asdict(ViTModel.VitModelConstructorConfig()), **config}
-        )
+        config_with_defaults = OmegaConf.create({**asdict(ViTModel.Config()), **config})
         random_init = config_with_defaults.get("random_init", False)
 
         hf_config = retry_n(
-            6,
+            NUM_RETRIES,
             vit.ViTConfig.from_pretrained,
             config_with_defaults.pretrained_model_name,
             **OmegaConf.to_container(config_with_defaults),
@@ -322,7 +323,7 @@ class ViTModel(vit.ViTPreTrainedModel):
 
         if not random_init:
             module = retry_n(
-                6,
+                NUM_RETRIES,
                 ViTModel.from_pretrained,
                 config.pretrained_model_name,
                 config=hf_config,
