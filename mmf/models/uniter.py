@@ -310,7 +310,7 @@ class UNITERForPretraining(nn.Module):
             head_class = registry.get_transformer_head_class(head_type)
             if head_type == "mrfr":
                 self.heads[task] = head_class(
-                    head_config, self.uniter.img_embeddings.img_linear.weight.T
+                    head_config, self.uniter.img_embeddings.img_linear.weight
                 )
             else:
                 self.heads[task] = head_class(head_config)
