@@ -522,6 +522,7 @@ class Checkpoint:
         best_metric = (
             self.trainer.early_stop_callback.early_stopping.best_monitored_value
         )
+
         model = self.trainer.model
         data_parallel = registry.get("data_parallel") or registry.get("distributed")
         fp16_scaler = getattr(self.trainer, "scaler", None)
@@ -573,6 +574,18 @@ class Checkpoint:
         logger.info("Saving current checkpoint")
         with open_if_main(current_ckpt_filepath, "wb") as f:
             self.save_func(ckpt, f)
+
+        # Save the current checkpoint as W&B artifacts for model versioning.
+        if (
+            self.config.training.wandb.enabled
+            and self.config.training.wandb.log_checkpoint
+        ):
+            logger.info(
+                "Saving current checkpoint as W&B Artifacts for model versioning"
+            )
+            self.trainer.logistics_callback.wandb_logger.log_model_checkpoint(
+                current_ckpt_filepath, ckpt
+            )
 
         # Remove old checkpoints if max_to_keep is set
         # In XLA, only delete checkpoint files in main process

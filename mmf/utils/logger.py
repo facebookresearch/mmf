@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import collections
+import copy
 import functools
 import json
 import logging
@@ -472,3 +473,21 @@ class WandbLogger:
             return
 
         self._wandb.log(metrics, commit=commit)
+
+    def log_model_checkpoint(self, model_path, ckpt_dict):
+        """
+        Log the model checkpoint to the wandb dashboard.
+
+        Args:
+            model_path (str): Path to the model file.
+            ckpt_dict (Dict[str, Any]): Checkpoint dictionary.
+        """
+        if not self._should_log_wandb():
+            return
+
+        model_artifact = self._wandb.Artifact(
+            "run_" + self._wandb.run.id + "_model", type="model"
+        )
+
+        model_artifact.add_file(model_path, name="current.pt")
+        self._wandb.log_artifact(model_artifact, aliases=["latest"])

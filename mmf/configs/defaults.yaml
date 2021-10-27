@@ -44,7 +44,7 @@ training:
     # Weights and Biases control, by default Weights and Biases (wandb) is disabled
     wandb:
         # Whether to use Weights and Biases Logger, (Default: false)
-        enabled: false
+        enabled: true
         # An entity is a username or team name where you're sending runs.
         # This is necessary if you want to log your metrics to a team account. By default
         # it will log the run to your user account.
@@ -54,6 +54,9 @@ training:
         # Experiment/ run name to be used while logging the experiment
         # under the project with wandb
         name: ${training.experiment_name}
+        # You can save your model checkpoints as W&B Artifacts for model versioning.
+        # Set the value to `true` to enable this feature.
+        log_checkpoint: true
         # Specify other argument values that you want to pass to wandb.init(). Check out the documentation
         # at https://docs.wandb.ai/ref/python/init to see what arguments are available.
         # job_type: 'train'
