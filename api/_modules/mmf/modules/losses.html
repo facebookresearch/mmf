@@ -1095,6 +1095,261 @@
         <span class="n">loss</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;kl&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_softmax</span> <span class="o">*</span> <span class="n">loss1</span><span class="p">,</span> <span class="s2">&quot;bce&quot;</span><span class="p">:</span> <span class="n">loss2</span><span class="p">}</span>
 
         <span class="k">return</span> <span class="n">loss</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">calc_ms_loss</span><span class="p">(</span><span class="n">pair</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">multiplier</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="mf">1.0</span>
+        <span class="o">/</span> <span class="n">param</span>
+        <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">multiplier</span> <span class="o">*</span> <span class="n">param</span> <span class="o">*</span> <span class="p">(</span><span class="n">pair</span> <span class="o">-</span> <span class="n">base</span><span class="p">))))</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="RefinerMSLoss"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.RefinerMSLoss">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_loss</span><span class="p">(</span><span class="s2">&quot;refiner_ms&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">RefinerMSLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A Multi-Similarity loss between the decoder outputs of a given embedding size</span>
+<span class="sd">    and its targets</span>
+
+<span class="sd">    This loss pulls the decoded signal of a sample closer to its target,</span>
+<span class="sd">    while simultaneously pushing it away from other targets</span>
+
+<span class="sd">    References:</span>
+
+<span class="sd">    1) Wang et al., Multi-Similarity Loss With General Pair Weighting</span>
+<span class="sd">    for Deep Metric Learning, CVPR 2019</span>
+<span class="sd">    2) Sankaran, S., Yang, D. and Lim, S.N., &quot;Multimodal Fusion Refiner Networks&quot;</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        same as ms_loss (see below)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
+        <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">base</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">margin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-16</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">margin</span> <span class="o">=</span> <span class="n">margin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="n">base</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
+
+<div class="viewcode-block" id="RefinerMSLoss.forward"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.RefinerMSLoss.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">):</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="n">sample_list</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">]</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">sim_mat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="o">.</span><span class="n">t</span><span class="p">())</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="c1"># pos pair is the similarity between the refiner output (input to forward)</span>
+            <span class="c1"># and target (original encoding)</span>
+            <span class="n">pos_pair</span> <span class="o">=</span> <span class="n">sim_mat</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+            <span class="c1"># neg pair is all the remaining pairs</span>
+            <span class="n">neg_pairs_all</span> <span class="o">=</span> <span class="n">sim_mat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="c1"># remove the pos_par from neg_pairs</span>
+            <span class="n">neg_pairs_all</span> <span class="o">=</span> <span class="n">neg_pairs_all</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">neg_pairs_all</span> <span class="o">-</span> <span class="n">pos_pair</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">]</span>
+            <span class="c1"># All pairs whose similarity is within a margin of the pos_pair similarity</span>
+            <span class="n">neg_pairs</span> <span class="o">=</span> <span class="n">neg_pairs_all</span><span class="p">[</span><span class="n">neg_pairs_all</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">margin</span> <span class="o">&gt;</span> <span class="n">pos_pair</span><span class="p">]</span>
+
+            <span class="c1"># nothing to do if there are no negative pairs from line 918</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">neg_pairs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">pos_loss</span> <span class="o">=</span> <span class="n">calc_ms_loss</span><span class="p">(</span><span class="n">pos_pair</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">neg_loss</span> <span class="o">=</span> <span class="n">calc_ms_loss</span><span class="p">(</span><span class="n">neg_pairs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">loss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos_loss</span> <span class="o">+</span> <span class="n">neg_loss</span><span class="p">)</span>
+
+        <span class="n">loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span>
+        <span class="k">return</span> <span class="n">loss</span></div></div>
+
+
+<div class="viewcode-block" id="MSLoss"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.MSLoss">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_loss</span><span class="p">(</span><span class="s2">&quot;ms_loss&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MSLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A Multi-Similarity loss between embeddings of similar and dissimilar</span>
+<span class="sd">    labels is implemented here.</span>
+
+<span class="sd">    Reference:</span>
+
+<span class="sd">    &quot;Multi-similarity loss with general pair weighting for deep metric learning&quot;</span>
+
+<span class="sd">    Args:</span>
+
+<span class="sd">        alpha, beta, margin: parameters used in loss function calculation</span>
+<span class="sd">        hard_mining: if true, select only the hardest examples (defined based on margin)</span>
+<span class="sd">        is_multilabel: True if there are more than two labels, false otherwise</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">hard_mining</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">is_multilabel</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hard_mining</span> <span class="o">=</span> <span class="n">hard_mining</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">margin</span> <span class="o">=</span> <span class="n">margin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_multilabel</span> <span class="o">=</span> <span class="n">is_multilabel</span>
+
+    <span class="k">def</span> <span class="nf">get_positive_and_negative_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim_vec</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">curr_target</span><span class="p">):</span>
+        <span class="c1"># given a sample with a similarity vec (embedding similarity to other samples)</span>
+        <span class="c1"># return pairs of samples which share the same targets/labels (positive pairs)</span>
+        <span class="c1"># and pairs of samples which have different labels (negative pairs)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_multilabel</span><span class="p">:</span>
+            <span class="n">pos_pair_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">masked_select</span><span class="p">(</span>
+                <span class="n">sim_vec</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="n">targets</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pos_pair_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">masked_select</span><span class="p">(</span><span class="n">sim_vec</span><span class="p">,</span> <span class="n">targets</span> <span class="o">==</span> <span class="n">curr_target</span><span class="p">)</span>
+
+        <span class="c1">#  remove itself</span>
+        <span class="n">pos_pair_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">masked_select</span><span class="p">(</span><span class="n">pos_pair_</span><span class="p">,</span> <span class="n">pos_pair_</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">1e-5</span><span class="p">)</span>
+        <span class="n">pos_pair_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">pos_pair_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_multilabel</span><span class="p">:</span>
+            <span class="n">neg_pair_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">masked_select</span><span class="p">(</span>
+                <span class="n">sim_vec</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="n">targets</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">1e-5</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">neg_pair_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">masked_select</span><span class="p">(</span><span class="n">sim_vec</span><span class="p">,</span> <span class="n">targets</span> <span class="o">!=</span> <span class="n">curr_target</span><span class="p">)</span>
+        <span class="n">neg_pair_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">neg_pair_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos_pair_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">neg_pair_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">pos_pair_</span><span class="p">,</span> <span class="n">neg_pair_</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hard_mining</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">neg_pair</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">masked_select</span><span class="p">(</span><span class="n">neg_pair_</span><span class="p">,</span> <span class="n">neg_pair_</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">&gt;</span> <span class="n">pos_pair_</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">pos_pair</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">masked_select</span><span class="p">(</span><span class="n">pos_pair_</span><span class="p">,</span> <span class="n">pos_pair_</span> <span class="o">-</span> <span class="mf">0.1</span> <span class="o">&lt;</span> <span class="n">neg_pair_</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">neg_pair_</span> <span class="o">=</span> <span class="n">neg_pair</span>
+            <span class="n">pos_pair_</span> <span class="o">=</span> <span class="n">pos_pair</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">pos_pair_</span><span class="p">,</span> <span class="n">neg_pair_</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MSLoss.forward"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.MSLoss.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">):</span>
+
+        <span class="c1"># get the fused features and normalize</span>
+        <span class="n">fusion_features</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;fused_embedding&quot;</span><span class="p">]</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">fusion_features</span><span class="p">)</span>
+
+        <span class="c1"># get the targets</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="n">sample_list</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">]</span>
+
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># sim_mat(i,j) contains the similarity between fused_embeddings of ith</span>
+        <span class="c1"># and jth samples in a batch</span>
+        <span class="n">sim_mat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">t</span><span class="p">())</span>
+
+        <span class="c1"># this is the margin allowed for multi-similarity loss</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">margin</span>
+
+        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
+
+            <span class="p">(</span><span class="n">pos_pair_</span><span class="p">,</span> <span class="n">neg_pair_</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_positive_and_negative_pairs</span><span class="p">(</span>
+                <span class="n">sim_mat</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">targets</span><span class="p">,</span> <span class="n">targets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="c1"># no compute needed when one of the pairs is not available</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos_pair_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">neg_pair_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">pos_loss</span> <span class="o">=</span> <span class="n">calc_ms_loss</span><span class="p">(</span><span class="n">pos_pair_</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">neg_loss</span> <span class="o">=</span> <span class="n">calc_ms_loss</span><span class="p">(</span><span class="n">neg_pair_</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">loss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos_loss</span> <span class="o">+</span> <span class="n">neg_loss</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">new_zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span> <span class="o">/</span> <span class="n">batch_size</span>
+
+        <span class="k">return</span> <span class="n">loss</span></div></div>
+
+
+<div class="viewcode-block" id="RefinerContrastiveLoss"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.RefinerContrastiveLoss">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_loss</span><span class="p">(</span><span class="s2">&quot;refiner_contrastive_loss&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">RefinerContrastiveLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A contrastive loss between the decoder outputs of a given embedding size</span>
+<span class="sd">    and its targets</span>
+
+<span class="sd">    This loss can be used in lieu of a reconstruction loss, wherein the goal</span>
+<span class="sd">    is to get a decoded signal closer to its target than other targets. As long</span>
+<span class="sd">    as the reconstructed signal of a given input is closer to its target than</span>
+<span class="sd">    any other target, the loss will remain zero.</span>
+
+<span class="sd">    Reference:</span>
+
+<span class="sd">    Sankaran, S., Yang, D. and Lim, S.N., &quot;Multimodal Fusion Refiner Networks&quot;</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        sim_thresh: similarity threshold used to consider only samples beyond</span>
+<span class="sd">        # this threshold</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim_thresh</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-16</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">similarity_threshold</span> <span class="o">=</span> <span class="n">sim_thresh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
+
+<div class="viewcode-block" id="RefinerContrastiveLoss.forward"><a class="viewcode-back" href="../../../lib/modules/losses.html#mmf.modules.losses.RefinerContrastiveLoss.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_list</span><span class="p">,</span> <span class="n">model_output</span><span class="p">):</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="n">sample_list</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">]</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span>
+
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># normalize inputs and targets</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span>
+
+        <span class="c1"># matrix containing the similarity between the inputs and targets</span>
+        <span class="c1"># (i,j) contains similarity betweeh the i^th decoder and j^th target</span>
+        <span class="n">sim_mat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="o">.</span><span class="n">t</span><span class="p">())</span>
+
+        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
+            <span class="n">sim_ij</span> <span class="o">=</span> <span class="n">sim_mat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="c1"># pos_similarity contains the similarity between i^th decoder</span>
+            <span class="c1"># and i^th target</span>
+            <span class="n">pos_similarity</span> <span class="o">=</span> <span class="n">sim_ij</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="c1"># neg_pair_ contains all the batch samples whose similarity with i^th</span>
+            <span class="c1">#  decoder is better than a threshold corrected similarity between</span>
+            <span class="c1"># i^th decoder and i^th target</span>
+
+            <span class="n">neg_pair_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">masked_select</span><span class="p">(</span>
+                <span class="n">sim_ij</span><span class="p">,</span> <span class="n">sim_ij</span> <span class="o">&gt;</span> <span class="n">pos_similarity</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">similarity_threshold</span>
+            <span class="p">)</span>
+
+            <span class="c1"># remove the pos_pair from the neg_pair list</span>
+            <span class="n">neg_pair_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">masked_select</span><span class="p">(</span>
+                <span class="n">neg_pair_</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">neg_pair_</span> <span class="o">-</span> <span class="n">pos_similarity</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span>
+            <span class="p">)</span>
+
+            <span class="c1"># The loss is non-zero only when there exists at least one sample whose</span>
+            <span class="c1"># target is closer to the decoded signal.</span>
+            <span class="k">if</span> <span class="n">neg_pair_</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">neg_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">similarity_threshold</span> <span class="o">+</span> <span class="n">neg_pair_</span> <span class="o">-</span> <span class="n">pos_similarity</span>
+                <span class="p">)</span>
+                <span class="n">loss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">neg_loss</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">new_zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span> <span class="o">/</span> <span class="n">batch_size</span>
+
+        <span class="k">return</span> <span class="n">loss</span></div></div>
 </pre></div>
 
              </article>
