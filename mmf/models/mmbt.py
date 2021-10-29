@@ -55,7 +55,9 @@ class MMBTConfig:
 
 # TODO: Remove after transformers package upgrade to 2.5
 class ModalEmbeddings(nn.Module):
-    """Generic Modal Embeddings which takes in an encoder, and a transformer embedding.
+    """
+    Generic Modal Embeddings which takes in an encoder,
+    and a transformer embedding.
     """
 
     def __init__(self, config, encoder, embeddings):
@@ -120,39 +122,39 @@ class ModalEmbeddings(nn.Module):
 # TODO: Remove after transformers package upgrade to 2.5
 class MMBTModel(nn.Module):
     r"""
-        Outputs: `Tuple` comprising various elements depending on the configuration
-            (config) and inputs:
-            **last_hidden_state**: ``torch.FloatTensor`` of shape
-                ``(batch_size, sequence_length, hidden_size)``. Sequence of
-                hidden-states at the output of the last layer of the model.
-            **pooler_output**: ``torch.FloatTensor`` of shape
-                ``(batch_size, hidden_size)``. Last layer hidden-state of the
-                first token of the sequence (classification token) further processed
-                by a Linear layer and a Tanh activation function. The Linear
-                layer weights are trained from the next sentence prediction
-                (classification) objective during Bert pretraining. This output
-                is usually *not* a good summary of the semantic content of the
-                input, you're often better with averaging or pooling
-                the sequence of hidden-states for the whole input sequence.
-            **hidden_states**: (`optional`, returned when
-                ``config.output_hidden_states=True``)
-                list of ``torch.FloatTensor`` (one for the output of each layer +
-                the output of the embeddings)
-                of shape ``(batch_size, sequence_length, hidden_size)``:
-                Hidden-states of the model at the output of each layer plus the
-                initial embedding outputs.
-            **attentions**: (`optional`, returned when
-                ``config.output_attentions=True``) list of ``torch.FloatTensor``
-                (one for each layer) of shape ``(batch_size, num_heads,
-                sequence_length, sequence_length)``: Attentions weights after
-                the attention softmax, used to compute the weighted average in the
-                self-attention heads.
-        Examples::
-            # For example purposes. Not runnable.
-            transformer = BertModel.from_pretrained('bert-base-uncased')
-            encoder = ImageEncoder(args)
-            mmbt = MMBTModel(config, transformer, encoder)
-        """
+    Outputs: `Tuple` comprising various elements depending on the configuration
+        (config) and inputs:
+        **last_hidden_state**: ``torch.FloatTensor`` of shape
+            ``(batch_size, sequence_length, hidden_size)``. Sequence of
+            hidden-states at the output of the last layer of the model.
+        **pooler_output**: ``torch.FloatTensor`` of shape
+            ``(batch_size, hidden_size)``. Last layer hidden-state of the
+            first token of the sequence (classification token) further processed
+            by a Linear layer and a Tanh activation function. The Linear
+            layer weights are trained from the next sentence prediction
+            (classification) objective during Bert pretraining. This output
+            is usually *not* a good summary of the semantic content of the
+            input, you're often better with averaging or pooling
+            the sequence of hidden-states for the whole input sequence.
+        **hidden_states**: (`optional`, returned when
+            ``config.output_hidden_states=True``)
+            list of ``torch.FloatTensor`` (one for the output of each layer +
+            the output of the embeddings)
+            of shape ``(batch_size, sequence_length, hidden_size)``:
+            Hidden-states of the model at the output of each layer plus the
+            initial embedding outputs.
+        **attentions**: (`optional`, returned when
+            ``config.output_attentions=True``) list of ``torch.FloatTensor``
+            (one for each layer) of shape ``(batch_size, num_heads,
+            sequence_length, sequence_length)``: Attentions weights after
+            the attention softmax, used to compute the weighted average in the
+            self-attention heads.
+    Examples::
+        # For example purposes. Not runnable.
+        transformer = BertModel.from_pretrained('bert-base-uncased')
+        encoder = ImageEncoder(args)
+        mmbt = MMBTModel(config, transformer, encoder)
+    """
 
     def __init__(self, config, transformer, encoder):
         super().__init__()
@@ -454,9 +456,9 @@ class MMBTForPreTraining(nn.Module):
         self.tie_weights()
 
     def tie_weights(self):
-        """ Make sure we are sharing the input and output embeddings.
-            Export to TorchScript can't handle parameter sharing so we
-            are cloning them instead.
+        """Make sure we are sharing the input and output embeddings.
+        Export to TorchScript can't handle parameter sharing so we
+        are cloning them instead.
         """
         if hasattr(self, "cls"):
             self.bert.mmbt.transformer._tie_or_clone_weights(
