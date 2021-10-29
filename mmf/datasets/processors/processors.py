@@ -1173,9 +1173,7 @@ class CaptionProcessor(BaseProcessor):
 
 @registry.register_processor("evalai_answer")
 class EvalAIAnswerProcessor(BaseProcessor):
-    """Processes an answer similar to Eval AI
-
-    """
+    """Processes an answer similar to Eval AI"""
 
     CONTRACTIONS = {
         "aint": "ain't",
