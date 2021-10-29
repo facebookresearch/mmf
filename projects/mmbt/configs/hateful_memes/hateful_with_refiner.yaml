@@ -1,0 +1,33 @@
+includes:
+- configs/models/mmbt/classification.yaml
+- configs/datasets/hateful_memes/bert.yaml
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 2000
+    num_training_steps: ${training.max_updates}
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 1e-5
+    eps: 1e-8
+
+evaluation:
+    metrics:
+    - accuracy
+    - binary_f1
+    - roc_auc
+
+training:
+  batch_size: 32
+  lr_scheduler: true
+  max_updates: 22000
+  early_stop:
+    criteria: hateful_memes/roc_auc
+    minimize: false
+
+checkpoint:
+  pretrained_state_mapping:
+    bert: bert
