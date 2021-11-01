@@ -25,7 +25,7 @@ class TestUNITERImageEmbeddings(unittest.TestCase):
         self.type_embeddings = torch.ones((bs, num_feat, 1), dtype=torch.long)
 
     def test_forward(self):
-        embedding = UNITERImageEmbeddings(self.config)
+        embedding = UNITERImageEmbeddings(**self.config)
         output = embedding(
             self.img_feat, self.img_pos_feat, self.type_embeddings, img_masks=None
         )
@@ -35,8 +35,7 @@ class TestUNITERImageEmbeddings(unittest.TestCase):
 class TestUNITERModelBase(unittest.TestCase):
     def test_pretrained_model(self):
         img_dim = 1024
-        config = OmegaConf.create({"image_embeddings": {"img_dim": img_dim}})
-        model = UNITERModelBase(config)
+        model = UNITERModelBase(img_dim=img_dim)
 
         model.eval()
         model = model.to(get_current_device())
@@ -96,14 +95,12 @@ class TestUniterWithHeads(unittest.TestCase):
         return sample_list
 
     def test_uniter_for_classification(self):
-        config = OmegaConf.create(
-            {
-                "heads": {"test": {"type": "mlp", "num_labels": 3129}},
-                "tasks": "test",
-                "losses": {"test": "logit_bce"},
-            }
+        heads = {"test": {"type": "mlp", "num_labels": 3129}}
+        tasks = "test"
+        losses = {"test": "logit_bce"}
+        model = UNITERForClassification(
+            head_configs=heads, loss_configs=losses, tasks=tasks
         )
-        model = UNITERForClassification(config)
 
         model.eval()
         model = model.to(get_current_device())
@@ -137,21 +134,18 @@ class TestUniterWithHeads(unittest.TestCase):
         # forward pass we train on a different task.
         # In this test we try running a forward pass
         # through each head.
-        config = OmegaConf.create(
-            {
-                "heads": {
-                    "mlm": {"type": "mlm"},
-                    "itm": {"type": "itm"},
-                    "mrc": {"type": "mrc"},
-                    "mrfr": {"type": "mrfr"},
-                    "wra": {"type": "wra"},
-                },
-                "tasks": "mlm,itm,mrc,mrfr,wra",
-                "mask_probability": 0.15,
-            }
+        heads = {
+            "mlm": {"type": "mlm"},
+            "itm": {"type": "itm"},
+            "mrc": {"type": "mrc"},
+            "mrfr": {"type": "mrfr"},
+            "wra": {"type": "wra"},
+        }
+        tasks = "mlm,itm,mrc,mrfr,wra"
+        mask_probability = 0.15
+        model = UNITERForPretraining(
+            head_configs=heads, tasks=tasks, mask_probability=mask_probability
         )
-
-        model = UNITERForPretraining(config)
         model.eval()
         model = model.to(get_current_device())
         sample_list = self._get_sample_list()
