@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from mmf.common.registry import registry
 from mmf.models.transformers.base import BaseTransformerHead
 from mmf.models.transformers.heads.utils import compute_masked_hidden
-from torch import nn
+from torch import Tensor, nn
 
 
 @registry.register_transformer_head("mrc")
@@ -41,9 +41,9 @@ class MRC(BaseTransformerHead):
 
     def forward(
         self,
-        sequence_output: torch.Tensor,
-        processed_sample_list: Optional[Dict[str, Dict[str, torch.Tensor]]] = None,
-    ):
+        sequence_output: Tensor,
+        processed_sample_list: Optional[Dict[str, Dict[str, Tensor]]] = None,
+    ) -> Dict[str, Dict[str, Tensor]]:
         assert (
             processed_sample_list is not None
         ), "MRC head requires 'processed_sample_list' argument"

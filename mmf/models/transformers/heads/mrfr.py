@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from mmf.common.registry import registry
 from mmf.models.transformers.base import BaseTransformerHead
 from mmf.models.transformers.heads.utils import compute_masked_hidden
-from torch import nn
+from torch import Tensor, nn
 
 
 @registry.register_transformer_head("mrfr")
@@ -32,7 +32,9 @@ class MRFR(BaseTransformerHead):
         img_dim: int = 2048
         eps: float = 1e-12
 
-    def __init__(self, config: Config, img_embedding_weight, *args, **kwargs):
+    def __init__(
+        self, config: Config, img_embedding_weight: nn.Parameter, *args, **kwargs
+    ):
         super().__init__(config, *args, **kwargs)
 
         # Head modules
@@ -55,9 +57,9 @@ class MRFR(BaseTransformerHead):
 
     def forward(
         self,
-        sequence_output: torch.Tensor,
-        processed_sample_list: Optional[Dict[str, Dict[str, torch.Tensor]]] = None,
-    ):
+        sequence_output: Tensor,
+        processed_sample_list: Optional[Dict[str, Dict[str, Tensor]]] = None,
+    ) -> Dict[str, Dict[str, Tensor]]:
         assert (
             processed_sample_list is not None
         ), "MRFR head requires 'processed_sample_list' argument"
