@@ -19,7 +19,7 @@ class TestUNITERImageEmbeddings(unittest.TestCase):
         self.type_embeddings = torch.ones((bs, num_feat, 1), dtype=torch.long)
 
     def test_forward(self):
-        embedding = UNITERImageEmbeddings(self.config)
+        embedding = UNITERImageEmbeddings(**self.config)
         output = embedding(
             self.img_feat, self.img_pos_feat, self.type_embeddings, img_masks=None
         )
