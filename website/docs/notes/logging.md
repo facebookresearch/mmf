@@ -48,20 +48,20 @@ env:
 
 * To enable wandb logger the user needs to change the following option in the config.
 
-	`training.wandb.enabled=True`
+    `training.wandb.enabled=True`
 
 * To give the `entity` which is the name of the team or the username, the user needs to change the following option in the config. In case no `entity` is provided, the data will be logged to the `entity` set as default in the user's settings.
 
-	`training.wandb.entity=<teamname/username>`
+    `training.wandb.entity=<teamname/username>`
 
 * To give the current experiment a project and run name, user should add these config options. The default project name is `mmf` and the default run name is `${training.experiment_name}`.
 
-	`training.wandb.project=<ProjectName>` <br>
-	`training.wandb.name=<RunName>`
+    `training.wandb.project=<ProjectName>` <br>
+    `training.wandb.name=<RunName>`
 
 * To change the path to the directory where wandb metadata would be stored (Default: `env.log_dir`):
 
-	`env.wandb_logdir=<dir_name>`
+    `env.wandb_logdir=<dir_name>`
 
 * To provide extra arguments to `wandb.init()`, the user just needs to define them in the config file. Check out the documentation at https://docs.wandb.ai/ref/python/init to see what arguments are available. An example is shown in the config parameter shown above. Make sure to use the same key name in the config file as defined in the documentation.
 

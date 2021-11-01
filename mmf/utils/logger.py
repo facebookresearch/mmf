@@ -7,17 +7,16 @@ import logging
 import os
 import sys
 import time
+from copy import deepcopy
 from functools import wraps
 from typing import Any, Callable, Dict, Optional, Union
 
-import omegaconf
 import torch
 from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import get_rank, is_main, is_xla
 from mmf.utils.file_io import PathManager
 from mmf.utils.timer import Timer
-from omegaconf import OmegaConf
 from termcolor import colored
 
 
@@ -228,7 +227,7 @@ def summarize_report(
         return
 
     # Log the learning rate if available
-    if wandb_logger and "lr" in extra.keys():
+    if wandb_logger and "lr" in extra:
         wandb_logger.log_metrics(
             {"train/learning_rate": float(extra["lr"])}, commit=False
         )
@@ -426,17 +425,12 @@ class WandbLogger:
             )
 
         self._wandb = wandb
-
-        self._wandb_init = dict(entity=entity, config=config, project=project)
-
-        wandb_params = config.training.wandb
-        with omegaconf.open_dict(wandb_params):
-            wandb_params.pop("enabled")
-            wandb_params.pop("entity")
-            wandb_params.pop("project")
-
-        init_kwargs = OmegaConf.to_container(wandb_params, resolve=True)
-        self._wandb_init.update(**init_kwargs)
+        self._wandb_init = dict(entity=entity, project=project)
+        wandb_kwargs = deepcopy(config.training.wandb)
+        wandb_kwargs.pop("enabled")
+        wandb_kwargs.pop("entity")
+        wandb_kwargs.pop("project")
+        self._wandb_init.update(**wandb_kwargs)
 
         self.setup()
 
