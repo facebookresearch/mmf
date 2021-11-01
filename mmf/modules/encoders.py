@@ -744,9 +744,7 @@ class ViTEncoder(Encoder):
     def __init__(self, config: Config, *args, **kwargs):
         super().__init__()
         self.config = config
-
         self.module, self.hf_config = self._model_class.from_config(config)
-
         self.embeddings = self.module.embeddings
         self.out_dim = self.hf_config.hidden_size
 
