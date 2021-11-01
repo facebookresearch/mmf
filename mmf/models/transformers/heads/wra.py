@@ -6,10 +6,10 @@
 from dataclasses import dataclass
 from typing import Dict, Optional
 
-import torch
 from mmf.common.registry import registry
 from mmf.models.transformers.base import BaseTransformerHead
 from mmf.modules.ot import optimal_transport_dist
+from torch import Tensor
 
 
 @registry.register_transformer_head("wra")
@@ -33,9 +33,9 @@ class WRA(BaseTransformerHead):
 
     def forward(
         self,
-        sequence_output: torch.Tensor,
-        processed_sample_list: Optional[Dict[str, Dict[str, torch.Tensor]]] = None,
-    ):
+        sequence_output: Tensor,
+        processed_sample_list: Optional[Dict[str, Dict[str, Tensor]]] = None,
+    ) -> Dict[str, Dict[str, Tensor]]:
         assert (
             processed_sample_list is not None
         ), "WRA head requires 'processed_sample_list' argument"
