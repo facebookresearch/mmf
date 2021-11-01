@@ -8,10 +8,11 @@ Wasserstein Distance (Optimal Transport)
 """
 
 import torch
+from torch import Tensor
 from torch.nn import functional as F
 
 
-def cost_matrix_cosine(x, y, eps=1e-5):
+def cost_matrix_cosine(x: Tensor, y: Tensor, eps: float = 1e-5) -> Tensor:
     """ Compute cosine distnace across every pairs of x, y (batched)
     [B, L_x, D] [B, L_y, D] -> [B, Lx, Ly]"""
     assert x.dim() == y.dim()
@@ -24,7 +25,7 @@ def cost_matrix_cosine(x, y, eps=1e-5):
     return cosine_dist
 
 
-def trace(x):
+def trace(x: Tensor) -> Tensor:
     """ compute trace of input tensor (batched) """
     b, m, n = x.size()
     assert m == n
@@ -34,7 +35,17 @@ def trace(x):
 
 
 @torch.no_grad()
-def ipot(C, x_len, x_pad, y_len, y_pad, joint_pad, beta, iteration, k):
+def ipot(
+    C: Tensor,
+    x_len: int,
+    x_pad: Tensor,
+    y_len: int,
+    y_pad: Tensor,
+    joint_pad: Tensor,
+    beta: float,
+    iteration: int,
+    k: int,
+) -> Tensor:
     """ [B, M, N], [B], [B, M], [B], [B, N], [B, M, N]"""
     b, m, n = C.size()
     sigma = torch.ones(b, m, dtype=C.dtype, device=C.device) / x_len.unsqueeze(1)
@@ -67,8 +78,14 @@ def ipot(C, x_len, x_pad, y_len, y_pad, joint_pad, beta, iteration, k):
 
 
 def optimal_transport_dist(
-    txt_emb, img_emb, txt_pad, img_pad, beta=0.5, iteration=50, k=1
-):
+    txt_emb: Tensor,
+    img_emb: Tensor,
+    txt_pad: Tensor,
+    img_pad: Tensor,
+    beta: float = 0.5,
+    iteration: int = 50,
+    k: int = 1,
+) -> Tensor:
     """ [B, M, D], [B, N, D], [B, M], [B, N]"""
     cost = cost_matrix_cosine(txt_emb, img_emb)
     # mask the padded inputs

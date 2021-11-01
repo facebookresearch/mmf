@@ -7,7 +7,7 @@ import collections
 import logging
 import random
 from dataclasses import asdict, dataclass, field
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 import torch
 from mmf.common.registry import registry
@@ -15,8 +15,12 @@ from mmf.models import BaseModel
 from mmf.modules.losses import MMFLoss
 from mmf.utils.general import retry_n
 from omegaconf import MISSING, OmegaConf
-from torch import nn
-from transformers.modeling_bert import BertConfig, BertEmbeddings, BertModel, BertPooler
+from torch import Tensor, nn
+from transformers.modeling_bert import BertConfig, BertEmbeddings, BertModel
+
+
+NUM_RETRIES = 6
+EMPTY_CONFIG = OmegaConf.create({})
 
 
 logger = logging.getLogger()
@@ -29,28 +33,32 @@ class UNITERImageEmbeddings(nn.Module):
     Performs a linear projection then normalization over image and position features.
     """
 
-    @dataclass
-    class Config:
-        img_dim: int = 2048
-        hidden_size: int = 768
-        eps: float = 1e-12
-        hidden_dropout_prob: float = 0
-        pos_dim: int = 7
-
-    def __init__(self, config: Config, *args, **kwargs):
+    def __init__(
+        self,
+        img_dim: int = 2048,
+        hidden_size: int = 768,
+        eps: float = 1e-12,
+        hidden_dropout_prob: float = 0,
+        pos_dim: int = 7,
+    ):
         super().__init__()
-        config = OmegaConf.create({**asdict(self.Config()), **config})
 
-        self.img_linear = nn.Linear(config.img_dim, config.hidden_size)
-        self.img_layer_norm = nn.LayerNorm(config.hidden_size, eps=config.eps)
-        self.pos_layer_norm = nn.LayerNorm(config.hidden_size, eps=config.eps)
-        self.pos_linear = nn.Linear(config.pos_dim, config.hidden_size)
-        self.mask_embedding = nn.Embedding(2, config.img_dim, padding_idx=0)
+        self.img_linear = nn.Linear(img_dim, hidden_size)
+        self.img_layer_norm = nn.LayerNorm(hidden_size, eps=eps)
+        self.pos_layer_norm = nn.LayerNorm(hidden_size, eps=eps)
+        self.pos_linear = nn.Linear(pos_dim, hidden_size)
+        self.mask_embedding = nn.Embedding(2, img_dim, padding_idx=0)
 
-        self.final_layer_norm = nn.LayerNorm(config.hidden_size, eps=config.eps)
-        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.final_layer_norm = nn.LayerNorm(hidden_size, eps=eps)
+        self.dropout = nn.Dropout(hidden_dropout_prob)
 
-    def forward(self, img_feat, img_pos_feat, type_embeddings, img_masks=None):
+    def forward(
+        self,
+        img_feat: Tensor,
+        img_pos_feat: Tensor,
+        type_embeddings: Tensor,
+        img_masks: Optional[Tensor] = None,
+    ) -> Tensor:
         if img_masks is not None:
             self.mask_embedding.weight.data[0, :].fill_(0)
             mask = self.mask_embedding(img_masks.long())
@@ -80,45 +88,54 @@ class UNITERModelBase(nn.Module):
     take a look at its unit test in `test_uniter.py`.
     """
 
-    @dataclass
-    class Config:
-        hidden_size: int = 768
-        eps: float = 1e-12
-        hidden_dropout_prob: float = 0
-        random_init: bool = False
-        bert_model_name: str = "bert-base-uncased"
-        text_embeddings: Any = field(default_factory=lambda: {})
-        image_embeddings: UNITERImageEmbeddings.Config = UNITERImageEmbeddings.Config()
-        encoder: Any = field(default_factory=lambda: {})
-
-    def __init__(self, config):
+    def __init__(
+        self,
+        random_init: bool = False,
+        bert_model_name: str = "bert-base-uncased",
+        img_dim: int = 2048,
+        hidden_size: int = 768,
+        hidden_dropout_prob: float = 0,
+        text_embeddings: Any = EMPTY_CONFIG,
+        encoder: Any = EMPTY_CONFIG,
+    ):
         super().__init__()
-        self.config = config = OmegaConf.create({**asdict(self.Config()), **config})
 
-        bert_config = BertConfig.from_pretrained(config.bert_model_name)
-        bert_config.update(config.text_embeddings)
+        bert_config = BertConfig.from_pretrained(bert_model_name)
+        bert_config.update(text_embeddings)
         self.text_embeddings = BertEmbeddings(bert_config)
 
-        self.img_embeddings = UNITERImageEmbeddings(config.image_embeddings)
+        self.img_embeddings = UNITERImageEmbeddings(
+            img_dim=img_dim,
+            hidden_size=hidden_size,
+            hidden_dropout_prob=hidden_dropout_prob,
+        )
 
-        bert_model_name = config["bert_model_name"]
+        bert_model_name = bert_model_name
         hf_config = retry_n(
-            6,
+            NUM_RETRIES,
             BertConfig.from_pretrained,
             bert_model_name,
-            **OmegaConf.to_container(config.encoder),
+            **OmegaConf.to_container(encoder),
         )
-        hf_config.update(config.encoder)
-        if config["random_init"]:
-            self.encoder = BertModel(hf_config).encoder
+        hf_config.update(encoder)
+        if random_init:
+            bert_model = BertModel(hf_config)
         else:
-            self.encoder = retry_n(
-                6, BertModel.from_pretrained, bert_model_name, config=hf_config
-            ).encoder
+            bert_model = retry_n(
+                NUM_RETRIES,
+                BertModel.from_pretrained,
+                bert_model_name,
+                config=hf_config,
+            )
+        self.encoder = bert_model.encoder
+        self.pooler = bert_model.pooler
 
-        self.pooler = BertPooler(config)
-
-    def _compute_txt_embeddings(self, input_ids, position_ids, token_type_ids=None):
+    def _compute_txt_embeddings(
+        self,
+        input_ids: Tensor,
+        position_ids: Tensor,
+        token_type_ids: Optional[Tensor] = None,
+    ) -> Tensor:
         output = self.text_embeddings(
             input_ids=input_ids,
             position_ids=position_ids,
@@ -127,8 +144,12 @@ class UNITERModelBase(nn.Module):
         return output
 
     def _compute_img_embeddings(
-        self, img_feat, img_pos_feat, img_masks=None, img_type_ids=None
-    ):
+        self,
+        img_feat: Tensor,
+        img_pos_feat: Tensor,
+        img_masks: Optional[Tensor] = None,
+        img_type_ids: Optional[Tensor] = None,
+    ) -> Tensor:
         if img_type_ids is None:
             img_type_ids = torch.ones_like(img_feat[:, :, 0].long())
         img_type_embeddings = self.text_embeddings.token_type_embeddings(img_type_ids)
@@ -139,14 +160,14 @@ class UNITERModelBase(nn.Module):
 
     def _compute_img_txt_embeddings(
         self,
-        input_ids,
-        position_ids,
-        img_feat,
-        img_pos_feat,
-        img_masks=None,
-        txt_type_ids=None,
-        img_type_ids=None,
-    ):
+        input_ids: Tensor,
+        position_ids: Tensor,
+        img_feat: Tensor,
+        img_pos_feat: Tensor,
+        img_masks: Optional[Tensor] = None,
+        txt_type_ids: Optional[Tensor] = None,
+        img_type_ids: Optional[Tensor] = None,
+    ) -> Tensor:
         txt_emb = self._compute_txt_embeddings(input_ids, position_ids, txt_type_ids)
         img_emb = self._compute_img_embeddings(
             img_feat, img_pos_feat, img_masks, img_type_ids
@@ -156,17 +177,17 @@ class UNITERModelBase(nn.Module):
 
     def forward(
         self,
-        input_ids,
-        position_ids,
-        img_feat,
-        img_pos_feat,
-        attention_mask,
-        img_masks=None,
-        output_hidden_states=False,
-        txt_type_ids=None,
-        img_type_ids=None,
-        input_modality="VL",
-    ):
+        input_ids: Tensor,
+        position_ids: Tensor,
+        img_feat: Tensor,
+        img_pos_feat: Tensor,
+        attention_mask: Tensor,
+        img_masks: Optional[Tensor] = None,
+        output_hidden_states: bool = False,
+        txt_type_ids: Optional[Tensor] = None,
+        img_type_ids: Optional[Tensor] = None,
+        input_modality: str = "VL",
+    ) -> Tensor:
         # compute self-attention mask
         extended_attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
         extended_attention_mask = extended_attention_mask.to(
@@ -208,7 +229,12 @@ class UNITERModelBase(nn.Module):
         return encoded_layers
 
 
-def _process_head_outputs(dataset_name, losses, sample_list, outputs):
+def _process_head_outputs(
+    dataset_name: str,
+    losses: Dict[str, Any],
+    sample_list: Dict[str, Tensor],
+    outputs: Dict[str, Tensor],
+) -> Dict[str, Tensor]:
     if isinstance(outputs, collections.MutableMapping) and "losses" in outputs:
         return outputs
 
@@ -222,22 +248,42 @@ def _process_head_outputs(dataset_name, losses, sample_list, outputs):
 
 class UNITERForClassification(nn.Module):
     """ UNITER wrapper for classification
+
+    Example params:
+        head_configs = {"vqa2": {"type": "mlp", "num_labels": 3129}}
+        losses_configs = {"vqa2": "logit_bce"}
+        tasks = "vqa2"
     """
 
-    @dataclass
-    class Config(UNITERModelBase.Config):
-        heads: Any = MISSING
-        tasks: Any = MISSING
-
-    def __init__(self, config):
+    def __init__(
+        self,
+        head_configs: Dict,
+        loss_configs: Dict,
+        tasks: Any,
+        random_init: bool = False,
+        bert_model_name: str = "bert-base-uncased",
+        img_dim: int = 2048,
+        hidden_size: int = 768,
+        hidden_dropout_prob: float = 0,
+        text_embeddings: Any = EMPTY_CONFIG,
+        encoder: Any = EMPTY_CONFIG,
+        *args,
+        **kwargs,
+    ):
         super().__init__()
-        self.config = config
-        self.uniter = UNITERModelBase(self.config)
+        self.loss_configs = loss_configs
+        self.uniter = UNITERModelBase(
+            random_init=random_init,
+            bert_model_name=bert_model_name,
+            img_dim=img_dim,
+            hidden_size=hidden_size,
+            hidden_dropout_prob=hidden_dropout_prob,
+            text_embeddings=text_embeddings,
+            encoder=encoder,
+        )
 
         self.heads = nn.ModuleDict()
-        head_configs = self.config.get("heads", {})
-
-        self.tasks = self.config.tasks
+        self.tasks = tasks
         if isinstance(self.tasks, str):
             self.tasks = self.tasks.split(",")
 
@@ -251,18 +297,17 @@ class UNITERForClassification(nn.Module):
 
     def init_losses(self):
         self.losses = nn.ModuleDict()
-        loss_configs = self.config.get("losses", {})
         for task in self.tasks:
-            if task not in loss_configs:
+            if task not in self.loss_configs:
                 logger.warning(
                     f"No loss defined for {task}. Head is expected "
                     + "to return dict with 'losses'"
                 )
                 continue
-            loss_config = loss_configs[task]
+            loss_config = self.loss_configs[task]
             self.losses[task] = MMFLoss(loss_config)
 
-    def forward(self, processed_sample_list):
+    def forward(self, processed_sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
         sequence_output = self.uniter(
             processed_sample_list["input_ids"],
             processed_sample_list["position_ids"],
@@ -282,25 +327,52 @@ class UNITERForClassification(nn.Module):
         )
 
 
+DEFAULT_PRETRAINING_HEAD_CONFIGS = {
+    "mlm": {"type": "mlm"},
+    "itm": {"type": "itm"},
+    "mrc": {"type": "mrc"},
+    "mrfr": {"type": "mrfr"},
+    "wra": {"type": "wra"},
+}
+DEFAULT_PRETRAINING_TASKS = "mlm,itm,mrc,mrfr,wra"
+
+
 class UNITERForPretraining(nn.Module):
     """ UNITER wrapper for pretraining
     """
 
-    @dataclass
-    class Config(UNITERModelBase.Config):
-        heads: Any = MISSING
-        tasks: Any = MISSING
-        mask_probability: float = 0
-
-    def __init__(self, config):
+    def __init__(
+        self,
+        head_configs: Dict = DEFAULT_PRETRAINING_HEAD_CONFIGS,
+        loss_configs: Dict = {},
+        tasks: Any = DEFAULT_PRETRAINING_TASKS,
+        mask_probability: float = 0,
+        random_init: bool = False,
+        bert_model_name: str = "bert-base-uncased",
+        img_dim: int = 2048,
+        hidden_size: int = 768,
+        hidden_dropout_prob: float = 0,
+        text_embeddings: Any = EMPTY_CONFIG,
+        encoder: Any = EMPTY_CONFIG,
+        *args,
+        **kwargs,
+    ):
         super().__init__()
-        self.config = config
-        self.uniter = UNITERModelBase(self.config)
+        self.loss_configs = loss_configs
+        self.mask_probability = mask_probability
+        self.uniter = UNITERModelBase(
+            random_init=random_init,
+            bert_model_name=bert_model_name,
+            img_dim=img_dim,
+            hidden_size=hidden_size,
+            hidden_dropout_prob=hidden_dropout_prob,
+            text_embeddings=text_embeddings,
+            encoder=encoder,
+        )
 
         self.heads = nn.ModuleDict()
-        head_configs = self.config.get("heads", {})
 
-        self.tasks = self.config.tasks
+        self.tasks = tasks
         if isinstance(self.tasks, str):
             self.tasks = self.tasks.split(",")
 
@@ -319,18 +391,17 @@ class UNITERForPretraining(nn.Module):
 
     def init_losses(self):
         self.losses = nn.ModuleDict()
-        loss_configs = self.config.get("losses", {})
         for task in self.tasks:
-            if task not in loss_configs:
+            if task not in self.loss_configs:
                 logger.warning(
                     f"No loss defined for {task}. Head is expected "
                     + "to return dict with 'losses'"
                 )
                 continue
-            loss_config = loss_configs[task]
+            loss_config = self.loss_configs[task]
             self.losses[task] = MMFLoss(loss_config)
 
-    def forward(self, processed_sample_list):
+    def forward(self, processed_sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
         assert "is_correct" in processed_sample_list, (
             "UNITER pretraining requires mismatched captions for Image-Text-Matching."
             + " Please add 'false_caption': true under dataset_config in your "
@@ -371,7 +442,9 @@ class UNITERForPretraining(nn.Module):
             dataset_name, self.losses, processed_sample_list, outputs
         )
 
-    def _process_sample_list_for_pretraining(self, processed_sample_list):
+    def _process_sample_list_for_pretraining(
+        self, processed_sample_list: Dict[str, Tensor]
+    ):
         task = processed_sample_list["task"]
         if task == "mrc" or task == "mrfr":
             self._add_image_feat_masked(processed_sample_list)
@@ -385,13 +458,12 @@ class UNITERForPretraining(nn.Module):
         if not task == "itm" and not task == "wra":
             self._remove_mismatched_captions(processed_sample_list)
 
-    def _add_image_feat_masked(self, processed_sample_list):
-        mask_prob = self.config.get("mask_probability", 0)
+    def _add_image_feat_masked(self, processed_sample_list: Dict[str, Tensor]):
         img_feat_masked = torch.clone(processed_sample_list["image_feat"])
         num_feat = img_feat_masked.size(1)
 
         img_masks = [
-            self._get_img_mask(mask_prob, num_feat)
+            self._get_img_mask(self.mask_probability, num_feat)
             for _ in range(img_feat_masked.size(0))
         ]
         img_masks = torch.tensor(img_masks).bool().to(img_feat_masked.device)
@@ -401,14 +473,14 @@ class UNITERForPretraining(nn.Module):
         )
         processed_sample_list["image_mask"] = img_masks
 
-    def _get_img_mask(self, mask_prob, num_bb):
+    def _get_img_mask(self, mask_prob: float, num_bb: int) -> Tensor:
         img_mask = [random.random() < mask_prob for _ in range(num_bb)]
         if not any(img_mask):
             # at least mask 1
             img_mask[random.choice(range(num_bb))] = True
         return img_mask
 
-    def _preprocess_mlm(self, processed_sample_list):
+    def _preprocess_mlm(self, processed_sample_list: Dict[str, Tensor]):
         assert "lm_label_ids" in processed_sample_list
         assert "input_ids_masked" in processed_sample_list
 
@@ -427,13 +499,13 @@ class UNITERForPretraining(nn.Module):
         processed_sample_list["mlm_labels"] = mlm_labels
         processed_sample_list["input_ids"] = processed_sample_list["input_ids_masked"]
 
-    def _preprocess_itm(self, processed_sample_list):
+    def _preprocess_itm(self, processed_sample_list: Dict[str, Tensor]):
         assert "is_correct" in processed_sample_list
 
         itm_labels = {"is_correct": processed_sample_list["is_correct"]}
         processed_sample_list["itm_labels"] = itm_labels
 
-    def _preprocess_mrc(self, processed_sample_list):
+    def _preprocess_mrc(self, processed_sample_list: Dict[str, Tensor]):
         assert "cls_prob" in processed_sample_list
         assert "image_mask" in processed_sample_list
         assert "image_feat_masked" in processed_sample_list
@@ -455,7 +527,7 @@ class UNITERForPretraining(nn.Module):
         processed_sample_list[mrc_mask_key] = concat_mask
         processed_sample_list["image_feat"] = processed_sample_list["image_feat_masked"]
 
-    def _preprocess_mrfr(self, processed_sample_list):
+    def _preprocess_mrfr(self, processed_sample_list: Dict[str, Tensor]):
         assert "image_mask" in processed_sample_list
         assert "image_feat_masked" in processed_sample_list
 
@@ -477,7 +549,7 @@ class UNITERForPretraining(nn.Module):
         processed_sample_list[mrfr_mask_key] = concat_mask
         processed_sample_list["image_feat"] = processed_sample_list["image_feat_masked"]
 
-    def _preprocess_wra(self, processed_sample_list):
+    def _preprocess_wra(self, processed_sample_list: Dict[str, Tensor]):
         assert "is_correct" in processed_sample_list
 
         ot_inputs_key = self.heads["wra"].config.ot_inputs_key
@@ -486,7 +558,7 @@ class UNITERForPretraining(nn.Module):
         txt_lens = [i.size(0) for i in processed_sample_list["input_ids"]]
         num_bbs = [f.size(0) for f in processed_sample_list["image_feat"]]
 
-        def _compute_pad(lens):
+        def _compute_pad(lens: List[int]):
             max_len = max(lens)
             pad = torch.zeros(len(lens), max_len)
             for i, l in enumerate(lens):
@@ -502,7 +574,7 @@ class UNITERForPretraining(nn.Module):
         processed_sample_list[ot_inputs_key] = ot_inputs
         processed_sample_list[wra_label_key] = processed_sample_list["is_correct"]
 
-    def _remove_mismatched_captions(self, processed_sample_list):
+    def _remove_mismatched_captions(self, processed_sample_list: Dict[str, Tensor]):
         assert "is_correct" in processed_sample_list
 
         pos_pairs = processed_sample_list["is_correct"].ne(0)
@@ -538,8 +610,16 @@ class UNITER(BaseModel):
     """
 
     @dataclass
-    class Config(UNITERModelBase.Config):
+    class Config:
+        random_init: bool = False
+        bert_model_name: str = "bert-base-uncased"
+        img_dim: int = 2048
+        hidden_size: int = 768
+        hidden_dropout_prob: float = 0
+        text_embeddings: Any = field(default_factory=lambda: {})
+        encoder: Any = field(default_factory=lambda: {})
         heads: Any = MISSING
+        losses: Any = field(default_factory=lambda: {})
         tasks: Any = MISSING
         do_pretraining: bool = False
 
@@ -553,10 +633,15 @@ class UNITER(BaseModel):
         return "configs/models/uniter/defaults.yaml"
 
     def build(self):
+        params = dict(
+            **self.config,
+            head_configs=self.config.heads,
+            loss_configs=self.config.losses,
+        )
         if self.do_pretraining:
-            self.uniter = UNITERForPretraining(self.config)
+            self.uniter = UNITERForPretraining(**params)
         else:
-            self.uniter = UNITERForClassification(self.config)
+            self.uniter = UNITERForClassification(**params)
 
         self.tasks = self.config.tasks
         if isinstance(self.tasks, str):
@@ -565,7 +650,7 @@ class UNITER(BaseModel):
     def init_losses(self):
         pass
 
-    def add_pos_feat(self, sample_list):
+    def add_pos_feat(self, sample_list: Dict[str, Tensor]):
         assert "image_info_0" in sample_list
         assert "bbox" in sample_list["image_info_0"]
 
@@ -597,7 +682,7 @@ class UNITER(BaseModel):
         )
         sample_list["img_pos_feat"] = pos_feat
 
-    def add_custom_params(self, sample_list):
+    def add_custom_params(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
         image_feat = sample_list["image_feat"] = sample_list["image_feature_0"]
 
         image_info = getattr(sample_list, "image_info_0", {})
@@ -629,11 +714,16 @@ class UNITER(BaseModel):
         self.add_pos_feat(sample_list)
         return sample_list
 
-    def forward(self, sample_list):
+    def forward(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
         sample_list = self.add_custom_params(sample_list)
         return self.uniter(sample_list)
 
-    def get_attention_mask(self, sample_list, text_embedding, image_embedding):
+    def get_attention_mask(
+        self,
+        sample_list: Dict[str, Tensor],
+        text_embedding: Tensor,
+        image_embedding: Tensor,
+    ) -> Tensor:
         image_mask = getattr(sample_list, "image_mask", None)
 
         if image_mask is not None and sample_list.input_mask is not None:
