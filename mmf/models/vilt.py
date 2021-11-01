@@ -1,8 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import collections.abc
 import logging
-from dataclasses import dataclass, field
-from typing import Any, Dict
+from dataclasses import asdict, dataclass, field
+from typing import Any, Dict, Tuple
 
 import torch
 from mmf.common.registry import registry
@@ -12,7 +12,7 @@ from mmf.modules.encoders import TransformerEncoder, ViTEncoder
 from mmf.modules.losses import MMFLoss
 from mmf.utils.build import build_encoder
 from mmf.utils.modeling import get_bert_configured_parameters
-from omegaconf import MISSING
+from omegaconf import MISSING, OmegaConf
 from torch import Tensor, nn
 
 
@@ -41,13 +41,13 @@ class ViLTImageEmbedding(nn.Module):
         random_init: bool = True
         pretrained_model_name: str = "google/vit-base-patch16-224"
 
-    def __init__(self, config: Config):
+    def __init__(self, *args, **kwargs):
         super().__init__()
-        self.config = config
+        self.config = OmegaConf.create({**asdict(self.Config()), **kwargs})
         self.embedding = ViTEncoder(self.config).embeddings
-        self.token_type_embeddings = nn.Embedding(1, self.config.hidden_dim)
+        self.token_type_embeddings = nn.Embedding(2, self.config.hidden_dim)
 
-    def forward(self, image):
+    def forward(self, image: Tensor) -> Tensor:
         if image.dim() == 5:
             image = image.permute(1, 0, 2, 3, 4).flatten(start_dim=0, end_dim=1)
 
@@ -70,21 +70,20 @@ class ViLTTextEmbedding(nn.Module):
         hidden_size: int = 768
         bert_model_name: str = "bert-base-uncased"
 
-    def __init__(self, config: Config):
+    def __init__(self, *args, **kwargs):
 
         super().__init__()
-        self.config = config
+        self.config = OmegaConf.create({**asdict(self.Config()), **kwargs})
         text_encoder = TransformerEncoder(self.config)
         self.text_embeddings = text_encoder.embeddings
-        encoder_output_dim = self.config.hidden_dim
-        self.text_projection = nn.Linear(
-            text_encoder.config.hidden_size, encoder_output_dim
-        )
+        self.token_type_embeddings = nn.Embedding(2, self.config.hidden_dim)
 
-    def forward(self, input_ids, segment_ids):
+    def forward(self, input_ids: Tensor, segment_ids: Tensor) -> Tensor:
         text_embedding = self.text_embeddings(input_ids, token_type_ids=segment_ids)
-        text_embedding = self.text_projection(text_embedding)
-        return text_embedding
+        # official vilt repo adds type embeddings twice, once in the bert embeddings
+        # and a seperate time directly
+        text_type_embed = self.token_type_embeddings(segment_ids)
+        return text_embedding + text_type_embed
 
 
 @registry.register_model("vilt")
@@ -100,8 +99,8 @@ class ViLT(BaseModel):
         return "configs/models/vilt/defaults.yaml"
 
     def build(self):
-        self.text_embeddings = ViLTTextEmbedding(self.config.text_embeddings)
-        self.image_embeddings = ViLTImageEmbedding(self.config.image_encoder.params)
+        self.text_embeddings = ViLTTextEmbedding(**self.config.text_embeddings)
+        self.image_embeddings = ViLTImageEmbedding(**self.config.image_encoder.params)
         self.encoder = build_encoder(self.config.image_encoder)
 
         head_configs = self.config.get("heads", {})
@@ -137,7 +136,9 @@ class ViLT(BaseModel):
         outputs = self.heads_dict(sample_list["dataset_name"], sequence, sample_list)
         return outputs
 
-    def preprocess_sample(self, sample_list, image_embedding):
+    def preprocess_sample(
+        self, sample_list: Dict[str, Tensor], image_embedding: Tensor
+    ):
         head_names = self.heads_dict.head_names
         if isinstance(head_names, collections.abc.Mapping):
             head_names = head_names[sample_list.dataset_name]
@@ -164,7 +165,12 @@ class ViLT(BaseModel):
         params += [{"params": self.image_embeddings.parameters()}]
         return params
 
-    def get_attention_mask(self, sample_list, text_embedding, image_embedding):
+    def get_attention_mask(
+        self,
+        sample_list: Dict[str, Tensor],
+        text_embedding: Tensor,
+        image_embedding: Tensor,
+    ) -> Tensor:
         text_mask = getattr(sample_list, "input_mask", None)
         image_mask = getattr(sample_list, "image_mask", None)
 
@@ -188,7 +194,7 @@ class ViLT(BaseModel):
         attention_mask = torch.cat((text_mask, image_mask), dim=-1)
         return attention_mask
 
-    def _infer_itm_labels(self, sample_list):
+    def _infer_itm_labels(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
         input_ids = sample_list["input_ids"]
         itm_labels = {}
         if "is_correct" in sample_list:
@@ -200,7 +206,9 @@ class ViLT(BaseModel):
 
         return itm_labels
 
-    def _infer_mlm_labels(self, sample_list, image_embeddings_size):
+    def _infer_mlm_labels(
+        self, sample_list: Dict[str, Tensor], image_embeddings_size: Tuple[int, int]
+    ):
         input_ids = sample_list["input_ids"]
         mlm_labels = {}
         current_text_idx = 0
@@ -228,7 +236,7 @@ class ViLT(BaseModel):
         )
         return mlm_labels
 
-    def _encode_mlm(self, sample_list, image_embedding):
+    def _encode_mlm(self, sample_list: Dict[str, Tensor], image_embedding: Tensor):
         assert "lm_label_ids" in sample_list
 
         input_ids = sample_list.get("input_ids_masked", sample_list.input_ids)
