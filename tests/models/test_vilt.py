@@ -23,7 +23,7 @@ BERT_VOCAB_SIZE = 30255
 class TestViltEmbeddings(unittest.TestCase):
     def test_vilt_image_embedding(self):
         config = OmegaConf.structured(ViLTImageEmbedding.Config())
-        embedding = ViLTImageEmbedding(config)
+        embedding = ViLTImageEmbedding(**config)
         self.assertTrue(isinstance(embedding, nn.Module))
 
         image = torch.rand(32, 3, 224, 224)
@@ -37,7 +37,7 @@ class TestViltEmbeddings(unittest.TestCase):
         config.pretrained_model_name = "google/vit-base-patch32-384"
         config.image_size = [384, 384]
 
-        embedding = ViLTImageEmbedding(config)
+        embedding = ViLTImageEmbedding(**config)
         self.assertTrue(isinstance(embedding, nn.Module))
 
         image = torch.rand(32, 3, 384, 384)
@@ -46,7 +46,7 @@ class TestViltEmbeddings(unittest.TestCase):
 
     def test_vilt_text_embedding(self):
         config = OmegaConf.structured(ViLTTextEmbedding.Config())
-        embedding = ViLTTextEmbedding(config)
+        embedding = ViLTTextEmbedding(**config)
         self.assertTrue(isinstance(embedding, nn.Module))
 
         input_ids = torch.ones(32, 25).long()
