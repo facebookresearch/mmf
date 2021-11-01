@@ -1,8 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import collections.abc
 import logging
-from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, Tuple
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Tuple
 
 import torch
 from mmf.common.registry import registry
@@ -31,21 +31,35 @@ class ViLTImageEmbedding(nn.Module):
     https://huggingface.co/models?other=vit&sort=downloads
     """
 
-    @dataclass
-    class Config:
-        image_size: list = field(default_factory=lambda: [224, 224])
-        hidden_dropout_prob: float = 0
-        hidden_dim: int = 768
-        patch_size: int = 16
-        num_channels: int = 3
-        random_init: bool = True
-        pretrained_model_name: str = "google/vit-base-patch16-224"
-
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        random_init: bool = True,
+        pretrained_model_name: str = "google/vit-base-patch16-224",
+        image_size: Optional[List] = None,
+        hidden_dropout_prob: Optional[float] = None,
+        hidden_size: Optional[int] = None,
+        patch_size: Optional[int] = None,
+        num_channels: Optional[int] = None,
+    ):
         super().__init__()
-        self.config = OmegaConf.create({**asdict(self.Config()), **kwargs})
-        self.embedding = ViTEncoder(self.config).embeddings
-        self.token_type_embeddings = nn.Embedding(2, self.config.hidden_dim)
+        config = OmegaConf.create(
+            {"random_init": random_init, "pretrained_model_name": pretrained_model_name}
+        )
+        if image_size is not None:
+            config.image_size = image_size
+        if hidden_dropout_prob is not None:
+            config.hidden_dropout_prob = hidden_dropout_prob
+        if hidden_size is not None:
+            config.hidden_size = hidden_size
+        if patch_size is not None:
+            config.patch_size = patch_size
+        if num_channels is not None:
+            config.num_channels = num_channels
+
+        encoder = ViTEncoder(config)
+        self.embedding = encoder.embeddings
+        hidden_size = encoder.hf_config.hidden_size
+        self.token_type_embeddings = nn.Embedding(2, hidden_size)
 
     def forward(self, image: Tensor) -> Tensor:
         if image.dim() == 5:
@@ -64,19 +78,31 @@ class ViLTImageEmbedding(nn.Module):
 
 
 class ViLTTextEmbedding(nn.Module):
-    @dataclass
-    class Config:
-        hidden_dim: int = 768
-        hidden_size: int = 768
-        bert_model_name: str = "bert-base-uncased"
-
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        random_init: bool = True,
+        bert_model_name: str = "bert-base-uncased",
+        hidden_size: Optional[int] = None,
+        max_position_embeddings: Optional[int] = None,
+    ):
 
         super().__init__()
-        self.config = OmegaConf.create({**asdict(self.Config()), **kwargs})
-        text_encoder = TransformerEncoder(self.config)
+        config = OmegaConf.create(
+            {"bert_model_name": bert_model_name, "random_init": random_init}
+        )
+        if hidden_size is not None:
+            config.hidden_size = hidden_size
+        if max_position_embeddings is not None:
+            config.max_position_embeddings = max_position_embeddings
+
+        text_encoder = TransformerEncoder(config)
         self.text_embeddings = text_encoder.embeddings
-        self.token_type_embeddings = nn.Embedding(2, self.config.hidden_dim)
+        # the hidden_size param enables hidden_size overrides
+        # if hidden_size is None, hidden_size is loaded
+        # from the default hf config for the model
+        # the actual size of the embeddings will always be in the encoder configs
+        hidden_size = text_encoder.config.hidden_size
+        self.token_type_embeddings = nn.Embedding(2, hidden_size)
 
     def forward(self, input_ids: Tensor, segment_ids: Tensor) -> Tensor:
         text_embedding = self.text_embeddings(input_ids, token_type_ids=segment_ids)
