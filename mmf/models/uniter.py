@@ -3,14 +3,17 @@
 # Initial version was taken from https://github.com/ChenRocks/UNITER/
 # and adapted for MMF.
 
-from dataclasses import asdict, dataclass, field
-from typing import Any
+from typing import Any, Optional
 
 import torch
 from mmf.utils.general import retry_n
 from omegaconf import OmegaConf
-from torch import nn
-from transformers.modeling_bert import BertConfig, BertEmbeddings, BertModel, BertPooler
+from torch import Tensor, nn
+from transformers.modeling_bert import BertConfig, BertEmbeddings, BertModel
+
+
+NUM_RETRIES = 6
+EMPTY_CONFIG = OmegaConf.create({})
 
 
 class UNITERImageEmbeddings(nn.Module):
@@ -20,28 +23,32 @@ class UNITERImageEmbeddings(nn.Module):
     Performs a linear projection then normalization over image and position features.
     """
 
-    @dataclass
-    class Config:
-        img_dim: int = 2048
-        hidden_size: int = 768
-        eps: float = 1e-12
-        hidden_dropout_prob: float = 0
-        pos_dim: int = 7
-
-    def __init__(self, config: Config, *args, **kwargs):
+    def __init__(
+        self,
+        img_dim: int = 2048,
+        hidden_size: int = 768,
+        eps: float = 1e-12,
+        hidden_dropout_prob: float = 0,
+        pos_dim: int = 7,
+    ):
         super().__init__()
-        config = OmegaConf.create({**asdict(self.Config()), **config})
 
-        self.img_linear = nn.Linear(config.img_dim, config.hidden_size)
-        self.img_layer_norm = nn.LayerNorm(config.hidden_size, eps=config.eps)
-        self.pos_layer_norm = nn.LayerNorm(config.hidden_size, eps=config.eps)
-        self.pos_linear = nn.Linear(config.pos_dim, config.hidden_size)
-        self.mask_embedding = nn.Embedding(2, config.img_dim, padding_idx=0)
+        self.img_linear = nn.Linear(img_dim, hidden_size)
+        self.img_layer_norm = nn.LayerNorm(hidden_size, eps=eps)
+        self.pos_layer_norm = nn.LayerNorm(hidden_size, eps=eps)
+        self.pos_linear = nn.Linear(pos_dim, hidden_size)
+        self.mask_embedding = nn.Embedding(2, img_dim, padding_idx=0)
 
-        self.final_layer_norm = nn.LayerNorm(config.hidden_size, eps=config.eps)
-        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.final_layer_norm = nn.LayerNorm(hidden_size, eps=eps)
+        self.dropout = nn.Dropout(hidden_dropout_prob)
 
-    def forward(self, img_feat, img_pos_feat, type_embeddings, img_masks=None):
+    def forward(
+        self,
+        img_feat: Tensor,
+        img_pos_feat: Tensor,
+        type_embeddings: Tensor,
+        img_masks: Optional[Tensor] = None,
+    ) -> Tensor:
         if img_masks is not None:
             self.mask_embedding.weight.data[0, :].fill_(0)
             mask = self.mask_embedding(img_masks.long())
@@ -71,45 +78,54 @@ class UNITERModelBase(nn.Module):
     take a look at its unit test in `test_uniter.py`.
     """
 
-    @dataclass
-    class Config:
-        hidden_size: int = 768
-        eps: float = 1e-12
-        hidden_dropout_prob: float = 0
-        random_init: bool = False
-        bert_model_name: str = "bert-base-uncased"
-        text_embeddings: Any = field(default_factory=lambda: {})
-        image_embeddings: UNITERImageEmbeddings.Config = UNITERImageEmbeddings.Config()
-        encoder: Any = field(default_factory=lambda: {})
-
-    def __init__(self, config):
+    def __init__(
+        self,
+        random_init: bool = False,
+        bert_model_name: str = "bert-base-uncased",
+        img_dim: int = 2048,
+        hidden_size: int = 768,
+        hidden_dropout_prob: float = 0,
+        text_embeddings: Any = EMPTY_CONFIG,
+        encoder: Any = EMPTY_CONFIG,
+    ):
         super().__init__()
-        self.config = config = OmegaConf.create({**asdict(self.Config()), **config})
 
-        bert_config = BertConfig.from_pretrained(config.bert_model_name)
-        bert_config.update(config.text_embeddings)
+        bert_config = BertConfig.from_pretrained(bert_model_name)
+        bert_config.update(text_embeddings)
         self.text_embeddings = BertEmbeddings(bert_config)
 
-        self.img_embeddings = UNITERImageEmbeddings(config.image_embeddings)
+        self.img_embeddings = UNITERImageEmbeddings(
+            img_dim=img_dim,
+            hidden_size=hidden_size,
+            hidden_dropout_prob=hidden_dropout_prob,
+        )
 
-        bert_model_name = config["bert_model_name"]
+        bert_model_name = bert_model_name
         hf_config = retry_n(
-            6,
+            NUM_RETRIES,
             BertConfig.from_pretrained,
             bert_model_name,
-            **OmegaConf.to_container(config.encoder),
+            **OmegaConf.to_container(encoder),
         )
-        hf_config.update(config.encoder)
-        if config["random_init"]:
-            self.encoder = BertModel(hf_config).encoder
+        hf_config.update(encoder)
+        if random_init:
+            bert_model = BertModel(hf_config)
         else:
-            self.encoder = retry_n(
-                6, BertModel.from_pretrained, bert_model_name, config=hf_config
-            ).encoder
+            bert_model = retry_n(
+                NUM_RETRIES,
+                BertModel.from_pretrained,
+                bert_model_name,
+                config=hf_config,
+            )
+        self.encoder = bert_model.encoder
+        self.pooler = bert_model.pooler
 
-        self.pooler = BertPooler(config)
-
-    def _compute_txt_embeddings(self, input_ids, position_ids, token_type_ids=None):
+    def _compute_txt_embeddings(
+        self,
+        input_ids: Tensor,
+        position_ids: Tensor,
+        token_type_ids: Optional[Tensor] = None,
+    ) -> Tensor:
         output = self.text_embeddings(
             input_ids=input_ids,
             position_ids=position_ids,
@@ -118,8 +134,12 @@ class UNITERModelBase(nn.Module):
         return output
 
     def _compute_img_embeddings(
-        self, img_feat, img_pos_feat, img_masks=None, img_type_ids=None
-    ):
+        self,
+        img_feat: Tensor,
+        img_pos_feat: Tensor,
+        img_masks: Optional[Tensor] = None,
+        img_type_ids: Optional[Tensor] = None,
+    ) -> Tensor:
         if img_type_ids is None:
             img_type_ids = torch.ones_like(img_feat[:, :, 0].long())
         img_type_embeddings = self.text_embeddings.token_type_embeddings(img_type_ids)
@@ -130,14 +150,14 @@ class UNITERModelBase(nn.Module):
 
     def _compute_img_txt_embeddings(
         self,
-        input_ids,
-        position_ids,
-        img_feat,
-        img_pos_feat,
-        img_masks=None,
-        txt_type_ids=None,
-        img_type_ids=None,
-    ):
+        input_ids: Tensor,
+        position_ids: Tensor,
+        img_feat: Tensor,
+        img_pos_feat: Tensor,
+        img_masks: Optional[Tensor] = None,
+        txt_type_ids: Optional[Tensor] = None,
+        img_type_ids: Optional[Tensor] = None,
+    ) -> Tensor:
         txt_emb = self._compute_txt_embeddings(input_ids, position_ids, txt_type_ids)
         img_emb = self._compute_img_embeddings(
             img_feat, img_pos_feat, img_masks, img_type_ids
@@ -147,17 +167,17 @@ class UNITERModelBase(nn.Module):
 
     def forward(
         self,
-        input_ids,
-        position_ids,
-        img_feat,
-        img_pos_feat,
-        attention_mask,
-        img_masks=None,
-        output_hidden_states=False,
-        txt_type_ids=None,
-        img_type_ids=None,
-        input_modality="VL",
-    ):
+        input_ids: Tensor,
+        position_ids: Tensor,
+        img_feat: Tensor,
+        img_pos_feat: Tensor,
+        attention_mask: Tensor,
+        img_masks: Optional[Tensor] = None,
+        output_hidden_states: bool = False,
+        txt_type_ids: Optional[Tensor] = None,
+        img_type_ids: Optional[Tensor] = None,
+        input_modality: str = "VL",
+    ) -> Tensor:
         # compute self-attention mask
         extended_attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
         extended_attention_mask = extended_attention_mask.to(
