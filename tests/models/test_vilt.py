@@ -4,7 +4,6 @@ import unittest
 
 import torch
 from mmf.models.vilt import ViLTImageEmbedding, ViLTTextEmbedding
-from omegaconf import OmegaConf
 from tests.test_utils import skip_if_old_transformers
 from torch import nn
 
@@ -12,8 +11,7 @@ from torch import nn
 @skip_if_old_transformers(min_version="4.5.0")
 class TestViltEmbeddings(unittest.TestCase):
     def test_vilt_image_embedding(self):
-        config = OmegaConf.structured(ViLTImageEmbedding.Config())
-        embedding = ViLTImageEmbedding(**config)
+        embedding = ViLTImageEmbedding()
         self.assertTrue(isinstance(embedding, nn.Module))
 
         image = torch.rand(32, 3, 224, 224)
@@ -21,12 +19,12 @@ class TestViltEmbeddings(unittest.TestCase):
         self.assertEqual(output.shape, torch.Size([32, 197, 768]))
 
     def test_vilt_image_embedding_pretrained(self):
-        config = OmegaConf.structured(ViLTImageEmbedding.Config())
-        config.random_init = False
-        config.patch_size = 32
-        config.pretrained_model_name = "google/vit-base-patch32-384"
-        config.image_size = [384, 384]
-
+        config = {
+            "random_init": False,
+            "patch_size": 32,
+            "pretrained_model_name": "google/vit-base-patch32-384",
+            "image_size": [384, 384],
+        }
         embedding = ViLTImageEmbedding(**config)
         self.assertTrue(isinstance(embedding, nn.Module))
 
@@ -35,8 +33,7 @@ class TestViltEmbeddings(unittest.TestCase):
         self.assertEqual(output.shape, torch.Size([32, 145, 768]))
 
     def test_vilt_text_embedding(self):
-        config = OmegaConf.structured(ViLTTextEmbedding.Config())
-        embedding = ViLTTextEmbedding(**config)
+        embedding = ViLTTextEmbedding()
         self.assertTrue(isinstance(embedding, nn.Module))
 
         input_ids = torch.ones(32, 25).long()
