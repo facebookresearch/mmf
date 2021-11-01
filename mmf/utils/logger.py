@@ -425,7 +425,7 @@ class WandbLogger:
             )
 
         self._wandb = wandb
-        self._wandb_init = dict(entity=entity, project=project)
+        self._wandb_init = dict(entity=entity, config=config, project=project)
         wandb_kwargs = deepcopy(config.training.wandb)
         wandb_kwargs.pop("enabled")
         wandb_kwargs.pop("entity")
