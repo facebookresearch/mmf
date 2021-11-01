@@ -1,10 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 import torch
 from mmf.modules.encoders import TransformerEncoder, ViTEncoder
-from torch import nn
+from omegaconf import OmegaConf
+from torch import Tensor, nn
 
 
 class ViLTImageEmbedding(nn.Module):
@@ -29,13 +30,13 @@ class ViLTImageEmbedding(nn.Module):
         random_init: bool = True
         pretrained_model_name: str = "google/vit-base-patch16-224"
 
-    def __init__(self, config: Config):
+    def __init__(self, *args, **kwargs):
         super().__init__()
-        self.config = config
+        self.config = OmegaConf.create({**asdict(self.Config()), **kwargs})
         self.embedding = ViTEncoder(self.config).embeddings
-        self.token_type_embeddings = nn.Embedding(1, self.config.hidden_dim)
+        self.token_type_embeddings = nn.Embedding(2, self.config.hidden_dim)
 
-    def forward(self, image):
+    def forward(self, image: Tensor) -> Tensor:
         if image.dim() == 5:
             image = image.permute(1, 0, 2, 3, 4).flatten(start_dim=0, end_dim=1)
 
@@ -58,18 +59,17 @@ class ViLTTextEmbedding(nn.Module):
         hidden_size: int = 768
         bert_model_name: str = "bert-base-uncased"
 
-    def __init__(self, config: Config):
+    def __init__(self, *args, **kwargs):
 
         super().__init__()
-        self.config = config
+        self.config = OmegaConf.create({**asdict(self.Config()), **kwargs})
         text_encoder = TransformerEncoder(self.config)
         self.text_embeddings = text_encoder.embeddings
-        encoder_output_dim = self.config.hidden_dim
-        self.text_projection = nn.Linear(
-            text_encoder.config.hidden_size, encoder_output_dim
-        )
+        self.token_type_embeddings = nn.Embedding(2, self.config.hidden_dim)
 
-    def forward(self, input_ids, segment_ids):
+    def forward(self, input_ids: Tensor, segment_ids: Tensor) -> Tensor:
         text_embedding = self.text_embeddings(input_ids, token_type_ids=segment_ids)
-        text_embedding = self.text_projection(text_embedding)
-        return text_embedding
+        # official vilt repo adds type embeddings twice, once in the bert embeddings
+        # and a seperate time directly
+        text_type_embed = self.token_type_embeddings(segment_ids)
+        return text_embedding + text_type_embed
