@@ -7,70 +7,78 @@ from mmf.common.registry import registry
 from torch import nn
 
 
+def build_heads_dict(head_configs, tasks, losses):
+    """
+    HeadsDict static constructor.
+    This function either,
+        returns a list of heads if head_configs is a list,
+        returns a dict of task: [ head1, head2, ... ] if head_configs is a dict
+
+        loss_names are a list or dict describing the loss module used for each head
+        loss_names has the same shape as heads
+
+        head_names is a list or dict containing head name strings
+        head_names is used to describe bad heads in exceptions
+    """
+
+    def head_from_config(config):
+        head_type = config.get("type", "mlp")
+        head_class = registry.get_transformer_head_class(head_type)
+        return head_class(config)
+
+    if isinstance(head_configs, collections.abc.Sequence):
+        heads = nn.ModuleList(
+            [head_from_config(head_conf) for head_conf in head_configs]
+        )
+        head_loss_names = [head_conf.get("loss") for head_conf in head_configs]
+        head_names = [head_conf.get("type", "mlp") for head_conf in head_configs]
+
+    if isinstance(head_configs, collections.abc.Mapping):
+        heads = nn.ModuleDict()
+        head_names = {}  # used to describe head in exceptions
+        head_loss_names = {}
+
+        for task in tasks:
+            head_config = head_configs.get(task)
+            if head_config is None:
+                raise ValueError(
+                    f"No head defined for {task}. Dataset task {task} "
+                    + "requires a head to return dict with 'losses'"
+                )
+
+            head_config_list = (
+                head_config
+                if isinstance(head_config, collections.abc.Sequence)
+                else [head_config]
+            )
+
+            heads[task] = nn.ModuleList(
+                [head_from_config(head_conf) for head_conf in head_config_list]
+            )
+            head_loss_names[task] = [
+                head_conf.get("loss") for head_conf in head_config_list
+            ]
+            head_names[task] = [
+                head_conf.get("type", "mlp") for head_conf in head_config_list
+            ]
+
+    return HeadsDict(heads, head_names, losses, head_loss_names)
+
+
 class HeadsDict(nn.Module):
+    """
+    HeadsDict class manages the construction and forward pass for
+    multiple possible heads for multi-task learning.
+    Construction from list or dict configs is supported,
+    take a look at `build_heads_dict(head_configs, tasks, losses)`.
+    """
+
     def __init__(self, heads, head_names, losses, head_loss_names):
         super().__init__()
         self.heads = heads
         self.head_names = head_names
         self.losses = losses
         self.head_loss_names = head_loss_names
-
-    @staticmethod
-    def build_heads(head_configs, tasks, losses):
-        """
-        This function either,
-            returns a list of heads if head_configs is a list,
-            returns a dict of task: [ head1, head2, ... ] if head_configs is a dict
-
-            loss_names are a list or dict describing the loss module used for each head
-            loss_names has the same shape as heads
-
-            head_names is a list or dict containing head name strings
-            head_names is used to describe bad heads in exceptions
-        """
-
-        def head_from_config(config):
-            head_type = config.get("type", "mlp")
-            head_class = registry.get_transformer_head_class(head_type)
-            return head_class(config)
-
-        if isinstance(head_configs, collections.abc.Sequence):
-            heads = nn.ModuleList(
-                [head_from_config(head_conf) for head_conf in head_configs]
-            )
-            head_loss_names = [head_conf.get("loss") for head_conf in head_configs]
-            head_names = [head_conf.get("type", "mlp") for head_conf in head_configs]
-
-        if isinstance(head_configs, collections.abc.Mapping):
-            heads = nn.ModuleDict()
-            head_names = {}  # used to describe head in exceptions
-            head_loss_names = {}
-
-            for task in tasks:
-                head_config = head_configs.get(task)
-                if head_config is None:
-                    raise ValueError(
-                        f"No head defined for {task}. Dataset task {task} "
-                        + "requires a head to return dict with 'losses'"
-                    )
-
-                head_config_list = (
-                    head_config
-                    if isinstance(head_config, collections.abc.Sequence)
-                    else [head_config]
-                )
-
-                heads[task] = nn.ModuleList(
-                    [head_from_config(head_conf) for head_conf in head_config_list]
-                )
-                head_loss_names[task] = [
-                    head_conf.get("loss") for head_conf in head_config_list
-                ]
-                head_names[task] = [
-                    head_conf.get("type", "mlp") for head_conf in head_config_list
-                ]
-
-        return HeadsDict(heads, head_names, losses, head_loss_names)
 
     def forward(self, task, sequence, sample_list):
         """
