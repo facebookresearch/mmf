@@ -1,4 +1,8 @@
-# ViLT
+---
+id: vilt
+sidebar_label: ViLT
+title: "ViLT: Vision-and-Language Transformer Without Convolution or Region Supervision"
+---
 
 This repository contains the code for pytorch implementation of ViLT model, released originally under this ([repo](https://github.com/dandelin/ViLT)). Please cite the following papers if you are using ViLT model from mmf:
 
@@ -14,4 +18,15 @@ This repository contains the code for pytorch implementation of ViLT model, rele
 }
 ```
 
-Please see [https://mmf.sh/docs/projects/vilt](https://mmf.sh/docs/projects/vilt) for more details on how to use the ViLT model.
+## Installation
+
+Follow installation instructions in the [documentation](https://mmf.readthedocs.io/en/latest/notes/installation.html).
+
+## Training
+
+To train ViLT model on the VQA2.0 dataset, run the following command
+```
+mmf_run config=projects/vilt/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=vilt
+```
+
+To finetune using different pretrained starting weights, change the `pretrained_model_name` under image_encoder in the config yaml to reference a huggingface model.

@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import torch
 from mmf.common.registry import registry
 from mmf.models.base_model import BaseModel
-from mmf.models.transformers.heads.utils import HeadsDict
+from mmf.models.transformers.heads.utils import build_heads_dict
 from mmf.modules.encoders import TransformerEncoder, ViTEncoder
 from mmf.modules.losses import MMFLoss
 from mmf.utils.build import build_encoder
@@ -40,6 +40,8 @@ class ViLTImageEmbedding(nn.Module):
         hidden_size: Optional[int] = None,
         patch_size: Optional[int] = None,
         num_channels: Optional[int] = None,
+        *args,
+        **kwargs
     ):
         super().__init__()
         config = OmegaConf.create(
@@ -84,6 +86,8 @@ class ViLTTextEmbedding(nn.Module):
         bert_model_name: str = "bert-base-uncased",
         hidden_size: Optional[int] = None,
         max_position_embeddings: Optional[int] = None,
+        *args,
+        **kwargs
     ):
 
         super().__init__()
@@ -117,7 +121,7 @@ class ViLT(BaseModel):
     @dataclass
     class Config(BaseModel.Config):
         name: str = "ViLT"
-        text_embeddings: ViLTTextEmbedding.Config = ViLTTextEmbedding.Config()
+        text_embeddings: Any = MISSING
         image_encoder: Any = MISSING
 
     @classmethod
@@ -135,7 +139,7 @@ class ViLT(BaseModel):
             self.tasks = self.tasks.split(",")
 
         self.losses = nn.ModuleDict()
-        self.heads_dict = HeadsDict.build_heads(head_configs, self.tasks, self.losses)
+        self.heads_dict = build_heads_dict(head_configs, self.tasks, self.losses)
         self.modality_keys = self.modality_type = ["text", "image"]
 
     def init_losses(self):
