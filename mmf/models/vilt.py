@@ -171,7 +171,7 @@ class ViLT(BaseModel):
     ):
         head_names = self.heads_dict.head_names
         if isinstance(head_names, collections.abc.Mapping):
-            head_names = head_names[sample_list.dataset_name]
+            head_names = head_names[sample_list["dataset_name"]]
 
         head_string = " ".join(head_names)
         prepare_itm = "itm" in head_string
@@ -269,8 +269,8 @@ class ViLT(BaseModel):
     def _encode_mlm(self, sample_list: Dict[str, Tensor], image_embedding: Tensor):
         assert "lm_label_ids" in sample_list
 
-        input_ids = sample_list.get("input_ids_masked", sample_list.input_ids)
-        segment_ids = sample_list.segment_ids
+        input_ids = sample_list.get("input_ids_masked", sample_list["input_ids"])
+        segment_ids = sample_list["segment_ids"]
         text_embedding = self.text_embeddings(input_ids, segment_ids)
 
         embeddings = torch.cat([image_embedding, text_embedding], dim=1)
@@ -281,4 +281,4 @@ class ViLT(BaseModel):
         if sequence.dim() != 3:
             sequence = sequence.unsqueeze(1)
 
-        sample_list.hs_masked_for_mlm = sequence
+        sample_list["hs_masked_for_mlm"] = sequence
