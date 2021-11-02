@@ -29,6 +29,8 @@ class ViLTImageEmbedding(nn.Module):
         hidden_size: Optional[int] = None,
         patch_size: Optional[int] = None,
         num_channels: Optional[int] = None,
+        *args,
+        **kwargs
     ):
         super().__init__()
         config = OmegaConf.create(
@@ -73,6 +75,8 @@ class ViLTTextEmbedding(nn.Module):
         bert_model_name: str = "bert-base-uncased",
         hidden_size: Optional[int] = None,
         max_position_embeddings: Optional[int] = None,
+        *args,
+        **kwargs
     ):
 
         super().__init__()
