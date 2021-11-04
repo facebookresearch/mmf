@@ -6,7 +6,7 @@ import unittest
 import torch
 from mmf.modules import encoders
 from omegaconf import OmegaConf
-from tests.test_utils import setup_proxy
+from tests.test_utils import setup_proxy, skip_if_old_transformers
 from torch import nn
 
 
@@ -80,4 +80,25 @@ class TestEncoders(unittest.TestCase):
         encoder = encoders.ResNet18AudioEncoder(config)
         x = torch.rand((1, 1, 4778, 224))
         output = encoder(x)
+        self.assertEqual(output.size(-1), config.out_dim)
+
+    @skip_if_old_transformers(min_version="4.5.0")
+    def test_vit_encoder(self):
+        from omegaconf import open_dict
+
+        config = OmegaConf.structured(encoders.ViTEncoder.Config())
+        with open_dict(config):
+            config.update(
+                {
+                    "layer_norm_eps": 0.0001,
+                    "hidden_size": 768,
+                    "num_hidden_layers": 2,
+                    "do_patch_embeddings": False,
+                    "add_pooling_layer": False,
+                    "out_dim": 768,
+                }
+            )
+        encoder = encoders.ViTEncoder(config)
+        x = torch.rand(32, 197, 768)
+        output, _ = encoder(x)
         self.assertEqual(output.size(-1), config.out_dim)
