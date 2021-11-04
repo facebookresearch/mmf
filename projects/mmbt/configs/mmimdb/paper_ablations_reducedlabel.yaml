@@ -1,0 +1,103 @@
+model_config:
+  mmf_transformer:
+    transformer_base: bert-base-uncased
+    num_labels: 24
+    backend:
+      type: huggingface
+      freeze: false
+      params: {}
+    modalities:
+    - type: text
+      key: text
+      position_dim: 512
+      segment_id: 0
+      embedding_dim: 768
+      layer_norm_eps: 1e-12
+      hidden_dropout_prob: 0.1
+    - type: image
+      key: image
+      embedding_dim: 2048
+      position_dim: 1
+      segment_id: 1
+      layer_norm_eps: 1e-12
+      hidden_dropout_prob: 0.1
+      encoder:
+        type: resnet152
+        params:
+            pretrained: true
+            pool_type: avg
+            num_output_features: 1
+    heads:
+      - type: refiner_classifier
+        refiner_config:
+          type: refiner
+          freeze: false
+          lr_multiplier: 1.0
+          hidden_size: 768
+          vocab_size: 30522
+          loss_type: "cosine"
+          modalities:
+            - "text"
+            - "image"
+          weights:
+            - 0.0
+            - 0.0
+        mlp_config:
+          type: mlp
+          freeze: false
+          num_labels: 24
+          lr_multiplier: 1.0
+          hidden_size: 768
+          vocab_size: 30522
+          loss: logit_bce
+          max_sample_size: 32
+        ms_loss_weight: 0.05
+        use_msloss: true
+    self_weight_decay: 0.997
+dataset_config:
+  mmimdb:
+    return_features_info: false
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 256
+
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+
+evaluation:
+  metrics:
+  - multilabel_macro_f1
+  - multilabel_micro_f1
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 0
+    num_training_steps: 10000
+
+training:
+  batch_size: 32
+  lr_scheduler: true
+  # Don't forget to update schedule_attributes if you update this
+  max_updates: 10000
+  find_unused_parameters: true
+  early_stop:
+    criteria: mmimdb/multilabel_micro_f1
+    minimize: false
+
+checkpoint:
+  pretrained_state_mapping:
+    pooler: pooler
+    backend.transformer: backend.transformer
+    backend.embeddings: backend.embeddings
