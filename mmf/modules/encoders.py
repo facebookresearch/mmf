@@ -729,3 +729,33 @@ class ResNet18AudioEncoder(PooledEncoder):
         model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
         modules = list(model.children())[:-2]
         return nn.Sequential(*modules)
+
+
+@registry.register_encoder("vit")
+class ViTEncoder(Encoder):
+    @dataclass
+    class Config(Encoder.Config):
+        name: str = "vit"
+        # See https://huggingface.co/models?filter=vit for available options
+        pretrained_model_name: str = "google/vit-base-patch16-224"
+        random_init: bool = False
+        gradient_checkpointing: bool = False
+
+    def __init__(self, config: Config, *args, **kwargs):
+        super().__init__()
+        self.config = config
+        self.module, self.hf_config = self._model_class.from_config(config)
+        self.embeddings = self.module.embeddings
+        self.out_dim = self.hf_config.hidden_size
+
+    @property
+    def _model_class(self):
+        from mmf.modules.vit import ViTModel
+
+        return ViTModel
+
+    def forward(self, *args, **kwargs):
+        if "output_hidden_states" not in kwargs:
+            kwargs["output_hidden_states"] = False
+        output = self.module(*args, **kwargs)
+        return output["last_hidden_state"], output.get("hidden_states", None)
