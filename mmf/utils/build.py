@@ -602,17 +602,9 @@ def build_iteration_strategy(
         # This assumes all dataloaders will have same dataset type
         iteration_strategy_class = registry.get_iteration_strategy_class(config.type)
         config = config.get("params", {})
-        dataset_type = dataloaders[list(dataloaders.keys())[0]].dataset.dataset_type
-        if dataset_type != "train":
-            logger.info(
-                f"{iteration_strategy_class.__name__} updated to size "
-                + f"proportional for {dataset_type}"
-            )
-            return SizeProportionalIterationStrategy.from_params(
-                dataloaders, *args, **kwargs
-            )
-        else:
-            return iteration_strategy_class(config, dataloaders, *args, **kwargs)
+        # val and test splits won't be affected as test reporter iterates
+        # over the datasets one by one without using any iteration strategy
+        return iteration_strategy_class(config, dataloaders, *args, **kwargs)
 
 
 def build_meters(run_type: str) -> List[Meter]:
