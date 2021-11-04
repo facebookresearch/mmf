@@ -7,6 +7,8 @@ from mmf.common.sample import Sample
 from mmf.models.transformers.heads.itm import ITM
 from mmf.models.transformers.heads.mlm import MLM
 from mmf.models.transformers.heads.mlp import MLP
+from mmf.models.transformers.heads.refiner import Refiner
+from mmf.models.transformers.heads.refnet_classifier import RefinerClassifier
 from mmf.models.transformers.heads.mrc import MRC
 from mmf.models.transformers.heads.mrfr import MRFR
 from mmf.models.transformers.heads.wra import WRA
@@ -103,6 +105,84 @@ class TestMutilayerMLPHead(unittest.TestCase):
         self.assertEqual(output["scores"].shape, torch.Size([1, 2]))
 
 
+class TestRefinerHead(unittest.TestCase):
+    def setUp(self):
+        self.config = OmegaConf.create(
+            {
+                "type": "refiner",
+                "refiner_target_pooler": "average_k_from_last",
+                "refiner_target_layer_depth": 1,
+            }
+        )
+
+    def test_forward(self):
+        module = Refiner(self.config)
+        sequence_input = torch.ones(size=(1, 128, 768), dtype=torch.float)
+        encoder_output = [sequence_input, sequence_input]
+        processed_sample_list = {}
+        processed_sample_list["masks"] = {}
+        processed_sample_list["masks"]["text"] = torch.ones(
+            size=(1, 64), dtype=torch.long
+        )
+        processed_sample_list["masks"]["image"] = torch.ones(
+            size=(1, 64), dtype=torch.long
+        )
+        output = module(sequence_input, encoder_output, processed_sample_list)
+        self.assertTrue("losses" in output)
+        self.assertTrue("fused_embedding" in output)
+        self.assertTrue("refiner_ss_loss" in output["losses"].keys())
+        self.assertEqual(output["fused_embedding"].shape, torch.Size([1, 768]))
+
+
+class TestRefNetClassifierHead(unittest.TestCase):
+    def setUp(self):
+
+        self.refiner_config = {
+            "type": "refiner",
+            "refiner_target_pooler": "average_k_from_last",
+            "refiner_target_layer_depth": 1,
+        }
+
+        self.mlp_loss_config = OmegaConf.create(
+            {
+                "config": {"type": "mlp"},
+                "loss_name": "classification_loss",
+                "loss": "cross_entropy",
+                "max_sample_size": 10000,
+            }
+        )
+
+        self.config = OmegaConf.create(
+            {
+                "type": "refiner_classifier",
+                "use_msloss": True,
+                "refiner_config": self.refiner_config,
+                "mlp_loss_config": self.mlp_loss_config,
+            }
+        )
+
+    def test_forward(self):
+        module = RefinerClassifier(self.config)
+        sequence_input = torch.ones(size=(5, 128, 768), dtype=torch.float)
+        encoder_output = [sequence_input, sequence_input]
+        processed_sample_list = {}
+        processed_sample_list["masks"] = {}
+        processed_sample_list["masks"]["text"] = torch.ones(
+            size=(5, 64), dtype=torch.long
+        )
+        processed_sample_list["masks"]["image"] = torch.ones(
+            size=(5, 64), dtype=torch.long
+        )
+        processed_sample_list["target_key"] = {}
+        processed_sample_list["target_key"]["targets"] = torch.empty(
+            5, dtype=torch.long
+        ).random_(2)
+        output = module(sequence_input, encoder_output, processed_sample_list)
+        self.assertTrue("losses" in output)
+        self.assertTrue("fused_embedding" in output)
+        self.assertTrue("ms_loss" in output["losses"].keys())
+        
+        
 class TestMRCHead(unittest.TestCase):
     def setUp(self):
         bs = 8
