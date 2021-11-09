@@ -584,7 +584,7 @@ class Checkpoint:
                 "Saving current checkpoint as W&B Artifacts for model versioning"
             )
             self.trainer.logistics_callback.wandb_logger.log_model_checkpoint(
-                current_ckpt_filepath, ckpt
+                current_ckpt_filepath
             )
 
         # Remove old checkpoints if max_to_keep is set

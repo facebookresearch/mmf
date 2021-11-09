@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import collections
-import copy
 import functools
 import json
 import logging
@@ -430,6 +429,7 @@ class WandbLogger:
         wandb_kwargs.pop("enabled")
         wandb_kwargs.pop("entity")
         wandb_kwargs.pop("project")
+        wandb_kwargs.pop("log_checkpoint")
         self._wandb_init.update(**wandb_kwargs)
 
         self.setup()
@@ -474,13 +474,12 @@ class WandbLogger:
 
         self._wandb.log(metrics, commit=commit)
 
-    def log_model_checkpoint(self, model_path, ckpt_dict):
+    def log_model_checkpoint(self, model_path):
         """
         Log the model checkpoint to the wandb dashboard.
 
         Args:
             model_path (str): Path to the model file.
-            ckpt_dict (Dict[str, Any]): Checkpoint dictionary.
         """
         if not self._should_log_wandb():
             return
