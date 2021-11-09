@@ -219,6 +219,7 @@ class TestBERTProcessors(unittest.TestCase):
         self.assertTrue(torch.equal(results["input_mask"], expected_masks))
         self.assertTrue("input_ids_masked" in results)
         self.assertEqual(results["input_ids"].shape, results["input_ids_masked"].shape)
+
         # Test empty caption
         arg = {"text": ""}
         results = processor(arg)
@@ -232,6 +233,7 @@ class TestBERTProcessors(unittest.TestCase):
         self.assertTrue(torch.equal(results["input_mask"], expected_masks))
         self.assertTrue("input_ids_masked" in results)
         self.assertEqual(results["input_ids"].shape, results["input_ids_masked"].shape)
+
         # Test long caption
         arg = {"text": "I am working for facebook " * 100}  # make a long sentence
         results = processor(arg)
@@ -247,6 +249,7 @@ class TestBERTProcessors(unittest.TestCase):
         self.assertTrue(torch.equal(results["input_mask"], expected_masks))
         self.assertTrue("input_ids_masked" in results)
         self.assertEqual(results["input_ids"].shape, results["input_ids_masked"].shape)
+
         # Test two captions
         arg = {
             "text_a": "This will be a test of tokens?",
@@ -268,6 +271,7 @@ class TestBERTProcessors(unittest.TestCase):
         self.assertTrue(torch.equal(results["input_mask"], expected_masks))
         self.assertTrue("input_ids_masked" in results)
         self.assertEqual(results["input_ids"].shape, results["input_ids_masked"].shape)
+
         # Test masked caption
         processor._probability = 1.0
         arg = {"text": "This will be a test of tokens?"}
@@ -282,5 +286,6 @@ class TestBERTProcessors(unittest.TestCase):
         self.assertTrue(torch.equal(results["segment_ids"], expected_segment_ids))
         self.assertTrue("input_ids_masked" in results)
         self.assertEqual(results["input_ids"].shape, results["input_ids_masked"].shape)
+
         # Test [MASK] token is present
         self.assertTrue(103 in results["input_ids_masked"])
