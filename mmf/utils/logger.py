@@ -7,7 +7,6 @@ import logging
 import os
 import sys
 import time
-from copy import deepcopy
 from functools import wraps
 from typing import Any, Callable, Dict, Optional, Union
 
@@ -426,7 +425,7 @@ class WandbLogger:
 
         self._wandb = wandb
         self._wandb_init = dict(entity=entity, config=config, project=project)
-        wandb_kwargs = deepcopy(config.training.wandb)
+        wandb_kwargs = dict(config.training.wandb)
         wandb_kwargs.pop("enabled")
         wandb_kwargs.pop("entity")
         wandb_kwargs.pop("project")
