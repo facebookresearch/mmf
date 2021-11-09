@@ -2,12 +2,13 @@
 
 import collections
 import collections.abc
+from typing import Dict, List, Optional, Union
 
 from mmf.common.registry import registry
-from torch import nn
+from torch import Tensor, nn
 
 
-def build_heads_dict(head_configs, tasks, losses):
+def build_heads_dict(head_configs: Union[Dict, List], tasks: List, losses: Dict):
     """
     HeadsDict static constructor.
     This function either,
@@ -73,14 +74,22 @@ class HeadsDict(nn.Module):
     take a look at `build_heads_dict(head_configs, tasks, losses)`.
     """
 
-    def __init__(self, heads, head_names, losses, head_loss_names):
+    def __init__(
+        self,
+        heads: Union[nn.ModuleDict, nn.ModuleList],
+        head_names: Union[Dict, List],
+        losses: Dict,
+        head_loss_names: Union[Dict, List],
+    ):
         super().__init__()
         self.heads = heads
         self.head_names = head_names
         self.losses = losses
         self.head_loss_names = head_loss_names
 
-    def forward(self, task, sequence, sample_list):
+    def forward(
+        self, task: Optional[str], sequence: Tensor, sample_list: Dict[str, Tensor]
+    ) -> Dict[str, Tensor]:
         """
         For a given task, compute the forward for each head
         associated with the task, compute the losses for
@@ -106,7 +115,7 @@ class HeadsDict(nn.Module):
 
         # list of dict( losses, scores )
         processed_outputs_list = [
-            self.__process_head_output(outputs, loss_name, head_name, sample_list)
+            self._process_head_output(outputs, loss_name, head_name, sample_list)
             for outputs, loss_name, head_name in zip(
                 outputs_list, head_losses, head_names
             )
@@ -131,13 +140,20 @@ class HeadsDict(nn.Module):
         }
         return results
 
-    def __process_head_output(self, outputs, loss_name, head_name, sample_list):
+    def _process_head_output(
+        self,
+        outputs: Union[Dict, Tensor],
+        loss_name: str,
+        head_name: str,
+        sample_list: Dict[str, Tensor],
+    ) -> Dict[str, Tensor]:
         if isinstance(outputs, collections.MutableMapping) and "losses" in outputs:
             return outputs
 
-        logits = outputs
         if isinstance(outputs, collections.MutableMapping) and "scores" in outputs:
             logits = outputs["scores"]
+        else:
+            logits = outputs
         logits = logits.contiguous().view(-1, logits.size(-1))
 
         if loss_name is None:
