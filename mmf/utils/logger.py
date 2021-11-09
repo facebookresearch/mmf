@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import collections
-import copy
 import functools
 import json
 import logging
@@ -11,14 +10,12 @@ import time
 from functools import wraps
 from typing import Any, Callable, Dict, Optional, Union
 
-import omegaconf
 import torch
 from mmf.common.registry import registry
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.distributed import get_rank, is_main, is_xla
 from mmf.utils.file_io import PathManager
 from mmf.utils.timer import Timer
-from omegaconf import OmegaConf
 from termcolor import colored
 
 
@@ -429,16 +426,12 @@ class WandbLogger:
         self._wandb = wandb
 
         self._wandb_init = dict(entity=entity, config=config, project=project)
-
-        wandb_params = copy.copy(config.training.wandb)
-        with omegaconf.open_dict(wandb_params):
-            wandb_params.pop("enabled")
-            wandb_params.pop("entity")
-            wandb_params.pop("project")
-            wandb_params.pop("log_checkpoint")
-
-        init_kwargs = OmegaConf.to_container(wandb_params, resolve=True)
-        self._wandb_init.update(**init_kwargs)
+        wandb_kwargs = dict(config.training.wandb)
+        wandb_kwargs.pop("enabled")
+        wandb_kwargs.pop("entity")
+        wandb_kwargs.pop("project")
+        wandb_kwargs.pop("log_checkpoint")
+        self._wandb_init.update(**wandb_kwargs)
 
         self.setup()
 
@@ -482,13 +475,12 @@ class WandbLogger:
 
         self._wandb.log(metrics, commit=commit)
 
-    def log_model_checkpoint(self, model_path, ckpt_dict):
+    def log_model_checkpoint(self, model_path):
         """
         Log the model checkpoint to the wandb dashboard.
 
         Args:
             model_path (str): Path to the model file.
-            ckpt_dict (Dict[str, Any]): Checkpoint dictionary.
         """
         if not self._should_log_wandb():
             return
