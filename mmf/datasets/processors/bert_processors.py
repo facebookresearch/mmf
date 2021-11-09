@@ -355,6 +355,35 @@ class MultiSentenceRobertaTokenizer(MultiSentenceBertTokenizer):
         self._probability = config.get("mask_probability", 0)
 
 
+def get_pair_text_tokens(item, masked_token_processor):
+    if "text" in item:
+        text_a = item["text"]
+    elif "text_a" in item:
+        text_a = item["text_a"]
+    else:
+        text_a = " ".join(item["tokens"])
+
+    if isinstance(text_a, list):
+        text_a = " ".join(text_a)
+
+    tokens_a = masked_token_processor.tokenize(text_a)
+
+    # 'text_b' can be defined in the dataset preparation
+    tokens_b = None
+    if "text_b" in item:
+        text_b = item["text_b"]
+        if text_b:
+            tokens_b = masked_token_processor.tokenize(text_b)
+
+    masked_token_processor._truncate_seq_pair(
+        tokens_a, tokens_b, masked_token_processor._max_seq_length
+    )
+    output = masked_token_processor._convert_to_indices(
+        tokens_a, tokens_b, probability=masked_token_processor._probability
+    )
+    return output
+
+
 @registry.register_processor("vilt_text_tokenizer")
 class VILTTextTokenizer(MaskedTokenProcessor):
     def __init__(self, config, *args, **kwargs):
@@ -372,29 +401,7 @@ class VILTTextTokenizer(MaskedTokenProcessor):
         self._probability = config.get("mask_probability", 0)
 
     def __call__(self, item):
-        if "text" in item:
-            text_a = item["text"]
-        elif "text_a" in item:
-            text_a = item["text_a"]
-        else:
-            text_a = " ".join(item["tokens"])
-
-        if isinstance(text_a, list):
-            text_a = " ".join(text_a)
-
-        tokens_a = self.tokenize(text_a)
-
-        # 'text_b' can be defined in the dataset preparation
-        tokens_b = None
-        if "text_b" in item:
-            text_b = item["text_b"]
-            if text_b:
-                tokens_b = self.tokenize(text_b)
-
-        self._truncate_seq_pair(tokens_a, tokens_b, self._max_seq_length)
-        output = self._convert_to_indices(
-            tokens_a, tokens_b, probability=self._probability
-        )
+        output = get_pair_text_tokens(item, self)
         output["text"] = output["tokens"]
         return output
 
@@ -416,29 +423,7 @@ class UNITERTextTokenizer(MaskedTokenProcessor):
         self._probability = config.get("mask_probability", 0)
 
     def __call__(self, item):
-        if "text" in item:
-            text_a = item["text"]
-        elif "text_a" in item:
-            text_a = item["text_a"]
-        else:
-            text_a = " ".join(item["tokens"])
-
-        if isinstance(text_a, list):
-            text_a = " ".join(text_a)
-
-        tokens_a = self.tokenize(text_a)
-
-        # 'text_b' can be defined in the dataset preparation
-        tokens_b = None
-        if "text_b" in item:
-            text_b = item["text_b"]
-            if text_b:
-                tokens_b = self.tokenize(text_b)
-
-        self._truncate_seq_pair(tokens_a, tokens_b, self._max_seq_length)
-        output = self._convert_to_indices(
-            tokens_a, tokens_b, probability=self._probability
-        )
+        output = get_pair_text_tokens(item, self)
         output["text"] = output["tokens_masked"]
         output["tokens"] = output["tokens_masked"]
         if "is_correct" in item:
@@ -446,6 +431,19 @@ class UNITERTextTokenizer(MaskedTokenProcessor):
                 item.get("is_correct", True), dtype=torch.long
             )
         return output
+
+    def _token_transform(self, tokens, tokens_b=None):
+        tokens = [self._CLS_TOKEN] + tokens + [self._SEP_TOKEN]
+        if tokens_b:
+            tokens += tokens_b + [self._SEP_TOKEN]
+
+        input_ids = self._convert_tokens_to_ids(tokens)
+        token_len = len(input_ids)
+        token_pad = self._max_seq_length - token_len
+        # Zero-pad up to the sequence length.
+        input_ids += [self._PAD_TOKEN_ID] * token_pad
+        input_ids_tensor = torch.tensor(input_ids, dtype=torch.long)
+        return input_ids_tensor, token_len, token_pad, tokens
 
     def _convert_to_indices(
         self,
@@ -460,42 +458,29 @@ class UNITERTextTokenizer(MaskedTokenProcessor):
         """
         tokens_a_original = tokens_a.copy()
         tokens_a, label_a = self._random_word(tokens_a, probability=probability)
-        tokens_masked = [self._CLS_TOKEN] + tokens_a + [self._SEP_TOKEN]
-        tokens_original = [self._CLS_TOKEN] + tokens_a_original + [self._SEP_TOKEN]
-        segment_ids = [0] + [0] * len(tokens_a) + [0]
+        segment_ids = [0] * (len(tokens_a) + 2)
 
         if tokens_b:
             tokens_b_original = tokens_b.copy()
             tokens_b, label_b = self._random_word(tokens_b, probability=probability)
             lm_label_ids = [-1] + label_a + [-1] + label_b + [-1]
             assert len(tokens_b) > 0
-            tokens_masked += tokens_b + [self._SEP_TOKEN]
-            tokens_original += tokens_b_original + [self._SEP_TOKEN]
-            segment_ids += [1] * len(tokens_b) + [1]
+            segment_ids += [1] * (len(tokens_b) + 1)
         else:
+            tokens_b_original = None
             lm_label_ids = [-1] + label_a + [-1]
 
-        assert len(tokens_masked) == len(tokens_original)
-        input_ids_masked = self._convert_tokens_to_ids(tokens_masked)
-        input_ids_original = self._convert_tokens_to_ids(tokens_original)
-        input_mask = [1] * len(input_ids_masked)
+        input_ids_masked, token_len, token_pad, tokens_masked = self._token_transform(
+            tokens_a, tokens_b
+        )
+        input_ids_original, _, _, _ = self._token_transform(
+            tokens_a_original, tokens_b_original
+        )
 
-        # Zero-pad up to the sequence length.
-        while len(input_ids_masked) < self._max_seq_length:
-            input_ids_masked.append(self._PAD_TOKEN_ID)
-            input_ids_original.append(self._PAD_TOKEN_ID)
-            input_mask.append(0)
-            segment_ids.append(0)
-            lm_label_ids.append(-1)
+        input_mask = [1] * token_len + [0] * token_pad
+        segment_ids += [0] * token_pad
+        lm_label_ids += [-1] * token_pad
 
-        assert len(input_ids_masked) == self._max_seq_length
-        assert len(input_ids_original) == self._max_seq_length
-        assert len(input_mask) == self._max_seq_length
-        assert len(segment_ids) == self._max_seq_length
-        assert len(lm_label_ids) == self._max_seq_length
-
-        input_ids_masked = torch.tensor(input_ids_masked, dtype=torch.long)
-        input_ids_original = torch.tensor(input_ids_original, dtype=torch.long)
         input_mask = torch.tensor(input_mask, dtype=torch.long)
         segment_ids = torch.tensor(segment_ids, dtype=torch.long)
         lm_label_ids = torch.tensor(lm_label_ids, dtype=torch.long)

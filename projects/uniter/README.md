@@ -15,21 +15,4 @@ Computer Vision, 2020b. ([arXiV](https://arxiv.org/pdf/1909.11740))
 ```
 
 
-## Installation
-
-Follow installation instructions in the [documentation](https://mmf.readthedocs.io/en/latest/notes/installation.html).
-
-## Training
-
-To train UNITER model on the VQA2.0 dataset, run the following command
-```
-mmf_run config=projects/uniter/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=uniter
-```
-
-To pretrain UNITER on the masked COCO dataset, run the following command
-```
-mmf_run config=projects/uniter/configs/masked_coco/defaults.yaml run_type=train_val dataset=masked_coco model=uniter
-```
-
-
-Based on the config used and `do_pretraining` defined in the config, the model can use the pretraining recipe described in the UNITER paper, or be finetuned on downstream tasks.
+Please see [https://mmf.sh/docs/projects/uniter](https://mmf.sh/docs/projects/uniter) for more details on how to use the UNITER model.
