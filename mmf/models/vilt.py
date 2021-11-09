@@ -68,7 +68,7 @@ class ViLTImageEmbedding(nn.Module):
 
         img_embeddings = self.embedding(image)
 
-        img_segment_ids = torch.zeros(
+        img_segment_ids = torch.ones(
             img_embeddings.size()[:-1],
             dtype=img_embeddings.dtype,
             device=img_embeddings.device,
