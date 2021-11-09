@@ -7,10 +7,10 @@ from mmf.common.sample import Sample
 from mmf.models.transformers.heads.itm import ITM
 from mmf.models.transformers.heads.mlm import MLM
 from mmf.models.transformers.heads.mlp import MLP
-from mmf.models.transformers.heads.refiner import Refiner
-from mmf.models.transformers.heads.refnet_classifier import RefinerClassifier
 from mmf.models.transformers.heads.mrc import MRC
 from mmf.models.transformers.heads.mrfr import MRFR
+from mmf.models.transformers.heads.refiner import Refiner
+from mmf.models.transformers.heads.refnet_classifier import RefinerClassifier
 from mmf.models.transformers.heads.wra import WRA
 from omegaconf import OmegaConf
 from tests.test_utils import skip_if_no_cuda
@@ -181,8 +181,8 @@ class TestRefNetClassifierHead(unittest.TestCase):
         self.assertTrue("losses" in output)
         self.assertTrue("fused_embedding" in output)
         self.assertTrue("ms_loss" in output["losses"].keys())
-        
-        
+
+
 class TestMRCHead(unittest.TestCase):
     def setUp(self):
         bs = 8
@@ -202,17 +202,17 @@ class TestMRCHead(unittest.TestCase):
         ).bool()
 
     def test_forward_kldiv(self):
-        config = OmegaConf.create({"type": "mrc", "hidden_size": 768, "label_dim": 100})
-        module = MRC(config)
+        config = OmegaConf.create({"hidden_size": 768, "label_dim": 100})
+        module = MRC(**config)
         output = module(self.sequence_input, self.processed_sample_list)
         self.assertTrue("mrc_loss" in output["losses"])
         self.assertEqual(output["losses"]["mrc_loss"].shape, torch.Size([]))
 
     def test_forward_ce(self):
         config = OmegaConf.create(
-            {"type": "mrc", "use_kl": False, "hidden_size": 768, "label_dim": 100}
+            {"use_kl": False, "hidden_size": 768, "label_dim": 100}
         )
-        module = MRC(config)
+        module = MRC(**config)
         output = module(self.sequence_input, self.processed_sample_list)
         self.assertTrue("mrc_loss" in output["losses"])
         self.assertEqual(output["losses"]["mrc_loss"].shape, torch.Size([]))
@@ -239,15 +239,15 @@ class TestMRFRHead(unittest.TestCase):
         self.img_embedding_weight = nn.Parameter(torch.rand((feat_dim, img_dim)))
 
     def test_forward(self):
-        config = OmegaConf.create({"type": "mrfr", "hidden_size": 768, "img_dim": 1024})
-        module = MRFR(config, self.img_embedding_weight)
+        config = OmegaConf.create({"hidden_size": 768, "img_dim": 1024})
+        module = MRFR(self.img_embedding_weight, **config)
         output = module(self.sequence_input, self.processed_sample_list)
         self.assertTrue("mrfr_loss" in output["losses"])
         self.assertEqual(output["losses"]["mrfr_loss"].shape, torch.Size([]))
 
     def test_linear_proj_param_is_shared(self):
-        config = OmegaConf.create({"type": "mrfr", "hidden_size": 768, "img_dim": 1024})
-        module = MRFR(config, self.img_embedding_weight)
+        config = OmegaConf.create({"hidden_size": 768, "img_dim": 1024})
+        module = MRFR(self.img_embedding_weight, **config)
         with torch.no_grad():
             self.img_embedding_weight *= 0
             output = module(self.sequence_input, self.processed_sample_list)
@@ -283,8 +283,7 @@ class TestWRAHead(unittest.TestCase):
         self.processed_sample_list["is_correct"] = is_correct
 
     def test_forward(self):
-        config = OmegaConf.create({"type": "wra"})
-        module = WRA(config)
+        module = WRA()
         output = module(self.sequence_input, self.processed_sample_list)
         self.assertTrue("wra_loss" in output["losses"])
         self.assertEqual(output["losses"]["wra_loss"].shape, torch.Size([]))

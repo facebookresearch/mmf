@@ -3,11 +3,11 @@
 # Initial version was taken from https://github.com/ChenRocks/UNITER/
 # and adapted for MMF.
 
-from typing import Any, Optional
+from typing import Optional
 
 import torch
 from mmf.utils.general import retry_n
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 from torch import Tensor, nn
 from transformers.modeling_bert import BertConfig, BertEmbeddings, BertModel
 
@@ -85,13 +85,17 @@ class UNITERModelBase(nn.Module):
         img_dim: int = 2048,
         hidden_size: int = 768,
         hidden_dropout_prob: float = 0,
-        text_embeddings: Any = EMPTY_CONFIG,
-        encoder: Any = EMPTY_CONFIG,
+        text_embeddings: DictConfig = EMPTY_CONFIG,
+        encoder: DictConfig = EMPTY_CONFIG,
     ):
         super().__init__()
 
-        bert_config = BertConfig.from_pretrained(bert_model_name)
-        bert_config.update(text_embeddings)
+        bert_config = retry_n(
+            NUM_RETRIES,
+            BertConfig.from_pretrained,
+            bert_model_name,
+            **OmegaConf.to_container(text_embeddings),
+        )
         self.text_embeddings = BertEmbeddings(bert_config)
 
         self.img_embeddings = UNITERImageEmbeddings(
@@ -107,7 +111,6 @@ class UNITERModelBase(nn.Module):
             bert_model_name,
             **OmegaConf.to_container(encoder),
         )
-        hf_config.update(encoder)
         if random_init:
             bert_model = BertModel(hf_config)
         else:
@@ -176,7 +179,7 @@ class UNITERModelBase(nn.Module):
         output_hidden_states: bool = False,
         txt_type_ids: Optional[Tensor] = None,
         img_type_ids: Optional[Tensor] = None,
-        input_modality: str = "VL",
+        input_modality: str = "image-text",
     ) -> Tensor:
         # compute self-attention mask
         extended_attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
@@ -188,12 +191,12 @@ class UNITERModelBase(nn.Module):
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
 
         # embedding layer
-        if input_modality == "V":
+        if input_modality == "image":
             # image only
             embedding_output = self._compute_img_embeddings(
                 img_feat, img_pos_feat, img_masks, img_type_ids
             )
-        elif input_modality == "L":
+        elif input_modality == "text":
             # text only
             embedding_output = self._compute_txt_embeddings(
                 input_ids, position_ids, txt_type_ids
