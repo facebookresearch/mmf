@@ -4,23 +4,33 @@
 # and adapted for MMF.
 
 import collections
+import copy
 import logging
 import random
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
+import numpy as np
 import torch
 from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.modules.losses import MMFLoss
 from mmf.utils.general import retry_n
-from omegaconf import MISSING, OmegaConf
+from omegaconf import MISSING, DictConfig, OmegaConf
 from torch import Tensor, nn
 from transformers.modeling_bert import BertConfig, BertEmbeddings, BertModel
 
 
 NUM_RETRIES = 6
 EMPTY_CONFIG = OmegaConf.create({})
+DEFAULT_PRETRAINING_HEAD_CONFIGS = {
+    "mlm": {"type": "mlm"},
+    "itm": {"type": "itm"},
+    "mrc": {"type": "mrc"},
+    "mrfr": {"type": "mrfr"},
+    "wra": {"type": "wra"},
+}
+DEFAULT_PRETRAINING_TASKS = "mlm,itm,mrc,mrfr,wra"
 
 
 logger = logging.getLogger()
@@ -95,13 +105,17 @@ class UNITERModelBase(nn.Module):
         img_dim: int = 2048,
         hidden_size: int = 768,
         hidden_dropout_prob: float = 0,
-        text_embeddings: Any = EMPTY_CONFIG,
-        encoder: Any = EMPTY_CONFIG,
+        text_embeddings: DictConfig = EMPTY_CONFIG,
+        encoder: DictConfig = EMPTY_CONFIG,
     ):
         super().__init__()
 
-        bert_config = BertConfig.from_pretrained(bert_model_name)
-        bert_config.update(text_embeddings)
+        bert_config = retry_n(
+            NUM_RETRIES,
+            BertConfig.from_pretrained,
+            bert_model_name,
+            **OmegaConf.to_container(text_embeddings),
+        )
         self.text_embeddings = BertEmbeddings(bert_config)
 
         self.img_embeddings = UNITERImageEmbeddings(
@@ -117,7 +131,6 @@ class UNITERModelBase(nn.Module):
             bert_model_name,
             **OmegaConf.to_container(encoder),
         )
-        hf_config.update(encoder)
         if random_init:
             bert_model = BertModel(hf_config)
         else:
@@ -186,7 +199,7 @@ class UNITERModelBase(nn.Module):
         output_hidden_states: bool = False,
         txt_type_ids: Optional[Tensor] = None,
         img_type_ids: Optional[Tensor] = None,
-        input_modality: str = "VL",
+        input_modality: str = "image-text",
     ) -> Tensor:
         # compute self-attention mask
         extended_attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
@@ -198,12 +211,12 @@ class UNITERModelBase(nn.Module):
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
 
         # embedding layer
-        if input_modality == "V":
+        if input_modality == "image":
             # image only
             embedding_output = self._compute_img_embeddings(
                 img_feat, img_pos_feat, img_masks, img_type_ids
             )
-        elif input_modality == "L":
+        elif input_modality == "text":
             # text only
             embedding_output = self._compute_txt_embeddings(
                 input_ids, position_ids, txt_type_ids
@@ -259,7 +272,7 @@ class UNITERForClassification(nn.Module):
         self,
         head_configs: Dict,
         loss_configs: Dict,
-        tasks: Any,
+        tasks: Union[str, List],
         random_init: bool = False,
         bert_model_name: str = "bert-base-uncased",
         img_dim: int = 2048,
@@ -288,6 +301,14 @@ class UNITERForClassification(nn.Module):
             self.tasks = self.tasks.split(",")
 
         for task in self.tasks:
+            assert task in head_configs, (
+                f"Task {task} is specified in your model configs"
+                + " but there is no head configured for the task."
+                + "Head configs can be added under model_config.heads"
+                + "in your yaml configs. Either remove this task if UNITER"
+                + " is not meant to run on a dataset named {task}"
+                + " or add a head config."
+            )
             head_config = head_configs[task]
             head_type = head_config.get("type", "mlp")
             head_class = registry.get_transformer_head_class(head_type)
@@ -327,25 +348,15 @@ class UNITERForClassification(nn.Module):
         )
 
 
-DEFAULT_PRETRAINING_HEAD_CONFIGS = {
-    "mlm": {"type": "mlm"},
-    "itm": {"type": "itm"},
-    "mrc": {"type": "mrc"},
-    "mrfr": {"type": "mrfr"},
-    "wra": {"type": "wra"},
-}
-DEFAULT_PRETRAINING_TASKS = "mlm,itm,mrc,mrfr,wra"
-
-
 class UNITERForPretraining(nn.Module):
     """ UNITER wrapper for pretraining
     """
 
     def __init__(
         self,
-        head_configs: Dict = DEFAULT_PRETRAINING_HEAD_CONFIGS,
-        loss_configs: Dict = {},
-        tasks: Any = DEFAULT_PRETRAINING_TASKS,
+        head_configs: Optional[Dict] = None,
+        loss_configs: Optional[Dict] = None,
+        tasks: Union[List, str] = DEFAULT_PRETRAINING_TASKS,
         mask_probability: float = 0,
         random_init: bool = False,
         bert_model_name: str = "bert-base-uncased",
@@ -358,6 +369,12 @@ class UNITERForPretraining(nn.Module):
         **kwargs,
     ):
         super().__init__()
+        if head_configs is None:
+            head_configs = copy.deepcopy(DEFAULT_PRETRAINING_HEAD_CONFIGS)
+
+        if loss_configs is None:
+            loss_configs = {}
+
         self.loss_configs = loss_configs
         self.mask_probability = mask_probability
         self.uniter = UNITERModelBase(
@@ -382,10 +399,12 @@ class UNITERForPretraining(nn.Module):
             head_class = registry.get_transformer_head_class(head_type)
             if head_type == "mrfr":
                 self.heads[task] = head_class(
-                    head_config, self.uniter.img_embeddings.img_linear.weight
+                    self.uniter.img_embeddings.img_linear.weight, **head_config
                 )
-            else:
+            elif head_type in ("itm", "mlm", "mlp"):
                 self.heads[task] = head_class(head_config)
+            else:
+                self.heads[task] = head_class(**head_config)
 
         self.init_losses()
 
@@ -403,7 +422,7 @@ class UNITERForPretraining(nn.Module):
 
     def forward(self, processed_sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
         assert "is_correct" in processed_sample_list, (
-            "UNITER pretraining requires mismatched captions for Image-Text-Matching."
+            "UNITER pretraining requires mismatched captions."
             + " Please add 'false_caption': true under dataset_config in your "
             + "yaml configs."
         )
@@ -446,7 +465,7 @@ class UNITERForPretraining(nn.Module):
         self, processed_sample_list: Dict[str, Tensor]
     ):
         task = processed_sample_list["task"]
-        if task == "mrc" or task == "mrfr":
+        if task in ("mrfr", "mrc"):
             self._add_image_feat_masked(processed_sample_list)
             # mrc assumes cls prob is a key in sample list,
             # having cls prob as a key in sample list makes it easier
@@ -455,7 +474,7 @@ class UNITERForPretraining(nn.Module):
                 processed_sample_list["image_info_0"]["cls_prob"]
             )
 
-        if not task == "itm" and not task == "wra":
+        if task not in ("wra", "itm"):
             self._remove_mismatched_captions(processed_sample_list)
 
     def _add_image_feat_masked(self, processed_sample_list: Dict[str, Tensor]):
@@ -474,7 +493,7 @@ class UNITERForPretraining(nn.Module):
         processed_sample_list["image_mask"] = img_masks
 
     def _get_img_mask(self, mask_prob: float, num_bb: int) -> Tensor:
-        img_mask = [random.random() < mask_prob for _ in range(num_bb)]
+        img_mask = list(map(bool, np.random.binomial(1, mask_prob, num_bb)))
         if not any(img_mask):
             # at least mask 1
             img_mask[random.choice(range(num_bb))] = True
@@ -502,16 +521,23 @@ class UNITERForPretraining(nn.Module):
     def _preprocess_itm(self, processed_sample_list: Dict[str, Tensor]):
         assert "is_correct" in processed_sample_list
 
-        itm_labels = {"is_correct": processed_sample_list["is_correct"]}
-        processed_sample_list["itm_labels"] = itm_labels
+        processed_sample_list["itm_labels"] = {
+            "is_correct": processed_sample_list["is_correct"]
+        }
+
+    def _get_feature_mask(self, image_mask, sentence_len):
+        bs = image_mask.size(0)
+        padding_for_txt = torch.zeros((bs, sentence_len)).to(image_mask)
+        concat_mask = torch.cat([padding_for_txt, image_mask], dim=-1)
+        return concat_mask
 
     def _preprocess_mrc(self, processed_sample_list: Dict[str, Tensor]):
         assert "cls_prob" in processed_sample_list
         assert "image_mask" in processed_sample_list
         assert "image_feat_masked" in processed_sample_list
 
-        mrc_label_key = self.heads["mrc"].config.mrc_label_key
-        mrc_mask_key = self.heads["mrc"].config.mrc_mask_key
+        mrc_label_key = self.heads["mrc"].mrc_label_key
+        mrc_mask_key = self.heads["mrc"].mrc_mask_key
 
         image_mask = processed_sample_list["image_mask"]
         cls_prob = processed_sample_list["cls_prob"].to(image_mask.device)
@@ -520,19 +546,18 @@ class UNITERForPretraining(nn.Module):
         cls_prob = cls_prob[img_masks_ext].contiguous().view(-1, cls_dim)
         processed_sample_list[mrc_label_key] = cls_prob
 
-        bs = image_mask.size(0)
         sentence_len = processed_sample_list["input_ids"].size(1)
-        padding_for_txt = torch.zeros((bs, sentence_len)).to(image_mask)
-        concat_mask = torch.cat([padding_for_txt, image_mask], dim=-1)
-        processed_sample_list[mrc_mask_key] = concat_mask
+        processed_sample_list[mrc_mask_key] = self._get_feature_mask(
+            image_mask, sentence_len
+        )
         processed_sample_list["image_feat"] = processed_sample_list["image_feat_masked"]
 
     def _preprocess_mrfr(self, processed_sample_list: Dict[str, Tensor]):
         assert "image_mask" in processed_sample_list
         assert "image_feat_masked" in processed_sample_list
 
-        mrfr_target_key = self.heads["mrfr"].config.mrfr_target_key
-        mrfr_mask_key = self.heads["mrfr"].config.mrfr_mask_key
+        mrfr_target_key = self.heads["mrfr"].mrfr_target_key
+        mrfr_mask_key = self.heads["mrfr"].mrfr_mask_key
 
         image_mask = processed_sample_list["image_mask"]
         image_feat = processed_sample_list["image_feat"]
@@ -542,18 +567,17 @@ class UNITERForPretraining(nn.Module):
         feat_targets = image_feat[img_masks_ext].contiguous().view(-1, feat_dim)
         processed_sample_list[mrfr_target_key] = feat_targets
 
-        bs = image_mask.size(0)
         sentence_len = processed_sample_list["input_ids"].size(1)
-        padding_for_txt = torch.zeros((bs, sentence_len)).to(image_mask)
-        concat_mask = torch.cat([padding_for_txt, image_mask], dim=-1)
-        processed_sample_list[mrfr_mask_key] = concat_mask
+        processed_sample_list[mrfr_mask_key] = self._get_feature_mask(
+            image_mask, sentence_len
+        )
         processed_sample_list["image_feat"] = processed_sample_list["image_feat_masked"]
 
     def _preprocess_wra(self, processed_sample_list: Dict[str, Tensor]):
         assert "is_correct" in processed_sample_list
 
-        ot_inputs_key = self.heads["wra"].config.ot_inputs_key
-        wra_label_key = self.heads["wra"].config.wra_label_key
+        ot_inputs_key = self.heads["wra"].ot_inputs_key
+        wra_label_key = self.heads["wra"].wra_label_key
 
         txt_lens = [i.size(0) for i in processed_sample_list["input_ids"]]
         num_bbs = [f.size(0) for f in processed_sample_list["image_feat"]]
@@ -648,7 +672,10 @@ class UNITER(BaseModel):
             self.tasks = self.tasks.split(",")
 
     def init_losses(self):
-        pass
+        """
+        Defer loss management to submodels,
+        do nothing when called by build_model.
+        """
 
     def add_pos_feat(self, sample_list: Dict[str, Tensor]):
         assert "image_info_0" in sample_list
