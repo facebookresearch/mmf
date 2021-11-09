@@ -6,7 +6,7 @@ import random
 import warnings
 
 import torch
-from mmf.common.constants import IMAGE_COLOR_MEAN, IMAGE_COLOR_STD
+from mmf.common.constants import INCEPTION_IMAGE_NORMALIZE
 from mmf.common.registry import registry
 from mmf.datasets.processors.processors import BaseProcessor
 from omegaconf import OmegaConf
@@ -174,7 +174,9 @@ class VILTImageProcessor(BaseProcessor):
         transforms_list.append(Resize(image_size))
         transforms_list.append(ToTensor())
         transforms_list.append(GrayScaleTo3Channels())
-        transforms_list.append(Normalize(IMAGE_COLOR_MEAN, IMAGE_COLOR_STD))
+        transforms_list.append(
+            Normalize(INCEPTION_IMAGE_NORMALIZE, INCEPTION_IMAGE_NORMALIZE)
+        )
         self.transform = Compose(transforms_list)
 
     def __call__(self, x):

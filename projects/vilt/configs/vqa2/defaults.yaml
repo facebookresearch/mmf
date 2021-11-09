@@ -2,8 +2,8 @@ includes:
 - ../projects/unit/configs/vqa2_dataset_cfg.yaml
 
 other_configs:
-  image_w: 224
-  image_h: 224
+  image_w: 384
+  image_h: 384
   hidden_size: 768
 
 dataset_config:
@@ -27,9 +27,10 @@ model_config:
     heads:
       vqa2:
         - type: mlp
+          num_layers: 1
           loss: vqa2_mlp
           freeze: false
-          lr_multiplier: 1.0
+          lr_multiplier: 10.0
           in_dim: 768
           hidden_size: 1536
           num_labels: 3129
@@ -41,7 +42,7 @@ model_config:
       type: vit
       params:
         random_init: True
-        pretrained_model_name: google/vit-base-patch16-224
+        pretrained_model_name: google/vit-base-patch32-384
         gradient_checkpointing: false
         do_pooling: false
         hidden_dropout_prob: 0.1
@@ -53,7 +54,7 @@ model_config:
         regularize_bn: False
         regularize_bias: True
         hidden_dim: ${other_configs.hidden_size}
-        pretrained_model: vit_base_patch16_224
+        pretrained_model: vit_base_patch32_384
         mlp_dim: 3072
 
     text_embeddings:
@@ -61,7 +62,8 @@ model_config:
       bert_model_name: bert-base-uncased
       hidden_dim: ${other_configs.hidden_size}
       hidden_size: 768
-
+      max_position_embeddings: 40
+      random_init: True
 
 training:
   clip_gradients: false
