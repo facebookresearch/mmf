@@ -576,10 +576,7 @@ class Checkpoint:
             self.save_func(ckpt, f)
 
         # Save the current checkpoint as W&B artifacts for model versioning.
-        if (
-            self.config.training.wandb.enabled
-            and self.config.training.wandb.log_checkpoint
-        ):
+        if self.config.training.wandb.log_checkpoint:
             logger.info(
                 "Saving current checkpoint as W&B Artifacts for model versioning"
             )
