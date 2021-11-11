@@ -149,6 +149,9 @@ class Processor:
 
         processor_class = registry.get_processor_class(config.type)
 
+        if processor_class is None:
+            raise ValueError(f"No processor class named {config.type} is defined.")
+
         params = {}
         if "params" not in config:
             logger.warning(
@@ -1173,9 +1176,7 @@ class CaptionProcessor(BaseProcessor):
 
 @registry.register_processor("evalai_answer")
 class EvalAIAnswerProcessor(BaseProcessor):
-    """Processes an answer similar to Eval AI
-
-    """
+    """Processes an answer similar to Eval AI"""
 
     CONTRACTIONS = {
         "aint": "ain't",
