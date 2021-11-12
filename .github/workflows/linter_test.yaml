@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        lint: ['flake8', 'black', 'isort', 'ufmt']
+        lint: ['flake8', 'ufmt']
     runs-on: ubuntu-latest
 
     steps:
