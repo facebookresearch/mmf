@@ -38,15 +38,10 @@ repos:
     -   id: pyupgrade
         args: ['--py36-plus']
 
--   repo: https://github.com/timothycrosley/isort
-    rev: 4.3.21
+-   repo: https://github.com/omnilib/ufmt
+    rev: v1.3.0
     hooks:
-    -   id: isort
-        additional_dependencies: [toml]
-        exclude: ^website
-
--   repo: https://github.com/ambv/black
-    rev: 19.3b0
-    hooks:
-    - id: black
-      language_version: python3.7
+    - id: ufmt
+      additional_dependencies:
+        - black == 21.9b0
+        - usort == 0.6.4
