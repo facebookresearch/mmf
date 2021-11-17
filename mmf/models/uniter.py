@@ -3,7 +3,8 @@
 # Initial version was taken from https://github.com/ChenRocks/UNITER/
 # and adapted for MMF.
 
-from typing import Optional
+from collections import namedtuple
+from typing import Optional, Tuple
 
 import torch
 from mmf.utils.general import retry_n
@@ -176,11 +177,10 @@ class UNITERModelBase(nn.Module):
         img_pos_feat: Tensor,
         attention_mask: Tensor,
         img_masks: Optional[Tensor] = None,
-        output_hidden_states: bool = False,
         txt_type_ids: Optional[Tensor] = None,
         img_type_ids: Optional[Tensor] = None,
         input_modality: str = "image-text",
-    ) -> Tensor:
+    ) -> Tuple[Tensor, Tensor]:
         # compute self-attention mask
         extended_attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
         extended_attention_mask = extended_attention_mask.to(
@@ -215,8 +215,7 @@ class UNITERModelBase(nn.Module):
         encoded_layers = self.encoder(
             embedding_output,
             attention_mask=extended_attention_mask,
-            output_hidden_states=output_hidden_states,
+            output_hidden_states=True,
         )
-        if not output_hidden_states:
-            encoded_layers = encoded_layers[-1]
-        return encoded_layers
+        layers = namedtuple("TransformerOutput", ["final_layer", "hidden_layers"])
+        return layers(encoded_layers[0], encoded_layers[1])
