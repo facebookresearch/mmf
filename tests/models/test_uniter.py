@@ -49,6 +49,6 @@ class TestUNITERModelBase(unittest.TestCase):
         with torch.no_grad():
             model_output = model(
                 input_ids, position_ids, img_feat, img_pos_feat, attention_mask
-            )
+            ).final_layer
 
         self.assertEqual(model_output.shape, torch.Size([8, 125, 768]))
