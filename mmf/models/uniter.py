@@ -3,12 +3,12 @@
 # Initial version was taken from https://github.com/ChenRocks/UNITER/
 # and adapted for MMF.
 
-import collections
+from collections import MutableMapping, namedtuple
 import copy
 import logging
 import random
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -196,11 +196,10 @@ class UNITERModelBase(nn.Module):
         img_pos_feat: Tensor,
         attention_mask: Tensor,
         img_masks: Optional[Tensor] = None,
-        output_hidden_states: bool = False,
         txt_type_ids: Optional[Tensor] = None,
         img_type_ids: Optional[Tensor] = None,
         input_modality: str = "image-text",
-    ) -> Tensor:
+    ) -> Tuple[Tensor, Tensor]:
         # compute self-attention mask
         extended_attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
         extended_attention_mask = extended_attention_mask.to(
@@ -235,11 +234,10 @@ class UNITERModelBase(nn.Module):
         encoded_layers = self.encoder(
             embedding_output,
             attention_mask=extended_attention_mask,
-            output_hidden_states=output_hidden_states,
+            output_hidden_states=True,
         )
-        if not output_hidden_states:
-            encoded_layers = encoded_layers[-1]
-        return encoded_layers
+        layers = namedtuple("TransformerOutput", ["final_layer", "hidden_layers"])
+        return layers(encoded_layers[0], encoded_layers[1])
 
 
 def _process_head_outputs(
@@ -248,11 +246,11 @@ def _process_head_outputs(
     sample_list: Dict[str, Tensor],
     outputs: Dict[str, Tensor],
 ) -> Dict[str, Tensor]:
-    if isinstance(outputs, collections.MutableMapping) and "losses" in outputs:
+    if isinstance(outputs, MutableMapping) and "losses" in outputs:
         return outputs
 
     logits = outputs
-    if isinstance(outputs, collections.MutableMapping) and "scores" in outputs:
+    if isinstance(outputs, MutableMapping) and "scores" in outputs:
         logits = outputs["scores"]
     logits = logits.contiguous().view(-1, logits.size(-1))
     output = losses[dataset_name](sample_list, {"scores": logits})
@@ -336,8 +334,7 @@ class UNITERForClassification(nn.Module):
             processed_sample_list["img_pos_feat"],
             processed_sample_list["attention_mask"],
             img_masks=processed_sample_list["image_mask"],
-            output_hidden_states=False,
-        )
+        ).final_layer
         dataset_name = processed_sample_list["dataset_name"]
         outputs = self.heads[dataset_name](
             sequence_output, processed_sample_list=processed_sample_list
@@ -450,8 +447,7 @@ class UNITERForPretraining(nn.Module):
             processed_sample_list["img_pos_feat"],
             processed_sample_list["attention_mask"],
             img_masks=processed_sample_list["image_mask"],
-            output_hidden_states=False,
-        )
+        ).final_layer
         dataset_name = processed_sample_list["dataset_name"]
         outputs = self.heads[task](
             sequence_output, processed_sample_list=processed_sample_list
