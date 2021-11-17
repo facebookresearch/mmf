@@ -11,6 +11,7 @@ model_config:
     heads:
       mlm:
         type: mlm
+        vocab_size: 28996
       itm:
         type: itm
       mrc:
@@ -19,6 +20,8 @@ model_config:
         type: mrfr
       wra:
         type: wra
+    text_embeddings:
+      vocab_size: 28996
 
 dataset_config:
   masked_coco:
@@ -33,10 +36,11 @@ dataset_config:
       masked_token_processor:
         type: uniter_text_tokenizer
         params:
+          from_pretrained: bert-base-cased
           tokenizer_config:
-            type: bert-base-uncased
+            type: bert-base-cased
             params:
-              do_lower_case: true
+              do_lower_case: false
           mask_probability: 0.15
           max_seq_length: 25
     images:

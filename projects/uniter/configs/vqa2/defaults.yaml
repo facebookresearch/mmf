@@ -12,7 +12,8 @@ model_config:
         lr_multiplier: 10
     losses:
       vqa2: logit_bce
-
+    text_embeddings:
+      vocab_size: 28996
 
 dataset_config:
   vqa2:
@@ -23,10 +24,11 @@ dataset_config:
       text_processor:
         type: uniter_text_tokenizer
         params:
+          from_pretrained: bert-base-cased
           tokenizer_config:
-            type: bert-base-uncased
+            type: bert-base-cased
             params:
-              do_lower_case: true
+              do_lower_case: false
           mask_probability: 0
           max_seq_length: 60
 
