@@ -383,6 +383,9 @@
 
         <span class="n">processor_class</span> <span class="o">=</span> <span class="n">registry</span><span class="o">.</span><span class="n">get_processor_class</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">type</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">processor_class</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No processor class named </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2"> is defined.&quot;</span><span class="p">)</span>
+
         <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="s2">&quot;params&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
@@ -1407,9 +1410,7 @@
 
 <div class="viewcode-block" id="EvalAIAnswerProcessor"><a class="viewcode-back" href="../../../../lib/datasets/processors.html#mmf.datasets.processors.processors.EvalAIAnswerProcessor">[docs]</a><span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;evalai_answer&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">EvalAIAnswerProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Processes an answer similar to Eval AI</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Processes an answer similar to Eval AI&quot;&quot;&quot;</span>
 
     <span class="n">CONTRACTIONS</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;aint&quot;</span><span class="p">:</span> <span class="s2">&quot;ain&#39;t&quot;</span><span class="p">,</span>
