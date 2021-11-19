@@ -60,7 +60,7 @@ class BertImgModel(BertPreTrainedModel):
         attention_mask: Optional[Tensor] = None,
         position_ids: Optional[Tensor] = None,
         head_mask: Optional[Tensor] = None,
-    ) -> Tuple(Tensor):
+    ) -> Tuple[Tensor]:
         if attention_mask is None:
             attention_mask = torch.ones(
                 (input_ids.size(0), input_ids.size(1) + img_feats.size(1))
