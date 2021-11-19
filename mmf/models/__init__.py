@@ -16,6 +16,7 @@ from .pythia import Pythia
 from .top_down_bottom_up import TopDownBottomUp
 from .unimodal import UnimodalBase, UnimodalText, UnimodalModal
 from .vilbert import ViLBERT
+from .vinvl import VinVL
 from .visual_bert import VisualBERT
 
 
@@ -43,4 +44,5 @@ __all__ = [
     "UnimodalModal",
     "UnimodalText",
     "AlbefVitEncoder",
+    "VinVL",
 ]
