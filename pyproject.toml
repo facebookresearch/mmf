@@ -33,3 +33,6 @@ exclude = '''
   | .*\/fb\/.*
 )/
 '''
+
+[tool.usort]
+first_party_detection = false

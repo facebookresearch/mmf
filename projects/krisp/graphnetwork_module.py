@@ -398,7 +398,7 @@ def mmf_indirect(path):
 # Graph network module
 # Can be added as part of a larger network, or used alone using GraphNetworkBare
 class GraphNetworkModule(nn.Module):
-    """ The generic class for graph networks
+    """The generic class for graph networks
     Can be generically added to any other kind of network
     """
 
@@ -1366,9 +1366,8 @@ class GraphNetwork(nn.Module):
         # Get/set parameters
         self.num_relations = num_relations
         self.num_nodes = num_nodes
-        self.in_node_dim = (
-            in_node_dim
-        )  # Passed in from GraphNetworkModule which constructs the input features
+        # Passed in from GraphNetworkModule which constructs the input features
+        self.in_node_dim = in_node_dim
         self.node_hid_dim = config.node_hid_dim
         self.num_gcn_conv = config.num_gcn_conv
         self.use_bn = config.use_batch_norm
