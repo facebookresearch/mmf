@@ -16,9 +16,8 @@ from .pythia import Pythia
 from .top_down_bottom_up import TopDownBottomUp
 from .unimodal import UnimodalBase, UnimodalText, UnimodalModal
 from .vilbert import ViLBERT
-from .visual_bert import VisualBERT
-from .albef.vit import AlbefVitEncoder
 from .vilt import ViLT
+from .visual_bert import VisualBERT
 
 
 __all__ = [
