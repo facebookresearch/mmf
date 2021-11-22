@@ -248,7 +248,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
                 seed=4,
             )
             lightning.trainer.fit(
-                lightning.model, train_dataloader=lightning.train_loader
+                lightning.model, train_dataloaders=lightning.train_loader
             )
             lightning_ckpt = lightning.model.state_dict()
             lightning_ckpt.pop("base.encoder.embeddings.position_ids")
@@ -283,7 +283,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
                 seed=4,
             )
             lightning.trainer.fit(
-                lightning.model, train_dataloader=lightning.train_loader
+                lightning.model, train_dataloaders=lightning.train_loader
             )
             lightning_ckpt = lightning.model.state_dict()
             lightning_ckpt.pop("base.encoder.embeddings.position_ids")
@@ -345,14 +345,14 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
         with mock_env_with_temp("mmf.trainers.lightning_trainer.get_mmf_env") as tmp_d:
             lightning = self._get_lightning_trainer(max_steps=6)
             lightning.trainer.fit(
-                lightning.model, train_dataloader=lightning.train_loader
+                lightning.model, train_dataloaders=lightning.train_loader
             )
 
             lightning = self._get_lightning_trainer(
                 max_steps=6, resume_from_checkpoint=os.path.join(tmp_d, filename)
             )
             lightning.trainer.fit(
-                lightning.model, train_dataloader=lightning.train_loader
+                lightning.model, train_dataloaders=lightning.train_loader
             )
             lightning_ckpt_current = torch.load(os.path.join(tmp_d, filename))
             self._assert_same_dict(
@@ -405,7 +405,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
         with mock_env_with_temp("mmf.trainers.lightning_trainer.get_mmf_env") as tmp_d:
             lightning = self._get_lightning_trainer()
             lightning.trainer.fit(
-                lightning.model, train_dataloader=lightning.train_loader
+                lightning.model, train_dataloaders=lightning.train_loader
             )
             lightning_ckpt_current = torch.load(os.path.join(tmp_d, "current.ckpt"))
 
@@ -417,7 +417,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
         with mock_env_with_temp("mmf.trainers.lightning_trainer.get_mmf_env") as tmp_d:
             lightning = self._get_lightning_trainer()
             lightning.trainer.fit(
-                lightning.model, train_dataloader=lightning.train_loader
+                lightning.model, train_dataloaders=lightning.train_loader
             )
             lightning_ckpt_current = torch.load(os.path.join(tmp_d, "current.ckpt"))
             self.assertSetEqual(
@@ -440,7 +440,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
             lightning_gen = self._get_lightning_trainer(max_steps=6)
             lightning_gen.trainer.fit(
                 lightning_gen.model,
-                train_dataloader=lightning_gen.train_loader,
+                train_dataloaders=lightning_gen.train_loader,
                 val_dataloaders=lightning_gen.val_loader,
             )
             # this test should generate 3 model files under the modes directory.
@@ -484,7 +484,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
             lightning_gen = self._get_lightning_trainer(max_steps=6)
             lightning_gen.trainer.fit(
                 lightning_gen.model,
-                train_dataloader=lightning_gen.train_loader,
+                train_dataloaders=lightning_gen.train_loader,
                 val_dataloaders=lightning_gen.val_loader,
             )
 
@@ -498,7 +498,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
                 seed=4,
             )
             lightning.trainer.fit(
-                lightning.model, train_dataloader=lightning.train_loader
+                lightning.model, train_dataloaders=lightning.train_loader
             )
             self._assert_same_dict(
                 lightning_ckpt["state_dict"], lightning.model.state_dict()
