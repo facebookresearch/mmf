@@ -80,7 +80,7 @@ class UniTBaseModel(nn.Module):
 
 
 class MLP(nn.Module):
-    """ Very simple multi-layer perceptron (also called FFN)"""
+    """Very simple multi-layer perceptron (also called FFN)"""
 
     def __init__(self, input_dim, hidden_dim, output_dim, num_layers):
         super().__init__()
@@ -130,7 +130,7 @@ class AttributeHead(nn.Module):
 
 
 class SetCriterion(nn.Module):
-    """ This class computes the loss for DETR.
+    """This class computes the loss for DETR.
     The process happens in two steps:
         1) we compute hungarian assignment between ground truth boxes and the outputs
            of the model
@@ -149,7 +149,7 @@ class SetCriterion(nn.Module):
         attribute_class_num=None,
         max_attribute_num=None,
     ):
-        """ Create the criterion.
+        """Create the criterion.
         Parameters:
             num_classes: number of object categories, omitting the special no-object
                 category
@@ -253,7 +253,7 @@ class SetCriterion(nn.Module):
 
     @torch.no_grad()
     def loss_cardinality(self, outputs, targets, indices, num_boxes):
-        """ Compute the cardinality error, ie the absolute error in the number of
+        """Compute the cardinality error, ie the absolute error in the number of
         predicted non-empty boxes
         This is not really a loss, it is intended for logging purposes only. It doesn't
         propagate gradients
@@ -272,11 +272,11 @@ class SetCriterion(nn.Module):
 
     def loss_boxes(self, outputs, targets, indices, num_boxes):
         """Compute the losses related to the bounding boxes, the L1 regression loss and
-                the GIoU loss
-           targets dicts must contain the key "boxes" containing a tensor of dim
-                [nb_target_boxes, 4]
-           The target boxes are expected in format (center_x, center_y, h, w),
-                normalized by the image size.
+             the GIoU loss
+        targets dicts must contain the key "boxes" containing a tensor of dim
+             [nb_target_boxes, 4]
+        The target boxes are expected in format (center_x, center_y, h, w),
+             normalized by the image size.
         """
         assert "pred_boxes" in outputs
         idx = self._get_src_permutation_idx(indices)
@@ -326,7 +326,7 @@ class SetCriterion(nn.Module):
         return loss_map[loss](outputs, targets, indices, num_boxes, **kwargs)
 
     def forward(self, outputs, targets):
-        """ This performs the loss computation.
+        """This performs the loss computation.
         Parameters:
              outputs: dict of tensors, see the output specification of the model for
                       the format
