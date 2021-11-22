@@ -225,6 +225,12 @@ def summarize_report(
     if not is_main() and not is_xla():
         return
 
+    # Log the learning rate if available
+    if wandb_logger and "lr" in extra:
+        wandb_logger.log_metrics(
+            {"train/learning_rate": float(extra["lr"])}, commit=False
+        )
+
     if tb_writer:
         scalar_dict = meter.get_scalar_dict()
         tb_writer.add_scalars(scalar_dict, current_iteration)
@@ -395,10 +401,9 @@ class WandbLogger:
     Log using `Weights and Biases`.
 
     Args:
-        name: Display name for the run.
-        save_dir: Path where data is saved (./save/logs/wandb/ by default).
-        project: Display name for the project.
-        **init_kwargs: Arguments passed to :func:`wandb.init`.
+        entity: An entity is a username or team name where you're sending runs.
+        config: Configuration for the run.
+        project: Name of the W&B project.
 
     Raises:
         ImportError: If wandb package is not installed.
@@ -406,10 +411,9 @@ class WandbLogger:
 
     def __init__(
         self,
-        name: Optional[str] = None,
-        save_dir: Optional[str] = None,
+        entity: Optional[str] = None,
+        config: Optional[Dict] = None,
         project: Optional[str] = None,
-        **init_kwargs,
     ):
         try:
             import wandb
@@ -420,10 +424,14 @@ class WandbLogger:
             )
 
         self._wandb = wandb
-
-        self._wandb_init = dict(name=name, project=project, dir=save_dir)
-
-        self._wandb_init.update(**init_kwargs)
+        self._wandb_init = dict(entity=entity, config=config, project=project)
+        wandb_kwargs = dict(config.training.wandb)
+        wandb_kwargs.pop("enabled")
+        wandb_kwargs.pop("entity")
+        wandb_kwargs.pop("project")
+        wandb_kwargs.pop("log_checkpoint")
+        wandb_kwargs.pop("log_tables")
+        self._wandb_init.update(**wandb_kwargs)
 
         self.setup()
 
@@ -453,14 +461,51 @@ class WandbLogger:
         else:
             return True
 
-    def log_metrics(self, metrics: Dict[str, float]):
+    def log_metrics(self, metrics: Dict[str, float], commit=True):
         """
         Log the monitored metrics to the wand dashboard.
 
         Args:
-            metrics (Dict[str, float]): [description]
+            metrics (Dict[str, float]): A dictionary of metrics to log.
+            commit (bool): Save the metrics dict to the wandb server and
+                           increment the step. (default: True)
         """
         if not self._should_log_wandb():
             return
 
-        self._wandb.log(metrics)
+        self._wandb.log(metrics, commit=commit)
+
+    def log_model_checkpoint(self, model_path):
+        """
+        Log the model checkpoint to the wandb dashboard.
+
+        Args:
+            model_path (str): Path to the model file.
+        """
+        if not self._should_log_wandb():
+            return
+
+        model_artifact = self._wandb.Artifact(
+            "run_" + self._wandb.run.id + "_model", type="model"
+        )
+
+        model_artifact.add_file(model_path, name="current.pt")
+        self._wandb.log_artifact(model_artifact, aliases=["latest"])
+
+    def log_prediction_report(self, report, dataset_name):
+        """
+        Log the prediction report as W&B Tables for better comparison.
+        Args:
+            report: Prediction report to log.
+            dataset_name: Name of the dataset.
+        """
+        if not self._should_log_wandb():
+            return
+
+        columns = list(report[0].keys())
+        data_at = self._wandb.Table(columns=columns)
+
+        for item in report:
+            data_at.add_data(*item.values())
+
+        self._wandb.log({f"pred_table_{dataset_name}": data_at})

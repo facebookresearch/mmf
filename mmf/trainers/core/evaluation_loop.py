@@ -144,6 +144,12 @@ class TrainerEvaluationLoopMixin(ABC):
 
                 reporter.postprocess_dataset_report()
 
+                # Log the prediction report as W&B Tables
+                if self.config.training.wandb.log_tables:
+                    self.logistics_callback.wandb_logger.log_prediction_report(
+                        reporter.report, reporter.current_datamodule.dataset_name
+                    )
+
             logger.info(f"Finished predicting. Loaded {loaded_batches}")
             logger.info(f" -- skipped {skipped_batches} batches.")
             self.model.train()
