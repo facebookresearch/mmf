@@ -100,6 +100,6 @@ class ViLTTextEmbedding(nn.Module):
     def forward(self, input_ids: Tensor, segment_ids: Tensor) -> Tensor:
         text_embedding = self.text_embeddings(input_ids, token_type_ids=segment_ids)
         # official vilt repo adds type embeddings twice, once in the bert embeddings
-        # and a seperate time directly
+        # and a separate time directly
         text_type_embed = self.token_type_embeddings(segment_ids)
         return text_embedding + text_type_embed
