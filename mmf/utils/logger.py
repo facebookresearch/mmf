@@ -430,6 +430,7 @@ class WandbLogger:
         wandb_kwargs.pop("entity")
         wandb_kwargs.pop("project")
         wandb_kwargs.pop("log_checkpoint")
+        wandb_kwargs.pop("log_tables")
         self._wandb_init.update(**wandb_kwargs)
 
         self.setup()
