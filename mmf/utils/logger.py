@@ -490,3 +490,21 @@ class WandbLogger:
 
         model_artifact.add_file(model_path, name="current.pt")
         self._wandb.log_artifact(model_artifact, aliases=["latest"])
+
+    def log_prediction_report(self, report, dataset_name):
+        """
+        Log the prediction report as W&B Tables for better comparison.
+        Args:
+            report: Prediction report to log.
+            dataset_name: Name of the dataset.
+        """
+        if not self._should_log_wandb():
+            return
+
+        columns = list(report[0].keys())
+        data_at = self._wandb.Table(columns=columns)
+
+        for item in report:
+            data_at.add_data(*item.values())
+
+        self._wandb.log({f"pred_table_{dataset_name}": data_at})

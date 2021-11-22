@@ -57,6 +57,8 @@ training:
         # You can save your model checkpoints as W&B Artifacts for model versioning.
         # Set the value to `true` to enable this feature.
         log_checkpoint: false
+        # Set the evaluation prediction report as W&B Tables.
+        log_tables: false
         # Specify other argument values that you want to pass to wandb.init(). Check out the documentation
         # at https://docs.wandb.ai/ref/python/init to see what arguments are available.
         # job_type: 'train'
