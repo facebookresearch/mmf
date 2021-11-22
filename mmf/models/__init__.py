@@ -1,22 +1,22 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # isort:skip_file
 
-from .base_model import BaseModel
-from .pythia import Pythia
+from .albef.vit import AlbefVitEncoder
 from .ban import BAN
-from .lorra import LoRRA
-from .top_down_bottom_up import TopDownBottomUp
+from .base_model import BaseModel
 from .butd import BUTD
-from .mmbt import MMBT, MMBTForClassification, MMBTForPreTraining
-from .mmf_transformer import MMFTransformer
 from .cnn_lstm import CNNLSTM
+from .fusions import FusionBase, ConcatBERT, ConcatBoW, LateFusion
+from .lorra import LoRRA
 from .m4c import M4C
 from .m4c_captioner import M4CCaptioner
-from .fusions import FusionBase, ConcatBERT, ConcatBoW, LateFusion
+from .mmbt import MMBT, MMBTForClassification, MMBTForPreTraining
+from .mmf_transformer import MMFTransformer
+from .pythia import Pythia
+from .top_down_bottom_up import TopDownBottomUp
 from .unimodal import UnimodalBase, UnimodalText, UnimodalModal
-from .visual_bert import VisualBERT
 from .vilbert import ViLBERT
-from .albef.vit import AlbefVitEncoder
+from .visual_bert import VisualBERT
 
 
 __all__ = [
