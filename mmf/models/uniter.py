@@ -3,10 +3,10 @@
 # Initial version was taken from https://github.com/ChenRocks/UNITER/
 # and adapted for MMF.
 
-from collections import MutableMapping, namedtuple
 import copy
 import logging
 import random
+from collections import MutableMapping, namedtuple
 from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -240,12 +240,25 @@ class UNITERModelBase(nn.Module):
         return layers(encoded_layers[0], encoded_layers[1])
 
 
-def _process_head_outputs(
-    dataset_name: str,
+def _infer_with_heads(
+    processed_sample_list: Dict[str, Tensor],
+    uniter_model: Any,
+    heads: Dict[str, Any],
     losses: Dict[str, Any],
-    sample_list: Dict[str, Tensor],
-    outputs: Dict[str, Tensor],
 ) -> Dict[str, Tensor]:
+
+    sequence_output = uniter_model(
+        processed_sample_list["input_ids"],
+        processed_sample_list["position_ids"],
+        processed_sample_list["image_feat"],
+        processed_sample_list["img_pos_feat"],
+        processed_sample_list["attention_mask"],
+        img_masks=processed_sample_list["image_mask"],
+    ).final_layer
+    dataset_name = processed_sample_list["dataset_name"]
+    task = processed_sample_list.get("task", dataset_name)
+    outputs = heads[task](sequence_output, processed_sample_list=processed_sample_list)
+
     if isinstance(outputs, MutableMapping) and "losses" in outputs:
         return outputs
 
@@ -253,7 +266,7 @@ def _process_head_outputs(
     if isinstance(outputs, MutableMapping) and "scores" in outputs:
         logits = outputs["scores"]
     logits = logits.contiguous().view(-1, logits.size(-1))
-    output = losses[dataset_name](sample_list, {"scores": logits})
+    output = losses[dataset_name](processed_sample_list, {"scores": logits})
     return {"losses": output, "scores": logits}
 
 
@@ -278,8 +291,6 @@ class UNITERForClassification(nn.Module):
         hidden_dropout_prob: float = 0,
         text_embeddings: Any = EMPTY_CONFIG,
         encoder: Any = EMPTY_CONFIG,
-        *args,
-        **kwargs,
     ):
         super().__init__()
         self.loss_configs = loss_configs
@@ -301,8 +312,8 @@ class UNITERForClassification(nn.Module):
         for task in self.tasks:
             assert task in head_configs, (
                 f"Task {task} is specified in your model configs"
-                + " but there is no head configured for the task."
-                + "Head configs can be added under model_config.heads"
+                + " but there is no head configured for the task. "
+                + "Head configs can be added under model_config.heads "
                 + "in your yaml configs. Either remove this task if UNITER"
                 + " is not meant to run on a dataset named {task}"
                 + " or add a head config."
@@ -327,21 +338,8 @@ class UNITERForClassification(nn.Module):
             self.losses[task] = MMFLoss(loss_config)
 
     def forward(self, processed_sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
-        sequence_output = self.uniter(
-            processed_sample_list["input_ids"],
-            processed_sample_list["position_ids"],
-            processed_sample_list["image_feat"],
-            processed_sample_list["img_pos_feat"],
-            processed_sample_list["attention_mask"],
-            img_masks=processed_sample_list["image_mask"],
-        ).final_layer
-        dataset_name = processed_sample_list["dataset_name"]
-        outputs = self.heads[dataset_name](
-            sequence_output, processed_sample_list=processed_sample_list
-        )
-
-        return _process_head_outputs(
-            dataset_name, self.losses, processed_sample_list, outputs
+        return _infer_with_heads(
+            processed_sample_list, self.uniter, self.heads, self.losses
         )
 
 
@@ -362,8 +360,6 @@ class UNITERForPretraining(nn.Module):
         hidden_dropout_prob: float = 0,
         text_embeddings: Any = EMPTY_CONFIG,
         encoder: Any = EMPTY_CONFIG,
-        *args,
-        **kwargs,
     ):
         super().__init__()
         if head_configs is None:
@@ -440,21 +436,8 @@ class UNITERForPretraining(nn.Module):
         else:
             raise ValueError(f"Task {task} is not supported for pretraining!")
 
-        sequence_output = self.uniter(
-            processed_sample_list["input_ids"],
-            processed_sample_list["position_ids"],
-            processed_sample_list["image_feat"],
-            processed_sample_list["img_pos_feat"],
-            processed_sample_list["attention_mask"],
-            img_masks=processed_sample_list["image_mask"],
-        ).final_layer
-        dataset_name = processed_sample_list["dataset_name"]
-        outputs = self.heads[task](
-            sequence_output, processed_sample_list=processed_sample_list
-        )
-
-        return _process_head_outputs(
-            dataset_name, self.losses, processed_sample_list, outputs
+        return _infer_with_heads(
+            processed_sample_list, self.uniter, self.heads, self.losses
         )
 
     def _process_sample_list_for_pretraining(
@@ -653,14 +636,29 @@ class UNITER(BaseModel):
         return "configs/models/uniter/defaults.yaml"
 
     def build(self):
-        params = dict(
-            **self.config,
-            head_configs=self.config.heads,
-            loss_configs=self.config.losses,
-        )
+        configs = dict(**self.config)
+        configs["head_configs"] = configs.pop("heads")
+        configs["loss_configs"] = configs.pop("losses")
+        params_keys = [
+            "head_configs",
+            "loss_configs",
+            "tasks",
+            "random_init",
+            "bert_model_name",
+            "img_dim",
+            "hidden_size",
+            "hidden_dropout_prob",
+            "text_embeddings",
+            "encoder",
+        ]
         if self.do_pretraining:
+            # take value from config when the key exists,
+            # otherwise use constructor defaults
+            params_keys += ["mask_probability"]
+            params = {key: configs[key] for key in params_keys if key in configs}
             self.uniter = UNITERForPretraining(**params)
         else:
+            params = {key: configs[key] for key in params_keys if key in configs}
             self.uniter = UNITERForClassification(**params)
 
         self.tasks = self.config.tasks
@@ -672,6 +670,7 @@ class UNITER(BaseModel):
         Defer loss management to submodels,
         do nothing when called by build_model.
         """
+        pass
 
     def add_pos_feat(self, sample_list: Dict[str, Tensor]):
         assert "image_info_0" in sample_list
@@ -721,10 +720,9 @@ class UNITER(BaseModel):
         image_mask = image_mask < image_dim
         sample_list["image_mask"] = image_mask.long()
 
-        attention_mask = torch.cat(
+        sample_list["attention_mask"] = torch.cat(
             (sample_list["input_mask"], sample_list["image_mask"]), dim=-1
         )
-        sample_list["attention_mask"] = attention_mask
         task_index = torch.randint(len(self.tasks), (1,)).item()
         sample_list["task"] = self.tasks[task_index]
         sample_list["position_ids"] = torch.arange(
