@@ -56,7 +56,7 @@ env:
 
 * To give the current experiment a project and run name, user should add these config options. The default project name is `mmf` and the default run name is `${training.experiment_name}`.
 
-    `training.wandb.project=<ProjectName>` <br>
+    `training.wandb.project=<ProjectName>` <br />
     `training.wandb.name=<RunName>`
 
 * To change the path to the directory where wandb metadata would be stored (Default: `env.log_dir`):
