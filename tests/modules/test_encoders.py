@@ -6,7 +6,11 @@ import unittest
 import torch
 from mmf.modules import encoders
 from omegaconf import OmegaConf
-from tests.test_utils import setup_proxy, skip_if_old_transformers
+from tests.test_utils import (
+    setup_proxy,
+    skip_if_old_transformers,
+    skip_if_no_pytorchvideo,
+)
 from torch import nn
 
 
@@ -102,3 +106,30 @@ class TestEncoders(unittest.TestCase):
         x = torch.rand(32, 197, 768)
         output, _ = encoder(x)
         self.assertEqual(output.size(-1), config.out_dim)
+
+    @skip_if_no_pytorchvideo
+    def test_torchvision_slowfast_r50_encoder(self):
+        config = OmegaConf.structured(encoders.TorchVideoEncoder.Config())
+        encoder = encoders.TorchVideoEncoder(config)
+        fast = torch.rand((1, 3, 32, 224, 224))
+        slow = torch.rand((1, 3, 8, 224, 224))
+        output = encoder([slow, fast])
+        self.assertEqual(output.size(1), 2304)
+
+    @skip_if_no_pytorchvideo
+    def test_torchvision_mvit_encoder(self):
+        config = OmegaConf.create(
+            {
+                "name": "torchvideo",
+                "model_name": "multiscale_vision_transformers",
+                "random_init": True,
+                "cls_layer_num": 0,
+                "spatial_size": 224,
+                "temporal_size": 8,
+                "head": None,
+            }
+        )
+        encoder = encoders.TorchVideoEncoder(config)
+        x = torch.rand((1, 3, 8, 224, 224))
+        output = encoder(x)
+        self.assertEqual(output.shape, torch.Size([1, 12545, 96]))
