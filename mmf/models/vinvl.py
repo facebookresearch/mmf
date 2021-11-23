@@ -27,7 +27,6 @@ from transformers.modeling_bert import (
 
 logger = logging.getLogger(__name__)
 
-EMPTY_CONFIG = OmegaConf.create({})
 NUM_RETRIES = 6
 
 
@@ -45,12 +44,15 @@ class BertImgModel(BertPreTrainedModel):
         self.img_dim = config.img_feature_dim
         self.use_img_layernorm = getattr(config, "use_img_layernorm", False)
 
-        self.img_embedding = nn.Linear(self.img_dim, self.config.hidden_size, bias=True)
-        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        img_projection = nn.Linear(self.img_dim, self.config.hidden_size, bias=True)
+        img_embedding_list = [img_projection]
         if self.use_img_layernorm:
-            self.LayerNorm = nn.LayerNorm(
-                config.hidden_size, eps=config.img_layer_norm_eps
-            )
+            img_embedding_list += [
+                nn.LayerNorm(config.hidden_size, eps=config.img_layer_norm_eps)
+            ]
+        dropout = nn.Dropout(config.hidden_dropout_prob)
+        img_embedding_list += [dropout]
+        self.img_embedding = nn.Sequential(*img_embedding_list)
 
     def forward(
         self,
@@ -59,7 +61,6 @@ class BertImgModel(BertPreTrainedModel):
         token_type_ids: Optional[Tensor] = None,
         attention_mask: Optional[Tensor] = None,
         position_ids: Optional[Tensor] = None,
-        head_mask: Optional[Tensor] = None,
     ) -> Tuple[Tensor]:
         if attention_mask is None:
             attention_mask = torch.ones(
@@ -85,47 +86,20 @@ class BertImgModel(BertPreTrainedModel):
         )  # fp16 compatibility
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
 
-        head_mask = self._get_head_mask(head_mask)
-
         # Do embeddings
         text_embedding_output = self.embeddings(
             input_ids, position_ids=position_ids, token_type_ids=token_type_ids
         )
         img_embedding_output = self.img_embedding(img_feats)
-        if self.use_img_layernorm:
-            img_embedding_output = self.LayerNorm(img_embedding_output)
-        img_embedding_output = self.dropout(img_embedding_output)
         embedding_output = torch.cat((text_embedding_output, img_embedding_output), 1)
 
         encoder_outputs = self.encoder(
             embedding_output,
             extended_attention_mask,
-            head_mask=head_mask,
             output_hidden_states=True,
         )
         layers = namedtuple("TransformerOutput", ["final_layer", "hidden_layers"])
         return layers(encoder_outputs[0], encoder_outputs[1])
-
-    def _get_head_mask(self, head_mask):
-        if head_mask is not None:
-            if head_mask.dim() == 1:
-                head_mask = (
-                    head_mask.unsqueeze(0).unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
-                )
-                head_mask = head_mask.expand(
-                    self.config.num_hidden_layers, -1, -1, -1, -1
-                )
-            elif head_mask.dim() == 2:
-                head_mask = (
-                    head_mask.unsqueeze(1).unsqueeze(-1).unsqueeze(-1)
-                )  # We can specify head_mask for each layer
-            # switch to float if needed + fp16 compatibility
-            head_mask = head_mask.to(
-                dtype=next(self.parameters()).dtype
-            )  # switch to fload if need + fp16 compatibility
-        else:
-            head_mask = [None] * self.config.num_hidden_layers
-        return head_mask
 
 
 class VinVLForClassification(nn.Module):
@@ -174,7 +148,6 @@ class VinVLForClassification(nn.Module):
         attention_mask: Tensor,
         img_feats: Tensor,
         position_ids: Optional[Tensor] = None,
-        head_mask: Optional[Tensor] = None,
         labels: Optional[Tensor] = None,
     ) -> Dict[str, Tensor]:
         sequence_output = self.bert(
@@ -183,7 +156,6 @@ class VinVLForClassification(nn.Module):
             position_ids=position_ids,
             token_type_ids=token_type_ids,
             attention_mask=attention_mask,
-            head_mask=head_mask,
         ).final_layer
         logits = self.classifier(sequence_output)["scores"]
         result = {"scores": logits}
@@ -201,7 +173,7 @@ class VinVLForPretraining(nn.Module):
         0 for a match,
         1 for a corrupt caption,
         2 for corrupt image labels
-    VinVL trains with object detection labels concatanated with the input text.
+    VinVL trains with object detection labels concatenated with the input text.
     """
 
     def __init__(
@@ -253,7 +225,6 @@ class VinVLForPretraining(nn.Module):
         attention_mask: Tensor,
         img_feats: Tensor,
         position_ids: Optional[Tensor] = None,
-        head_mask: Optional[Tensor] = None,
     ) -> Dict[str, Tensor]:
 
         hidden_layers = self.bert(
@@ -262,7 +233,6 @@ class VinVLForPretraining(nn.Module):
             position_ids=position_ids,
             token_type_ids=token_type_ids,
             attention_mask=attention_mask,
-            head_mask=head_mask,
         ).final_layer
 
         mlm_labels = {}
@@ -297,9 +267,11 @@ class VinVLForPretraining(nn.Module):
             position_ids=position_ids,
             token_type_ids=token_type_ids,
             attention_mask=attention_mask,
-            head_mask=head_mask,
         ).final_layer
         logits = self.contrast_head(final_layer)["scores"]
+        # contrastive 3-way loss has 3 classes,
+        # 0 for a match, 1, 2 for a corrupt caption/image
+        # labels respectively
         loss = self.ce_loss(
             logits.contiguous().view(-1, 3),
             contrastive_labels.contiguous().view(-1),
@@ -318,7 +290,6 @@ class VinVLForPretraining(nn.Module):
         attention_mask_corrupt: Tensor,
         img_feats: Tensor,
         position_ids: Optional[Tensor] = None,
-        head_mask: Optional[Tensor] = None,
     ) -> Dict[str, Tensor]:
 
         mlm_result = self.mlm_forward(
@@ -328,7 +299,6 @@ class VinVLForPretraining(nn.Module):
             attention_mask,
             img_feats,
             position_ids,
-            head_mask,
         )
 
         contrastive_loss_result = self.contrastive_forward(
@@ -338,7 +308,6 @@ class VinVLForPretraining(nn.Module):
             img_feats,
             contrastive_labels,
             position_ids,
-            head_mask,
         )
         losses = {**mlm_result["losses"], **contrastive_loss_result}
         return {"losses": losses}
@@ -390,6 +359,7 @@ class VinVL(BaseModel):
                 mlm_config=mlm_config, contrast_config=contrast_config, **self.config
             )
         else:
+            # do classification finetuning
             mlp_config = self.config.heads.get("mlp")
             loss_config = self.config.get("ce_loss")
             self.vinvl = VinVLForClassification(
