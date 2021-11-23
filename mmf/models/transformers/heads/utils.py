@@ -4,7 +4,7 @@ from torch import Tensor
 
 
 def compute_masked_hidden(hidden: Tensor, mask: Tensor) -> Tensor:
-    """ Get only the masked region.
+    """Get only the masked region.
 
     hidden: tensor, dim (bs, num_feat, feat_dim)
     mask: bool tensor, dim (bs, num_feat)
