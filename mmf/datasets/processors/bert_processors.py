@@ -422,7 +422,7 @@ class UNITERTextTokenizer(MaskedTokenProcessor):
         self._max_seq_length = config.get("max_seq_length", 25)
         self._probability = config.get("mask_probability", 0)
 
-    def __call__(self, item):
+    def __call__(self, item: Dict[str, Any]):
         output = get_pair_text_tokens(item, self)
         output["text"] = output["tokens_masked"]
         output["tokens"] = output["tokens_masked"]
@@ -432,7 +432,9 @@ class UNITERTextTokenizer(MaskedTokenProcessor):
             )
         return output
 
-    def _token_transform(self, tokens, tokens_b=None):
+    def _token_transform(
+        self, tokens: List[str], tokens_b: Optional[List[str]] = None
+    ) -> Tuple[torch.Tensor, int, int, List[str]]:
         tokens = [self._CLS_TOKEN] + tokens + [self._SEP_TOKEN]
         if tokens_b:
             tokens += tokens_b + [self._SEP_TOKEN]
@@ -456,25 +458,21 @@ class UNITERTextTokenizer(MaskedTokenProcessor):
         - single sequence: ``[CLS] X [SEP]``
         - pair of sequences: ``[CLS] A [SEP] B [SEP]``
         """
-        tokens_a_original = tokens_a.copy()
+        input_ids_original, _, _, _ = self._token_transform(tokens_a, tokens_b)
+
         tokens_a, label_a = self._random_word(tokens_a, probability=probability)
         segment_ids = [0] * (len(tokens_a) + 2)
 
         if tokens_b:
-            tokens_b_original = tokens_b.copy()
             tokens_b, label_b = self._random_word(tokens_b, probability=probability)
             lm_label_ids = [-1] + label_a + [-1] + label_b + [-1]
             assert len(tokens_b) > 0
             segment_ids += [1] * (len(tokens_b) + 1)
         else:
-            tokens_b_original = None
             lm_label_ids = [-1] + label_a + [-1]
 
         input_ids_masked, token_len, token_pad, tokens_masked = self._token_transform(
             tokens_a, tokens_b
-        )
-        input_ids_original, _, _, _ = self._token_transform(
-            tokens_a_original, tokens_b_original
         )
 
         input_mask = [1] * token_len + [0] * token_pad
