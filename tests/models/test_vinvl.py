@@ -39,22 +39,24 @@ class TestVinVLBertImageModel(unittest.TestCase):
         self.assertEqual(model_output.shape, torch.Size([8, 95, 768]))
 
 
-class TestVinVL(unittest.TestCase):
-    def setUp(self):
-        bs = 8
-        num_feats = 70
-        max_sentence_len = 25
-        img_feature_dim = 2054
-        self.input_ids = torch.ones((bs, max_sentence_len), dtype=torch.long)
-        self.img_feats = torch.rand((bs, num_feats, img_feature_dim))
-        self.attention_mask = torch.ones(
-            (bs, max_sentence_len + num_feats), dtype=torch.long
-        )
-        self.token_type_ids = torch.zeros_like(self.input_ids)
-        self.labels = torch.ones((bs, 1)).long()
+def mock_vinvl_input_tensors(
+    cls, bs=8, num_feats=70, max_sentence_len=25, img_feature_dim=2054
+):
+    cls.input_ids = torch.ones((bs, max_sentence_len), dtype=torch.long)
+    cls.img_feats = torch.rand((bs, num_feats, img_feature_dim))
+    cls.attention_mask = torch.ones(
+        (bs, max_sentence_len + num_feats), dtype=torch.long
+    )
+    cls.token_type_ids = torch.zeros_like(cls.input_ids)
+    cls.labels = torch.ones((bs, 1)).long()
 
-        self.lm_label_ids = -torch.ones_like(self.input_ids).long()
-        self.contrastive_labels = torch.zeros((bs, 1)).long()
+    cls.lm_label_ids = -torch.ones_like(cls.input_ids).long()
+    cls.contrastive_labels = torch.zeros((bs, 1)).long()
+
+
+class TestVinVLForClassificationAndPretraining(unittest.TestCase):
+    def setUp(self):
+        mock_vinvl_input_tensors(self)
 
     def test_classification_forward(self):
         model = VinVLForClassification().to(get_current_device())
