@@ -60,7 +60,7 @@ def mock_vinvl_input_tensors(
     cls.contrastive_labels = torch.zeros((bs, 1)).long()
 
 
-class TestVinVL(unittest.TestCase):
+class TestVinVLForClassificationAndPretraining(unittest.TestCase):
     def setUp(self):
         mock_vinvl_input_tensors(self)
 
