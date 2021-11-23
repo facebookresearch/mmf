@@ -22,3 +22,5 @@ pytorch-lightning @ git+https://github.com/PyTorchLightning/pytorch-lightning@fa
 torchaudio>=0.6.0, <=0.9.0
 psutil
 pillow==8.3.1
+av>=8.0.3
+pytorchvideo>=0.1.3

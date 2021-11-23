@@ -1,10 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import importlib
+import inspect
+import logging
 import os
 import pickle
 import re
 from collections import OrderedDict
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Any
 
@@ -25,11 +28,13 @@ from torch import Tensor, nn
 from transformers.configuration_auto import AutoConfig
 from transformers.modeling_auto import AutoModel
 
-
 try:
     from detectron2.modeling import ShapeSpec, build_resnet_backbone
 except ImportError:
     pass
+
+
+logger = logging.getLogger()
 
 
 class Encoder(nn.Module):
@@ -686,6 +691,86 @@ class PooledEncoder(Encoder):
         out = torch.flatten(out, start_dim=2)
         out = out.transpose(1, 2).contiguous()
         return out
+
+
+@registry.register_encoder("torchvideo")
+class TorchVideoEncoder(Encoder):
+    """
+    Wrapper around importing torchvideo models
+    as encoders.
+    """
+
+    @dataclass
+    class Config(Encoder.Config):
+        name: str = "torchvideo"
+        random_init: bool = False
+        model_name: str = "slowfast_r50"
+        cls_layer_num: int = 1
+
+    def __init__(self, config: Config):
+        pytorchvideo_spec = importlib.util.find_spec("pytorchvideo")
+        if pytorchvideo_spec is None:
+            raise ImportError("pytorchvideo required for using TorchVideoEncoder")
+        import pytorchvideo.models as models
+
+        super().__init__()
+        config = OmegaConf.create({**asdict(self.Config()), **config})
+        if config.random_init:
+            model_create_fn_name = f"create_{config.model_name}"
+            model_create_fn = getattr(models, model_create_fn_name)
+            params = dict(**config)
+            params.pop("random_init")
+            params.pop("model_name")
+            params.pop("cls_layer_num")
+
+            accepted_params, ignored_params = self.filter_dict_to_signature(
+                model_create_fn, params
+            )
+            if ignored_params:
+                ignored_params_str = " ".join(ignored_params.keys())
+                logger.warning(
+                    "The following model constructor params were ignored"
+                    + " because they don't match a named param in the constructor: "
+                    + ignored_params_str
+                )
+            model = model_create_fn(**accepted_params)
+        else:
+            # load weights from TorchHub
+            model = torch.hub.load(
+                "facebookresearch/pytorchvideo:main",
+                model=config.model_name,
+                pretrained=True,
+            )
+
+        if config.cls_layer_num == 0:
+            self.encoder = model
+            return
+
+        modules_list = list(model.children())
+        if len(modules_list) == 1:
+            modules_list = list(modules_list[0].children())
+        modules = modules_list[: -config.cls_layer_num]
+        self.encoder = nn.Sequential(*modules)
+
+    def forward(self, *args, **kwargs):
+        # pass along input to model
+        # assumes caller obeys the dynamic model signature
+        return self.encoder(*args, **kwargs)
+
+    def filter_dict_to_signature(self, callable, params):
+        constructor_signature = inspect.signature(callable)  # Signature obj
+        constructor_params = constructor_signature.parameters
+        accepted_params = {
+            param_name: params[param_name]
+            for param_name in params
+            if param_name in constructor_params
+        }
+        ignored_params = {
+            param_name: params[param_name]
+            for param_name in params
+            if param_name not in constructor_params
+        }
+        return accepted_params, ignored_params
 
 
 @registry.register_encoder("r2plus1d_18")
