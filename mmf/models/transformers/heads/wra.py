@@ -12,7 +12,7 @@ from torch import Tensor, nn
 
 @registry.register_transformer_head("wra")
 class WRA(nn.Module):
-    """"
+    """
     Word Region Alignment from UNITER.
     Optimal Transport (OT) distance between text and image
     features is used to optimize for WRA.
