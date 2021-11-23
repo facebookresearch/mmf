@@ -3,10 +3,10 @@
 # Initial version was taken from https://github.com/ChenRocks/UNITER/
 # and adapted for MMF.
 
-from collections import MutableMapping, namedtuple
 import copy
 import logging
 import random
+from collections import MutableMapping, namedtuple
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -238,12 +238,25 @@ class UNITERModelBase(nn.Module):
         return layers(encoded_layers[0], encoded_layers[1])
 
 
-def _process_head_outputs(
-    dataset_name: str,
+def _infer_with_heads(
+    processed_sample_list: Dict[str, Tensor],
+    uniter_model: Any,
+    heads: Dict[str, Any],
     losses: Dict[str, Any],
-    sample_list: Dict[str, Tensor],
-    outputs: Dict[str, Tensor],
 ) -> Dict[str, Tensor]:
+
+    sequence_output = uniter_model(
+        processed_sample_list["input_ids"],
+        processed_sample_list["position_ids"],
+        processed_sample_list["image_feat"],
+        processed_sample_list["img_pos_feat"],
+        processed_sample_list["attention_mask"],
+        img_masks=processed_sample_list["image_mask"],
+    ).final_layer
+    dataset_name = processed_sample_list["dataset_name"]
+    task = processed_sample_list.get("task", dataset_name)
+    outputs = heads[task](sequence_output, processed_sample_list=processed_sample_list)
+
     if isinstance(outputs, MutableMapping) and "losses" in outputs:
         return outputs
 
@@ -251,7 +264,7 @@ def _process_head_outputs(
     if isinstance(outputs, MutableMapping) and "scores" in outputs:
         logits = outputs["scores"]
     logits = logits.contiguous().view(-1, logits.size(-1))
-    output = losses[dataset_name](sample_list, {"scores": logits})
+    output = losses[dataset_name](processed_sample_list, {"scores": logits})
     return {"losses": output, "scores": logits}
 
 
@@ -276,8 +289,6 @@ class UNITERForClassification(nn.Module):
         hidden_dropout_prob: float = 0,
         text_embeddings: Any = EMPTY_CONFIG,
         encoder: Any = EMPTY_CONFIG,
-        *args,
-        **kwargs,
     ):
         super().__init__()
         self.loss_configs = loss_configs
@@ -325,21 +336,8 @@ class UNITERForClassification(nn.Module):
             self.losses[task] = MMFLoss(loss_config)
 
     def forward(self, processed_sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
-        sequence_output = self.uniter(
-            processed_sample_list["input_ids"],
-            processed_sample_list["position_ids"],
-            processed_sample_list["image_feat"],
-            processed_sample_list["img_pos_feat"],
-            processed_sample_list["attention_mask"],
-            img_masks=processed_sample_list["image_mask"],
-        ).final_layer
-        dataset_name = processed_sample_list["dataset_name"]
-        outputs = self.heads[dataset_name](
-            sequence_output, processed_sample_list=processed_sample_list
-        )
-
-        return _process_head_outputs(
-            dataset_name, self.losses, processed_sample_list, outputs
+        return _infer_with_heads(
+            processed_sample_list, self.uniter, self.heads, self.losses
         )
 
 
@@ -360,8 +358,6 @@ class UNITERForPretraining(nn.Module):
         hidden_dropout_prob: float = 0,
         text_embeddings: Any = EMPTY_CONFIG,
         encoder: Any = EMPTY_CONFIG,
-        *args,
-        **kwargs,
     ):
         super().__init__()
         if head_configs is None:
@@ -438,21 +434,8 @@ class UNITERForPretraining(nn.Module):
         else:
             raise ValueError(f"Task {task} is not supported for pretraining!")
 
-        sequence_output = self.uniter(
-            processed_sample_list["input_ids"],
-            processed_sample_list["position_ids"],
-            processed_sample_list["image_feat"],
-            processed_sample_list["img_pos_feat"],
-            processed_sample_list["attention_mask"],
-            img_masks=processed_sample_list["image_mask"],
-        ).final_layer
-        dataset_name = processed_sample_list["dataset_name"]
-        outputs = self.heads[task](
-            sequence_output, processed_sample_list=processed_sample_list
-        )
-
-        return _process_head_outputs(
-            dataset_name, self.losses, processed_sample_list, outputs
+        return _infer_with_heads(
+            processed_sample_list, self.uniter, self.heads, self.losses
         )
 
     def _process_sample_list_for_pretraining(
