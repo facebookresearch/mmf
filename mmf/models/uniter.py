@@ -81,14 +81,14 @@ class UNITERImageEmbeddings(nn.Module):
 
 
 class UNITERModelBase(nn.Module):
-    """ UNITER embedding and transformer trunk for V-L modeling.
+    """UNITER embedding and transformer trunk for V-L modeling.
     Modified from https://github.com/ChenRocks/UNITER/ for MMF.
     https://arxiv.org/pdf/1909.11740.pdf
 
     By default, this model uses the pretrained bert-base-uncased
     transformer trunk with from huggingface.
 
-    To train on this model through MMF, look at the UNTIER model,
+    To train on this model through MMF, look at the UNITER model,
     which supports pretraining and finetuning of UNITERModelBase
     with configurable heads.
 
@@ -269,7 +269,7 @@ def _infer_with_heads(
 
 
 class UNITERForClassification(nn.Module):
-    """ UNITER wrapper for classification
+    """UNITER wrapper for classification
 
     Example params:
         head_configs = {"vqa2": {"type": "mlp", "num_labels": 3129}}
@@ -342,8 +342,7 @@ class UNITERForClassification(nn.Module):
 
 
 class UNITERForPretraining(nn.Module):
-    """ UNITER wrapper for pretraining
-    """
+    """UNITER wrapper for pretraining"""
 
     def __init__(
         self,
