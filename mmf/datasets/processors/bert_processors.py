@@ -445,6 +445,7 @@ class VinVLTextTokenizer(MaskedTokenProcessor):
         self._max_seq_length = config.get("max_seq_length", 70)
         self._probability = config.get("mask_probability", 0)
         self._corrupt_prob = config.get("corrupt_probability", 0)
+        self._corrupt_caption_prob = config.get("corrupt_caption_probability", 0)
 
     def __call__(self, item):
         output = get_pair_text_tokens(item, self)
@@ -472,9 +473,10 @@ class VinVLTextTokenizer(MaskedTokenProcessor):
 
         corrupt_item = copy.deepcopy(item)
         p_match = 1 - self._corrupt_prob
-        p_wrong = self._corrupt_prob / 2
+        p_caption = self._corrupt_prob * self._corrupt_caption_prob
+        p_label = self._corrupt_prob * (1 - self._corrupt_caption_prob)
         contrastive_label = torch.multinomial(
-            torch.tensor([p_match, p_wrong, p_wrong]), num_samples=1
+            torch.tensor([p_match, p_caption, p_label]), num_samples=1
         ).long()
         if contrastive_label == 0:
             pass
