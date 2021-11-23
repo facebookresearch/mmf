@@ -64,14 +64,14 @@ class UNITERImageEmbeddings(nn.Module):
 
 
 class UNITERModelBase(nn.Module):
-    """ UNITER embedding and transformer trunk for V-L modeling.
+    """UNITER embedding and transformer trunk for V-L modeling.
     Modified from https://github.com/ChenRocks/UNITER/ for MMF.
     https://arxiv.org/pdf/1909.11740.pdf
 
     By default, this model uses the pretrained bert-base-uncased
     transformer trunk with from huggingface.
 
-    To train on this model through MMF, look at the UNTIER model,
+    To train on this model through MMF, look at the UNITER model,
     which supports pretraining and finetuning of UNITERModelBase
     with configurable heads.
 
