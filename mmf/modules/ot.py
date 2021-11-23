@@ -13,7 +13,7 @@ from torch.nn import functional as F
 
 
 def cost_matrix_cosine(x: Tensor, y: Tensor, eps: float = 1e-5) -> Tensor:
-    """ Compute cosine distnace across every pairs of x, y (batched)
+    """Compute cosine distance across every pairs of x, y (batched)
     [B, L_x, D] [B, L_y, D] -> [B, Lx, Ly]"""
     assert x.dim() == y.dim()
     assert x.size(0) == y.size(0)
@@ -26,7 +26,7 @@ def cost_matrix_cosine(x: Tensor, y: Tensor, eps: float = 1e-5) -> Tensor:
 
 
 def trace(x: Tensor) -> Tensor:
-    """ compute trace of input tensor (batched) """
+    """Compute trace of input tensor (batched)"""
     b, m, n = x.size()
     assert m == n
     mask = torch.eye(n, dtype=torch.bool, device=x.device).unsqueeze(0).expand_as(x)
@@ -46,7 +46,7 @@ def ipot(
     iteration: int,
     k: int,
 ) -> Tensor:
-    """ [B, M, N], [B], [B, M], [B], [B, N], [B, M, N]"""
+    """[B, M, N], [B], [B, M], [B], [B, N], [B, M, N]"""
     b, m, n = C.size()
     sigma = torch.ones(b, m, dtype=C.dtype, device=C.device) / x_len.unsqueeze(1)
     T = torch.ones(b, n, m, dtype=C.dtype, device=C.device)
@@ -86,7 +86,7 @@ def optimal_transport_dist(
     iteration: int = 50,
     k: int = 1,
 ) -> Tensor:
-    """ [B, M, D], [B, N, D], [B, M], [B, N]"""
+    """[B, M, D], [B, N, D], [B, M], [B, N]"""
     cost = cost_matrix_cosine(txt_emb, img_emb)
     # mask the padded inputs
     joint_pad = txt_pad.unsqueeze(-1) | img_pad.unsqueeze(-2)
