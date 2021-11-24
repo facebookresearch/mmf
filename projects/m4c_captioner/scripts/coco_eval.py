@@ -3,7 +3,6 @@
 import json
 
 import numpy as np
-
 import tools.scripts.coco.coco_caption_eval as coco_caption_eval
 
 
