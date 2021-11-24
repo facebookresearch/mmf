@@ -14,7 +14,6 @@ import os
 
 import numpy as np
 import torch
-
 from tools.scripts.features.extraction_utils import chunks, get_image_files
 from tools.scripts.features.frcnn.frcnn_utils import Config
 from tools.scripts.features.frcnn.modeling_frcnn import GeneralizedRCNN
