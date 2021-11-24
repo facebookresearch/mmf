@@ -20,8 +20,7 @@ class VideoRandomCrop(BaseProcessor):
 
     @staticmethod
     def get_params(vid, output_size):
-        """Get parameters for ``crop`` for a random crop.
-        """
+        """Get parameters for ``crop`` for a random crop."""
         h, w = vid.shape[-2:]
         th, tw = output_size
         if w == tw and h == th:

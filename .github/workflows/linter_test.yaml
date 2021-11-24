@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        lint: ['flake8', 'black', 'isort']
+        lint: ['flake8', 'ufmt']
     runs-on: ubuntu-latest
 
     steps:
@@ -33,8 +33,7 @@ jobs:
         conda activate mmf
         python -m pip install --upgrade pip
         pip install --progress-bar off flake8==3.7.9
-        pip install --progress-bar off isort[pyproject]==4.3.21
-        pip install --progress-bar off black==19.3b0
+        pip install --progress-bar off ufmt==1.3.0
 
     - name: Run linter
       shell: bash -l {0}
@@ -49,16 +48,8 @@ jobs:
 
     - name: Run linter
       shell: bash -l {0}
-      if: matrix.lint == 'isort'
+      if: matrix.lint == 'ufmt'
       run: |
         conda activate mmf
-        isort --version
-        isort -c -df -sp .
-
-    - name: Run linter
-      shell: bash -l {0}
-      if: matrix.lint == 'black'
-      run: |
-        conda activate mmf
-        black --version
-        black --check .
+        ufmt --version
+        ufmt check .

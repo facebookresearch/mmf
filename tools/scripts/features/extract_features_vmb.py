@@ -21,7 +21,6 @@ from maskrcnn_benchmark.structures.image_list import to_image_list
 from maskrcnn_benchmark.utils.model_serialization import load_state_dict
 from mmf.utils.download import download
 from PIL import Image
-
 from tools.scripts.features.extraction_utils import chunks, get_image_files
 
 
