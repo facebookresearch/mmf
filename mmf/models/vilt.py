@@ -1,11 +1,21 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-
-from typing import List, Optional
+import logging
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 import torch
+from mmf.common.registry import registry
+from mmf.models.base_model import BaseModel
+from mmf.models.transformers.heads.utils import build_heads_dict
 from mmf.modules.encoders import TransformerEncoder, ViTEncoder
-from omegaconf import OmegaConf
+from mmf.modules.losses import MMFLoss
+from mmf.utils.build import build_encoder
+from mmf.utils.modeling import get_bert_configured_parameters
+from omegaconf import MISSING, OmegaConf
 from torch import Tensor, nn
+
+
+logger = logging.getLogger()
 
 
 class ViLTImageEmbedding(nn.Module):
@@ -103,3 +113,91 @@ class ViLTTextEmbedding(nn.Module):
         # and a separate time directly
         text_type_embed = self.token_type_embeddings(segment_ids)
         return text_embedding + text_type_embed
+
+
+@registry.register_model("vilt")
+class ViLT(BaseModel):
+    @dataclass
+    class Config(BaseModel.Config):
+        name: str = "ViLT"
+        text_embeddings: Any = MISSING
+        image_encoder: Any = MISSING
+
+    @classmethod
+    def config_path(cls):
+        return "configs/models/vilt/defaults.yaml"
+
+    def build(self):
+        self.text_embeddings = ViLTTextEmbedding(**self.config.text_embeddings)
+        self.image_embeddings = ViLTImageEmbedding(**self.config.image_encoder.params)
+        self.encoder = build_encoder(self.config.image_encoder)
+
+        head_configs = self.config.get("heads", {})
+        self.tasks = self.config.get("tasks", head_configs.keys())
+        if isinstance(self.tasks, str):
+            self.tasks = self.tasks.split(",")
+
+        self.losses = nn.ModuleDict()
+        self.heads_dict = build_heads_dict(head_configs, self.tasks, self.losses)
+
+    def init_losses(self):
+        loss_configs = self.config.get("losses", {})
+        for loss_name, loss_config in loss_configs.items():
+            self.losses[loss_name] = MMFLoss(loss_config)
+
+    def forward(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
+        text_embedding = self.text_embeddings(
+            sample_list["input_ids"], sample_list["segment_ids"]
+        )
+        image_embedding = self.image_embeddings(sample_list["image"])
+
+        # Feed through encoder
+        embeddings = torch.cat([text_embedding, image_embedding], dim=1)
+        attention_mask = self.get_attention_mask(
+            sample_list, text_embedding, image_embedding
+        )
+        sequence, _ = self.encoder(embeddings, attention_mask=attention_mask)
+        if sequence.dim() != 3:
+            sequence = sequence.unsqueeze(1)
+
+        outputs = self.heads_dict(sample_list["dataset_name"], sequence, sample_list)
+        return outputs
+
+    def get_optimizer_parameters(self, config):
+        if hasattr(self.encoder, "get_optimizer_parameters"):
+            params = self.encoder.get_optimizer_parameters(config)
+        else:
+            params = [{"params": self.encoder.parameters()}]
+        params += get_bert_configured_parameters(self.text_embeddings)
+        params += get_bert_configured_parameters(self.heads_dict)
+        params += [{"params": self.image_embeddings.parameters()}]
+        return params
+
+    def get_attention_mask(
+        self,
+        sample_list: Dict[str, Tensor],
+        text_embedding: Tensor,
+        image_embedding: Tensor,
+    ) -> Tensor:
+        text_mask = getattr(sample_list, "input_mask", None)
+        image_mask = getattr(sample_list, "image_mask", None)
+
+        if text_mask is None and image_mask is None:
+            return None
+
+        if text_mask is None:
+            text_mask = torch.ones(
+                text_embedding.size()[:-1],
+                dtype=text_embedding.dtype,
+                device=text_embedding.device,
+            )
+
+        if image_mask is None:
+            image_mask = torch.ones(
+                image_embedding.size()[:-1],
+                dtype=image_embedding.dtype,
+                device=image_embedding.device,
+            )
+
+        attention_mask = torch.cat((text_mask, image_mask), dim=-1)
+        return attention_mask
