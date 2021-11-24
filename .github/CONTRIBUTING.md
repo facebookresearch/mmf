@@ -66,13 +66,12 @@ After this pre-commit hooks will be run before every commit.
 
 * Read the [editorconfig](https://github.com/facebookresearch/mmf/blob/main/.editorconfig) file to understand the exact coding style preferences.
 
-* Ideally, black and isort should be run via pre-commit hooks.
-But if for some reason you want to run black and isort separately follow this:
+* Ideally, ufmt should be run via pre-commit hooks.
+But if for some reason you want to run ufmt separately follow this:
 
 ```
-pip install black==19.3b0 isort==4.3.21
-black ./(mmf|tests|tools)/**/*.py
-isort -rc (mmf|tests|tools)
+pip install ufmt==1.3.0
+ufmt format (mmf|tests|tools)
 ```
 ## Commit Guidelines
 

@@ -138,7 +138,7 @@ def run_lightning_trainer(trainer, on_fit_start_callback=None):
 
     trainer.trainer.fit(
         trainer.model,
-        train_dataloader=trainer.train_loader,
+        train_dataloaders=trainer.train_loader,
         val_dataloaders=trainer.val_loader,
     )
     trainer.run_last_validation_after_train()
