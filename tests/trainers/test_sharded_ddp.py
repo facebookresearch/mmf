@@ -14,9 +14,9 @@ from tests.trainers.test_utils import get_config_with_defaults
 
 
 try:
-    from fairscale.optim.oss import OSS
     from fairscale.nn.data_parallel import ShardedDataParallel
     from fairscale.optim.grad_scaler import ShardedGradScaler
+    from fairscale.optim.oss import OSS
 
     FAIRSCALE_AVAILABLE = True
 except ImportError:
