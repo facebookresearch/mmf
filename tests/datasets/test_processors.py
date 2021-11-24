@@ -10,6 +10,7 @@ from mmf.datasets.processors.processors import (
     EvalAIAnswerProcessor,
     MultiClassFromFile,
     MultiHotAnswerFromVocabProcessor,
+    Processor,
     TransformerBboxProcessor,
 )
 from mmf.utils.configuration import load_yaml
@@ -191,3 +192,8 @@ class TestDatasetProcessors(unittest.TestCase):
         image = ToPILImage()(torch.ones(1, 224, 224))
         processed_image = image_processor(image)
         self.assertEqual(processed_image.size(), expected_size)
+
+    def test_processor_class_None(self):
+        config = OmegaConf.create({"type": "UndefinedType"})
+        with self.assertRaises(ValueError):
+            Processor(config)
