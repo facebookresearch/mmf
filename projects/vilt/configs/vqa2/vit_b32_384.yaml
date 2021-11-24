@@ -1,0 +1,30 @@
+includes:
+- ../projects/unit/configs/vqa2_dataset_cfg.yaml
+- ./defaults.yaml
+
+other_configs:
+  image_w: 384
+  image_h: 384
+  hidden_dim: 768
+
+model_config:
+  vilt:
+    image_encoder:
+      type: vit
+      params:
+        random_init: False
+        pretrained_model_name: google/vit-base-patch32-384
+        image_size:
+        - ${other_configs.image_w}
+        - ${other_configs.image_h}
+        hidden_dim: ${other_configs.hidden_dim}
+        pretrained_model: vit_base_patch32_384
+        mlp_dim: 3072
+
+    text_embeddings:
+      type: vilt_text_embedding
+      bert_model_name: bert-base-uncased
+      hidden_dim: ${other_configs.hidden_dim}
+      hidden_size: 768
+      max_position_embeddings: 512
+      random_init: False

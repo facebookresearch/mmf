@@ -458,8 +458,7 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
 
 
 class SAEmbedding(nn.Module):
-    """Encoder block implementation in MCAN https://arxiv.org/abs/1906.10770
-    """
+    """Encoder block implementation in MCAN https://arxiv.org/abs/1906.10770"""
 
     def __init__(self, hidden_dim: int, embedding_dim: int, **kwargs):
         super().__init__()
@@ -501,8 +500,7 @@ class SAEmbedding(nn.Module):
 
 
 class SGAEmbedding(nn.Module):
-    """Decoder block implementation in MCAN https://arxiv.org/abs/1906.10770
-    """
+    """Decoder block implementation in MCAN https://arxiv.org/abs/1906.10770"""
 
     def __init__(self, embedding_dim: int, **kwargs):
         super().__init__()
@@ -540,8 +538,7 @@ class SGAEmbedding(nn.Module):
 
 
 class CBNEmbedding(nn.Module):
-    """MoVie bottleneck layers from https://arxiv.org/abs/2004.11883
-    """
+    """MoVie bottleneck layers from https://arxiv.org/abs/2004.11883"""
 
     def __init__(self, embedding_dim: int, **kwargs):
         super().__init__()
