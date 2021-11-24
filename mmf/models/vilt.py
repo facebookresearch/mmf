@@ -1,7 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import collections.abc
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import torch
 from mmf.common.registry import registry
@@ -139,6 +140,7 @@ class ViLT(BaseModel):
 
         self.losses = nn.ModuleDict()
         self.heads_dict = build_heads_dict(head_configs, self.tasks, self.losses)
+        self.modality_keys = self.modality_type = ["text", "image"]
 
     def init_losses(self):
         loss_configs = self.config.get("losses", {})
@@ -150,6 +152,7 @@ class ViLT(BaseModel):
             sample_list["input_ids"], sample_list["segment_ids"]
         )
         image_embedding = self.image_embeddings(sample_list["image"])
+        self.preprocess_sample(sample_list, image_embedding)
 
         # Feed through encoder
         embeddings = torch.cat([text_embedding, image_embedding], dim=1)
@@ -162,6 +165,25 @@ class ViLT(BaseModel):
 
         outputs = self.heads_dict(sample_list["dataset_name"], sequence, sample_list)
         return outputs
+
+    def preprocess_sample(
+        self, sample_list: Dict[str, Tensor], image_embedding: Tensor
+    ):
+        head_names = self.heads_dict.head_names
+        if isinstance(head_names, collections.abc.Mapping):
+            head_names = head_names[sample_list["dataset_name"]]
+
+        head_string = " ".join(head_names)
+        prepare_itm = "itm" in head_string
+        prepare_mlm = "mlm" in head_string
+
+        if prepare_itm:
+            sample_list["itm_labels"] = self._infer_itm_labels(sample_list)
+        if prepare_mlm:
+            sample_list["mlm_labels"] = self._infer_mlm_labels(
+                sample_list, image_embedding.size()[:-1]
+            )
+            self._encode_mlm(sample_list, image_embedding)
 
     def get_optimizer_parameters(self, config):
         if hasattr(self.encoder, "get_optimizer_parameters"):
@@ -201,3 +223,62 @@ class ViLT(BaseModel):
 
         attention_mask = torch.cat((text_mask, image_mask), dim=-1)
         return attention_mask
+
+    def _infer_itm_labels(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
+        input_ids = sample_list["input_ids"]
+        itm_labels = {}
+        if "is_correct" in sample_list:
+            itm_labels["is_correct"] = sample_list["is_correct"]
+        else:
+            itm_labels["is_correct"] = torch.tensor(
+                True, dtype=torch.long, device=input_ids.device
+            )
+
+        return itm_labels
+
+    def _infer_mlm_labels(
+        self, sample_list: Dict[str, Tensor], image_embeddings_size: Tuple[int, int]
+    ):
+        input_ids = sample_list["input_ids"]
+        mlm_labels = {}
+        current_text_idx = 0
+        if "lm_label_ids" in sample_list:
+            if sample_list["lm_label_ids"].dim() > 2:
+                mlm_labels["text"] = sample_list["lm_label_ids"][:, current_text_idx]
+                current_text_idx += 1
+            else:
+                mlm_labels["text"] = sample_list["lm_label_ids"]
+        else:
+            mlm_labels["text"] = torch.full(
+                input_ids.size(),
+                fill_value=-1,
+                dtype=torch.long,
+                device=input_ids.device,
+            )
+        mlm_labels["image"] = torch.full(
+            image_embeddings_size,
+            fill_value=-1,
+            dtype=torch.long,
+            device=input_ids.device,
+        )
+        mlm_labels["combined_labels"] = torch.cat(
+            [mlm_labels["text"], mlm_labels["image"]], dim=-1
+        )
+        return mlm_labels
+
+    def _encode_mlm(self, sample_list: Dict[str, Tensor], image_embedding: Tensor):
+        assert "lm_label_ids" in sample_list
+
+        input_ids = sample_list.get("input_ids_masked", sample_list["input_ids"])
+        segment_ids = sample_list["segment_ids"]
+        text_embedding = self.text_embeddings(input_ids, segment_ids)
+
+        embeddings = torch.cat([image_embedding, text_embedding], dim=1)
+        attention_mask = self.get_attention_mask(
+            sample_list, text_embedding, image_embedding
+        )
+        sequence, _ = self.encoder(embeddings, attention_mask=attention_mask)
+        if sequence.dim() != 3:
+            sequence = sequence.unsqueeze(1)
+
+        sample_list["hs_masked_for_mlm"] = sequence

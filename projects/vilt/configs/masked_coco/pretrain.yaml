@@ -1,0 +1,111 @@
+other_configs:
+  image_w: 384
+  image_h: 384
+  hidden_size: 768
+
+dataset_config:
+  masked_coco:
+    zoo_requirements:
+    - coco.defaults
+    return_features_info: true
+    false_caption: true
+    false_caption_probability: 0.1
+    use_features: false
+    use_images: true
+    processors:
+      image_processor:
+        type: vilt_image_processor
+        params:
+          size:
+          - ${other_configs.image_w}
+          - ${other_configs.image_h}
+      text_processor:
+        type: vilt_text_tokenizer
+        params:
+          mask_probability: 0
+          max_seq_length: 40
+      masked_token_processor:
+        type: masked_token
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0.15
+          max_seq_length: 40
+    images:
+      train:
+      - coco/defaults/images/train2014
+      - coco/defaults/images/val2014
+      - coco/defaults/images/train2014
+      - coco/defaults/images/val2014
+      - coco/defaults/images/val2014
+      val:
+      - coco/defaults/images/val2014
+      test:
+      - coco/defaults/images/test2015
+
+model_config:
+  vilt:
+    tasks: ${datasets}
+    heads:
+      masked_coco:
+      - type: mlm_multi
+        freeze: false
+        lr_multiplier: 1.0
+        hidden_size: 768
+        vocab_size: 30522
+      - type: itm
+        freeze: false
+        lr_multiplier: 1.0
+        hidden_size: 768
+        label_key: is_correct
+    image_encoder:
+      type: vit
+      params:
+        random_init: True
+        pretrained_model_name: google/vit-base-patch32-384
+        gradient_checkpointing: false
+        do_pooling: false
+        hidden_dropout_prob: 0.1
+        add_pooling_layer: False
+        do_patch_embeddings: False
+        image_size:
+        - ${other_configs.image_w}
+        - ${other_configs.image_h}
+        regularize_bn: False
+        regularize_bias: True
+        hidden_dim: ${other_configs.hidden_size}
+        pretrained_model: vit_base_patch32_384
+        mlp_dim: 3072
+    text_embeddings:
+      type: vilt_text_embedding
+      bert_model_name: bert-base-uncased
+      hidden_dim: ${other_configs.hidden_size}
+      hidden_size: 768
+      max_position_embeddings: 40
+      random_init: True
+
+
+training:
+  clip_gradients: false
+  lr_scheduler: true
+  max_updates: 100000
+  checkpoint_interval: 5000
+  evaluation_interval: 5000000
+  batch_size: 4096
+  find_unused_parameters: false
+  num_workers: 1
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 1e-4
+    eps: 1e-8
+    weight_decay: 1e-2
+
+scheduler:
+  type: warmup_cosine
+  params:
+    num_warmup_steps: 4400
+    num_training_steps: ${training.max_updates}

@@ -21,7 +21,7 @@ Here is the list of models currently implemented in MMF:
 | Movie MCAN      | movie_mcan                           | vqa2                                     | [paper](https://arxiv.org/abs/2004.11883)                   |
 | Pythia          | pythia                               | textvqa, vizwiz, vqa2, visual_genome     | [paper](https://arxiv.org/abs/1904.08920)                   |
 | Unimodal        | unimodal                             | hateful_memes                            |                                                             |
-| VilBERT         | vilbert                              | hateful_memes, coco, conceptual_captions, vqa2, mmimdb, nlvr2, visual_entailment, vizwiz, vqa2 |[paper](https://arxiv.org/abs/1908.02265)|
+| VilBERT         | vilbert                              | hateful_memes, coco, conceptual_captions, mmimdb, nlvr2, visual_entailment, vizwiz, vqa2 |[paper](https://arxiv.org/abs/1908.02265)|
 | Visual BERT     | visual_bert                          | gqa, hateful_memes, localized_narratives, coco, conceptual_captions, sbu, vqa2, mmimdb, nlvr2, visual_entailment, vizwiz|[paper](https://arxiv.org/abs/1908.03557)|
 
 We are adding many more new models which will be available soon.
