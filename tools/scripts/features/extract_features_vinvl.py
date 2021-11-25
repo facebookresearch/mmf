@@ -31,12 +31,6 @@ from scene_graph_benchmark.config import sg_cfg
 from tools.scripts.features.extraction_utils import chunks, get_image_files
 
 
-SG_BENCHMARK_PATH = "/private/home/ryanjiang/copy/scene_graph_benchmark"
-CONFIG_PATH = f"{SG_BENCHMARK_PATH}/sgg_configs/vgattr/vinvl_x152c4.yaml"
-VINVL_VG_MODEL_PATH = (
-    "/private/home/ryanjiang/winoground/pretrained_models/vinvl_vg_x152c4.pth"
-)
-
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
