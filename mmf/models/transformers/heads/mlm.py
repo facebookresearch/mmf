@@ -90,3 +90,18 @@ class MLM(BaseTransformerHead):
         output_dict["losses"] = {}
         output_dict["losses"][self.config.loss_name] = masked_lm_loss
         return output_dict
+
+
+@registry.register_transformer_head("mlm_multi")
+class MLMForMultiHeads(BaseTransformerHead):
+    def __init__(self, config):
+        super().__init__(config)
+        self.mlm_head = MLM(config)
+
+    def forward(self, _, processed_sample_list):
+        mlm_outputs = self.mlm_head(
+            processed_sample_list["hs_masked_for_mlm"],
+            processed_sample_list=processed_sample_list,
+        )
+
+        return mlm_outputs
