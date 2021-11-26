@@ -507,6 +507,15 @@ class UNITERForPretraining(nn.Module):
         concat_mask = torch.cat([padding_for_txt, image_mask], dim=-1)
         return concat_mask
 
+    def _mask_inputs_in_sample_list(self, processed_sample_list, mask_key):
+        assert "image_feat_masked" in processed_sample_list
+
+        sentence_len = processed_sample_list["input_ids"].size(1)
+        processed_sample_list[mask_key] = self._get_feature_mask(
+            processed_sample_list["image_mask"], sentence_len
+        )
+        processed_sample_list["image_feat"] = processed_sample_list["image_feat_masked"]
+
     def _preprocess_mrc(self, processed_sample_list: Dict[str, Tensor]):
         assert "cls_prob" in processed_sample_list
         assert "image_mask" in processed_sample_list
@@ -522,11 +531,7 @@ class UNITERForPretraining(nn.Module):
         cls_prob = cls_prob[img_masks_ext].contiguous().view(-1, cls_dim)
         processed_sample_list[mrc_label_key] = cls_prob
 
-        sentence_len = processed_sample_list["input_ids"].size(1)
-        processed_sample_list[mrc_mask_key] = self._get_feature_mask(
-            image_mask, sentence_len
-        )
-        processed_sample_list["image_feat"] = processed_sample_list["image_feat_masked"]
+        self._mask_inputs_in_sample_list(processed_sample_list, mrc_mask_key)
 
     def _preprocess_mrfr(self, processed_sample_list: Dict[str, Tensor]):
         assert "image_mask" in processed_sample_list
@@ -543,11 +548,7 @@ class UNITERForPretraining(nn.Module):
         feat_targets = image_feat[img_masks_ext].contiguous().view(-1, feat_dim)
         processed_sample_list[mrfr_target_key] = feat_targets
 
-        sentence_len = processed_sample_list["input_ids"].size(1)
-        processed_sample_list[mrfr_mask_key] = self._get_feature_mask(
-            image_mask, sentence_len
-        )
-        processed_sample_list["image_feat"] = processed_sample_list["image_feat_masked"]
+        self._mask_inputs_in_sample_list(processed_sample_list, mrfr_mask_key)
 
     def _preprocess_wra(self, processed_sample_list: Dict[str, Tensor]):
         assert "is_correct" in processed_sample_list
