@@ -378,13 +378,13 @@ class VinVL(BaseModel):
             sample_list["image_info_0"],
             sample_list["input_mask"],
         )
-        corrupt_attention_mask = self._get_attention_mask(
-            sample_list["image_feature_0"],
-            sample_list["image_info_0"],
-            sample_list["input_mask_corrupt"],
-        )
 
         if self.do_pretraining:
+            corrupt_attention_mask = self._get_attention_mask(
+                sample_list["image_feature_0"],
+                sample_list["image_info_0"],
+                sample_list["input_mask_corrupt"],
+            )
             return self.vinvl(
                 sample_list["input_ids_masked"],
                 sample_list["input_ids_corrupt"],
@@ -402,7 +402,7 @@ class VinVL(BaseModel):
                 sample_list["segment_ids"],
                 attention_mask,
                 sample_list["image_feature_0"],
-                labels=sample_list["labels"],
+                labels=sample_list.get("labels"),
             )
 
     def _get_attention_mask(
