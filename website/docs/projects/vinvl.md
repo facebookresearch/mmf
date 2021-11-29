@@ -39,7 +39,13 @@ to point to your new features.
 
 ## Training
 
-After extracting features and redirecting your dataset config, to train VinVL model on the VQA2.0 dataset, run the following command
+After extracting features and redirecting your dataset config,
+to train VinVL model from scratch on the VQA2.0 dataset, run the following command
 ```
 mmf_run config=projects/vinvl/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=vinvl
+```
+
+To finetune a pretrained VinVL model on the VQA2.0 dataset, run the following command
+```
+mmf_run config=projects/vinvl/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=vinvl checkpoint.resume_zoo=vinvl.pretrained
 ```
