@@ -29,6 +29,16 @@ To train a fresh UNITER model on the VQA2.0 dataset, run the following command
 mmf_run config=projects/uniter/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=uniter
 ```
 
+To finetune a pretrained UNITER model on the VQA2.0 dataset,
+```
+mmf_run config=projects/uniter/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=uniter checkpoint.resume_zoo=uniter.pretrained
+```
+
+To finetune a pretrained [VILLA](https://arxiv.org/pdf/2006.06195.pdf) model on the VQA2.0 dataset,
+```
+mmf_run config=projects/uniter/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=uniter checkpoint.resume_zoo=villa.pretrained
+```
+
 To pretrain UNITER on the masked COCO dataset, run the following command
 ```
 mmf_run config=projects/uniter/configs/masked_coco/defaults.yaml run_type=train_val dataset=masked_coco model=uniter
