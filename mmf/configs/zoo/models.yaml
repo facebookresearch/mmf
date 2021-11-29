@@ -555,3 +555,9 @@ vinvl:
     - url: mmf://models/vinvl/vinvl.finetuned.coco_ir.tar.gz
       file_name: vinvl.finetuned.coco_ir.tar.gz
       hashcode: 47b07303c15f1e78143b3e98a9be1e70af5e7e5a37552bc10792178703060afa
+  pretrained:
+    version: 1.0_2020_11_29
+    resources:
+    - url: mmf://models/vinvl/vinvl.pretrained.tar.gz
+      file_name: vinvl.pretrained.tar.gz
+      hashcode: d2bd6a96d89f8b4210b33ea792acc361243b86c332bb831d384b48f47a40d4e0
