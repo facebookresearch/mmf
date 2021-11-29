@@ -546,3 +546,12 @@ unit:
       - url: mmf://models/unit_models/unit.all_8_datasets.shared_dec_with_coco_init_without_task_embedding.tar.gz
         file_name: unit.all_8_datasets.shared_dec_with_coco_init_without_task_embedding.tar.gz
         hashcode: c4a3c1072f07e605de76402ff7c0e2bc8d4514561c52dc94b3d28b3d4d7f698e
+
+vinvl:
+  defaults: ${vinvl.coco_ir}
+  coco_ir:
+    version: 1.0_2020_11_29
+    resources:
+    - url: mmf://models/vinvl/vinvl.finetuned.coco_ir.tar.gz
+      file_name: vinvl.finetuned.coco_ir.tar.gz
+      hashcode: 47b07303c15f1e78143b3e98a9be1e70af5e7e5a37552bc10792178703060afa
