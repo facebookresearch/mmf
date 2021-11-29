@@ -546,3 +546,19 @@ unit:
       - url: mmf://models/unit_models/unit.all_8_datasets.shared_dec_with_coco_init_without_task_embedding.tar.gz
         file_name: unit.all_8_datasets.shared_dec_with_coco_init_without_task_embedding.tar.gz
         hashcode: c4a3c1072f07e605de76402ff7c0e2bc8d4514561c52dc94b3d28b3d4d7f698e
+
+vilt:
+  defaults: ${vilt.vqa}
+  vqa:
+    # Model from project : projects/vilt, Val: 69.55
+    version: 1.0_2021_011_29
+    resources:
+    - url: mmf://models/vilt/vilt.finetuned.vqa2.tar.gz
+      file_name: vilt.finetuned.vqa2.tar.gz
+      hashcode: 83539fb58f19592f4286a499557c40f084f366722700232943824922160aeacd
+  pretrained:
+    version: 1.0_2021_011_29
+    resources:
+    - url: mmf://models/vilt/vilt.pretrained.tar.gz
+      file_name: vilt.pretrained.tar.gz
+      hashcode: a933ef78e9afafe044de22ef042d4ffe50388c19544921db044cd446e688c5fd
