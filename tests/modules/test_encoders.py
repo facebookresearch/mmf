@@ -117,10 +117,10 @@ class TestEncoders(unittest.TestCase):
         self.assertEqual(output.size(1), 2304)
 
     @skip_if_no_pytorchvideo
-    def test_torchvision_mvit_encoder(self):
+    def test_mvit_encoder(self):
         config = OmegaConf.create(
             {
-                "name": "torchvideo",
+                "name": "mvit",
                 "model_name": "multiscale_vision_transformers",
                 "random_init": True,
                 "cls_layer_num": 0,
@@ -129,7 +129,7 @@ class TestEncoders(unittest.TestCase):
                 "head": None,
             }
         )
-        encoder = encoders.TorchVideoEncoder(config)
+        encoder = encoders.MViTEncoder(config)
         x = torch.rand((1, 3, 8, 224, 224))
         output = encoder(x)
-        self.assertEqual(output.shape, torch.Size([1, 12545, 96]))
+        self.assertEqual(output.shape, torch.Size([1, 1, 12545]))
