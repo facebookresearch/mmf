@@ -26,6 +26,7 @@ module.exports = {
       'notes/model_zoo',
       'notes/pretrained_models',
       'notes/projects',
+      'tutorials/pytorchvideo',
     ],
     Tutorials: [
       'tutorials/dataset',
