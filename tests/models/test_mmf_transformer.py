@@ -21,7 +21,9 @@ from mmf.utils.build import build_model
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports, teardown_imports
 from omegaconf import OmegaConf
-
+from tests.test_utils import (
+    skip_if_no_pytorchvideo,
+)
 
 BERT_VOCAB_SIZE = 30255
 ROBERTA_VOCAB_SIZE = 50265
@@ -426,6 +428,57 @@ class TestMMFTransformer(unittest.TestCase):
         input_ids = transformer_input["input_ids"]
         self.assertEqual(input_ids["image"].dim(), 3)
         self.assertEqual(list(input_ids["image"].size()), [2, 1, 2048])
+
+        self.assertEqual(input_ids["text"].dim(), 2)
+        self.assertEqual(list(input_ids["text"].size()), [2, 128])
+
+        position_ids = transformer_input["position_ids"]
+        test_utils.compare_tensors(position_ids["image"], torch.tensor([[0], [0]]))
+        test_utils.compare_tensors(
+            position_ids["text"], torch.arange(0, 128).unsqueeze(0).expand((2, 128))
+        )
+
+        masks = transformer_input["masks"]
+        test_utils.compare_tensors(masks["image"], torch.tensor([[1], [1]]))
+        test_utils.compare_tensors(masks["text"], torch.ones((2, 128)).long())
+
+        segment_ids = transformer_input["segment_ids"]
+        test_utils.compare_tensors(segment_ids["image"], torch.tensor([[0], [0]]))
+        test_utils.compare_tensors(segment_ids["text"], torch.ones((2, 128)).long())
+
+    @skip_if_no_pytorchvideo
+    def test_preprocessing_with_mvit_encoder(self):
+        encoder_config = OmegaConf.create(
+            {
+                "name": "mvit",
+                "model_name": "multiscale_vision_transformers",
+                "random_init": True,
+                "cls_layer_num": 0,
+                "spatial_size": 224,
+                "temporal_size": 8,
+                "head": None,
+            }
+        )
+        self._image_modality_config = MMFTransformerModalityConfig(
+            type="image",
+            key="image",
+            embedding_dim=12545,
+            position_dim=1,
+            segment_id=0,
+            encoder=encoder_config,
+        )
+        modalities_config = [self._image_modality_config, self._text_modality_config]
+        config = MMFTransformer.Config(modalities=modalities_config, num_labels=2)
+        mmft = build_model(config)
+
+        sample_list = SampleList()
+        sample_list.image = torch.rand((2, 3, 8, 224, 224))
+        sample_list.text = torch.randint(0, 512, (2, 128))
+
+        transformer_input = mmft.preprocess_sample(sample_list)
+        input_ids = transformer_input["input_ids"]
+        self.assertEqual(input_ids["image"].dim(), 3)
+        self.assertEqual(list(input_ids["image"].size()), [2, 1, 12545])
 
         self.assertEqual(input_ids["text"].dim(), 2)
         self.assertEqual(list(input_ids["text"].size()), [2, 128])

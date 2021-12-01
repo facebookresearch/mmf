@@ -9,7 +9,7 @@ from collections import OrderedDict
 from copy import deepcopy
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 import torch
 import torchvision
@@ -771,6 +771,31 @@ class TorchVideoEncoder(Encoder):
             if param_name not in constructor_params
         }
         return accepted_params, ignored_params
+
+
+@registry.register_encoder("mvit")
+class MViTEncoder(Encoder):
+    """
+    MVIT from pytorchvideo
+    """
+
+    @dataclass
+    class Config(Encoder.Config):
+        name: str = "mvit"
+        random_init: bool = False
+        model_name: str = "multiscale_vision_transformers"
+        spatial_size: int = 224
+        temporal_size: int = 8
+        head: Optional[Any] = None
+
+    def __init__(self, config: Config):
+        super().__init__()
+        self.encoder = TorchVideoEncoder(config)
+
+    def forward(self, *args, **kwargs):
+        output = self.encoder(*args, **kwargs)
+        output = output.permute(0, 2, 1)
+        return output[:, :1, :]
 
 
 @registry.register_encoder("r2plus1d_18")
