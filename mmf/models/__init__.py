@@ -15,10 +15,10 @@ from .mmf_transformer import MMFTransformer
 from .pythia import Pythia
 from .top_down_bottom_up import TopDownBottomUp
 from .unimodal import UnimodalBase, UnimodalText, UnimodalModal
+from .uniter import UNITER
 from .vilbert import ViLBERT
 from .vilt import ViLT
 from .visual_bert import VisualBERT
-from .uniter import UNITER
 
 __all__ = [
     "TopDownBottomUp",
