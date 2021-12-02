@@ -106,7 +106,7 @@ def skip_if_no_pytorchvideo(testfn, reason="Requires pytorchvideo"):
     import importlib
 
     pytorchvideo_spec = importlib.util.find_spec("pytorchvideo")
-    return unittest.skipUnless(pytorchvideo_spec is not None, reason)(testfn)
+    return unittest.skipIf(pytorchvideo_spec is None, reason)(testfn)
 
 
 def compare_state_dicts(a, b):
