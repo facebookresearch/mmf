@@ -695,10 +695,7 @@ class PooledEncoder(Encoder):
 
 @registry.register_encoder("torchvideo")
 class TorchVideoEncoder(Encoder):
-    """
-    Wrapper around importing torchvideo models
-    as encoders.
-    """
+    """Wrapper around importing torchvideo models"""
 
     @dataclass
     class Config(Encoder.Config):
@@ -730,8 +727,8 @@ class TorchVideoEncoder(Encoder):
                 ignored_params_str = " ".join(ignored_params.keys())
                 logger.warning(
                     "The following model constructor params were ignored"
-                    + " because they don't match a named param in the constructor: "
-                    + ignored_params_str
+                    + " because they don't match a named param in the"
+                    + f" constructor: {ignored_params_str}"
                 )
             model = model_create_fn(**accepted_params)
         else:
@@ -775,9 +772,7 @@ class TorchVideoEncoder(Encoder):
 
 @registry.register_encoder("mvit")
 class MViTEncoder(Encoder):
-    """
-    MVIT from pytorchvideo
-    """
+    """MVIT from pytorchvideo"""
 
     @dataclass
     class Config(Encoder.Config):
