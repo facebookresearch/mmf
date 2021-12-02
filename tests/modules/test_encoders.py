@@ -108,12 +108,16 @@ class TestEncoders(unittest.TestCase):
         self.assertEqual(output.size(-1), config.out_dim)
 
     @skip_if_no_pytorchvideo
-    def test_torchvision_slowfast_r50_encoder(self):
+    def test_torchvideo_slowfast_r50_encoder(self):
+        # instantiate video encoder from pytorchvideo
+        # default model is slowfast_r50
         config = OmegaConf.structured(encoders.TorchVideoEncoder.Config())
         encoder = encoders.TorchVideoEncoder(config)
         fast = torch.rand((1, 3, 32, 224, 224))
         slow = torch.rand((1, 3, 8, 224, 224))
         output = encoder([slow, fast])
+        # check output tensor is the expected feature dim size
+        # (bs, feature_dim)
         self.assertEqual(output.size(1), 2304)
 
     @skip_if_no_pytorchvideo
@@ -136,6 +140,11 @@ class TestEncoders(unittest.TestCase):
         encoder = encoders.MViTEncoder(OmegaConf.create(config))
         x = torch.rand((1, 3, 8, 224, 224))
         output = encoder(x)
+        # check output tensor is the expected feature dim size
+        # based on pooled attention configs
+        # for more details consult https://arxiv.org/pdf/2104.11227
+        # and https://github.com/facebookresearch/pytorchvideo/
+        # (bs, num_features, feature_dim)
         self.assertEqual(output.shape, torch.Size([1, 1, 768]))
 
         # test avg pooler
@@ -150,4 +159,5 @@ class TestEncoders(unittest.TestCase):
             OmegaConf.create(dict(config, encoder_pool_type="identity"))
         )
         output = encoder(x)
+        # (bs, num_features, feature_dim)
         self.assertEqual(output.shape, torch.Size([1, 197, 768]))
