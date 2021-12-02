@@ -478,7 +478,7 @@ class TestMMFTransformer(unittest.TestCase):
         transformer_input = mmft.preprocess_sample(sample_list)
         input_ids = transformer_input["input_ids"]
         self.assertEqual(input_ids["image"].dim(), 3)
-        self.assertEqual(list(input_ids["image"].size()), [2, 1, 12545])
+        self.assertEqual(list(input_ids["image"].size()), [2, 1, 768])
 
         self.assertEqual(input_ids["text"].dim(), 2)
         self.assertEqual(list(input_ids["text"].size()), [2, 128])

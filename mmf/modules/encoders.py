@@ -9,7 +9,7 @@ from collections import OrderedDict
 from copy import deepcopy
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Optional, List
 
 import torch
 import torchvision
@@ -718,7 +718,7 @@ class TorchVideoEncoder(Encoder):
         if config.random_init:
             model_create_fn_name = f"create_{config.model_name}"
             model_create_fn = getattr(models, model_create_fn_name)
-            params = dict(**config)
+            params = dict(**OmegaConf.to_container(config))
             params.pop("random_init")
             params.pop("model_name")
             params.pop("cls_layer_num")
@@ -786,16 +786,52 @@ class MViTEncoder(Encoder):
         model_name: str = "multiscale_vision_transformers"
         spatial_size: int = 224
         temporal_size: int = 8
+        encoder_pool_type: str = "cls"
         head: Optional[Any] = None
+        embed_dim_mul: Optional[List] = None
+        atten_head_mul: Optional[List] = None
+        pool_q_stride_size: Optional[List] = None
+        pool_kv_stride_adaptive: Optional[List] = None
+        pool_kvq_kernel: Optional[List] = None
 
     def __init__(self, config: Config):
         super().__init__()
-        self.encoder = TorchVideoEncoder(config)
+        config = {**asdict(self.Config()), **config}
+        # initialize default lists
+        config["embed_dim_mul"] = config["embed_dim_mul"] or [
+            [1, 2.0],
+            [3, 2.0],
+            [14, 2.0],
+        ]
+        config["atten_head_mul"] = config["atten_head_mul"] or [
+            [1, 2.0],
+            [3, 2.0],
+            [14, 2.0],
+        ]
+        config["pool_q_stride_size"] = config["pool_q_stride_size"] or [
+            [1, 1, 2, 2],
+            [3, 1, 2, 2],
+            [14, 1, 2, 2],
+        ]
+        config["pool_kv_stride_adaptive"] = config["pool_kv_stride_adaptive"] or [
+            1,
+            8,
+            8,
+        ]
+        config["pool_kvq_kernel"] = config["pool_kvq_kernel"] or [3, 3, 3]
+
+        self.pool_type = config.pop("encoder_pool_type")
+        self.encoder = TorchVideoEncoder(OmegaConf.create(config))
 
     def forward(self, *args, **kwargs):
         output = self.encoder(*args, **kwargs)
-        output = output.permute(0, 2, 1)
-        return output[:, :1, :]
+        if self.pool_type == "cls":
+            output = output[:, :1, :]
+        elif self.pool_type == "avg":
+            output = output.mean(1).unsqueeze(1)
+        elif self.pool_type == "identity":
+            output = output
+        return output
 
 
 @registry.register_encoder("r2plus1d_18")
