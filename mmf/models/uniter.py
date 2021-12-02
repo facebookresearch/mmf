@@ -7,14 +7,16 @@ import copy
 import logging
 import random
 from collections import MutableMapping, namedtuple
+from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
 from mmf.common.registry import registry
+from mmf.models import BaseModel
 from mmf.modules.losses import MMFLoss
 from mmf.utils.general import retry_n
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import MISSING, DictConfig, OmegaConf
 from torch import Tensor, nn
 from transformers.modeling_bert import BertConfig, BertEmbeddings, BertModel
 
@@ -310,8 +312,8 @@ class UNITERForClassification(nn.Module):
         for task in self.tasks:
             assert task in head_configs, (
                 f"Task {task} is specified in your model configs"
-                + " but there is no head configured for the task."
-                + "Head configs can be added under model_config.heads"
+                + " but there is no head configured for the task. "
+                + "Head configs can be added under model_config.heads "
                 + "in your yaml configs. Either remove this task if UNITER"
                 + " is not meant to run on a dataset named {task}"
                 + " or add a head config."
@@ -603,3 +605,164 @@ class UNITERForPretraining(nn.Module):
                 x = x[pos_pairs_mask]
             else:
                 x = x[pos_pairs_mask, ::]
+
+
+@registry.register_model("uniter")
+class UNITER(BaseModel):
+    """Modification for Joint Vision-Language Encoding"""
+
+    @dataclass
+    class Config:
+        random_init: bool = False
+        bert_model_name: str = "bert-base-uncased"
+        img_dim: int = 2048
+        hidden_size: int = 768
+        hidden_dropout_prob: float = 0
+        text_embeddings: Any = field(default_factory=lambda: {})
+        encoder: Any = field(default_factory=lambda: {})
+        heads: Any = MISSING
+        losses: Any = field(default_factory=lambda: {})
+        tasks: Any = MISSING
+        do_pretraining: bool = False
+
+    def __init__(self, config):
+        super().__init__(config)
+        self.config = OmegaConf.create({**asdict(self.Config()), **config})
+        self.do_pretraining = self.config.do_pretraining
+
+    @classmethod
+    def config_path(cls):
+        return "configs/models/uniter/defaults.yaml"
+
+    def build(self):
+        configs = dict(**self.config)
+        configs["head_configs"] = configs.pop("heads")
+        configs["loss_configs"] = configs.pop("losses")
+        params_keys = [
+            "head_configs",
+            "loss_configs",
+            "tasks",
+            "random_init",
+            "bert_model_name",
+            "img_dim",
+            "hidden_size",
+            "hidden_dropout_prob",
+            "text_embeddings",
+            "encoder",
+        ]
+        if self.do_pretraining:
+            # take value from config when the key exists,
+            # otherwise use constructor defaults
+            params_keys += ["mask_probability"]
+            params = {key: configs[key] for key in params_keys if key in configs}
+            self.uniter = UNITERForPretraining(**params)
+        else:
+            params = {key: configs[key] for key in params_keys if key in configs}
+            self.uniter = UNITERForClassification(**params)
+
+        self.tasks = self.config.tasks
+        if isinstance(self.tasks, str):
+            self.tasks = self.tasks.split(",")
+
+    def init_losses(self):
+        """
+        Defer loss management to submodels,
+        do nothing when called by build_model.
+        """
+        pass
+
+    def add_pos_feat(self, sample_list: Dict[str, Tensor]):
+        assert "image_info_0" in sample_list
+        assert "bbox" in sample_list["image_info_0"]
+
+        # (x1, y1, x2, y2), dim = (bs, num_feats, 4)
+        bboxs = torch.tensor(sample_list["image_info_0"]["bbox"])[:, :, :4]
+        norm_xy = torch.clone(bboxs)
+        # if bboxs are not normalized, just do it here
+        if norm_xy[0, 0, 0] < 1:
+            img_h = (
+                torch.tensor(sample_list["image_info_0"]["image_height"])
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )  # (bs,)
+            img_w = (
+                torch.tensor(sample_list["image_info_0"]["image_width"])
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )  # (bs,)
+            max_image_size = torch.cat([img_w, img_h, img_w, img_h], dim=-1)
+            max_image_size = max_image_size.to(norm_xy.device)
+            norm_xy /= max_image_size
+
+        bbox_w = (norm_xy[:, :, 2] - norm_xy[:, :, 0]).unsqueeze(-1)
+        bbox_h = (norm_xy[:, :, 3] - norm_xy[:, :, 1]).unsqueeze(-1)
+        area = bbox_w * bbox_h
+        # normalized (x1, y1, x2, y2, w, h, area)
+        pos_feat = torch.cat([norm_xy, bbox_w, bbox_h, area], dim=-1).to(
+            sample_list["image_feature_0"]
+        )
+        sample_list["img_pos_feat"] = pos_feat
+
+    def add_custom_params(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
+        image_feat = sample_list["image_feat"] = sample_list["image_feature_0"]
+
+        image_info = getattr(sample_list, "image_info_0", {})
+        image_dim = getattr(image_info, "max_features", None)
+        sample_list["image_dim"] = image_dim
+
+        image_mask = torch.arange(image_feat.size(-2), device=image_feat.device).expand(
+            image_feat.size()[:-1]
+        )
+        if len(image_dim.size()) < len(image_mask.size()):
+            image_dim = image_dim.unsqueeze(-1)
+            assert len(image_dim.size()) == len(image_mask.size())
+        image_mask = image_mask < image_dim
+        sample_list["image_mask"] = image_mask.long()
+
+        sample_list["attention_mask"] = torch.cat(
+            (sample_list["input_mask"], sample_list["image_mask"]), dim=-1
+        )
+        task_index = torch.randint(len(self.tasks), (1,)).item()
+        sample_list["task"] = self.tasks[task_index]
+        sample_list["position_ids"] = torch.arange(
+            0,
+            sample_list["input_ids"].size(1),
+            dtype=torch.long,
+            device=image_feat.device,
+        ).unsqueeze(0)
+
+        self.add_pos_feat(sample_list)
+        return sample_list
+
+    def forward(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
+        sample_list = self.add_custom_params(sample_list)
+        return self.uniter(sample_list)
+
+    def get_attention_mask(
+        self,
+        sample_list: Dict[str, Tensor],
+        text_embedding: Tensor,
+        image_embedding: Tensor,
+    ) -> Tensor:
+        image_mask = getattr(sample_list, "image_mask", None)
+
+        if image_mask is not None and sample_list.input_mask is not None:
+            attention_mask = torch.cat((sample_list.input_mask, image_mask), dim=-1)
+        elif image_mask is not None:
+            text_mask = torch.ones(
+                text_embedding.size()[:-1],
+                dtype=text_embedding.dtype,
+                device=text_embedding.device,
+            )
+            attention_mask = torch.cat((image_mask, text_mask), dim=-1)
+        elif sample_list.input_mask is not None:
+            image_mask = torch.ones(
+                image_embedding.size()[:-1],
+                dtype=image_embedding.dtype,
+                device=image_embedding.device,
+            )
+            attention_mask = torch.cat((image_mask, sample_list.input_mask), dim=-1)
+        else:
+            attention_mask = None
+
+        return attention_mask

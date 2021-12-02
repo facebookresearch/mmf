@@ -1,6 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import gc
 import unittest
 
+import tests.test_utils as test_utils
 import torch
 from mmf.common.sample import SampleList
 from mmf.models.uniter import (
@@ -9,6 +11,9 @@ from mmf.models.uniter import (
     UNITERImageEmbeddings,
     UNITERModelBase,
 )
+from mmf.utils.build import build_model
+from mmf.utils.configuration import Configuration
+from mmf.utils.env import setup_imports, teardown_imports
 from mmf.utils.general import get_current_device
 from omegaconf import OmegaConf
 
@@ -166,3 +171,107 @@ class TestUniterWithHeads(unittest.TestCase):
 
             self.assertTrue("losses" in model_output)
             self.assertTrue(loss_name in model_output["losses"])
+
+
+class TestUniterModel(unittest.TestCase):
+    def setUp(self):
+        test_utils.setup_proxy()
+        setup_imports()
+        model_name = "uniter"
+        args = test_utils.dummy_args(model=model_name, dataset="vqa2")
+        configuration = Configuration(args)
+        config = configuration.get_config()
+        model_config = config.model_config[model_name]
+        model_config.model = model_name
+        model_config.losses = {"vqa2": "logit_bce"}
+        model_config.do_pretraining = False
+        model_config.tasks = "vqa2"
+        classification_config_dict = {
+            "do_pretraining": False,
+            "tasks": "vqa2",
+            "heads": {"vqa2": {"type": "mlp", "num_labels": 3129}},
+            "losses": {"vqa2": "logit_bce"},
+        }
+        classification_config = OmegaConf.create(
+            {**model_config, **classification_config_dict}
+        )
+
+        pretraining_config_dict = {
+            "do_pretraining": True,
+            "tasks": "wra",
+            "heads": {"wra": {"type": "wra"}},
+        }
+        pretraining_config = OmegaConf.create(
+            {**model_config, **pretraining_config_dict}
+        )
+
+        self.model_for_classification = build_model(classification_config)
+        self.model_for_pretraining = build_model(pretraining_config)
+
+    def tearDown(self):
+        teardown_imports()
+        del self.model_for_classification
+        del self.model_for_pretraining
+        gc.collect()
+
+    def _get_sample_list(self):
+        bs = 8
+        num_feats = 100
+        max_sentence_len = 25
+        img_dim = 2048
+        vqa_cls_dim = 3129
+        input_ids = torch.ones((bs, max_sentence_len), dtype=torch.long)
+        input_mask = torch.ones((bs, max_sentence_len), dtype=torch.long)
+        img_feat = torch.rand((bs, num_feats, img_dim))
+
+        max_features = torch.ones((bs, num_feats)) * num_feats
+        bbox = torch.randint(50, 200, (bs, num_feats, 4)).float()
+        image_height = torch.randint(100, 300, (bs,))
+        image_width = torch.randint(100, 300, (bs,))
+        image_info = {
+            "max_features": max_features,
+            "bbox": bbox,
+            "image_height": image_height,
+            "image_width": image_width,
+        }
+        targets = torch.rand((bs, vqa_cls_dim))
+        is_correct = torch.ones((bs,), dtype=torch.long)
+
+        sample_list = SampleList()
+        sample_list.add_field("input_ids", input_ids)
+        sample_list.add_field("image_feature_0", img_feat)
+        sample_list.add_field("input_mask", input_mask)
+        sample_list.add_field("image_info_0", image_info)
+        sample_list.add_field("targets", targets)
+        sample_list.add_field("is_correct", is_correct)
+        sample_list = sample_list.to(get_current_device())
+        return sample_list
+
+    def test_uniter_for_classification(self):
+        self.model_for_classification.eval()
+        self.model_for_classification = self.model_for_classification.to(
+            get_current_device()
+        )
+        sample_list = self._get_sample_list()
+
+        sample_list.dataset_name = "vqa2"
+        sample_list.dataset_type = "test"
+        with torch.no_grad():
+            model_output = self.model_for_classification(sample_list)
+
+        self.assertTrue("losses" in model_output)
+        self.assertTrue("test/vqa2/logit_bce" in model_output["losses"])
+
+    def test_uniter_for_pretraining(self):
+        self.model_for_pretraining.eval()
+        self.model_for_pretraining = self.model_for_pretraining.to(get_current_device())
+        sample_list = self._get_sample_list()
+        sample_list["tasks"] = "wra"
+
+        sample_list.dataset_name = "vqa2"
+        sample_list.dataset_type = "test"
+        with torch.no_grad():
+            model_output = self.model_for_pretraining(sample_list)
+
+        self.assertTrue("losses" in model_output)
+        self.assertTrue("wra_loss" in model_output["losses"])
