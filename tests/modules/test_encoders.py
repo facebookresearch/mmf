@@ -118,18 +118,36 @@ class TestEncoders(unittest.TestCase):
 
     @skip_if_no_pytorchvideo
     def test_mvit_encoder(self):
-        config = OmegaConf.create(
-            {
-                "name": "mvit",
-                "model_name": "multiscale_vision_transformers",
-                "random_init": True,
-                "cls_layer_num": 0,
-                "spatial_size": 224,
-                "temporal_size": 8,
-                "head": None,
-            }
-        )
-        encoder = encoders.MViTEncoder(config)
+        config = {
+            "name": "mvit",
+            "model_name": "multiscale_vision_transformers",
+            "random_init": True,
+            "cls_layer_num": 0,
+            "spatial_size": 224,
+            "temporal_size": 8,
+            "head": None,
+            "embed_dim_mul": [[1, 2.0], [3, 2.0], [14, 2.0]],
+            "atten_head_mul": [[1, 2.0], [3, 2.0], [14, 2.0]],
+            "pool_q_stride_size": [[1, 1, 2, 2], [3, 1, 2, 2], [14, 1, 2, 2]],
+            "pool_kv_stride_adaptive": [1, 8, 8],
+            "pool_kvq_kernel": [3, 3, 3],
+        }
+        # test bert cls pooler
+        encoder = encoders.MViTEncoder(OmegaConf.create(config))
         x = torch.rand((1, 3, 8, 224, 224))
         output = encoder(x)
-        self.assertEqual(output.shape, torch.Size([1, 1, 12545]))
+        self.assertEqual(output.shape, torch.Size([1, 1, 768]))
+
+        # test avg pooler
+        encoder = encoders.MViTEncoder(
+            OmegaConf.create(dict(config, encoder_pool_type="avg"))
+        )
+        output = encoder(x)
+        self.assertEqual(output.shape, torch.Size([1, 1, 768]))
+
+        # test no pooling
+        encoder = encoders.MViTEncoder(
+            OmegaConf.create(dict(config, encoder_pool_type="identity"))
+        )
+        output = encoder(x)
+        self.assertEqual(output.shape, torch.Size([1, 197, 768]))
