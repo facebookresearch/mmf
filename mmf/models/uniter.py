@@ -609,8 +609,7 @@ class UNITERForPretraining(nn.Module):
 
 @registry.register_model("uniter")
 class UNITER(BaseModel):
-    """ Modification for Joint Vision-Language Encoding
-    """
+    """Modification for Joint Vision-Language Encoding"""
 
     @dataclass
     class Config:
