@@ -1,0 +1,74 @@
+model_config:
+  uniter:
+    do_pretraining: true
+    mask_probability: 0.15
+    tasks:
+      - mlm
+      - itm
+      - mrc
+      - mrfr
+      - wra
+    heads:
+      mlm:
+        type: mlm
+        vocab_size: 28996
+      itm:
+        type: itm
+      mrc:
+        type: mrc
+      mrfr:
+        type: mrfr
+      wra:
+        type: wra
+    text_embeddings:
+      vocab_size: 28996
+
+dataset_config:
+  masked_coco:
+    false_caption: true
+    false_caption_probability: 0.1
+    zoo_requirements:
+    - coco.defaults
+    return_features_info: true
+    use_features: true
+    use_images: false
+    processors:
+      masked_token_processor:
+        type: uniter_text_tokenizer
+        params:
+          from_pretrained: bert-base-cased
+          tokenizer_config:
+            type: bert-base-cased
+            params:
+              do_lower_case: false
+          mask_probability: 0.15
+          max_seq_length: 25
+    images:
+      train:
+      - coco/defaults/images/train2014
+      - coco/defaults/images/val2014
+      - coco/defaults/images/train2014
+      - coco/defaults/images/val2014
+      - coco/defaults/images/val2014
+      val:
+      - coco/defaults/images/val2014
+      test:
+      - coco/defaults/images/test2015
+
+optimizer:
+  type: adam_w
+  params:
+    lr: 5e-5
+    eps: 1e-8
+
+scheduler:
+  type: warmup_linear
+  params:
+    num_warmup_steps: 6000
+    num_training_steps: 60000
+
+training:
+  batch_size: 480
+  lr_scheduler: true
+  # Don't forget to update schedule_attributes if you update this
+  max_updates: 60000
