@@ -11,6 +11,7 @@ from typing import Optional, Tuple
 import torch
 from torch import Tensor, nn
 from transformers.modeling_bert import (
+    BertConfig,
     BertEmbeddings,
     BertEncoder,
     BertPreTrainedModel,
@@ -18,16 +19,14 @@ from transformers.modeling_bert import (
 
 logger = logging.getLogger(__name__)
 
-NUM_RETRIES = 6
 
-
-class BertImgModel(BertPreTrainedModel):
+class VinVLBase(BertPreTrainedModel):
     """VinVL Bert Encoder for image features
     From https://github.com/microsoft/Oscar/blob/master/oscar/modeling/modeling_bert.py
     Is a thin wrapper around BertEncoder that handles image features
     """
 
-    def __init__(self, config):
+    def __init__(self, config: BertConfig):
         super().__init__(config)
         self.embeddings = BertEmbeddings(config)
         self.encoder = BertEncoder(config)
@@ -43,6 +42,7 @@ class BertImgModel(BertPreTrainedModel):
             ]
         dropout = nn.Dropout(config.hidden_dropout_prob)
         img_embedding_list += [dropout]
+        # is an image encoding used as input to the transformer trunk
         self.img_embedding = nn.Sequential(*img_embedding_list)
 
     def forward(
@@ -56,25 +56,33 @@ class BertImgModel(BertPreTrainedModel):
         if attention_mask is None:
             attention_mask = torch.ones(
                 (input_ids.size(0), input_ids.size(1) + img_feats.size(1))
-            ).to(input_ids)
+            ).to(input_ids.device)
         if token_type_ids is None:
             token_type_ids = torch.zeros_like(input_ids)
-        # We create a 3D attention mask from a 2D tensor mask.
-        # Sizes are [batch_size, 1, 1, to_seq_length]
-        # So we can broadcast to [batch_size, num_heads, from_seq_length, to_seq_length]
-        # this attention mask is more simple than the triangular
-        # masking of causal attention
-        # used in OpenAI GPT, we just need to prepare the broadcast dimension here.
-        if attention_mask.dim() == 2:
-            extended_attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
-        elif attention_mask.dim() == 3:
-            extended_attention_mask = attention_mask.unsqueeze(1)
+        # We can provide a self-attention mask of dimensions
+        # [batch_size, from_seq_length, to_seq_length]
+        # ourselves in which case we just need to make it broadcastable to all heads.
+        # attention_mask with dim 3 is to specify a unique mask for each feature,
+        # it is broadcast over heads.
+        if attention_mask.dim() == 3:
+            extended_attention_mask = attention_mask[:, None, :, :]
+        elif attention_mask.dim() == 2:
+            # Provided a padding mask of dimensions [batch_size, seq_length]
+            # Make the mask broadcastable to
+            # [batch_size, num_heads, seq_length, seq_length]
+            extended_attention_mask = attention_mask[:, None, None, :]
         else:
-            raise NotImplementedError
+            raise ValueError(
+                f"Wrong shape for input_ids (shape {input_ids.shape})"
+                + " or attention_mask (shape {attention_mask.shape})"
+            )
 
-        extended_attention_mask = extended_attention_mask.to(
-            dtype=next(self.parameters()).dtype
-        )  # fp16 compatibility
+        # Since attention_mask is 1.0 for positions we want to attend and 0.0 for
+        # masked positions, this operation will create a tensor which is 0.0 for
+        # positions we want to attend and -10000.0 for masked positions.
+        # Since we are adding it to the raw scores before the softmax, this is
+        # effectively the same as removing these entirely.
+        extended_attention_mask = extended_attention_mask.to(dtype=self.dtype)
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
 
         # Do embeddings
@@ -89,5 +97,5 @@ class BertImgModel(BertPreTrainedModel):
             extended_attention_mask,
             output_hidden_states=True,
         )
-        layers = namedtuple("TransformerOutput", ["final_layer", "hidden_layers"])
+        layers = namedtuple("TransformerOutput", ["last_hidden_state", "hidden_layers"])
         return layers(encoder_outputs[0], encoder_outputs[1])
