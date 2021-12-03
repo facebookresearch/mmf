@@ -1,0 +1,28 @@
+model_config:
+  uniter:
+    heads:
+      vqa2:
+        type: mlp
+        freeze: false
+        lr_multiplier: 1.0
+        in_dim: 768
+        hidden_size: 1536
+        num_labels: 3129
+        pooler_name: bert_pooler
+    text_embeddings:
+      type: bert_embeddings
+    image_embeddings:
+      type: uniter_image_embeddings
+      params:
+        name: 'uniter_image_embeddings'
+    encoder:
+      type: transformer
+      params:
+        bert_model_name: bert-base-uncased
+        hidden_size: 768
+        num_hidden_layers: 12
+        num_attention_heads: 12
+        output_attentions: false
+        output_hidden_states: false
+    tasks:
+    - vqa2
