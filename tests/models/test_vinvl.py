@@ -4,7 +4,7 @@ import unittest
 
 import torch
 from mmf.models.vinvl import (
-    BertImgModel,
+    VinVLBase,
     VinVLForClassification,
     VinVLForPretraining,
 )
@@ -12,7 +12,7 @@ from mmf.utils.general import get_current_device
 from transformers.modeling_bert import BertConfig
 
 
-class TestVinVLBertImageModel(unittest.TestCase):
+class TestVinVLBase(unittest.TestCase):
     def test_forward(self):
         img_feature_dim = 2054
         bert_model_name = "bert-base-uncased"
@@ -23,7 +23,7 @@ class TestVinVLBertImageModel(unittest.TestCase):
         bert_config.img_feature_dim = img_feature_dim
         bert_config.use_img_layernorm = use_img_layernorm
         bert_config.img_layer_norm_eps = img_layer_norm_eps
-        model = BertImgModel(bert_config)
+        model = VinVLBase(bert_config)
 
         model.eval()
         model = model.to(get_current_device())
@@ -35,7 +35,7 @@ class TestVinVLBertImageModel(unittest.TestCase):
         img_feat = torch.rand((bs, num_feats, img_feature_dim))
 
         with torch.no_grad():
-            model_output = model(input_ids, img_feat).final_layer
+            model_output = model(input_ids, img_feat).last_hidden_state
         self.assertEqual(model_output.shape, torch.Size([8, 95, 768]))
 
 
@@ -92,4 +92,4 @@ class TestVinVLForClassificationAndPretraining(unittest.TestCase):
             )
         self.assertTrue("losses" in model_output)
         self.assertTrue("masked_lm_loss" in model_output["losses"])
-        self.assertTrue("vinvl_three_way_contrastive" in model_output["losses"])
+        self.assertTrue("vinvl_three_way_contrastive_loss" in model_output["losses"])
