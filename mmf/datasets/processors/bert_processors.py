@@ -356,51 +356,25 @@ class MultiSentenceRobertaTokenizer(MultiSentenceBertTokenizer):
         self._probability = config.get("mask_probability", 0)
 
 
-@registry.register_processor("vilt_text_tokenizer")
-class VILTTextTokenizer(MaskedTokenProcessor):
-    def __init__(self, config, *args, **kwargs):
-        from transformers import BertTokenizer
+def get_pair_text_tokens(
+    item: Dict[str, Any], masked_token_processor: MaskedTokenProcessor
+) -> Dict[str, torch.Tensor]:
+    """Given an item Dict with either 1 or 2 text sentences,
+    tokenize and concat them returning a Dict that contains at least
+    "input_ids", "input_mask", and "segment_ids'.
 
-        if isinstance(config, str):
-            config = {"from_pretrained": config}
+    Args:
+        item (Dict[str, Any]):
+            A Dict containing keys
+            "text" or "tokens", and optionally "text_b"
+        masked_token_processor (MaskedTokenProcessor):
+            A processor used to tokenize the texts.
 
-        from_pretrained_name = config.get("from_pretrained", "bert-base-uncased")
-        kwargs_dict = dict(kwargs, do_lower_case="uncased" in from_pretrained_name)
-        self._tokenizer = BertTokenizer.from_pretrained(
-            from_pretrained_name, **kwargs_dict
-        )
-        self._max_seq_length = config.get("max_seq_length", 25)
-        self._probability = config.get("mask_probability", 0)
-
-    def __call__(self, item):
-        if "text" in item:
-            text_a = item["text"]
-        elif "text_a" in item:
-            text_a = item["text_a"]
-        else:
-            text_a = " ".join(item["tokens"])
-
-        if isinstance(text_a, list):
-            text_a = " ".join(text_a)
-
-        tokens_a = self.tokenize(text_a)
-
-        # 'text_b' can be defined in the dataset preparation
-        tokens_b = None
-        if "text_b" in item:
-            text_b = item["text_b"]
-            if text_b:
-                tokens_b = self.tokenize(text_b)
-
-        self._truncate_seq_pair(tokens_a, tokens_b, self._max_seq_length)
-        output = self._convert_to_indices(
-            tokens_a, tokens_b, probability=self._probability
-        )
-        output["text"] = output["tokens"]
-        return output
-
-
-def get_pair_text_tokens(item, masked_token_processor):
+    Returns:
+        [Dict[str, torch.Tensor]]:
+            A Dict containing tokenized texts and
+            related tensors.
+    """
     if "text" in item:
         text_a = item["text"]
     elif "text_a" in item:
@@ -429,6 +403,115 @@ def get_pair_text_tokens(item, masked_token_processor):
     return output
 
 
+@registry.register_processor("vilt_text_tokenizer")
+class VILTTextTokenizer(MaskedTokenProcessor):
+    def __init__(self, config, *args, **kwargs):
+        from transformers import BertTokenizer
+
+        if isinstance(config, str):
+            config = {"from_pretrained": config}
+
+        from_pretrained_name = config.get("from_pretrained", "bert-base-uncased")
+        kwargs_dict = dict(kwargs, do_lower_case="uncased" in from_pretrained_name)
+        self._tokenizer = BertTokenizer.from_pretrained(
+            from_pretrained_name, **kwargs_dict
+        )
+        self._max_seq_length = config.get("max_seq_length", 25)
+        self._probability = config.get("mask_probability", 0)
+
+    def __call__(self, item):
+        output = get_pair_text_tokens(item, self)
+        output["text"] = output["tokens"]
+        return output
+
+
+@registry.register_processor("uniter_text_tokenizer")
+class UNITERTextTokenizer(MaskedTokenProcessor):
+    def __init__(self, config, *args, **kwargs):
+        from transformers import BertTokenizer
+
+        if isinstance(config, str):
+            config = {"from_pretrained": config}
+
+        from_pretrained_name = config.get("from_pretrained", "bert-base-uncased")
+        kwargs_dict = dict(kwargs, do_lower_case="uncased" in from_pretrained_name)
+        self._tokenizer = BertTokenizer.from_pretrained(
+            from_pretrained_name, **kwargs_dict
+        )
+        self._max_seq_length = config.get("max_seq_length", 25)
+        self._probability = config.get("mask_probability", 0)
+
+    def __call__(self, item: Dict[str, Any]):
+        output = get_pair_text_tokens(item, self)
+        output["text"] = output["tokens_masked"]
+        output["tokens"] = output["tokens_masked"]
+        if "is_correct" in item:
+            output["is_correct"] = torch.tensor(
+                item.get("is_correct", True), dtype=torch.long
+            )
+        return output
+
+    def _token_transform(
+        self, tokens: List[str], tokens_b: Optional[List[str]] = None
+    ) -> Tuple[torch.Tensor, int, int, List[str]]:
+        tokens = [self._CLS_TOKEN] + tokens + [self._SEP_TOKEN]
+        if tokens_b:
+            tokens += tokens_b + [self._SEP_TOKEN]
+
+        input_ids = self._convert_tokens_to_ids(tokens)
+        token_len = len(input_ids)
+        token_pad = self._max_seq_length - token_len
+        # Zero-pad up to the sequence length.
+        input_ids += [self._PAD_TOKEN_ID] * token_pad
+        input_ids_tensor = torch.tensor(input_ids, dtype=torch.long)
+        return input_ids_tensor, token_len, token_pad, tokens
+
+    def _convert_to_indices(
+        self,
+        tokens_a: List[str],
+        tokens_b: Optional[List[str]] = None,
+        probability: float = 0.15,
+    ) -> Dict[str, torch.Tensor]:
+        """
+        BERT encodes
+        - single sequence: ``[CLS] X [SEP]``
+        - pair of sequences: ``[CLS] A [SEP] B [SEP]``
+        """
+        input_ids_original, _, _, _ = self._token_transform(tokens_a, tokens_b)
+
+        tokens_a, label_a = self._random_word(tokens_a, probability=probability)
+        segment_ids = [0] * (len(tokens_a) + 2)
+
+        if tokens_b:
+            tokens_b, label_b = self._random_word(tokens_b, probability=probability)
+            lm_label_ids = [-1] + label_a + [-1] + label_b + [-1]
+            assert len(tokens_b) > 0
+            segment_ids += [1] * (len(tokens_b) + 1)
+        else:
+            lm_label_ids = [-1] + label_a + [-1]
+
+        input_ids_masked, token_len, token_pad, tokens_masked = self._token_transform(
+            tokens_a, tokens_b
+        )
+
+        input_mask = [1] * token_len + [0] * token_pad
+        segment_ids += [0] * token_pad
+        lm_label_ids += [-1] * token_pad
+
+        input_mask = torch.tensor(input_mask, dtype=torch.long)
+        segment_ids = torch.tensor(segment_ids, dtype=torch.long)
+        lm_label_ids = torch.tensor(lm_label_ids, dtype=torch.long)
+        return {
+            "input_ids_masked": input_ids_masked,  # specifically for MLM heads
+            "input_ids": input_ids_original,  # unmasked tokens for CLIP heads
+            # input_mask is non-padding (1) vs padding (0) mask (not MLM token masking)
+            "input_mask": input_mask,
+            "segment_ids": segment_ids,
+            "lm_label_ids": lm_label_ids,
+            "tokens_masked": tokens_masked,
+        }
+
+
 @registry.register_processor("vinvl_text_tokenizer")
 class VinVLTextTokenizer(MaskedTokenProcessor):
     def __init__(self, config, *args, **kwargs):
@@ -447,7 +530,7 @@ class VinVLTextTokenizer(MaskedTokenProcessor):
         self._corrupt_prob = config.get("corrupt_probability", 0)
         self._corrupt_caption_prob = config.get("corrupt_caption_probability", 0)
 
-    def __call__(self, item):
+    def __call__(self, item: Dict[str, Any]) -> Dict[str, torch.Tensor]:
         output = get_pair_text_tokens(item, self)
         output["text"] = output["tokens_masked"]
         output["tokens"] = output["tokens_masked"]
@@ -460,7 +543,9 @@ class VinVLTextTokenizer(MaskedTokenProcessor):
             output["contrastive_label"] = contrastive_label
         return output
 
-    def _get_contrastive_output(self, item):
+    def _get_contrastive_output(
+        self, item: Dict[str, Any]
+    ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor]]:
         error_msg = (
             "'{}' are required in the annotations for VinVL pretraining."
             + "These should be created using the MMF feature extraction script for MMF."
@@ -491,7 +576,9 @@ class VinVLTextTokenizer(MaskedTokenProcessor):
 
         return contrastive_label, get_pair_text_tokens(corrupt_item, self)
 
-    def _token_transform(self, tokens, tokens_b=None):
+    def _token_transform(
+        self, tokens: List[str], tokens_b: Optional[List[str]] = None
+    ) -> Tuple[torch.Tensor, int, int, List[str]]:
         tokens = [self._CLS_TOKEN] + tokens + [self._SEP_TOKEN]
         if tokens_b:
             tokens += tokens_b + [self._SEP_TOKEN]
