@@ -19,10 +19,10 @@ from mmf.utils.general import retry_n
 from omegaconf import MISSING, OmegaConf
 from torch import Tensor, nn
 from transformers.modeling_bert import (
+    BertConfig,
     BertEmbeddings,
     BertEncoder,
     BertPreTrainedModel,
-    BertConfig,
 )
 
 logger = logging.getLogger(__name__)
@@ -30,13 +30,13 @@ logger = logging.getLogger(__name__)
 NUM_RETRIES = 6
 
 
-class BertImgModel(BertPreTrainedModel):
+class VinVLBase(BertPreTrainedModel):
     """VinVL Bert Encoder for image features
     From https://github.com/microsoft/Oscar/blob/master/oscar/modeling/modeling_bert.py
     Is a thin wrapper around BertEncoder that handles image features
     """
 
-    def __init__(self, config):
+    def __init__(self, config: BertConfig):
         super().__init__(config)
         self.embeddings = BertEmbeddings(config)
         self.encoder = BertEncoder(config)
@@ -52,6 +52,7 @@ class BertImgModel(BertPreTrainedModel):
             ]
         dropout = nn.Dropout(config.hidden_dropout_prob)
         img_embedding_list += [dropout]
+        # is an image encoding used as input to the transformer trunk
         self.img_embedding = nn.Sequential(*img_embedding_list)
 
     def forward(
@@ -65,25 +66,33 @@ class BertImgModel(BertPreTrainedModel):
         if attention_mask is None:
             attention_mask = torch.ones(
                 (input_ids.size(0), input_ids.size(1) + img_feats.size(1))
-            ).to(input_ids)
+            ).to(input_ids.device)
         if token_type_ids is None:
             token_type_ids = torch.zeros_like(input_ids)
-        # We create a 3D attention mask from a 2D tensor mask.
-        # Sizes are [batch_size, 1, 1, to_seq_length]
-        # So we can broadcast to [batch_size, num_heads, from_seq_length, to_seq_length]
-        # this attention mask is more simple than the triangular
-        # masking of causal attention
-        # used in OpenAI GPT, we just need to prepare the broadcast dimension here.
-        if attention_mask.dim() == 2:
-            extended_attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
-        elif attention_mask.dim() == 3:
-            extended_attention_mask = attention_mask.unsqueeze(1)
+        # We can provide a self-attention mask of dimensions
+        # [batch_size, from_seq_length, to_seq_length]
+        # ourselves in which case we just need to make it broadcastable to all heads.
+        # attention_mask with dim 3 is to specify a unique mask for each feature,
+        # it is broadcast over heads.
+        if attention_mask.dim() == 3:
+            extended_attention_mask = attention_mask[:, None, :, :]
+        elif attention_mask.dim() == 2:
+            # Provided a padding mask of dimensions [batch_size, seq_length]
+            # Make the mask broadcastable to
+            # [batch_size, num_heads, seq_length, seq_length]
+            extended_attention_mask = attention_mask[:, None, None, :]
         else:
-            raise NotImplementedError
+            raise ValueError(
+                f"Wrong shape for input_ids (shape {input_ids.shape})"
+                + " or attention_mask (shape {attention_mask.shape})"
+            )
 
-        extended_attention_mask = extended_attention_mask.to(
-            dtype=next(self.parameters()).dtype
-        )  # fp16 compatibility
+        # Since attention_mask is 1.0 for positions we want to attend and 0.0 for
+        # masked positions, this operation will create a tensor which is 0.0 for
+        # positions we want to attend and -10000.0 for masked positions.
+        # Since we are adding it to the raw scores before the softmax, this is
+        # effectively the same as removing these entirely.
+        extended_attention_mask = extended_attention_mask.to(dtype=self.dtype)
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
 
         # Do embeddings
@@ -98,8 +107,37 @@ class BertImgModel(BertPreTrainedModel):
             extended_attention_mask,
             output_hidden_states=True,
         )
-        layers = namedtuple("TransformerOutput", ["final_layer", "hidden_layers"])
+        layers = namedtuple("TransformerOutput", ["last_hidden_state", "hidden_layers"])
         return layers(encoder_outputs[0], encoder_outputs[1])
+
+
+def build_vinvl_base(
+    bert_model_name: str = "bert-base-uncased",
+    img_feature_dim: int = 2054,
+    use_img_layernorm: bool = True,
+    img_layer_norm_eps: float = 1e-12,
+    random_init: bool = True,
+) -> VinVLBase:
+    bert_config = retry_n(
+        NUM_RETRIES,
+        BertConfig.from_pretrained,
+        bert_model_name,
+    )
+    # augment hf BertConfig for vinvl BertImgModel config
+    bert_config.img_feature_dim = img_feature_dim
+    bert_config.use_img_layernorm = use_img_layernorm
+    bert_config.img_layer_norm_eps = img_layer_norm_eps
+
+    if random_init:
+        bert = VinVLBase(bert_config)
+    else:
+        bert = retry_n(
+            NUM_RETRIES,
+            VinVLBase.from_pretrained,
+            bert_model_name,
+            config=bert_config,
+        )
+    return bert
 
 
 class VinVLForClassification(nn.Module):
@@ -117,27 +155,46 @@ class VinVLForClassification(nn.Module):
         *args,
         **kwargs,
     ):
+        """VinVL model constructor for classification.
+        MLP head is configurable through Dict type.
+        Consult the MLP head class for the config options.
+
+        Args:
+            mlp_config (Optional[Dict], optional):
+                Classifier MLP head config.
+                Defaults to {"num_layers": 0}.
+            loss_config (Optional[Dict], optional):
+                nn.CrossEntropyLoss params dict.
+                Defaults to {}.
+            random_init (bool, optional):
+                Flag to load VinVL bert weights from random_init.
+                Defaults to False.
+            bert_model_name (str, optional):
+                Name for base bert model.
+                Used for VinVL base configs and weights.
+                Defaults to "bert-base-uncased".
+            img_feature_dim (int, optional):
+                The size of the VinVL image feature inputs.
+                Defaults to 2054.
+            use_img_layernorm (bool, optional):
+                Flag to use layernorm on image encoding.
+                Defaults to True.
+            img_layer_norm_eps (float, optional):
+                Image layernorm epsilon. Defaults to 1e-12.
+        """
         super().__init__()
-        bert_config = BertConfig.from_pretrained(bert_model_name)
-        # augment hf BertConfig for vinvl BertImgModel config
-        bert_config.img_feature_dim = img_feature_dim
-        bert_config.use_img_layernorm = use_img_layernorm
-        bert_config.img_layer_norm_eps = img_layer_norm_eps
-
-        if random_init:
-            self.bert = BertImgModel(bert_config)
-        else:
-            self.bert = retry_n(
-                NUM_RETRIES,
-                BertImgModel.from_pretrained,
-                bert_model_name,
-                config=bert_config,
-            )
-
         if mlp_config is None:
             mlp_config = {"num_layers": 0}
         if loss_config is None:
             loss_config = {}
+
+        self.bert = build_vinvl_base(
+            bert_model_name=bert_model_name,
+            img_feature_dim=img_feature_dim,
+            use_img_layernorm=use_img_layernorm,
+            img_layer_norm_eps=img_layer_norm_eps,
+            random_init=random_init,
+        )
         self.classifier = MLP(config=mlp_config)
         self.ce_loss = nn.CrossEntropyLoss(**loss_config)
 
@@ -156,7 +213,7 @@ class VinVLForClassification(nn.Module):
             position_ids=position_ids,
             token_type_ids=token_type_ids,
             attention_mask=attention_mask,
-        ).final_layer
+        ).last_hidden_state
         logits = self.classifier(sequence_output)["scores"]
         result = {"scores": logits}
 
@@ -188,31 +245,46 @@ class VinVLForPretraining(nn.Module):
         *args,
         **kwargs,
     ):
+        """VinVL model constructor for pretraining.
+        MLM and Contrastive Loss heads are configurable through Dict types.
+        Consult MLM and MLP head classes for their config options.
+
+        Args:
+            mlm_config (Optional[Dict], optional):
+                Config object for MLM head.
+                Defaults to {} which uses the default MLM configs.
+            contrast_config (Optional[Dict], optional):
+                Config object for MLP head for 3-way contrastive loss.
+                Defaults to {"num_layers": 0, "num_labels": 3}
+            random_init (bool, optional):
+                Flag to load VinVL bert weights from random_init.
+                Defaults to False.
+            bert_model_name (str, optional):
+                Name for base bert model.
+                Used for VinVL base configs and weights.
+                Defaults to "bert-base-uncased".
+            img_feature_dim (int, optional):
+                The size of the VinVL image feature inputs.
+                Defaults to 2054.
+            use_img_layernorm (bool, optional):
+                Flag to use layernorm on image encoding.
+                Defaults to True.
+            img_layer_norm_eps (float, optional):
+                Image layernorm epsilon. Defaults to 1e-12.
+        """
         super().__init__()
-        bert_config = retry_n(
-            NUM_RETRIES,
-            BertConfig.from_pretrained,
-            bert_model_name,
-        )
-        # augment hf BertConfig for vinvl BertImgModel config
-        bert_config.img_feature_dim = img_feature_dim
-        bert_config.use_img_layernorm = use_img_layernorm
-        bert_config.img_layer_norm_eps = img_layer_norm_eps
-
-        if random_init:
-            self.bert = BertImgModel(bert_config)
-        else:
-            self.bert = retry_n(
-                NUM_RETRIES,
-                BertImgModel.from_pretrained,
-                bert_model_name,
-                config=bert_config,
-            )
-
         if mlm_config is None:
             mlm_config = {}
         if contrast_config is None:
             contrast_config = {"num_layers": 0, "num_labels": 3}
+
+        self.bert = build_vinvl_base(
+            bert_model_name=bert_model_name,
+            img_feature_dim=img_feature_dim,
+            use_img_layernorm=use_img_layernorm,
+            img_layer_norm_eps=img_layer_norm_eps,
+            random_init=random_init,
+        )
         self.mlm_head = MLM(config=mlm_config)
         self.ce_loss = nn.CrossEntropyLoss()
         self.contrast_head = MLP(config=contrast_config)
@@ -233,7 +305,7 @@ class VinVLForPretraining(nn.Module):
             position_ids=position_ids,
             token_type_ids=token_type_ids,
             attention_mask=attention_mask,
-        ).final_layer
+        ).last_hidden_state
 
         mlm_labels = {}
         mlm_labels["text"] = lm_label_ids
@@ -248,7 +320,9 @@ class VinVLForPretraining(nn.Module):
         )
 
         processed_sample_list = SampleList({"mlm_labels": mlm_labels})
-        return self.mlm_head(hidden_layers, processed_sample_list=processed_sample_list)
+        return self.mlm_head(
+            hidden_layers, processed_sample_list=processed_sample_list
+        )["losses"]
 
     def contrastive_forward(
         self,
@@ -258,17 +332,16 @@ class VinVLForPretraining(nn.Module):
         img_feats: Tensor,
         contrastive_labels: Tensor,
         position_ids: Optional[Tensor] = None,
-        head_mask: Optional[Tensor] = None,
     ) -> Dict[str, Tensor]:
 
-        final_layer = self.bert(
+        last_hidden_state = self.bert(
             input_ids,
             img_feats=img_feats,
             position_ids=position_ids,
             token_type_ids=token_type_ids,
             attention_mask=attention_mask,
-        ).final_layer
-        logits = self.contrast_head(final_layer)["scores"]
+        ).last_hidden_state
+        logits = self.contrast_head(last_hidden_state)["scores"]
         # contrastive 3-way loss has 3 classes,
         # 0 for a match, 1, 2 for a corrupt caption/image
         # labels respectively
@@ -276,7 +349,7 @@ class VinVLForPretraining(nn.Module):
             logits.contiguous().view(-1, 3),
             contrastive_labels.contiguous().view(-1),
         )
-        return {"vinvl_three_way_contrastive": loss}
+        return {"vinvl_three_way_contrastive_loss": loss}
 
     def forward(
         self,
@@ -309,7 +382,7 @@ class VinVLForPretraining(nn.Module):
             contrastive_labels,
             position_ids,
         )
-        losses = {**mlm_result["losses"], **contrastive_loss_result}
+        losses = {**mlm_result, **contrastive_loss_result}
         return {"losses": losses}
 
 
@@ -408,16 +481,22 @@ class VinVL(BaseModel):
     def _get_attention_mask(
         self, image_feat: Tensor, image_info: Dict[str, Tensor], input_mask: Tensor
     ) -> Tensor:
-        image_dim = getattr(image_info, "max_features", image_feat.size(-2))
-
-        image_mask = torch.arange(image_feat.size(-2), device=image_feat.device).expand(
-            image_feat.size()[:-1]
-        )
-        if len(image_dim.size()) < len(image_mask.size()):
-            image_dim = image_dim.unsqueeze(-1)
-            assert len(image_dim.size()) == len(image_mask.size())
-        image_mask = image_mask < image_dim
-        image_mask = image_mask.long()
+        # image_dim = (bs,)
+        # with the number of features per image in the batch as an int
+        image_dim = image_info.get("max_features")
+        if image_dim is None:
+            image_mask = torch.ones(
+                (image_feat.size(0), image_feat.size(1)), device=image_feat.device
+            ).long()
+        else:
+            image_mask = torch.arange(
+                image_feat.size(-2), device=image_feat.device
+            ).expand(image_feat.size()[:-1])
+            if len(image_dim.size()) < len(image_mask.size()):
+                image_dim = image_dim.unsqueeze(-1)
+                assert len(image_dim.size()) == len(image_mask.size())
+            image_mask = image_mask < image_dim
+            image_mask = image_mask.long()
 
         attention_mask = torch.cat((input_mask, image_mask), dim=-1)
         return attention_mask

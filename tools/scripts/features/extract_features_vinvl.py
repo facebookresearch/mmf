@@ -183,6 +183,23 @@ class FeatureExtractor:
         return bbox_aug
 
     def _process_feature_extraction(self, output, im_infos):
+        """Convert AttrRCNN object detection output and image sizes
+        to make image features and image info expected by MMF.
+
+        Args:
+            output (List[BoxList]):
+                A list of OD outputs, with BoxList containing image_info and feats
+                BoxList fields contain labels, scores, box_features,
+                attr_labels, attr_scores based on config options.
+                bbox attribute contains bounding boxes.
+
+            im_infos (List[Dict[str,int]]):
+                A list of Dicts containing image width, height values.
+
+        Returns:
+            Tuple[List[np.Array], List[Dict[str, Union[torch.Tensor, int]]]]:
+                Returns a list of image features, and list of image info dicts
+        """
         feat_list = []
         info_list = []
 
@@ -227,7 +244,6 @@ class FeatureExtractor:
             output,
             im_infos,
         )
-
         return feat_list
 
     def _save_feature(self, file_name, feature, info):
@@ -240,6 +256,23 @@ class FeatureExtractor:
         np.save(os.path.join(self.args.output_folder, info_file_base_name), info)
 
     def extract_features(self):
+        """Models and config files are downloaded if not
+        specified in args.
+        Then gets a list of images to extract features from.
+        Will exclude images already in the output dir,
+        and images in the exclude list.
+        Images are loaded and transformed based on config.
+        Will then do feature extraction in batches
+        using AttrRCNN with weights from scene graph benchmark
+        for VinVL (Oscar+) image features.
+        Output of a list of BoxList objects that contain
+        fields and bbox which are processes to create
+        image features and image info objects for MMF.
+
+        By default this will generate npy files containing
+        the image features expected by VinVL checkpoints,
+        and work with MMF out of the box.
+        """
         image_dir = self.args.image_dir
         if os.path.isfile(image_dir):
             features, infos = self.get_vinvl_features([image_dir])
@@ -256,7 +289,7 @@ class FeatureExtractor:
             finished = 0
             total = len(files)
 
-            for chunk, begin_idx in chunks(files, self.args.batch_size):
+            for chunk, _ in chunks(files, self.args.batch_size):
                 features, infos = self.get_vinvl_features(chunk)
                 for idx, file_name in enumerate(chunk):
                     self._save_feature(file_name, features[idx], infos[idx])
