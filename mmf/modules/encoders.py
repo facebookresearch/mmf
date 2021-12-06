@@ -779,6 +779,7 @@ class MViTEncoder(Encoder):
         name: str = "mvit"
         random_init: bool = False
         model_name: str = "multiscale_vision_transformers"
+        cls_layer_num: int = 0
         spatial_size: int = 224
         temporal_size: int = 8
         encoder_pool_type: str = "cls"
@@ -816,6 +817,11 @@ class MViTEncoder(Encoder):
         config["pool_kvq_kernel"] = config["pool_kvq_kernel"] or [3, 3, 3]
 
         self.pool_type = config.pop("encoder_pool_type")
+        assert self.pool_type in (
+            "cls",
+            "avg",
+            "identity",
+        ), f"MViT encoder does not support pooling type '{self.pool_type}'."
         self.encoder = TorchVideoEncoder(OmegaConf.create(config))
 
     def forward(self, *args, **kwargs):
@@ -824,8 +830,6 @@ class MViTEncoder(Encoder):
             output = output[:, :1, :]
         elif self.pool_type == "avg":
             output = output.mean(1).unsqueeze(1)
-        elif self.pool_type == "identity":
-            output = output
         return output
 
 
