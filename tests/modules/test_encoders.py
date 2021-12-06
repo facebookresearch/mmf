@@ -127,6 +127,7 @@ class TestEncoders(unittest.TestCase):
             "model_name": "multiscale_vision_transformers",
             "random_init": True,
             "cls_layer_num": 0,
+            "encoder_pool_type": "cls",
             "spatial_size": 224,
             "temporal_size": 8,
             "head": None,
