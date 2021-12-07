@@ -25,7 +25,9 @@ class TestModulePoolers(unittest.TestCase):
         out = pool_fn(self.encoded_layers, self.pad_mask)
         if torch.cuda.is_available():
             pool_fn.cuda()
-            out = pool_fn(self.encoded_layers.cuda(), self.pad_mask.cuda())
+            out = pool_fn([e.cuda() for e in self.encoded_layers], self.pad_mask.cuda())
+
+
 
         assert torch.Size([self.batch_size, self.embedding_size * self.k]) == out.shape
 
@@ -34,7 +36,9 @@ class TestModulePoolers(unittest.TestCase):
         out = pool_fn(self.encoded_layers, self.pad_mask)
         if torch.cuda.is_available():
             pool_fn.cuda()
-            out = pool_fn([self.encoded_layers.cuda(), self.pad_mask.cuda()])
+            out = pool_fn([e.cuda() for e in self.encoded_layers], self.pad_mask.cuda())
+
+
 
         assert torch.Size([self.batch_size, self.embedding_size]) == out.shape
 
@@ -43,6 +47,8 @@ class TestModulePoolers(unittest.TestCase):
         out = pool_fn(self.encoded_layers, self.pad_mask)
         if torch.cuda.is_available():
             pool_fn.cuda()
-            out = pool_fn([self.encoded_layers.cuda(), self.pad_mask.cuda()])
+            out = pool_fn([e.cuda() for e in self.encoded_layers], self.pad_mask.cuda())
+
+
 
         assert torch.Size([self.batch_size, self.embedding_size]) == out.shape
