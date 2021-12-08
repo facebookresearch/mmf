@@ -58,6 +58,8 @@ class MLPWithLoss(BaseTransformerHead):
             targets_subset = {}
             targets_subset["targets"] = processed_sample_list["target_key"]["targets"]
             targets_subset["targets"] = targets_subset["targets"][:score_max]
+            if "losses" not in output_dict.keys():
+                output_dict["losses"] = {}
             output_dict["losses"][self.loss_name] = self.loss_fn(
                 targets_subset, scores_subset
             )
