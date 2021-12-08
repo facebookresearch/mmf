@@ -289,7 +289,7 @@ class TestBERTProcessors(unittest.TestCase):
 
         # Test [MASK] token is present
         self.assertTrue(103 in results["input_ids_masked"])
-        
+
     def test_vinvl_tokenizer(self):
         from mmf.datasets.processors.bert_processors import VinVLTextTokenizer
 
