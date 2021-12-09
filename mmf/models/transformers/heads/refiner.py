@@ -120,10 +120,10 @@ class Refiner(BaseTransformerHead):
             end_token[modality] = start_token[modality] + sz[1] - 1
             prev_end_token = end_token[modality] + 1
 
-        attention_mask = torch.cat(masks, dim=1)
+        pad_mask = torch.cat(masks, dim=1)
         processed_sample_list["refiner_outputs"] = {}
         processed_sample_list["refiner_outputs"]["fused_embedding"] = self.pooler(
-            sequence_output, attention_mask
+            encoded_layers, pad_mask
         )
         processed_sample_list["refiner_targets"] = {}
         for modality in self.modalities:
@@ -132,7 +132,7 @@ class Refiner(BaseTransformerHead):
             tk_end = end_token[modality]
             for enc_layers in encoded_layers:
                 modality_encodings.append(enc_layers[:, tk_start : tk_end + 1, :])
-            modality_mask_encodings = attention_mask[:, tk_start : tk_end + 1]
+            modality_mask_encodings = pad_mask[:, tk_start : tk_end + 1]
             processed_sample_list["refiner_targets"][modality] = self.pooler(
                 modality_encodings, modality_mask_encodings
             )
@@ -169,7 +169,7 @@ class Refiner(BaseTransformerHead):
                 ]
                 refiner_modal_outputs = {}
                 refiner_modal_outputs["scores"] = refiner_reconstruct[modality]
-                loss = self.refinerloss(modality_targets, refiner_modal_outputs)
+                loss = self.refiner_loss(modality_targets, refiner_modal_outputs)
 
             else:
                 loss = self.weights[modality] * self.refiner_loss(
