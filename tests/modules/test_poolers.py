@@ -4,6 +4,7 @@ import unittest
 
 import mmf.modules.poolers as poolers
 import torch
+from mmf.utils.general import get_current_device
 
 
 class TestModulePoolers(unittest.TestCase):
@@ -13,7 +14,7 @@ class TestModulePoolers(unittest.TestCase):
         self.num_tokens = 10
         self.embedding_size = 768
         self.token_len = 10
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = get_current_device()
         self.encoded_layers = [
             torch.randn(self.batch_size, self.token_len, self.embedding_size).to(
                 self.device
