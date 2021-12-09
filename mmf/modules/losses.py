@@ -933,8 +933,10 @@ class RefinerMSLoss(nn.Module):
             pos_loss = calc_ms_loss(pos_pair, self.base, self.beta, -1)
             neg_loss = calc_ms_loss(neg_pairs, self.base, self.alpha, 1)
             loss.append(pos_loss + neg_loss)
-
-        loss = sum(loss) / n
+        if n > 0:
+            loss = sum(loss) / n
+        else:
+            loss = inputs.new_zeros(1, requires_grad=True)
         return loss
 
 
