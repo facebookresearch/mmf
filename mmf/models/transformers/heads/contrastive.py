@@ -1,18 +1,18 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+from dataclasses import dataclass
 from typing import Dict, Optional
 
 import torch
 from mmf.common.registry import registry
+from mmf.models.transformers.base import BaseTransformerHead
 from mmf.models.transformers.heads.mlp import MLP
-from omegaconf import OmegaConf
-from torch import nn
 
 LABEL_KEY = "three_way_constrastive_labels"
 
 
 @registry.register_transformer_head("contrastive_three_way")
-class ThreeWayContrastive(nn.Module):
+class ThreeWayContrastive(BaseTransformerHead):
     """Three way contrastive loss used for VinVL pretraining.
     Described here https://arxiv.org/pdf/2101.00529
 
@@ -20,44 +20,30 @@ class ThreeWayContrastive(nn.Module):
     Effectively ITM with 3 labels.
     contrastive 3-way loss has 3 labels,
     0 for a match, 1, 2 for a corrupt caption/image
+
     """
 
-    def __init__(
-        self,
-        loss_name: str = "three_way_contrastive_loss",
-        constrastive_label_key: str = "contrastive_labels",
-        hidden_size: int = 768,
-        ignore_index: int = -1,
-        num_layers: int = 0,
-        num_labels: int = 3,
-        hidden_dropout_prob: float = 0.1,
-        layer_norm_eps: float = 1e-6,
-        hidden_act: str = "gelu",
-        pooler_name: str = "bert_pooler",
-        in_dim: Optional[int] = None,
-        *args,
-        **kwargs,
-    ):
-        super().__init__()
-        self.loss_name = loss_name
-        self.constrastive_label_key = constrastive_label_key
-        # Head modules
-        config = OmegaConf.create(
-            {
-                "hidden_size": hidden_size,
-                "num_layers": num_layers,
-                "num_labels": num_labels,
-                "hidden_dropout_prob": hidden_dropout_prob,
-                "layer_norm_eps": layer_norm_eps,
-                "hidden_act": hidden_act,
-                "pooler_name": pooler_name,
-                "in_dim": in_dim,
-            }
-        )
-        self.contrast_head = MLP(config=config)
+    @dataclass
+    class Config(BaseTransformerHead.Config):
+        type: str = "three_way_contrastive"
+        hidden_size: int = 768
+        loss_name: str = "three_way_contrastive_loss"
+        ignore_index: int = -1
+        constrastive_label_key: str = "contrastive_labels"
+        num_layers: int = 0
+        num_labels: int = 3
+        hidden_dropout_prob: float = 0.1
+        layer_norm_eps: float = 1e-6
+        hidden_act: str = "gelu"
+        pooler_name: str = "bert_pooler"
+        in_dim: Optional[int] = None
 
+    def __init__(self, config: Config, *args, **kwargs):
+        super().__init__(config, *args, **kwargs)
+        # Head modules
+        self.contrast_head = MLP(config=self.config)
         # Loss
-        self.ce_loss = torch.nn.CrossEntropyLoss(ignore_index=ignore_index)
+        self.ce_loss = torch.nn.CrossEntropyLoss(ignore_index=self.config.ignore_index)
 
     def forward(
         self,
@@ -66,8 +52,10 @@ class ThreeWayContrastive(nn.Module):
     ):
         output_dict = {}
 
-        if self.constrastive_label_key in processed_sample_list:
-            next_sentence_labels = processed_sample_list[self.constrastive_label_key]
+        if self.config.constrastive_label_key in processed_sample_list:
+            next_sentence_labels = processed_sample_list[
+                self.config.constrastive_label_key
+            ]
         else:
             assert (
                 LABEL_KEY in processed_sample_list
@@ -78,7 +66,7 @@ class ThreeWayContrastive(nn.Module):
             )
 
             next_sentence_labels = processed_sample_list[LABEL_KEY][
-                self.constrastive_label_key
+                self.config.constrastive_label_key
             ]
 
         scores = self.contrast_head(sequence_output)["scores"]
@@ -87,5 +75,5 @@ class ThreeWayContrastive(nn.Module):
             next_sentence_labels.contiguous().view(-1),
         )
         output_dict["losses"] = {}
-        output_dict["losses"][self.loss_name] = constrastive_loss
+        output_dict["losses"][self.config.loss_name] = constrastive_loss
         return output_dict
