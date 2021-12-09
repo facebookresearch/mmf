@@ -13,6 +13,7 @@ import torch
 from mmf.common.registry import registry
 from mmf.common.sample import SampleList
 from mmf.models.base_model import BaseModel
+from mmf.models.transformers.heads.contrastive import ThreeWayContrastive
 from mmf.models.transformers.heads.mlm import MLM
 from mmf.models.transformers.heads.mlp import MLP
 from mmf.utils.general import retry_n
@@ -287,7 +288,7 @@ class VinVLForPretraining(nn.Module):
         )
         self.mlm_head = MLM(config=mlm_config)
         self.ce_loss = nn.CrossEntropyLoss()
-        self.contrast_head = MLP(config=contrast_config)
+        self.contrast_head = ThreeWayContrastive(**contrast_config)
 
     def mlm_forward(
         self,
@@ -341,15 +342,11 @@ class VinVLForPretraining(nn.Module):
             token_type_ids=token_type_ids,
             attention_mask=attention_mask,
         ).last_hidden_state
-        logits = self.contrast_head(last_hidden_state)["scores"]
+        processed_sample_list = SampleList({"contrastive_labels": contrastive_labels})
         # contrastive 3-way loss has 3 classes,
         # 0 for a match, 1, 2 for a corrupt caption/image
         # labels respectively
-        loss = self.ce_loss(
-            logits.contiguous().view(-1, 3),
-            contrastive_labels.contiguous().view(-1),
-        )
-        return {"vinvl_three_way_contrastive_loss": loss}
+        return self.contrast_head(last_hidden_state, processed_sample_list)["losses"]
 
     def forward(
         self,
