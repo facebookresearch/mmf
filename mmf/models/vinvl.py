@@ -236,8 +236,8 @@ class VinVLForPretraining(nn.Module):
 
     def __init__(
         self,
-        mlm_config: Optional[Dict] = None,
-        contrast_config: Optional[Dict] = None,
+        mlm_config: Optional[MLM.Config] = None,
+        contrast_config: Optional[ThreeWayContrastive.Config] = None,
         random_init: bool = False,
         bert_model_name: str = "bert-base-uncased",
         img_feature_dim: int = 2054,
@@ -251,12 +251,12 @@ class VinVLForPretraining(nn.Module):
         Consult MLM and MLP head classes for their config options.
 
         Args:
-            mlm_config (Optional[Dict], optional):
+            mlm_config (Optional[MLM.Config], optional):
                 Config object for MLM head.
-                Defaults to {} which uses the default MLM configs.
-            contrast_config (Optional[Dict], optional):
-                Config object for MLP head for 3-way contrastive loss.
-                Defaults to {"num_layers": 0, "num_labels": 3}
+                Defaults to MLM.Config which uses the default MLM configs.
+            contrast_config (Optional[ThreeWayContrastive.Config], optional):
+                Config object for the 3-way contrastive head.
+                Defaults to ThreeWayContrastive.Config which uses a MLP with 3 classes
             random_init (bool, optional):
                 Flag to load VinVL bert weights from random_init.
                 Defaults to False.
@@ -275,9 +275,9 @@ class VinVLForPretraining(nn.Module):
         """
         super().__init__()
         if mlm_config is None:
-            mlm_config = {}
+            mlm_config = asdict(MLM.Config())
         if contrast_config is None:
-            contrast_config = {"num_layers": 0, "num_labels": 3}
+            contrast_config = asdict(ThreeWayContrastive.Config())
 
         self.bert = build_vinvl_base(
             bert_model_name=bert_model_name,
@@ -288,7 +288,7 @@ class VinVLForPretraining(nn.Module):
         )
         self.mlm_head = MLM(config=mlm_config)
         self.ce_loss = nn.CrossEntropyLoss()
-        self.contrast_head = ThreeWayContrastive(**contrast_config)
+        self.contrast_head = ThreeWayContrastive(contrast_config)
 
     def mlm_forward(
         self,
