@@ -304,11 +304,11 @@ class TestThreeWayContrastiveHead(unittest.TestCase):
         self.processed_sample_list["contrastive_labels"] = contrastive_labels
 
     def test_forward(self):
-        module = ThreeWayContrastive()
+        module = ThreeWayContrastive(
+            OmegaConf.create({"type": "three_way_contrastive"})
+        )
         output = module(self.sequence_input, self.processed_sample_list)
-        import pdb
 
-        pdb.set_trace()
         self.assertTrue("three_way_contrastive_loss" in output["losses"])
         self.assertEqual(
             output["losses"]["three_way_contrastive_loss"].shape, torch.Size([])
