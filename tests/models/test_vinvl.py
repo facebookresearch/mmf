@@ -98,7 +98,7 @@ class TestVinVLForClassificationAndPretraining(unittest.TestCase):
             )
         self.assertTrue("losses" in model_output)
         self.assertTrue("masked_lm_loss" in model_output["losses"])
-        self.assertTrue("vinvl_three_way_contrastive_loss" in model_output["losses"])
+        self.assertTrue("three_way_contrastive_loss" in model_output["losses"])
 
 
 class TestVinVLModel(unittest.TestCase):
@@ -194,4 +194,4 @@ class TestVinVLModel(unittest.TestCase):
 
         self.assertTrue("losses" in model_output)
         self.assertTrue("masked_lm_loss" in model_output["losses"])
-        self.assertTrue("vinvl_three_way_contrastive_loss" in model_output["losses"])
+        self.assertTrue("three_way_contrastive_loss" in model_output["losses"])
