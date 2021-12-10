@@ -9,7 +9,6 @@ from omegaconf import OmegaConf
 from tests.test_utils import (
     setup_proxy,
     skip_if_old_transformers,
-    skip_if_no_pytorchvideo,
 )
 from torch import nn
 
@@ -107,12 +106,11 @@ class TestEncoders(unittest.TestCase):
         output, _ = encoder(x)
         self.assertEqual(output.size(-1), config.out_dim)
 
-    @skip_if_no_pytorchvideo
-    def test_torchvideo_slowfast_r50_encoder(self):
+    def test_pytorchvideo_slowfast_r50_encoder(self):
         # instantiate video encoder from pytorchvideo
         # default model is slowfast_r50
-        config = OmegaConf.structured(encoders.TorchVideoEncoder.Config())
-        encoder = encoders.TorchVideoEncoder(config)
+        config = OmegaConf.structured(encoders.PytorchVideoEncoder.Config())
+        encoder = encoders.PytorchVideoEncoder(config)
         fast = torch.rand((1, 3, 32, 224, 224))
         slow = torch.rand((1, 3, 8, 224, 224))
         output = encoder([slow, fast])
@@ -120,14 +118,13 @@ class TestEncoders(unittest.TestCase):
         # (bs, feature_dim)
         self.assertEqual(output.size(1), 2304)
 
-    @skip_if_no_pytorchvideo
     def test_mvit_encoder(self):
         config = {
-            "name": "mvit",
-            "model_name": "multiscale_vision_transformers",
+            "name": "pytorchvideo",
+            "model_name": "mvit_base_32x3",
             "random_init": True,
-            "cls_layer_num": 0,
-            "encoder_pool_type": "cls",
+            "drop_last_n_layers": 0,
+            "pooler_name": "cls",
             "spatial_size": 224,
             "temporal_size": 8,
             "head": None,
@@ -138,7 +135,7 @@ class TestEncoders(unittest.TestCase):
             "pool_kvq_kernel": [3, 3, 3],
         }
         # test bert cls pooler
-        encoder = encoders.MViTEncoder(OmegaConf.create(config))
+        encoder = encoders.PytorchVideoEncoder(OmegaConf.create(config))
         x = torch.rand((1, 3, 8, 224, 224))
         output = encoder(x)
         # check output tensor is the expected feature dim size
@@ -146,18 +143,18 @@ class TestEncoders(unittest.TestCase):
         # for more details consult https://arxiv.org/pdf/2104.11227
         # and https://github.com/facebookresearch/pytorchvideo/
         # (bs, num_features, feature_dim)
-        self.assertEqual(output.shape, torch.Size([1, 1, 768]))
+        self.assertEqual(output.shape, torch.Size([1, 768]))
 
         # test avg pooler
-        encoder = encoders.MViTEncoder(
-            OmegaConf.create(dict(config, encoder_pool_type="avg"))
+        encoder = encoders.PytorchVideoEncoder(
+            OmegaConf.create(dict(config, pooler_name="avg"))
         )
         output = encoder(x)
-        self.assertEqual(output.shape, torch.Size([1, 1, 768]))
+        self.assertEqual(output.shape, torch.Size([1, 768]))
 
         # test no pooling
-        encoder = encoders.MViTEncoder(
-            OmegaConf.create(dict(config, encoder_pool_type="identity"))
+        encoder = encoders.PytorchVideoEncoder(
+            OmegaConf.create(dict(config, pooler_name="identity"))
         )
         output = encoder(x)
         # (bs, num_features, feature_dim)
