@@ -23,20 +23,41 @@ class TestModulePoolers(unittest.TestCase):
         ]
         self.pad_mask = torch.randn(self.batch_size, self.token_len).to(self.device)
 
-    def test_AverageConcat(self):
+    def test_average_concat(self):
         pool_fn = poolers.AverageConcatLastN(self.k).to(self.device)
         out = pool_fn(self.encoded_layers, self.pad_mask)
 
         assert torch.Size([self.batch_size, self.embedding_size * self.k]) == out.shape
 
-    def test_AverageKFromLast(self):
+    def test_average_k_from_last(self):
         pool_fn = poolers.AverageKFromLast(self.k).to(self.device)
         out = pool_fn(self.encoded_layers, self.pad_mask)
 
         assert torch.Size([self.batch_size, self.embedding_size]) == out.shape
 
-    def test_AverageSumLastK(self):
+    def test_average_sum_last_k(self):
         pool_fn = poolers.AverageSumLastK(self.k).to(self.device)
         out = pool_fn(self.encoded_layers, self.pad_mask)
+
+        assert torch.Size([self.batch_size, self.embedding_size]) == out.shape
+
+    def test_identity(self):
+        pool_fn = poolers.IdentityPooler().to(self.device)
+        out = pool_fn(self.encoded_layers[-1])
+
+        assert (
+            torch.Size([self.batch_size, self.token_len, self.embedding_size])
+            == out.shape
+        )
+
+    def test_bert(self):
+        pool_fn = poolers.BertPooler().to(self.device)
+        out = pool_fn(self.encoded_layers[-1])
+
+        assert torch.Size([self.batch_size, self.embedding_size]) == out.shape
+
+    def test_average(self):
+        pool_fn = poolers.MeanPooler().to(self.device)
+        out = pool_fn(self.encoded_layers[-1])
 
         assert torch.Size([self.batch_size, self.embedding_size]) == out.shape
