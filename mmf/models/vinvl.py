@@ -6,9 +6,15 @@
 
 import logging
 from collections import namedtuple
-from typing import Optional, Tuple
+from dataclasses import asdict
+from typing import Dict, Optional, Tuple
 
 import torch
+from mmf.common.sample import SampleList
+from mmf.models.transformers.heads.contrastive import ThreeWayContrastive
+from mmf.models.transformers.heads.mlm import MLM
+from mmf.models.transformers.heads.mlp import MLP
+from mmf.utils.general import retry_n
 from torch import Tensor, nn
 from transformers.modeling_bert import (
     BertConfig,
@@ -18,6 +24,8 @@ from transformers.modeling_bert import (
 )
 
 logger = logging.getLogger(__name__)
+
+NUM_RETRIES = 6
 
 
 class VinVLBase(BertPreTrainedModel):
@@ -99,3 +107,274 @@ class VinVLBase(BertPreTrainedModel):
         )
         layers = namedtuple("TransformerOutput", ["last_hidden_state", "hidden_layers"])
         return layers(encoder_outputs[0], encoder_outputs[1])
+
+
+def build_vinvl_base(
+    bert_model_name: str = "bert-base-uncased",
+    img_feature_dim: int = 2054,
+    use_img_layernorm: bool = True,
+    img_layer_norm_eps: float = 1e-12,
+    random_init: bool = True,
+) -> VinVLBase:
+    bert_config = retry_n(
+        NUM_RETRIES,
+        BertConfig.from_pretrained,
+        bert_model_name,
+    )
+    # augment hf BertConfig for vinvl BertImgModel config
+    bert_config.img_feature_dim = img_feature_dim
+    bert_config.use_img_layernorm = use_img_layernorm
+    bert_config.img_layer_norm_eps = img_layer_norm_eps
+
+    if random_init:
+        bert = VinVLBase(bert_config)
+    else:
+        bert = retry_n(
+            NUM_RETRIES,
+            VinVLBase.from_pretrained,
+            bert_model_name,
+            config=bert_config,
+        )
+    return bert
+
+
+class VinVLForClassification(nn.Module):
+    """VINVL wrapper for classification"""
+
+    def __init__(
+        self,
+        mlp_config: Optional[Dict] = None,
+        loss_config: Optional[Dict] = None,
+        random_init: bool = False,
+        bert_model_name: str = "bert-base-uncased",
+        img_feature_dim: int = 2054,
+        use_img_layernorm: bool = True,
+        img_layer_norm_eps: float = 1e-12,
+        *args,
+        **kwargs,
+    ):
+        """VinVL model constructor for classification.
+        MLP head is configurable through Dict type.
+        Consult the MLP head class for the config options.
+
+        Args:
+            mlp_config (Optional[Dict], optional):
+                Classifier MLP head config.
+                Defaults to {"num_layers": 0}.
+            loss_config (Optional[Dict], optional):
+                nn.CrossEntropyLoss params dict.
+                Defaults to {}.
+            random_init (bool, optional):
+                Flag to load VinVL bert weights from random_init.
+                Defaults to False.
+            bert_model_name (str, optional):
+                Name for base bert model.
+                Used for VinVL base configs and weights.
+                Defaults to "bert-base-uncased".
+            img_feature_dim (int, optional):
+                The size of the VinVL image feature inputs.
+                Defaults to 2054.
+            use_img_layernorm (bool, optional):
+                Flag to use layernorm on image encoding.
+                Defaults to True.
+            img_layer_norm_eps (float, optional):
+                Image layernorm epsilon. Defaults to 1e-12.
+        """
+        super().__init__()
+        if mlp_config is None:
+            mlp_config = {"num_layers": 0}
+        if loss_config is None:
+            loss_config = {}
+
+        self.bert = build_vinvl_base(
+            bert_model_name=bert_model_name,
+            img_feature_dim=img_feature_dim,
+            use_img_layernorm=use_img_layernorm,
+            img_layer_norm_eps=img_layer_norm_eps,
+            random_init=random_init,
+        )
+        self.classifier = MLP(config=mlp_config)
+        self.ce_loss = nn.CrossEntropyLoss(**loss_config)
+
+    def forward(
+        self,
+        input_ids: Tensor,
+        token_type_ids: Tensor,
+        attention_mask: Tensor,
+        img_feats: Tensor,
+        position_ids: Optional[Tensor] = None,
+        labels: Optional[Tensor] = None,
+    ) -> Dict[str, Tensor]:
+        sequence_output = self.bert(
+            input_ids,
+            img_feats=img_feats,
+            position_ids=position_ids,
+            token_type_ids=token_type_ids,
+            attention_mask=attention_mask,
+        ).last_hidden_state
+        logits = self.classifier(sequence_output)["scores"]
+        result = {"scores": logits}
+
+        if labels is not None:
+            ce_loss = self.ce_loss(logits.view(-1, logits.size(1)), labels.view(-1))
+            result["losses"] = {"ce": ce_loss}
+        return result
+
+
+class VinVLForPretraining(nn.Module):
+    """VINVL wrapper for pretraining
+    MLM loss is described in https://arxiv.org/pdf/2004.06165.pdf
+    Contrastive loss is an itm loss to guess,
+        0 for a match,
+        1 for a corrupt caption,
+        2 for corrupt image labels
+    VinVL trains with object detection labels concatenated with the input text.
+    """
+
+    def __init__(
+        self,
+        mlm_config: Optional[MLM.Config] = None,
+        contrast_config: Optional[ThreeWayContrastive.Config] = None,
+        random_init: bool = False,
+        bert_model_name: str = "bert-base-uncased",
+        img_feature_dim: int = 2054,
+        use_img_layernorm: bool = True,
+        img_layer_norm_eps: float = 1e-12,
+        *args,
+        **kwargs,
+    ):
+        """VinVL model constructor for pretraining.
+        MLM and Contrastive Loss heads are configurable through Dict types.
+        Consult MLM and MLP head classes for their config options.
+
+        Args:
+            mlm_config (Optional[MLM.Config], optional):
+                Config object for MLM head.
+                Defaults to MLM.Config which uses the default MLM configs.
+            contrast_config (Optional[ThreeWayContrastive.Config], optional):
+                Config object for the 3-way contrastive head.
+                Defaults to ThreeWayContrastive.Config which uses a MLP with 3 classes
+            random_init (bool, optional):
+                Flag to load VinVL bert weights from random_init.
+                Defaults to False.
+            bert_model_name (str, optional):
+                Name for base bert model.
+                Used for VinVL base configs and weights.
+                Defaults to "bert-base-uncased".
+            img_feature_dim (int, optional):
+                The size of the VinVL image feature inputs.
+                Defaults to 2054.
+            use_img_layernorm (bool, optional):
+                Flag to use layernorm on image encoding.
+                Defaults to True.
+            img_layer_norm_eps (float, optional):
+                Image layernorm epsilon. Defaults to 1e-12.
+        """
+        super().__init__()
+        if mlm_config is None:
+            mlm_config = asdict(MLM.Config())
+        if contrast_config is None:
+            contrast_config = asdict(ThreeWayContrastive.Config())
+
+        self.bert = build_vinvl_base(
+            bert_model_name=bert_model_name,
+            img_feature_dim=img_feature_dim,
+            use_img_layernorm=use_img_layernorm,
+            img_layer_norm_eps=img_layer_norm_eps,
+            random_init=random_init,
+        )
+        self.mlm_head = MLM(config=mlm_config)
+        self.ce_loss = nn.CrossEntropyLoss()
+        self.contrast_head = ThreeWayContrastive(contrast_config)
+
+    def mlm_forward(
+        self,
+        input_ids_masked: Tensor,
+        lm_label_ids: Tensor,
+        token_type_ids: Tensor,
+        attention_mask: Tensor,
+        img_feats: Tensor,
+        position_ids: Optional[Tensor] = None,
+    ) -> Dict[str, Tensor]:
+
+        hidden_layers = self.bert(
+            input_ids_masked,
+            img_feats=img_feats,
+            position_ids=position_ids,
+            token_type_ids=token_type_ids,
+            attention_mask=attention_mask,
+        ).last_hidden_state
+
+        mlm_labels = {}
+        mlm_labels["text"] = lm_label_ids
+        mlm_labels["image"] = torch.full(
+            img_feats.shape[:2],
+            fill_value=-1,
+            dtype=torch.long,
+            device=lm_label_ids.device,
+        )
+        mlm_labels["combined_labels"] = torch.cat(
+            [mlm_labels["text"], mlm_labels["image"]], dim=-1
+        )
+
+        processed_sample_list = SampleList({"mlm_labels": mlm_labels})
+        return self.mlm_head(
+            hidden_layers, processed_sample_list=processed_sample_list
+        )["losses"]
+
+    def contrastive_forward(
+        self,
+        input_ids: Tensor,
+        token_type_ids: Tensor,
+        attention_mask: Tensor,
+        img_feats: Tensor,
+        contrastive_labels: Tensor,
+        position_ids: Optional[Tensor] = None,
+    ) -> Dict[str, Tensor]:
+
+        last_hidden_state = self.bert(
+            input_ids,
+            img_feats=img_feats,
+            position_ids=position_ids,
+            token_type_ids=token_type_ids,
+            attention_mask=attention_mask,
+        ).last_hidden_state
+        processed_sample_list = SampleList({"contrastive_labels": contrastive_labels})
+        # contrastive 3-way loss has 3 classes,
+        # 0 for a match, 1, 2 for a corrupt caption/image
+        # labels respectively
+        return self.contrast_head(last_hidden_state, processed_sample_list)["losses"]
+
+    def forward(
+        self,
+        input_ids_masked: Tensor,
+        input_ids_corrupt: Tensor,
+        lm_label_ids: Tensor,
+        contrastive_labels: Tensor,
+        token_type_ids: Tensor,
+        attention_mask: Tensor,
+        token_type_ids_corrupt: Tensor,
+        attention_mask_corrupt: Tensor,
+        img_feats: Tensor,
+        position_ids: Optional[Tensor] = None,
+    ) -> Dict[str, Tensor]:
+
+        mlm_result = self.mlm_forward(
+            input_ids_masked,
+            lm_label_ids,
+            token_type_ids,
+            attention_mask,
+            img_feats,
+            position_ids,
+        )
+
+        contrastive_loss_result = self.contrastive_forward(
+            input_ids_corrupt,
+            token_type_ids_corrupt,
+            attention_mask_corrupt,
+            img_feats,
+            contrastive_labels,
+            position_ids,
+        )
+        losses = {**mlm_result, **contrastive_loss_result}
+        return {"losses": losses}
