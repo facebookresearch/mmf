@@ -6,15 +6,18 @@
 
 import logging
 from collections import namedtuple
-from dataclasses import asdict
-from typing import Dict, Optional, Tuple
+from dataclasses import asdict, dataclass
+from typing import Any, Dict, Optional, Tuple
 
 import torch
+from mmf.common.registry import registry
 from mmf.common.sample import SampleList
+from mmf.models.base_model import BaseModel
 from mmf.models.transformers.heads.contrastive import ThreeWayContrastive
 from mmf.models.transformers.heads.mlm import MLM
 from mmf.models.transformers.heads.mlp import MLP
 from mmf.utils.general import retry_n
+from omegaconf import MISSING, OmegaConf
 from torch import Tensor, nn
 from transformers.modeling_bert import (
     BertConfig,
@@ -378,3 +381,119 @@ class VinVLForPretraining(nn.Module):
         )
         losses = {**mlm_result, **contrastive_loss_result}
         return {"losses": losses}
+
+
+@registry.register_model("vinvl")
+class VinVL(BaseModel):
+    """VinVL base model called by MMF.
+    VinVL paper, 3-way contrastive loss:
+    https://arxiv.org/pdf/2101.00529.pdf
+
+    Implementation based on https://github.com/microsoft/Oscar
+
+    Expects VinVL features extracted by
+    https://github.com/microsoft/scene_graph_benchmark
+    using Visual Genome object detection labels.
+
+    The label map used for training is available at
+    https://github.com/microsoft/scene_graph_benchmark/blob/main/README.md
+    """
+
+    @dataclass
+    class Config:
+        random_init: bool = False
+        bert_model_name: str = "bert-base-uncased"
+        hidden_size: int = 768
+        heads: Any = MISSING
+        do_pretraining: bool = False
+        img_feature_dim: int = 2054
+        img_feature_type: str = "frcnn"
+        use_img_layernorm: bool = True
+        img_layer_norm_eps: float = 1e-12
+        max_img_seq_len: int = 70
+
+    def __init__(self, config):
+        super().__init__(config)
+        self.config = OmegaConf.create({**asdict(self.Config()), **config})
+        self.do_pretraining = self.config.do_pretraining
+
+    @classmethod
+    def config_path(cls):
+        return "configs/models/vinvl/defaults.yaml"
+
+    def build(self):
+        if self.do_pretraining:
+            mlm_config = self.config.heads.get("mlm")
+            contrast_config = self.config.heads.get("contrast")
+            self.vinvl = VinVLForPretraining(
+                mlm_config=mlm_config, contrast_config=contrast_config, **self.config
+            )
+        else:
+            # do classification finetuning
+            mlp_config = self.config.heads.get("mlp")
+            loss_config = self.config.get("ce_loss")
+            self.vinvl = VinVLForClassification(
+                mlp_config=mlp_config, loss_config=loss_config, **self.config
+            )
+
+    def init_losses(self):
+        """
+        Defer loss management to submodels,
+        do nothing when called by build_model.
+        """
+
+    def forward(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
+        attention_mask = self._get_attention_mask(
+            sample_list["image_feature_0"],
+            sample_list["image_info_0"],
+            sample_list["input_mask"],
+        )
+
+        if self.do_pretraining:
+            corrupt_attention_mask = self._get_attention_mask(
+                sample_list["image_feature_0"],
+                sample_list["image_info_0"],
+                sample_list["input_mask_corrupt"],
+            )
+            return self.vinvl(
+                sample_list["input_ids_masked"],
+                sample_list["input_ids_corrupt"],
+                sample_list["lm_label_ids"],
+                sample_list["contrastive_labels"],
+                sample_list["segment_ids"],
+                attention_mask,
+                sample_list["segment_ids_corrupt"],
+                corrupt_attention_mask,
+                sample_list["image_feature_0"],
+            )
+        else:
+            return self.vinvl(
+                sample_list["input_ids"],
+                sample_list["segment_ids"],
+                attention_mask,
+                sample_list["image_feature_0"],
+                labels=sample_list.get("labels"),
+            )
+
+    def _get_attention_mask(
+        self, image_feat: Tensor, image_info: Dict[str, Tensor], input_mask: Tensor
+    ) -> Tensor:
+        # image_dim = (bs,)
+        # with the number of features per image in the batch as an int
+        image_dim = image_info.get("max_features")
+        if image_dim is None:
+            image_mask = torch.ones(
+                (image_feat.size(0), image_feat.size(1)), device=image_feat.device
+            ).long()
+        else:
+            image_mask = torch.arange(
+                image_feat.size(-2), device=image_feat.device
+            ).expand(image_feat.size()[:-1])
+            if len(image_dim.size()) < len(image_mask.size()):
+                image_dim = image_dim.unsqueeze(-1)
+                assert len(image_dim.size()) == len(image_mask.size())
+            image_mask = image_mask < image_dim
+            image_mask = image_mask.long()
+
+        attention_mask = torch.cat((input_mask, image_mask), dim=-1)
+        return attention_mask
