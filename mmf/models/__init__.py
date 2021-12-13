@@ -15,10 +15,11 @@ from .mmf_transformer import MMFTransformer
 from .pythia import Pythia
 from .top_down_bottom_up import TopDownBottomUp
 from .unimodal import UnimodalBase, UnimodalText, UnimodalModal
+from .uniter import UNITER
 from .vilbert import ViLBERT
 from .vilt import ViLT
+from .vinvl import VinVL
 from .visual_bert import VisualBERT
-
 
 __all__ = [
     "TopDownBottomUp",
@@ -45,4 +46,6 @@ __all__ = [
     "UnimodalText",
     "AlbefVitEncoder",
     "ViLT",
+    "UNITER",
+    "VinVL",
 ]

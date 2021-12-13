@@ -547,6 +547,24 @@ unit:
         file_name: unit.all_8_datasets.shared_dec_with_coco_init_without_task_embedding.tar.gz
         hashcode: c4a3c1072f07e605de76402ff7c0e2bc8d4514561c52dc94b3d28b3d4d7f698e
 
+uniter:
+  defaults: ${uniter.pretrained}
+  pretrained:
+    version: 1.0_2020_11_29
+    resources:
+    - url: mmf://models/uniter/uniter.pretrained.tar.gz
+      file_name: uniter.pretrained.tar.gz
+      hashcode: e843e65a3d8b4ed353779b96d654dde0440f5f04a79b3b4740309d40a3542664
+
+villa:
+  defaults: ${villa.pretrained}
+  pretrained:
+    version: 1.0_2020_11_29
+    resources:
+    - url: mmf://models/uniter/villa.pretrained.tar.gz
+      file_name: villa.pretrained.tar.gz
+      hashcode: 7a8f31421ef644fddc99bd142a0090660573dd526a779d025253c3fd996754fc
+
 vilt:
   defaults: ${vilt.vqa}
   vqa:
@@ -555,10 +573,10 @@ vilt:
     resources:
     - url: mmf://models/vilt/vilt.finetuned.vqa2.tar.gz
       file_name: vilt.finetuned.vqa2.tar.gz
-      hashcode: 83539fb58f19592f4286a499557c40f084f366722700232943824922160aeacd
+      hashcode: c1a96abfaffa140c0970592691c2cb828b3bb16be7a6c610f7d02c9c05951c1f
   pretrained:
     version: 1.0_2021_011_29
     resources:
     - url: mmf://models/vilt/vilt.pretrained.tar.gz
       file_name: vilt.pretrained.tar.gz
-      hashcode: a933ef78e9afafe044de22ef042d4ffe50388c19544921db044cd446e688c5fd
+      hashcode: fb4478665ba6709bd454cec40b66dcb89570b998853745cc400bfb6f99aaeb69
