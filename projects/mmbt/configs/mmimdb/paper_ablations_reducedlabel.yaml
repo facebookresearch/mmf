@@ -36,23 +36,30 @@ model_config:
           hidden_size: 768
           vocab_size: 30522
           loss_type: "cosine"
+          refiner_target_pooler: "average_k_from_last"
+          refiner_target_layer_depth: 2
           modalities:
             - "text"
             - "image"
           weights:
             - 0.0
             - 0.0
-        mlp_config:
-          type: mlp
-          freeze: false
-          num_labels: 24
-          lr_multiplier: 1.0
-          hidden_size: 768
-          vocab_size: 30522
+        mlp_loss_config:
+          config:
+            type: mlp
+            num_labels: 24
+            hidden_size: 768
+            hidden_dropout_prob: 0.1
+            layer_norm_eps: 0.000001
+            hidden_act: gelu
+            pooler_name: bert_pooler
+            num_layers: 1
+          loss_name: classification_loss
           loss: logit_bce
-          max_sample_size: 32
-        ms_loss_weight: 0.05
+          max_sample_size: 33
+        ms_loss_weight: 0.0
         use_msloss: true
+        num_labels: 24
     self_weight_decay: 0.997
 dataset_config:
   mmimdb:

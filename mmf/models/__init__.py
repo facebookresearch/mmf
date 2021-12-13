@@ -18,6 +18,7 @@ from .unimodal import UnimodalBase, UnimodalText, UnimodalModal
 from .uniter import UNITER
 from .vilbert import ViLBERT
 from .vilt import ViLT
+from .vinvl import VinVL
 from .visual_bert import VisualBERT
 
 __all__ = [
@@ -46,4 +47,5 @@ __all__ = [
     "AlbefVitEncoder",
     "ViLT",
     "UNITER",
+    "VinVL",
 ]
