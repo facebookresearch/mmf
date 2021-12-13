@@ -52,6 +52,7 @@ evaluation:
 training:
   batch_size: 5120
   lr_scheduler: true
+  find_unused_parameters: true
   # Don't forget to update schedule_attributes if you update this
   max_updates: 5000
   early_stop:
