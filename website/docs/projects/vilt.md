@@ -24,9 +24,24 @@ Follow installation instructions in the [documentation](https://mmf.readthedocs.
 
 ## Training
 
-To train ViLT model on the VQA2.0 dataset, run the following command
+To train ViLT model from scratch on the VQA2.0 dataset, run the following command
 ```
 mmf_run config=projects/vilt/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=vilt
 ```
 
 To finetune using different pretrained starting weights, change the `pretrained_model_name` under image_encoder in the config yaml to reference a huggingface model.
+
+To finetrain a pretrained ViLT model on the VQA2.0 dataset,
+```
+mmf_run config=projects/vilt/configs/vqa2/defaults.yaml run_type=train_val dataset=vqa2 model=vilt checkpoint.resume_zoo=vilt.pretrained
+```
+
+To test a ViLT model already finetuned on the VQA2.0 dataset,
+```
+mmf_run config=projects/vilt/configs/vqa2/defaults.yaml run_type=val dataset=vqa2 model=vilt checkpoint.resume_zoo=vilt.vqa
+```
+
+To pretrain a ViLT model from scratch on the COCO dataset,
+```
+mmf_run config=projects/vilt/configs/masked_coco/pretrain.yaml run_type=train_val dataset=masked_coco model=vilt
+```

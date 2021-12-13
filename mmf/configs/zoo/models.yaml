@@ -564,3 +564,19 @@ villa:
     - url: mmf://models/uniter/villa.pretrained.tar.gz
       file_name: villa.pretrained.tar.gz
       hashcode: 7a8f31421ef644fddc99bd142a0090660573dd526a779d025253c3fd996754fc
+
+vilt:
+  defaults: ${vilt.vqa}
+  vqa:
+    # Model from project : projects/vilt, Val: 69.55
+    version: 1.0_2021_011_29
+    resources:
+    - url: mmf://models/vilt/vilt.finetuned.vqa2.tar.gz
+      file_name: vilt.finetuned.vqa2.tar.gz
+      hashcode: c1a96abfaffa140c0970592691c2cb828b3bb16be7a6c610f7d02c9c05951c1f
+  pretrained:
+    version: 1.0_2021_011_29
+    resources:
+    - url: mmf://models/vilt/vilt.pretrained.tar.gz
+      file_name: vilt.pretrained.tar.gz
+      hashcode: fb4478665ba6709bd454cec40b66dcb89570b998853745cc400bfb6f99aaeb69
