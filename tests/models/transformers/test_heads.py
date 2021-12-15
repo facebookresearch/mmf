@@ -4,6 +4,7 @@ import unittest
 
 import torch
 from mmf.common.sample import Sample
+from mmf.models.transformers.heads.contrastive import ThreeWayContrastive
 from mmf.models.transformers.heads.itm import ITM
 from mmf.models.transformers.heads.mlm import MLM
 from mmf.models.transformers.heads.mlp import MLP
@@ -287,3 +288,28 @@ class TestWRAHead(unittest.TestCase):
         output = module(self.sequence_input, self.processed_sample_list)
         self.assertTrue("wra_loss" in output["losses"])
         self.assertEqual(output["losses"]["wra_loss"].shape, torch.Size([]))
+
+
+class TestThreeWayContrastiveHead(unittest.TestCase):
+    def setUp(self):
+        bs = 8
+        num_feat = 64
+        feat_dim = 768
+        self.sequence_input = torch.ones(
+            size=(bs, num_feat, feat_dim), dtype=torch.float
+        )
+        contrastive_labels = torch.randint(3, (bs,))
+
+        self.processed_sample_list = Sample()
+        self.processed_sample_list["contrastive_labels"] = contrastive_labels
+
+    def test_forward(self):
+        module = ThreeWayContrastive(
+            OmegaConf.create({"type": "three_way_contrastive"})
+        )
+        output = module(self.sequence_input, self.processed_sample_list)
+
+        self.assertTrue("three_way_contrastive_loss" in output["losses"])
+        self.assertEqual(
+            output["losses"]["three_way_contrastive_loss"].shape, torch.Size([])
+        )
