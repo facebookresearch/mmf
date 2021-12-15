@@ -43,14 +43,23 @@ def video_resize(
 
 
 def video_pad(
-    vid: torch.Tensor, padding: List[int], padding_mode: str = "constant", fill: float = 0
+    vid: torch.Tensor,
+    padding: List[int],
+    fill: float = 0,
+    padding_mode: str = "constant",
 ) -> torch.Tensor:
     # NOTE: don't want to pad on temporal dimension, so let as non-batch
     # (4d) before padding. This works as expected
-    return torch.nn.functional.pad(vid, padding, mode=padding_mode, value=fill)
+    return torch.nn.functional.pad(vid, padding, value=fill, mode=padding_mode)
 
 
-def video_normalize(vid: torch.Tensor, mean: float, std: float) -> torch.Tensor:
+def video_to_normalized_float_tensor(vid: torch.Tensor) -> torch.Tensor:
+    return vid.permute(3, 0, 1, 2).to(torch.float32) / 255
+
+
+def video_normalize(
+    vid: torch.Tensor, mean: List[float], std: List[float]
+) -> torch.Tensor:
     shape = (-1,) + (1,) * (vid.dim() - 1)
     mean = torch.as_tensor(mean).reshape(shape)
     std = torch.as_tensor(std).reshape(shape)

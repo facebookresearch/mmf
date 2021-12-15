@@ -11,7 +11,6 @@ from mmf.common.registry import registry
 from mmf.datasets.processors import BaseProcessor
 from omegaconf import OmegaConf
 from torchvision import transforms as img_transforms
-from torchvision.transforms import Compose
 
 
 logger = logging.getLogger()
@@ -64,18 +63,32 @@ class VideoResize(BaseProcessor):
         return F.video_resize(vid, self.size)
 
 
+# This does the same thing as 'VideoToTensor'
+@registry.register_processor("permute_and_rescale")
+class PermuteAndRescale(BaseProcessor):
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        from pytorchvideo import transforms as ptv_transforms
+
+        self.transform = img_transforms.Compose(
+            [
+                ptv_transforms.Permute((3, 0, 1, 2)),
+                ptv_transforms.Div255(),
+            ]
+        )
+
+    def __call__(self, vid):
+        return self.transform(vid)
+
+
 @registry.register_processor("video_to_tensor")
 class VideoToTensor(BaseProcessor):
     def __init__(self, *args, **kwargs):
         super().__init__()
-        from pytorchvideo import transforms as ptv_transforms
-        self.transform = Compose([
-            ptv_transforms.Permute((3, 0, 1, 2)),
-            ptv_transforms.Div255(),
-        ])
+        pass
 
     def __call__(self, vid):
-        return self.transform(vid)
+        return F.video_to_normalized_float_tensor(vid)
 
 
 @registry.register_processor("video_normalize")
@@ -86,24 +99,9 @@ class VideoNormalize(BaseProcessor):
             raise TypeError("'mean' and 'std' params are required")
         self.mean = mean
         self.std = std
-        from pytorchvideo import transforms as ptv_transforms
-        self.transform = ptv_transforms.Normalize(self.mean, self.std)
 
     def __call__(self, vid):
-        return self.transform(vid)
-
-
-# @registry.register_processor("video_normalize_old")
-# class VideoNormalizeOld(BaseProcessor):
-#     def __init__(self, mean=None, std=None, **kwargs):
-#         super().__init__()
-#         if mean is None and std is None:
-#             raise TypeError("'mean' and 'std' params are required")
-#         self.mean = mean
-#         self.std = std
-
-#     def __call__(self, vid):
-#         return F.video_normalize(vid, self.mean, self.std)
+        return F.video_normalize(vid, self.mean, self.std)
 
 
 @registry.register_processor("video_random_horizontal_flip")
@@ -161,10 +159,9 @@ class VideoTransforms(BaseProcessor):
         if OmegaConf.is_dict(transform_params):
             transform_params = [transform_params]
         pytorchvideo_spec = importlib.util.find_spec("pytorchvideo")
-        assert pytorchvideo_spec is not None, (
-            "Must have pytorchvideo installed to use VideoTransforms"
-        )
-        # from pytorchvideo import transforms as ptv_transforms
+        assert (
+            pytorchvideo_spec is not None
+        ), "Must have pytorchvideo installed to use VideoTransforms"
 
         transforms_list = []
 
@@ -181,38 +178,15 @@ class VideoTransforms(BaseProcessor):
                 transform_type = param
                 transform_param = OmegaConf.create([])
 
-            transforms_list.append(self.get_transform_object(transform_type, transform_param))
-
-            # Instead of importing in get_transform_object(), I could do it all here but
-            # I mostly prefer the refactor
-            # transform = None
-            # # Look for the transform in:
-            # # 1) pytorchvideo.transforms
-            # transform = getattr(ptv_transforms, transform_type, None)
-            # if transform is None:
-            #     # 2) processor registry
-            #     transform = registry.get_processor_class(transform_type)
-            # if transform is not None:
-            #     transform_object = self.instantiate_transform(transform, transform_param)
-            #     transforms_list.append(transform_object)
-            #     continue
-            # # 3) torchvision.transforms--need to permute the axes to (T,C,H,W)
-            # img_transform = getattr(img_transforms, transform_type, None)
-            # assert img_transform is not None, (
-            #     f"transform {transform_type} is not found in pytorchvideo "
-            #     "transforms, processor registry, or torchvision transforms"
-            # )
-            # transform_object = Compose([
-            #     ptv_transforms.Permute((1, 0, 2, 3)),
-            #     self.instantiate_transform(img_transform, transform_param),
-            #     ptv_transforms.Permute((1, 0, 2, 3)),
-            # ])            
-            # transforms_list.append(transform_object)
+            transforms_list.append(
+                self.get_transform_object(transform_type, transform_param)
+            )
 
         self.transform = img_transforms.Compose(transforms_list)
 
     def get_transform_object(self, transform_type, transform_params):
         from pytorchvideo import transforms as ptv_transforms
+
         # Look for the transform in:
         # 1) pytorchvideo.transforms
         transform = getattr(ptv_transforms, transform_type, None)
@@ -228,12 +202,15 @@ class VideoTransforms(BaseProcessor):
             f"transform {transform_type} is not found in pytorchvideo "
             "transforms, processor registry, or torchvision transforms"
         )
-        # need to permute the axes to (T,C,H,W) and back
-        return Compose([
-            ptv_transforms.Permute((1, 0, 2, 3)),
-            self.instantiate_transform(img_transform, transform_params),
-            ptv_transforms.Permute((1, 0, 2, 3)),
-        ])
+        # To use the image transform on a video, we need to permute the axes
+        # to (T,C,H,W) and back
+        return img_transforms.Compose(
+            [
+                ptv_transforms.Permute((1, 0, 2, 3)),
+                self.instantiate_transform(img_transform, transform_params),
+                ptv_transforms.Permute((1, 0, 2, 3)),
+            ]
+        )
 
     @staticmethod
     def instantiate_transform(transform, params):
