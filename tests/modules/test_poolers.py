@@ -50,8 +50,8 @@ class TestModulePoolers(unittest.TestCase):
             == out.shape
         )
 
-    def test_bert(self):
-        pool_fn = poolers.BertPooler().to(self.device)
+    def test_cls(self):
+        pool_fn = poolers.ClsPooler().to(self.device)
         out = pool_fn(self.encoded_layers[-1])
 
         assert torch.Size([self.batch_size, self.embedding_size]) == out.shape
