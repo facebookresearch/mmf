@@ -87,7 +87,12 @@ class IdentityPooler(nn.Module):
 
 
 @registry.register_pooler("cls")
-class BertPooler(nn.Module):
+class ClsPooler(nn.Module):
+    def __init__(self, dim=1, cls_index=0):
+        super().__init__()
+        self.dim = dim
+        self.cls_index = cls_index
+
     def forward(self, last_hidden_state: torch.Tensor):
         """Returns the last layer hidden-state of the first token of of the
         sequence, the classification (cls) token.
@@ -99,11 +104,15 @@ class BertPooler(nn.Module):
         Returns:
             [torch.Tensor]: First token of the last hidden-state. (bs, hidden size)
         """
-        return last_hidden_state[:, 0, :]
+        return last_hidden_state.select(dim=self.dim, index=self.cls_index)
 
 
 @registry.register_pooler("avg")
 class MeanPooler(nn.Module):
+    def __init__(self, dim=1):
+        super().__init__()
+        self.dim = dim
+
     def forward(self, last_hidden_state: torch.Tensor):
         """Returns the averaged feature of last layer hidden-state sequence,
 
@@ -114,4 +123,4 @@ class MeanPooler(nn.Module):
         Returns:
             [torch.Tensor]: First token of the last hidden-state. (bs, hidden size)
         """
-        return torch.mean(last_hidden_state, 1)
+        return torch.mean(last_hidden_state, dim=self.dim)
