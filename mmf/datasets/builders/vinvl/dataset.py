@@ -73,9 +73,6 @@ class VinVLDataset(MMFDataset):
         return self.load_item(idx)
 
     def load_item(self, idx):
-        import pdb
-
-        pdb.set_trace()
         base_sample = self.base_dataset.load_item(idx)
         # assumes sample contains key "text" that is the string text
         # when using on vqa2 which returns tokens under key "text"
