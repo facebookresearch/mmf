@@ -70,5 +70,6 @@ scheduler:
 training:
   batch_size: 480
   lr_scheduler: true
+  find_unused_parameters: true
   # Don't forget to update schedule_attributes if you update this
   max_updates: 60000
