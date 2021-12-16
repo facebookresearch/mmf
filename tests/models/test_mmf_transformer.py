@@ -450,19 +450,25 @@ class TestMMFTransformer(unittest.TestCase):
     def test_preprocessing_with_mvit_encoder(self):
         encoder_config = OmegaConf.create(
             {
-                "name": "mvit",
-                "model_name": "multiscale_vision_transformers",
+                "name": "pytorchvideo",
+                "model_name": "mvit_base_32x3",
                 "random_init": True,
-                "cls_layer_num": 0,
+                "drop_last_n_layers": 0,
+                "pooler_name": "cls",
                 "spatial_size": 224,
                 "temporal_size": 8,
                 "head": None,
+                "embed_dim_mul": [[1, 2.0], [3, 2.0], [14, 2.0]],
+                "atten_head_mul": [[1, 2.0], [3, 2.0], [14, 2.0]],
+                "pool_q_stride_size": [[1, 1, 2, 2], [3, 1, 2, 2], [14, 1, 2, 2]],
+                "pool_kv_stride_adaptive": [1, 8, 8],
+                "pool_kvq_kernel": [3, 3, 3],
             }
         )
         self._image_modality_config = MMFTransformerModalityConfig(
             type="image",
             key="image",
-            embedding_dim=12545,
+            embedding_dim=768,
             position_dim=1,
             segment_id=0,
             encoder=encoder_config,
