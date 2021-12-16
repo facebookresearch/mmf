@@ -1,0 +1,18 @@
+model_config:
+  vinvl:
+    heads:
+      test:
+        type: mlp
+        freeze: false
+        lr_multiplier: 1.0
+        in_dim: 768
+        hidden_size: 1536
+        num_labels: 3129
+        pooler_name: bert_pooler
+    bert_model_name: bert-base-uncased
+    loss_type: sfmx
+    img_feature_dim: 2054
+    img_feature_type: 'frcnn'
+    use_img_layernorm: 1
+    img_layer_norm_eps: 1e-12
+    max_img_seq_len: 70
