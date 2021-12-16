@@ -42,20 +42,21 @@ class TestUNITERModelBase(unittest.TestCase):
         img_dim = 1024
         model = UNITERModelBase(img_dim=img_dim)
 
+        device = get_current_device()
         model.eval()
-        model = model.to(get_current_device())
+        model = model.to(device)
 
         bs = 8
         num_feats = 100
         max_sentence_len = 25
         pos_dim = 7
-        input_ids = torch.ones((bs, max_sentence_len), dtype=torch.long)
-        img_feat = torch.rand((bs, num_feats, img_dim))
-        img_pos_feat = torch.rand((bs, num_feats, pos_dim))
+        input_ids = torch.ones((bs, max_sentence_len), dtype=torch.long).to(device)
+        img_feat = torch.rand((bs, num_feats, img_dim)).to(device)
+        img_pos_feat = torch.rand((bs, num_feats, pos_dim)).to(device)
         position_ids = torch.arange(
-            0, input_ids.size(1), dtype=torch.long, device=img_feat.device
+            0, input_ids.size(1), dtype=torch.long, device=device
         ).unsqueeze(0)
-        attention_mask = torch.ones((bs, max_sentence_len + num_feats))
+        attention_mask = torch.ones((bs, max_sentence_len + num_feats)).to(device)
 
         with torch.no_grad():
             model_output = model(
@@ -75,9 +76,13 @@ class TestUniterWithHeads(unittest.TestCase):
         input_ids = torch.ones((bs, max_sentence_len), dtype=torch.long)
         input_mask = torch.ones((bs, max_sentence_len), dtype=torch.long)
         image_feat = torch.rand((bs, num_feats, img_dim))
-        position_ids = torch.arange(
-            0, max_sentence_len, dtype=torch.long, device=image_feat.device
-        ).unsqueeze(0)
+        position_ids = (
+            torch.arange(
+                0, max_sentence_len, dtype=torch.long, device=image_feat.device
+            )
+            .unsqueeze(0)
+            .expand(bs, -1)
+        )
         img_pos_feat = torch.rand((bs, num_feats, 7))
         attention_mask = torch.zeros(
             (bs, max_sentence_len + num_feats), dtype=torch.long
@@ -95,7 +100,8 @@ class TestUniterWithHeads(unittest.TestCase):
         sample_list.add_field("targets", targets)
         sample_list.add_field("dataset_name", "test")
         sample_list.add_field("dataset_type", "test")
-        sample_list["position_ids"] = position_ids
+        sample_list.add_field("position_ids", position_ids)
+        sample_list.to(get_current_device())
 
         return sample_list
 
@@ -132,6 +138,7 @@ class TestUniterWithHeads(unittest.TestCase):
         sample_list.add_field("lm_label_ids", lm_label_ids)
         sample_list.add_field("input_ids_masked", input_ids_masked)
         sample_list.add_field("image_info_0", image_info)
+        sample_list.to(get_current_device())
 
     def test_uniter_for_pretraining(self):
         # UNITER pretraining has 5 pretraining tasks,
