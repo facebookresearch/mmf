@@ -48,7 +48,7 @@ config = OmegaConf.create(
                 "name": "torchvideo",
                 "model_name": "slowfast_r50",
                 "random_init": True,
-                "cls_layer_num": 1,
+                "drop_last_n_layers": -1,
             }
         )
 encoder = encoders.TorchVideoEncoder(config)
@@ -62,7 +62,7 @@ output = encoder([slow, fast])
 In our config object, we specify that we want to build the `torchvideo` (name) encoder,
 that we want to use the pytorchvideo model `slowfast_r50` (model_name),
 without pretrained weights (`random_init: True`),
-and that we want to remove the last module of the network (the transformer head) (`cls_layer_num: 1`) to just get the hidden state.
+and that we want to remove the last module of the network (the transformer head) (`drop_last_n_layers: -1`) to just get the hidden state.
 This part depends on which model you're using and what you need it for.
 
 This encoder is usually configured from yaml through your model_config yaml.
@@ -70,32 +70,33 @@ This encoder is usually configured from yaml through your model_config yaml.
 
 Suppose we want to use MViT as our image encoder and we only want the first hidden state.
 As the MViT model in pytorchvideo returns hidden states in format (batch size, feature dim, num features),
-we want to permute the tensor and take the first feature.
-To do this we can write our own encoder class in encoders.py
+we want to pass in MViT custom configs and choose the cls pooler.
 
 ```python
-@registry.register_encoder("mvit")
-class MViTEncoder(Encoder):
-    """
-    MVIT from pytorchvideo
-    """
-    @dataclass
-    class Config(Encoder.Config):
-        name: str = "mvit"
-        random_init: bool = False
-        model_name: str = "multiscale_vision_transformers"
-        spatial_size: int = 224
-        temporal_size: int = 8
-        head: Optional[Any] = None
+from mmf.modules import encoders
+from omegaconf import OmegaConfg
 
-    def __init__(self, config: Config):
-        super().__init__()
-        self.encoder = TorchVideoEncoder(config)
+config = {
+            "name": "pytorchvideo",
+            "model_name": "mvit_base_32x3",
+            "random_init": True,
+            "drop_last_n_layers": 0,
+            "pooler_name": "cls",
+            "spatial_size": 224,
+            "temporal_size": 8,
+            "head": None,
+            "embed_dim_mul": [[1, 2.0], [3, 2.0], [14, 2.0]],
+            "atten_head_mul": [[1, 2.0], [3, 2.0], [14, 2.0]],
+            "pool_q_stride_size": [[1, 1, 2, 2], [3, 1, 2, 2], [14, 1, 2, 2]],
+            "pool_kv_stride_adaptive": [1, 8, 8],
+            "pool_kvq_kernel": [3, 3, 3],
+        }
+encoder = encoders.PytorchVideoEncoder(OmegaConf.create(config))
 
-    def forward(self, *args, **kwargs):
-        output = self.encoder(*args, **kwargs)
-        output = output.permute(0, 2, 1)
-        return output[:, :1, :]
+# some video input
+x = torch.rand((1, 3, 8, 224, 224))
+output = encoder(x)
 ```
 
-Here we use the TorchVideoEncoder class to make our MViT model and transform the output to match what we need from an encoder.
+Here we use the TorchVideoEncoder class to make our MViT model and pick a pooler.
+The configs are passed onto the MViT pytorchvideo model.
