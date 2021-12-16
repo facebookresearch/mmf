@@ -197,15 +197,20 @@ class TestDatasetProcessors(unittest.TestCase):
     def test_video_transforms(self):
         # TODO: Replace with '@skip_if_no_pytorchvideo' once D32631207 is in
         import importlib
+
         pytorchvideo_spec = importlib.util.find_spec("pytorchvideo")
         if pytorchvideo_spec is None:
-            pass
+            return
 
-        config = OmegaConf.create({'transforms': [
-            'permute_and_rescale',
-            {'type': 'Resize', 'params': {'size': [140, 100]}},
-            {'type': 'UniformTemporalSubsample', 'params': {'num_samples': 7}},
-        ]})
+        config = OmegaConf.create(
+            {
+                "transforms": [
+                    "permute_and_rescale",
+                    {"type": "Resize", "params": {"size": [140, 100]}},
+                    {"type": "UniformTemporalSubsample", "params": {"num_samples": 7}},
+                ]
+            }
+        )
         video_transforms = VideoTransforms(config)
 
         video = torch.ones(10, 200, 200, 3)
