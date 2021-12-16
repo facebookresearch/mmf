@@ -9,6 +9,7 @@ from omegaconf import OmegaConf
 from tests.test_utils import (
     setup_proxy,
     skip_if_old_transformers,
+    skip_if_no_pytorchvideo,
 )
 from torch import nn
 
@@ -106,6 +107,7 @@ class TestEncoders(unittest.TestCase):
         output, _ = encoder(x)
         self.assertEqual(output.size(-1), config.out_dim)
 
+    @skip_if_no_pytorchvideo
     def test_pytorchvideo_slowfast_r50_encoder(self):
         # instantiate video encoder from pytorchvideo
         # default model is slowfast_r50
@@ -118,6 +120,7 @@ class TestEncoders(unittest.TestCase):
         # (bs, feature_dim)
         self.assertEqual(output.size(1), 2304)
 
+    @skip_if_no_pytorchvideo
     def test_mvit_encoder(self):
         config = {
             "name": "pytorchvideo",
