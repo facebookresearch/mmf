@@ -102,6 +102,13 @@ def skip_if_old_transformers(min_version="4.5.0"):
     return wrap
 
 
+def skip_if_no_pytorchvideo(testfn, reason="Requires pytorchvideo"):
+    import importlib
+
+    pytorchvideo_spec = importlib.util.find_spec("pytorchvideo")
+    return unittest.skipIf(pytorchvideo_spec is None, reason)(testfn)
+
+
 def compare_state_dicts(a, b):
     same = True
     same = same and (list(a.keys()) == list(b.keys()))
