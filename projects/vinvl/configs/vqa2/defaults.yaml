@@ -7,7 +7,8 @@ model_config:
           num_labels: 3129
 
 dataset_config:
-  vqa2:
+  vinvl:
+    base_dataset_name: vqa2
     processors:
       text_processor:
         type: vinvl_text_tokenizer
