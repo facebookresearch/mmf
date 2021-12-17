@@ -6,7 +6,11 @@ import unittest
 import torch
 from mmf.modules import encoders
 from omegaconf import OmegaConf
-from tests.test_utils import setup_proxy, skip_if_old_transformers
+from tests.test_utils import (
+    setup_proxy,
+    skip_if_old_transformers,
+    skip_if_no_pytorchvideo,
+)
 from torch import nn
 
 
@@ -102,3 +106,59 @@ class TestEncoders(unittest.TestCase):
         x = torch.rand(32, 197, 768)
         output, _ = encoder(x)
         self.assertEqual(output.size(-1), config.out_dim)
+
+    @skip_if_no_pytorchvideo
+    def test_pytorchvideo_slowfast_r50_encoder(self):
+        # instantiate video encoder from pytorchvideo
+        # default model is slowfast_r50
+        config = OmegaConf.structured(encoders.PytorchVideoEncoder.Config())
+        encoder = encoders.PytorchVideoEncoder(config)
+        fast = torch.rand((1, 3, 32, 224, 224))
+        slow = torch.rand((1, 3, 8, 224, 224))
+        output = encoder([slow, fast])
+        # check output tensor is the expected feature dim size
+        # (bs, feature_dim)
+        self.assertEqual(output.size(1), 2304)
+
+    @skip_if_no_pytorchvideo
+    def test_mvit_encoder(self):
+        config = {
+            "name": "pytorchvideo",
+            "model_name": "mvit_base_32x3",
+            "random_init": True,
+            "drop_last_n_layers": 0,
+            "pooler_name": "cls",
+            "spatial_size": 224,
+            "temporal_size": 8,
+            "head": None,
+            "embed_dim_mul": [[1, 2.0], [3, 2.0], [14, 2.0]],
+            "atten_head_mul": [[1, 2.0], [3, 2.0], [14, 2.0]],
+            "pool_q_stride_size": [[1, 1, 2, 2], [3, 1, 2, 2], [14, 1, 2, 2]],
+            "pool_kv_stride_adaptive": [1, 8, 8],
+            "pool_kvq_kernel": [3, 3, 3],
+        }
+        # test bert cls pooler
+        encoder = encoders.PytorchVideoEncoder(OmegaConf.create(config))
+        x = torch.rand((1, 3, 8, 224, 224))
+        output = encoder(x)
+        # check output tensor is the expected feature dim size
+        # based on pooled attention configs
+        # for more details consult https://arxiv.org/pdf/2104.11227
+        # and https://github.com/facebookresearch/pytorchvideo/
+        # (bs, num_features, feature_dim)
+        self.assertEqual(output.shape, torch.Size([1, 768]))
+
+        # test avg pooler
+        encoder = encoders.PytorchVideoEncoder(
+            OmegaConf.create(dict(config, pooler_name="avg"))
+        )
+        output = encoder(x)
+        self.assertEqual(output.shape, torch.Size([1, 768]))
+
+        # test no pooling
+        encoder = encoders.PytorchVideoEncoder(
+            OmegaConf.create(dict(config, pooler_name="identity"))
+        )
+        output = encoder(x)
+        # (bs, num_features, feature_dim)
+        self.assertEqual(output.shape, torch.Size([1, 197, 768]))

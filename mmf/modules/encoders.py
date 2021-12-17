@@ -1,10 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import importlib
+import logging
 import os
 import pickle
 import re
 from collections import OrderedDict
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Any
 
@@ -25,11 +27,13 @@ from torch import Tensor, nn
 from transformers.configuration_auto import AutoConfig
 from transformers.modeling_auto import AutoModel
 
-
 try:
     from detectron2.modeling import ShapeSpec, build_resnet_backbone
 except ImportError:
     pass
+
+
+logger = logging.getLogger()
 
 
 class Encoder(nn.Module):
@@ -686,6 +690,89 @@ class PooledEncoder(Encoder):
         out = torch.flatten(out, start_dim=2)
         out = out.transpose(1, 2).contiguous()
         return out
+
+
+@registry.register_encoder("pytorchvideo")
+class PytorchVideoEncoder(Encoder):
+    """A thin wrapper around pytorchvideo models.
+    This class is responsible for integrating pytorchvideo models as encoders.
+    THis class attempts to construct a pytorchvideo model from torch hub.
+    If this fails for a random weight model, and pytorchvideo package is available,
+    build the model with random weights from pytorchvideo.models.
+
+    Config:
+        name (str):         Always 'pytorchvideo' Used for builder_encoder()
+        random_init (bool): Flag to load pretrained weights
+        model_name (str):   Name of the pytorchvideo model to use
+        drop_last_n_layers (int):
+            <=0 value for the number of layers to drop off the end
+        pooler_name (str):  Name of pooler used on model output
+
+    Raises:
+        ImportError:
+        The constructor raises an ImportError if pytorchvideo is not installed.
+    """
+
+    @dataclass
+    class Config(Encoder.Config):
+        name: str = "pytorchvideo"
+        random_init: bool = False
+        model_name: str = "slowfast_r50"
+        drop_last_n_layers: int = -1
+        pooler_name: str = "identity"
+
+    PYTORCHVIDEO_REPO = "facebookresearch/pytorchvideo:main"
+
+    def __init__(self, config: Config):
+        super().__init__()
+        config = OmegaConf.create({**asdict(self.Config()), **config})
+        if config.random_init:
+            params = dict(**OmegaConf.to_container(config))
+            params = {
+                k: v
+                for k, v in params.items()
+                if k not in PytorchVideoEncoder.Config().__dict__
+            }
+            try:
+                model = torch.hub.load(
+                    PytorchVideoEncoder.PYTORCHVIDEO_REPO,
+                    model=config.model_name,
+                    pretrained=False,
+                    **params,
+                )
+            except BaseException as err:
+                pytorchvideo_spec = importlib.util.find_spec("pytorchvideo")
+                if pytorchvideo_spec is None:
+                    raise err
+                import pytorchvideo.models.hub as hub
+
+                model_create_fn = getattr(hub, config.model_name)
+                model = model_create_fn(pretrained=False, **params)
+        else:
+            # load weights from TorchHub
+            model = torch.hub.load(
+                PytorchVideoEncoder.PYTORCHVIDEO_REPO,
+                model=config.model_name,
+                pretrained=True,
+            )
+        encoder_list = []
+        if config.drop_last_n_layers == 0:
+            encoder_list += [model]
+        else:
+            modules_list = list(model.children())
+            if len(modules_list) == 1:
+                modules_list = list(modules_list[0].children())
+            modules = modules_list[: config.drop_last_n_layers]
+            encoder_list += modules
+
+        pooler = registry.get_pool_class(config.pooler_name)()
+        encoder_list += [pooler]
+        self.encoder = nn.Sequential(*encoder_list)
+
+    def forward(self, *args, **kwargs):
+        # pass along input to model
+        # assumes caller obeys the dynamic model signature
+        return self.encoder(*args, **kwargs)
 
 
 @registry.register_encoder("r2plus1d_18")
