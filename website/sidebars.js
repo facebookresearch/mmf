@@ -34,6 +34,7 @@ module.exports = {
       'tutorials/concat_bert_tutorial',
       'tutorials/losses',
       'tutorials/image_feature_extraction',
+      'tutorials/image_feature_extraction_vinvl',
       'tutorials/checkpointing',
       'tutorials/processors',
       'tutorials/slurm',
