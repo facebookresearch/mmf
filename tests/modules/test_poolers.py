@@ -26,17 +26,41 @@ class TestModulePoolers(unittest.TestCase):
     def test_AverageConcat(self):
         pool_fn = poolers.AverageConcatLastN(self.k).to(self.device)
         out = pool_fn(self.encoded_layers, self.pad_mask)
+<<<<<<< HEAD
+=======
+        if torch.cuda.is_available():
+            pool_fn.cuda()
+            out = pool_fn([e.cuda() for e in self.encoded_layers], self.pad_mask.cuda())
+
+
+>>>>>>> 0cd6a0ccba0624d1e5a299acb89ed77552ba50e1
 
         assert torch.Size([self.batch_size, self.embedding_size * self.k]) == out.shape
 
     def test_AverageKFromLast(self):
         pool_fn = poolers.AverageKFromLast(self.k).to(self.device)
         out = pool_fn(self.encoded_layers, self.pad_mask)
+<<<<<<< HEAD
+=======
+        if torch.cuda.is_available():
+            pool_fn.cuda()
+            out = pool_fn([e.cuda() for e in self.encoded_layers], self.pad_mask.cuda())
+
+
+>>>>>>> 0cd6a0ccba0624d1e5a299acb89ed77552ba50e1
 
         assert torch.Size([self.batch_size, self.embedding_size]) == out.shape
 
     def test_AverageSumLastK(self):
         pool_fn = poolers.AverageSumLastK(self.k).to(self.device)
         out = pool_fn(self.encoded_layers, self.pad_mask)
+<<<<<<< HEAD
+=======
+        if torch.cuda.is_available():
+            pool_fn.cuda()
+            out = pool_fn([e.cuda() for e in self.encoded_layers], self.pad_mask.cuda())
+
+
+>>>>>>> 0cd6a0ccba0624d1e5a299acb89ed77552ba50e1
 
         assert torch.Size([self.batch_size, self.embedding_size]) == out.shape
