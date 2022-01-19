@@ -739,7 +739,7 @@ class AttnPool1d(nn.Module):
             nn.Dropout(p=dropout),
             nn.Linear(num_features // 2, num_attn),
         )
-        self.p_attn = None
+        self.p_attn = torch.tensor(float("nan"))
         self.num_attn = num_attn
 
     def forward(
@@ -752,9 +752,11 @@ class AttnPool1d(nn.Module):
         score = self.linear(query).transpose(-2, -1)
         if mask is not None:
             score.data.masked_fill_(mask.unsqueeze(1), -10000.0)
-        self.p_attn = nn.functional.softmax(score, dim=-1)
+        p_attn = nn.functional.softmax(score, dim=-1)
+        if self.training:
+            self.p_attn = p_attn
 
-        return torch.matmul(self.p_attn, value).view(b, self.num_attn, -1)
+        return torch.matmul(p_attn, value).view(b, self.num_attn, -1)
 
 
 class AttnPool2d(nn.Module):

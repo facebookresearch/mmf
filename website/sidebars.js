@@ -26,6 +26,7 @@ module.exports = {
       'notes/model_zoo',
       'notes/pretrained_models',
       'notes/projects',
+      'tutorials/pytorchvideo',
     ],
     Tutorials: [
       'tutorials/dataset',
@@ -33,6 +34,7 @@ module.exports = {
       'tutorials/concat_bert_tutorial',
       'tutorials/losses',
       'tutorials/image_feature_extraction',
+      'tutorials/image_feature_extraction_vinvl',
       'tutorials/checkpointing',
       'tutorials/processors',
       'tutorials/slurm',
@@ -45,6 +47,6 @@ module.exports = {
       'challenges/textvqa_challenge',
       'challenges/vqa_challenge',
     ],
-    Projects: ['projects/butd', 'projects/m4c', 'projects/m4c_captioner', 'projects/movie_mcan', 'projects/unit', 'projects/vilt', 'projects/uniter'],
+    Projects: ['projects/butd', 'projects/m4c', 'projects/m4c_captioner', 'projects/movie_mcan', 'projects/unit', 'projects/vilt', 'projects/uniter', 'projects/vinvl'],
   },
 };

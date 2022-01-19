@@ -24,7 +24,7 @@ Here is the list of models currently implemented in MMF:
 | VilBERT         | vilbert                              | hateful_memes, coco, conceptual_captions, mmimdb, nlvr2, visual_entailment, vizwiz, vqa2 |[paper](https://arxiv.org/abs/1908.02265)|
 | ViLT            | vilt                                 | coco, vqa2                               |[paper](https://arxiv.org/pdf/2102.03334)                    |
 | UNITER          | uniter                               | vqa2, masked_coco                        | [paper](https://arxiv.org/abs/1909.11740)                   |
-| VilBERT         | vilbert                              | hateful_memes, coco, conceptual_captions, vqa2, mmimdb, nlvr2, visual_entailment, vizwiz, vqa2 |[paper](https://arxiv.org/abs/1908.02265)|
+| VinVL           | vinvl                                | feature extraction not done yet          |[paper](https://arxiv.org/abs/2101.00529)                    |
 | Visual BERT     | visual_bert                          | gqa, hateful_memes, localized_narratives, coco, conceptual_captions, sbu, vqa2, mmimdb, nlvr2, visual_entailment, vizwiz|[paper](https://arxiv.org/abs/1908.03557)|
 
 We are adding many more new models which will be available soon.

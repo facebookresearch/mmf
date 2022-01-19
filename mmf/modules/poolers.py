@@ -12,7 +12,7 @@ transformer encoder layers
    class CustomPool(nn.Module):
        ...
 """
-from typing import List
+from typing import Any, List
 
 import torch
 import torch.nn as nn
@@ -78,3 +78,49 @@ class AverageSumLastK(nn.Module):
             torch.sum(pad_mask, 1).float() + self.tol
         )
         return pooled_output
+
+
+@registry.register_pooler("identity")
+class IdentityPooler(nn.Module):
+    def forward(self, x: Any):
+        return x
+
+
+@registry.register_pooler("cls")
+class ClsPooler(nn.Module):
+    def __init__(self, dim=1, cls_index=0):
+        super().__init__()
+        self.dim = dim
+        self.cls_index = cls_index
+
+    def forward(self, last_hidden_state: torch.Tensor):
+        """Returns the last layer hidden-state of the first token of of the
+        sequence, the classification (cls) token.
+
+        Args:
+            last_hidden_state (torch.Tensor): Sequence of hidden-state of
+            at the output of the last layer of the model (bs, seq length, hidden size)
+
+        Returns:
+            [torch.Tensor]: First token of the last hidden-state. (bs, hidden size)
+        """
+        return last_hidden_state.select(dim=self.dim, index=self.cls_index)
+
+
+@registry.register_pooler("avg")
+class MeanPooler(nn.Module):
+    def __init__(self, dim=1):
+        super().__init__()
+        self.dim = dim
+
+    def forward(self, last_hidden_state: torch.Tensor):
+        """Returns the averaged feature of last layer hidden-state sequence,
+
+        Args:
+            last_hidden_state (torch.Tensor): Sequence of hidden-state of
+            at the output of the last layer of the model (bs, seq length, hidden size)
+
+        Returns:
+            [torch.Tensor]: First token of the last hidden-state. (bs, hidden size)
+        """
+        return torch.mean(last_hidden_state, dim=self.dim)

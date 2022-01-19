@@ -431,6 +431,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
                     "optimizer_states",
                     "lr_schedulers",
                     "config",
+                    "loops",
                 },
             )
 
