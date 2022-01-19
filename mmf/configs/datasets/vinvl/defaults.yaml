@@ -1,0 +1,13 @@
+includes:
+- ../vqa2/defaults.yaml
+
+dataset_config:
+  vinvl:
+    base_dataset_name: vqa2
+    label_map: /private/home/ryanjiang/winoground/pretrained_models/VG-SGG-dicts-vgoi6-clipped.json
+    base_dataset: ${dataset_config.vqa2}
+    processors:
+      text_processor:
+        type: vinvl_text_tokenizer
+        params:
+          mask_probability: 0
