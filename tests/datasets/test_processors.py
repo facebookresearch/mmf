@@ -17,7 +17,7 @@ from mmf.datasets.processors.video_processors import VideoTransforms
 from mmf.utils.configuration import load_yaml
 from omegaconf import OmegaConf
 
-from ..test_utils import compare_tensors, skip_if_no_pytorchvideo
+from tests.test_utils import compare_tensors, skip_if_no_pytorchvideo
 
 
 class TestDatasetProcessors(unittest.TestCase):
@@ -196,12 +196,6 @@ class TestDatasetProcessors(unittest.TestCase):
 
     @skip_if_no_pytorchvideo
     def test_video_transforms(self):
-        import importlib
-
-        pytorchvideo_spec = importlib.util.find_spec("pytorchvideo")
-        if pytorchvideo_spec is None:
-            return
-
         config = OmegaConf.create(
             {
                 "transforms": [
