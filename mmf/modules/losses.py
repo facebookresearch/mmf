@@ -188,6 +188,14 @@ class MMFLoss(nn.Module):
 
     def forward(self, sample_list: Dict[str, Tensor], model_output: Dict[str, Tensor]):
         loss_dict = {}
+        if hasattr(self.loss_criterion, "datasets"):
+            datasets = self.loss_criterion.datasets
+            if (
+                isinstance(datasets, list)
+                and sample_list["dataset_name"] not in datasets
+            ):
+                return loss_dict
+
         loss_result = self.loss_criterion(sample_list, model_output)
 
         if not isinstance(loss_result, collections.abc.Mapping):
