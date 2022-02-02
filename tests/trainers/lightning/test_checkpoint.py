@@ -431,7 +431,9 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
                     "optimizer_states",
                     "lr_schedulers",
                     "config",
-                    "loops",
+                    ### start patch (jenniferdai): do not save loop state unless fault-tolerance enabled (see D33463938)
+                    # "loops",
+                    ### end patch
                 },
             )
 
