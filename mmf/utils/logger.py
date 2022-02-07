@@ -268,7 +268,8 @@ def calculate_time_left(
     time_left = num_logs_left * time_taken_for_log
 
     snapshot_iteration = num_snapshot_iterations / log_interval
-    snapshot_iteration *= iterations_left / eval_interval
+    if eval_interval:
+        snapshot_iteration *= iterations_left / eval_interval
     time_left += snapshot_iteration * time_taken_for_log
 
     return timer.get_time_hhmmss(gap=time_left)
