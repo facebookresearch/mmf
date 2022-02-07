@@ -22,6 +22,7 @@ from mmf.utils.distributed import (
 from mmf.utils.general import get_batch_size, get_current_device
 from omegaconf import OmegaConf
 from torch.utils.data.dataloader import DataLoader, Sampler
+from torch.utils.data.dataset import IterableDataset
 
 
 logger = logging.getLogger(__name__)
@@ -56,8 +57,22 @@ class MultiDataLoader:
         self.set_lengths()
         self.set_samplers()
 
+    def has_len(self):
+        for loader in self.loaders.values():
+            if not hasattr(loader, "dataset"):
+                continue
+            dataset_instance = loader.dataset
+            if isinstance(dataset_instance, IterableDataset):
+                return False
+        return True
+
     def set_lengths(self):
         self._total_length = 0
+
+        if not self.has_len():
+            self._total_length = float("inf")
+            return
+
         for loader in self.loaders.values():
             # Some loaders might not have dataset attribute
             # set, in this case we won't consider them in
