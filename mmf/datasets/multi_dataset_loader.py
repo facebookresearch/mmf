@@ -4,6 +4,7 @@ MultiDatasetLoader class is used by DatasetLoader class to load multiple dataset
 and more granular
 """
 import logging
+import math
 import warnings
 from typing import Dict, Iterator
 
@@ -56,8 +57,22 @@ class MultiDataLoader:
         self.set_lengths()
         self.set_samplers()
 
+    def has_len(self):
+        for loader in self.loaders.values():
+            if not hasattr(loader, "dataset"):
+                continue
+            dataset_instance = loader.dataset
+            if not hasattr(dataset_instance, "__len__"):
+                return False
+        return True
+
     def set_lengths(self):
         self._total_length = 0
+
+        if not self.has_len():
+            self._total_length = math.inf
+            return
+
         for loader in self.loaders.values():
             # Some loaders might not have dataset attribute
             # set, in this case we won't consider them in
