@@ -30,9 +30,7 @@ class LightningLoopCallback(Callback):
         # for logging
         self.total_timer = Timer()
         self.snapshot_timer = Timer()
-        self.snapshot_iterations = 0
-        if self.lightning_trainer.val_loader.has_len():
-            self.snapshot_iterations = len(self.lightning_trainer.val_loader)
+        self.snapshot_iterations = len(self.lightning_trainer.val_loader)
         self.train_timer = Timer()
 
     def on_train_start(self, trainer: Trainer, pl_module: LightningModule):

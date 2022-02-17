@@ -317,6 +317,5 @@ class LightningTrainer(BaseTrainer):
             self.train_loader,
             self.trainer_config.accumulate_grad_batches,
         )
-        if max_epochs and max_epochs != math.inf:
-            self._max_epochs = math.ceil(max_epochs)
+        self._max_epochs = math.ceil(max_epochs)
         return self._max_updates
