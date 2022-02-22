@@ -282,7 +282,7 @@ def compare_torchscript_transformer_models(model, vocab_size):
     with torch.no_grad():
         script_output = script_model(test_sample_list)
 
-    return torch.equal(model_output["scores"], script_output["scores"])
+    return torch.allclose(model_output["scores"], script_output["scores"])
 
 
 def verify_torchscript_models(model):
