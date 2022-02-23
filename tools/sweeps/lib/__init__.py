@@ -183,6 +183,7 @@ def get_args(argv=None):
         type=int,
         help="enable tensorboard logging by passing --tensorboard 1",
     )
+    parser.add_argument("--task", type=str, help="specify task name")
 
     # Will read sys.argv if argv is None
     args = parser.parse_args(argv)
