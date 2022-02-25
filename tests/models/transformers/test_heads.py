@@ -42,6 +42,24 @@ class TestMLMHead(unittest.TestCase):
 
         self.assertEqual(output["logits"].shape, torch.Size([64, 1000]))
 
+    def test_head_missing_masked_labels(self):
+        module = MLM(self.config)
+        sequence_input = torch.rand(size=(1, 64, 768), dtype=torch.float)
+        encoder_output = [sequence_input, sequence_input]
+        processed_sample_list = Sample()
+        processed_sample_list["mlm_labels"] = {}
+        # masked_labels will be a tensor of all `ignore_index`
+        processed_sample_list["mlm_labels"]["combined_labels"] = torch.full(
+            size=(1, 64),
+            fill_value=module.config.ignore_index,
+            dtype=torch.long,
+        )
+
+        output = module(sequence_input, encoder_output, processed_sample_list)
+
+        self.assertTrue(not torch.isnan(output["losses"]["masked_lm_loss"]))
+        self.assertTrue(output["losses"]["masked_lm_loss"] == 0.0)
+
 
 class TestMLPHead(unittest.TestCase):
     def setUp(self):
