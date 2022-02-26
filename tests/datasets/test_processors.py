@@ -16,7 +16,6 @@ from mmf.datasets.processors.processors import (
 from mmf.datasets.processors.video_processors import VideoTransforms
 from mmf.utils.configuration import load_yaml
 from omegaconf import OmegaConf
-
 from tests.test_utils import compare_tensors, skip_if_no_pytorchvideo
 
 
