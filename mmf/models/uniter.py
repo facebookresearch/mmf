@@ -6,7 +6,8 @@
 import copy
 import logging
 import random
-from collections import MutableMapping, namedtuple
+from collections import namedtuple
+from collections.abc import MutableMapping
 from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 

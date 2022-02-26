@@ -43,33 +43,33 @@ dataset_config:
                 size: [224, 224]
             - ToTensor
       video_train_processor:
-        type: torchvision_transforms
+        type: video_transforms
         params:
           transforms:
-            - video_to_tensor
-            - type: video_resize
+            - permute_and_rescale
+            - type: Resize
               params:
                 size: [128, 171]
-            - video_random_horizontal_flip
-            - type: video_normalize
+            - RandomHorizontalFlip
+            - type: Normalize
               params:
                 mean: [0.43216, 0.394666, 0.37645]
                 std: [0.22803, 0.22145, 0.216989]
-            - type: video_random_crop
+            - type: RandomCrop
               params:
                 size: [112, 112]
       video_test_processor:
-        type: torchvision_transforms
+        type: video_transforms
         params:
           transforms:
-            - video_to_tensor
-            - type: video_resize
+            - permute_and_rescale
+            - type: Resize
               params:
                 size: [128, 171]
-            - type: video_normalize
+            - type: Normalize
               params:
                 mean: [0.43216, 0.394666, 0.37645]
                 std: [0.22803, 0.22145, 0.216989]
-            - type: video_random_crop
+            - type: RandomCrop
               params:
                 size: [112, 112]

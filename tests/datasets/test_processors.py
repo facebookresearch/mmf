@@ -13,10 +13,10 @@ from mmf.datasets.processors.processors import (
     Processor,
     TransformerBboxProcessor,
 )
+from mmf.datasets.processors.video_processors import VideoTransforms
 from mmf.utils.configuration import load_yaml
 from omegaconf import OmegaConf
-
-from ..test_utils import compare_tensors
+from tests.test_utils import compare_tensors, skip_if_no_pytorchvideo
 
 
 class TestDatasetProcessors(unittest.TestCase):
@@ -192,6 +192,23 @@ class TestDatasetProcessors(unittest.TestCase):
         image = ToPILImage()(torch.ones(1, 224, 224))
         processed_image = image_processor(image)
         self.assertEqual(processed_image.size(), expected_size)
+
+    @skip_if_no_pytorchvideo
+    def test_video_transforms(self):
+        config = OmegaConf.create(
+            {
+                "transforms": [
+                    "permute_and_rescale",
+                    {"type": "Resize", "params": {"size": [140, 100]}},
+                    {"type": "UniformTemporalSubsample", "params": {"num_samples": 7}},
+                ]
+            }
+        )
+        video_transforms = VideoTransforms(config)
+
+        video = torch.ones(10, 200, 200, 3)
+        processed_video = video_transforms(video)
+        torch.testing.assert_close(processed_video, torch.ones(3, 7, 140, 100) / 255)
 
     def test_processor_class_None(self):
         config = OmegaConf.create({"type": "UndefinedType"})
