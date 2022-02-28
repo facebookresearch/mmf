@@ -431,9 +431,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
                     "optimizer_states",
                     "lr_schedulers",
                     "config",
-                    ### start patch (jenniferdai): do not save loop state unless fault-tolerance enabled (see D33463938)
-                    # "loops",
-                    ### end patch
+                    "loops",
                 },
             )
 
@@ -510,7 +508,11 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
         # Make sure lightning and mmf parity
         self._assert_same_dict(mmf_ckpt["model"], lightning_ckpt["state_dict"])
 
-        self.assertEquals(mmf_ckpt["current_epoch"], lightning_ckpt["epoch"])
+        # different case for best checkpoint, see D34398730
+        if "resume_best" in ckpt_config and ckpt_config["resume_best"]:
+            self.assertEquals(mmf_ckpt["current_epoch"], lightning_ckpt["epoch"] + 1)
+        else:
+            self.assertEquals(mmf_ckpt["current_epoch"], lightning_ckpt["epoch"])
         self.assertEquals(mmf_ckpt["num_updates"], lightning_ckpt["global_step"])
         self._assert_same_dict(
             mmf_ckpt["optimizer"], lightning_ckpt["optimizer_states"][0]

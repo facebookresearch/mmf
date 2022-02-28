@@ -15,7 +15,7 @@ class TestLightningTrainer(unittest.TestCase):
 
             self._check_values(trainer, 0, 0)
             trainer.trainer.fit(trainer.model, trainer.data_module.train_loader)
-            self._check_values(trainer, 4, 0)
+            self._check_values(trainer, 4, 1)
 
     def test_fractional_epoch(self):
         with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=""):
@@ -25,7 +25,7 @@ class TestLightningTrainer(unittest.TestCase):
 
             self._check_values(trainer, 0, 0)
             trainer.trainer.fit(trainer.model, trainer.data_module.train_loader)
-            self._check_values(trainer, 4, 0)
+            self._check_values(trainer, 4, 1)
 
     def test_updates(self):
         with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=""):
@@ -35,7 +35,7 @@ class TestLightningTrainer(unittest.TestCase):
 
             self._check_values(trainer, 0, 0)
             trainer.trainer.fit(trainer.model, trainer.data_module.train_loader)
-            self._check_values(trainer, 2, 0)
+            self._check_values(trainer, 2, 1)
 
     def _check_values(self, trainer, current_iteration, current_epoch):
         self.assertEqual(trainer.trainer.global_step, current_iteration)
