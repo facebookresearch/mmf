@@ -53,6 +53,20 @@ const features = [
   },
 ];
 
+function SocialBanner() {
+  return (
+    <div className="socialBanner">
+      <div>
+        Support Ukraine 🇺🇦{' '}
+        <a href="https://opensource.fb.com/support-ukraine">
+          Help Provide Humanitarian Aid to Ukraine
+        </a>
+        .
+      </div>
+    </div>
+  );
+}
+
 function BannerImage() {
   const {isDarkTheme} = useThemeContext();
   const logoWhite = useBaseUrl('img/logo_white_text.svg');
@@ -99,6 +113,7 @@ function Home() {
         'MMF is a modular framework powered by PyTorch for multimodal vision and ' +
         'language research from Facebook AI Research'
       }>
+      <SocialBanner />
       <header className={classnames('hero hero--primary', styles.heroBanner)}>
         <div className="container">
           <div className="hero__title">
