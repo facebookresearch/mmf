@@ -14,7 +14,10 @@ class DeviceMock(TrainerDeviceMixin):
 
 class TestDevice(unittest.TestCase):
     def test_current_device(self):
-        config = {"training": {"seed": 1}, "distributed": {"init_method": None}}
+        config = {
+            "training": {"seed": 1, "cudnn_benchmark": False},
+            "distributed": {"init_method": None},
+        }
         deviceMock = DeviceMock(OmegaConf.create(config))
         deviceMock.configure_seed()
         deviceMock.configure_device()

@@ -24,7 +24,7 @@ class TrainerDeviceMixin(ABC):
             return
 
         torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.benchmark = self.config.training.cudnn_benchmark
 
     # TODO: Review self.device assignment and then override
     def configure_device(self) -> None:

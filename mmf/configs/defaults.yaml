@@ -41,6 +41,9 @@ training:
     # Tensorboard control, by default tensorboard is disabled
     tensorboard: false
 
+    # Enable torch.backends.cudnn.benchmark, by default it is disabled
+    cudnn_benchmark: false
+
     # Weights and Biases control, by default Weights and Biases (wandb) is disabled
     wandb:
         # Whether to use Weights and Biases Logger, (Default: false)
