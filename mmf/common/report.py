@@ -176,7 +176,7 @@ class Report(OrderedDict):
                     f"{key} not found in report. Loss calculation "
                     + "might not work as expected."
                 )
-                continue
+                self.losses[key] = value
             if isinstance(self.losses[key], torch.Tensor):
                 self.losses[key] += value
 
