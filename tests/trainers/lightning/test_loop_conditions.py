@@ -19,7 +19,7 @@ class TestLightningTrainer(unittest.TestCase):
 
     def test_fractional_epoch(self):
         with patch("mmf.trainers.lightning_trainer.get_mmf_env", return_value=""):
-            config = self._get_config(max_steps=None, max_epochs=0.04)
+            config = self._get_config(max_steps=-1, max_epochs=0.04)
             trainer = get_lightning_trainer(config=config)
             self.assertEqual(trainer._max_updates, 4)
 
