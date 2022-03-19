@@ -35,12 +35,12 @@ class HMConverter:
         self.configuration = Configuration()
 
     def assert_files(self, folder):
-        files_needed = self.JSONL_PHASE_ONE_FILES
-        phase_one = True
+        files_needed = self.JSONL_PHASE_TWO_FILES
+        phase_one = False
         for file in files_needed:
             try:
                 assert PathManager.exists(
-                    os.path.join(folder, "data", file)
+                    os.path.join(folder, file)
                 ), f"{file} doesn't exist in {folder}"
             except AssertionError:
                 phase_one = False
@@ -49,7 +49,7 @@ class HMConverter:
             files_needed = self.JSONL_PHASE_TWO_FILES
             for file in files_needed:
                 assert PathManager.exists(
-                    os.path.join(folder, "data", file)
+                    os.path.join(folder, file)
                 ), f"{file} doesn't exist in {folder}"
         else:
             warnings.warn(
@@ -62,7 +62,7 @@ class HMConverter:
         exists = False
 
         for file in files_needed:
-            exists = exists or PathManager.exists(os.path.join(folder, "data", file))
+            exists = exists or PathManager.exists(os.path.join(folder, file))
 
         if not exists:
             raise AssertionError("Neither img or img.tar.gz exists in current zip")
