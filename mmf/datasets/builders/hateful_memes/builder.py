@@ -49,7 +49,7 @@ class HatefulMemesBuilder(MMFDatasetBuilder):
                 "datasets",
                 self.dataset_name,
                 "defaults",
-                "annotations",
+                "images",
                 "train.jsonl",
             )
         )
