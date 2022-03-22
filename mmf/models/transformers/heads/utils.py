@@ -147,10 +147,10 @@ class HeadsDict(nn.Module):
         head_name: str,
         sample_list: Dict[str, Tensor],
     ) -> Dict[str, Tensor]:
-        if isinstance(outputs, collections.MutableMapping) and "losses" in outputs:
+        if isinstance(outputs, collections.abc.MutableMapping) and "losses" in outputs:
             return outputs
 
-        if isinstance(outputs, collections.MutableMapping) and "scores" in outputs:
+        if isinstance(outputs, collections.abc.MutableMapping) and "scores" in outputs:
             logits = outputs["scores"]
         else:
             logits = outputs

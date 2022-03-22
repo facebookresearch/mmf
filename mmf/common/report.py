@@ -98,7 +98,7 @@ class Report(OrderedDict):
                 if key not in fields:
                     continue
             self[key] = fn(self[key])
-            if isinstance(self[key], collections.MutableSequence):
+            if isinstance(self[key], collections.abc.MutableSequence):
                 for idx, item in enumerate(self[key]):
                     self[key][idx] = fn(item)
             elif isinstance(self[key], dict):
