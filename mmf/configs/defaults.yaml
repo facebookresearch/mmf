@@ -198,7 +198,7 @@ trainer:
         max_epochs: null
         gradient_clip_val: 0.0
         num_sanity_val_steps: 0
-        checkpoint_callback: true
+        enable_checkpointing: true
         accumulate_grad_batches: 1
         val_check_interval: 1000
         log_every_n_steps: 100

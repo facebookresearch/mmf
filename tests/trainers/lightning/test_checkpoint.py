@@ -115,7 +115,7 @@ class TestLightningCheckpoint(unittest.TestCase):
                         "params": {
                             "max_steps": max_steps,
                             "max_epochs": None,
-                            "checkpoint_callback": True,
+                            "enable_checkpointing": True,
                             "resume_from_checkpoint": resume_from_checkpoint,
                             "val_check_interval": 2,
                         }

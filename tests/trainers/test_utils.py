@@ -43,7 +43,7 @@ def get_trainer_config():
                 "params": {
                     "gpus": 1 if torch.cuda.is_available() else 0,
                     "num_nodes": 1,
-                    "checkpoint_callback": False,
+                    "enable_checkpointing": False,
                     "deterministic": True,
                     "benchmark": False,
                     "gradient_clip_val": 0.0,
