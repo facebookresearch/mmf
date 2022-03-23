@@ -205,7 +205,7 @@ trainer:
         logger: false
         limit_val_batches: 1.0
         # progress bar is turned off if want same logging format as `mmf_trainer`
-        progress_bar_refresh_rate: 0
+        enable_progress_bar: False
         # `config.trainer.params.resume_from_checkpoint` always takes precedence over
         # `config.checkpoint` such as `config.checkpoint.resume_file`,
         # `config.checkpoint.resume_zoo` and `config.checkpoint.resume`.
