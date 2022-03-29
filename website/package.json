@@ -48,6 +48,7 @@
     ]
   },
   "resolutions": {
-    "shelljs": "^0.8.5"
+    "shelljs": "^0.8.5",
+    "ansi-html": "0.0.8"
   }
 }
