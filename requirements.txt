@@ -21,4 +21,4 @@ ftfy==5.8
 pytorch-lightning @ git+https://github.com/PyTorchLightning/pytorch-lightning@9b011606f
 torchaudio>=0.6.0, <=0.9.0
 psutil
-pillow==8.3.1
+pillow==9.0.1
