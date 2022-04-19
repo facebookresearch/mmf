@@ -2,7 +2,7 @@
 
 from mmf.common.registry import registry
 from mmf.trainers.lightning_trainer import LightningTrainer
-from tests.trainers.test_trainer_mocks import MultiDataModuleNumbersTestObject
+from tests.trainers.test_trainer_mocks import LightningMultiDataModuleNumbersTestObject
 
 
 class LightningTrainerMock(LightningTrainer):
@@ -21,7 +21,7 @@ class LightningTrainerMock(LightningTrainer):
             trainer_config[key] = value
 
         # data
-        self.data_module = MultiDataModuleNumbersTestObject(
+        self.data_module = LightningMultiDataModuleNumbersTestObject(
             config=config, num_data=num_data_size
         )
 
