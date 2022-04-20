@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 
 import omegaconf
 from mmf.common.registry import registry
-from mmf.datasets.multi_datamodule import MultiDataModule
+from mmf.datasets.lightning_multi_datamodule import LightningMultiDataModule
 from mmf.modules.metrics import Metrics
 from mmf.trainers.base_trainer import BaseTrainer
 from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
@@ -81,7 +81,7 @@ class LightningTrainer(BaseTrainer):
 
     def load_datasets(self) -> None:
         logger.info("Loading datasets")
-        data_module = MultiDataModule(self.config)
+        data_module = LightningMultiDataModule(self.config)
         self.data_module = data_module
 
         self.train_loader = data_module.train_dataloader()
@@ -317,5 +317,6 @@ class LightningTrainer(BaseTrainer):
             self.train_loader,
             self.trainer_config.accumulate_grad_batches,
         )
-        self._max_epochs = math.ceil(max_epochs)
+        if max_epochs and max_epochs != math.inf:
+            self._max_epochs = math.ceil(max_epochs)
         return self._max_updates

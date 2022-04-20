@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 import torch
 from mmf.common.registry import registry
 from mmf.common.sample import SampleList
+from mmf.datasets.lightning_multi_datamodule import LightningMultiDataModule
 from mmf.datasets.mmf_dataset_builder import MMFDatasetBuilder
 from mmf.datasets.multi_datamodule import MultiDataModule
 from mmf.trainers.mmf_trainer import MMFTrainer
@@ -14,6 +15,59 @@ from tests.test_utils import NumbersDataset
 
 
 class MultiDataModuleNumbersTestObject(MultiDataModule):
+    def __init__(self, config, num_data):
+        super().__init__(config)
+        batch_size = config.training.batch_size
+        config = OmegaConf.create(
+            {
+                "use_features": True,
+                "annotations": {
+                    "train": "not_a_real_annotations_dataset",
+                    "val": "not_a_real_annotations_dataset",
+                },
+                "features": {
+                    "train": "not_a_real_features_dataset",
+                    "val": "not_a_real_features_dataset",
+                },
+                "dataset_config": {"numbers": 0},
+            }
+        )
+        self._num_data = num_data
+        self.batch_size = batch_size
+        self.config = config
+        self.dataset_list = []
+        dataset_builder = MMFDatasetBuilder(
+            "numbers",
+            functools.partial(NumbersDataset, num_examples=num_data, always_one=True),
+        )
+        dataset_builder.train_dataloader = self._get_dataloader_train
+        dataset_builder.val_dataloader = self._get_dataloader_val
+        dataset_builder.test_dataloader = self._get_dataloader_test
+        self.datamodules = {"numbers": dataset_builder}
+
+    def _get_dataloader_train(self):
+        return self._get_dataloader()
+
+    def _get_dataloader_val(self):
+        return self._get_dataloader("val")
+
+    def _get_dataloader_test(self):
+        return self._get_dataloader("test")
+
+    def _get_dataloader(self, dataset_type="train"):
+        dataset = NumbersDataset(
+            self._num_data, always_one=True, dataset_type=dataset_type
+        )
+        return torch.utils.data.DataLoader(
+            dataset=dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+            num_workers=1,
+            drop_last=False,
+        )
+
+
+class LightningMultiDataModuleNumbersTestObject(LightningMultiDataModule):
     def __init__(self, config, num_data):
         super().__init__(config)
         batch_size = config.training.batch_size
