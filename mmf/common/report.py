@@ -166,6 +166,8 @@ class Report(OrderedDict):
                 continue
             if isinstance(self[key], torch.Tensor):
                 self[key] = torch.cat((self[key], report[key]), dim=0)
+            elif isinstance(self[key], List):
+                self[key].extend(report[key])
 
         self._accumulate_loss(report)
 

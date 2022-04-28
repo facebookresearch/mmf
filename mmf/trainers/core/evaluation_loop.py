@@ -84,7 +84,7 @@ class TrainerEvaluationLoopMixin(ABC):
                         if single_batch is True:
                             break
 
-                logger.info(f"Finished training. Loaded {loaded_batches}")
+                logger.info(f"Finished evaluation inference. Loaded {loaded_batches}")
                 logger.info(f" -- skipped {skipped_batches} batches.")
 
                 reporter.postprocess_dataset_report()
