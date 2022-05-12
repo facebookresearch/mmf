@@ -93,7 +93,7 @@ def drop_block_2d(
         gamma_scale
         * drop_prob
         * total_size
-        / clipped_block_size ** 2
+        / clipped_block_size**2
         / ((W - block_size + 1) * (H - block_size + 1))
     )
 
@@ -160,7 +160,7 @@ def drop_block_fast_2d(
         gamma_scale
         * drop_prob
         * total_size
-        / clipped_block_size ** 2
+        / clipped_block_size**2
         / ((W - block_size + 1) * (H - block_size + 1))
     )
 
@@ -420,7 +420,7 @@ class Attention(nn.Module):
         self.num_heads = num_heads
         head_dim = dim // num_heads
         # NOTE scale factor was wrong in my original version, can set manually to be compat with prev weights
-        self.scale = qk_scale or head_dim ** -0.5
+        self.scale = qk_scale or head_dim**-0.5
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.attn_drop = nn.Dropout(attn_drop)
         self.proj = nn.Linear(dim, dim)
@@ -632,7 +632,7 @@ def interpolate_pos_embed(pos_embed_checkpoint, visual_encoder):
     # height (== width) for the checkpoint position embedding
     orig_size = int((pos_embed_checkpoint.shape[-2] - num_extra_tokens) ** 0.5)
     # height (== width) for the new position embedding
-    new_size = int(num_patches ** 0.5)
+    new_size = int(num_patches**0.5)
 
     if orig_size != new_size:
         # class_token and dist_token are kept unchanged
@@ -648,7 +648,7 @@ def interpolate_pos_embed(pos_embed_checkpoint, visual_encoder):
         pos_tokens = pos_tokens.permute(0, 2, 3, 1).flatten(1, 2)
         new_pos_embed = torch.cat((extra_tokens, pos_tokens), dim=1)
         print(
-            "reshape position embedding from %d to %d" % (orig_size ** 2, new_size ** 2)
+            "reshape position embedding from %d to %d" % (orig_size**2, new_size**2)
         )
 
         return new_pos_embed

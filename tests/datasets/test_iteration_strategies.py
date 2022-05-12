@@ -19,7 +19,7 @@ class TestIterationStrategies(unittest.TestCase):
         dataloaders = {}
         for idx in range(self.NUM_DATALOADERS):
             dataloaders[f"numbers_{idx}"] = torch.utils.data.DataLoader(
-                dataset=NumbersDataset((idx + 1) * (10 ** idx)), num_workers=0
+                dataset=NumbersDataset((idx + 1) * (10**idx)), num_workers=0
             )
         return dataloaders
 
@@ -104,7 +104,7 @@ class TestIterationStrategies(unittest.TestCase):
             counter[strategy()] += 1
 
         for idx in range(0, self.NUM_DATALOADERS):
-            self.assertTrue(counter[idx] <= 10 ** idx)
+            self.assertTrue(counter[idx] <= 10**idx)
             lower_limit = 10 ** (idx - 1)
             if idx == 0:
                 lower_limit = 0
@@ -163,7 +163,7 @@ class TestIterationStrategies(unittest.TestCase):
             counter[strategy()] += 1
 
         for idx in range(0, self.NUM_DATALOADERS):
-            self.assertTrue(counter[idx] <= 10 ** idx)
+            self.assertTrue(counter[idx] <= 10**idx)
             lower_limit = 10 ** (idx - 1)
             if idx == 0:
                 lower_limit = 0
