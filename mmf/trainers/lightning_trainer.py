@@ -2,7 +2,7 @@
 import logging
 import math
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import omegaconf
 from mmf.common.registry import registry
@@ -10,6 +10,10 @@ from mmf.datasets.lightning_multi_datamodule import LightningMultiDataModule
 from mmf.modules.metrics import Metrics
 from mmf.trainers.base_trainer import BaseTrainer
 from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
+from mmf.trainers.lightning_core.loop_callback_with_torchmetrics import (
+    LightningTorchMetricsCallback,
+)
+from mmf.trainers.lightning_core.torchmetric import LightningTorchMetrics
 from mmf.utils.build import build_lightning_model
 from mmf.utils.checkpoint import (
     get_ckpt_from_path,
@@ -36,8 +40,11 @@ class LightningTrainer(BaseTrainer):
         super().__init__(config)
         self.trainer = None
         self.trainer_config = self.config.trainer.params
+        self.metrics_config = self.config.evaluation.get("metrics", [])
+        self.torchmetrics_config = self.config.evaluation.get("torchmetrics", [])
         self.data_module = None
         self.resume_from_checkpoint = None
+        self.torchmetrics: Optional[LightningTorchMetrics] = None
 
     def load(self):
         super().load()
@@ -109,7 +116,12 @@ class LightningTrainer(BaseTrainer):
 
         attributes = self.get_model_config(is_zoo, config)
         self.model = build_lightning_model(attributes, model_checkpoint_path)
-        self.model.build_meters(self.run_type)
+        if len(self.torchmetrics_config) > 0:
+            logger.warning(
+                "skip self.model.build_meters since torchmetrics are provided"
+            )
+        else:
+            self.model.build_meters(self.run_type)
 
     def get_model_config(
         self, is_zoo: bool = False, config: Dict[str, Any] = None
@@ -219,9 +231,15 @@ class LightningTrainer(BaseTrainer):
 
     def load_metrics(self) -> None:
         logger.info("Loading metrics")
-        metrics = self.config.evaluation.get("metrics", [])
-        # moved metrics into the model object
-        self.model.metrics = Metrics(metrics)
+        # torchmetrics
+        if len(self.torchmetrics_config) > 0:
+            self.torchmetrics = LightningTorchMetrics(self.torchmetrics_config)
+            logger.warning(
+                "torchmetrics will be used, regular mmf metrics will be ignored"
+            )
+        else:
+            # moved metrics into the model object
+            self.model.metrics = Metrics(self.metrics_config)
 
     def monitor_criteria(self):
         monitor_criteria = self.training_config.early_stop.get("criteria", None)
@@ -236,7 +254,10 @@ class LightningTrainer(BaseTrainer):
         return monitor_criteria, mode
 
     def configure_callbacks(self) -> None:
-        self.callbacks = [LightningLoopCallback(self)]
+        if self.torchmetrics is not None:
+            self.callbacks = [LightningTorchMetricsCallback(self)]
+        else:
+            self.callbacks = [LightningLoopCallback(self)]
         self.callbacks += self.configure_checkpoint_callbacks()
         if self.training_config.get(
             "early_stop", None

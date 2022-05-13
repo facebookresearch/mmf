@@ -232,8 +232,9 @@ class BaseModel(pl.LightningModule):
             Dict: Dict containing loss.
         """
         output = self._forward_lightning_step(batch, batch_idx)
-        report = Report(batch, output).detach()
-        self.train_meter.update_from_report(report)
+        if hasattr(self, "train_meter"):
+            report = Report(batch, output).detach()
+            self.train_meter.update_from_report(report)
         return output
 
     def validation_step(self, batch: SampleList, batch_idx: int, *args, **kwargs):
@@ -249,10 +250,11 @@ class BaseModel(pl.LightningModule):
             Dict
         """
         output = self._forward_lightning_step(batch, batch_idx)
-        report = Report(batch, output).detach()
-        self.val_meter.update_from_report(report, should_update_loss=False)
-        report.metrics = self.metrics(report, report)
-        self.log_dict(report.metrics)
+        if hasattr(self, "val_meter"):
+            report = Report(batch, output).detach()
+            self.val_meter.update_from_report(report, should_update_loss=False)
+            report.metrics = self.metrics(report, report)
+            self.log_dict(report.metrics)
         return output
 
     def test_step(self, batch: SampleList, batch_idx: int, *args, **kwargs):
