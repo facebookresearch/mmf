@@ -4,9 +4,9 @@ import unittest
 import tests.test_utils as test_utils
 import torch
 from mmf.common.sample import (
+    convert_batch_to_sample_list,
     Sample,
     SampleList,
-    convert_batch_to_sample_list,
     to_device,
 )
 

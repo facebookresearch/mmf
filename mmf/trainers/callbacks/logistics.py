@@ -5,11 +5,11 @@ import torch
 from mmf.trainers.callbacks.base import Callback
 from mmf.utils.configuration import get_mmf_env
 from mmf.utils.logger import (
-    TensorboardLogger,
-    WandbLogger,
     calculate_time_left,
     setup_output_folder,
     summarize_report,
+    TensorboardLogger,
+    WandbLogger,
 )
 from mmf.utils.timer import Timer
 

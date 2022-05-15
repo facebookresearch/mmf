@@ -25,7 +25,7 @@ from collections import OrderedDict
 from hashlib import sha256
 from pathlib import Path
 from urllib.parse import urlparse
-from zipfile import ZipFile, is_zipfile
+from zipfile import is_zipfile, ZipFile
 
 import numpy as np
 import requests

@@ -8,7 +8,7 @@ from mmf.common.registry import registry
 from mmf.models.transformers.base import BaseTransformer, BaseTransformerBackend
 from mmf.modules.hf_layers import BertModelJit, replace_with_jit
 from omegaconf import OmegaConf
-from torch import Tensor, nn
+from torch import nn, Tensor
 from transformers import AutoConfig, AutoModel
 
 

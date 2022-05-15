@@ -14,7 +14,7 @@ from mmf.modules.bottleneck import MovieBottleneck
 from mmf.modules.layers import AttnPool1d, Identity
 from mmf.utils.file_io import PathManager
 from mmf.utils.vocab import Vocab
-from torch import Tensor, nn
+from torch import nn, Tensor
 from transformers.modeling_bert import BertEmbeddings
 
 

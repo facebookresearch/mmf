@@ -18,7 +18,7 @@ from typing import Tuple
 
 import torch
 import torch.nn.functional as F
-from mmf.datasets.processors.frcnn_processor import ResizeShortestEdge, img_tensorize
+from mmf.datasets.processors.frcnn_processor import img_tensorize, ResizeShortestEdge
 
 
 class Preprocess:

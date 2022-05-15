@@ -5,7 +5,7 @@ import collections.abc
 from typing import Dict, List, Optional, Union
 
 from mmf.common.registry import registry
-from torch import Tensor, nn
+from torch import nn, Tensor
 
 
 def build_heads_dict(head_configs: Union[Dict, List], tasks: List, losses: Dict):

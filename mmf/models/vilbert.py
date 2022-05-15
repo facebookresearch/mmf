@@ -14,7 +14,7 @@ from mmf.modules.hf_layers import replace_with_jit
 from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
 from omegaconf import OmegaConf
-from torch import Tensor, nn
+from torch import nn, Tensor
 from torch.nn import CrossEntropyLoss
 from transformers.modeling_bert import (
     ACT2FN,

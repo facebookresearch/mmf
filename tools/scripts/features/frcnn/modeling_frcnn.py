@@ -21,17 +21,17 @@ import itertools
 import math
 import os
 from abc import ABCMeta, abstractmethod
-from collections import OrderedDict, namedtuple
+from collections import namedtuple, OrderedDict
 from typing import Dict, List, Tuple
 
 import numpy as np
 import torch
 from tools.scripts.features.frcnn.frcnn_utils import (
-    WEIGHTS_NAME,
-    Config,
     cached_path,
+    Config,
     is_remote_url,
     load_checkpoint,
+    WEIGHTS_NAME,
 )
 from torch import nn
 from torch.nn import functional as F

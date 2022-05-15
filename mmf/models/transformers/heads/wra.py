@@ -7,7 +7,7 @@ from typing import Dict
 
 from mmf.common.registry import registry
 from mmf.modules.ot import optimal_transport_dist
-from torch import Tensor, nn
+from torch import nn, Tensor
 
 
 @registry.register_transformer_head("wra")

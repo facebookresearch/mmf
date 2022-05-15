@@ -8,8 +8,8 @@ from mmf.modules import encoders
 from omegaconf import OmegaConf
 from tests.test_utils import (
     setup_proxy,
-    skip_if_old_transformers,
     skip_if_no_pytorchvideo,
+    skip_if_old_transformers,
 )
 from torch import nn
 

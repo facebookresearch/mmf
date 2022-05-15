@@ -15,7 +15,7 @@ import torch
 from mmf.utils.distributed import get_rank, get_world_size, is_xla
 from mmf.utils.file_io import PathManager
 from packaging import version
-from torch import Tensor, nn
+from torch import nn, Tensor
 
 
 logger = logging.getLogger(__name__)

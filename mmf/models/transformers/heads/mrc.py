@@ -9,7 +9,7 @@ import torch
 import torch.nn.functional as F
 from mmf.common.registry import registry
 from mmf.models.transformers.heads.utils import compute_masked_hidden
-from torch import Tensor, nn
+from torch import nn, Tensor
 
 
 @registry.register_transformer_head("mrc")

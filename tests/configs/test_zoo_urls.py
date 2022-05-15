@@ -5,7 +5,7 @@ import typing
 import unittest
 
 from mmf.utils.configuration import load_yaml
-from mmf.utils.download import DownloadableFile, check_header
+from mmf.utils.download import check_header, DownloadableFile
 from omegaconf import DictConfig, OmegaConf
 from tests.test_utils import skip_if_macos, skip_if_no_network
 

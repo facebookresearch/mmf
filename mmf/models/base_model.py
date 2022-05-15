@@ -58,7 +58,7 @@ from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_current_device
 from mmf.utils.logger import log_class_usage
-from omegaconf import MISSING, DictConfig, OmegaConf
+from omegaconf import DictConfig, MISSING, OmegaConf
 
 
 logger = logging.getLogger(__name__)

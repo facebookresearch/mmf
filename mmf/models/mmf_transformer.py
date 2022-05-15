@@ -16,7 +16,7 @@ from mmf.models.transformers.heads.mlp import MLP
 from mmf.modules.encoders import ResNet152ImageEncoder
 from mmf.utils.build import build_encoder
 from omegaconf import MISSING, OmegaConf
-from torch import Tensor, nn
+from torch import nn, Tensor
 
 
 logger = logging.getLogger(__name__)

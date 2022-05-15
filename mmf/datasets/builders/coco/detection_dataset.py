@@ -8,7 +8,7 @@ import torchvision
 from mmf.common.sample import Sample
 from mmf.datasets.base_dataset import BaseDataset
 from mmf.utils.distributed import gather_tensor_along_batch, object_to_byte_tensor
-from torch import Tensor, nn
+from torch import nn, Tensor
 
 
 class DetectionCOCODataset(BaseDataset):

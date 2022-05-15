@@ -20,7 +20,7 @@ from mmf.utils.transform import (
     transform_to_batch_sequence_dim,
 )
 from omegaconf import OmegaConf
-from torch import Tensor, nn
+from torch import nn, Tensor
 from transformers.modeling_bert import (
     BertConfig,
     BertForPreTraining,

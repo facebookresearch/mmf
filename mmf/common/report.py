@@ -6,7 +6,7 @@ from collections import OrderedDict
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import torch
-from mmf.common.sample import SampleList, detach_tensor
+from mmf.common.sample import detach_tensor, SampleList
 
 
 class Report(OrderedDict):

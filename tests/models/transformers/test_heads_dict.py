@@ -4,7 +4,7 @@ import unittest
 
 import torch
 from mmf.common.sample import Sample
-from mmf.models.transformers.heads.utils import HeadsDict, build_heads_dict
+from mmf.models.transformers.heads.utils import build_heads_dict, HeadsDict
 from mmf.modules.losses import MMFLoss
 from omegaconf import OmegaConf
 

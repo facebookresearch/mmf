@@ -25,9 +25,9 @@ from mmf.utils.configuration import get_mmf_env
 from mmf.utils.download import download_pretrained_model
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_max_updates, print_model_parameters
-from mmf.utils.logger import TensorboardLogger, setup_output_folder
+from mmf.utils.logger import setup_output_folder, TensorboardLogger
 from omegaconf import DictConfig, OmegaConf
-from pytorch_lightning import Trainer, seed_everything
+from pytorch_lightning import seed_everything, Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 

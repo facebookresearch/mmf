@@ -18,7 +18,7 @@ from mmf.models.transformers.heads.mlm import MLM
 from mmf.models.transformers.heads.mlp import MLP
 from mmf.utils.general import retry_n
 from omegaconf import MISSING, OmegaConf
-from torch import Tensor, nn
+from torch import nn, Tensor
 from transformers.modeling_bert import (
     BertConfig,
     BertEmbeddings,

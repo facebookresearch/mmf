@@ -12,7 +12,7 @@ from mmf.models.unit.misc import NestedTensor
 from mmf.models.unit.transformer import UniTTransformer
 from mmf.utils import box_ops
 from mmf.utils.distributed import get_world_size, is_dist_initialized
-from torch import Tensor, nn
+from torch import nn, Tensor
 
 
 class UniTBaseModel(nn.Module):

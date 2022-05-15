@@ -13,7 +13,7 @@ from mmf.modules.losses import MMFLoss
 from mmf.utils.build import build_encoder
 from mmf.utils.modeling import get_bert_configured_parameters
 from omegaconf import MISSING, OmegaConf
-from torch import Tensor, nn
+from torch import nn, Tensor
 
 
 logger = logging.getLogger()

@@ -28,8 +28,8 @@ from mmf.modules.hf_layers import replace_with_jit
 from mmf.utils.checkpoint import load_pretrained_model
 from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
-from omegaconf import II, DictConfig, OmegaConf
-from torch import Tensor, nn
+from omegaconf import DictConfig, II, OmegaConf
+from torch import nn, Tensor
 from transformers.modeling_bert import BertForPreTraining, BertPredictionHeadTransform
 
 

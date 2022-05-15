@@ -8,7 +8,7 @@ import warnings
 from typing import Dict, Iterator
 
 import torch
-from mmf.common.sample import SampleList, convert_batch_to_sample_list
+from mmf.common.sample import convert_batch_to_sample_list, SampleList
 from mmf.datasets import iteration_strategies
 from mmf.utils.build import build_dataloader_and_sampler, build_dataset
 from mmf.utils.dataset import dataset_list_from_config

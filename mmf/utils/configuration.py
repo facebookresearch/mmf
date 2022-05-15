@@ -12,7 +12,7 @@ from mmf.common.registry import registry
 from mmf.utils.env import import_user_module
 from mmf.utils.file_io import PathManager
 from mmf.utils.general import get_absolute_path, get_mmf_root
-from omegaconf import DictConfig, OmegaConf, errors as OCErrors
+from omegaconf import DictConfig, errors as OCErrors, OmegaConf
 
 
 logger = logging.getLogger(__name__)

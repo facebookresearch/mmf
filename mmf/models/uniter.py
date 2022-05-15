@@ -17,8 +17,8 @@ from mmf.common.registry import registry
 from mmf.models import BaseModel
 from mmf.modules.losses import MMFLoss
 from mmf.utils.general import retry_n
-from omegaconf import MISSING, DictConfig, OmegaConf
-from torch import Tensor, nn
+from omegaconf import DictConfig, MISSING, OmegaConf
+from torch import nn, Tensor
 from transformers.modeling_bert import BertConfig, BertEmbeddings, BertModel
 
 

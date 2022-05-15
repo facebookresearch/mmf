@@ -21,9 +21,7 @@ from mmf.utils.build import build_model
 from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports, teardown_imports
 from omegaconf import OmegaConf
-from tests.test_utils import (
-    skip_if_no_pytorchvideo,
-)
+from tests.test_utils import skip_if_no_pytorchvideo
 
 BERT_VOCAB_SIZE = 30255
 ROBERTA_VOCAB_SIZE = 50265

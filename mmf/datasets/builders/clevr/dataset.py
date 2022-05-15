@@ -7,7 +7,7 @@ from mmf.common.sample import Sample
 from mmf.datasets.base_dataset import BaseDataset
 from mmf.utils.distributed import is_main, synchronize
 from mmf.utils.general import get_mmf_root
-from mmf.utils.text import VocabFromText, tokenize
+from mmf.utils.text import tokenize, VocabFromText
 from PIL import Image
 
 

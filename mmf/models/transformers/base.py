@@ -10,7 +10,7 @@ from mmf.models import BaseModel
 from mmf.modules.encoders import IdentityEncoder
 from mmf.utils.modeling import get_bert_configured_parameters
 from omegaconf import MISSING, OmegaConf
-from torch import Tensor, nn
+from torch import nn, Tensor
 
 
 logger = logging.getLogger(__name__)
