@@ -29,9 +29,9 @@ class MultiDataModule(pl.LightningDataModule):
         self.batch_size = get_batch_size()
 
         self.dataset_list: List[str] = dataset_list_from_config(self.config)
-        self.datamodules: List[pl.LightningDataModule] = build_multiple_datamodules(
-            self.dataset_list, self.config.dataset_config
-        )
+        self.datamodules: Dict[
+            str, pl.LightningDataModule
+        ] = build_multiple_datamodules(self.dataset_list, self.config.dataset_config)
         self.train_loader: Optional[MultiDataLoader] = None
         self.val_loader: Optional[MultiDataLoader] = None
         self.test_loader: Optional[MultiDataLoader] = None
@@ -79,7 +79,7 @@ class MultiDataModule(pl.LightningDataModule):
         return loader
 
     def teardown(self, *args, **kwargs):
-        for datamodule in self.datamodules:
+        for _, datamodule in self.datamodules.items():
             if hasattr(datamodule, "teardown"):
                 datamodule.teardown()
 
