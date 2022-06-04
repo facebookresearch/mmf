@@ -131,6 +131,14 @@ class MMFTransformer(BaseTransformer):
             if modality.type == "image" and self.config.get(
                 "freeze_image_encoder", False
             ):
+                logger.info("Freezing image encoder...")
+                for param in encoder.parameters():
+                    param.requires_grad = False
+
+            if modality.type == "text" and self.config.get(
+                "freeze_text_encoder", False
+            ):
+                logger.info("Freezing text encoder...")
                 for param in encoder.parameters():
                     param.requires_grad = False
 
