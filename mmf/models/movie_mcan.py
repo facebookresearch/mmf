@@ -130,7 +130,7 @@ class MoVieMcan(BaseModel):
             self.config.classifier.type,
             in_dim=combined_embedding_dim,
             out_dim=num_choices,
-            **params
+            **params,
         )
 
     def _init_extras(self):

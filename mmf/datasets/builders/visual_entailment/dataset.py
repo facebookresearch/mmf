@@ -17,7 +17,7 @@ class VisualEntailmentDataset(VQA2Dataset):
             imdb_file_index,
             dataset_name="visual_entailment",
             *args,
-            **kwargs
+            **kwargs,
         )
 
     def load_item(self, idx):

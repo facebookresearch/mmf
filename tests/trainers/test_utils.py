@@ -102,7 +102,7 @@ def get_lightning_trainer(
     prepare_trainer=True,
     load_model_from_config=False,
     seed=2,
-    **kwargs
+    **kwargs,
 ):
     torch.random.manual_seed(seed)
     trainer = LightningTrainerMock(config=config, **kwargs)

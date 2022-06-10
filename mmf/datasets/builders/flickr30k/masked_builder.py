@@ -11,7 +11,7 @@ class MaskedFlickr30kBuilder(MMFDatasetBuilder):
         dataset_name="masked_flickr30k",
         dataset_class=MaskedFlickr30kDataset,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(dataset_name, dataset_class, *args, **kwargs)
 

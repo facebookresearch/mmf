@@ -13,7 +13,7 @@ class MaskedLocalizedNarrativesBuilder(MMFDatasetBuilder):
         dataset_name="masked_localized_narratives",
         dataset_class=MaskedLocalizedNarrativesDataset,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(dataset_name, dataset_class, *args, **kwargs)
 

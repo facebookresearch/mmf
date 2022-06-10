@@ -12,7 +12,7 @@ class MaskedVisualGenomeDataset(MMFDataset):
             dataset_type,
             imdb_file_index,
             *args,
-            **kwargs
+            **kwargs,
         )
         self._add_answer = config.get("add_answer", True)
 

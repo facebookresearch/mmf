@@ -19,7 +19,7 @@ class VisualGenomeDataset(VQA2Dataset):
             imdb_file_index,
             dataset_name="visual_genome",
             *args,
-            **kwargs
+            **kwargs,
         )
 
         self._return_scene_graph = config.return_scene_graph

@@ -12,7 +12,7 @@ class VizWizDataset(VQA2Dataset):
             imdb_file_index,
             dataset_name="vizwiz",
             *args,
-            **kwargs
+            **kwargs,
         )
 
     def load_item(self, idx):

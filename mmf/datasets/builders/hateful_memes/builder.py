@@ -21,7 +21,7 @@ class HatefulMemesBuilder(MMFDatasetBuilder):
         dataset_name="hateful_memes",
         dataset_class=HatefulMemesImageDataset,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(dataset_name, dataset_class, *args, **kwargs)
         self.dataset_class = HatefulMemesImageDataset

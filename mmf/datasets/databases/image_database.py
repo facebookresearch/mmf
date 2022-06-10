@@ -55,7 +55,7 @@ class ImageDatabase(torch.utils.data.Dataset):
         is_valid_file=None,
         image_key=None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         """Initialize an instance of ImageDatabase
 

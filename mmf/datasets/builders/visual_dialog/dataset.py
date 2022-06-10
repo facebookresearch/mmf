@@ -15,7 +15,7 @@ class VisualDialogDataset(VQA2Dataset):
             imdb_file_index,
             dataset_name="visual_dialog",
             *args,
-            **kwargs
+            **kwargs,
         )
 
         discriminative = config.discriminative

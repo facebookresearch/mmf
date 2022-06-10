@@ -12,7 +12,7 @@ class MaskedVQA2Dataset(VQA2Dataset):
             imdb_file_index,
             dataset_name="masked_vqa2",
             *args,
-            **kwargs
+            **kwargs,
         )
         self._add_answer = config.get("add_answer", False)
 

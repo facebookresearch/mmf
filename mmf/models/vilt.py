@@ -41,7 +41,7 @@ class ViLTImageEmbedding(nn.Module):
         patch_size: Optional[int] = None,
         num_channels: Optional[int] = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__()
         config = OmegaConf.create(
@@ -87,7 +87,7 @@ class ViLTTextEmbedding(nn.Module):
         hidden_size: Optional[int] = None,
         max_position_embeddings: Optional[int] = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
 
         super().__init__()
