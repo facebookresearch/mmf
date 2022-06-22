@@ -43,7 +43,7 @@ training:
         # job_type: 'train'
         # tags: ['tag1', 'tag2']
 env:
-    wandb_logdir: ${env:MMF_WANDB_LOGDIR,}
+    wandb_logdir: ${oc.env:MMF_WANDB_LOGDIR,}
 ```
 
 * To enable wandb logger the user needs to change the following option in the config.

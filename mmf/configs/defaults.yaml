@@ -284,8 +284,8 @@ env:
 
     # Config path for dataset zoo, can be overridden via environment
     # variable MMF_DATASET_ZOO as well.
-    dataset_zoo: ${env:MMF_DATASET_ZOO,configs/zoo/datasets.yaml}
-    model_zoo: ${env:MMF_MODEL_ZOO, configs/zoo/models.yaml}
+    dataset_zoo: ${oc.env:MMF_DATASET_ZOO,configs/zoo/datasets.yaml}
+    model_zoo: ${oc.env:MMF_MODEL_ZOO, configs/zoo/models.yaml}
 
     # Similar to cache dir, but can be used if specifically want to override
     # where MMF stores your data. Default would be cache_dir/data.
@@ -294,32 +294,32 @@ env:
 
     # Directory for saving checkpoints and other metadata
     # Use MMF_SAVE_DIR or env.save_dir to override
-    save_dir: ${env:MMF_SAVE_DIR, ./save}
+    save_dir: ${oc.env:MMF_SAVE_DIR, ./save}
 
     # Directory for saving logs, default is "logs" inside the save folder
     # If log_dir is specifically passed, logs will be written inside that folder
     # Use MMF_LOG_DIR or env.log_dir to override
-    log_dir: ${env:MMF_LOG_DIR,}
+    log_dir: ${oc.env:MMF_LOG_DIR,}
 
     # Directory for saving reports, if not passed a opts based folder will be generated
     # inside save_dir/reports and reports will be saved there
     # Use MMF_REPORT_DIR or env.report_dir to override
-    report_dir: ${env:MMF_REPORT_DIR,}
+    report_dir: ${oc.env:MMF_REPORT_DIR,}
 
     # Log directory for tensorboard, default points to same as logs
     # Only used when training.tensorboard is enabled.
     # Use MMF_TENSORBOARD_LOGDIR or env.tensorboard_logdir to override
-    tensorboard_logdir: ${env:MMF_TENSORBOARD_LOGDIR,}
+    tensorboard_logdir: ${oc.env:MMF_TENSORBOARD_LOGDIR,}
 
     # Log directory for Weights and Biases, default points to same as logs
     # Only used when training.wandb is enabled.
     # Use MMF_WANDB_LOGDIR or env.wandb_logdir to override
-    wandb_logdir: ${env:MMF_WANDB_LOGDIR,}
+    wandb_logdir: ${oc.env:MMF_WANDB_LOGDIR,}
 
     # User directory where user can keep their own models independent of MMF
     # This allows users to create projects which only include MMF as dependency
     # Use MMF_USER_DIR or env.user_dir to specify
-    user_dir: ${env:MMF_USER_DIR,}
+    user_dir: ${oc.env:MMF_USER_DIR,}
 
 ###
 # Configuration for the distributed setup
