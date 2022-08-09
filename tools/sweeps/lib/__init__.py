@@ -3,6 +3,7 @@
 # Copied from fairseq. Mostly written by @myleott. Adapted accordingly for mmf
 import argparse
 import datetime
+import json
 import os
 import socket
 
@@ -106,6 +107,26 @@ def get_args(argv=None):
             ),
             help="save checkpoints and logs in "
             + "<checkpoints-dir>/<prefix>.<save_dir_key>",
+        )
+        parser.add_argument(
+            "--scheduler_type",
+            type=str,
+            default="flow",
+            help="scheduler type to run the job. Eg. flow, mast_prod, etc. See https:"
+            + "//www.internalfb.com/code/fbsource/fbcode/pytorch/lightning/meta/envir"
+            + "onment/config_util.py for the list of scheduler type to MAST Cluster "
+            + "config mappings",
+        )
+        parser.add_argument(
+            "--model_store_config",
+            type=json.loads,
+            help="a dict of required configs if using modelstore checkpointing."
+            + "Config class: https://www.internalfb.com/code/fbsource/fbcode/pytorch/l"
+            + "ightning/meta/checkpointer/conf/__init__.py?lines=11\nEg.\n"
+            + """'{"model_entity_id":0,"model_type":"xray_video_av","""
+            + """"model_series":"xray_video","""
+            + """"oncall":"cv_video_understanding_support","""
+            + """"tag_names":["is_cu_model"]}'""",
         )
         parser.add_argument(
             "--workflow",
