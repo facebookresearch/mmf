@@ -56,6 +56,10 @@ class LightningLoopCallback(Callback):
             SampleList(batch), batch_idx, outputs, pl_module, self.train_combined_report
         )
 
+        # Continue if an update has not finished
+        if (batch_idx + 1) % self.trainer_config.accumulate_grad_batches:
+            return
+
         # log
         if (
             self._get_num_updates_for_logging(trainer)
@@ -133,6 +137,12 @@ class LightningLoopCallback(Callback):
         update_meter: Meter = None,
     ):
         report = Report(batch, step_output)
+
+        # Normalize losses
+        for key in report.losses.keys():
+            report.losses[key] = (
+                report.losses[key] / self.trainer_config.accumulate_grad_batches
+            )
 
         if update_meter:
             update_meter.update_from_report(report)
