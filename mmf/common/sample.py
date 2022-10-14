@@ -12,6 +12,7 @@ attributes from ``Sample`` while taking care of properly batching things.
 """
 
 import collections
+import collections.abc
 import warnings
 from collections import OrderedDict
 from typing import Any, Dict, Union
@@ -424,7 +425,7 @@ device_type = Union[str, torch.device]
 def to_device(
     sample_list: Union[SampleList, Dict[str, Any]], device: device_type = "cuda"
 ) -> SampleList:
-    if isinstance(sample_list, collections.Mapping):
+    if isinstance(sample_list, collections.abc.Mapping):
         sample_list = convert_batch_to_sample_list(sample_list)
     # to_device is specifically for SampleList
     # if user is passing something custom built

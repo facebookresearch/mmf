@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import collections
+import collections.abc
 import functools
 import json
 import logging
@@ -288,7 +289,7 @@ def log_progress(info: Union[Dict, Any], log_format="simple"):
     caller, key = _find_caller()
     logger = logging.getLogger(caller)
 
-    if not isinstance(info, collections.Mapping):
+    if not isinstance(info, collections.abc.Mapping):
         logger.info(info)
 
     if log_format == "simple":
