@@ -260,6 +260,9 @@ class Checkpoint:
                 if PathManager.exists(ckpt_filepath):
                     self._load(ckpt_filepath)
 
+    def _is_pl_trainer_checkpoint(self, checkpoint):
+        return "pytorch-lightning_version" in checkpoint
+
     def _load(self, file, force=False, load_zoo=False, load_pretrained=False):
         ckpt_config = self.config.checkpoint
         logger.info("Loading checkpoint")
@@ -270,15 +273,18 @@ class Checkpoint:
         else:
             ckpt = self._torch_load(file)
 
-        if "model" not in ckpt:
-            ckpt = {"model": ckpt}
-
         pretrained_state_mapping = ckpt_config.pretrained_state_mapping
 
         if not load_pretrained or force is True:
             pretrained_state_mapping = {}
 
-        state_dict = self.upgrade_state_dict(ckpt["model"])
+        if not self._is_pl_trainer_checkpoint(ckpt):
+            if "model" not in ckpt:
+                ckpt = {"model": ckpt}
+            state_dict = self.upgrade_state_dict(ckpt["model"])
+        else:
+            state_dict = self.upgrade_state_dict(ckpt["state_dict"])
+
         if len(pretrained_state_mapping.items()) == 0:
             incompatible_keys = self.trainer.model.load_state_dict(
                 state_dict, strict=False
