@@ -6,14 +6,25 @@ from mmf.models.pythia import Pythia
 from mmf.modules.embeddings import ProjectionEmbedding
 from mmf.utils.transform import transform_to_batch_sequence
 from torch import nn
-from transformers.modeling_bert import (
-    BertConfig,
-    BertEmbeddings,
-    BertForPreTraining,
-    BertPooler,
-    BertPredictionHeadTransform,
-    BertPreTrainingHeads,
-)
+
+try:
+    from transformers3.modeling_bert import (
+        BertConfig,
+        BertEmbeddings,
+        BertForPreTraining,
+        BertPooler,
+        BertPredictionHeadTransform,
+        BertPreTrainingHeads,
+    )
+except ImportError:
+    from transformers.modeling_bert import (
+        BertConfig,
+        BertEmbeddings,
+        BertForPreTraining,
+        BertPooler,
+        BertPredictionHeadTransform,
+        BertPreTrainingHeads,
+    )
 
 
 @registry.register_model("mmf_bert")

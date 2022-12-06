@@ -25,20 +25,37 @@ from mmf.utils.modeling import get_optimizer_parameters_for_bert
 from omegaconf import OmegaConf
 from torch import nn
 from torch.nn import CrossEntropyLoss, SmoothL1Loss
-from transformers.modeling_bert import (
-    ACT2FN,
-    BertAttention,
-    BertConfig,
-    BertEmbeddings,
-    BertIntermediate,
-    BertLayer,
-    BertOutput,
-    BertPooler,
-    BertPredictionHeadTransform,
-    BertPreTrainedModel,
-    BertSelfAttention,
-    BertSelfOutput,
-)
+
+try:
+    from transformers3.modeling_bert import (
+        ACT2FN,
+        BertAttention,
+        BertConfig,
+        BertEmbeddings,
+        BertIntermediate,
+        BertLayer,
+        BertOutput,
+        BertPooler,
+        BertPredictionHeadTransform,
+        BertPreTrainedModel,
+        BertSelfAttention,
+        BertSelfOutput,
+    )
+except ImportError:
+    from transformers.modeling_bert import (
+        ACT2FN,
+        BertAttention,
+        BertConfig,
+        BertEmbeddings,
+        BertIntermediate,
+        BertLayer,
+        BertOutput,
+        BertPooler,
+        BertPredictionHeadTransform,
+        BertPreTrainedModel,
+        BertSelfAttention,
+        BertSelfOutput,
+    )
 
 
 class GeLU(nn.Module):

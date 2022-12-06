@@ -8,7 +8,11 @@ from mmf.common.registry import registry
 from mmf.models.transformers.base import BaseTransformerHead
 from mmf.modules.losses import RefinerContrastiveLoss, RefinerMSLoss
 from torch import nn
-from transformers.modeling_bert import BertOnlyMLMHead
+
+try:
+    from transformers3.modeling_bert import BertOnlyMLMHead
+except ImportError:
+    from transformers.modeling_bert import BertOnlyMLMHead
 
 
 class MLP(nn.Module):

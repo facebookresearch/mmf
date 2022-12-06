@@ -30,7 +30,17 @@ from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
 from omegaconf import DictConfig, II, OmegaConf
 from torch import nn, Tensor
-from transformers.modeling_bert import BertForPreTraining, BertPredictionHeadTransform
+
+try:
+    from transformers3.modeling_bert import (
+        BertForPreTraining,
+        BertPredictionHeadTransform,
+    )
+except ImportError:
+    from transformers.modeling_bert import (
+        BertForPreTraining,
+        BertPredictionHeadTransform,
+    )
 
 
 # TODO: Remove after transformers package upgrade to 2.5

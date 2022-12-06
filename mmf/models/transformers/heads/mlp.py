@@ -10,7 +10,11 @@ from mmf.models.transformers.base import BaseTransformerHead
 from mmf.modules import layers
 from omegaconf import OmegaConf, open_dict
 from torch import nn
-from transformers.modeling_bert import BertPooler, BertPredictionHeadTransform
+
+try:
+    from transformers3.modeling_bert import BertPooler, BertPredictionHeadTransform
+except ImportError:
+    from transformers.modeling_bert import BertPooler, BertPredictionHeadTransform
 
 
 @registry.register_transformer_head("multilayer_mlp")

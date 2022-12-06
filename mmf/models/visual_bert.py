@@ -21,13 +21,23 @@ from mmf.utils.transform import (
 )
 from omegaconf import OmegaConf
 from torch import nn, Tensor
-from transformers.modeling_bert import (
-    BertConfig,
-    BertForPreTraining,
-    BertPooler,
-    BertPredictionHeadTransform,
-    BertPreTrainedModel,
-)
+
+try:
+    from transformers3.modeling_bert import (
+        BertConfig,
+        BertForPreTraining,
+        BertPooler,
+        BertPredictionHeadTransform,
+        BertPreTrainedModel,
+    )
+except ImportError:
+    from transformers.modeling_bert import (
+        BertConfig,
+        BertForPreTraining,
+        BertPooler,
+        BertPredictionHeadTransform,
+        BertPreTrainedModel,
+    )
 
 
 class VisualBERTBase(BertPreTrainedModel):

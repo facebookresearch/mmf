@@ -19,12 +19,21 @@ from mmf.models.transformers.heads.mlp import MLP
 from mmf.utils.general import retry_n
 from omegaconf import MISSING, OmegaConf
 from torch import nn, Tensor
-from transformers.modeling_bert import (
-    BertConfig,
-    BertEmbeddings,
-    BertEncoder,
-    BertPreTrainedModel,
-)
+
+try:
+    from transformers3.modeling_bert import (
+        BertConfig,
+        BertEmbeddings,
+        BertEncoder,
+        BertPreTrainedModel,
+    )
+except ImportError:
+    from transformers.modeling_bert import (
+        BertConfig,
+        BertEmbeddings,
+        BertEncoder,
+        BertPreTrainedModel,
+    )
 
 logger = logging.getLogger(__name__)
 
