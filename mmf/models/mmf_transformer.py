@@ -386,7 +386,8 @@ class MMFTransformer(BaseTransformer):
         for modality in self.modality_keys:
             mlm_labels_list.append(mlm_labels[modality])
 
-        mlm_labels["combined_labels"] = torch.cat(mlm_labels_list, dim=-1)
+        if mlm_labels_list:
+            mlm_labels["combined_labels"] = torch.cat(mlm_labels_list, dim=-1)
 
         return mlm_labels
 
