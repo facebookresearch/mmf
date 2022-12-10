@@ -210,6 +210,7 @@ def get_args(argv=None):
         type=str,
         help="specify table filter, e.g. ds=02-02-2022",
     )
+    parser.add_argument("--buck-version", type=str, default="v2")
 
     # Will read sys.argv if argv is None
     args = parser.parse_args(argv)
