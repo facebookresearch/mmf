@@ -755,7 +755,6 @@ class GraphNetworkModule(nn.Module):
             for ans_str in answer_vocab.word2idx_dict:
                 # Regular, don't worry about 1-1
                 if config.okvqa_v_mode == "v1.0":
-
                     # Convert it to the most common raw answer and
                     # see if it's in the graph
                     if ans_str not in tx_data["v10_2_v11_mc"]:
@@ -963,7 +962,6 @@ class GraphNetworkModule(nn.Module):
             self.node_features_forward is None
             or batch_size * self.num_nodes != self.node_features_forward.size(0)
         ):
-
             # Allocate the data
             self.node_features_forward = torch.zeros(
                 self.num_nodes * batch_size, self.in_node_dim

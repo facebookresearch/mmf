@@ -202,7 +202,6 @@ class MMFLoss(nn.Module):
             loss_result = {"": loss_result}
 
         for child_loss_name, child_loss_result in loss_result.items():
-
             if not isinstance(child_loss_result, torch.Tensor):
                 child_loss_result = torch.tensor(child_loss_result, dtype=torch.float)
 
@@ -1011,7 +1010,6 @@ class MSLoss(nn.Module):
         return (pos_pair_, neg_pair_)
 
     def forward(self, sample_list, model_output):
-
         # get the fused features and normalize
         fusion_features = model_output["fused_embedding"]
         inputs = F.normalize(fusion_features)
@@ -1030,7 +1028,6 @@ class MSLoss(nn.Module):
         loss = []
 
         for i in range(batch_size):
-
             (pos_pair_, neg_pair_) = self.get_positive_and_negative_pairs(
                 sim_mat[i], targets, targets[i]
             )

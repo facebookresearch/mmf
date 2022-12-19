@@ -19,7 +19,6 @@ class MaskedTokenProcessor(BaseProcessor):
     _PAD_TOKEN_ID = 0
 
     def __init__(self, config, *args, **kwargs):
-
         tokenizer_config = config.tokenizer_config
         self._tokenizer = AutoTokenizer.from_pretrained(
             tokenizer_config.type, **tokenizer_config.params

@@ -247,7 +247,6 @@ def _infer_with_heads(
     heads: Dict[str, Any],
     losses: Dict[str, Any],
 ) -> Dict[str, Tensor]:
-
     sequence_output = uniter_model(
         processed_sample_list["input_ids"],
         processed_sample_list["position_ids"],

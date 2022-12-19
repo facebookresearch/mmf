@@ -382,7 +382,6 @@ class MMT(BertPreTrainedModel):
         fixed_ans_emb,
         prev_inds,
     ):
-
         # build embeddings for predictions in previous decoding steps
         # fixed_ans_emb is an embedding lookup table for each fixed vocabulary
         dec_emb = self.prev_pred_embeddings(fixed_ans_emb, ocr_emb, prev_inds)
