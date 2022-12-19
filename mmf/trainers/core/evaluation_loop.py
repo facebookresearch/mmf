@@ -6,7 +6,6 @@ from typing import Any, Dict, Tuple, Type
 
 import torch
 import tqdm
-# from caffe2.python.timeout_guard import CompleteInTimeOrDie
 from mmf.common.meter import Meter
 from mmf.common.report import Report
 from mmf.common.sample import to_device
@@ -123,21 +122,18 @@ class TrainerEvaluationLoopMixin(ABC):
                 if self._can_use_tqdm(dataloader):
                     dataloader = tqdm.tqdm(dataloader)
                 for batch in dataloader:
-                    # Do not timeout quickly on first batch, as workers might start at
-                    # very different times.
-                    with CompleteInTimeOrDie(600 if loaded_batches else 3600 * 24):
-                        prepared_batch = reporter.prepare_batch(batch)
-                        prepared_batch = to_device(prepared_batch, self.device)
-                        loaded_batches += 1
-                        if not validate_batch_sizes(prepared_batch.get_batch_size()):
-                            logger.info("Skip batch due to unequal batch sizes.")
-                            skipped_batches += 1
-                            continue
-                        with torch.cuda.amp.autocast(enabled=self.training_config.fp16):
-                            model_output = self.model(prepared_batch)
-                        report = Report(prepared_batch, model_output)
-                        reporter.add_to_report(report, self.model)
-                        report.detach()
+                    prepared_batch = reporter.prepare_batch(batch)
+                    prepared_batch = to_device(prepared_batch, self.device)
+                    loaded_batches += 1
+                    if not validate_batch_sizes(prepared_batch.get_batch_size()):
+                        logger.info("Skip batch due to unequal batch sizes.")
+                        skipped_batches += 1
+                        continue
+                    with torch.cuda.amp.autocast(enabled=self.training_config.fp16):
+                        model_output = self.model(prepared_batch)
+                    report = Report(prepared_batch, model_output)
+                    reporter.add_to_report(report, self.model)
+                    report.detach()
 
                 reporter.postprocess_dataset_report()
 
