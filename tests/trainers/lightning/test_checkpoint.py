@@ -392,7 +392,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
                 )
                 self.assertEquals(lightning.trainer.global_step, 12)
                 call_args_list = [l[0][4] for l in mock_method.call_args_list]
-                self.assertListEqual(list(range(6, 12)), call_args_list)
+                self.assertListEqual(list(range(0, 6)), call_args_list)
 
     def test_trainer_save_current_parity_with_mmf(self):
         with mock_env_with_temp(

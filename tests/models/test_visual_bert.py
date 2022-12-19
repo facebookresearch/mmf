@@ -93,4 +93,4 @@ class TestVisualBertPretraining(unittest.TestCase):
 
         self.assertTrue("losses" in model_output)
         self.assertTrue("random/test/masked_lm_loss" in model_output["losses"])
-        self.assertTrue(model_output["losses"]["random/test/masked_lm_loss"] == 0)
+        self.assertTrue(torch.isnan(model_output["losses"]["random/test/masked_lm_loss"]))

@@ -6,7 +6,7 @@ from typing import Any, Dict, Tuple, Type
 
 import torch
 import tqdm
-from caffe2.python.timeout_guard import CompleteInTimeOrDie
+# from caffe2.python.timeout_guard import CompleteInTimeOrDie
 from mmf.common.meter import Meter
 from mmf.common.report import Report
 from mmf.common.sample import to_device
@@ -36,53 +36,50 @@ class TrainerEvaluationLoopMixin(ABC):
                 if self._can_use_tqdm(dataloader):
                     dataloader = tqdm.tqdm(dataloader, disable=disable_tqdm)
                 for batch in dataloader:
-                    # Do not timeout quickly on first batch, as workers might start at
-                    # very different times.
-                    with CompleteInTimeOrDie(600 if loaded_batches else 3600 * 24):
-                        loaded_batches += 1
-                        prepared_batch = reporter.prepare_batch(batch)
-                        prepared_batch = to_device(prepared_batch, self.device)
-                        if not validate_batch_sizes(prepared_batch.get_batch_size()):
-                            logger.info("Skip batch due to uneven batch sizes.")
-                            skipped_batches += 1
-                            continue
-                        model_output = self.model(prepared_batch)
-                        report = Report(prepared_batch, model_output)
-                        report = report.detach()
+                    loaded_batches += 1
+                    prepared_batch = reporter.prepare_batch(batch)
+                    prepared_batch = to_device(prepared_batch, self.device)
+                    if not validate_batch_sizes(prepared_batch.get_batch_size()):
+                        logger.info("Skip batch due to uneven batch sizes.")
+                        skipped_batches += 1
+                        continue
+                    model_output = self.model(prepared_batch)
+                    report = Report(prepared_batch, model_output)
+                    report = report.detach()
 
-                        meter.update_from_report(report)
+                    meter.update_from_report(report)
 
-                        moved_report = report
-                        # Move to CPU for metrics calculation later if needed
-                        # Explicitly use `non_blocking=False` as this can cause
-                        # race conditions in next accumulate
-                        if use_cpu:
-                            moved_report = report.copy().to("cpu", non_blocking=False)
+                    moved_report = report
+                    # Move to CPU for metrics calculation later if needed
+                    # Explicitly use `non_blocking=False` as this can cause
+                    # race conditions in next accumulate
+                    if use_cpu:
+                        moved_report = report.copy().to("cpu", non_blocking=False)
 
-                        # accumulate necessary params for metric calculation
-                        if combined_report is None:
-                            # make a copy of report since `reporter.add_to_report` will
-                            # change some of the report keys later
-                            combined_report = moved_report.copy()
-                        else:
-                            combined_report.accumulate_tensor_fields_and_loss(
-                                moved_report, self.metrics.required_params
-                            )
-                            combined_report.batch_size += moved_report.batch_size
+                    # accumulate necessary params for metric calculation
+                    if combined_report is None:
+                        # make a copy of report since `reporter.add_to_report` will
+                        # change some of the report keys later
+                        combined_report = moved_report.copy()
+                    else:
+                        combined_report.accumulate_tensor_fields_and_loss(
+                            moved_report, self.metrics.required_params
+                        )
+                        combined_report.batch_size += moved_report.batch_size
 
-                        # Each node generates a separate copy of predict JSON from the
-                        # report, which will be used to evaluate dataset-level metrics
-                        # (such as mAP in object detection or CIDEr in image captioning)
-                        # Since `reporter.add_to_report` changes report keys,
-                        # (e.g scores) do this after
-                        # `combined_report.accumulate_tensor_fields_and_loss`
-                        if "__prediction_report__" in self.metrics.required_params:
-                            # Still need to use original report here on GPU/TPU since
-                            # it will be gathered
-                            reporter.add_to_report(report, self.model)
+                    # Each node generates a separate copy of predict JSON from the
+                    # report, which will be used to evaluate dataset-level metrics
+                    # (such as mAP in object detection or CIDEr in image captioning)
+                    # Since `reporter.add_to_report` changes report keys,
+                    # (e.g scores) do this after
+                    # `combined_report.accumulate_tensor_fields_and_loss`
+                    if "__prediction_report__" in self.metrics.required_params:
+                        # Still need to use original report here on GPU/TPU since
+                        # it will be gathered
+                        reporter.add_to_report(report, self.model)
 
-                        if single_batch is True:
-                            break
+                    if single_batch is True:
+                        break
 
                 logger.info(f"Finished evaluation inference. Loaded {loaded_batches}")
                 logger.info(f" -- skipped {skipped_batches} batches.")
