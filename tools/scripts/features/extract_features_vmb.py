@@ -25,7 +25,6 @@ from tools.scripts.features.extraction_utils import chunks, get_image_files
 
 
 class FeatureExtractor:
-
     MODEL_URL = {
         "X-101": "https://dl.fbaipublicfiles.com/pythia/"
         + "detectron_model/detectron_model.pth",
@@ -267,7 +266,6 @@ class FeatureExtractor:
             features, infos = self.get_detectron_features([image_dir])
             self._save_feature(image_dir, features[0], infos[0])
         else:
-
             files = get_image_files(
                 self.args.image_dir,
                 exclude_list=self.args.exclude_list,

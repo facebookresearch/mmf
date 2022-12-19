@@ -177,7 +177,6 @@ def get_norm(norm, out_channels):
 
 
 def _create_grid_offsets(size: List[int], stride: int, offset: float, device):
-
     grid_height, grid_width = size
     shifts_x = torch.arange(
         offset * stride,
@@ -405,7 +404,6 @@ def assign_boxes_to_levels(
     canonical_box_size: int,
     canonical_level: int,
 ):
-
     box_sizes = torch.sqrt(torch.cat([boxes.area() for boxes in box_lists]))
     # Eqn.(1) in FPN paper
     level_assignments = torch.floor(
@@ -625,9 +623,7 @@ class Matcher:
 
         match_labels = matches.new_full(matches.size(), 1, dtype=torch.int8)
 
-        for (l, low, high) in zip(
-            self.labels, self.thresholds[:-1], self.thresholds[1:]
-        ):
+        for l, low, high in zip(self.labels, self.thresholds[:-1], self.thresholds[1:]):
             low_high = (matched_vals >= low) & (matched_vals < high)
             match_labels[low_high] = l
 
@@ -1351,7 +1347,7 @@ class Res5ROIHeads(nn.Module):
         self.feature_strides = {k: v.stride for k, v in input_shape.items()}
         self.feature_channels = {k: v.channels for k, v in input_shape.items()}
         self.cls_agnostic_bbox_reg = cfg.roi_box_head.cls_agnostic_bbox_reg
-        self.stage_channel_factor = 2**3  # res5 is 8x res2
+        self.stage_channel_factor = 2 ** 3  # res5 is 8x res2
         self.out_channels = cfg.resnets.res2_out_channels * self.stage_channel_factor
 
         # self.proposal_matcher = Matcher(
@@ -1496,7 +1492,7 @@ class AnchorGenerator(nn.Module):
 
     def grid_anchors(self, grid_sizes):
         anchors = []
-        for (size, stride, base_anchors) in zip(
+        for size, stride, base_anchors in zip(
             grid_sizes, self.strides, self.cell_anchors
         ):
             shift_x, shift_y = _create_grid_offsets(
@@ -1522,7 +1518,7 @@ class AnchorGenerator(nn.Module):
 
         anchors = []
         for size in sizes:
-            area = size**2.0
+            area = size ** 2.0
             for aspect_ratio in aspect_ratios:
                 w = math.sqrt(area / aspect_ratio)
                 h = aspect_ratio * w
