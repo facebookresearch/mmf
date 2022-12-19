@@ -12,7 +12,6 @@ from mmf.trainers.callbacks.early_stopping import EarlyStoppingCallback
 from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
 from mmf.utils.checkpoint import get_ckpt_path_from_folder
 from mmf.utils.download import download_pretrained_model
-from tests.test_utils import skip_if_no_network
 from tests.trainers.test_utils import (
     get_config_with_defaults,
     get_lightning_trainer,
@@ -216,7 +215,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
             ckpt_config={"resume": True, "resume_zoo": "visual_bert.pretrained.coco"},
         )
 
-    @skip_if_no_network
+    @unittest.skip("causing crash on gha")
     def test_load_resume_zoo_parity_with_mmf(self):
         # not specifying checkpoint.resume, but specifying
         # checkpoint.resume_zoo. It should load the model file
@@ -254,7 +253,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
             lightning_ckpt.pop("base.encoder.embeddings.position_ids")
             self._assert_same_dict(ckpt, lightning_ckpt)
 
-    @skip_if_no_network
+    @unittest.skip("causing crash on gha")
     def test_load_zoo_with_pretrained_state_mapping_parity_with_mmf(self):
         # mmf with pretrained state mapping model state dict
         resume_zoo = "unimodal_text.hateful_memes.bert"
