@@ -12,6 +12,7 @@ from mmf.trainers.callbacks.early_stopping import EarlyStoppingCallback
 from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
 from mmf.utils.checkpoint import get_ckpt_path_from_folder
 from mmf.utils.download import download_pretrained_model
+from tests.test_utils import skip_if_no_network
 from tests.trainers.test_utils import (
     get_config_with_defaults,
     get_lightning_trainer,
@@ -363,6 +364,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
             mmf_ckpt_current["model"], lightning_ckpt_current["state_dict"]
         )
 
+    @skip_if_no_network
     def test_load_trainer_ckpt_number_of_steps(self):
         with mock_env_with_temp("mmf.trainers.lightning_trainer.get_mmf_env") as tmp_d:
             # to generate ckpt file, max_steps is saved as 6
