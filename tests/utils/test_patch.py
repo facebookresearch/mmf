@@ -21,7 +21,6 @@ class TestUtilsPatch(unittest.TestCase):
         registry.register(ORIGINAL_PATCH_FUNCTIONS_KEY, {})
 
     def test_safecopy_modules(self):
-
         safecopy_modules(["TestClass.test_function"], {"TestClass": TestClass})
         original_functions = registry.get(ORIGINAL_PATCH_FUNCTIONS_KEY)
         self.assertTrue("TestClass.test_function" in original_functions)

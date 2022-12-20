@@ -155,7 +155,6 @@ class TestRefinerHead(unittest.TestCase):
 
 class TestRefNetClassifierHead(unittest.TestCase):
     def setUp(self):
-
         self.refiner_config = {
             "type": "refiner",
             "refiner_target_pooler": "average_k_from_last",

@@ -78,7 +78,6 @@ class BAN(BaseModel):
         )
 
     def forward(self, sample_list):
-
         v = sample_list.image_feature_0
         q = self.word_embedding(sample_list.text)
 

@@ -357,7 +357,6 @@ class LXMERTBase(BertPreTrainedModel):
         output_all_attention_masks=False,
         output_all_encoded_layers=False,
     ):
-
         if output_all_encoded_layers:
             raise NotImplementedError
         if output_all_attention_masks:
@@ -494,7 +493,6 @@ class LXMERTForPretraining(nn.Module):
         output_all_attention_masks=False,
         output_all_encoded_layers=False,
     ):
-
         (lang_output, visn_output), pooled_output = self.bert(
             input_ids,
             token_type_ids,
@@ -621,7 +619,6 @@ class LXMERTForClassification(nn.Module):
         output_all_attention_masks=False,
         output_all_encoded_layers=False,
     ):
-
         (lang_output, visn_output), pooled_output = self.bert(
             input_ids,
             token_type_ids,

@@ -34,7 +34,6 @@ class Timer:
         Calculates time since `start` and formats as a string.
         """
         if start is None and gap is None:
-
             if format is None:
                 format = self.DEFAULT_TIME_FORMAT_DATE_TIME
 

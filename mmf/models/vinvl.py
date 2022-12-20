@@ -308,7 +308,6 @@ class VinVLForPretraining(nn.Module):
         img_feats: Tensor,
         position_ids: Optional[Tensor] = None,
     ) -> Dict[str, Tensor]:
-
         hidden_layers = self.bert(
             input_ids_masked,
             img_feats=img_feats,
@@ -343,7 +342,6 @@ class VinVLForPretraining(nn.Module):
         contrastive_labels: Tensor,
         position_ids: Optional[Tensor] = None,
     ) -> Dict[str, Tensor]:
-
         last_hidden_state = self.bert(
             input_ids,
             img_feats=img_feats,
@@ -370,7 +368,6 @@ class VinVLForPretraining(nn.Module):
         img_feats: Tensor,
         position_ids: Optional[Tensor] = None,
     ) -> Dict[str, Tensor]:
-
         mlm_result = self.mlm_forward(
             input_ids_masked,
             lm_label_ids,

@@ -110,7 +110,6 @@ class BaseProcessor:
     """
 
     def __init__(self, *args, config: Optional[DictConfig] = None, **kwargs):
-
         log_class_usage("Processor", self.__class__)
         return
 

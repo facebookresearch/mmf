@@ -21,7 +21,6 @@ from tools.scripts.features.frcnn.processing_image import Preprocess
 
 
 class FeatureExtractor:
-
     MODEL_URL = {
         "FRCNN": "https://s3.amazonaws.com/models.huggingface.co/bert/unc-nlp/"
         + "frcnn-vg-finetuned/pytorch_model.bin"
@@ -276,7 +275,6 @@ class FeatureExtractor:
             full_features, feat_list, info_list = self._process_features(features, 0)
             self._save_feature(image_dir, full_features, feat_list, info_list)
         else:
-
             files = get_image_files(
                 self.args.image_dir,
                 exclude_list=self.args.exclude_list,

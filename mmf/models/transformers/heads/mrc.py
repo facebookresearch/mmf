@@ -27,7 +27,6 @@ class MRC(nn.Module):
         *args,
         **kwargs,
     ):
-
         super().__init__()
         self.loss_name = loss_name
         self.ignore_index = ignore_index
@@ -48,7 +47,6 @@ class MRC(nn.Module):
         sequence_output: Tensor,
         processed_sample_list: Dict[str, Dict[str, Tensor]],
     ) -> Dict[str, Dict[str, Tensor]]:
-
         output_dict = {}
         assert (
             self.mrc_label_key in processed_sample_list
