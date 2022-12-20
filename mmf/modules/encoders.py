@@ -24,8 +24,13 @@ from mmf.utils.general import get_absolute_path
 from mmf.utils.logger import log_class_usage
 from omegaconf import MISSING, OmegaConf
 from torch import nn, Tensor
-from transformers.configuration_auto import AutoConfig
-from transformers.modeling_auto import AutoModel
+
+try:
+    from transformers3.configuration_auto import AutoConfig
+    from transformers3.modeling_auto import AutoModel
+except ImportError:
+    from transformers.configuration_auto import AutoConfig
+    from transformers.modeling_auto import AutoModel
 
 try:
     from detectron2.modeling import build_resnet_backbone, ShapeSpec

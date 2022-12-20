@@ -6,7 +6,11 @@ from typing import Dict, List, Optional
 import torch
 from mmf.common.registry import registry
 from mmf.models.transformers.base import BaseTransformerHead
-from transformers.modeling_bert import BertOnlyNSPHead, BertPooler
+
+try:
+    from transformers3.modeling_bert import BertOnlyNSPHead, BertPooler
+except ImportError:
+    from transformers.modeling_bert import BertOnlyNSPHead, BertPooler
 
 
 LABEL_KEY = "itm_labels"

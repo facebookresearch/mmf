@@ -19,7 +19,12 @@ from mmf.modules.losses import MMFLoss
 from mmf.utils.general import retry_n
 from omegaconf import DictConfig, MISSING, OmegaConf
 from torch import nn, Tensor
-from transformers.modeling_bert import BertConfig, BertEmbeddings, BertModel
+
+
+try:
+    from transformers3.modeling_bert import BertConfig, BertEmbeddings, BertModel
+except ImportError:
+    from transformers.modeling_bert import BertConfig, BertEmbeddings, BertModel
 
 
 NUM_RETRIES = 6
