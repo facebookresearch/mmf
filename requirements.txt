@@ -21,5 +21,5 @@ pycocotools==2.0.2
 ftfy==5.8
 pytorch-lightning @ git+https://github.com/PyTorchLightning/pytorch-lightning@9b011606f
 psutil
-pillow==9.0.1
+pillow==9.3.0
 sentencepiece
