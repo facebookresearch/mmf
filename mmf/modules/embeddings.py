@@ -346,7 +346,6 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
         visual_embeddings_type: Tensor,
         image_text_alignment: Optional[Tensor] = None,
     ) -> Tensor:
-
         visual_embeddings = self.projection(visual_embeddings)
         token_type_embeddings_visual = self.token_type_embeddings_visual(
             visual_embeddings_type
@@ -369,7 +368,6 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
     def get_position_embeddings_visual(
         self, visual_embeddings: Tensor, image_text_alignment: Optional[Tensor] = None
     ) -> Tensor:
-
         if image_text_alignment is not None:
             # image_text_alignment = Batch x image_length x alignment_number.
             # Each element denotes the position of the word corresponding to the
@@ -584,7 +582,6 @@ class CBNEmbedding(nn.Module):
             cbn.init_layers()
 
     def forward(self, x: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
-
         for cbn in self.cbns:
             x, _ = cbn(x, v)
 

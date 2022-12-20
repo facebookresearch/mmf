@@ -11,7 +11,6 @@ from mmf.utils.file_io import PathManager
 
 
 class TestFileIO(unittest.TestCase):
-
     _tmpdir: Optional[str] = None
     _tmpfile: Optional[str] = None
     _tmpfile_contents = "Hello, World"

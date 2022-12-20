@@ -504,7 +504,6 @@ class VisualBERT(BaseModel):
             else:
                 raise RuntimeError("nlvr2 head doesn't support scripting as of now")
         else:
-
             if not torch.jit.is_scripting():
                 image_info = getattr(sample_list, "image_info_0", {})
                 image_dim_variable = getattr(image_info, "max_features", None)

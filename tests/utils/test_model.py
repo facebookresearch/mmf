@@ -14,7 +14,6 @@ class TestDecoderModel(nn.Module):
         return
 
     def init_hidden_state(self, features):
-
         h = features.new_zeros(
             (features.size(0), self.config.classifier.params.hidden_dim),
             dtype=torch.float,

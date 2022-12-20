@@ -51,7 +51,6 @@ class HuggingfaceEmbeddings(nn.Module):
         )
 
     def build_layers(self):
-
         for modality in self.model_config.modalities:
             self.modality_keys.append(modality.key)
             layer_norm_eps = modality.get(

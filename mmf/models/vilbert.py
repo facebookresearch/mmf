@@ -178,7 +178,6 @@ class BertImageSelfAttention(nn.Module):
         txt_embedding: Tensor,
         txt_attention_mask: Tensor,
     ) -> Tuple[Tensor, Dict[str, Tensor]]:
-
         mixed_query_layer = self.query(hidden_states)
         mixed_key_layer = self.key(hidden_states)
         mixed_value_layer = self.value(hidden_states)
@@ -381,7 +380,6 @@ class BertBiAttention(nn.Module):
         co_attention_mask: Optional[Tensor] = None,
         use_co_attention_mask: bool = False,
     ) -> Tuple[Tensor, Tensor, Dict[str, Tensor]]:
-
         # for vision input.
         mixed_query_layer1 = self.query1(input_tensor1)
         mixed_key_layer1 = self.key1(input_tensor1)
@@ -488,7 +486,6 @@ class BertBiOutput(nn.Module):
         hidden_states2: Tensor,
         input_tensor2: Tensor,
     ) -> Tuple[Tensor, Tensor]:
-
         context_state1 = self.dense1(hidden_states1)
         context_state1 = self.dropout1(context_state1)
 
@@ -523,7 +520,6 @@ class BertConnectionLayer(nn.Module):
         co_attention_mask: Optional[Tensor] = None,
         use_co_attention_mask: bool = False,
     ) -> Tuple[Tensor, Tensor, Dict[str, Tensor]]:
-
         bi_output1, bi_output2, co_attention_probs = self.biattention(
             input_tensor1,
             attention_mask1,
@@ -592,7 +588,6 @@ class BertEncoder(nn.Module):
         List[Tensor],
         Tuple[List[Tensor], List[Tensor], List[Tuple[Tensor, Tensor]]],
     ]:
-
         v_start = 0
         t_start = 0
         count = 0
@@ -608,7 +603,6 @@ class BertEncoder(nn.Module):
 
         use_co_attention_mask = False
         for v_layer_id, t_layer_id in zip(self.v_biattention_id, self.t_biattention_id):
-
             v_end = v_layer_id
             t_end = t_layer_id
 
@@ -894,7 +888,6 @@ class BertImageFeatureEmbeddings(nn.Module):
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
     def forward(self, image_feature: Tensor, image_location: Tensor) -> Tensor:
-
         img_embeddings = self.image_embeddings(image_feature)
         loc_embeddings = self.image_location_embeddings(image_location)
 
@@ -1285,7 +1278,6 @@ class ViLBERTForClassification(nn.Module):
         next_sentence_label: Optional[Tensor] = None,
         output_all_attention_masks: bool = False,
     ) -> Dict[str, Tensor]:
-
         (
             sequence_output_t,
             sequence_output_v,

@@ -102,7 +102,6 @@ class RefinerClassifier(BaseTransformerHead):
         encoded_layers: Optional[List[torch.Tensor]] = None,
         processed_sample_list: Optional[Dict[str, Dict[str, torch.Tensor]]] = None,
     ):
-
         output_dict_refiner = self.refiner_head(
             sequence_output, encoded_layers, processed_sample_list
         )

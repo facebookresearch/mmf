@@ -15,7 +15,6 @@ from mmf.utils.logger import setup_logger
 
 
 class TestLogger(unittest.TestCase):
-
     _tmpdir: Optional[str] = None
     _tmpfile_write_contents: str = "print writer contents"
 
