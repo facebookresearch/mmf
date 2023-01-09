@@ -93,7 +93,11 @@ def skip_if_non_fb(testfn, reason="Doesn't run on non FB infra"):
 def skip_if_old_transformers(min_version="4.5.0"):
     def wrap(testfn, reason="Requires newer version of transformers"):
         from packaging import version
-        from transformers import __version__ as transformers_version
+
+        try:
+            from transformers3 import __version__ as transformers_version
+        except ImportError:
+            from transformers import __version__ as transformers_version
 
         return unittest.skipUnless(
             version.parse(transformers_version) >= version.parse(min_version), reason

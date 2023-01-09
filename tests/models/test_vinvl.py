@@ -11,7 +11,11 @@ from mmf.utils.configuration import Configuration
 from mmf.utils.env import setup_imports, teardown_imports
 from mmf.utils.general import get_current_device
 from omegaconf import OmegaConf
-from transformers.modeling_bert import BertConfig
+
+try:
+    from transformers3.modeling_bert import BertConfig
+except ImportError:
+    from transformers.modeling_bert import BertConfig
 
 
 class TestVinVLBase(unittest.TestCase):

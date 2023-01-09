@@ -5,8 +5,13 @@ import argparse
 import numpy as np
 import torch
 from tqdm import tqdm
-from transformers.modeling_bert import BertModel
-from transformers.tokenization_auto import AutoTokenizer
+
+try:
+    from transformers3.modeling_bert import BertModel
+    from transformers3.tokenization_auto import AutoTokenizer
+except ImportError:
+    from transformers.modeling_bert import BertModel
+    from transformers.tokenization_auto import AutoTokenizer
 
 
 class BertFeatExtractor:

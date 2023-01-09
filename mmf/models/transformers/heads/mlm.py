@@ -7,7 +7,11 @@ from typing import Dict, List, Optional
 import torch
 from mmf.common.registry import registry
 from mmf.models.transformers.base import BaseTransformerHead
-from transformers.modeling_bert import BertOnlyMLMHead
+
+try:
+    from transformers3.modeling_bert import BertOnlyMLMHead
+except ImportError:
+    from transformers.modeling_bert import BertOnlyMLMHead
 
 LABEL_KEY = "mlm_labels"
 COMBINED_LABEL_KEY = "combined_labels"

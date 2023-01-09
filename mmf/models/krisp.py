@@ -17,15 +17,27 @@ from mmf.utils.transform import (
 )
 from omegaconf import OmegaConf
 from torch import nn
-from transformers.modeling_bert import (
-    BertConfig,
-    BertEncoder,
-    BertLayer,
-    BertModel,
-    BertPooler,
-    BertPredictionHeadTransform,
-    BertPreTrainedModel,
-)
+
+try:
+    from transformers3.modeling_bert import (
+        BertConfig,
+        BertEncoder,
+        BertLayer,
+        BertModel,
+        BertPooler,
+        BertPredictionHeadTransform,
+        BertPreTrainedModel,
+    )
+except ImportError:
+    from transformers.modeling_bert import (
+        BertConfig,
+        BertEncoder,
+        BertLayer,
+        BertModel,
+        BertPooler,
+        BertPredictionHeadTransform,
+        BertPreTrainedModel,
+    )
 
 
 logger = logging.getLogger(__name__)

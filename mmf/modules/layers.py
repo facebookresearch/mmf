@@ -126,10 +126,16 @@ class ClassifierLayer(nn.Module):
 class BertClassifierHead(nn.Module):
     def __init__(self, in_dim=768, out_dim=2, config=None, *args, **kwargs):
         super().__init__()
-        from transformers.modeling_bert import BertPredictionHeadTransform
+        try:
+            from transformers3.modeling_bert import BertPredictionHeadTransform
+        except ImportError:
+            from transformers.modeling_bert import BertPredictionHeadTransform
 
         if config is None:
-            from transformers.configuration_bert import BertConfig
+            try:
+                from transformers3.configuration_bert import BertConfig
+            except ImportError:
+                from transformers.configuration_bert import BertConfig
 
             config = BertConfig.from_pretrained("bert-base-uncased")
 

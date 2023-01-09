@@ -8,12 +8,20 @@ from mmf.utils.general import retry_n
 from omegaconf import OmegaConf
 from packaging import version
 from torch import nn
-from transformers import __version__ as transformers_version
-from transformers.modeling_bert import BertSelfAttention
+
+try:
+    from transformers3 import __version__ as transformers_version
+    from transformers3.modeling_bert import BertSelfAttention
+except ImportError:
+    from transformers import __version__ as transformers_version
+    from transformers.modeling_bert import BertSelfAttention
 
 
 if version.parse(transformers_version) >= version.parse("4.5.0"):
-    import transformers.models.vit.modeling_vit as vit
+    try:
+        import transformers3.models.vit.modeling_vit as vit
+    except ImportError:
+        import transformers.models.vit.modeling_vit as vit
 
     has_VIT = True
 else:

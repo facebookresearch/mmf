@@ -29,7 +29,10 @@ def patch_transformers(log_incompatible=False):
     to look for local folder at the last in path resolver. This is
     reverted back to original behavior at the end of the function.
     """
-    import transformers
+    try:
+        import transformers3 as transformers
+    except ImportError:
+        import transformers
 
     # pl uses importlib to find_transformers spec throwing if None
     # this prevents mmf/__init__() from raising and value error

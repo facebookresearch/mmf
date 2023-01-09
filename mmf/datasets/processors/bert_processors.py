@@ -8,7 +8,11 @@ import torch
 from mmf.common.registry import registry
 from mmf.common.sample import Sample, SampleList
 from mmf.datasets.processors.processors import BaseProcessor
-from transformers.tokenization_auto import AutoTokenizer
+
+try:
+    from transformers3.tokenization_auto import AutoTokenizer
+except ImportError:
+    from transformers.tokenization_auto import AutoTokenizer
 
 
 @registry.register_processor("masked_token")
@@ -405,7 +409,10 @@ def get_pair_text_tokens(
 @registry.register_processor("vilt_text_tokenizer")
 class VILTTextTokenizer(MaskedTokenProcessor):
     def __init__(self, config, *args, **kwargs):
-        from transformers import BertTokenizer
+        try:
+            from transformers3 import BertTokenizer
+        except ImportError:
+            from transformers import BertTokenizer
 
         if isinstance(config, str):
             config = {"from_pretrained": config}
@@ -427,7 +434,10 @@ class VILTTextTokenizer(MaskedTokenProcessor):
 @registry.register_processor("uniter_text_tokenizer")
 class UNITERTextTokenizer(MaskedTokenProcessor):
     def __init__(self, config, *args, **kwargs):
-        from transformers import BertTokenizer
+        try:
+            from transformers3 import BertTokenizer
+        except ImportError:
+            from transformers import BertTokenizer
 
         if isinstance(config, str):
             config = {"from_pretrained": config}
@@ -514,7 +524,10 @@ class UNITERTextTokenizer(MaskedTokenProcessor):
 @registry.register_processor("vinvl_text_tokenizer")
 class VinVLTextTokenizer(MaskedTokenProcessor):
     def __init__(self, config, *args, **kwargs):
-        from transformers import BertTokenizer
+        try:
+            from transformers3 import BertTokenizer
+        except ImportError:
+            from transformers import BertTokenizer
 
         if isinstance(config, str):
             config = {"from_pretrained": config}
