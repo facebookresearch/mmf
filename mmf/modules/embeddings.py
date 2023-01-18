@@ -15,7 +15,11 @@ from mmf.modules.layers import AttnPool1d, Identity
 from mmf.utils.file_io import PathManager
 from mmf.utils.vocab import Vocab
 from torch import nn, Tensor
-from transformers.modeling_bert import BertEmbeddings
+
+try:
+    from transformers3.modeling_bert import BertEmbeddings
+except ImportError:
+    from transformers.modeling_bert import BertEmbeddings
 
 
 class TextEmbedding(nn.Module):
