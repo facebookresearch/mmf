@@ -24,7 +24,7 @@ class MLP(nn.Module):
         nonlinearity: Type[nn.Module] = nn.ReLU,
         normalization: Optional[Type[nn.Module]] = nn.LayerNorm,
     ):
-        super(MLP, self).__init__()
+        super().__init__()
         self.output_dim = mlp_dims[-1]
         projection_prev_dim = input_dim
         projection_modulelist = []

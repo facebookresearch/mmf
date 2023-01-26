@@ -773,7 +773,7 @@ class AttnPool2d(nn.Module):
     ):
         super().__init__()
         self.positional_embedding = nn.Parameter(
-            torch.randn(spacial_dim**2 + 1, embed_dim) / embed_dim**0.5
+            torch.randn(spacial_dim ** 2 + 1, embed_dim) / embed_dim ** 0.5
         )
         self.k_proj = nn.Linear(embed_dim, embed_dim)
         self.q_proj = nn.Linear(embed_dim, embed_dim)
