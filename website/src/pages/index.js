@@ -13,7 +13,7 @@ import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import useBaseUrl from '@docusaurus/useBaseUrl';
-import useThemeContext from '@theme/hooks/useThemeContext';
+import {useColorMode} from '@docusaurus/theme-common';
 import styles from './styles.module.css';
 
 const features = [
@@ -68,24 +68,24 @@ function SocialBanner() {
 }
 
 function BannerImage() {
-  const {isDarkTheme} = useThemeContext();
+  const {colorMode} = useColorMode();
   const logoWhite = useBaseUrl('img/logo_white_text.svg');
   const logo = useBaseUrl('img/logo.svg');
   return (
     <img
       className={classnames(styles.heroImg)}
-      src={isDarkTheme ? logoWhite : logo}
+      src={colorMode === 'dark' ? logoWhite : logo}
       alt="MMF Logo"
     />
   );
 }
 
 function Feature({imageUrl, title, description}) {
-  const {isDarkTheme} = useThemeContext();
+  const {colorMode} = useColorMode();
   const withoutExtension = imageUrl.split('.')[0];
   const whiteImageUrl = useBaseUrl(`${withoutExtension}_white.svg`);
   const normalImageUrl = useBaseUrl(imageUrl);
-  const finalImageUrl = isDarkTheme ? whiteImageUrl : normalImageUrl;
+  const finalImageUrl = colorMode === 'dark' ? whiteImageUrl : normalImageUrl;
   return (
     <div className={classnames('col col--4', styles.feature, 'text--center')}>
       {finalImageUrl && (

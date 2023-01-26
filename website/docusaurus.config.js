@@ -21,12 +21,6 @@ module.exports = {
   projectName: 'mmf',
   themeConfig: {
     image: 'img/logo.png',
-    googleAnalytics: {
-      trackingID: 'UA-135079836-3',
-    },
-    gtag: {
-      trackingID: 'UA-135079836-3',
-    },
     colorMode: {
       defaultMode: 'light',
       disableSwitch: true,
@@ -119,6 +113,12 @@ module.exports = {
             internal: 'https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/faim/mmf/website',
             external: 'https://github.com/facebookresearch/mmf/edit/main/website/'
           }),
+        },
+        gtag: {
+          trackingID: 'UA-135079836-3',
+        },
+        googleAnalytics: {
+          trackingID: 'UA-135079836-3',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
