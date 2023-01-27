@@ -456,7 +456,7 @@ def retry_n(n: int, fn: Callable, *args, log_tries=False, **kwargs) -> Any:
                         f"Try {count + 1}/{n} failed for {fn.__name__}. Will retry "
                         f"after {2 ** count} second(s)."
                     )
-                time.sleep(2 ** count)
+                time.sleep(2**count)
                 count += 1
             else:
                 raise

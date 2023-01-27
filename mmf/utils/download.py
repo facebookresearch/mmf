@@ -218,7 +218,7 @@ def download(url, path, fname, redownload=True, disable_tqdm=False):
     outfile = os.path.join(path, fname)
     download = not PathManager.isfile(outfile) or redownload
     retry = 5
-    exp_backoff = [2 ** r for r in reversed(range(retry))]
+    exp_backoff = [2**r for r in reversed(range(retry))]
 
     pbar = None
     if download:
