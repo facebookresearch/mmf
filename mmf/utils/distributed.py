@@ -25,7 +25,8 @@ BYTE_SIZE = 256
 logger = logging.getLogger(__name__)
 
 
-# copied from https://github.com/facebookresearch/vissl/blob/master/vissl/utils/distributed_gradients.py
+# copied from https://github.com/facebookresearch/vissl/blob/master/vissl/utils/
+# distributed_gradients.py
 class GatherLayer(torch.autograd.Function):
     """
     Gather tensors from all workers with support for backward propagation:
