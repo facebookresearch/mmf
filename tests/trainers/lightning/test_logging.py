@@ -13,6 +13,7 @@ from tests.trainers.test_utils import (
     run_lightning_trainer,
 )
 
+
 class TestLightningTrainerLogging(unittest.TestCase):
     def setUp(self):
         self.mmf_tensorboard_logs = []

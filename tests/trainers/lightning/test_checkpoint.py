@@ -208,6 +208,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
         self._load_checkpoint_and_test(
             "best.ckpt", ckpt_config={"resume": True, "resume_best": True}
         )
+
     @unittest.skip("causing crash on gha")
     def test_load_resume_ignore_resume_zoo(self):
         # specifying both checkpoint.resume = True and resume_zoo
@@ -437,6 +438,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
                     "loops",
                 },
             )
+
     @unittest.skip("causing crash on gha")
     def test_lightning_checkpoint_interval(self):
         with mock_env_with_temp("mmf.trainers.lightning_trainer.get_mmf_env") as tmp_d:
