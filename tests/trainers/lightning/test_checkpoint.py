@@ -393,7 +393,8 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
                 )
                 self.assertEquals(lightning.trainer.global_step, 12)
                 call_args_list = [l[0][4] for l in mock_method.call_args_list]
-                self.assertListEqual(list(range(0, 6)), call_args_list)
+                # in lightning 1.6.0 last batch idx from ckpt is repeated
+                self.assertListEqual(list(range(5, 11)), call_args_list)
 
     def test_trainer_save_current_parity_with_mmf(self):
         with mock_env_with_temp(
@@ -454,7 +455,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
             files = os.listdir(os.path.join(tmp_d, "models"))
             self.assertEquals(3, len(files))
             indexes = {int(x[:-5].split("=")[1]) for x in files}
-            self.assertSetEqual({1, 3, 5}, indexes)
+            self.assertSetEqual({2, 4, 6}, indexes)
 
     def _get_mmf_ckpt(self, filename, ckpt_config=None):
         with mock_env_with_temp(
@@ -508,12 +509,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
 
         # Make sure lightning and mmf parity
         self._assert_same_dict(mmf_ckpt["model"], lightning_ckpt["state_dict"])
-
-        # different case for best checkpoint, see D34398730
-        if "resume_best" in ckpt_config and ckpt_config["resume_best"]:
-            self.assertEquals(mmf_ckpt["current_epoch"], lightning_ckpt["epoch"] + 1)
-        else:
-            self.assertEquals(mmf_ckpt["current_epoch"], lightning_ckpt["epoch"])
+        self.assertEquals(mmf_ckpt["current_epoch"], lightning_ckpt["epoch"] + 1)
         self.assertEquals(mmf_ckpt["num_updates"], lightning_ckpt["global_step"])
         self._assert_same_dict(
             mmf_ckpt["optimizer"], lightning_ckpt["optimizer_states"][0]
