@@ -92,21 +92,7 @@ class TestLightningTrainerValidation(unittest.TestCase):
             keys = list(gt.keys())
             self.assertListEqual(keys, list(lv.keys()))
             for key in keys:
-                if key == "num_updates" and gt[key] == self.ground_truths[-1][key]:
-                    # After training, in the last evaluation run, mmf's num updates is 8
-                    # while lightning's num updates is 9, this is due to a hack to
-                    # assign the lightning num_updates to be the trainer.global_step+1.
-                    #
-                    # This is necessary because of a lightning bug: trainer.global_step
-                    # is 1 off less than the actual step count. When on_train_batch_end
-                    # is called for the first time, the trainer.global_step should be 1,
-                    # rather than 0, since 1 update/step has already been done.
-                    #
-                    # When lightning fixes its bug, we will update this test to remove
-                    # the hack. # issue: 6997 in pytorch lightning
-                    self.assertAlmostEqual(gt[key], lv[key] - 1, 1)
-                else:
-                    self.assertAlmostEqual(gt[key], lv[key], 1)
+                self.assertAlmostEqual(gt[key], lv[key], 1)
 
     # TODO: update test function with avg_loss
     @patch("mmf.common.test_reporter.PathManager.mkdirs")
@@ -145,12 +131,7 @@ class TestLightningTrainerValidation(unittest.TestCase):
         self.assertEqual(len(self.ground_truths), len(lightning_values))
         for gt, lv in zip(self.ground_truths, lightning_values):
             for key in ["num_updates", "max_updates"]:
-                if key == "num_updates" and gt[key] == self.ground_truths[-1][key]:
-                    # to understand the reason of using lv[key] - 1 (intead of lv[key])
-                    # see comments in test_validation
-                    self.assertAlmostEqual(gt[key], lv[key] - 1, 1)
-                else:
-                    self.assertAlmostEqual(gt[key], lv[key], 1)
+                self.assertAlmostEqual(gt[key], lv[key], 1)
 
     @patch("mmf.common.test_reporter.PathManager.mkdirs")
     @patch("torch.utils.tensorboard.SummaryWriter")
