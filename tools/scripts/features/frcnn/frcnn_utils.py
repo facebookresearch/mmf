@@ -167,7 +167,6 @@ class Config:
 
     @classmethod
     def get_config_dict(cls, pretrained_model_name_or_path: str, **kwargs):
-
         cache_dir = kwargs.pop("cache_dir", None)
         force_download = kwargs.pop("force_download", False)
         resume_download = kwargs.pop("resume_download", False)
@@ -209,7 +208,6 @@ class Config:
 
 # quick compare tensors
 def compare(in_tensor):
-
     out_tensor = torch.load("dump.pt", map_location=in_tensor.device)
     n1 = in_tensor.numpy()
     n2 = out_tensor.numpy()[0]
@@ -309,7 +307,6 @@ def is_remote_url(url_or_filename):
 
 
 def url_to_filename(url, etag=None):
-
     url_bytes = url.encode("utf-8")
     url_hash = sha256(url_bytes)
     filename = url_hash.hexdigest()

@@ -3,7 +3,11 @@
 import unittest
 
 from mmf.modules.hf_layers import replace_with_jit, undo_replace_with_jit
-from transformers.modeling_bert import BertSelfAttention
+
+try:
+    from transformers3.modeling_bert import BertSelfAttention
+except ImportError:
+    from transformers.modeling_bert import BertSelfAttention
 
 
 class TestHFLayers(unittest.TestCase):

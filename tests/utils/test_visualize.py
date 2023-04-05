@@ -8,7 +8,6 @@ from mmf.utils.features.visualizing_image import SingleImageViz
 
 
 class TestVisualize(unittest.TestCase):
-
     objids = np.array(["obj0", "obj1", "obj2", "obj3"])
     attrids = np.array(["attr0", "attr1", "attr2", "attr3"])
     img = np.array(
@@ -99,7 +98,6 @@ class TestVisualize(unittest.TestCase):
     )
 
     def test_single_image_viz(self) -> None:
-
         frcnn_visualizer = SingleImageViz(
             self.img, id2obj=self.objids, id2attr=self.attrids
         )

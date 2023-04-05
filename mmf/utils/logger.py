@@ -441,7 +441,6 @@ class WandbLogger:
         Setup `Weights and Biases` for logging.
         """
         if is_main():
-
             if self._wandb.run is None:
                 self._wandb.init(**self._wandb_init)
 

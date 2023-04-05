@@ -35,7 +35,6 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 class FeatureExtractor:
-
     MODEL_URL = {
         "X-152-C4": "https://dl.fbaipublicfiles.com/mmf/data/models/vinvl/"
         + "detection/vinvl_vg_x152c4.pth",

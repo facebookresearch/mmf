@@ -9,7 +9,11 @@ from mmf.models.transformers.base import BaseTransformer, BaseTransformerBackend
 from mmf.modules.hf_layers import BertModelJit, replace_with_jit
 from omegaconf import OmegaConf
 from torch import nn, Tensor
-from transformers import AutoConfig, AutoModel
+
+try:
+    from transformers3 import AutoConfig, AutoModel
+except ImportError:
+    from transformers import AutoConfig, AutoModel
 
 
 class HuggingfaceEmbeddings(nn.Module):
@@ -51,7 +55,6 @@ class HuggingfaceEmbeddings(nn.Module):
         )
 
     def build_layers(self):
-
         for modality in self.model_config.modalities:
             self.modality_keys.append(modality.key)
             layer_norm_eps = modality.get(

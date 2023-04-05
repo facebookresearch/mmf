@@ -59,7 +59,6 @@ class MRFR(nn.Module):
         sequence_output: Tensor,
         processed_sample_list: Dict[str, Dict[str, Tensor]],
     ) -> Dict[str, Dict[str, Tensor]]:
-
         output_dict = {}
 
         assert (

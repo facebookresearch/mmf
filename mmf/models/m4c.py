@@ -11,12 +11,21 @@ from mmf.modules.layers import ClassifierLayer
 from mmf.utils.build import build_image_encoder
 from omegaconf import OmegaConf
 from torch import nn
-from transformers.modeling_bert import (
-    BertConfig,
-    BertEmbeddings,
-    BertEncoder,
-    BertPreTrainedModel,
-)
+
+try:
+    from transformers3.modeling_bert import (
+        BertConfig,
+        BertEmbeddings,
+        BertEncoder,
+        BertPreTrainedModel,
+    )
+except ImportError:
+    from transformers.modeling_bert import (
+        BertConfig,
+        BertEmbeddings,
+        BertEncoder,
+        BertPreTrainedModel,
+    )
 
 
 logger = logging.getLogger(__name__)
@@ -382,7 +391,6 @@ class MMT(BertPreTrainedModel):
         fixed_ans_emb,
         prev_inds,
     ):
-
         # build embeddings for predictions in previous decoding steps
         # fixed_ans_emb is an embedding lookup table for each fixed vocabulary
         dec_emb = self.prev_pred_embeddings(fixed_ans_emb, ocr_emb, prev_inds)

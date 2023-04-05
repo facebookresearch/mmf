@@ -19,7 +19,12 @@ from mmf.modules.losses import MMFLoss
 from mmf.utils.general import retry_n
 from omegaconf import DictConfig, MISSING, OmegaConf
 from torch import nn, Tensor
-from transformers.modeling_bert import BertConfig, BertEmbeddings, BertModel
+
+
+try:
+    from transformers3.modeling_bert import BertConfig, BertEmbeddings, BertModel
+except ImportError:
+    from transformers.modeling_bert import BertConfig, BertEmbeddings, BertModel
 
 
 NUM_RETRIES = 6
@@ -247,7 +252,6 @@ def _infer_with_heads(
     heads: Dict[str, Any],
     losses: Dict[str, Any],
 ) -> Dict[str, Tensor]:
-
     sequence_output = uniter_model(
         processed_sample_list["input_ids"],
         processed_sample_list["position_ids"],

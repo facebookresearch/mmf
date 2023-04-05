@@ -19,12 +19,21 @@ from mmf.models.transformers.heads.mlp import MLP
 from mmf.utils.general import retry_n
 from omegaconf import MISSING, OmegaConf
 from torch import nn, Tensor
-from transformers.modeling_bert import (
-    BertConfig,
-    BertEmbeddings,
-    BertEncoder,
-    BertPreTrainedModel,
-)
+
+try:
+    from transformers3.modeling_bert import (
+        BertConfig,
+        BertEmbeddings,
+        BertEncoder,
+        BertPreTrainedModel,
+    )
+except ImportError:
+    from transformers.modeling_bert import (
+        BertConfig,
+        BertEmbeddings,
+        BertEncoder,
+        BertPreTrainedModel,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -299,7 +308,6 @@ class VinVLForPretraining(nn.Module):
         img_feats: Tensor,
         position_ids: Optional[Tensor] = None,
     ) -> Dict[str, Tensor]:
-
         hidden_layers = self.bert(
             input_ids_masked,
             img_feats=img_feats,
@@ -334,7 +342,6 @@ class VinVLForPretraining(nn.Module):
         contrastive_labels: Tensor,
         position_ids: Optional[Tensor] = None,
     ) -> Dict[str, Tensor]:
-
         last_hidden_state = self.bert(
             input_ids,
             img_feats=img_feats,
@@ -361,7 +368,6 @@ class VinVLForPretraining(nn.Module):
         img_feats: Tensor,
         position_ids: Optional[Tensor] = None,
     ) -> Dict[str, Tensor]:
-
         mlm_result = self.mlm_forward(
             input_ids_masked,
             lm_label_ids,

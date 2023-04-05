@@ -40,7 +40,6 @@ def get_objects(semantic_str):
 
 
 def get_imdb(file_path):
-
     imdb = [{"dataset_name": "gqa"}]
 
     questions = json.load(open(file_path))
@@ -68,7 +67,6 @@ def get_imdb(file_path):
 
 
 def extract_bbox_feats(feat_dir, out_dir):
-
     info_json_path = os.path.join(feat_dir, "gqa_objects_info.json")
     info_dict = json.load(open(info_json_path))
 

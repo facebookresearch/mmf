@@ -8,7 +8,11 @@ from mmf.common.registry import registry
 from mmf.models.transformers.base import BaseTransformerHead
 from mmf.modules.losses import RefinerContrastiveLoss, RefinerMSLoss
 from torch import nn
-from transformers.modeling_bert import BertOnlyMLMHead
+
+try:
+    from transformers3.modeling_bert import BertOnlyMLMHead
+except ImportError:
+    from transformers.modeling_bert import BertOnlyMLMHead
 
 
 class MLP(nn.Module):
@@ -20,7 +24,7 @@ class MLP(nn.Module):
         nonlinearity: Type[nn.Module] = nn.ReLU,
         normalization: Optional[Type[nn.Module]] = nn.LayerNorm,
     ):
-        super(MLP, self).__init__()
+        super().__init__()
         self.output_dim = mlp_dims[-1]
         projection_prev_dim = input_dim
         projection_modulelist = []

@@ -25,20 +25,37 @@ from mmf.utils.modeling import get_optimizer_parameters_for_bert
 from omegaconf import OmegaConf
 from torch import nn
 from torch.nn import CrossEntropyLoss, SmoothL1Loss
-from transformers.modeling_bert import (
-    ACT2FN,
-    BertAttention,
-    BertConfig,
-    BertEmbeddings,
-    BertIntermediate,
-    BertLayer,
-    BertOutput,
-    BertPooler,
-    BertPredictionHeadTransform,
-    BertPreTrainedModel,
-    BertSelfAttention,
-    BertSelfOutput,
-)
+
+try:
+    from transformers3.modeling_bert import (
+        ACT2FN,
+        BertAttention,
+        BertConfig,
+        BertEmbeddings,
+        BertIntermediate,
+        BertLayer,
+        BertOutput,
+        BertPooler,
+        BertPredictionHeadTransform,
+        BertPreTrainedModel,
+        BertSelfAttention,
+        BertSelfOutput,
+    )
+except ImportError:
+    from transformers.modeling_bert import (
+        ACT2FN,
+        BertAttention,
+        BertConfig,
+        BertEmbeddings,
+        BertIntermediate,
+        BertLayer,
+        BertOutput,
+        BertPooler,
+        BertPredictionHeadTransform,
+        BertPreTrainedModel,
+        BertSelfAttention,
+        BertSelfOutput,
+    )
 
 
 class GeLU(nn.Module):
@@ -340,7 +357,6 @@ class LXMERTBase(BertPreTrainedModel):
         output_all_attention_masks=False,
         output_all_encoded_layers=False,
     ):
-
         if output_all_encoded_layers:
             raise NotImplementedError
         if output_all_attention_masks:
@@ -477,7 +493,6 @@ class LXMERTForPretraining(nn.Module):
         output_all_attention_masks=False,
         output_all_encoded_layers=False,
     ):
-
         (lang_output, visn_output), pooled_output = self.bert(
             input_ids,
             token_type_ids,
@@ -604,7 +619,6 @@ class LXMERTForClassification(nn.Module):
         output_all_attention_masks=False,
         output_all_encoded_layers=False,
     ):
-
         (lang_output, visn_output), pooled_output = self.bert(
             input_ids,
             token_type_ids,

@@ -133,7 +133,7 @@ class LightningTorchMetricsCallback(Callback):
         return trainer.fit_loop.batch_idx + 1
 
     def _get_num_updates_for_logging(self, trainer: Trainer):
-        return trainer.global_step + 1
+        return trainer.global_step
 
     def _get_train_extra_log(self, trainer: Trainer, pl_module: LightningModule):
         extra = {}

@@ -15,7 +15,11 @@ from mmf.modules.layers import AttnPool1d, Identity
 from mmf.utils.file_io import PathManager
 from mmf.utils.vocab import Vocab
 from torch import nn, Tensor
-from transformers.modeling_bert import BertEmbeddings
+
+try:
+    from transformers3.modeling_bert import BertEmbeddings
+except ImportError:
+    from transformers.modeling_bert import BertEmbeddings
 
 
 class TextEmbedding(nn.Module):
@@ -346,7 +350,6 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
         visual_embeddings_type: Tensor,
         image_text_alignment: Optional[Tensor] = None,
     ) -> Tensor:
-
         visual_embeddings = self.projection(visual_embeddings)
         token_type_embeddings_visual = self.token_type_embeddings_visual(
             visual_embeddings_type
@@ -369,7 +372,6 @@ class BertVisioLinguisticEmbeddings(BertEmbeddings):
     def get_position_embeddings_visual(
         self, visual_embeddings: Tensor, image_text_alignment: Optional[Tensor] = None
     ) -> Tensor:
-
         if image_text_alignment is not None:
             # image_text_alignment = Batch x image_length x alignment_number.
             # Each element denotes the position of the word corresponding to the
@@ -584,7 +586,6 @@ class CBNEmbedding(nn.Module):
             cbn.init_layers()
 
     def forward(self, x: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
-
         for cbn in self.cbns:
             x, _ = cbn(x, v)
 

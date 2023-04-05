@@ -151,7 +151,8 @@ class BaseTransformer(BaseModel):
         lr_multiplier = config.get("lr_multiplier", 1.0)
         if lr_multiplier != 1.0:
             logger.info(
-                f"Setting learning rate of {module_name} to be {base_lr} * {lr_multiplier}."
+                f"Setting learning rate of {module_name} to be "
+                f"{base_lr} * {lr_multiplier}."
             )  # noqa
             parameters += get_bert_configured_parameters(
                 module, base_lr * lr_multiplier

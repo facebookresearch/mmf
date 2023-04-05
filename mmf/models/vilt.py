@@ -89,7 +89,6 @@ class ViLTTextEmbedding(nn.Module):
         *args,
         **kwargs,
     ):
-
         super().__init__()
         config = OmegaConf.create(
             {"bert_model_name": bert_model_name, "random_init": random_init}

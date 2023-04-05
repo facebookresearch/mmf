@@ -60,7 +60,6 @@ class VisDialMultiModalModel(Pythia):
     def forward(
         self, texts, answer_options, histories, image_features, image_dims, **kwargs
     ):
-
         texts = texts.view(-1, texts.size(2))
         histories = histories.view(-1, histories.size(2))
         text_embedding_total = self.process_text_embedding(texts)

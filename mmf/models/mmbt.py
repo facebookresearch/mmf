@@ -30,7 +30,17 @@ from mmf.utils.configuration import get_mmf_cache_dir
 from mmf.utils.modeling import get_optimizer_parameters_for_bert
 from omegaconf import DictConfig, II, OmegaConf
 from torch import nn, Tensor
-from transformers.modeling_bert import BertForPreTraining, BertPredictionHeadTransform
+
+try:
+    from transformers3.modeling_bert import (
+        BertForPreTraining,
+        BertPredictionHeadTransform,
+    )
+except ImportError:
+    from transformers.modeling_bert import (
+        BertForPreTraining,
+        BertPredictionHeadTransform,
+    )
 
 
 # TODO: Remove after transformers package upgrade to 2.5
@@ -179,7 +189,6 @@ class MMBTModel(nn.Module):
         encoder_hidden_states: Optional[Tensor] = None,
         encoder_attention_mask: Optional[Tensor] = None,
     ):
-
         if input_ids is not None and inputs_embeds is not None:
             raise ValueError(
                 "You cannot specify both input_ids and inputs_embeds at the same time"
@@ -365,7 +374,6 @@ class MMBTBase(MultiModalEncoderBase):
         return modal_end_token
 
     def forward(self, sample_list: Dict[str, Tensor]):
-
         if self._is_direct_features_input:
             if "input_modal" in sample_list:
                 input_modal = sample_list["input_modal"]
