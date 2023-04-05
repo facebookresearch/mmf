@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 from mmf.trainers.callbacks.logistics import LogisticsCallback
 from mmf.trainers.lightning_core.loop_callback import LightningLoopCallback
 from mmf.utils.timer import Timer
+from tests.test_utils import skip_if_no_network
 from tests.trainers.test_utils import (
     get_config_with_defaults,
     get_lightning_trainer,
@@ -19,6 +20,7 @@ class TestLightningTrainerLogging(unittest.TestCase):
         self.mmf_tensorboard_logs = []
         self.lightning_tensorboard_logs = []
 
+    @skip_if_no_network
     @patch("mmf.common.test_reporter.PathManager.mkdirs")
     @patch("mmf.trainers.callbacks.logistics.setup_output_folder", return_value="logs")
     @patch("mmf.trainers.lightning_trainer.setup_output_folder", return_value="logs")

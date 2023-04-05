@@ -175,7 +175,7 @@ class LightningLoopCallback(Callback):
         return trainer.fit_loop.batch_idx + 1
 
     def _get_num_updates_for_logging(self, trainer: Trainer):
-        return trainer.global_step + 1
+        return trainer.global_step
 
     def _train_log(self, trainer: Trainer, pl_module: LightningModule):
         self.train_combined_report = self.train_combined_report.detach()
