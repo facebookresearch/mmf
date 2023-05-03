@@ -155,6 +155,7 @@ class ViTEncoder(nn.Module):
                     hidden_states,
                     attention_mask,
                     layer_head_mask,
+                    use_reentrant=True,
                 )
             else:
                 layer_outputs = layer_module(
