@@ -52,6 +52,10 @@ def patch_transformers(log_incompatible=False):
         if key.startswith("__"):
             continue
 
+        # Avoid LLaMa tokenizers 0.13.3 > 0.12.1 requirement as we're not using LLaMa
+        if key.startswith("llama"):
+            continue
+
         model_lib = importlib.import_module(f"transformers.models.{key}")
         if not hasattr(model_lib, "_modules"):
             if log_incompatible:
