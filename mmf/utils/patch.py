@@ -52,10 +52,6 @@ def patch_transformers(log_incompatible=False):
         if key.startswith("__"):
             continue
 
-        # Avoid LLaMa tokenizers 0.13.3 > 0.12.1 requirement as we're not using LLaMa
-        if key.startswith("llama"):
-            continue
-
         model_lib = importlib.import_module(f"transformers.models.{key}")
         if not hasattr(model_lib, "_modules"):
             if log_incompatible:
@@ -68,9 +64,13 @@ def patch_transformers(log_incompatible=False):
         for module in model_lib._modules:
             if not module or module == "." or module[0] == ".":
                 continue
-            sys.modules[f"transformers.{module}"] = importlib.import_module(
-                f"transformers.models.{key}.{module}"
-            )
+            try:
+                sys.modules[f"transformers.{module}"] = importlib.import_module(
+                    f"transformers.models.{key}.{module}"
+                )
+            except ImportError:
+                logger.info(f"Failed to import transformers.models.{key}.{module}")
+                continue
     sys.path = [sys.path[-1]] + sys.path[:-1]
 
 
