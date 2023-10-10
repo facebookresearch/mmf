@@ -13,8 +13,8 @@
     "prettier:diff": "prettier --config .prettierrc --list-different \"**/*.{js,md}\""
   },
   "dependencies": {
-    "@docusaurus/core": "2.2.0",
-    "@docusaurus/preset-classic": "2.2.0",
+    "@docusaurus/core": "2.4.3",
+    "@docusaurus/preset-classic": "2.4.3",
     "classnames": "^2.2.6",
     "internaldocs-fb-helpers": "1.7.1",
     "react": "^17.0.2",
@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "babel-eslint": "^10.0.3",
-    "docusaurus-plugin-internaldocs-fb": "1.7.0",
+    "docusaurus-plugin-internaldocs-fb": "1.16.1",
     "eslint": "^6.7.1",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-prettier": "^6.7.0",
