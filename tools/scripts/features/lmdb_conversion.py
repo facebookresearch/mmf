@@ -119,6 +119,10 @@ class LMDBConversion:
             raise ValueError("mode must be either `convert` or `extract` ")
 
 
-if __name__ == "__main__":
+def main() -> None:
     lmdb_converter = LMDBConversion()
     lmdb_converter.execute()
+
+
+if __name__ == "__main__":
+    main()
