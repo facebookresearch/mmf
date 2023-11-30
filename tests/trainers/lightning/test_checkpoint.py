@@ -53,7 +53,7 @@ class TestLightningCheckpoint(unittest.TestCase):
     def _assert_same(self, obj1, obj2, same=True):
         if same:
             if hasattr(obj1, "mean") and obj1.dtype == torch.float:
-                self.assertAlmostEquals(obj1.mean().item(), obj2.mean().item(), 2)
+                self.assertAlmostEqual(obj1.mean().item(), obj2.mean().item(), 2)
             elif hasattr(obj1, "item"):
                 self.assertEqual(obj1.item(), obj2.item())
             elif type(obj1) is dict and type(obj2) is dict:
@@ -328,11 +328,11 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
                 lightning.trainer.fit(
                     lightning.model, train_dataloaders=lightning.train_loader
                 )
-                self.assertEquals(lightning.trainer.global_step, 6)
+                self.assertEqual(lightning.trainer.global_step, 6)
                 call_args_list = mock_method.call_args_list
                 # training will take place 0 times. Since max_steps is the same
                 # as the checkpoint's global_step
-                self.assertEquals(len(call_args_list), 0)
+                self.assertEqual(len(call_args_list), 0)
 
                 # check to make sure that the lightning trainer's model and
                 # mmf's are the same
@@ -393,7 +393,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
                 lightning.trainer.fit(
                     lightning.model, train_dataloaders=lightning.train_loader
                 )
-                self.assertEquals(lightning.trainer.global_step, 12)
+                self.assertEqual(lightning.trainer.global_step, 12)
                 call_args_list = [l[0][4] for l in mock_method.call_args_list]
                 # in lightning 1.6.0 last batch idx from ckpt is repeated
                 self.assertListEqual(list(range(5, 11)), call_args_list)
@@ -455,7 +455,7 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
             # https://github.com/PyTorchLightning/pytorch-lightning/pull/6997
             # also was an issue according to test_validation.py
             files = os.listdir(os.path.join(tmp_d, "models"))
-            self.assertEquals(3, len(files))
+            self.assertEqual(3, len(files))
             indexes = {int(x[:-5].split("=")[1]) for x in files}
             self.assertSetEqual({2, 4, 6}, indexes)
 
@@ -511,8 +511,8 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
 
         # Make sure lightning and mmf parity
         self._assert_same_dict(mmf_ckpt["model"], lightning_ckpt["state_dict"])
-        self.assertEquals(mmf_ckpt["current_epoch"], lightning_ckpt["epoch"] + 1)
-        self.assertEquals(mmf_ckpt["num_updates"], lightning_ckpt["global_step"])
+        self.assertEqual(mmf_ckpt["current_epoch"], lightning_ckpt["epoch"] + 1)
+        self.assertEqual(mmf_ckpt["num_updates"], lightning_ckpt["global_step"])
         self._assert_same_dict(
             mmf_ckpt["optimizer"], lightning_ckpt["optimizer_states"][0]
         )

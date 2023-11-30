@@ -34,7 +34,7 @@ class TestUNITERImageEmbeddings(unittest.TestCase):
         output = embedding(
             self.img_feat, self.img_pos_feat, self.type_embeddings, img_masks=None
         )
-        self.assertEquals(list(output.shape), [32, 100, 256])
+        self.assertEqual(list(output.shape), [32, 100, 256])
 
 
 class TestUNITERModelBase(unittest.TestCase):
