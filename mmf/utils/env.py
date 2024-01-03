@@ -165,7 +165,7 @@ def setup_imports():
     common_pattern = os.path.join(common_folder, "**", "*.py")
     modules_pattern = os.path.join(modules_folder, "**", "*.py")
 
-    importlib.import_module("mmf.common.meter")
+    import mmf.common.meter
 
     files = (
         glob.glob(datasets_pattern, recursive=True)
