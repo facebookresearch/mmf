@@ -35,6 +35,7 @@ class Registry:
     r"""Class for registry object which acts as central source of truth
     for MMF
     """
+
     mapping = {
         # Mappings of builder name to their respective classes
         # Use `registry.register_builder` to register a builder class

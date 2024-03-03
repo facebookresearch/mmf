@@ -21,9 +21,9 @@ def make_charades_df(csv_path, video_dir, classes_file):
 
     # parse action labels
     df["action_labels"] = df["actions"].map(
-        lambda x: [label.split(" ")[0] for label in x.split(";")]
-        if pd.notnull(x)
-        else []
+        lambda x: (
+            [label.split(" ")[0] for label in x.split(";")] if pd.notnull(x) else []
+        )
     )
 
     # load id to class map

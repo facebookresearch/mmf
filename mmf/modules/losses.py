@@ -880,7 +880,6 @@ def calc_ms_loss(pair, base, param, multiplier):
 
 @registry.register_loss("refiner_ms")
 class RefinerMSLoss(nn.Module):
-
     """
     A Multi-Similarity loss between the decoder outputs of a given embedding size
     and its targets
@@ -949,7 +948,6 @@ class RefinerMSLoss(nn.Module):
 
 @registry.register_loss("ms_loss")
 class MSLoss(nn.Module):
-
     """
     A Multi-Similarity loss between embeddings of similar and dissimilar
     labels is implemented here.
@@ -1049,7 +1047,6 @@ class MSLoss(nn.Module):
 
 @registry.register_loss("refiner_contrastive_loss")
 class RefinerContrastiveLoss(nn.Module):
-
     """
     A contrastive loss between the decoder outputs of a given embedding size
     and its targets

@@ -275,9 +275,7 @@ class PaddedFeatureRCNNWithBBoxesFeatureReader:
         tmp_image_feat = image_feat_bbox.item().get("image_feature")
         image_loc, image_dim = tmp_image_feat.shape
         tmp_image_feat_2 = np.zeros((self.max_loc, image_dim), dtype=np.float32)
-        tmp_image_feat_2[
-            0:image_loc,
-        ] = tmp_image_feat  # noqa
+        tmp_image_feat_2[0:image_loc,] = tmp_image_feat  # noqa
         tmp_image_feat_2 = torch.from_numpy(tmp_image_feat_2)
         tmp_image_box = np.zeros((self.max_loc, 4), dtype=np.int32)
         tmp_image_box[0:image_loc] = image_boxes

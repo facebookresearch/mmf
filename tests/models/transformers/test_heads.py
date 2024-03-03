@@ -247,9 +247,9 @@ class TestMRFRHead(unittest.TestCase):
         )
         self.processed_sample_list = Sample()
         feat_targets = torch.zeros((bs, num_feat, img_dim))
-        self.processed_sample_list[
-            "mrfr_region_target"
-        ] = feat_targets.contiguous().view(-1, img_dim)
+        self.processed_sample_list["mrfr_region_target"] = (
+            feat_targets.contiguous().view(-1, img_dim)
+        )
         self.processed_sample_list["mrfr_region_mask"] = torch.ones(
             (bs, num_feat)
         ).bool()

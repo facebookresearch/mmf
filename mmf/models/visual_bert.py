@@ -459,9 +459,9 @@ class VisualBERT(BaseModel):
             new_lm_labels = torch.ones_like(attention_mask) * -1
             size_masked_lm_labels = sample_list["masked_lm_labels"].size()
             assert len(size_masked_lm_labels) == 2
-            new_lm_labels[
-                : size_masked_lm_labels[0], : size_masked_lm_labels[1]
-            ] = sample_list["masked_lm_labels"]
+            new_lm_labels[: size_masked_lm_labels[0], : size_masked_lm_labels[1]] = (
+                sample_list["masked_lm_labels"]
+            )
             sample_list["masked_lm_labels"] = new_lm_labels
 
         return sample_list

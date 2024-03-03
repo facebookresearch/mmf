@@ -123,9 +123,9 @@ class KRISP(BaseModel):
         # Answer indices not in graph
         if self.config.output_combine == "add":
             self.missing_ans_inds = torch.LongTensor(self.config.num_labels).fill_(1)
-            self.missing_ans_inds[
-                self.graph_module.index_in_ans
-            ] = 0  # Now any index stil set to 1 is missing from graph
+            self.missing_ans_inds[self.graph_module.index_in_ans] = (
+                0  # Now any index stil set to 1 is missing from graph
+            )
 
     # Each model in MMF gets a dict called sample_list which contains
     # all of the necessary information returned from the image
