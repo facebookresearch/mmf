@@ -41,12 +41,13 @@ class TorchvisionTransforms(BaseProcessor):
 
             transform = getattr(transforms, transform_type, None)
             if transform is None:
-                from mmf.utils.env import setup_torchaudio
+                if not (torch.cuda.is_available() and torch.version.hip):
+                    from mmf.utils.env import setup_torchaudio
 
-                setup_torchaudio()
-                from torchaudio import transforms as torchaudio_transforms
+                    setup_torchaudio()
+                    from torchaudio import transforms as torchaudio_transforms
 
-                transform = getattr(torchaudio_transforms, transform_type, None)
+                    transform = getattr(torchaudio_transforms, transform_type, None)
             # If torchvision or torchaudiodoesn't contain this, check our registry
             # if we implemented a custom transform as processor
             if transform is None:
