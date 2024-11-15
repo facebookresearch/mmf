@@ -39,7 +39,6 @@ Example::
             return {"scores": scores}
 """
 
-
 import collections
 import logging
 import warnings

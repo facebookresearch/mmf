@@ -34,6 +34,7 @@ Example::
 
 .. _here: https://github.com/facebookresearch/mmf/blob/main/mmf/datasets/vqa/vqa2/builder.py
 """
+
 import uuid
 from typing import Optional
 

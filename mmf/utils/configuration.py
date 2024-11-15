@@ -248,8 +248,9 @@ def _merge_with_dotlist(
 
                     raise AttributeError(
                         "While updating configuration",
-                        "option {} is not present "
-                        "after field {}".format(opt, stripped_field),
+                        "option {} is not present " "after field {}".format(
+                            opt, stripped_field
+                        ),
                     )
 
     return config

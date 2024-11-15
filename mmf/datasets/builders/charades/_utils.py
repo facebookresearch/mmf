@@ -124,8 +124,9 @@ class CharadesVideoClips(VideoClips):
         """
         if idx >= self.num_clips():
             raise IndexError(
-                "Index {} out of range "
-                "({} number of clips)".format(idx, self.num_clips())
+                "Index {} out of range " "({} number of clips)".format(
+                    idx, self.num_clips()
+                )
             )
         video_path = self.video_paths[idx]
         clip_pts = self.clips[idx]

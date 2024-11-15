@@ -382,9 +382,9 @@ class MMFBert(Pythia):
                         seq_relationship_score.contiguous().view(-1, 2),
                         is_random_next.contiguous().view(-1),
                     )
-                    output_dict["losses"][
-                        loss_key + "/next_sentence_loss"
-                    ] = next_sentence_loss
+                    output_dict["losses"][loss_key + "/next_sentence_loss"] = (
+                        next_sentence_loss
+                    )
             return output_dict
         elif (
             "vqa" in self.config.training_head_type

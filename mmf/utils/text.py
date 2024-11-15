@@ -14,6 +14,7 @@ in the following way:
                - type: greedy
                - params: {}
 """
+
 import os
 import re
 from collections import Counter

@@ -69,9 +69,9 @@ class TestMMFTransformerTorchscript(unittest.TestCase):
 
     @test_utils.skip_if_no_network
     def test_finetune_xlmr_base(self):
-        self.config.model_config[self.model_name][
-            "transformer_base"
-        ] = "xlm-roberta-base"
+        self.config.model_config[self.model_name]["transformer_base"] = (
+            "xlm-roberta-base"
+        )
         model = build_model(self.config.model_config[self.model_name])
         model.eval()
         self.assertTrue(

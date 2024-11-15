@@ -163,8 +163,9 @@ class SampleList(OrderedDict):
     def __getattr__(self, key):
         if key not in self:
             raise AttributeError(
-                "Key {} not found in the SampleList. "
-                "Valid choices are {}".format(key, self.fields())
+                "Key {} not found in the SampleList. " "Valid choices are {}".format(
+                    key, self.fields()
+                )
             )
         fields = self.keys()
 
@@ -245,8 +246,9 @@ class SampleList(OrderedDict):
         for field in fields:
             if field not in current_fields:
                 raise AttributeError(
-                    "{} not present in SampleList. "
-                    "Valid choices are {}".format(field, current_fields)
+                    "{} not present in SampleList. " "Valid choices are {}".format(
+                        field, current_fields
+                    )
                 )
             return_list.add_field(field, self[field])
 
@@ -396,7 +398,7 @@ class SampleList(OrderedDict):
 
 
 def convert_batch_to_sample_list(
-    batch: Union[SampleList, Dict[str, Any]]
+    batch: Union[SampleList, Dict[str, Any]],
 ) -> SampleList:
     # Create and return sample list with proper name
     # and type set if it is already not a sample list
@@ -405,9 +407,7 @@ def convert_batch_to_sample_list(
     if (
         # Check if batch is a list before checking batch[0]
         # or len as sometimes batch is already SampleList
-        isinstance(batch, list)
-        and len(batch) == 1
-        and isinstance(batch[0], SampleList)
+        isinstance(batch, list) and len(batch) == 1 and isinstance(batch[0], SampleList)
     ):
         sample_list = batch[0]
     elif not isinstance(batch, SampleList):

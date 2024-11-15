@@ -5,6 +5,7 @@
 """
 Modules to compute the matching cost and solve the corresponding LSAP.
 """
+
 from typing import Dict, List
 
 import torch

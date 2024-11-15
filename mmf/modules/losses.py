@@ -25,6 +25,7 @@ in the following way:
                - type: custom
                - params: {}
 """
+
 import collections
 import warnings
 from dataclasses import dataclass

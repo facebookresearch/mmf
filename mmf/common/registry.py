@@ -28,6 +28,7 @@ Various decorators for registry different kind of classes with unique keys
 - Register a test reporter: ``@registry.register_test_reporter``
 - Register a pl datamodule: ``@registry.register_datamodule``
 """
+
 from mmf.utils.env import setup_imports
 
 
@@ -508,9 +509,9 @@ class Registry:
             assert issubclass(
                 iteration_strategy_cls, IterationStrategy
             ), "All datamodules must inherit IterationStrategy class"
-            cls.mapping["iteration_strategy_name_mapping"][
-                name
-            ] = iteration_strategy_cls
+            cls.mapping["iteration_strategy_name_mapping"][name] = (
+                iteration_strategy_cls
+            )
             return iteration_strategy_cls
 
         return wrap

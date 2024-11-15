@@ -300,8 +300,9 @@ def get_batch_size():
 
     if batch_size % world_size != 0:
         raise RuntimeError(
-            "Batch size {} must be divisible by number "
-            "of GPUs {} used.".format(batch_size, world_size)
+            "Batch size {} must be divisible by number " "of GPUs {} used.".format(
+                batch_size, world_size
+            )
         )
 
     return batch_size // world_size
