@@ -12,10 +12,7 @@ from torch import nn
 @skip_if_old_transformers(min_version="4.5.0")
 class TestViT(unittest.TestCase):
     def setUp(self):
-        try:
-            import transformers3.models.vit.modeling_vit as vit
-        except ImportError:
-            import transformers.models.vit.modeling_vit as vit
+        import transformers.models.vit.modeling_vit as vit
 
         setup_proxy()
         config = {
