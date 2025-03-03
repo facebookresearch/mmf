@@ -6,7 +6,7 @@ import pickle
 import re
 from collections import OrderedDict
 from copy import deepcopy
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any
 
@@ -591,11 +591,15 @@ class MultiModalEncoderBase(Encoder):
     @dataclass
     class Config(Encoder.Config):
         # This actually is Union[ImageEncoderConfig, ImageFeatureEncoderConfig]
-        modal_encoder: EncoderFactory.Config = ImageEncoderFactory.Config(
-            type=ImageEncoderTypes.resnet152, params=ResNet152ImageEncoder.Config()
+        modal_encoder: EncoderFactory.Config = field(
+            default_factory=lambda: ImageEncoderFactory.Config(
+                type=ImageEncoderTypes.resnet152, params=ResNet152ImageEncoder.Config()
+            )
         )
-        text_encoder: EncoderFactory.Config = TextEncoderFactory.Config(
-            type=TextEncoderTypes.transformer, params=TransformerEncoder.Config()
+        text_encoder: EncoderFactory.Config = field(
+            default_factory=lambda: TextEncoderFactory.Config(
+                type=TextEncoderTypes.transformer, params=TransformerEncoder.Config()
+            )
         )
         direct_features_input: bool = False
         modal_hidden_size: int = 2048
