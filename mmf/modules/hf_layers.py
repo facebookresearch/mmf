@@ -8,45 +8,45 @@ from mmf.utils.patch import restore_saved_modules, safecopy_modules
 from torch import nn, Tensor
 
 try:
-    from transformers3.modeling_bert import (
-        BertAttention,
-        BertEmbeddings,
-        BertEncoder,
-        BertLayer,
-        BertModel,
-        BertPooler,
-        BertSelfAttention,
-        BertSelfOutput,
-    )
-    from transformers3.modeling_roberta import (
-        RobertaAttention,
-        RobertaEmbeddings,
-        RobertaEncoder,
-        RobertaLayer,
-        RobertaModel,
-        RobertaSelfAttention,
-    )
-    from transformers3.modeling_utils import PreTrainedModel
-except ImportError:
-    from transformers.modeling_bert import (
-        BertAttention,
-        BertEmbeddings,
-        BertEncoder,
-        BertLayer,
-        BertModel,
-        BertPooler,
-        BertSelfAttention,
-        BertSelfOutput,
-    )
-    from transformers.modeling_roberta import (
-        RobertaAttention,
-        RobertaEmbeddings,
-        RobertaEncoder,
-        RobertaLayer,
-        RobertaModel,
-        RobertaSelfAttention,
-    )
     from transformers.modeling_utils import PreTrainedModel
+    from transformers.models.bert.modeling_bert import (
+        BertAttention,
+        BertEmbeddings,
+        BertEncoder,
+        BertLayer,
+        BertModel,
+        BertPooler,
+        BertSelfAttention,
+        BertSelfOutput,
+    )
+    from transformers.models.roberta.modeling_roberta import (
+        RobertaAttention,
+        RobertaEmbeddings,
+        RobertaEncoder,
+        RobertaLayer,
+        RobertaModel,
+        RobertaSelfAttention,
+    )
+except ImportError:
+    from transformers.modeling_utils import PreTrainedModel
+    from transformers.models.bert.modeling_bert import (
+        BertAttention,
+        BertEmbeddings,
+        BertEncoder,
+        BertLayer,
+        BertModel,
+        BertPooler,
+        BertSelfAttention,
+        BertSelfOutput,
+    )
+    from transformers.models.roberta.modeling_roberta import (
+        RobertaAttention,
+        RobertaEmbeddings,
+        RobertaEncoder,
+        RobertaLayer,
+        RobertaModel,
+        RobertaSelfAttention,
+    )
 
 
 patch_functions = [
