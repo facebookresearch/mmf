@@ -21,6 +21,7 @@ module.exports = {
     Notes: [
       'notes/concepts',
       'notes/configuration',
+      'notes/configuring_transformers',
       'notes/training_tricks',
       'notes/dataset_zoo',
       'notes/model_zoo',
