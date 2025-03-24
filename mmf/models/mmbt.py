@@ -7,7 +7,7 @@
 
 import os
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Optional, Union
 
 import torch
@@ -581,12 +581,16 @@ class MMBT(BaseModel):
         text_hidden_size: int = 768
         num_labels: int = 2
         # This actually is Union[ImageEncoderConfig, ImageFeatureEncoderConfig]
-        modal_encoder: EncoderFactory.Config = ImageEncoderFactory.Config(
-            type=ImageEncoderTypes.resnet152, params=ResNet152ImageEncoder.Config()
+        modal_encoder: EncoderFactory.Config = field(
+            default_factory=lambda: ImageEncoderFactory.Config(
+                type=ImageEncoderTypes.resnet152, params=ResNet152ImageEncoder.Config()
+            )
         )
-        text_encoder: EncoderFactory.Config = TextEncoderFactory.Config(
-            type=TextEncoderTypes.transformer,
-            params=TransformerEncoder.Config(bert_model_name=II("bert_model_name")),
+        text_encoder: EncoderFactory.Config = field(
+            default_factory=lambda: TextEncoderFactory.Config(
+                type=TextEncoderTypes.transformer,
+                params=TransformerEncoder.Config(bert_model_name=II("bert_model_name")),
+            )
         )
         use_modal_start_token: bool = True
         use_modal_end_token: bool = True
