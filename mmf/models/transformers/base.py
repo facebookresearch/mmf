@@ -38,7 +38,7 @@ class BaseTransformerModalityConfig:
     # Encoder to be used to encode this particular modality
     # This is actually: Union[EncoderFactory.Config, Encoder.Config]
     # NOTE: Waiting on https://github.com/omry/omegaconf/issues/144
-    encoder: Any = IdentityEncoder.Config()
+    encoder: Any = field(default_factory=lambda: IdentityEncoder.Config())
     # when type is text, whether to consume raw text or intermediate representations
     # from frozen text encoder. This can be potentially also used by other modalities.
     consume_raw: bool = True
