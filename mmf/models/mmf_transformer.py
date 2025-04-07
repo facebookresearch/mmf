@@ -54,8 +54,8 @@ class MMFTransformer(BaseTransformer):
         freeze_image_encoder: bool = False
         tie_weight_to_encoder: Optional[str] = None
         finetune_lr_multiplier: float = 1
-        backend: BaseTransformerBackendConfig = MMFTransformerBackendConfig(
-            type="huggingface"
+        backend: BaseTransformerBackendConfig = field(
+            default_factory=lambda: MMFTransformerBackendConfig(type="huggingface")
         )
         modalities: List[BaseTransformerModalityConfig] = field(
             default_factory=lambda: [
