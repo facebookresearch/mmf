@@ -2,7 +2,7 @@
 
 import math
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Tuple
 
 import torch
@@ -82,8 +82,8 @@ class BaseAlign(BaseModel):
         direct_features_input: bool = False
         image_encoder: Any = MISSING
         text_encoder: Any = MISSING
-        image_projection: Any = IdentityEncoder.Config()
-        text_projection: Any = IdentityEncoder.Config()
+        image_projection: Any = field(default_factory=lambda: IdentityEncoder.Config())
+        text_projection: Any = field(default_factory=lambda: IdentityEncoder.Config())
 
     def __init__(self, config: Config):
         """Initialize the config which is the model configuration."""
