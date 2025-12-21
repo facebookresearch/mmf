@@ -277,7 +277,7 @@ class FeatureExtractor:
             finished = 0
             total = len(files)
 
-            for chunk, begin_idx in chunks(files, self.args.batch_size):
+            for chunk, _ in chunks(files, self.args.batch_size):
                 features, infos = self.get_detectron_features(chunk)
                 for idx, file_name in enumerate(chunk):
                     self._save_feature(file_name, features[idx], infos[idx])
