@@ -16,9 +16,9 @@ from torchvision import transforms
 class HatefulMemesFeaturesDataset(MMFDataset):
     def __init__(self, config, *args, dataset_name="hateful_memes", **kwargs):
         super().__init__(dataset_name, config, *args, **kwargs)
-        assert (
-            self._use_features
-        ), "config's 'use_images' must be true to use image dataset"
+        assert self._use_features, (
+            "config's 'use_images' must be true to use image dataset"
+        )
         self.is_multilabel = self.config.get("is_multilabel", False)
 
     def preprocess_sample_info(self, sample_info):
@@ -100,9 +100,9 @@ class HatefulMemesFeaturesDataset(MMFDataset):
 class HatefulMemesImageDataset(MMFDataset):
     def __init__(self, config, *args, dataset_name="hateful_memes", **kwargs):
         super().__init__(dataset_name, config, *args, **kwargs)
-        assert (
-            self._use_images
-        ), "config's 'use_images' must be true to use image dataset"
+        assert self._use_images, (
+            "config's 'use_images' must be true to use image dataset"
+        )
         self.is_multilabel = self.config.get("is_multilabel", False)
 
     def init_processors(self):

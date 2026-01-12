@@ -145,7 +145,7 @@ class Config:
     def __str__(self):
         t = "    "
         if self._name != "root":
-            r = f"{t * (self._level-1)}{self._name}:\n"
+            r = f"{t * (self._level - 1)}{self._name}:\n"
         else:
             r = ""
         level = self._level
@@ -214,9 +214,9 @@ def compare(in_tensor):
     print(n1.shape, n1[0, 0, :5])
     print(n2.shape, n2[0, 0, :5])
     summ = sum([1 for x in np.isclose(n1, n2, rtol=0.01, atol=0.1).flatten() if not x])
-    assert np.allclose(
-        n1, n2, rtol=0.01, atol=0.1
-    ), f"{summ/len(n1.flatten())*100:.4f} % element-wise mismatch"
+    assert np.allclose(n1, n2, rtol=0.01, atol=0.1), (
+        f"{summ / len(n1.flatten()) * 100:.4f} % element-wise mismatch"
+    )
     raise Exception("tensors are all good")
 
     # Hugging face functions below
@@ -245,9 +245,9 @@ def cached_path(
         filename = url_to_filename(url_or_filename)
         output_path = os.path.join(cache_dir, filename)
         if not os.path.isfile(output_path):
-            assert download(
-                url_or_filename, cache_dir, filename
-            ), f"failed to download {url_or_filename}"
+            assert download(url_or_filename, cache_dir, filename), (
+                f"failed to download {url_or_filename}"
+            )
     elif os.path.exists(url_or_filename):
         # File, and it exists.
         output_path = url_or_filename

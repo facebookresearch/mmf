@@ -72,10 +72,10 @@ class VisDialMultiModalModel(Pythia):
         size = image_dims.size()[2:]
         image_dims = image_dims.view(-1, *size)
 
-        assert len(image_features) == len(
-            self.img_feat_encoders
-        ), "number of image feature model doesnot equal \
+        assert len(image_features) == len(self.img_feat_encoders), (
+            "number of image feature model doesnot equal \
                  to number of image features"
+        )
 
         image_embedding_total = self.process_image_embedding(
             image_features, image_dims, text_embedding_total

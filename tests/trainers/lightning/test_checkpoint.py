@@ -307,9 +307,10 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
     def test_load_mmf_trainer_checkpoint_in_lightning(self):
         # specifying an mmf .ckpt as the trainer resume_from_checkpoint
         # for lightning trainer
-        with mock_env_with_temp(
-            "mmf.utils.checkpoint.get_mmf_env"
-        ) as tmp_d, mock_env_with_temp("mmf.common.test_reporter.get_mmf_env") as _:
+        with (
+            mock_env_with_temp("mmf.utils.checkpoint.get_mmf_env") as tmp_d,
+            mock_env_with_temp("mmf.common.test_reporter.get_mmf_env") as _,
+        ):
             # generate checkpoint
             self._get_mmf_trainer(max_updates=6).training_loop()
 
@@ -399,9 +400,10 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
                 self.assertListEqual(list(range(5, 11)), call_args_list)
 
     def test_trainer_save_current_parity_with_mmf(self):
-        with mock_env_with_temp(
-            "mmf.utils.checkpoint.get_mmf_env"
-        ) as tmp_d, mock_env_with_temp("mmf.common.test_reporter.get_mmf_env") as _:
+        with (
+            mock_env_with_temp("mmf.utils.checkpoint.get_mmf_env") as tmp_d,
+            mock_env_with_temp("mmf.common.test_reporter.get_mmf_env") as _,
+        ):
             mmf_trainer = self._get_mmf_trainer()
             mmf_trainer.training_loop()
             mmf_ckpt_current = torch.load(os.path.join(tmp_d, "current.ckpt"))
@@ -460,9 +462,10 @@ class TestLightningCheckpoint(TestLightningCheckpoint):
             self.assertSetEqual({2, 4, 6}, indexes)
 
     def _get_mmf_ckpt(self, filename, ckpt_config=None):
-        with mock_env_with_temp(
-            "mmf.utils.checkpoint.get_mmf_env"
-        ) as tmp_d, mock_env_with_temp("mmf.common.test_reporter.get_mmf_env") as _:
+        with (
+            mock_env_with_temp("mmf.utils.checkpoint.get_mmf_env") as tmp_d,
+            mock_env_with_temp("mmf.common.test_reporter.get_mmf_env") as _,
+        ):
             # generate checkpoint
             self._get_mmf_trainer(max_updates=6).training_loop()
 

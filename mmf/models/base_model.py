@@ -314,9 +314,9 @@ class BaseModel(pl.LightningModule):
             return model_output
 
         # Make sure that the output from the model is a Mapping
-        assert isinstance(
-            model_output, collections.abc.Mapping
-        ), "A dict must be returned from the forward of the model."
+        assert isinstance(model_output, collections.abc.Mapping), (
+            "A dict must be returned from the forward of the model."
+        )
 
         if "losses" in model_output:
             if not self._logged_warning["losses_present"]:
@@ -326,9 +326,9 @@ class BaseModel(pl.LightningModule):
                 )
                 self._logged_warning["losses_present"] = True
 
-            assert isinstance(
-                model_output["losses"], collections.abc.Mapping
-            ), "'losses' must be a dict."
+            assert isinstance(model_output["losses"], collections.abc.Mapping), (
+                "'losses' must be a dict."
+            )
         elif hasattr(self, "losses"):
             model_output["losses"] = self.losses(sample_list, model_output)
         else:
@@ -357,9 +357,9 @@ class BaseModel(pl.LightningModule):
         if not PathManager.exists(model_name_or_path):
             model_key = model_name_or_path.split(".")[0]
             model_cls = registry.get_model_class(model_key)
-            assert (
-                model_cls == cls
-            ), f"Incorrect pretrained model key {model_name_or_path} "
+            assert model_cls == cls, (
+                f"Incorrect pretrained model key {model_name_or_path} "
+            )
             "for class {cls.__name__}"
         output = load_pretrained_model(model_name_or_path, *args, **kwargs)
         config, checkpoint, full_config = (

@@ -88,9 +88,9 @@ class ImageFeatureEncoderFactory(EncoderFactory):
         if isinstance(encoder_type, ImageFeatureEncoderTypes):
             encoder_type = encoder_type.value
 
-        assert (
-            "in_dim" in config.params
-        ), "ImageFeatureEncoder require 'in_dim' param in config"
+        assert "in_dim" in config.params, (
+            "ImageFeatureEncoder require 'in_dim' param in config"
+        )
         params = config.params
 
         if encoder_type == "default" or encoder_type == "identity":

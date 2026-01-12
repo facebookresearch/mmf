@@ -150,9 +150,9 @@ class VisualBERTBase(BertPreTrainedModel):
                 if self.output_attentions:
                     attn_data_list = encoded_layers[1:]
             else:
-                assert (
-                    not self.output_attentions
-                ), "output_attentions not supported in script mode"
+                assert not self.output_attentions, (
+                    "output_attentions not supported in script mode"
+                )
 
             return sequence_output, pooled_output, attn_data_list
 
@@ -262,9 +262,9 @@ class VisualBERTForPretraining(nn.Module):
                 output_dict["sequence_output"] = sequence_output
                 output_dict["pooled_output"] = pooled_output
         else:
-            assert not (
-                self.output_attentions or self.output_hidden_states
-            ), "output_attentions or output_hidden_states not supported in script mode"
+            assert not (self.output_attentions or self.output_hidden_states), (
+                "output_attentions or output_hidden_states not supported in script mode"
+            )
 
         prediction_scores, seq_relationship_score = self.cls(
             sequence_output, pooled_output
@@ -382,9 +382,9 @@ class VisualBERTForClassification(nn.Module):
                 output_dict["sequence_output"] = sequence_output
                 output_dict["pooled_output"] = pooled_output
         else:
-            assert not (
-                self.output_attentions or self.output_hidden_states
-            ), "output_attentions or output_hidden_states not supported in script mode"
+            assert not (self.output_attentions or self.output_hidden_states), (
+                "output_attentions or output_hidden_states not supported in script mode"
+            )
 
         if self.pooler_strategy == "vqa":
             # In VQA2 pooling strategy, we use representation from second last token
@@ -566,9 +566,9 @@ class VisualBERT(BaseModel):
 
     def forward(self, sample_list: Dict[str, Tensor]) -> Dict[str, Tensor]:
         if torch.jit.is_scripting():
-            assert (
-                "image_feature_0" in sample_list
-            ), "Key 'image_feature_0' is required in TorchScript model"
+            assert "image_feature_0" in sample_list, (
+                "Key 'image_feature_0' is required in TorchScript model"
+            )
 
         sample_list = self.update_sample_list_based_on_head(sample_list)
         sample_list = self.add_custom_params(sample_list)

@@ -349,9 +349,9 @@ def build_test_reporter(
     if config:
         test_reporter_key = config.get("type", "default")
     test_reporter_class = registry.get_test_rerporter_class(test_reporter_key)
-    assert (
-        test_reporter_class
-    ), f"Key {test_reporter_key} doesn't have a registered test_reporter class"
+    assert test_reporter_class, (
+        f"Key {test_reporter_key} doesn't have a registered test_reporter class"
+    )
 
     if not config:
         warnings.warn(
@@ -440,9 +440,9 @@ def build_optimizer(model, config):
             )
             raise
 
-        assert (
-            is_dist_initialized()
-        ), "Optimizer state sharding can only be used in distributed mode."
+        assert is_dist_initialized(), (
+            "Optimizer state sharding can only be used in distributed mode."
+        )
 
         is_fp16 = config.get("training", {}).get("fp16", False)
         optimizer = OSS(
@@ -596,9 +596,9 @@ def build_iteration_strategy(
     if not config.get("enabled", True):
         return ConstantIterationStrategy.from_params(dataloaders, *args, **kwargs)
     else:
-        assert (
-            "type" in config
-        ), "multitasking config must define 'type' attribute if enabled"
+        assert "type" in config, (
+            "multitasking config must define 'type' attribute if enabled"
+        )
         # This assumes all dataloaders will have same dataset type
         iteration_strategy_class = registry.get_iteration_strategy_class(config.type)
         config = config.get("params", {})

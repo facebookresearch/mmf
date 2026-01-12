@@ -42,9 +42,9 @@ class ITM(BaseTransformerHead):
         encoded_layers: Optional[List[torch.Tensor]] = None,
         processed_sample_list: Optional[Dict[str, Dict[str, torch.Tensor]]] = None,
     ):
-        assert (
-            processed_sample_list is not None
-        ), "ITM head requires 'processed_sample_list' argument"
+        assert processed_sample_list is not None, (
+            "ITM head requires 'processed_sample_list' argument"
+        )
 
         output_dict = {}
 

@@ -28,9 +28,9 @@ class AverageConcatLastN(nn.Module):
         self.tol = tol
 
     def forward(self, encoded_layers: List[torch.Tensor], pad_mask: torch.Tensor):
-        assert self.num_layers <= len(
-            encoded_layers
-        ), "k should be less than the number of encoder layers"
+        assert self.num_layers <= len(encoded_layers), (
+            "k should be less than the number of encoder layers"
+        )
         encoder_avg = torch.cat(encoded_layers[-self.num_layers :], 2)
 
         pad_mask = pad_mask.unsqueeze(2)
@@ -49,9 +49,9 @@ class AverageKFromLast(nn.Module):
         self.tol = tol
 
     def forward(self, encoded_layers: List[torch.Tensor], pad_mask: torch.Tensor):
-        assert self.k <= len(
-            encoded_layers
-        ), "k should be less than the number of encoder layers"
+        assert self.k <= len(encoded_layers), (
+            "k should be less than the number of encoder layers"
+        )
         encoder_avg = encoded_layers[-self.k]
         pad_mask = pad_mask.unsqueeze(2)
         encoder_avg = encoder_avg * pad_mask.float()
@@ -69,9 +69,9 @@ class AverageSumLastK(nn.Module):
         self.tol = tol
 
     def forward(self, encoded_layers: List[torch.Tensor], pad_mask: torch.Tensor):
-        assert self.k <= len(
-            encoded_layers
-        ), "k should be less than the number of encoder layers"
+        assert self.k <= len(encoded_layers), (
+            "k should be less than the number of encoder layers"
+        )
         encoder_avg = torch.stack(encoded_layers[-self.k :]).sum(0)
         pad_mask = pad_mask.unsqueeze(2)
         encoder_avg = encoder_avg * pad_mask.float()

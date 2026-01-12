@@ -120,9 +120,9 @@ class LightningTorchMetricsCallback(Callback):
         )
 
     def get_optimizer(self, trainer: Trainer):
-        assert (
-            len(trainer.optimizers) == 1
-        ), "mmf lightning_trainer supports 1 optimizer per model for now."
+        assert len(trainer.optimizers) == 1, (
+            "mmf lightning_trainer supports 1 optimizer per model for now."
+        )
         optimizer = trainer.optimizers[0]
         return optimizer
 

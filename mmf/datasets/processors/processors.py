@@ -609,8 +609,7 @@ class VQAAnswerProcessor(BaseProcessor):
         elif "answers" in item and item["answers"] is not None:
             if self.preprocessor is None:
                 raise AssertionError(
-                    "'preprocessor' must be defined if you "
-                    "don't pass 'answer_tokens'"
+                    "'preprocessor' must be defined if you don't pass 'answer_tokens'"
                 )
 
             tokens = [
@@ -818,8 +817,7 @@ class GraphVQAAnswerProcessor(BaseProcessor):
         elif "answers" in item and item["answers"] is not None:
             if self.preprocessor is None:
                 raise AssertionError(
-                    "'preprocessor' must be defined if you "
-                    "don't pass 'answer_tokens'"
+                    "'preprocessor' must be defined if you don't pass 'answer_tokens'"
                 )
 
             tokens = [
@@ -1153,7 +1151,7 @@ class CaptionProcessor(BaseProcessor):
     def __init__(self, config, *args, **kwargs):
         if not hasattr(config, "vocab"):
             raise AttributeError(
-                "config passed to the processor has no " "attribute vocab"
+                "config passed to the processor has no attribute vocab"
             )
 
         self.vocab = Vocab(*args, **config.vocab, **kwargs)

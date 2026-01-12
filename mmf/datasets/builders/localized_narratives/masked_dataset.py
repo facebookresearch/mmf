@@ -40,9 +40,9 @@ class MaskedLocalizedNarrativesDatasetMixin(ABC):
             if "mscoco" in dataset:
                 image_id = image_id.rjust(12, "0")
 
-            assert (
-                len(self.image_db.from_path(image_id)["images"]) != 0
-            ), f"image id: {image_id} not found"
+            assert len(self.image_db.from_path(image_id)["images"]) != 0, (
+                f"image id: {image_id} not found"
+            )
             current_sample.image = self.image_db.from_path(image_id)["images"][0]
 
         return current_sample

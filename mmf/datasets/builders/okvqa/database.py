@@ -13,9 +13,9 @@ class OKVQAAnnotationDatabase(AnnotationDatabase):
 
     def load_annotation_db(self, path):
         # Expect two paths, one to questions and one to annotations
-        assert (
-            len(path) == 2
-        ), "OKVQA requires 2 paths; one to questions and one to annotations"
+        assert len(path) == 2, (
+            "OKVQA requires 2 paths; one to questions and one to annotations"
+        )
 
         with open(path[0]) as f:
             path_0 = json.load(f)

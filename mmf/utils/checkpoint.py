@@ -49,9 +49,9 @@ def get_ckpt_path_from_folder(folder) -> str:
     for ckpt_type in allowed_ckpt_types:
         ckpts.extend(glob.glob(os.path.join(folder, ckpt_type)))
 
-    assert (
-        len(ckpts) == 1
-    ), "None or multiple checkpoints files. MMF doesn't know what to do."
+    assert len(ckpts) == 1, (
+        "None or multiple checkpoints files. MMF doesn't know what to do."
+    )
 
     return ckpts[0]
 
@@ -95,9 +95,9 @@ def get_config_from_folder_or_ckpt(
 
 
 def _load_pretrained_checkpoint(checkpoint_path, *args, **kwargs):
-    assert (
-        os.path.splitext(checkpoint_path)[1] in ALLOWED_CHECKPOINT_EXTS
-    ), f"Checkpoint must have extensions: {ALLOWED_CHECKPOINT_EXTS}"
+    assert os.path.splitext(checkpoint_path)[1] in ALLOWED_CHECKPOINT_EXTS, (
+        f"Checkpoint must have extensions: {ALLOWED_CHECKPOINT_EXTS}"
+    )
 
     _hack_imports()
 

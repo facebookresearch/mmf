@@ -496,9 +496,9 @@ class Box2BoxTransform:
         dh = wh * torch.log(target_heights / src_heights)
 
         deltas = torch.stack((dx, dy, dw, dh), dim=1)
-        assert (
-            (src_widths > 0).all().item()
-        ), "Input boxes to Box2BoxTransform are not valid!"
+        assert (src_widths > 0).all().item(), (
+            "Input boxes to Box2BoxTransform are not valid!"
+        )
         return deltas
 
     def apply_deltas(self, deltas, boxes):
@@ -1100,9 +1100,9 @@ class ResNet(Backbone):
                         f"same length as num_blocks={num_blocks}."
                     )
                     newk = k[: -len("_per_block")]
-                    assert (
-                        newk not in kwargs
-                    ), f"Cannot call make_stage with both {k} and {newk}!"
+                    assert newk not in kwargs, (
+                        f"Cannot call make_stage with both {k} and {newk}!"
+                    )
                     curr_kwargs[newk] = v[i]
                 else:
                     curr_kwargs[k] = v
@@ -1563,9 +1563,9 @@ class RPNHead(nn.Module):
         anchor_generator = AnchorGenerator(cfg, input_shape)
         num_cell_anchors = anchor_generator.num_cell_anchors
         box_dim = anchor_generator.box_dim
-        assert (
-            len(set(num_cell_anchors)) == 1
-        ), "Each level must have the same number of cell anchors"
+        assert len(set(num_cell_anchors)) == 1, (
+            "Each level must have the same number of cell anchors"
+        )
         num_cell_anchors = num_cell_anchors[0]
 
         if cfg.proposal_generator.hidden_channels == -1:
@@ -1827,11 +1827,11 @@ class GeneralizedRCNN(nn.Module):
             ):
                 archive_file = pretrained_model_name_or_path
             elif os.path.isfile(pretrained_model_name_or_path + ".index"):
-                assert (
-                    from_tf
-                ), "We found a TensorFlow checkpoint at {}, please set from_tf \
+                assert from_tf, (
+                    "We found a TensorFlow checkpoint at {}, please set from_tf \
                 to True to load from this checkpoint".format(
-                    pretrained_model_name_or_path + ".index"
+                        pretrained_model_name_or_path + ".index"
+                    )
                 )
                 archive_file = pretrained_model_name_or_path + ".index"
 

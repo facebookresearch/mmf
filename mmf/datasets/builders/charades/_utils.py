@@ -124,7 +124,7 @@ class CharadesVideoClips(VideoClips):
         """
         if idx >= self.num_clips():
             raise IndexError(
-                "Index {} out of range " "({} number of clips)".format(
+                "Index {} out of range ({} number of clips)".format(
                     idx, self.num_clips()
                 )
             )

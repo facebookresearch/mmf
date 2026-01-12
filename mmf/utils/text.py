@@ -57,7 +57,7 @@ def generate_ngrams_range(tokens, ngram_range=(1, 3)):
         List[str]: List of ngrams for each n in ngram_range
     """
     assert len(ngram_range) == 2, (
-        "'ngram_range' should be a tuple" " of two elements which is range of numbers"
+        "'ngram_range' should be a tuple of two elements which is range of numbers"
     )
     return chain(*(generate_ngrams(tokens, i) for i in range(*ngram_range)))
 

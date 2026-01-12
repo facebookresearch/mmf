@@ -34,9 +34,9 @@ def visualize_images(
 
     transform_list = []
 
-    assert (
-        size is not None or len(images) == 1
-    ), "If size is not passed, only one image can be visualized"
+    assert size is not None or len(images) == 1, (
+        "If size is not passed, only one image can be visualized"
+    )
 
     if size is not None:
         transform_list.append(torchvision.transforms.Resize(size=size))

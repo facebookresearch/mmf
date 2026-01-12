@@ -50,9 +50,9 @@ class MLM(BaseTransformerHead):
         encoded_layers: Optional[List[torch.Tensor]] = None,
         processed_sample_list: Optional[Dict[str, Dict[str, torch.Tensor]]] = None,
     ):
-        assert (
-            processed_sample_list is not None
-        ), "MLM head requires 'processed_sample_list' argument"
+        assert processed_sample_list is not None, (
+            "MLM head requires 'processed_sample_list' argument"
+        )
 
         output_dict = {}
 
@@ -71,9 +71,9 @@ class MLM(BaseTransformerHead):
                 + "list with value not None."
             )
 
-            assert (
-                COMBINED_LABEL_KEY in processed_sample_list[LABEL_KEY]
-            ), f"labels for all modalities must be concatenated in {COMBINED_LABEL_KEY}"
+            assert COMBINED_LABEL_KEY in processed_sample_list[LABEL_KEY], (
+                f"labels for all modalities must be concatenated in {COMBINED_LABEL_KEY}"
+            )
 
             masked_labels = processed_sample_list[LABEL_KEY][COMBINED_LABEL_KEY]
 

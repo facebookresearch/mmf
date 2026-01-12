@@ -39,18 +39,18 @@ class HMConverter:
         phase_one = True
         for file in files_needed:
             try:
-                assert PathManager.exists(
-                    os.path.join(folder, "data", file)
-                ), f"{file} doesn't exist in {folder}"
+                assert PathManager.exists(os.path.join(folder, "data", file)), (
+                    f"{file} doesn't exist in {folder}"
+                )
             except AssertionError:
                 phase_one = False
 
         if not phase_one:
             files_needed = self.JSONL_PHASE_TWO_FILES
             for file in files_needed:
-                assert PathManager.exists(
-                    os.path.join(folder, "data", file)
-                ), f"{file} doesn't exist in {folder}"
+                assert PathManager.exists(os.path.join(folder, "data", file)), (
+                    f"{file} doesn't exist in {folder}"
+                )
         else:
             warnings.warn(
                 "You are on Phase 1 of the Hateful Memes Challenge. "

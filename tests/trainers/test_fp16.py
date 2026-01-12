@@ -43,9 +43,9 @@ class MMFTrainerMock(TrainerTrainingLoopMock):
         )
         super().__init__(num_train_data, config=config)
         if fp16_model:
-            assert (
-                torch.cuda.is_available()
-            ), "MMFTrainerMock fp16 requires cuda enabled"
+            assert torch.cuda.is_available(), (
+                "MMFTrainerMock fp16 requires cuda enabled"
+            )
             model = SimpleModelWithFp16Assert({"in_dim": 1})
             model.build()
             model = model.cuda()

@@ -113,9 +113,9 @@ class Registry:
         def wrap(builder_cls):
             from mmf.datasets.base_dataset_builder import BaseDatasetBuilder
 
-            assert issubclass(
-                builder_cls, BaseDatasetBuilder
-            ), "All builders must inherit BaseDatasetBuilder class"
+            assert issubclass(builder_cls, BaseDatasetBuilder), (
+                "All builders must inherit BaseDatasetBuilder class"
+            )
             cls.mapping["builder_name_mapping"][name] = builder_cls
             return builder_cls
 
@@ -143,9 +143,9 @@ class Registry:
         def wrap(func):
             from mmf.trainers.callbacks.base import Callback
 
-            assert issubclass(
-                func, Callback
-            ), "All callbacks must inherit Callback class"
+            assert issubclass(func, Callback), (
+                "All callbacks must inherit Callback class"
+            )
             cls.mapping["callback_name_mapping"][name] = func
             return func
 
@@ -173,9 +173,9 @@ class Registry:
         def wrap(func):
             from mmf.modules.metrics import BaseMetric
 
-            assert issubclass(
-                func, BaseMetric
-            ), "All Metric must inherit BaseMetric class"
+            assert issubclass(func, BaseMetric), (
+                "All Metric must inherit BaseMetric class"
+            )
             cls.mapping["metric_name_mapping"][name] = func
             return func
 
@@ -228,9 +228,9 @@ class Registry:
         def wrap(func):
             from torch import nn
 
-            assert issubclass(
-                func, nn.Module
-            ), "All loss must inherit torch.nn.Module class"
+            assert issubclass(func, nn.Module), (
+                "All loss must inherit torch.nn.Module class"
+            )
             cls.mapping["loss_name_mapping"][name] = func
             return func
 
@@ -257,9 +257,9 @@ class Registry:
         def wrap(func):
             from torch import nn
 
-            assert issubclass(
-                func, nn.Module
-            ), "All pooling methods must inherit torch.nn.Module class"
+            assert issubclass(func, nn.Module), (
+                "All pooling methods must inherit torch.nn.Module class"
+            )
             cls.mapping["pool_name_mapping"][name] = func
             return func
 
@@ -285,9 +285,9 @@ class Registry:
         def wrap(func):
             from torch import nn
 
-            assert issubclass(
-                func, nn.Module
-            ), "All Fusion must inherit torch.nn.Module class"
+            assert issubclass(func, nn.Module), (
+                "All Fusion must inherit torch.nn.Module class"
+            )
             cls.mapping["fusion_name_mapping"][name] = func
             return func
 
@@ -313,9 +313,9 @@ class Registry:
         def wrap(func):
             from mmf.models.base_model import BaseModel
 
-            assert issubclass(
-                func, BaseModel
-            ), "All models must inherit BaseModel class"
+            assert issubclass(func, BaseModel), (
+                "All models must inherit BaseModel class"
+            )
             cls.mapping["model_name_mapping"][name] = func
             return func
 
@@ -342,9 +342,9 @@ class Registry:
         def wrap(func):
             from mmf.datasets.processors.processors import BaseProcessor
 
-            assert issubclass(
-                func, BaseProcessor
-            ), "All Processor classes must inherit BaseProcessor class"
+            assert issubclass(func, BaseProcessor), (
+                "All Processor classes must inherit BaseProcessor class"
+            )
             cls.mapping["processor_name_mapping"][name] = func
             return func
 
@@ -412,9 +412,9 @@ class Registry:
         def wrap(decoder_cls):
             from mmf.utils.text import TextDecoder
 
-            assert issubclass(
-                decoder_cls, TextDecoder
-            ), "All decoders must inherit TextDecoder class"
+            assert issubclass(decoder_cls, TextDecoder), (
+                "All decoders must inherit TextDecoder class"
+            )
             cls.mapping["decoder_name_mapping"][name] = decoder_cls
             return decoder_cls
 
@@ -442,9 +442,9 @@ class Registry:
         def wrap(encoder_cls):
             from mmf.modules.encoders import Encoder
 
-            assert issubclass(
-                encoder_cls, Encoder
-            ), "All encoders must inherit Encoder class"
+            assert issubclass(encoder_cls, Encoder), (
+                "All encoders must inherit Encoder class"
+            )
             cls.mapping["encoder_name_mapping"][name] = encoder_cls
             return encoder_cls
 
@@ -472,9 +472,9 @@ class Registry:
         def wrap(datamodule_cls):
             import pytorch_lightning as pl
 
-            assert issubclass(
-                datamodule_cls, pl.LightningDataModule
-            ), "All datamodules must inherit PyTorch Lightning DataModule class"
+            assert issubclass(datamodule_cls, pl.LightningDataModule), (
+                "All datamodules must inherit PyTorch Lightning DataModule class"
+            )
             cls.mapping["builder_name_mapping"][name] = datamodule_cls
             return datamodule_cls
 
@@ -506,9 +506,9 @@ class Registry:
         def wrap(iteration_strategy_cls):
             from mmf.datasets.iteration_strategies import IterationStrategy
 
-            assert issubclass(
-                iteration_strategy_cls, IterationStrategy
-            ), "All datamodules must inherit IterationStrategy class"
+            assert issubclass(iteration_strategy_cls, IterationStrategy), (
+                "All datamodules must inherit IterationStrategy class"
+            )
             cls.mapping["iteration_strategy_name_mapping"][name] = (
                 iteration_strategy_cls
             )

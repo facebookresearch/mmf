@@ -12,9 +12,9 @@ class VQACPv2AnnotationDatabase(OKVQAAnnotationDatabase):
 
     def load_annotation_db(self, path):
         # Expect two paths, one to questions and one to annotations
-        assert (
-            len(path) == 2
-        ), "VQACPv2 requires 2 paths; one to questions and one to annotations"
+        assert len(path) == 2, (
+            "VQACPv2 requires 2 paths; one to questions and one to annotations"
+        )
 
         with PathManager.open(path[0]) as f:
             path_0 = json.load(f)

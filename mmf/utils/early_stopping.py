@@ -55,8 +55,9 @@ class EarlyStopping:
         value = meter.meters.get(self.early_stop_criteria, None)
         if value is None:
             raise ValueError(
-                "Criteria used for early stopping ({}) is not "
-                "present in meter.".format(self.early_stop_criteria)
+                "Criteria used for early stopping ({}) is not present in meter.".format(
+                    self.early_stop_criteria
+                )
             )
 
         value = value.global_avg

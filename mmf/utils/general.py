@@ -130,7 +130,7 @@ def get_absolute_path(paths):
     elif isinstance(paths, collections.abc.Iterable):
         return [get_absolute_path(path) for path in paths]
     else:
-        raise TypeError("Paths passed to dataset should either be " "string or list")
+        raise TypeError("Paths passed to dataset should either be string or list")
 
 
 def get_optimizer_parameters(model, config):
@@ -300,7 +300,7 @@ def get_batch_size():
 
     if batch_size % world_size != 0:
         raise RuntimeError(
-            "Batch size {} must be divisible by number " "of GPUs {} used.".format(
+            "Batch size {} must be divisible by number of GPUs {} used.".format(
                 batch_size, world_size
             )
         )
@@ -352,9 +352,9 @@ def get_max_updates(config_max_updates, config_max_epochs, train_loader, update_
         )
 
     if config_max_epochs is not None:
-        assert (
-            hasattr(train_loader, "__len__") and len(train_loader) != 0
-        ), "max_epochs can't be used with IterableDatasets"
+        assert hasattr(train_loader, "__len__") and len(train_loader) != 0, (
+            "max_epochs can't be used with IterableDatasets"
+        )
         max_updates = math.ceil(len(train_loader) / update_freq) * config_max_epochs
         max_epochs = config_max_epochs
     else:
@@ -455,7 +455,7 @@ def retry_n(n: int, fn: Callable, *args, log_tries=False, **kwargs) -> Any:
                 if log_tries:
                     logger.info(
                         f"Try {count + 1}/{n} failed for {fn.__name__}. Will retry "
-                        f"after {2 ** count} second(s)."
+                        f"after {2**count} second(s)."
                     )
                 time.sleep(2**count)
                 count += 1

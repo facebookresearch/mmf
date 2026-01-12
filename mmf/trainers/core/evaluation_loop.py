@@ -84,9 +84,9 @@ class TrainerEvaluationLoopMixin(ABC):
                 logger.info(f" -- skipped {skipped_batches} batches.")
 
                 reporter.postprocess_dataset_report()
-                assert (
-                    combined_report is not None
-                ), "Please check if your validation set is empty!"
+                assert combined_report is not None, (
+                    "Please check if your validation set is empty!"
+                )
                 # add prediction_report is used for set-level metrics
                 combined_report.prediction_report = reporter.report
 

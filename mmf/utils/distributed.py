@@ -363,8 +363,7 @@ def distributed_init(config):
             rank=config.distributed.rank,
         )
         logger.info(
-            f"Initialized Host {socket.gethostname()} as Rank "
-            f"{config.distributed.rank}"
+            f"Initialized Host {socket.gethostname()} as Rank {config.distributed.rank}"
         )
 
         if "MASTER_ADDR" not in os.environ or "MASTER_PORT" not in os.environ:
@@ -376,9 +375,9 @@ def distributed_init(config):
             )
 
             split = split[1].split(":")
-            assert (
-                len(split) == 2
-            ), "host url should be of the form <host_url>:<host_port>"
+            assert len(split) == 2, (
+                "host url should be of the form <host_url>:<host_port>"
+            )
             os.environ["MASTER_ADDR"] = split[0]
             os.environ["MASTER_PORT"] = split[1]
 

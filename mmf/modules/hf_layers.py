@@ -6,7 +6,6 @@ from typing import List, Optional, Tuple
 import torch
 from mmf.utils.patch import restore_saved_modules, safecopy_modules
 from torch import nn, Tensor
-
 from transformers.modeling_utils import PreTrainedModel
 from transformers.models.bert.modeling_bert import (
     BertAttention,

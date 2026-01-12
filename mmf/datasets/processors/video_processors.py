@@ -159,9 +159,9 @@ class VideoTransforms(BaseProcessor):
         if OmegaConf.is_dict(transform_params):
             transform_params = [transform_params]
         pytorchvideo_spec = importlib.util.find_spec("pytorchvideo")
-        assert (
-            pytorchvideo_spec is not None
-        ), "Must have pytorchvideo installed to use VideoTransforms"
+        assert pytorchvideo_spec is not None, (
+            "Must have pytorchvideo installed to use VideoTransforms"
+        )
 
         transforms_list = []
 

@@ -80,9 +80,9 @@ class IterationStrategy:
         use cases
         """
         training = get_global_config("training")
-        assert (
-            training.get("max_epochs", None) is None
-        ), f"{self.__class__.__name__} doesn't make sense with epoch based training"
+        assert training.get("max_epochs", None) is None, (
+            f"{self.__class__.__name__} doesn't make sense with epoch based training"
+        )
 
     def __call__(self, *args, **kwargs):
         raise NotImplementedError("__call__ hasn't been implemented")
@@ -206,9 +206,9 @@ class SizeProportionalIterationStrategy(IterationStrategy):
                 + "to work with proportional sampling iterator"
             )
             dataset_instance_length = len(dataset_instance)
-            assert (
-                dataset_instance_length
-            ), f"dataset: {dataset_instance.dataset_type} is empty"
+            assert dataset_instance_length, (
+                f"dataset: {dataset_instance.dataset_type} is empty"
+            )
             self._per_dataset_lengths.append(dataset_instance_length)
             self._total_length += dataset_instance_length
 
@@ -256,9 +256,9 @@ class RatiosIterationStrategy(IterationStrategy):
         sampling_ratios = self.config.get("sampling_ratios", {})
         probabilities = []
         for dataset in given_datasets:
-            assert (
-                dataset in sampling_ratios
-            ), f"{dataset} must be specified in sampling_ratios param for multitasking"
+            assert dataset in sampling_ratios, (
+                f"{dataset} must be specified in sampling_ratios param for multitasking"
+            )
             probabilities.append(sampling_ratios[dataset])
 
         # normalize the sampling ratios to sum up to 1

@@ -114,9 +114,9 @@ class MMFTrainer(
 
     def load_fp16_scaler(self):
         if self.training_config.fp16:
-            assert version.parse(torch.__version__) >= version.parse(
-                "1.6"
-            ), f"Using fp16 requires torch version >- 1.6, found: {torch.__version__}"
+            assert version.parse(torch.__version__) >= version.parse("1.6"), (
+                f"Using fp16 requires torch version >- 1.6, found: {torch.__version__}"
+            )
             assert self.device != torch.device("cpu"), "fp16 cannot be used on cpu"
 
         set_torch_grad_scaler = True

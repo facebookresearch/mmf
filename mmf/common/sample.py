@@ -163,7 +163,7 @@ class SampleList(OrderedDict):
     def __getattr__(self, key):
         if key not in self:
             raise AttributeError(
-                "Key {} not found in the SampleList. " "Valid choices are {}".format(
+                "Key {} not found in the SampleList. Valid choices are {}".format(
                     key, self.fields()
                 )
             )
@@ -181,9 +181,9 @@ class SampleList(OrderedDict):
 
     def get_device(self):
         field_tensor = self._get_tensor_field()
-        assert (
-            field_tensor is not None
-        ), f"No tensor field in sample list, available keys: {self.fields()}"
+        assert field_tensor is not None, (
+            f"No tensor field in sample list, available keys: {self.fields()}"
+        )
         return self[field_tensor].device
 
     def get_item_list(self, key):
@@ -246,7 +246,7 @@ class SampleList(OrderedDict):
         for field in fields:
             if field not in current_fields:
                 raise AttributeError(
-                    "{} not present in SampleList. " "Valid choices are {}".format(
+                    "{} not present in SampleList. Valid choices are {}".format(
                         field, current_fields
                     )
                 )

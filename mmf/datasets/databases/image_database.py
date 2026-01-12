@@ -128,9 +128,9 @@ class ImageDatabase(torch.utils.data.Dataset):
         if isinstance(paths, str):
             paths = [paths]
 
-        assert isinstance(
-            paths, collections.abc.Iterable
-        ), "Path needs to a string or an iterable"
+        assert isinstance(paths, collections.abc.Iterable), (
+            "Path needs to a string or an iterable"
+        )
 
         loaded_images = []
         for image in paths:

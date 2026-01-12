@@ -47,9 +47,9 @@ class HungarianMatcher(nn.Module):
         self.cost_bbox = cost_bbox
         self.cost_giou = cost_giou
         self.norm = nn.LogSoftmax(-1) if logsoftmax else nn.Softmax(-1)
-        assert (
-            cost_class != 0 or cost_bbox != 0 or cost_giou != 0
-        ), "all costs cant be 0"
+        assert cost_class != 0 or cost_bbox != 0 or cost_giou != 0, (
+            "all costs cant be 0"
+        )
 
     @torch.no_grad()
     def forward(self, outputs: Dict[str, Tensor], targets: List[Dict[str, Tensor]]):

@@ -11,9 +11,9 @@ class MMIMDbFeaturesDataset(MMFDataset):
         super().__init__(
             "mmimdb", config, dataset_type, imdb_file_index, *args, **kwargs
         )
-        assert (
-            self._use_features
-        ), "config's 'use_features' must be true to use feature dataset"
+        assert self._use_features, (
+            "config's 'use_features' must be true to use feature dataset"
+        )
 
     def __getitem__(self, idx):
         sample_info = self.annotation_db[idx]
@@ -47,9 +47,9 @@ class MMIMDbImageDataset(MMFDataset):
         super().__init__(
             "mmimdb", config, dataset_type, imdb_file_index, *args, **kwargs
         )
-        assert (
-            self._use_images
-        ), "config's 'use_images' must be true to use image dataset"
+        assert self._use_images, (
+            "config's 'use_images' must be true to use image dataset"
+        )
 
     def init_processors(self):
         super().init_processors()

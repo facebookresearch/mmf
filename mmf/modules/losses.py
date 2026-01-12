@@ -163,9 +163,9 @@ class MMFLoss(nn.Module):
             else:
                 loss_name = params["type"]
         else:
-            assert isinstance(
-                params, str
-            ), "loss must be a string or dictionary with 'type' key"
+            assert isinstance(params, str), (
+                "loss must be a string or dictionary with 'type' key"
+            )
             loss_name = params
 
         self.name = loss_name
@@ -636,9 +636,9 @@ class SoftLabelCrossEntropyLoss(nn.Module):
         reduction.
         """
 
-        assert targets.size(0) == scores.size(
-            0
-        ), "`targets` and `scores` should have the same batch size"
+        assert targets.size(0) == scores.size(0), (
+            "`targets` and `scores` should have the same batch size"
+        )
 
         if targets.dim() == 1:
             targets = targets.unsqueeze(1)
@@ -677,9 +677,9 @@ class LabelSmoothingCrossEntropyLoss(SoftLabelCrossEntropyLoss):
     """
 
     def __init__(self, label_smoothing=0.1, reduction="mean", ignore_index=-100):
-        assert (
-            0 <= label_smoothing < 1
-        ), "value of argument `label_smoothing` must be in range [0, 1)."
+        assert 0 <= label_smoothing < 1, (
+            "value of argument `label_smoothing` must be in range [0, 1)."
+        )
 
         super().__init__(ignore_index, reduction, False)
         self.label_smoothing = label_smoothing
@@ -773,9 +773,9 @@ class ContrastiveLoss(nn.Module):
         super().__init__()
 
     def forward(self, sample_list: Dict[str, Tensor], model_output: Dict[str, Tensor]):
-        assert (
-            "embedding_1" in model_output and "embedding_2" in model_output
-        ), "Embedding names must be available before loss calculation"
+        assert "embedding_1" in model_output and "embedding_2" in model_output, (
+            "Embedding names must be available before loss calculation"
+        )
 
         embedding_1 = model_output["embedding_1"]
         embedding_2 = model_output["embedding_2"]

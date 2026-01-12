@@ -269,12 +269,12 @@ class Accuracy(BaseMetric):
         batch_size = output.shape[0]
         expected = sample_list[self.target_key]
 
-        assert (
-            output.dim() <= 2
-        ), "Output from model shouldn't have more than dim 2 for accuracy"
-        assert (
-            expected.dim() <= 2
-        ), "Expected target shouldn't have more than dim 2 for accuracy"
+        assert output.dim() <= 2, (
+            "Output from model shouldn't have more than dim 2 for accuracy"
+        )
+        assert expected.dim() <= 2, (
+            "Expected target shouldn't have more than dim 2 for accuracy"
+        )
 
         if output.dim() == 2:
             output = output.topk(self.topk, 1, True, True)[1].t().squeeze()

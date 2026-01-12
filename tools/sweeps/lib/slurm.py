@@ -55,9 +55,9 @@ def copy_all_python_files(source, snapshot_main_dir, code_snapshot_hash):
     """
     os.makedirs(snapshot_main_dir, exist_ok=True)
     destination = os.path.join(snapshot_main_dir, code_snapshot_hash)
-    assert not os.path.exists(
-        destination
-    ), f"Code snapshot: {code_snapshot_hash} alredy exists"
+    assert not os.path.exists(destination), (
+        f"Code snapshot: {code_snapshot_hash} alredy exists"
+    )
     os.makedirs(destination)
     all_pys = (
         glob(os.path.join(source, "mmf/**/*.py"), recursive=True)
@@ -173,9 +173,9 @@ def launch_train(args, config):
     env = os.environ.copy()
     env["OMP_NUM_THREADS"] = "2"
     if args.local:
-        assert (
-            args.num_nodes == 1
-        ), "distributed training cannot be combined with --local"
+        assert args.num_nodes == 1, (
+            "distributed training cannot be combined with --local"
+        )
         if not dry_run("start training locally"):
             if "CUDA_VISIBLE_DEVICES" not in env:
                 env["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, range(args.num_gpus)))

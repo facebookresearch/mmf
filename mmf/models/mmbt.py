@@ -546,9 +546,9 @@ class MMBTForClassification(nn.Module):
             if self.output_hidden_states or self.output_attentions:
                 output["extras"] = module_output[2:]
         else:
-            assert not (
-                self.output_hidden_states or self.output_attentions
-            ), "output_attentions or output_hidden_states not supported in script mode"
+            assert not (self.output_hidden_states or self.output_attentions), (
+                "output_attentions or output_hidden_states not supported in script mode"
+            )
 
         pooled_output = self.dropout(pooled_output)
 

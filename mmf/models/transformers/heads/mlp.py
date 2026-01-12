@@ -68,9 +68,9 @@ class MLP(BaseTransformerHead):
         encoded_layers: Optional[List[torch.Tensor]] = None,
         processed_sample_list: Optional[Dict[str, Dict[str, torch.Tensor]]] = None,
     ):
-        assert (
-            sequence_output.size()[-1] == self.in_dim
-        ), "Mismatch between MLP head hidden_size and sequence_output last dim."
+        assert sequence_output.size()[-1] == self.in_dim, (
+            "Mismatch between MLP head hidden_size and sequence_output last dim."
+        )
         output_dict = {}
         pooled_output = self.pooler(sequence_output)
         prediction = self.classifier(pooled_output)

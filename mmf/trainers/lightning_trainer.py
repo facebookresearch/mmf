@@ -243,9 +243,9 @@ class LightningTrainer(BaseTrainer):
 
     def monitor_criteria(self):
         monitor_criteria = self.training_config.early_stop.get("criteria", None)
-        assert (
-            monitor_criteria
-        ), "monitor criteria is required when early stop is specified."
+        assert monitor_criteria, (
+            "monitor criteria is required when early stop is specified."
+        )
         if "val" not in monitor_criteria:
             monitor_criteria = f"val/{monitor_criteria}"
         mode = (

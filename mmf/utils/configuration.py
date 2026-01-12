@@ -108,9 +108,9 @@ def get_zoo_config(
     if variation not in item:
         # If variation is not present, then key value should
         # be directly returned if "defaults" was selected as the variation
-        assert (
-            variation == "defaults"
-        ), f"'{variation}' variation not present in zoo config"
+        assert variation == "defaults", (
+            f"'{variation}' variation not present in zoo config"
+        )
         return _get_version_and_resources(item)
     elif "resources" in item:
         # Case where full key is directly passed
@@ -123,10 +123,10 @@ def _get_version_and_resources(item):
     assert "version" in item, "'version' key should be present in zoo config {}".format(
         item._get_full_key("")
     )
-    assert (
-        "resources" in item
-    ), "'resources' key should be present in zoo config {}".format(
-        item._get_full_key("")
+    assert "resources" in item, (
+        "'resources' key should be present in zoo config {}".format(
+            item._get_full_key("")
+        )
     )
 
     return item.version, item.resources
@@ -248,7 +248,7 @@ def _merge_with_dotlist(
 
                     raise AttributeError(
                         "While updating configuration",
-                        "option {} is not present " "after field {}".format(
+                        "option {} is not present after field {}".format(
                             opt, stripped_field
                         ),
                     )
