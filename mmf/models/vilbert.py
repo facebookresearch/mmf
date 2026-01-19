@@ -1263,10 +1263,16 @@ class ViLBERTForClassification(nn.Module):
         classifier_config.hidden_size = config.bi_hidden_size
         if self.config.training_head_type == "nlvr2":
             classifier_config.hidden_size *= 2
-        self.classifier = nn.Sequential(
-            BertPredictionHeadTransform(classifier_config),
-            nn.Linear(classifier_config.hidden_size, self.num_labels),
-        )
+
+        if self.config.training_head_type == 'visual7w':
+            self.classifier = nn.Sequential(
+                nn.Linear(classifier_config.hidden_size, self.num_labels),
+            )
+        else:
+            self.classifier = nn.Sequential(
+                BertPredictionHeadTransform(classifier_config),
+                nn.Linear(classifier_config.hidden_size, self.num_labels),
+            )
         self.init_weights()
 
     def init_weights(self):
@@ -1326,9 +1332,13 @@ class ViLBERTForClassification(nn.Module):
         if self.training_head_type == "nlvr2":
             pooled_output = pooled_output.view(-1, pooled_output.size(1) * 2)
 
-        logits = self.classifier(pooled_output)
-        reshaped_logits = logits.contiguous().view(-1, self.num_labels)
-        output["scores"] = reshaped_logits
+        if self.training_head_type == 'visual7w':
+            logits = self.classifier(self.dropout(sequence_output_v))
+            output["scores"] = logits[:, -self.config.num_multiple_choices:].squeeze()
+        else:
+            logits = self.classifier(pooled_output)
+            reshaped_logits = logits.contiguous().view(-1, self.num_labels)
+            output["scores"] = reshaped_logits
 
         return output
 
