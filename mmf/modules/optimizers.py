@@ -8,7 +8,10 @@ from mmf.common.registry import registry
 try:
     from transformers3.optimization import AdamW
 except ImportError:
-    from transformers.optimization import AdamW
+    try:
+        from transformers.optimization import AdamW
+    except ImportError:
+        from torch.optim import AdamW
 
 
 registry.register_optimizer("adam_w")(AdamW)
@@ -65,7 +68,7 @@ class AdamWSkipParamsWithZeroGrad(AdamW):
                 denom = exp_avg_sq.sqrt().add_(group["eps"])
 
                 step_size = group["lr"]
-                if group["correct_bias"]:  # No bias correction for Bert
+                if group.get("correct_bias", True):  # No bias correction for Bert
                     bias_correction1 = 1.0 - beta1 ** state["step"]
                     bias_correction2 = 1.0 - beta2 ** state["step"]
                     step_size = (
