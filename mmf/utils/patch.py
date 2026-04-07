@@ -51,7 +51,13 @@ def patch_transformers(log_incompatible=False):
 
         try:
             model_lib = importlib.import_module(f"transformers.models.{key}")
-        except (ImportError, ModuleNotFoundError, AttributeError, NameError):
+        except (
+            ImportError,
+            ModuleNotFoundError,
+            AttributeError,
+            NameError,
+            RuntimeError,
+        ):
             if log_incompatible:
                 logger.info(
                     f"transformers' patching: {key} is not importable. Skipping."
@@ -72,7 +78,13 @@ def patch_transformers(log_incompatible=False):
                 sys.modules[f"transformers.{module}"] = importlib.import_module(
                     f"transformers.models.{key}.{module}"
                 )
-            except (ImportError, ModuleNotFoundError, AttributeError, NameError):
+            except (
+                ImportError,
+                ModuleNotFoundError,
+                AttributeError,
+                NameError,
+                RuntimeError,
+            ):
                 logger.info(f"Failed to import transformers.models.{key}.{module}")
                 continue
     sys.path = [sys.path[-1]] + sys.path[:-1]
