@@ -634,8 +634,8 @@ class Registry:
 
         if (
             "writer" in cls.mapping["state"]
-            and value == default
             and no_warning is False
+            and type(value) == type(default) and value == default
         ):
             cls.mapping["state"]["writer"].warning(
                 "Key {} is not present in registry, returning default value "
