@@ -315,6 +315,13 @@ class SampleList(OrderedDict):
                 )
             )
 
+        if tensor_field is not None:
+            device = self[tensor_field].device
+            if isinstance(data, torch.Tensor) and data.device != device:
+                if hasattr(data, "to"):
+                    # ensures data being added is on same device as existing tensors
+                    data = data.to(device)
+
         if isinstance(data, collections.abc.Mapping):
             self[field] = SampleList(data)
         else:
