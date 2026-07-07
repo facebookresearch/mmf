@@ -265,7 +265,7 @@ class SingleImageViz:
             s, (width, height) = self.canvas.print_to_buffer()
             if (width, height) != (self.width, self.height):
                 img = Image.fromarray(self.img)
-                img = img.resize((width, height), Image.NEAREST)
+                img = img.resize((width, height), Image.Resampling.NEAREST)
             else:
                 img = self.img
         else:
