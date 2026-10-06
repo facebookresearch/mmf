@@ -31,7 +31,7 @@ class TestEncoders(unittest.TestCase):
         )
 
     def test_resnet152_image_encoder(self):
-        self._test_init(encoders.ResNet152ImageEncoder)
+        self._test_init(encoders.ResNet152ImageEncoder, pretrained=False)
 
     def test_text_embedding_encoder(self):
         embedding_params = {
