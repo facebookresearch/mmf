@@ -100,6 +100,20 @@ class TestFunctions(unittest.TestCase):
         custom_batch = [{"a": 1}]
         self.assertEqual(to_device(custom_batch), custom_batch)
 
+        # Test if device of tensor being added inside add_field is compatible with existing sample_list tensors' device
+
+        # case 1: existing sample_list_ has device='cuda', we try to add a tensor with device='cpu'
+        sample_list_ = SampleList()
+        sample_list_.add_field("a", torch.ones((1, 2), device='cuda'))
+        sample_list_.add_field("b", torch.zeros((1, 5), device='cpu').long())
+        self.assertEqual(sample_list_["a"].device, sample_list_["b"].device)
+
+        # case 2: existing sample_list_ has device='cpu', we try to add a tensor with device='cuda'
+        sample_list_ = SampleList()
+        sample_list_.add_field("a", torch.ones((1, 2), device='cpu'))
+        sample_list_.add_field("b", torch.zeros((1, 5), device='cuda').long())
+        self.assertEqual(sample_list_["a"].device, sample_list_["b"].device)
+
     def test_convert_batch_to_sample_list(self):
         # Test list conversion
         batch = [{"a": torch.tensor([1.0, 1.0])}, {"a": torch.tensor([2.0, 2.0])}]
