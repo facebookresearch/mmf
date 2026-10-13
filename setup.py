@@ -2,161 +2,170 @@
 
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-import codecs
+import copy
+import json
 import os
-import platform
-import re
-from glob import glob
 
-import setuptools
-from setuptools import Extension
-from setuptools.command.build_ext import build_ext
-
-
-def clean_html(raw_html):
-    cleanr = re.compile("<.*?>")
-    cleantext = re.sub(cleanr, "", raw_html).strip()
-    return cleantext
+import torch
+from mmf.common.sample import Sample, SampleList
+from mmf.datasets.builders.vqa2 import VQA2Dataset
+from mmf.datasets.databases.scene_graph_database import SceneGraphDatabase
+from mmf.utils.configuration import get_mmf_env
+from mmf.utils.general import get_absolute_path
 
 
-# Single sourcing code from here:
-# https://packaging.python.org/guides/single-sourcing-package-version/
-def find_version(*file_paths):
-    here = os.path.abspath(os.path.dirname(__file__))
+_CONSTANTS = {"image_id_key": "image_id"}
+class VisualGenomeDataset(VQA2Dataset):
+    def __init__(self, config, dataset_type, imdb_file_index, *args, **kwargs):
+        super().__init__(
+            config,
+            dataset_type,
+            imdb_file_index,
+            dataset_name="visual_genome",
+            *args,
+            **kwargs
+        )
+        self._return_scene_graph = config.return_scene_graph
+        self._return_objects = config.return_objects
+        self._return_relationships = config.return_relationships
+        self._no_unk = config.get("no_unk", False)
+        self.scene_graph_db = None
+        build_scene_graph_db = (
+            self._return_scene_graph
+            or self._return_objects
+            or self._return_relationships
+        )
+        if build_scene_graph_db:
+            scene_graph_file = config.scene_graph_files[dataset_type][imdb_file_index]
+            scene_graph_file = self._get_absolute_path(scene_graph_file)
+            self.scene_graph_db = SceneGraphDatabase(config, scene_graph_file)
+    def load_item(self, idx):
+        sample_info = self.annotation_db[idx]
+        sample_info = self._preprocess_answer(sample_info)
+        sample_info["question_id"] = sample_info["id"]
+        if self._check_unk(sample_info):
+            return self.load_item((idx + 1) % len(self.annotation_db))
+        current_sample = super().load_item(idx)
+        current_sample = self._load_scene_graph(idx, current_sample)
 
-    def read(*parts):
-        with codecs.open(os.path.join(here, *parts), "r") as fp:
-            return fp.read()
+        return current_sample
 
-    version_file = read(*file_paths)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
+    def _get_absolute_path(self, scene_graph_file):
+        data_dir = get_mmf_env(key="data_dir")
+        absolute_scene_graph_file = get_absolute_path(
+            os.path.join(data_dir, scene_graph_file)
+        )
+        return absolute_scene_graph_file
 
+    def _get_image_id(self, idx):
+        return self.annotation_db[idx][_CONSTANTS["image_id_key"]]
 
-def fetch_long_description():
-    with open("README.md", encoding="utf8") as f:
-        readme = f.read()
-        # https://stackoverflow.com/a/12982689
-        readme = clean_html(readme)
-    return readme
-
-
-def fetch_requirements():
-    requirements_file = "requirements.txt"
-
-    if platform.system() == "Windows":
-        DEPENDENCY_LINKS.append("https://download.pytorch.org/whl/torch_stable.html")
-
-    with open(requirements_file) as f:
-        reqs = f.read()
-
-    reqs = reqs.strip().split("\n")
-    reqs = remove_specific_requirements(reqs)
-    return reqs
-
-
-def remove_specific_requirements(reqs):
-    rtd = "READTHEDOCS" in os.environ
-    excluded = {"fasttext": rtd}
-    updated_reqs = []
-    for req in reqs:
-        without_version = req.split("==")[0]
-        if not excluded.get(without_version, False):
-            updated_reqs.append(req)
-    return updated_reqs
-
-
-def fetch_files_from_folder(folder):
-    options = glob(f"{folder}/**", recursive=True)
-    data_files = []
-    # All files inside the folder need to be added to package_data
-    # which would include yaml configs as well as project READMEs
-    for option in options:
-        if os.path.isdir(option):
-            files = []
-            for f in glob(os.path.join(option, "*")):
-                if os.path.isfile(f):
-                    files.append(f)
-                data_files += files
-    return data_files
-
-
-def fetch_package_data():
-    current_dir = os.getcwd()
-    mmf_folder = os.path.dirname(os.path.abspath(__file__))
-    # The files for package data need to be relative to mmf package dir
-    os.chdir(os.path.join(mmf_folder, "mmf"))
-    data_files = fetch_files_from_folder("projects")
-    data_files += fetch_files_from_folder("tools")
-    data_files += fetch_files_from_folder("configs")
-    data_files += glob(os.path.join("utils", "phoc", "cphoc.*"))
-    os.chdir(current_dir)
-    return data_files
-
-
-DISTNAME = "mmf"
-DESCRIPTION = "mmf: a modular framework for vision and language multimodal \
-research."
-LONG_DESCRIPTION = fetch_long_description()
-LONG_DESCRIPTION_CONTENT_TYPE = "text/markdown"
-AUTHOR = "Facebook AI Research"
-AUTHOR_EMAIL = "mmf@fb.com"
-DEPENDENCY_LINKS = []
-REQUIREMENTS = (fetch_requirements(),)
-# Need to exclude folders in tests as well so as they don't create an extra package
-# If something from tools is regularly used consider converting it into a cli command
-EXCLUDES = ("data", "docs", "tests", "tests.*", "tools", "tools.*")
-CMD_CLASS = {"build_ext": build_ext}
-EXT_MODULES = [
-    Extension(
-        "mmf.utils.phoc.cphoc", sources=["mmf/utils/phoc/src/cphoc.c"], language="c"
-    )
-]
-
-if "READTHEDOCS" in os.environ:
-    # Don't build extensions when generating docs
-    EXT_MODULES = []
-    CMD_CLASS.pop("build_ext", None)
-    # use CPU build of PyTorch
-    DEPENDENCY_LINKS.append(
-        "https://download.pytorch.org/whl/cpu/torch-1.5.0%2B"
-        + "cpu-cp36-cp36m-linux_x86_64.whl"
-    )
-
-
-if __name__ == "__main__":
-    setuptools.setup(
-        name=DISTNAME,
-        install_requires=REQUIREMENTS,
-        include_package_data=True,
-        package_data={"mmf": fetch_package_data()},
-        packages=setuptools.find_packages(exclude=EXCLUDES),
-        python_requires=">=3.6",
-        ext_modules=EXT_MODULES,
-        cmdclass=CMD_CLASS,
-        version=find_version("mmf", "version.py"),
-        description=DESCRIPTION,
-        long_description=LONG_DESCRIPTION,
-        long_description_content_type=LONG_DESCRIPTION_CONTENT_TYPE,
-        author=AUTHOR,
-        author_email=AUTHOR_EMAIL,
-        dependency_links=DEPENDENCY_LINKS,
-        classifiers=[
-            "Programming Language :: Python :: 3.6",
-            "Programming Language :: Python :: 3.7",
-            "Programming Language :: Python :: 3.8",
-            "License :: OSI Approved :: BSD License",
-            "Topic :: Scientific/Engineering :: Artificial Intelligence",
-            "Operating System :: OS Independent",
-        ],
-        entry_points={
-            "console_scripts": [
-                "mmf_run = mmf_cli.run:run",
-                "mmf_predict = mmf_cli.predict:predict",
-                "mmf_convert_hm = mmf_cli.hm_convert:main",
-                "mmf_interactive = mmf_cli.interactive:interactive",
+    def _get_image_info(self, idx):
+        # Deep copy so that we can directly update the nested dicts
+        return copy.deepcopy(self.scene_graph_db[self._get_image_id(idx)])
+    def _preprocess_answer(self, sample_info):
+        sample_info["answers"] = [
+            self.vg_answer_preprocessor(
+                {"text": sample_info["answers"][0]},
+                remove=["?", ",", ".", "a", "an", "the"],
+            )["text"]
+        ]
+        return sample_info
+    def _check_unk(self, sample_info):
+        if not self._no_unk:
+            return False
+        else:
+            index = self.answer_processor.word2idx(sample_info["answers"][0])
+            return index == self.answer_processor.answer_vocab.UNK_INDEX
+    def _load_scene_graph(self, idx, sample):
+        if self.scene_graph_db is None:
+            return sample
+        image_info = self._get_image_info(idx)
+        regions = image_info["regions"]
+        objects, object_map = self._load_objects(idx)
+        if self._return_objects:
+            sample.objects = objects
+        relationships, relationship_map = self._load_relationships(idx, object_map)
+        if self._return_relationships:
+            sample.relationships = relationships
+        regions, _ = self._load_regions(idx, object_map, relationship_map)
+        if self._return_scene_graph:
+            sample.scene_graph = regions
+        return sample
+    def _load_objects(self, idx):
+        image_info = self._get_image_info(idx)
+        image_height = image_info["height"]
+        image_width = image_info["width"]
+        object_map = {}
+        objects = []
+        for obj in image_info["objects"]:
+            obj["synsets"] = self.synset_processor({"tokens": obj["synsets"]})["text"]
+            obj["names"] = self.name_processor({"tokens": obj["names"]})["text"]
+            obj["height"] = obj["h"] / image_height
+            obj.pop("h")
+            obj["width"] = obj["w"] / image_width
+            obj.pop("w")
+            obj["y"] /= image_height
+            obj["x"] /= image_width
+            obj["attributes"] = self.attribute_processor({"tokens": obj["attributes"]})[
+                "text"
             ]
-        },
-    )
+            obj = Sample(obj)
+            object_map[obj["object_id"]] = obj
+            objects.append(obj)
+        objects = SampleList(objects)
+        return objects, object_map
+    def _load_relationships(self, idx, object_map):
+        if self._return_relationships is None and self._return_scene_graph is None:
+            return None, None
+        image_info = self._get_image_info(idx)
+        relationship_map = {}
+        relationships = []
+        for relationship in image_info["relationships"]:
+            relationship["synsets"] = self.synset_processor(
+                {"tokens": relationship["synsets"]}
+            )["text"]
+            relationship["predicate"] = self.predicate_processor(
+                {"tokens": relationship["predicate"]}
+            )["text"]
+            relationship["object"] = object_map[relationship["object_id"]]
+            relationship["subject"] = object_map[relationship["subject_id"]]
+            relationship = Sample(relationship)
+            relationship_map[relationship["relationship_id"]] = relationship
+            relationships.append(relationship)
+        relationships = SampleList(relationships)
+        return relationships, relationship_map
+    def _load_regions(self, idx, object_map, relationship_map):
+        if self._return_scene_graph is None:
+            return None, None
+        image_info = self._get_image_info(idx)
+        image_height = image_info["height"]
+        image_width = image_info["width"]
+        region_map = {}
+        regions = []
+        for region in image_info["regions"]:
+            for synset in region["synsets"]:
+                synset["entity_name"] = self.name_processor(
+                    {"tokens": [synset["entity_name"]]}
+                )["text"]
+                synset["synset_name"] = self.synset_processor(
+                    {"tokens": [synset["synset_name"]]}
+                )["text"]
+            region["height"] /= image_height
+            region["width"] /= image_width
+            region["y"] /= image_height
+            region["x"] /= image_width
+            relationships = []
+            objects = []
+            for relationship_idx in region["relationships"]:
+                relationships.append(relationship_map[relationship_idx])
+            for object_idx in region["objects"]:
+                objects.append(object_map[object_idx])
+            region["relationships"] = relationships
+            region["objects"] = objects
+            region["phrase"] = self.text_processor({"text": region["phrase"]})["text"]
+            region = Sample(region)
+            region_map[region["region_id"]] = region
+            regions.append(region)
+        regions = SampleList(regions)
+        return regions, region_map
