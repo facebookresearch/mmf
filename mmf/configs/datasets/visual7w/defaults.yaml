@@ -1,0 +1,34 @@
+dataset_config:
+  visual7w:
+    data_dir: ${env.data_dir}/datasets
+    depth_first: false
+    fast_read: false
+    use_images: false
+    use_features: true
+    features:
+      train:
+      - /checkpoint/omkar/datasets/visual7w/mmf_lmdbs/visual7w_resnext152_faster_rcnn_genome.lmdb,/checkpoint/omkar/datasets/visual7w/mmf_lmdbs/visual7w_gt_resnext152_faster_rcnn_genome.lmdb
+      val:
+      - /checkpoint/omkar/datasets/visual7w/mmf_lmdbs/visual7w_resnext152_faster_rcnn_genome.lmdb,/checkpoint/omkar/datasets/visual7w/mmf_lmdbs/visual7w_gt_resnext152_faster_rcnn_genome.lmdb
+      test:
+      - /checkpoint/omkar/datasets/visual7w/mmf_lmdbs/visual7w_resnext152_faster_rcnn_genome.lmdb,/checkpoint/omkar/datasets/visual7w/mmf_lmdbs/visual7w_gt_resnext152_faster_rcnn_genome.lmdb
+    annotations:
+      train:
+      - /checkpoint/omkar/datasets/visual7w/train.json
+      val:
+      - /checkpoint/omkar/datasets/visual7w/val.json
+      test:
+      - /checkpoint/omkar/datasets/visual7w/test.json
+    max_features: 100
+    max_region_num: 200
+    return_features_info: true
+    processors:
+      text_processor:
+        type: bert_tokenizer
+        params:
+          tokenizer_config:
+            type: bert-base-uncased
+            params:
+              do_lower_case: true
+          mask_probability: 0
+          max_seq_length: 128
